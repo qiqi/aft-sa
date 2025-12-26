@@ -1,0 +1,54 @@
+"""
+Grid generation and processing module.
+
+This module provides tools for:
+- Wrapping the Construct2D Fortran tool for hyperbolic C-grid generation
+- Reading and writing Plot3D structured grid files
+- Computing FVM grid metrics (cell centers, volumes, face normals, wall distance)
+"""
+
+from .mesher import (
+    Construct2DWrapper,
+    Construct2DError,
+    GridOptions,
+    estimate_first_cell_height
+)
+
+from .plot3d import (
+    read_plot3d,
+    read_plot3d_ascii,
+    read_plot3d_binary,
+    compute_metrics,
+    compute_cell_centers,
+    compute_cell_volumes,
+    compute_face_normals_i,
+    compute_face_normals_j,
+    compute_wall_distance,
+    compute_wall_distance_fast,
+    check_grid_quality,
+    GridMetrics,
+    StructuredGrid
+)
+
+__all__ = [
+    # Mesher
+    'Construct2DWrapper',
+    'Construct2DError', 
+    'GridOptions',
+    'estimate_first_cell_height',
+    # Plot3D
+    'read_plot3d',
+    'read_plot3d_ascii',
+    'read_plot3d_binary',
+    'compute_metrics',
+    'compute_cell_centers',
+    'compute_cell_volumes',
+    'compute_face_normals_i',
+    'compute_face_normals_j',
+    'compute_wall_distance',
+    'compute_wall_distance_fast',
+    'check_grid_quality',
+    'GridMetrics',
+    'StructuredGrid'
+]
+

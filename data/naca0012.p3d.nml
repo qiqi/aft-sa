@@ -1,0 +1,27 @@
+&SOPT
+  nsrf = 200
+  radi = 20.0
+  nwke = 40
+  bunc = 1.0
+  tept = 1
+  fdst = 1.0
+  fwkl = 1.0
+  fwki = 10.0
+/
+&VOPT
+  name = 'naca0012'
+  jmax = 80
+  slvr = 'HYPR'
+  topo = 'CGRD'
+  ypls = 1.0
+  recd = 1000000.0
+  nrmt = 1
+  nrmb = 1
+  stp1 = 1000
+  stp2 = 20
+  asmt = 10
+/
+&OOPT
+  gdim = 2
+  npln = 1
+/
