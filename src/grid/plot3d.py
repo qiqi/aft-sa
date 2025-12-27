@@ -625,3 +625,6 @@ def check_grid_quality(X: np.ndarray, Y: np.ndarray) -> dict:
         'max_volume': np.max(volumes)
     }
 
+
+
+
