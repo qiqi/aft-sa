@@ -54,11 +54,12 @@ Thumbs.db
 *.temp
 temp_*/
 
-# Grid generation outputs (keep in cases/)
+# Generated outputs (should not be in repo)
+*.pdf
+*.p3d
 *.nmf
 *_stats.p3d
 grid_options.in
 
-
-
-
+# Cases directory outputs
+cases/grids/
