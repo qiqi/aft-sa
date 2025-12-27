@@ -149,22 +149,16 @@ def plot_grid_quality(grid: StructuredGrid, name: str, output_dir: str = "."):
         ax1.set_ylabel('y/c')
         plt.colorbar(pc1, ax=ax1, shrink=0.8)
         
-        # Near-airfoil view
+        # Near-airfoil view - same plot, zoomed in
         ax2 = fig.add_subplot(2, 3, idx + 4)
         
-        # Limit to near-wall region
-        j_max = min(30, nj - 1)
-        X_near = X[:, :j_max+1]
-        Y_near = Y[:, :j_max+1]
-        metric_near = metric[:, :j_max]
-        
-        pc2 = ax2.pcolormesh(X_near.T, Y_near.T, metric_near.T, cmap=cmap, vmin=vmin, vmax=vmax,
+        pc2 = ax2.pcolormesh(X.T, Y.T, metric.T, cmap=cmap, vmin=vmin, vmax=vmax,
                              shading='flat', rasterized=True)
         ax2.plot(X[:, 0], Y[:, 0], 'k-', lw=2)
         ax2.set_aspect('equal')
-        ax2.set_xlim(-0.05, 1.05)
-        ax2.set_ylim(-0.12, 0.12)
-        ax2.set_title(f'{name} - {title} (Near Wall)')
+        ax2.set_xlim(-0.1, 1.1)
+        ax2.set_ylim(-0.2, 0.2)
+        ax2.set_title(f'{name} - {title} (Near Airfoil)')
         ax2.set_xlabel('x/c')
         ax2.set_ylabel('y/c')
         plt.colorbar(pc2, ax=ax2, shrink=0.8)
@@ -184,9 +178,8 @@ def plot_grid_overview(grid: StructuredGrid, name: str, output_dir: str = "."):
     
     # Full domain view
     ax = axes[0]
-    stride = max(1, X.shape[0] // 100)
-    ax.plot(X[::stride, :].T, Y[::stride, :].T, 'b-', lw=0.3, alpha=0.6)
-    ax.plot(X[:, ::stride], Y[:, ::stride], 'b-', lw=0.3, alpha=0.6)
+    ax.plot(X.T, Y.T, 'b-', lw=0.3, alpha=0.6)
+    ax.plot(X, Y, 'b-', lw=0.3, alpha=0.6)
     ax.plot(X[:, 0], Y[:, 0], 'r-', lw=1.5, label='Airfoil')
     ax.set_aspect('equal')
     ax.set_title(f'{name} - Full Domain')
@@ -195,19 +188,15 @@ def plot_grid_overview(grid: StructuredGrid, name: str, output_dir: str = "."):
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # Near-airfoil view
+    # Near-airfoil view - same plot, zoomed in
     ax = axes[1]
-    j_max = min(20, X.shape[1])
-    stride_i = max(1, X.shape[0] // 150)
-    for j in range(j_max):
-        ax.plot(X[::stride_i, j], Y[::stride_i, j], 'b-', lw=0.4, alpha=0.7)
-    for i in range(0, X.shape[0], stride_i):
-        ax.plot(X[i, :j_max], Y[i, :j_max], 'b-', lw=0.4, alpha=0.7)
+    ax.plot(X.T, Y.T, 'b-', lw=0.3, alpha=0.6)
+    ax.plot(X, Y, 'b-', lw=0.3, alpha=0.6)
     ax.plot(X[:, 0], Y[:, 0], 'r-', lw=2, label='Airfoil')
     ax.set_aspect('equal')
     ax.set_xlim(-0.1, 1.1)
-    ax.set_ylim(-0.15, 0.15)
-    ax.set_title(f'{name} - Near Wall (Boundary Layer Region)')
+    ax.set_ylim(-0.2, 0.2)
+    ax.set_title(f'{name} - Near Airfoil')
     ax.set_xlabel('x/c')
     ax.set_ylabel('y/c')
     ax.legend()
