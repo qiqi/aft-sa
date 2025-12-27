@@ -12,6 +12,9 @@ import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.collections import PolyCollection
+from matplotlib.colors import Normalize
+import matplotlib.cm as cm
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -19,8 +22,162 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.grid import Construct2DWrapper, GridOptions, StructuredGrid, check_grid_quality
 
 
-def plot_grid(grid: StructuredGrid, name: str, output_dir: str = "."):
-    """Plot and save grid visualization."""
+def compute_cell_quality_metrics(X: np.ndarray, Y: np.ndarray) -> dict:
+    """
+    Compute cell-level quality metrics for visualization.
+    
+    Returns metrics defined at cell centers (ni-1, nj-1).
+    """
+    ni, nj = X.shape
+    
+    # Cell vertices
+    # Cell (i,j) has corners: (i,j), (i+1,j), (i+1,j+1), (i,j+1)
+    
+    # Edge vectors
+    # Bottom edge: (i+1,j) - (i,j)
+    dx_bot = X[1:, :-1] - X[:-1, :-1]
+    dy_bot = Y[1:, :-1] - Y[:-1, :-1]
+    
+    # Top edge: (i+1,j+1) - (i,j+1)
+    dx_top = X[1:, 1:] - X[:-1, 1:]
+    dy_top = Y[1:, 1:] - Y[:-1, 1:]
+    
+    # Left edge: (i,j+1) - (i,j)
+    dx_left = X[:-1, 1:] - X[:-1, :-1]
+    dy_left = Y[:-1, 1:] - Y[:-1, :-1]
+    
+    # Right edge: (i+1,j+1) - (i+1,j)
+    dx_right = X[1:, 1:] - X[1:, :-1]
+    dy_right = Y[1:, 1:] - Y[1:, :-1]
+    
+    # Edge lengths
+    len_bot = np.sqrt(dx_bot**2 + dy_bot**2)
+    len_top = np.sqrt(dx_top**2 + dy_top**2)
+    len_left = np.sqrt(dx_left**2 + dy_left**2)
+    len_right = np.sqrt(dx_right**2 + dy_right**2)
+    
+    # Cell area using cross product of diagonals
+    # Diagonal 1: (i+1,j+1) - (i,j)
+    dx_d1 = X[1:, 1:] - X[:-1, :-1]
+    dy_d1 = Y[1:, 1:] - Y[:-1, :-1]
+    
+    # Diagonal 2: (i,j+1) - (i+1,j)
+    dx_d2 = X[:-1, 1:] - X[1:, :-1]
+    dy_d2 = Y[:-1, 1:] - Y[1:, :-1]
+    
+    # Area = 0.5 * |d1 x d2|
+    area = 0.5 * np.abs(dx_d1 * dy_d2 - dy_d1 * dx_d2)
+    
+    # Aspect ratio: max edge / min edge
+    max_edge = np.maximum(np.maximum(len_bot, len_top), np.maximum(len_left, len_right))
+    min_edge = np.minimum(np.minimum(len_bot, len_top), np.minimum(len_left, len_right))
+    aspect_ratio = max_edge / (min_edge + 1e-12)
+    
+    # Orthogonality at each corner (angle between edges)
+    # At corner (i,j): angle between bottom and left edges
+    def angle_between(dx1, dy1, dx2, dy2):
+        """Compute angle in degrees between two vectors."""
+        dot = dx1 * dx2 + dy1 * dy2
+        cross = dx1 * dy2 - dy1 * dx2
+        angle = np.abs(np.arctan2(np.abs(cross), dot))
+        return angle * 180 / np.pi
+    
+    # Angles at each corner
+    angle_bl = angle_between(dx_bot, dy_bot, dx_left, dy_left)     # bottom-left
+    angle_br = angle_between(-dx_bot, -dy_bot, dx_right, dy_right)  # bottom-right
+    angle_tl = angle_between(dx_top, dy_top, -dx_left, -dy_left)    # top-left
+    angle_tr = angle_between(-dx_top, -dy_top, -dx_right, -dy_right)  # top-right
+    
+    # Skewness: deviation from 90 degrees (ideal = 0)
+    skew_bl = np.abs(angle_bl - 90)
+    skew_br = np.abs(angle_br - 90)
+    skew_tl = np.abs(angle_tl - 90)
+    skew_tr = np.abs(angle_tr - 90)
+    
+    # Maximum skewness in cell
+    max_skew = np.maximum(np.maximum(skew_bl, skew_br), np.maximum(skew_tl, skew_tr))
+    
+    # Minimum angle (quality measure - should be > 0)
+    min_angle = np.minimum(np.minimum(angle_bl, angle_br), np.minimum(angle_tl, angle_tr))
+    
+    return {
+        'area': area,
+        'aspect_ratio': aspect_ratio,
+        'max_skew': max_skew,
+        'min_angle': min_angle,
+        'log_aspect': np.log10(aspect_ratio + 1),
+    }
+
+
+def plot_grid_quality(grid: StructuredGrid, name: str, output_dir: str = "."):
+    """Plot grid colored by mesh quality metrics."""
+    X, Y = grid.X, grid.Y
+    ni, nj = X.shape
+    
+    # Compute quality metrics
+    metrics = compute_cell_quality_metrics(X, Y)
+    
+    # Create figure with multiple views
+    fig = plt.figure(figsize=(18, 14))
+    
+    # Define subplot layout
+    # Row 1: Full domain views
+    # Row 2: Near-airfoil views
+    
+    plot_configs = [
+        # (metric_key, title, cmap, vmin, vmax, is_log)
+        ('max_skew', 'Max Skew Angle (°)', 'RdYlGn_r', 0, 45, False),
+        ('log_aspect', 'Aspect Ratio (log₁₀)', 'viridis', 0, 4, False),
+        ('min_angle', 'Min Corner Angle (°)', 'RdYlGn', 0, 90, False),
+    ]
+    
+    for idx, (metric_key, title, cmap, vmin, vmax, _) in enumerate(plot_configs):
+        metric = metrics[metric_key]
+        
+        # Full domain view
+        ax1 = fig.add_subplot(2, 3, idx + 1)
+        
+        # pcolormesh with shading='flat' expects C to be (M-1, N-1) for X,Y of shape (M, N)
+        # Our X,Y are (ni, nj) and metric is (ni-1, nj-1)
+        # We need to pass metric directly (not transposed) since X,Y define the quad corners
+        pc1 = ax1.pcolormesh(X.T, Y.T, metric.T, cmap=cmap, vmin=vmin, vmax=vmax, 
+                             shading='flat', rasterized=True)
+        ax1.plot(X[:, 0], Y[:, 0], 'k-', lw=1.5)
+        ax1.set_aspect('equal')
+        ax1.set_title(f'{name} - {title}')
+        ax1.set_xlabel('x/c')
+        ax1.set_ylabel('y/c')
+        plt.colorbar(pc1, ax=ax1, shrink=0.8)
+        
+        # Near-airfoil view
+        ax2 = fig.add_subplot(2, 3, idx + 4)
+        
+        # Limit to near-wall region
+        j_max = min(30, nj - 1)
+        X_near = X[:, :j_max+1]
+        Y_near = Y[:, :j_max+1]
+        metric_near = metric[:, :j_max]
+        
+        pc2 = ax2.pcolormesh(X_near.T, Y_near.T, metric_near.T, cmap=cmap, vmin=vmin, vmax=vmax,
+                             shading='flat', rasterized=True)
+        ax2.plot(X[:, 0], Y[:, 0], 'k-', lw=2)
+        ax2.set_aspect('equal')
+        ax2.set_xlim(-0.05, 1.05)
+        ax2.set_ylim(-0.12, 0.12)
+        ax2.set_title(f'{name} - {title} (Near Wall)')
+        ax2.set_xlabel('x/c')
+        ax2.set_ylabel('y/c')
+        plt.colorbar(pc2, ax=ax2, shrink=0.8)
+    
+    plt.tight_layout()
+    output_path = os.path.join(output_dir, f'quality_{name}.pdf')
+    plt.savefig(output_path, dpi=150)
+    print(f"  Saved quality plot: {output_path}")
+    plt.close()
+
+
+def plot_grid_overview(grid: StructuredGrid, name: str, output_dir: str = "."):
+    """Plot basic grid visualization."""
     X, Y = grid.X, grid.Y
     
     fig, axes = plt.subplots(1, 2, figsize=(16, 7))
@@ -40,7 +197,6 @@ def plot_grid(grid: StructuredGrid, name: str, output_dir: str = "."):
     
     # Near-airfoil view
     ax = axes[1]
-    # Find indices near airfoil (first ~20 j-levels)
     j_max = min(20, X.shape[1])
     stride_i = max(1, X.shape[0] // 150)
     for j in range(j_max):
@@ -60,7 +216,7 @@ def plot_grid(grid: StructuredGrid, name: str, output_dir: str = "."):
     plt.tight_layout()
     output_path = os.path.join(output_dir, f'grid_{name}.pdf')
     plt.savefig(output_path, dpi=150)
-    print(f"  Saved: {output_path}")
+    print(f"  Saved grid plot: {output_path}")
     plt.close()
 
 
@@ -82,30 +238,43 @@ def test_airfoil(wrapper: Construct2DWrapper, airfoil_file: str, name: str,
     grid = StructuredGrid(X=X, Y=Y)
     
     # Compute metrics
-    metrics = grid.compute_metrics(wall_j=0)
+    fvm_metrics = grid.compute_metrics(wall_j=0)
     
     # Check quality
     quality = check_grid_quality(X, Y)
     
+    # Compute cell-level metrics for summary
+    cell_metrics = compute_cell_quality_metrics(X, Y)
+    
     print(f"\n  Grid Statistics:")
-    print(f"    Dimensions:       {grid.ni} x {grid.nj}")
-    print(f"    Total cells:      {grid.n_cells:,}")
-    print(f"    First cell height: {metrics.wall_distance[:, 1].min():.2e}")
-    print(f"    Min Jacobian:     {quality['min_jacobian']:.4e}")
-    print(f"    Max skew angle:   {quality['max_skew_angle']:.2f} deg")
-    print(f"    Max aspect ratio: {quality['max_aspect_ratio']:.1f}")
+    print(f"    Dimensions:        {grid.ni} x {grid.nj}")
+    print(f"    Total cells:       {grid.n_cells:,}")
+    print(f"    First cell height: {fvm_metrics.wall_distance[:, 1].min():.2e}")
+    print(f"    Min Jacobian:      {quality['min_jacobian']:.4e}")
+    print(f"    Max skew angle:    {cell_metrics['max_skew'].max():.2f} deg")
+    print(f"    Min corner angle:  {cell_metrics['min_angle'].min():.2f} deg")
+    print(f"    Max aspect ratio:  {cell_metrics['aspect_ratio'].max():.1f}")
+    print(f"    Mean aspect ratio: {cell_metrics['aspect_ratio'].mean():.1f}")
     
     # Check for negative Jacobians (inverted cells)
     if quality['min_jacobian'] < 0:
         print(f"  WARNING: Grid has inverted cells (negative Jacobian)!")
+    
+    # Check for poor quality cells
+    n_high_skew = np.sum(cell_metrics['max_skew'] > 45)
+    if n_high_skew > 0:
+        print(f"  WARNING: {n_high_skew} cells with skew angle > 45°")
     
     # Save grid
     grid_file = os.path.join(output_dir, f'{name}.p3d')
     grid.write_plot3d(grid_file)
     print(f"  Saved grid: {grid_file}")
     
-    # Plot
-    plot_grid(grid, name, output_dir)
+    # Plot grid overview
+    plot_grid_overview(grid, name, output_dir)
+    
+    # Plot quality metrics
+    plot_grid_quality(grid, name, output_dir)
     
     return True
 
@@ -175,6 +344,11 @@ def main():
     n_passed = sum(results.values())
     n_total = len(results)
     print(f"\nTotal: {n_passed}/{n_total} passed")
+    
+    print(f"\nOutput files in: {output_dir}")
+    print("  - grid_*.pdf: Grid structure plots")
+    print("  - quality_*.pdf: Quality metric visualizations")
+    print("  - *.p3d: Plot3D grid files")
     
     if n_passed == n_total:
         print("\nAll tests passed!")
