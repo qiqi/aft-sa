@@ -274,8 +274,8 @@ def main():
     print("Construct2D Wrapper Test Suite")
     print("="*60)
     
-    # Setup paths
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # Setup paths (go up two levels: grid/ -> scripts/ -> project root)
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     bin_path = os.path.join(project_root, "bin", "construct2d")
     data_dir = os.path.join(project_root, "data")
     output_dir = os.path.join(project_root, "cases", "grids")
