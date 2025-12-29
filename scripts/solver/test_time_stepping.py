@@ -207,6 +207,74 @@ class TimeSteppingTests:
             return False, f"dt varies: min={dt.min():.6f}, max={dt.max():.6f}"
         return True, "Uniform dt on uniform grid"
     
+    def test_local_timestep_stretched_grid(self):
+        """Time step should follow grid stretching.
+        
+        This catches a common bug: mixing up i/j indices in metric arrays.
+        On a uniform grid, dx=dy hides this bug. On a stretched grid, it explodes.
+        
+        Test setup:
+        - dx varies from 0.01 (i=0) to 1.0 (i=NI-1) - 100x stretching
+        - dy is uniform at 0.1
+        - dt should follow the dx stretching (smaller cells = smaller dt)
+        """
+        NI, NJ = 40, 20
+        
+        # Create stretched grid: dx varies 100x, dy uniform
+        dx = np.linspace(0.01, 1.0, NI)  # 100x stretch in i-direction
+        dy = 0.1  # Uniform in j-direction
+        
+        # Build metric arrays (orthogonal grid)
+        # Expected shapes:
+        # - Q: (NI+2, NJ+2, 4) - with ghost cells
+        # - Si: (NI+1, NJ) - face areas/normals at i-faces
+        # - Sj: (NI, NJ+1) - face areas/normals at j-faces
+        # - volume: (NI, NJ) - cell volumes
+        
+        # Volume = dx * dy for each cell
+        volume = np.outer(dx, np.ones(NJ)) * dy
+        
+        # Face areas for orthogonal grid:
+        # Si (i-faces): normal in x-direction, area = dy
+        # There are NI+1 i-faces for NI cells
+        Si_x = np.ones((NI + 1, NJ)) * dy  # |Si| * nx where nx=1
+        Si_y = np.zeros((NI + 1, NJ))
+        
+        # Sj (j-faces): normal in y-direction, area = dx
+        # There are NJ+1 j-faces for NJ cells
+        # dx for cell i is used for both j-faces of that cell
+        Sj_x = np.zeros((NI, NJ + 1))
+        Sj_y = np.outer(dx, np.ones(NJ + 1))  # |Sj| * ny where ny=1
+        
+        # Uniform flow Q (with ghost cells)
+        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q[:, :, 1] = 1.0  # u = 1
+        
+        dt = compute_local_timestep(Q, Si_x, Si_y, Sj_x, Sj_y, volume, self.beta)
+        
+        # Check that dt follows the stretching trend
+        # Smaller cells (low i) should have smaller dt
+        dt_small_cell = dt[0, NJ//2]   # Small cell (i=0)
+        dt_large_cell = dt[NI-1, NJ//2]  # Large cell (i=NI-1)
+        
+        # dt ratio should be roughly the same as volume ratio
+        # (since spectral radius scales with face area, and volume/area ~ length)
+        # For this test, just check that the trend is correct and significant
+        ratio = dt_large_cell / dt_small_cell
+        
+        if ratio < 5.0:
+            return False, f"Stretching not reflected: dt_ratio={ratio:.1f}, expected >5"
+        
+        # Also check monotonicity along i at fixed j
+        dt_slice = dt[:, NJ//2]
+        if not np.all(np.diff(dt_slice) > 0):
+            # Find where monotonicity breaks
+            diffs = np.diff(dt_slice)
+            bad_idx = np.where(diffs <= 0)[0]
+            return False, f"dt not monotonic at i={bad_idx[0]}"
+        
+        return True, f"Stretched grid: dt_ratio={ratio:.1f}x"
+    
     def test_local_timestep_min_max_limits(self):
         """Time step should respect min/max limits."""
         Q = self.setup_uniform_flow()
@@ -400,6 +468,7 @@ class TimeSteppingTests:
         self.run_test("local_timestep_cfl_scaling", self.test_local_timestep_cfl_scaling)
         self.run_test("local_timestep_volume_scaling", self.test_local_timestep_volume_scaling)
         self.run_test("local_timestep_uniform", self.test_local_timestep_uniform_on_uniform_grid)
+        self.run_test("local_timestep_stretched_grid", self.test_local_timestep_stretched_grid)
         self.run_test("local_timestep_min_max_limits", self.test_local_timestep_min_max_limits)
         
         # Global timestep tests
