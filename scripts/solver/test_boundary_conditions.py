@@ -382,6 +382,35 @@ class BoundaryConditionTests:
         
         return True, "Interior preserved"
     
+    def test_wake_cut_nonuniform_flow(self):
+        """Wake cut BC should work for non-uniform flow (with lift).
+        
+        In a C-grid, the wake cut is a PERIODIC boundary where:
+        - Cell i=1 (first interior) and cell i=NI (last interior) are neighbors
+        - Ghost cells provide data from the opposite side for flux calculation
+        - The grid metrics (face normals) handle the geometric reflection
+        - Simple copy is correct: Q[0] = Q[-2], Q[-1] = Q[1]
+        
+        No velocity negation is needed because the face normals encode the geometry.
+        """
+        Q = self.setup_state()
+        
+        # Set non-uniform velocity field (simulating circulation)
+        # First interior row has different v than last interior row
+        Q[1, :, 2] = 0.1   # v = 0.1 on first interior
+        Q[-2, :, 2] = -0.05  # v = -0.05 on last interior
+        
+        bc = BoundaryConditions(freestream=self.setup_freestream())
+        Q_bc = bc.apply_wake_cut(Q)
+        
+        # Ghost cells should copy directly (no negation)
+        if not np.allclose(Q_bc[0, :, 2], Q[-2, :, 2]):
+            return False, f"Left ghost v={Q_bc[0, 4, 2]:.3f} != last interior v={Q[-2, 4, 2]:.3f}"
+        if not np.allclose(Q_bc[-1, :, 2], Q[1, :, 2]):
+            return False, f"Right ghost v={Q_bc[-1, 4, 2]:.3f} != first interior v={Q[1, 4, 2]:.3f}"
+        
+        return True, "Non-uniform flow handled correctly"
+    
     def run_all(self):
         """Run all tests."""
         # Freestream tests
@@ -405,6 +434,7 @@ class BoundaryConditionTests:
         self.run_test("wake_cut_left_ghost", self.test_wake_cut_left_ghost)
         self.run_test("wake_cut_right_ghost", self.test_wake_cut_right_ghost)
         self.run_test("wake_cut_periodic", self.test_wake_cut_periodic)
+        self.run_test("wake_cut_nonuniform_flow", self.test_wake_cut_nonuniform_flow)
         
         # Combined BC tests
         self.run_test("apply_all_bcs", self.test_apply_all_bcs)

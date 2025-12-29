@@ -446,9 +446,9 @@ def main():
         solver='HYPR',
     )
     
-    # Test airfoils
+    # Test with cambered (non-symmetric) airfoil to ensure tests work for general case
     test_cases = [
-        (os.path.join(data_dir, "naca0012.dat"), "naca0012"),
+        (os.path.join(data_dir, "naca2412.dat"), "naca2412"),
     ]
     
     all_passed = True

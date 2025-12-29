@@ -210,9 +210,23 @@ class BoundaryConditions:
         Apply wake cut periodic boundary conditions.
         
         C-grid Topology:
-            - The grid wraps around the airfoil
-            - i=0 (lower wake) connects to i=NI (upper wake)
-            - Ghost cells must copy from the opposite end
+            The C-grid wraps around the airfoil with a "cut" in the wake:
+            
+            - i=1 (first interior): adjacent to wake cut on lower side
+            - i=NI (last interior): adjacent to wake cut on upper side  
+            - These cells are NEIGHBORS across the wake cut
+            
+            The grid has reflection symmetry about the wake (Y=0):
+            - X[0, :] == X[-1, :]  (same X coordinates)
+            - Y[0, :] == -Y[-1, :] (opposite Y coordinates)
+            
+            However, this is handled by the GRID METRICS (face normals), not
+            by negating velocities. The face normals satisfy:
+            - Si_x[0, :] == -Si_x[-1, :]  (opposite, pointing into domain)
+            - Si_y[0, :] == Si_y[-1, :]   (same)
+            
+            Therefore, simple copy is correct - the flux computation using
+            these ghost values will automatically handle the geometry.
         
         Implementation:
             - Ghost at i=0: Copy from interior at i=NI (Q[-2, :, :])
@@ -233,6 +247,7 @@ class BoundaryConditions:
         #   - Right ghost (i=NI+1, which is Q[-1]) gets values from left interior (i=1)
         
         # Copy from opposite end for periodic connection
+        # No velocity negation needed - grid metrics handle the geometry
         Q[0, :, :] = Q[-2, :, :]   # Left ghost = right interior
         Q[-1, :, :] = Q[1, :, :]   # Right ghost = left interior
         
