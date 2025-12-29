@@ -1,7 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+from src.physics.laminar import Re_Omega
 from src.physics.boundary_layer import solve_falkner_skan
-from src.physics.laminar import Re_Omega, compute_nondimensional_amplification_rate
 
 def run():
     # --- 2. Phase Space Calculation ---

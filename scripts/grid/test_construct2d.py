@@ -16,8 +16,8 @@ from matplotlib.collections import PolyCollection
 from matplotlib.colors import Normalize
 import matplotlib.cm as cm
 
-# Add project root to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add project root to path (go up two levels: grid/ -> scripts/ -> project root)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from src.grid import Construct2DWrapper, GridOptions, StructuredGrid, check_grid_quality
 

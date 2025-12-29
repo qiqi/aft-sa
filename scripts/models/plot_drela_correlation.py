@@ -1,5 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 from src.physics.correlations import dN_dRe_theta, Re_theta0, compute_nondimensional_spatial_rate
 
 def run():

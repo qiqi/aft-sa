@@ -10,8 +10,8 @@ import os
 import sys
 import numpy as np
 
-# Add project root to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add project root to path (go up two levels: solver/ -> scripts/ -> project root)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from src.numerics.fluxes import (
     compute_fluxes,

@@ -1,6 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 from src.solvers.boundary_layer_solvers import NuHatBlasiusSolver
 
 def run():
