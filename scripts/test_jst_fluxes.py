@@ -400,6 +400,122 @@ def test_different_grid_sizes():
     
     return results
 
+def test_jst_switch_logic():
+    """
+    CRITICAL TEST: Verifies the 'Sensor' mechanism of JST.
+    
+    JST should use 4th order damping (k4) in smooth regions,
+    but switch to 2nd order damping (k2) near strong gradients.
+    
+    We compare the PRESSURE (continuity) residual only, since the momentum
+    residual contains physical contributions from dp/dx that are not
+    related to the dissipation switch.
+    """
+    results = TestResults()
+    print("\n" + "=" * 60)
+    print("Test: JST Pressure Switch Logic")
+    print("=" * 60)
+    
+    NI, NJ = 10, 5
+    Q = create_uniform_state(NI, NJ)
+    metrics = create_cartesian_grid(NI, NJ)
+    beta = 1.0
+    
+    # 1. Smooth Flow (Linear Gradient)
+    # The 2nd derivative of linear data is 0, so the pressure sensor should be 0.
+    # With zero sensor, only k4 (4th order) dissipation acts.
+    # For linear pressure, d^4p/dx^4 = 0, so dissipation flux ≈ 0.
+    for i in range(NI + 2):
+        Q[i, :, 0] = 1.0 + 0.1 * i  # Linear pressure ramp
+        
+    cfg = FluxConfig(k2=0.5, k4=0.016)
+    
+    res_smooth = compute_fluxes(Q, metrics, beta, cfg)
+    # Focus on pressure residual - this shows dissipation behavior
+    # (Momentum residual is dominated by physical dp/dx term)
+    mag_smooth_p = np.abs(res_smooth[:, :, 0]).max()
+    
+    # 2. Shock (Step Function)
+    # A sharp jump should trigger the pressure sensor -> high dissipation
+    Q_shock = create_uniform_state(NI, NJ)
+    Q_shock[0:6, :, 0] = 1.0
+    Q_shock[6:, :, 0] = 2.0  # Step at i=6
+    
+    res_shock = compute_fluxes(Q_shock, metrics, beta, cfg)
+    mag_shock_p = np.abs(res_shock[:, :, 0]).max()
+    
+    # The pressure residual at a shock should be significantly larger
+    # than in smooth flow (which should be ~machine precision)
+    ratio = mag_shock_p / (mag_smooth_p + 1e-20)
+    
+    results.check(
+        ratio > 1e6,
+        "Switch Activation (pressure residual)",
+        f"Shock ({mag_shock_p:.2e}) should be >> Smooth ({mag_smooth_p:.2e})"
+    )
+    
+    # Also verify the smooth case has essentially zero pressure residual
+    results.check(
+        mag_smooth_p < 1e-12,
+        "Smooth flow: zero pressure dissipation",
+        f"Got {mag_smooth_p:.2e}, expected < 1e-12"
+    )
+    
+    print(f"  Smooth gradient - pressure residual: {mag_smooth_p:.2e}")
+    print(f"  Step function   - pressure residual: {mag_shock_p:.2e}")
+    print(f"  Ratio: {ratio:.2e}")
+    
+    return results
+
+def test_symmetry_preservation():
+    """
+    Visual/Logic Test: Does a symmetric condition result in symmetric output?
+    This catches 'off-by-one' indexing errors in flux calculations.
+    """
+    results = TestResults()
+    print("\n" + "=" * 60)
+    print("Test: Symmetry Preservation")
+    print("=" * 60)
+    
+    NI, NJ = 11, 11 # Odd number to have a center line
+    Q = create_uniform_state(NI, NJ)
+    metrics = create_cartesian_grid(NI, NJ)
+    
+    # Place a pressure spike exactly in the center
+    center_i, center_j = 6, 6 # (indices include ghost cells)
+    Q[center_i, center_j, 0] = 5.0
+    
+    beta = 10.0
+    cfg = FluxConfig()
+    
+    res = compute_fluxes(Q, metrics, beta, cfg)
+    
+    # The X-momentum residual to the left of center should be 
+    # equal and opposite to the right of center
+    # Center index in output (without ghost) is 5, 5
+    res_left  = res[4, 5, 1] # i=4, j=5, var=u
+    res_right = res[6, 5, 1] # i=6, j=5, var=u
+    
+    # Y-momentum top vs bottom
+    res_bot = res[5, 4, 2]
+    res_top = res[5, 6, 2]
+    
+    sym_error_x = np.abs(res_left + res_right) # Should sum to 0
+    sym_error_y = np.abs(res_bot + res_top)
+    
+    results.check(
+        sym_error_x < 1e-10,
+        "X-Symmetry (Left/Right)",
+        f"Left: {res_left:.4f}, Right: {res_right:.4f}, Sum: {sym_error_x:.2e}"
+    )
+    
+    results.check(
+        sym_error_y < 1e-10,
+        "Y-Symmetry (Top/Bottom)",
+        f"Bot: {res_bot:.4f}, Top: {res_top:.4f}, Sum: {sym_error_y:.2e}"
+    )
+    
+    return results
 
 def main():
     """Run all tests."""
@@ -418,6 +534,8 @@ def main():
     all_results.append(test_convective_flux())
     all_results.append(test_time_step())
     all_results.append(test_different_grid_sizes())
+    all_results.append(test_jst_switch_logic())
+    all_results.append(test_symmetry_preservation())
     
     # Overall summary
     total_passed = sum(r.passed for r in all_results)
