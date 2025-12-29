@@ -1,8 +1,16 @@
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+def get_output_dir():
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    out = os.path.join(project_root, 'output', 'models')
+    os.makedirs(out, exist_ok=True)
+    return out
 
 from src.physics.boundary_layer import Blasius
 from src.physics.laminar import Re_Omega, amplification
@@ -36,8 +44,7 @@ def run():
     ax[2].set_xlabel(r"amplfication $(\times 10^{-3})$")
     ax[3].set_xlabel(r"$dU/dy (\times 10^{-3})$")
     
-    plt.savefig('blasius_ReOmega_growth.pdf')
-    print("Plot saved to blasius_ReOmega_growth.pdf")
+    out_path = os.path.join(get_output_dir(), 'blasius_ReOmega_growth.pdf'); plt.savefig(out_path); print(f'Saved: {out_path}')
 
 if __name__ == "__main__":
     run()

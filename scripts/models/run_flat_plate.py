@@ -1,9 +1,17 @@
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import torch
 import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+def get_output_dir():
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    out = os.path.join(project_root, 'output', 'models')
+    os.makedirs(out, exist_ok=True)
+    return out
 
 from src.solvers.boundary_layer_solvers import NuHatFlatPlateSolver
 
@@ -73,8 +81,7 @@ def run():
     plt.xlabel(r'$\theta$')
     plt.ylabel(r'$c_f$')
     
-    plt.savefig('flat_plate_batch.pdf')
-    print("Plot saved to flat_plate_batch.pdf")
+    out_path = os.path.join(get_output_dir(), 'flat_plate_batch.pdf'); plt.savefig(out_path); print(f'Saved: {out_path}')
 
 if __name__ == "__main__":
     run()

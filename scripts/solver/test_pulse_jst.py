@@ -18,6 +18,8 @@ Diagnostics:
 import os
 import sys
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # Add project root to path (go up two levels: solver/ -> scripts/ -> project root)
@@ -25,9 +27,18 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 from src.numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics
 
+
+def get_output_dir():
+    """Get output directory for solver tests."""
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    output_dir = os.path.join(project_root, "output", "solver")
+    os.makedirs(output_dir, exist_ok=True)
+    return output_dir
+
+
 def run_pulse_test():
-    # 1. Setup Grid
-    NI, NJ = 80, 80
+    # 1. Setup Grid - smaller for fast testing
+    NI, NJ = 40, 40  # Reduced from 80x80 for speed
     dx, dy = 1.0, 1.0
     
     # 2. Initial State (Quiescent with Pressure Pulse)
@@ -37,13 +48,12 @@ def run_pulse_test():
     Q[:, :, 2] = 0.0  # v = 0 (quiescent)
     Q[:, :, 3] = 1e-6 # Small nu_tilde
     
-    # Gaussian Pulse in center
+    # Gaussian Pulse in center (vectorized)
     cx, cy = (NI + 2) // 2, (NJ + 2) // 2
-    sigma = 3.0  # Pulse width
-    for i in range(NI + 2):
-        for j in range(NJ + 2):
-            dist_sq = (i - cx)**2 + (j - cy)**2
-            Q[i, j, 0] += 1.0 * np.exp(-dist_sq / (2 * sigma**2))
+    sigma = 2.0  # Pulse width (scaled for smaller grid)
+    ii, jj = np.meshgrid(np.arange(NI + 2), np.arange(NJ + 2), indexing='ij')
+    dist_sq = (ii - cx)**2 + (jj - cy)**2
+    Q[:, :, 0] += 1.0 * np.exp(-dist_sq / (2 * sigma**2))
 
     # 3. Physics Params
     beta = 10.0  # Artificial compressibility factor
@@ -67,10 +77,10 @@ def run_pulse_test():
     print("Running Pulse Propagation...")
     print(f"  Grid: {NI}x{NJ}, beta={beta}, CFL={cfl}, dt={dt:.4f}")
     
-    steps = 100
-    plot_interval = 25
+    steps = 50  # Reduced from 100 for speed
+    plot_interval = steps // 4
     
-    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
     axes = axes.flatten()
     plot_idx = 0
     
@@ -104,7 +114,7 @@ def run_pulse_test():
             # (R is defined as net flux INTO cell, so positive R = accumulation)
             Q[1:-1, 1:-1, :] += (dt / vol[:, :, np.newaxis]) * R
             
-            # Neumann BCs (copy to ghost cells)
+            # Simple extrapolation BCs
             Q[0, :, :] = Q[1, :, :]
             Q[-1, :, :] = Q[-2, :, :]
             Q[:, 0, :] = Q[:, 1, :]
@@ -114,8 +124,11 @@ def run_pulse_test():
                  "(Diamond = upwinding error, Square = metric error, "
                  "Noise = low k4, Smeared = high k2)", fontsize=10)
     plt.tight_layout()
-    plt.savefig("test_pulse.png", dpi=150)
-    print("Generated 'test_pulse.png'. Open it to verify circular symmetry.")
+    
+    output_file = os.path.join(get_output_dir(), "test_pulse.pdf")
+    plt.savefig(output_file, dpi=150)
+    print(f"Saved: {output_file}")
+    plt.close()
     
     # Check final state for NaN/Inf
     if np.any(~np.isfinite(Q)):
@@ -124,10 +137,10 @@ def run_pulse_test():
     
     print(f"  Final pressure range: [{Q[:,:,0].min():.3f}, {Q[:,:,0].max():.3f}]")
     
-    # Quantitative symmetry check
+    # Quantitative symmetry check (adjusted for smaller grid)
     p = Q[1:-1, 1:-1, 0]
     center = NI // 2
-    r_check = 20
+    r_check = 10  # Reduced for smaller grid
     
     # Check 4-fold symmetry (should be perfect)
     p_left = p[center - r_check, center]
@@ -140,15 +153,8 @@ def run_pulse_test():
     print(f"  Symmetry error (L/R/T/B): {sym_error:.2e}")
     
     # Check circularity (axis vs diagonal at same radius)
-    # For radius r: axis point is at (r, 0), diagonal point is at (r/√2, r/√2)
-    r_diag = int(r_check / np.sqrt(2))  # ~14 for r_check=20
-    p_axis = p[center + r_diag, center]  # Use same r as diagonal for fair comparison
-    p_diag = p[center + r_diag, center + r_diag]  # actual r = r_diag * √2 ≈ r_check
-    # Actually let's compare at same actual radius
-    # Axis at r=14: (center+14, center), actual r=14
-    # Diagonal at r≈14: (center+10, center+10), actual r=14.14
-    r_axis = 14
-    r_d = 10  # 10*sqrt(2) ≈ 14.14
+    r_axis = 7
+    r_d = 5  # 5*sqrt(2) ≈ 7.07
     p_axis = p[center + r_axis, center]
     p_diag = p[center + r_d, center + r_d]
     circ_diff = abs(p_axis - p_diag)

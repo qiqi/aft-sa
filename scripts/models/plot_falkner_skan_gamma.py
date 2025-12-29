@@ -1,8 +1,16 @@
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+def get_output_dir():
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    out = os.path.join(project_root, 'output', 'models')
+    os.makedirs(out, exist_ok=True)
+    return out
 
 from src.physics.laminar import Re_Omega
 from src.physics.boundary_layer import solve_falkner_skan
@@ -77,8 +85,7 @@ def run():
     ax[0].set_ylim([10, 10000])
     ax[1].set_yscale('log')
     
-    plt.savefig('falkner_skan_gamma.pdf')
-    print("Plot saved to falkner_skan_gamma.pdf")
+    out_path = os.path.join(get_output_dir(), 'falkner_skan_gamma.pdf'); plt.savefig(out_path); print(f'Saved: {out_path}')
 
 if __name__ == "__main__":
     run()

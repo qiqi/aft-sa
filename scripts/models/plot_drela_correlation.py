@@ -1,8 +1,16 @@
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+def get_output_dir():
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    out = os.path.join(project_root, 'output', 'models')
+    os.makedirs(out, exist_ok=True)
+    return out
 
 from src.physics.correlations import dN_dRe_theta, Re_theta0, compute_nondimensional_spatial_rate
 
@@ -43,8 +51,7 @@ def run():
 
     plt.title(r"Growth Rate and Critical $Re_\theta$ vs Shape Factor $H$")
     plt.tight_layout()
-    plt.savefig('drela_correlation.pdf')
-    print("Plot saved to drela_correlation.pdf")
+    out_path = os.path.join(get_output_dir(), 'drela_correlation.pdf'); plt.savefig(out_path); print(f'Saved: {out_path}')
 
 if __name__ == "__main__":
     run()

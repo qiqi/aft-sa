@@ -61,5 +61,5 @@ temp_*/
 *_stats.p3d
 grid_options.in
 
-# Cases directory outputs
-cases/grids/
+# Test output directory
+output/

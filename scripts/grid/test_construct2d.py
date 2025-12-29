@@ -11,6 +11,8 @@ Generates C-grids for common airfoils used in RANS transition model testing:
 import os
 import sys
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.collections import PolyCollection
 from matplotlib.colors import Normalize
@@ -112,60 +114,44 @@ def compute_cell_quality_metrics(X: np.ndarray, Y: np.ndarray) -> dict:
 def plot_grid_quality(grid: StructuredGrid, name: str, output_dir: str = "."):
     """Plot grid colored by mesh quality metrics."""
     X, Y = grid.X, grid.Y
-    ni, nj = X.shape
     
     # Compute quality metrics
     metrics = compute_cell_quality_metrics(X, Y)
     
-    # Create figure with multiple views
-    fig = plt.figure(figsize=(18, 14))
+    # Simplified: just show skew angle (most important quality metric)
+    # Full domain + near-airfoil view
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     
-    # Define subplot layout
-    # Row 1: Full domain views
-    # Row 2: Near-airfoil views
+    metric = metrics['max_skew']
+    cmap, vmin, vmax = 'RdYlGn_r', 0, 45
     
-    plot_configs = [
-        # (metric_key, title, cmap, vmin, vmax, is_log)
-        ('max_skew', 'Max Skew Angle (°)', 'RdYlGn_r', 0, 45, False),
-        ('log_aspect', 'Aspect Ratio (log₁₀)', 'viridis', 0, 4, False),
-        ('min_angle', 'Min Corner Angle (°)', 'RdYlGn', 0, 90, False),
-    ]
+    # Full domain view
+    ax = axes[0]
+    pc = ax.pcolormesh(X.T, Y.T, metric.T, cmap=cmap, vmin=vmin, vmax=vmax, 
+                       shading='flat', rasterized=True)
+    ax.plot(X[:, 0], Y[:, 0], 'k-', lw=1.5)
+    ax.set_aspect('equal')
+    ax.set_title(f'{name} - Max Skew Angle (°)')
+    ax.set_xlabel('x/c')
+    ax.set_ylabel('y/c')
+    plt.colorbar(pc, ax=ax, shrink=0.8)
     
-    for idx, (metric_key, title, cmap, vmin, vmax, _) in enumerate(plot_configs):
-        metric = metrics[metric_key]
-        
-        # Full domain view
-        ax1 = fig.add_subplot(2, 3, idx + 1)
-        
-        # pcolormesh with shading='flat' expects C to be (M-1, N-1) for X,Y of shape (M, N)
-        # Our X,Y are (ni, nj) and metric is (ni-1, nj-1)
-        # We need to pass metric directly (not transposed) since X,Y define the quad corners
-        pc1 = ax1.pcolormesh(X.T, Y.T, metric.T, cmap=cmap, vmin=vmin, vmax=vmax, 
-                             shading='flat', rasterized=True)
-        ax1.plot(X[:, 0], Y[:, 0], 'k-', lw=1.5)
-        ax1.set_aspect('equal')
-        ax1.set_title(f'{name} - {title}')
-        ax1.set_xlabel('x/c')
-        ax1.set_ylabel('y/c')
-        plt.colorbar(pc1, ax=ax1, shrink=0.8)
-        
-        # Near-airfoil view - same plot, zoomed in
-        ax2 = fig.add_subplot(2, 3, idx + 4)
-        
-        pc2 = ax2.pcolormesh(X.T, Y.T, metric.T, cmap=cmap, vmin=vmin, vmax=vmax,
-                             shading='flat', rasterized=True)
-        ax2.plot(X[:, 0], Y[:, 0], 'k-', lw=2)
-        ax2.set_aspect('equal')
-        ax2.set_xlim(-0.1, 1.1)
-        ax2.set_ylim(-0.2, 0.2)
-        ax2.set_title(f'{name} - {title} (Near Airfoil)')
-        ax2.set_xlabel('x/c')
-        ax2.set_ylabel('y/c')
-        plt.colorbar(pc2, ax=ax2, shrink=0.8)
+    # Near-airfoil view
+    ax = axes[1]
+    pc = ax.pcolormesh(X.T, Y.T, metric.T, cmap=cmap, vmin=vmin, vmax=vmax,
+                       shading='flat', rasterized=True)
+    ax.plot(X[:, 0], Y[:, 0], 'k-', lw=2)
+    ax.set_aspect('equal')
+    ax.set_xlim(-0.1, 1.1)
+    ax.set_ylim(-0.2, 0.2)
+    ax.set_title(f'{name} - Max Skew Angle (Near Airfoil)')
+    ax.set_xlabel('x/c')
+    ax.set_ylabel('y/c')
+    plt.colorbar(pc, ax=ax, shrink=0.8)
     
     plt.tight_layout()
     output_path = os.path.join(output_dir, f'quality_{name}.pdf')
-    plt.savefig(output_path, dpi=150)
+    plt.savefig(output_path, dpi=100)
     print(f"  Saved quality plot: {output_path}")
     plt.close()
 
@@ -174,12 +160,16 @@ def plot_grid_overview(grid: StructuredGrid, name: str, output_dir: str = "."):
     """Plot basic grid visualization."""
     X, Y = grid.X, grid.Y
     
-    fig, axes = plt.subplots(1, 2, figsize=(16, 7))
+    # Use stride for faster plotting (every 2nd line is sufficient for visualization)
+    stride_i = max(1, X.shape[0] // 60)  # Aim for ~60 lines in i-direction
+    stride_j = max(1, X.shape[1] // 30)  # Aim for ~30 lines in j-direction
+    
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     
     # Full domain view
     ax = axes[0]
-    ax.plot(X.T, Y.T, 'b-', lw=0.3, alpha=0.6)
-    ax.plot(X, Y, 'b-', lw=0.3, alpha=0.6)
+    ax.plot(X[::stride_i, :].T, Y[::stride_i, :].T, 'b-', lw=0.3, alpha=0.6)
+    ax.plot(X[:, ::stride_j], Y[:, ::stride_j], 'b-', lw=0.3, alpha=0.6)
     ax.plot(X[:, 0], Y[:, 0], 'r-', lw=1.5, label='Airfoil')
     ax.set_aspect('equal')
     ax.set_title(f'{name} - Full Domain')
@@ -188,7 +178,7 @@ def plot_grid_overview(grid: StructuredGrid, name: str, output_dir: str = "."):
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # Near-airfoil view - same plot, zoomed in
+    # Near-airfoil view - full resolution near wall
     ax = axes[1]
     ax.plot(X.T, Y.T, 'b-', lw=0.3, alpha=0.6)
     ax.plot(X, Y, 'b-', lw=0.3, alpha=0.6)
@@ -204,7 +194,7 @@ def plot_grid_overview(grid: StructuredGrid, name: str, output_dir: str = "."):
     
     plt.tight_layout()
     output_path = os.path.join(output_dir, f'grid_{name}.pdf')
-    plt.savefig(output_path, dpi=150)
+    plt.savefig(output_path, dpi=100)
     print(f"  Saved grid plot: {output_path}")
     plt.close()
 
@@ -278,7 +268,7 @@ def main():
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     bin_path = os.path.join(project_root, "bin", "construct2d")
     data_dir = os.path.join(project_root, "data")
-    output_dir = os.path.join(project_root, "cases", "grids")
+    output_dir = os.path.join(project_root, "output", "grid")
     
     os.makedirs(output_dir, exist_ok=True)
     
@@ -294,15 +284,15 @@ def main():
     print(f"Output: {output_dir}")
     
     # Define test cases
-    # Grid options for transition-capable grids (fine near wall)
+    # Grid options - smaller grid for fast testing (full production grids would use 300x100)
     options = GridOptions(
-        n_surface=300,          # Points on airfoil surface
-        n_normal=100,           # Points in wall-normal direction
-        y_plus=0.5,             # Target y+ (< 1 for resolving viscous sublayer)
+        n_surface=80,           # Points on airfoil surface (production: 300)
+        n_normal=30,            # Points in wall-normal direction (production: 100)
+        y_plus=1.0,             # Target y+ (relaxed for speed)
         reynolds=1e6,           # Reynolds number for y+ calculation
         topology='CGRD',        # C-grid for wake resolution
-        farfield_radius=25.0,   # Farfield distance in chord lengths
-        n_wake=60,              # Points along wake
+        farfield_radius=15.0,   # Farfield distance in chord lengths (production: 25)
+        n_wake=20,              # Points along wake (production: 60)
         solver='HYPR',          # Hyperbolic grid generator
     )
     
