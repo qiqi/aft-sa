@@ -411,6 +411,153 @@ class BoundaryConditionTests:
         
         return True, "Non-uniform flow handled correctly"
     
+    # ===== Corner Ghost Cell Tests =====
+    
+    def test_corner_wall_wake_trailing_edge(self):
+        """Corner at wall-wake intersection (trailing edge).
+        
+        Corners: Q[0, 0, :] and Q[-1, 0, :]
+        
+        Physics: At the trailing edge, the wake cut connects the upper and lower
+        surfaces. The corner ghost cells are set by the wake cut BC (applied last),
+        which copies from the opposite interior cell.
+        
+        This is correct because:
+        - The trailing edge is where the two wake branches meet
+        - The periodic BC ensures flow continuity across the cut
+        """
+        Q = self.setup_state()
+        
+        # Set distinct values to track what gets copied where
+        Q[1, 1, 0] = 100.0    # Left interior near wall
+        Q[-2, 1, 0] = 200.0   # Right interior near wall
+        
+        bc = BoundaryConditions(freestream=self.setup_freestream())
+        Q_bc = bc.apply(Q)
+        
+        # Corners should be set by wake cut (last applied)
+        # Q[0, 0] should copy from Q[-2, 0] (right interior at wall)
+        # Q[-1, 0] should copy from Q[1, 0] (left interior at wall)
+        
+        # Note: surface BC was applied first, so Q[-2, 0] = -Q[-2, 1] (mirrored)
+        # Then wake cut copies Q[0, :] = Q[-2, :], so Q[0, 0] = Q[-2, 0] = -Q[-2, 1]
+        
+        # Check the corner is set (not undefined/NaN)
+        if np.isnan(Q_bc[0, 0, 0]) or np.isnan(Q_bc[-1, 0, 0]):
+            return False, "Corner contains NaN"
+        
+        # Verify wake cut BC was applied to corners
+        if not np.allclose(Q_bc[0, 0, :], Q_bc[-2, 0, :]):
+            return False, "Left wall-wake corner != right interior at wall"
+        if not np.allclose(Q_bc[-1, 0, :], Q_bc[1, 0, :]):
+            return False, "Right wall-wake corner != left interior at wall"
+        
+        return True, "Wall-wake corners set by wake cut BC"
+    
+    def test_corner_farfield_wake(self):
+        """Corner at farfield-wake intersection.
+        
+        Corners: Q[0, -1, :] and Q[-1, -1, :]
+        
+        Physics: These corners are far from the airfoil in the wake region.
+        The wake cut BC is applied last, so corners copy from the opposite
+        interior cells at the farfield level.
+        
+        This maintains periodicity across the full wake cut.
+        """
+        Q = self.setup_state()
+        
+        # Set distinct values in farfield interior cells
+        Q[1, -2, 0] = 300.0    # Left interior at farfield
+        Q[-2, -2, 0] = 400.0   # Right interior at farfield
+        
+        bc = BoundaryConditions(freestream=self.setup_freestream())
+        Q_bc = bc.apply(Q)
+        
+        # Farfield BC sets Q[:, -1] = freestream values
+        # Wake cut BC then copies Q[0, :] = Q[-2, :] and Q[-1, :] = Q[1, :]
+        # So corners Q[0, -1] and Q[-1, -1] come from wake cut (periodic)
+        
+        # Check corners are set
+        if np.isnan(Q_bc[0, -1, 0]) or np.isnan(Q_bc[-1, -1, 0]):
+            return False, "Farfield-wake corner contains NaN"
+        
+        # Verify wake cut BC was applied to corners
+        if not np.allclose(Q_bc[0, -1, :], Q_bc[-2, -1, :]):
+            return False, "Left farfield-wake corner != right interior at farfield"
+        if not np.allclose(Q_bc[-1, -1, :], Q_bc[1, -1, :]):
+            return False, "Right farfield-wake corner != left interior at farfield"
+        
+        return True, "Farfield-wake corners set by wake cut BC"
+    
+    def test_corner_consistency_after_repeated_application(self):
+        """Corners should be consistent after repeated BC application.
+        
+        If BCs are applied multiple times (as in time-stepping), the corner
+        values should remain stable (idempotent).
+        """
+        Q = self.setup_state()
+        
+        # Set some non-uniform values
+        Q[5, 5, :] = [10.0, 2.0, 0.5, 1e-5]
+        
+        bc = BoundaryConditions(freestream=self.setup_freestream())
+        
+        # Apply BCs multiple times
+        Q1 = bc.apply(Q)
+        Q2 = bc.apply(Q1)
+        Q3 = bc.apply(Q2)
+        
+        # All four corners should be identical across applications
+        corners = [(0, 0), (0, -1), (-1, 0), (-1, -1)]
+        for i, j in corners:
+            if not np.allclose(Q1[i, j, :], Q2[i, j, :]):
+                return False, f"Corner ({i},{j}) changed on 2nd application"
+            if not np.allclose(Q2[i, j, :], Q3[i, j, :]):
+                return False, f"Corner ({i},{j}) changed on 3rd application"
+        
+        return True, "Corners stable across repeated BC application"
+    
+    def test_corner_velocity_at_trailing_edge(self):
+        """At trailing edge corners, velocity should satisfy wall BC.
+        
+        Physics check: Even though wake cut BC sets the corner ghost cells,
+        the resulting velocity at the trailing edge face should still be
+        consistent with no-slip (u ≈ 0).
+        
+        This is because the wake cut copies from interior cells that have
+        already been processed by the surface BC.
+        """
+        Q = self.setup_state()
+        
+        # Set interior velocity near trailing edge
+        Q[1, 1, 1] = 5.0   # u at left side
+        Q[1, 1, 2] = 2.0   # v at left side
+        Q[-2, 1, 1] = 5.0  # u at right side
+        Q[-2, 1, 2] = -2.0 # v at right side (opposite due to geometry)
+        
+        bc = BoundaryConditions(freestream=self.setup_freestream())
+        Q_bc = bc.apply(Q)
+        
+        # At the wall face (between j=0 ghost and j=1 interior),
+        # the face velocity should be (ghost + interior) / 2
+        
+        # For the corner at i=0 (left ghost), j=0 (wall ghost):
+        # The corner ghost Q[0, 0] was set by wake cut from Q[-2, 0]
+        # Q[-2, 0] was set by wall BC to mirror Q[-2, 1]
+        
+        # Check that wall-adjacent face velocity is ~0
+        # Face between Q[1, 0] and Q[1, 1]
+        u_face_left = 0.5 * (Q_bc[1, 0, 1] + Q_bc[1, 1, 1])
+        u_face_right = 0.5 * (Q_bc[-2, 0, 1] + Q_bc[-2, 1, 1])
+        
+        if not np.isclose(u_face_left, 0.0, atol=1e-10):
+            return False, f"Left wall face u = {u_face_left:.3f} != 0"
+        if not np.isclose(u_face_right, 0.0, atol=1e-10):
+            return False, f"Right wall face u = {u_face_right:.3f} != 0"
+        
+        return True, "Wall face velocity = 0 near trailing edge"
+    
     def run_all(self):
         """Run all tests."""
         # Freestream tests
@@ -435,6 +582,12 @@ class BoundaryConditionTests:
         self.run_test("wake_cut_right_ghost", self.test_wake_cut_right_ghost)
         self.run_test("wake_cut_periodic", self.test_wake_cut_periodic)
         self.run_test("wake_cut_nonuniform_flow", self.test_wake_cut_nonuniform_flow)
+        
+        # Corner ghost cell tests
+        self.run_test("corner_wall_wake", self.test_corner_wall_wake_trailing_edge)
+        self.run_test("corner_farfield_wake", self.test_corner_farfield_wake)
+        self.run_test("corner_stability", self.test_corner_consistency_after_repeated_application)
+        self.run_test("corner_trailing_edge_noslip", self.test_corner_velocity_at_trailing_edge)
         
         # Combined BC tests
         self.run_test("apply_all_bcs", self.test_apply_all_bcs)
