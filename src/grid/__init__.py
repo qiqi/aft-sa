@@ -18,7 +18,6 @@ from .plot3d import (
     read_plot3d,
     read_plot3d_ascii,
     read_plot3d_binary,
-    compute_metrics,
     compute_cell_centers,
     compute_cell_volumes,
     compute_face_normals_i,
@@ -28,6 +27,13 @@ from .plot3d import (
     check_grid_quality,
     GridMetrics,
     StructuredGrid
+)
+
+from .metrics import (
+    MetricComputer,
+    FVMMetrics,
+    GCLValidation,
+    compute_metrics
 )
 
 __all__ = [
@@ -40,7 +46,6 @@ __all__ = [
     'read_plot3d',
     'read_plot3d_ascii',
     'read_plot3d_binary',
-    'compute_metrics',
     'compute_cell_centers',
     'compute_cell_volumes',
     'compute_face_normals_i',
@@ -49,7 +54,12 @@ __all__ = [
     'compute_wall_distance_fast',
     'check_grid_quality',
     'GridMetrics',
-    'StructuredGrid'
+    'StructuredGrid',
+    # Metrics
+    'MetricComputer',
+    'FVMMetrics',
+    'GCLValidation',
+    'compute_metrics'
 ]
 
 
