@@ -48,17 +48,99 @@ from src.solvers.time_stepping import compute_local_timestep, TimeStepConfig
 from src.io.output import VTKWriter, write_vtk
 
 
+def compute_total_pressure_loss(Q: np.ndarray, freestream) -> np.ndarray:
+    """
+    Compute Total Pressure Loss Coefficient (C_pt) for entropy check.
+    
+    For inviscid flow, C_pt should be zero everywhere (no entropy generation).
+    Non-zero values indicate spurious entropy production (numerical error).
+    
+    Physics (Incompressible, ρ=1):
+        P_0 = p + 0.5 * (u² + v²)           (local total pressure)
+        P_0_inf = p_inf + 0.5 * V_inf²      (freestream total pressure)
+        q_inf = 0.5 * V_inf²                 (dynamic pressure)
+        C_pt = (P_0_inf - P_0_local) / q_inf (total pressure loss coefficient)
+    
+    Parameters
+    ----------
+    Q : ndarray, shape (NI, NJ, 4) or (NI+2, NJ+2, 4)
+        State vector [p, u, v, nu_t]. Can include ghost cells.
+    freestream : FreestreamConditions
+        Freestream conditions object with p_inf, u_inf, v_inf.
+        
+    Returns
+    -------
+    C_pt : ndarray, shape (NI, NJ)
+        Total pressure loss coefficient at each cell.
+        Positive = entropy production (energy loss)
+        Negative = entropy destruction (unphysical)
+    """
+    # Handle ghost cells
+    if Q.ndim == 3 and Q.shape[2] == 4:
+        # Check if ghost cells are present
+        # Assume ghost cells if shape is not matching expected interior
+        p = Q[:, :, 0]
+        u = Q[:, :, 1]
+        v = Q[:, :, 2]
+    else:
+        raise ValueError(f"Unexpected Q shape: {Q.shape}")
+    
+    # Freestream values
+    p_inf = freestream.p_inf
+    u_inf = freestream.u_inf
+    v_inf = freestream.v_inf
+    
+    # Dynamic pressure (assume rho = 1.0 for AC formulation)
+    V_inf_sq = u_inf**2 + v_inf**2
+    q_inf = 0.5 * V_inf_sq
+    
+    # Freestream total pressure
+    P0_inf = p_inf + 0.5 * V_inf_sq
+    
+    # Local total pressure
+    P0_local = p + 0.5 * (u**2 + v**2)
+    
+    # Total pressure loss coefficient
+    # C_pt = (P_0_inf - P_0_local) / q_inf
+    # Avoid division by zero for zero freestream velocity
+    if q_inf > 1e-12:
+        C_pt = (P0_inf - P0_local) / q_inf
+    else:
+        C_pt = np.zeros_like(p)
+    
+    return C_pt
+
+
 def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray, 
                     iteration: int, residual: float, cfl: float,
-                    output_dir: str, case_name: str = "flow"):
+                    output_dir: str, case_name: str = "flow",
+                    freestream=None):
     """
     Plot flow field with global and zoomed views.
     
     Creates PDF with:
-    - Global view showing full domain
-    - Zoomed view near airfoil
+    - Pressure (global and zoomed)
+    - Velocity magnitude (global and zoomed)
+    - Total Pressure Loss C_pt (global and zoomed) - entropy check
     
-    Shows pressure contours and velocity magnitude.
+    Parameters
+    ----------
+    X, Y : ndarray
+        Grid node coordinates.
+    Q : ndarray
+        State vector [p, u, v, nu_t].
+    iteration : int
+        Current iteration number.
+    residual : float
+        Current residual value.
+    cfl : float
+        Current CFL number.
+    output_dir : str
+        Output directory for PDF files.
+    case_name : str
+        Base name for output files.
+    freestream : FreestreamConditions, optional
+        Freestream conditions for C_pt calculation.
     """
     # Strip ghost cells from Q
     NI = X.shape[0] - 1
@@ -77,14 +159,20 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     
     vel_mag = np.sqrt(u**2 + v**2)
     
-    # Cell centers for pcolormesh (need nodes, data is cell-centered)
-    # Use node coordinates directly, pcolormesh will interpret correctly
+    # Compute total pressure loss if freestream is provided
+    if freestream is not None:
+        C_pt = compute_total_pressure_loss(Q_int, freestream)
+    else:
+        C_pt = None
     
-    fig, axes = plt.subplots(2, 2, figsize=(14, 12))
+    # Create figure: 3 rows x 2 columns if C_pt available, else 2x2
+    if C_pt is not None:
+        fig, axes = plt.subplots(3, 2, figsize=(14, 16))
+    else:
+        fig, axes = plt.subplots(2, 2, figsize=(14, 12))
     
-    # --- Pressure: Global View ---
+    # --- Row 1: Pressure ---
     ax = axes[0, 0]
-    # Clip extreme values for better visualization
     p_clip = np.clip(p, np.percentile(p, 1), np.percentile(p, 99))
     pc = ax.pcolormesh(X.T, Y.T, p_clip.T, cmap='RdBu_r', shading='flat', rasterized=True)
     ax.plot(X[:, 0], Y[:, 0], 'k-', lw=1.5)
@@ -94,19 +182,18 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     ax.set_ylabel('y/c')
     plt.colorbar(pc, ax=ax, shrink=0.8, label='p')
     
-    # --- Pressure: Zoomed View ---
     ax = axes[0, 1]
     pc = ax.pcolormesh(X.T, Y.T, p_clip.T, cmap='RdBu_r', shading='flat', rasterized=True)
     ax.plot(X[:, 0], Y[:, 0], 'k-', lw=2)
     ax.set_aspect('equal')
     ax.set_xlim(-0.2, 1.4)
     ax.set_ylim(-0.4, 0.4)
-    ax.set_title(f'Pressure (Near Airfoil) - Iter {iteration}')
+    ax.set_title(f'Pressure (Near Airfoil)')
     ax.set_xlabel('x/c')
     ax.set_ylabel('y/c')
     plt.colorbar(pc, ax=ax, shrink=0.8, label='p')
     
-    # --- Velocity Magnitude: Global View ---
+    # --- Row 2: Velocity Magnitude ---
     ax = axes[1, 0]
     vel_clip = np.clip(vel_mag, 0, np.percentile(vel_mag, 99))
     pc = ax.pcolormesh(X.T, Y.T, vel_clip.T, cmap='viridis', shading='flat', rasterized=True)
@@ -117,7 +204,6 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     ax.set_ylabel('y/c')
     plt.colorbar(pc, ax=ax, shrink=0.8, label='|V|')
     
-    # --- Velocity Magnitude: Zoomed View ---
     ax = axes[1, 1]
     pc = ax.pcolormesh(X.T, Y.T, vel_clip.T, cmap='viridis', shading='flat', rasterized=True)
     ax.plot(X[:, 0], Y[:, 0], 'k-', lw=2)
@@ -128,6 +214,41 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     ax.set_xlabel('x/c')
     ax.set_ylabel('y/c')
     plt.colorbar(pc, ax=ax, shrink=0.8, label='|V|')
+    
+    # --- Row 3: Total Pressure Loss (Entropy Check) ---
+    if C_pt is not None:
+        # Use symmetric colormap centered at 0
+        # Clip extreme values for visualization
+        C_pt_abs_max = max(np.abs(np.percentile(C_pt, 1)), np.abs(np.percentile(C_pt, 99)))
+        C_pt_abs_max = max(C_pt_abs_max, 0.01)  # Minimum range
+        
+        ax = axes[2, 0]
+        pc = ax.pcolormesh(X.T, Y.T, C_pt.T, cmap='RdBu_r', shading='flat', 
+                           rasterized=True, vmin=-C_pt_abs_max, vmax=C_pt_abs_max)
+        ax.plot(X[:, 0], Y[:, 0], 'k-', lw=1.5)
+        ax.set_aspect('equal')
+        ax.set_title(f'Total Pressure Loss C_pt (Global) - Entropy Check')
+        ax.set_xlabel('x/c')
+        ax.set_ylabel('y/c')
+        cbar = plt.colorbar(pc, ax=ax, shrink=0.8, label='C_pt')
+        
+        ax = axes[2, 1]
+        pc = ax.pcolormesh(X.T, Y.T, C_pt.T, cmap='RdBu_r', shading='flat', 
+                           rasterized=True, vmin=-C_pt_abs_max, vmax=C_pt_abs_max)
+        ax.plot(X[:, 0], Y[:, 0], 'k-', lw=2)
+        ax.set_aspect('equal')
+        ax.set_xlim(-0.2, 1.4)
+        ax.set_ylim(-0.4, 0.4)
+        ax.set_title(f'Total Pressure Loss C_pt (Near Airfoil)')
+        ax.set_xlabel('x/c')
+        ax.set_ylabel('y/c')
+        
+        # Add statistics annotation
+        C_pt_stats = f"C_pt: min={C_pt.min():.4f}, max={C_pt.max():.4f}, mean={C_pt.mean():.4f}"
+        ax.annotate(C_pt_stats, xy=(0.02, 0.02), xycoords='axes fraction', 
+                    fontsize=8, ha='left', va='bottom',
+                    bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+        plt.colorbar(pc, ax=ax, shrink=0.8, label='C_pt')
     
     plt.tight_layout()
     
@@ -273,9 +394,17 @@ class DiagnosticRANSSolver:
             beta=self.config.beta
         )
         
-        # Write initial state
-        self.vtk_writer.write(self.Q, iteration=0)
+        # Write initial state with C_pt
+        C_pt = self._compute_total_pressure_loss()
+        self.vtk_writer.write(self.Q, iteration=0, 
+                              additional_scalars={'TotalPressureLoss': C_pt})
         print(f"  Output directory: {output_path}")
+    
+    def _compute_total_pressure_loss(self) -> np.ndarray:
+        """Compute total pressure loss coefficient for entropy check."""
+        # Get interior state (strip ghost cells)
+        Q_int = self.Q[1:-1, 1:-1, :]
+        return compute_total_pressure_loss(Q_int, self.freestream)
     
     def _get_cfl(self, iteration: int) -> float:
         """Get CFL with linear ramping."""
@@ -388,7 +517,8 @@ class DiagnosticRANSSolver:
             self.X, self.Y, self.Q,
             iteration=0, residual=0, cfl=self._get_cfl(0),
             output_dir=str(self.snapshot_dir),
-            case_name=self.config.case_name
+            case_name=self.config.case_name,
+            freestream=self.freestream
         )
         
         for n in range(self.config.max_iter):
@@ -416,14 +546,19 @@ class DiagnosticRANSSolver:
                     residual=res_rms, 
                     cfl=cfl,
                     output_dir=str(self.snapshot_dir),
-                    case_name=self.config.case_name
+                    case_name=self.config.case_name,
+                    freestream=self.freestream
                 )
-                self.vtk_writer.write(self.Q, iteration=self.iteration)
+                C_pt = self._compute_total_pressure_loss()
+                self.vtk_writer.write(self.Q, iteration=self.iteration,
+                                      additional_scalars={'TotalPressureLoss': C_pt})
                 print(f"         -> Dumped: {pdf_path}")
             
             # Write VTK at output_freq
             elif self.iteration % self.config.output_freq == 0:
-                self.vtk_writer.write(self.Q, iteration=self.iteration)
+                C_pt = self._compute_total_pressure_loss()
+                self.vtk_writer.write(self.Q, iteration=self.iteration,
+                                      additional_scalars={'TotalPressureLoss': C_pt})
             
             # Check for NaN/Inf
             if bounds['has_nan'] or bounds['has_inf']:
@@ -460,11 +595,21 @@ class DiagnosticRANSSolver:
             residual=self.residual_history[-1] if self.residual_history else 0, 
             cfl=self._get_cfl(self.iteration),
             output_dir=str(self.snapshot_dir),
-            case_name=f"{self.config.case_name}_final"
+            case_name=f"{self.config.case_name}_final",
+            freestream=self.freestream
         )
         
-        self.vtk_writer.write(self.Q, iteration=self.iteration)
+        C_pt = self._compute_total_pressure_loss()
+        self.vtk_writer.write(self.Q, iteration=self.iteration,
+                              additional_scalars={'TotalPressureLoss': C_pt})
         self.vtk_writer.finalize()
+        
+        # Print C_pt statistics
+        print(f"\nEntropy Check (Total Pressure Loss C_pt):")
+        print(f"  Min:  {C_pt.min():.6f}")
+        print(f"  Max:  {C_pt.max():.6f}")
+        print(f"  Mean: {C_pt.mean():.6f}")
+        print(f"  (Ideal for inviscid: C_pt = 0 everywhere)")
         
         # Plot residual history
         plot_residual_history(
