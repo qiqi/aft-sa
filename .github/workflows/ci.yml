@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11"]
+      fail-fast: false
+    
+    env:
+      # Enable Numba JIT to catch typing errors in compiled code
+      NUMBA_DISABLE_JIT: "0"
+      # Set PYTHONPATH for src imports
+      PYTHONPATH: "."
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Upgrade pip
+        run: |
+          python -m pip install --upgrade pip
+      
+      - name: Install dependencies
+        run: |
+          pip install numpy scipy matplotlib torch numba pytest
+          # Install from requirements.txt if it exists
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+      
+      - name: Show installed packages
+        run: |
+          pip list
+          python -c "import numpy; print(f'NumPy: {numpy.__version__}')"
+          python -c "import torch; print(f'PyTorch: {torch.__version__}')"
+          python -c "import numba; print(f'Numba: {numba.__version__}')"
+      
+      - name: Run pytest (if tests/ exists)
+        run: |
+          if [ -d tests ]; then
+            pytest tests/ -v --tb=short
+          else
+            echo "No tests/ directory found, skipping pytest"
+          fi
+      
+      - name: Run model tests
+        run: |
+          echo "=== Running SA Gradient Tests ==="
+          python scripts/models/test_gradients.py
+          
+          echo ""
+          echo "=== Running Falkner-Skan Tests ==="
+          python scripts/models/plot_falkner_skan.py
+          
+          echo ""
+          echo "=== Running Blasius Growth Tests ==="
+          python scripts/models/plot_blasius_growth.py
+          
+          echo ""
+          echo "=== Running Flat Plate Tests ==="
+          python scripts/models/run_flat_plate.py
+      
+      - name: Run grid tests
+        run: |
+          echo "=== Running Wall Distance Tests ==="
+          python scripts/grid/test_wall_distance.py
+      
+      - name: Verify Numba compilation
+        run: |
+          echo "=== Verifying Numba JIT Compilation ==="
+          python -c "
+          import numpy as np
+          from src.numerics.fluxes import compute_fluxes, GridMetrics, FluxConfig
+          
+          # Create minimal test data
+          NI, NJ = 10, 5
+          Q = np.random.rand(NI+2, NJ+2, 4)
+          Q[:, :, 0] = 1.0  # pressure
+          
+          metrics = GridMetrics(
+              Si_x=np.ones((NI+1, NJ)),
+              Si_y=np.zeros((NI+1, NJ)),
+              Sj_x=np.zeros((NI, NJ+1)),
+              Sj_y=np.ones((NI, NJ+1)),
+              volume=np.ones((NI, NJ))
+          )
+          
+          # This triggers Numba compilation
+          residual = compute_fluxes(Q, metrics, beta=1.0, cfg=FluxConfig())
+          print(f'Residual shape: {residual.shape}')
+          print('✅ Numba JIT compilation successful')
+          "
+
