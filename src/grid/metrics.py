@@ -259,58 +259,108 @@ class MetricComputer:
         
         return Sj_x, Sj_y
     
-    def _compute_wall_distance(self) -> np.ndarray:
+    @staticmethod
+    def _point_to_segment_distance(px: float, py: float, 
+                                    ax: float, ay: float, 
+                                    bx: float, by: float) -> float:
         """
-        Compute wall distance for each cell center.
+        Compute the minimum distance from point P to line segment AB.
         
-        Uses cumulative distance along j-lines from the wall.
-        This is appropriate for structured grids with wall-normal lines.
+        The closest point on AB may be:
+        - Point A (if projection falls before A)
+        - Point B (if projection falls after B)  
+        - A point on the segment (if projection falls between A and B)
+        """
+        # Vector from A to B
+        abx = bx - ax
+        aby = by - ay
+        
+        # Vector from A to P
+        apx = px - ax
+        apy = py - ay
+        
+        # Squared length of AB
+        ab_sq = abx * abx + aby * aby
+        
+        if ab_sq < 1e-30:
+            # Degenerate segment (A and B coincide)
+            return np.sqrt(apx * apx + apy * apy)
+        
+        # Parameter t of projection of P onto line AB
+        # t = (AP · AB) / |AB|²
+        t = (apx * abx + apy * aby) / ab_sq
+        
+        # Clamp t to [0, 1] to stay within segment
+        t = max(0.0, min(1.0, t))
+        
+        # Closest point on segment
+        closest_x = ax + t * abx
+        closest_y = ay + t * aby
+        
+        # Distance from P to closest point
+        dx = px - closest_x
+        dy = py - closest_y
+        
+        return np.sqrt(dx * dx + dy * dy)
+    
+    def _compute_wall_distance(self, search_radius: int = 20) -> np.ndarray:
+        """
+        Compute wall distance for each cell center using point-to-segment distance.
+        
+        This accurately computes the minimum distance from each cell center to the
+        wall surface, properly handling curved walls by computing distance to wall
+        segments (not just wall grid points).
+        
+        Algorithm:
+        1. For each cell center, start at the wall point on the same i-line
+        2. Search left and right along the wall to find local minimum
+        3. Compute distance to wall segments, not just grid points
+        
+        Parameters
+        ----------
+        search_radius : int
+            Number of wall segments to search in each direction.
         """
         X, Y = self.X, self.Y
         NI, NJ = self.NI, self.NJ
         
-        # First compute cell center coordinates
+        # Compute cell center coordinates
         xc, yc = self._compute_cell_centers()
         
-        # Wall is at j = wall_j (node index)
-        # Cell centers are at j + 0.5 (cell index)
-        
-        # Simple approach: distance from cell center to nearest wall node
-        x_wall = X[:, self.wall_j]
+        # Wall node coordinates (at j = wall_j)
+        x_wall = X[:, self.wall_j]  # Shape: (NI+1,)
         y_wall = Y[:, self.wall_j]
+        n_wall = len(x_wall)
         
         wall_dist = np.zeros((NI, NJ))
         
-        for j in range(NJ):
-            # Distance from each cell center to all wall nodes
-            dx = xc[:, j:j+1] - 0.5 * (x_wall[:-1] + x_wall[1:])[:, np.newaxis].T
-            dy = yc[:, j:j+1] - 0.5 * (y_wall[:-1] + y_wall[1:])[:, np.newaxis].T
-            
-            # Actually, simpler: use cumulative distance along j-line
-            pass
-        
-        # Simpler: cumulative arc length along each i-line
         for i in range(NI):
-            # Get cell centers along this i-line
-            x_line = xc[i, :]
-            y_line = yc[i, :]
-            
-            # First cell distance is from cell center to wall
-            # Approximate as half the first cell height
-            dx0 = X[i, 1] - X[i, 0]
-            dy0 = Y[i, 1] - Y[i, 0]
-            dx1 = X[i+1, 1] - X[i+1, 0]
-            dy1 = Y[i+1, 1] - Y[i+1, 0]
-            
-            first_cell_height = 0.5 * (np.sqrt(dx0**2 + dy0**2) + np.sqrt(dx1**2 + dy1**2))
-            wall_dist[i, 0] = 0.5 * first_cell_height
-            
-            # Cumulative distance for remaining cells
-            if NJ > 1:
-                dx = np.diff(x_line)
-                dy = np.diff(y_line)
-                ds = np.sqrt(dx**2 + dy**2)
-                wall_dist[i, 1:] = wall_dist[i, 0] + np.cumsum(ds)
+            for j in range(NJ):
+                px = xc[i, j]
+                py = yc[i, j]
+                
+                # Start search from the wall point on the same i-line
+                # Cell i is bounded by nodes i and i+1, so start at node i
+                start_idx = i
+                
+                # Search in both directions along the wall
+                min_dist = float('inf')
+                
+                # Search range: [start_idx - search_radius, start_idx + search_radius]
+                # Clamp to valid segment indices (segments go from 0 to n_wall-2)
+                idx_min = max(0, start_idx - search_radius)
+                idx_max = min(n_wall - 2, start_idx + search_radius)
+                
+                # Check segments from idx_min to idx_max
+                for k in range(idx_min, idx_max + 1):
+                    # Segment from wall node k to k+1
+                    ax, ay = x_wall[k], y_wall[k]
+                    bx, by = x_wall[k + 1], y_wall[k + 1]
+                    
+                    dist = self._point_to_segment_distance(px, py, ax, ay, bx, by)
+                    min_dist = min(min_dist, dist)
+                
+                wall_dist[i, j] = min_dist
         
         return wall_dist
     

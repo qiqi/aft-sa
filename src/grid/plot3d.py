@@ -332,12 +332,140 @@ def compute_face_normals_j(X: np.ndarray, Y: np.ndarray) -> Tuple[np.ndarray, np
     return Sx, Sy, S_mag
 
 
-def compute_wall_distance(X: np.ndarray, Y: np.ndarray, wall_j: int = 0) -> np.ndarray:
+def _point_to_segment_distance(px: float, py: float, 
+                                ax: float, ay: float, 
+                                bx: float, by: float) -> float:
     """
-    Compute wall distance for each node.
+    Compute the minimum distance from point P to line segment AB.
+    
+    The closest point on AB may be:
+    - Point A (if projection falls before A)
+    - Point B (if projection falls after B)  
+    - A point on the segment (if projection falls between A and B)
+    
+    Parameters
+    ----------
+    px, py : float
+        Query point coordinates.
+    ax, ay : float
+        Segment start point coordinates.
+    bx, by : float
+        Segment end point coordinates.
+        
+    Returns
+    -------
+    dist : float
+        Minimum distance from P to segment AB.
+    """
+    # Vector from A to B
+    abx = bx - ax
+    aby = by - ay
+    
+    # Vector from A to P
+    apx = px - ax
+    apy = py - ay
+    
+    # Squared length of AB
+    ab_sq = abx * abx + aby * aby
+    
+    if ab_sq < 1e-30:
+        # Degenerate segment (A and B coincide)
+        return np.sqrt(apx * apx + apy * apy)
+    
+    # Parameter t of projection of P onto line AB
+    # t = (AP · AB) / |AB|²
+    t = (apx * abx + apy * aby) / ab_sq
+    
+    # Clamp t to [0, 1] to stay within segment
+    t = max(0.0, min(1.0, t))
+    
+    # Closest point on segment
+    closest_x = ax + t * abx
+    closest_y = ay + t * aby
+    
+    # Distance from P to closest point
+    dx = px - closest_x
+    dy = py - closest_y
+    
+    return np.sqrt(dx * dx + dy * dy)
+
+
+def compute_wall_distance(X: np.ndarray, Y: np.ndarray, wall_j: int = 0,
+                          search_radius: int = 20) -> np.ndarray:
+    """
+    Compute wall distance for each node using point-to-segment distance.
     
     For C-grids, the wall (airfoil surface) is typically at j=0.
-    This computes the minimum distance from each node to any point on the wall.
+    This computes the minimum distance from each node to the wall surface,
+    properly handling curved walls by computing distance to wall segments
+    (not just wall grid points).
+    
+    Algorithm:
+    1. For each query point, start at the wall point on the same i-line
+    2. Search left and right along the wall to find local minimum
+    3. Compute distance to wall segments, not just grid points
+    
+    Parameters
+    ----------
+    X, Y : ndarray
+        Node coordinates, shape (ni, nj).
+    wall_j : int
+        j-index of the wall boundary.
+    search_radius : int
+        Number of wall segments to search in each direction from the
+        starting point. Larger values are more accurate but slower.
+        
+    Returns
+    -------
+    d : ndarray
+        Wall distance for each node, shape (ni, nj).
+    """
+    ni, nj = X.shape
+    
+    # Wall coordinates
+    x_wall = X[:, wall_j]
+    y_wall = Y[:, wall_j]
+    n_wall = len(x_wall)
+    
+    # For each node, find minimum distance to wall surface
+    d = np.zeros((ni, nj))
+    
+    for i in range(ni):
+        for j in range(nj):
+            px = X[i, j]
+            py = Y[i, j]
+            
+            # Start search from the wall point on the same i-line
+            start_idx = i
+            
+            # Search in both directions along the wall
+            min_dist = float('inf')
+            
+            # Search range: [start_idx - search_radius, start_idx + search_radius]
+            # Clamp to valid indices
+            idx_min = max(0, start_idx - search_radius)
+            idx_max = min(n_wall - 1, start_idx + search_radius)
+            
+            # Check segments from idx_min to idx_max
+            for k in range(idx_min, idx_max):
+                # Segment from wall point k to k+1
+                ax, ay = x_wall[k], y_wall[k]
+                bx, by = x_wall[k + 1], y_wall[k + 1]
+                
+                dist = _point_to_segment_distance(px, py, ax, ay, bx, by)
+                min_dist = min(min_dist, dist)
+            
+            d[i, j] = min_dist
+    
+    return d
+
+
+def compute_wall_distance_gridpoints(X: np.ndarray, Y: np.ndarray, wall_j: int = 0) -> np.ndarray:
+    """
+    Compute wall distance using only wall grid points (simpler but less accurate).
+    
+    This is the original algorithm that finds minimum distance to wall grid points.
+    For curved surfaces, this can be inaccurate - use compute_wall_distance() instead.
     
     Parameters
     ----------
