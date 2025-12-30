@@ -135,7 +135,7 @@ class Construct2DWrapper:
         self, 
         airfoil_file: str, 
         options: Optional[GridOptions] = None,
-        output_dir: Optional[str] = None,
+        working_dir: Optional[str] = None,
         keep_files: bool = False,
         verbose: bool = True
     ) -> Tuple[np.ndarray, np.ndarray]:
@@ -148,8 +148,10 @@ class Construct2DWrapper:
             Path to the airfoil coordinate file (XFOIL Selig format).
         options : GridOptions, optional
             Grid generation options. Uses defaults if not provided.
-        output_dir : str, optional
-            Directory for output files. Uses temp dir if not provided.
+        working_dir : str, optional
+            Directory for execution and output files. All intermediate files
+            (input, namelist, output grid) are created here for isolation.
+            Uses a temp dir if not provided.
         keep_files : bool
             If True, keep intermediate files (namelist, stats, etc.).
         verbose : bool
@@ -161,6 +163,10 @@ class Construct2DWrapper:
             X-coordinates of grid nodes, shape (ni, nj).
         Y : ndarray
             Y-coordinates of grid nodes, shape (ni, nj).
+            
+        Notes
+        -----
+        The generated .p3d file will be at: working_dir/{airfoil_stem}.p3d
         """
         if options is None:
             options = GridOptions()
@@ -172,19 +178,20 @@ class Construct2DWrapper:
         # Extract project name from airfoil filename
         name = airfoil_path.stem
         
-        # Determine working directory
-        if output_dir is None:
+        # Determine working directory - all files go here for isolation
+        if working_dir is None:
             work_dir = Path(tempfile.mkdtemp(prefix="construct2d_"))
             cleanup = not keep_files
         else:
-            work_dir = Path(output_dir).resolve()
+            work_dir = Path(working_dir).resolve()
             work_dir.mkdir(parents=True, exist_ok=True)
             cleanup = False
         
         try:
-            # Copy airfoil file to working directory
+            # Copy airfoil file to working directory (skip if already there)
             local_airfoil = work_dir / airfoil_path.name
-            shutil.copy2(airfoil_path, local_airfoil)
+            if airfoil_path.resolve() != local_airfoil.resolve():
+                shutil.copy2(airfoil_path, local_airfoil)
             
             # Write grid_options.in
             options_content = self._write_grid_options(name, options)
