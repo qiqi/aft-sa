@@ -27,6 +27,7 @@ from ..grid.plot3d import read_plot3d, StructuredGrid
 
 # Numerics
 from ..numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxGridMetrics
+from ..numerics.forces import compute_aerodynamic_forces, AeroForces
 
 # Solvers and BCs
 from .boundary_conditions import (
@@ -397,8 +398,9 @@ class RANSSolver:
         print(f"\n{'='*60}")
         print("Starting Steady-State Iteration")
         print(f"{'='*60}")
-        print(f"{'Iter':>8} {'Residual':>14} {'CFL':>8} {'Status':>12}")
-        print(f"{'-'*42}")
+        print(f"{'Iter':>8} {'Residual':>14} {'CFL':>8}  "
+              f"{'CL':>8} {'CD':>8} {'(p:':>7} {'f:)':>7}")
+        print(f"{'-'*72}")
         
         # Initial residual for normalization
         initial_residual = None
@@ -422,7 +424,11 @@ class RANSSolver:
             
             # Print progress
             if self.iteration % self.config.print_freq == 0 or self.iteration == 1:
-                print(f"{self.iteration:>8d} {res_rms:>14.6e} {cfl:>8.2f}")
+                # Compute forces for diagnostics
+                forces = self.compute_forces()
+                print(f"{self.iteration:>8d} {res_rms:>14.6e} {cfl:>8.2f}  "
+                      f"CL={forces.CL:>8.4f} CD={forces.CD:>8.5f} "
+                      f"(p:{forces.CD_p:>7.5f} f:{forces.CD_f:>7.5f})")
             
             # Write VTK output
             if self.iteration % self.config.output_freq == 0:
@@ -501,6 +507,45 @@ class RANSSolver:
             'cp': cp,
             'cf': cf
         }
+    
+    def compute_forces(self) -> AeroForces:
+        """
+        Compute aerodynamic force coefficients.
+        
+        Returns
+        -------
+        forces : AeroForces
+            Named tuple with CL, CD, CD_p, CD_f, etc.
+        """
+        # Laminar viscosity from Reynolds number
+        V_inf = np.sqrt(self.freestream.u_inf**2 + self.freestream.v_inf**2)
+        mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
+        
+        # Create metrics object with required attributes
+        class ForceMetrics:
+            pass
+        metrics = ForceMetrics()
+        metrics.Sj_x = self.flux_metrics.Sj_x
+        metrics.Sj_y = self.flux_metrics.Sj_y
+        metrics.volume = self.flux_metrics.volume
+        
+        # Turbulent viscosity (from SA variable nu_tilde)
+        # nu_t = nu_hat * fv1, but for simplicity use nu_hat directly
+        # This is approximate; proper implementation would compute fv1
+        mu_turb = None  # For laminar flow
+        
+        forces = compute_aerodynamic_forces(
+            Q=self.Q,
+            metrics=metrics,
+            mu_laminar=mu_laminar,
+            mu_turb=mu_turb,
+            alpha_deg=self.config.alpha,
+            chord=1.0,  # Assume unit chord
+            rho_inf=1.0,  # AC formulation assumes unit density
+            V_inf=V_inf,
+        )
+        
+        return forces
     
     def save_residual_history(self, filename: str = None):
         """Save residual history to file."""

@@ -30,6 +30,11 @@ from .viscous_fluxes import (
     compute_nu_tilde_diffusion,
 )
 
+from .forces import (
+    compute_aerodynamic_forces,
+    AeroForces,
+)
+
 __all__ = [
     # Convective fluxes
     'compute_fluxes',
@@ -47,5 +52,8 @@ __all__ = [
     'compute_viscous_fluxes',
     'add_viscous_fluxes',
     'compute_nu_tilde_diffusion',
+    # Forces
+    'compute_aerodynamic_forces',
+    'AeroForces',
 ]
 
