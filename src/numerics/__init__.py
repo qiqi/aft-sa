@@ -4,6 +4,7 @@ Numerical methods for 2D RANS solver.
 This module provides:
 - JST flux scheme for artificial compressibility formulation
 - Time stepping utilities
+- Green-Gauss gradient reconstruction
 """
 
 from .fluxes import (
@@ -15,12 +16,25 @@ from .fluxes import (
     GridMetrics,
 )
 
+from .gradients import (
+    compute_gradients,
+    compute_vorticity,
+    compute_strain_rate,
+    GradientMetrics,
+)
+
 __all__ = [
+    # Fluxes
     'compute_fluxes',
     'compute_time_step',
     'compute_convective_flux',
     'compute_spectral_radius',
     'FluxConfig',
     'GridMetrics',
+    # Gradients
+    'compute_gradients',
+    'compute_vorticity',
+    'compute_strain_rate',
+    'GradientMetrics',
 ]
 
