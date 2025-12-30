@@ -1,8 +1,44 @@
+"""
+Spalart-Allmaras Turbulence Model Functions.
+
+This module implements the Spalart-Allmaras one-equation turbulence model
+with analytical gradients for use in implicit solvers.
+
+Dimension Agnostic:
+    All functions work with any tensor shape - scalars, 1D arrays, 2D fields, etc.
+    NumPy broadcasting rules apply. This allows the same code to be used for:
+    - Boundary layer solvers (1D profiles)
+    - 2D/3D RANS solvers (full fields)
+
+Notation:
+    In boundary layer context: omega = |du/dy|, d = y (wall-normal coordinate)
+    In general 2D/3D context:  omega = |vorticity|, d = wall distance
+    
+    The variable names `dudy` and `y` are kept for backward compatibility
+    with boundary layer solvers, but they represent vorticity magnitude
+    and wall distance respectively in the general case.
+"""
+
 import torch
+
 
 def fv1(nuHat: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     """
-    Returns (fv1, d(fv1)/d(nuHat)).
+    Compute fv1 damping function and its derivative.
+    
+    fv1 = chi³ / (chi³ + cv1³)  where chi = nuHat
+    
+    Parameters
+    ----------
+    nuHat : Tensor
+        SA working variable (any shape).
+        
+    Returns
+    -------
+    val : Tensor
+        fv1 value (same shape as input).
+    grad : Tensor  
+        d(fv1)/d(nuHat) (same shape as input).
     """
     cv1 = 7.1
     chi = nuHat
@@ -42,7 +78,29 @@ def fv2(nuHat: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
 
 def _S_tilde(dudy: torch.Tensor, nuHat: torch.Tensor, y: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     """
-    Returns (S_tilde, d(S_tilde)/d(nuHat)).
+    Compute modified vorticity S_tilde and its derivative.
+    
+    S̃ = Ω + (ν̃ / κ²d²) · fv2(ν̃)
+    
+    Parameters
+    ----------
+    dudy : Tensor
+        Vorticity magnitude |ω| (any shape).
+        For boundary layers: |du/dy|
+        For 2D flows: |∂v/∂x - ∂u/∂y|
+    nuHat : Tensor
+        SA working variable (same shape as dudy).
+    y : Tensor
+        Wall distance d (same shape as dudy).
+        For boundary layers: y-coordinate
+        For general flows: computed wall distance field
+        
+    Returns
+    -------
+    val : Tensor
+        S_tilde value (same shape as inputs).
+    grad : Tensor
+        d(S_tilde)/d(nuHat) (same shape as inputs).
     """
     kappa = 0.41
     omega = dudy.abs()
@@ -144,7 +202,46 @@ def spalart_allmaras_amplification(
     y: torch.Tensor,
 ) -> tuple[tuple[torch.Tensor, torch.Tensor], tuple[torch.Tensor, torch.Tensor]]:
     """
-    Returns ((Production, dP/dnuHat), (Destruction, dD/dnuHat)).
+    Compute SA production and destruction terms with analytical gradients.
+    
+    Production: P = cb1 · S̃ · ν̃
+    Destruction: D = cw1 · fw · (ν̃/d)²
+    
+    This function is dimension-agnostic - works with any tensor shape.
+    
+    Parameters
+    ----------
+    dudy : Tensor
+        Vorticity magnitude |ω| (any shape).
+        For boundary layers: |du/dy|
+        For 2D flows: |∂v/∂x - ∂u/∂y|
+    nuHat : Tensor
+        SA working variable ν̃ (same shape as dudy).
+    y : Tensor
+        Wall distance d (same shape as dudy).
+        For boundary layers: y-coordinate
+        For general flows: computed wall distance field
+        
+    Returns
+    -------
+    (prod_val, prod_grad) : tuple of Tensors
+        Production term and d(Production)/d(nuHat).
+    (dest_val, dest_grad) : tuple of Tensors
+        Destruction term and d(Destruction)/d(nuHat).
+        
+    Example
+    -------
+    # 1D boundary layer (ny,)
+    >>> omega_1d = torch.tensor([0.1, 0.5, 1.0])
+    >>> nuHat_1d = torch.tensor([0.01, 0.1, 0.5])
+    >>> d_1d = torch.tensor([0.001, 0.01, 0.1])
+    >>> (P, dP), (D, dD) = spalart_allmaras_amplification(omega_1d, nuHat_1d, d_1d)
+    
+    # 2D flow field (ni, nj)
+    >>> omega_2d = torch.rand(100, 50)
+    >>> nuHat_2d = torch.rand(100, 50) 
+    >>> d_2d = torch.rand(100, 50)
+    >>> (P, dP), (D, dD) = spalart_allmaras_amplification(omega_2d, nuHat_2d, d_2d)
     """
     cb1 = 0.1355
     cb2 = 0.622
