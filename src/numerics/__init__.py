@@ -32,7 +32,10 @@ from .viscous_fluxes import (
 
 from .forces import (
     compute_aerodynamic_forces,
+    compute_surface_distributions,
+    create_surface_vtk_fields,
     AeroForces,
+    SurfaceData,
 )
 
 __all__ = [
@@ -52,8 +55,11 @@ __all__ = [
     'compute_viscous_fluxes',
     'add_viscous_fluxes',
     'compute_nu_tilde_diffusion',
-    # Forces
+    # Forces and surface data
     'compute_aerodynamic_forces',
+    'compute_surface_distributions',
+    'create_surface_vtk_fields',
     'AeroForces',
+    'SurfaceData',
 ]
 

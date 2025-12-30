@@ -10,6 +10,9 @@ Test Case: NACA 0012 at α=0°, Re=10,000 (fully laminar)
 import pytest
 import numpy as np
 
+# Import skip marker from conftest
+from tests.conftest import requires_construct2d
+
 
 def run_mfoil_laminar(reynolds: float, alpha: float = 0.0, 
                       naca: str = '0012', npanel: int = 199) -> dict:
@@ -156,6 +159,7 @@ class TestMfoilLaminar:
         print(f"  Ratio: {result_low['cd'] / result_high['cd']:.2f}")
 
 
+@requires_construct2d
 class TestLaminarBenchmark:
     """
     Benchmark test comparing RANS solver against mfoil.
@@ -164,8 +168,7 @@ class TestLaminarBenchmark:
     by comparing against the established panel code solution.
     """
     
-    @pytest.mark.skip(reason="RANS airfoil solver not yet integrated (grid generation + viscous)")
-    def test_drag_comparison(self):
+    def test_drag_comparison(self, naca0012_medium_grid, mfoil_baseline_re10k):
         """
         Compare RANS solver Cd against mfoil baseline.
         
@@ -178,31 +181,34 @@ class TestLaminarBenchmark:
         """
         from src.solvers.rans_solver import RANSSolver, SolverConfig
         
+        # Skip if grid not available
+        if naca0012_medium_grid is None:
+            pytest.skip("Grid generation failed or construct2d unavailable")
+        
         # Get mfoil baseline
-        mfoil_result = run_mfoil_laminar(reynolds=10000, alpha=0.0)
+        mfoil_result = mfoil_baseline_re10k
         assert mfoil_result['converged'], "mfoil baseline failed"
         
         cd_mfoil = mfoil_result['cd']
         cl_mfoil = mfoil_result['cl']
         
         # Run RANS solver
-        # TODO: Need to generate/load NACA 0012 grid first
         config = SolverConfig(
             mach=0.1,  # Low Mach for incompressible
             alpha=0.0,
             reynolds=10000,
             max_iter=5000,
-            tol=1e-6,
+            tol=1e-8,
             print_freq=500,
+            output_freq=1000,
         )
-        # solver = RANSSolver("naca0012.p3d", config)
-        # solver.run_steady_state()
-        # forces = solver.compute_forces()
-        # cd_rans = forces.CD
-        # cl_rans = forces.CL
         
-        cd_rans = cd_mfoil  # Placeholder until grid is available
-        cl_rans = cl_mfoil
+        solver = RANSSolver(naca0012_medium_grid['path'], config)
+        solver.run_steady_state()
+        
+        forces = solver.compute_forces()
+        cd_rans = forces.CD
+        cl_rans = forces.CL
         
         # Check Cl ≈ 0 (symmetry)
         assert abs(cl_rans) < 0.01, f"CL = {cl_rans:.4f} (expected ~0 for symmetric)"
@@ -217,6 +223,112 @@ class TestLaminarBenchmark:
         print(f"  mfoil: CL={cl_mfoil:.6f}, CD={cd_mfoil:.6f}")
         print(f"  RANS:  CL={cl_rans:.6f}, CD={cd_rans:.6f}")
         print(f"  CD Error: {relative_error*100:.1f}%")
+    
+    def test_cp_distribution(self, naca0012_medium_grid, mfoil_baseline_re10k):
+        """
+        Compare RANS Cp distribution against mfoil baseline.
+        
+        The Cp distribution reveals:
+        - Suction peak location and magnitude
+        - Trailing edge pressure recovery
+        - Wake effects
+        """
+        from src.solvers.rans_solver import RANSSolver, SolverConfig
+        from src.validation.mfoil import mfoil
+        
+        if naca0012_medium_grid is None:
+            pytest.skip("Grid not available")
+        
+        # Get detailed mfoil Cp distribution
+        M = mfoil(naca='0012', npanel=199)
+        M.param.ncrit = 1000.0
+        M.param.doplot = False
+        M.param.verb = 0
+        M.setoper(alpha=0.0, Re=10000)
+        M.solve()
+        
+        # mfoil Cp is stored in M.post (check available attributes)
+        # Typically: x_cp, cp_upper, cp_lower or similar
+        # For now, just verify we can get surface data from RANS
+        
+        # Run RANS
+        config = SolverConfig(
+            mach=0.1, alpha=0.0, reynolds=10000,
+            max_iter=3000, tol=1e-7,
+            print_freq=1000, output_freq=5000,
+        )
+        
+        solver = RANSSolver(naca0012_medium_grid['path'], config)
+        solver.run_steady_state()
+        
+        # Get RANS surface distributions
+        surf = solver.get_surface_distributions()
+        
+        # Basic checks on Cp distribution
+        assert len(surf.Cp) > 0, "No surface Cp data"
+        assert np.all(np.isfinite(surf.Cp)), "Cp contains NaN/Inf"
+        
+        # Stagnation point check: Cp ≈ 1 at leading edge
+        # For symmetric airfoil at α=0, LE is roughly at min(x)
+        le_idx = np.argmin(surf.x)
+        cp_stag = surf.Cp[le_idx]
+        assert cp_stag > 0.8, f"Stagnation Cp = {cp_stag:.3f} (expected ~1.0)"
+        
+        # Trailing edge check: Cp should recover toward positive values
+        # TE is at max(x)
+        te_indices = np.where(surf.x > 0.9 * surf.x.max())[0]
+        cp_te = np.mean(surf.Cp[te_indices])
+        assert cp_te > -0.5, f"TE Cp = {cp_te:.3f} (pressure not recovering)"
+        
+        print(f"\nRe=10,000 Cp distribution checks:")
+        print(f"  Stagnation Cp: {cp_stag:.4f}")
+        print(f"  Trailing edge Cp: {cp_te:.4f}")
+        print(f"  Cp range: [{surf.Cp.min():.4f}, {surf.Cp.max():.4f}]")
+    
+    def test_cf_distribution(self, naca0012_medium_grid, mfoil_baseline_re10k):
+        """
+        Compare RANS Cf (skin friction) distribution.
+        
+        For laminar flow, Cf should:
+        - Be positive everywhere (no separation)
+        - Decrease downstream (BL thickening)
+        - Scale approximately as ~1/sqrt(Re_x)
+        """
+        from src.solvers.rans_solver import RANSSolver, SolverConfig
+        
+        if naca0012_medium_grid is None:
+            pytest.skip("Grid not available")
+        
+        config = SolverConfig(
+            mach=0.1, alpha=0.0, reynolds=10000,
+            max_iter=3000, tol=1e-7,
+            print_freq=1000, output_freq=5000,
+        )
+        
+        solver = RANSSolver(naca0012_medium_grid['path'], config)
+        solver.run_steady_state()
+        
+        surf = solver.get_surface_distributions()
+        
+        # Basic checks
+        assert len(surf.Cf) > 0, "No Cf data"
+        assert np.all(np.isfinite(surf.Cf)), "Cf contains NaN/Inf"
+        
+        # Cf should be non-negative (no separation for laminar Re=10k)
+        # Allow small negative values due to numerical noise
+        assert surf.Cf.min() > -0.01, \
+            f"Cf min = {surf.Cf.min():.4f} (significant separation detected)"
+        
+        # Cf should be positive on average (friction drag)
+        assert surf.Cf.mean() > 0, "Average Cf is negative"
+        
+        # Cf should be reasonable magnitude
+        # For Re=10k, expect Cf ~ O(0.01-0.1)
+        assert surf.Cf.max() < 1.0, f"Cf max = {surf.Cf.max():.3f} (too high)"
+        
+        print(f"\nRe=10,000 Cf distribution checks:")
+        print(f"  Cf range: [{surf.Cf.min():.5f}, {surf.Cf.max():.5f}]")
+        print(f"  Mean Cf: {surf.Cf.mean():.5f}")
 
 
 def get_laminar_baseline(reynolds: float = 10000) -> dict:

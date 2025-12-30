@@ -28,6 +28,8 @@ from ..grid.plot3d import read_plot3d, StructuredGrid
 # Numerics
 from ..numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxGridMetrics
 from ..numerics.forces import compute_aerodynamic_forces, AeroForces
+from ..numerics.gradients import compute_gradients, GradientMetrics
+from ..numerics.viscous_fluxes import add_viscous_fluxes
 
 # Solvers and BCs
 from .boundary_conditions import (
@@ -45,6 +47,9 @@ from .time_stepping import (
 
 # IO
 from ..io.output import VTKWriter, write_vtk
+
+# Surface analysis
+from ..numerics.forces import compute_surface_distributions, create_surface_vtk_fields
 
 
 @dataclass
@@ -228,6 +233,24 @@ class RANSSolver:
         computer = MetricComputer(self.X, self.Y, wall_j=0)
         self.metrics = computer.compute()
         
+        # Create flux metrics (needed for residual computation and force computation)
+        self.flux_metrics = FluxGridMetrics(
+            Si_x=self.metrics.Si_x,
+            Si_y=self.metrics.Si_y,
+            Sj_x=self.metrics.Sj_x,
+            Sj_y=self.metrics.Sj_y,
+            volume=self.metrics.volume
+        )
+        
+        # Create gradient metrics (needed for viscous fluxes)
+        self.grad_metrics = GradientMetrics(
+            Si_x=self.metrics.Si_x,
+            Si_y=self.metrics.Si_y,
+            Sj_x=self.metrics.Sj_x,
+            Sj_y=self.metrics.Sj_y,
+            volume=self.metrics.volume
+        )
+        
         # Validate GCL
         gcl = computer.validate_gcl()
         print(f"  {gcl}")
@@ -277,9 +300,27 @@ class RANSSolver:
             beta=self.config.beta
         )
         
-        # Write initial state
-        self.vtk_writer.write(self.Q, iteration=0)
+        # Write initial state with surface data
+        surface_fields = self._compute_surface_fields()
+        self.vtk_writer.write(self.Q, iteration=0, additional_scalars=surface_fields)
         print(f"  Initial solution written to: {output_path}")
+    
+    def _compute_surface_fields(self) -> dict:
+        """Compute surface Cp and Cf fields for VTK output."""
+        V_inf = np.sqrt(self.freestream.u_inf**2 + self.freestream.v_inf**2)
+        mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
+        
+        return create_surface_vtk_fields(
+            Q=self.Q,
+            X=self.X,
+            Y=self.Y,
+            metrics=self.flux_metrics,
+            mu_laminar=mu_laminar,
+            mu_turb=None,  # For laminar flow
+            p_inf=self.freestream.p_inf,
+            rho_inf=1.0,
+            V_inf=V_inf,
+        )
     
     def _get_cfl(self, iteration: int) -> float:
         """Get CFL number with linear ramping."""
@@ -291,24 +332,26 @@ class RANSSolver:
         return self.config.cfl_start + t * (self.config.cfl_target - self.config.cfl_start)
     
     def _compute_residual(self, Q: np.ndarray) -> np.ndarray:
-        """Compute flux residual using JST scheme."""
+        """Compute flux residual using JST scheme + viscous fluxes."""
         # Create flux config
         flux_cfg = FluxConfig(
             k2=self.config.jst_k2,
             k4=self.config.jst_k4
         )
         
-        # Create metrics in format expected by flux computation
-        flux_metrics = FluxGridMetrics(
-            Si_x=self.metrics.Si_x,
-            Si_y=self.metrics.Si_y,
-            Sj_x=self.metrics.Sj_x,
-            Sj_y=self.metrics.Sj_y,
-            volume=self.metrics.volume
-        )
+        # Compute convective fluxes (JST scheme)
+        conv_residual = compute_fluxes(Q, self.flux_metrics, self.config.beta, flux_cfg)
         
-        # Compute fluxes
-        residual = compute_fluxes(Q, flux_metrics, self.config.beta, flux_cfg)
+        # Compute gradients for viscous fluxes
+        gradients = compute_gradients(Q, self.grad_metrics)
+        
+        # Compute laminar viscosity from Reynolds number
+        mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
+        
+        # Add viscous fluxes (laminar only for now)
+        residual = add_viscous_fluxes(
+            conv_residual, Q, gradients, self.grad_metrics, mu_laminar
+        )
         
         return residual
     
@@ -343,14 +386,18 @@ class RANSSolver:
         # Time step config
         ts_config = TimeStepConfig(cfl=cfl)
         
-        # Compute local timestep
+        # Kinematic viscosity for time step stability
+        nu = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
+        
+        # Compute local timestep (with viscous stability constraint)
         dt = compute_local_timestep(
             self.Q,
             self.metrics.Si_x, self.metrics.Si_y,
             self.metrics.Sj_x, self.metrics.Sj_y,
             self.metrics.volume,
             self.config.beta,
-            ts_config
+            ts_config,
+            nu=nu
         )
         
         # RK4 integration
@@ -430,9 +477,13 @@ class RANSSolver:
                       f"CL={forces.CL:>8.4f} CD={forces.CD:>8.5f} "
                       f"(p:{forces.CD_p:>7.5f} f:{forces.CD_f:>7.5f})")
             
-            # Write VTK output
+            # Write VTK output with surface Cp and Cf
             if self.iteration % self.config.output_freq == 0:
-                self.vtk_writer.write(self.Q, iteration=self.iteration)
+                surface_fields = self._compute_surface_fields()
+                self.vtk_writer.write(
+                    self.Q, iteration=self.iteration,
+                    additional_scalars=surface_fields
+                )
             
             # Check convergence
             if res_rms < self.config.tol:
@@ -458,8 +509,12 @@ class RANSSolver:
             print(f"Final residual: {self.residual_history[-1]:.6e}")
             print(f"{'='*60}")
         
-        # Write final solution
-        self.vtk_writer.write(self.Q, iteration=self.iteration)
+        # Write final solution with surface data
+        surface_fields = self._compute_surface_fields()
+        self.vtk_writer.write(
+            self.Q, iteration=self.iteration,
+            additional_scalars=surface_fields
+        )
         series_file = self.vtk_writer.finalize()
         print(f"VTK series written to: {series_file}")
         
@@ -517,26 +572,16 @@ class RANSSolver:
         forces : AeroForces
             Named tuple with CL, CD, CD_p, CD_f, etc.
         """
-        # Laminar viscosity from Reynolds number
         V_inf = np.sqrt(self.freestream.u_inf**2 + self.freestream.v_inf**2)
         mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
         
-        # Create metrics object with required attributes
-        class ForceMetrics:
-            pass
-        metrics = ForceMetrics()
-        metrics.Sj_x = self.flux_metrics.Sj_x
-        metrics.Sj_y = self.flux_metrics.Sj_y
-        metrics.volume = self.flux_metrics.volume
-        
         # Turbulent viscosity (from SA variable nu_tilde)
-        # nu_t = nu_hat * fv1, but for simplicity use nu_hat directly
-        # This is approximate; proper implementation would compute fv1
-        mu_turb = None  # For laminar flow
+        # For laminar flow, set to None
+        mu_turb = None
         
         forces = compute_aerodynamic_forces(
             Q=self.Q,
-            metrics=metrics,
+            metrics=self.flux_metrics,
             mu_laminar=mu_laminar,
             mu_turb=mu_turb,
             alpha_deg=self.config.alpha,
@@ -546,6 +591,30 @@ class RANSSolver:
         )
         
         return forces
+    
+    def get_surface_distributions(self):
+        """
+        Get surface Cp and Cf distributions.
+        
+        Returns
+        -------
+        SurfaceData
+            Named tuple with x, y, Cp, Cf arrays.
+        """
+        V_inf = np.sqrt(self.freestream.u_inf**2 + self.freestream.v_inf**2)
+        mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
+        
+        return compute_surface_distributions(
+            Q=self.Q,
+            X=self.X,
+            Y=self.Y,
+            metrics=self.flux_metrics,
+            mu_laminar=mu_laminar,
+            mu_turb=None,
+            p_inf=self.freestream.p_inf,
+            rho_inf=1.0,
+            V_inf=V_inf,
+        )
     
     def save_residual_history(self, filename: str = None):
         """Save residual history to file."""

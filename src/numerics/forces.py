@@ -3,11 +3,14 @@ Aerodynamic force computation for 2D airfoil simulations.
 
 This module computes lift and drag coefficients by integrating
 pressure and viscous stresses over the airfoil surface.
+
+Also provides surface distributions:
+- Cp: Pressure coefficient
+- Cf: Skin friction coefficient
 """
 
 import numpy as np
 from numba import njit
-from dataclasses import dataclass
 from typing import NamedTuple
 
 
@@ -21,6 +24,14 @@ class AeroForces(NamedTuple):
     CL_f: float    # Friction lift coefficient
     Fx: float      # Body-axis x-force
     Fy: float      # Body-axis y-force
+
+
+class SurfaceData(NamedTuple):
+    """Surface distribution data."""
+    x: np.ndarray    # x-coordinates (NI,)
+    y: np.ndarray    # y-coordinates (NI,)
+    Cp: np.ndarray   # Pressure coefficient (NI,)
+    Cf: np.ndarray   # Skin friction coefficient (NI,)
 
 
 @njit(cache=True, fastmath=True)
@@ -292,4 +303,181 @@ def compute_aerodynamic_forces(
         Fx=Fx,
         Fy=Fy,
     )
+
+
+@njit(cache=True, fastmath=True)
+def _compute_surface_cp_cf_kernel(
+    Q: np.ndarray,
+    Sj_x: np.ndarray,
+    Sj_y: np.ndarray,
+    volume: np.ndarray,
+    mu_eff: np.ndarray,
+    p_inf: float,
+    q_inf: float,
+    Cp_out: np.ndarray,
+    Cf_out: np.ndarray,
+) -> None:
+    """
+    Compute surface Cp and Cf distributions.
+    
+    Parameters
+    ----------
+    Q : ndarray, shape (NI+2, NJ+2, 4)
+        State vector.
+    Sj_x, Sj_y : ndarray, shape (NI, NJ+1)
+        J-face normals.
+    volume : ndarray, shape (NI, NJ)
+        Cell volumes.
+    mu_eff : ndarray, shape (NI, NJ)
+        Effective viscosity.
+    p_inf : float
+        Freestream pressure.
+    q_inf : float
+        Dynamic pressure (0.5 * rho * V^2).
+    Cp_out : ndarray, shape (NI,)
+        Output: pressure coefficient.
+    Cf_out : ndarray, shape (NI,)
+        Output: skin friction coefficient.
+    """
+    NI = Q.shape[0] - 2
+    
+    for i in range(NI):
+        # Face normal at j=0
+        Sx = Sj_x[i, 0]
+        Sy = Sj_y[i, 0]
+        area = np.sqrt(Sx*Sx + Sy*Sy)
+        
+        if area < 1e-14:
+            Cp_out[i] = 0.0
+            Cf_out[i] = 0.0
+            continue
+        
+        # ===== Pressure coefficient =====
+        p_wall = Q[i+1, 1, 0]
+        Cp_out[i] = (p_wall - p_inf) / q_inf
+        
+        # ===== Skin friction coefficient =====
+        # Wall-normal distance
+        vol = volume[i, 0]
+        dy = vol / area
+        
+        # Velocity at first interior cell
+        u_int = Q[i+1, 1, 1]
+        v_int = Q[i+1, 1, 2]
+        
+        # Velocity gradients at wall
+        dudn = 2.0 * u_int / dy
+        dvdn = 2.0 * v_int / dy
+        
+        # Wall shear stress magnitude
+        mu = mu_eff[i, 0]
+        tau_mag = mu * np.sqrt(dudn*dudn + dvdn*dvdn)
+        
+        # Skin friction coefficient
+        Cf_out[i] = tau_mag / q_inf
+
+
+def compute_surface_distributions(
+    Q: np.ndarray,
+    X: np.ndarray,
+    Y: np.ndarray,
+    metrics,
+    mu_laminar: float,
+    mu_turb: np.ndarray = None,
+    p_inf: float = 0.0,
+    rho_inf: float = 1.0,
+    V_inf: float = 1.0,
+) -> SurfaceData:
+    """
+    Compute surface Cp and Cf distributions.
+    
+    Parameters
+    ----------
+    Q : ndarray, shape (NI+2, NJ+2, 4)
+        State vector.
+    X, Y : ndarray, shape (NI+1, NJ+1)
+        Grid node coordinates.
+    metrics : object
+        Grid metrics with Sj_x, Sj_y, volume.
+    mu_laminar : float
+        Laminar viscosity.
+    mu_turb : ndarray, optional
+        Turbulent viscosity, shape (NI, NJ).
+    p_inf : float
+        Freestream pressure.
+    rho_inf : float
+        Freestream density.
+    V_inf : float
+        Freestream velocity magnitude.
+        
+    Returns
+    -------
+    SurfaceData
+        Named tuple with x, y, Cp, Cf arrays.
+    """
+    NI = Q.shape[0] - 2
+    NJ = Q.shape[1] - 2
+    
+    # Build effective viscosity
+    if mu_turb is None:
+        mu_eff = np.full((NI, NJ), mu_laminar)
+    else:
+        mu_eff = mu_laminar + np.maximum(0.0, mu_turb)
+    
+    # Dynamic pressure
+    q_inf = 0.5 * rho_inf * V_inf**2
+    if q_inf < 1e-14:
+        q_inf = 1e-14  # Prevent division by zero
+    
+    # Allocate outputs
+    Cp = np.zeros(NI)
+    Cf = np.zeros(NI)
+    
+    # Compute distributions
+    _compute_surface_cp_cf_kernel(
+        Q, metrics.Sj_x, metrics.Sj_y, metrics.volume,
+        mu_eff, p_inf, q_inf, Cp, Cf
+    )
+    
+    # Surface coordinates (cell-centered at j=0)
+    x_surf = 0.5 * (X[:-1, 0] + X[1:, 0])
+    y_surf = 0.5 * (Y[:-1, 0] + Y[1:, 0])
+    
+    return SurfaceData(x=x_surf, y=y_surf, Cp=Cp, Cf=Cf)
+
+
+def create_surface_vtk_fields(
+    Q: np.ndarray,
+    X: np.ndarray,
+    Y: np.ndarray,
+    metrics,
+    mu_laminar: float,
+    mu_turb: np.ndarray = None,
+    p_inf: float = 0.0,
+    rho_inf: float = 1.0,
+    V_inf: float = 1.0,
+) -> dict:
+    """
+    Create Cp and Cf fields for VTK output (full grid arrays).
+    
+    Returns dictionary with 'Cp' and 'Cf' as (NI, NJ) arrays.
+    Values are only meaningful at j=0 (surface); rest filled with NaN.
+    """
+    NI = Q.shape[0] - 2
+    NJ = Q.shape[1] - 2
+    
+    # Get surface distributions
+    surf = compute_surface_distributions(
+        Q, X, Y, metrics, mu_laminar, mu_turb, p_inf, rho_inf, V_inf
+    )
+    
+    # Create full-grid arrays (NaN for non-surface cells)
+    Cp_field = np.full((NI, NJ), np.nan)
+    Cf_field = np.full((NI, NJ), np.nan)
+    
+    # Fill surface row (j=0)
+    Cp_field[:, 0] = surf.Cp
+    Cf_field[:, 0] = surf.Cf
+    
+    return {'SurfaceCp': Cp_field, 'SurfaceCf': Cf_field}
 

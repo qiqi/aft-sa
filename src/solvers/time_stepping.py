@@ -126,12 +126,18 @@ def compute_local_timestep(Q: np.ndarray,
                            Sj_x: np.ndarray, Sj_y: np.ndarray,
                            volume: np.ndarray,
                            beta: float,
-                           cfg: Optional[TimeStepConfig] = None) -> np.ndarray:
+                           cfg: Optional[TimeStepConfig] = None,
+                           nu: float = 0.0) -> np.ndarray:
     """
-    Compute local time step for each cell based on CFL condition.
+    Compute local time step for each cell based on CFL and viscous stability.
     
-    Formula:
-        Δt_{i,j} = CFL * Ω_{i,j} / (Λ^I_{i,j} + Λ^J_{i,j})
+    Formula (convective):
+        Δt_conv = CFL * Ω / (Λ^I + Λ^J)
+        
+    Formula (viscous):
+        Δt_visc = 0.5 * Ω^2 / (ν * (S_i² + S_j²))
+        
+    Final time step is the minimum of both constraints.
     
     Parameters
     ----------
@@ -147,6 +153,8 @@ def compute_local_timestep(Q: np.ndarray,
         Artificial compressibility parameter.
     cfg : TimeStepConfig, optional
         Time stepping configuration.
+    nu : float, optional
+        Kinematic viscosity (1/Re). If 0, viscous constraint is ignored.
         
     Returns
     -------
@@ -159,18 +167,38 @@ def compute_local_timestep(Q: np.ndarray,
     # Compute spectral radii
     spec_rad = compute_spectral_radii(Q, Si_x, Si_y, Sj_x, Sj_y, beta)
     
-    # Local timestep: dt = CFL * Volume / (λ_I + λ_J)
+    # Convective timestep: dt = CFL * Volume / (λ_I + λ_J)
     lambda_sum = spec_rad.lambda_i + spec_rad.lambda_j
-    
-    # Avoid division by zero
     lambda_sum = np.maximum(lambda_sum, 1e-12)
+    dt_conv = cfg.cfl * volume / lambda_sum
     
-    dt = cfg.cfl * volume / lambda_sum
+    # Viscous stability constraint (if viscosity is significant)
+    if nu > 1e-12:
+        # Estimate cell size from volume and face areas
+        # dx ~ volume / Sj (j-face area), dy ~ volume / Si (i-face area)
+        Si_avg = 0.5 * (np.sqrt(Si_x[:-1, :]**2 + Si_y[:-1, :]**2) + 
+                        np.sqrt(Si_x[1:, :]**2 + Si_y[1:, :]**2))
+        Sj_avg = 0.5 * (np.sqrt(Sj_x[:, :-1]**2 + Sj_y[:, :-1]**2) + 
+                        np.sqrt(Sj_x[:, 1:]**2 + Sj_y[:, 1:]**2))
+        
+        # Cell sizes: dx ~ Vol/Sy, dy ~ Vol/Sx
+        dx = volume / (Sj_avg + 1e-12)
+        dy = volume / (Si_avg + 1e-12)
+        
+        # Viscous stability: dt <= C * min(dx,dy)^2 / nu
+        # Use C = 0.25 for safety with explicit schemes
+        dx_min = np.minimum(dx, dy)
+        dt_visc = 0.25 * dx_min**2 / nu * cfg.cfl
+        
+        # Take minimum of convective and viscous constraints
+        dt = np.minimum(dt_conv, dt_visc)
+    else:
+        dt = dt_conv
     
     # Apply min/max limits
     dt = np.clip(dt, cfg.min_dt, cfg.max_dt)
     
-    # Optionally use global (minimum) timestep for time-accurate simulations
+    # Optionally use global (minimum) timestep
     if cfg.use_global_dt:
         dt_global = np.min(dt)
         dt = np.full_like(dt, dt_global)
