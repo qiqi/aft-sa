@@ -5,6 +5,7 @@ This module provides:
 - JST flux scheme for artificial compressibility formulation
 - Time stepping utilities
 - Green-Gauss gradient reconstruction
+- Viscous flux computation
 """
 
 from .fluxes import (
@@ -23,8 +24,14 @@ from .gradients import (
     GradientMetrics,
 )
 
+from .viscous_fluxes import (
+    compute_viscous_fluxes,
+    add_viscous_fluxes,
+    compute_nu_tilde_diffusion,
+)
+
 __all__ = [
-    # Fluxes
+    # Convective fluxes
     'compute_fluxes',
     'compute_time_step',
     'compute_convective_flux',
@@ -36,5 +43,9 @@ __all__ = [
     'compute_vorticity',
     'compute_strain_rate',
     'GradientMetrics',
+    # Viscous fluxes
+    'compute_viscous_fluxes',
+    'add_viscous_fluxes',
+    'compute_nu_tilde_diffusion',
 ]
 
