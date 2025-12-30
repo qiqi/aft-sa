@@ -337,3 +337,4 @@ def compute_strain_rate(grad: np.ndarray) -> np.ndarray:
     
     return S_mag
 
+
