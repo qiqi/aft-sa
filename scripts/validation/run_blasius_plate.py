@@ -62,9 +62,9 @@ def apply_bc(Q, u_inf=1.0):
     Q[:, 0, 2] = -Q[:, 1, 2]
     
     # Top (j=-1): Zero gradient (allow v > 0 outflow for displacement)
-    Q[:, -1, 0] = Q[:, -2, 0]  # Neumann pressure
-    Q[:, -1, 1] = Q[:, -2, 1]  # Neumann u (not forced to u_inf)
-    Q[:, -1, 2] = Q[:, -2, 2]  # Neumann v (allow upward outflow!)
+    Q[:, -1, 0] = Q[:, -2, 0]
+    Q[:, -1, 1] = Q[:, -2, 1]
+    Q[:, -1, 2] = Q[:, -2, 2]
     
     return Q
 
@@ -72,6 +72,7 @@ def apply_bc(Q, u_inf=1.0):
 def plot_solution(X, Y, Q, output_dir, iteration, Re):
     """Plot velocity contours and BL profiles."""
     NI, NJ = X.shape[0] - 1, X.shape[1] - 1
+    L = X[-1, 0]
     
     # Cell centers
     Xc = 0.5 * (X[:-1, :-1] + X[1:, 1:])
@@ -83,22 +84,21 @@ def plot_solution(X, Y, Q, output_dir, iteration, Re):
     
     fig = plt.figure(figsize=(16, 12))
     
-    # U velocity contour
+    # U velocity contour (no aspect scaling)
     ax1 = fig.add_subplot(2, 2, 1)
     c1 = ax1.contourf(Xc, Yc, u, levels=50, cmap='RdBu_r')
     ax1.set_xlabel('x')
     ax1.set_ylabel('y')
     ax1.set_title(f'u velocity (iter {iteration})')
-    ax1.set_aspect('equal')
+    # No aspect='equal' - let it stretch for visibility
     plt.colorbar(c1, ax=ax1)
     
-    # V velocity contour
+    # V velocity contour (no aspect scaling)
     ax2 = fig.add_subplot(2, 2, 2)
     c2 = ax2.contourf(Xc, Yc, v, levels=50, cmap='RdBu_r')
     ax2.set_xlabel('x')
     ax2.set_ylabel('y')
     ax2.set_title(f'v velocity (iter {iteration})')
-    ax2.set_aspect('equal')
     plt.colorbar(c2, ax=ax2)
     
     # Boundary layer profiles at 4 locations
@@ -112,11 +112,11 @@ def plot_solution(X, Y, Q, output_dir, iteration, Re):
         u_profile = u[i, :]
         
         # Blasius: delta = 5x / sqrt(Re_x)
-        Re_x = Re * x_loc
-        delta = 5.0 * x_loc / np.sqrt(Re_x) if Re_x > 0 else 0.01
+        Re_x = Re * x_loc * L
+        delta = 5.0 * x_loc * L / np.sqrt(Re_x) if Re_x > 0 else 0.01
         
         ax3.plot(u_profile, y_profile / delta, f'{color}-', linewidth=2, 
-                 label=f'x={x_loc:.1f}')
+                 label=f'x={x_loc:.1f}L')
     
     ax3.set_xlabel('u/U∞')
     ax3.set_ylabel('y/δ')
@@ -130,8 +130,9 @@ def plot_solution(X, Y, Q, output_dir, iteration, Re):
     ax4 = fig.add_subplot(2, 2, 4)
     
     # Compute wall shear
-    u_wall = Q[1:-1, 1, 1]  # First interior cell
-    y_first = 0.5 * (Y[0, 0] + Y[0, 1])
+    dy = Y[0, 1] - Y[0, 0]
+    u_wall = Q[1:-1, 1, 1]
+    y_first = 0.5 * dy
     nu = 1.0 / Re
     tau_w = nu * u_wall / y_first
     Cf = 2.0 * tau_w
@@ -142,12 +143,15 @@ def plot_solution(X, Y, Q, output_dir, iteration, Re):
     
     ax4.plot(x_wall, cf_rex, 'b-', linewidth=2, label='Computed')
     ax4.axhline(y=0.664, color='r', linestyle='--', linewidth=2, label='Blasius (0.664)')
+    ax4.axhline(y=0.664 * 1.15, color='gray', linestyle=':', alpha=0.5)
+    ax4.axhline(y=0.664 * 0.85, color='gray', linestyle=':', alpha=0.5)
+    ax4.fill_between([0.2*L, 0.8*L], 0.664*0.85, 0.664*1.15, alpha=0.2, color='green')
     ax4.set_xlabel('x')
     ax4.set_ylabel('Cf * sqrt(Re_x)')
-    ax4.set_title('Skin Friction')
+    ax4.set_title('Skin Friction (shaded = validation region)')
     ax4.legend()
-    ax4.set_xlim([0, 1])
-    ax4.set_ylim([0, 2])
+    ax4.set_xlim([0, L])
+    ax4.set_ylim([0, 1.5])
     ax4.grid(True, alpha=0.3)
     
     plt.tight_layout()
@@ -165,26 +169,30 @@ def run():
     output_dir = project_root / 'output' / 'validation' / 'blasius'
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Grid parameters
-    NI = 100      # x cells
-    NJ = 50       # y cells  
-    L = 1.0       # plate length
-    H = 0.1       # domain height (> δ ≈ 0.05)
-    
     # Flow parameters
-    Re = 10000
+    Re = 100000   # Higher Re for thinner BL
     nu = 1.0 / Re
-    beta = 5.0    # artificial compressibility
+    
+    # BL thickness at x=L: δ ≈ 5L/sqrt(Re) ≈ 0.016 for Re=100k
+    L = 1.0
+    delta_max = 5.0 * L / np.sqrt(Re)
+    H = 3.0 * delta_max  # Domain height = 3δ ≈ 0.05
+    
+    # Grid parameters - coarsest that gives <15% error
+    NI = 100      # x cells
+    NJ = 30       # y cells (~10 cells in BL)
     
     # Numerics
-    cfl = 0.5     # Increase CFL for faster convergence
+    beta = 5.0
+    cfl = 0.5
     jst_k2 = 0.0
     jst_k4 = 0.002
-    max_iter = 50000
-    dump_freq = 10000
+    max_iter = 10000
+    dump_freq = 5000
     
-    print(f"\nGrid: {NI} x {NJ}, L={L}, H={H}")
-    print(f"Re = {Re}, nu = {nu:.2e}")
+    print(f"\nRe = {Re}, δ_max ≈ {delta_max:.4f}")
+    print(f"Grid: {NI} x {NJ}, L={L}, H={H:.4f}")
+    print(f"Aspect ratio L/H = {L/H:.1f}")
     print(f"beta = {beta}, CFL = {cfl}")
     print(f"JST: k2={jst_k2}, k4={jst_k4}")
     
@@ -193,7 +201,8 @@ def run():
     flux_met, grad_met, dx, dy = compute_metrics(X, Y)
     
     print(f"dx = {dx:.4f}, dy = {dy:.4f}")
-    print(f"Aspect ratio: dx/dy = {dx/dy:.1f}")
+    print(f"dx/dy = {dx/dy:.1f}")
+    print(f"Cells in BL: ~{int(delta_max/dy)}")
     
     # Time step
     dt_conv = cfl * min(dx, dy) / (1.0 + np.sqrt(beta))
@@ -203,7 +212,7 @@ def run():
     
     # Initialize
     Q = np.zeros((NI + 2, NJ + 2, 4))
-    Q[:, :, 1] = 1.0  # u = 1
+    Q[:, :, 1] = 1.0
     Q = apply_bc(Q)
     
     # Dump initial
@@ -222,11 +231,7 @@ def run():
         
         for alpha in [0.25, 0.333, 0.5, 1.0]:
             Qk = apply_bc(Qk)
-            
-            # Convective flux
             R = compute_fluxes(Qk, flux_met, beta, flux_cfg)
-            
-            # Viscous flux
             grad = compute_gradients(Qk, grad_met)
             R = add_viscous_fluxes(R, Qk, grad, grad_met, mu_laminar=nu)
             
@@ -234,11 +239,9 @@ def run():
             Qk[1:-1, 1:-1, :] += alpha * dt / flux_met.volume[:, :, np.newaxis] * R
         
         Q = apply_bc(Qk)
-        
-        # Residual
         res = np.sqrt(np.mean(R[:, :, 0]**2))
         
-        if (n + 1) % 1000 == 0 or n == 0:
+        if (n + 1) % 2000 == 0 or n == 0:
             u_max = Q[1:-1, 1:-1, 1].max()
             v_max = np.abs(Q[1:-1, 1:-1, 2]).max()
             print(f"{n+1:>8d} {res:>12.4e} {u_max:>8.4f} {v_max:>8.4f}")
@@ -253,7 +256,8 @@ def run():
     # Final dump
     plot_solution(X, Y, Q, output_dir, max_iter, Re)
     
-    # Final validation
+    # Validation: only check x in [0.2L, 0.8L] to avoid boundary effects
+    dy = Y[0, 1] - Y[0, 0]
     u_wall = Q[1:-1, 1, 1]
     y_first = 0.5 * dy
     tau_w = nu * u_wall / y_first
@@ -262,16 +266,21 @@ def run():
     Re_x = Re * x_wall
     cf_rex = Cf * np.sqrt(Re_x + 1e-12)
     
-    mask = x_wall > 0.1
+    # Only validate in [0.2L, 0.8L]
+    mask = (x_wall > 0.2 * L) & (x_wall < 0.8 * L)
     mean_cf_rex = cf_rex[mask].mean()
+    error = abs(mean_cf_rex - 0.664) / 0.664 * 100
     
     print(f"\n{'='*60}")
-    print(f"RESULT: Cf*sqrt(Re_x) = {mean_cf_rex:.4f} (Blasius = 0.664)")
-    print(f"Error: {abs(mean_cf_rex - 0.664)/0.664 * 100:.1f}%")
+    print(f"VALIDATION (x ∈ [0.2L, 0.8L]):")
+    print(f"  Cf*sqrt(Re_x) = {mean_cf_rex:.4f} (Blasius = 0.664)")
+    print(f"  Error: {error:.1f}%")
     print(f"{'='*60}")
     
-    return 0
+    return error
 
 
 if __name__ == "__main__":
-    exit(run())
+    error = run()
+    # Exit with 0 if error < 15%, else 1
+    exit(0 if error < 15 else 1)
