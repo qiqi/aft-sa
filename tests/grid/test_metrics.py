@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 from src.grid.metrics import MetricComputer, FVMMetrics, GCLValidation, compute_metrics
 
 
-class TestMetrics:
+class MetricsChecker:
     """Test suite for MetricComputer."""
     
     def __init__(self):
@@ -299,7 +299,7 @@ def main():
     print("Grid Metrics Module Tests")
     print("=" * 60)
     
-    tester = TestMetrics()
+    tester = MetricsChecker()
     tester.run_all()
     success = tester.print_results()
     

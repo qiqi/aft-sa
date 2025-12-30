@@ -51,7 +51,7 @@ def create_uniform_state(NI: int, NJ: int, p: float = 1.0, u: float = 1.0,
     return Q
 
 
-class TestResults:
+class ResultsData:
     """Simple test result tracker."""
     def __init__(self):
         self.passed = 0
@@ -80,7 +80,7 @@ class TestResults:
 
 def test_output_shape():
     """Test that output has correct shape."""
-    results = TestResults()
+    results = ResultsData()
     print("\n" + "=" * 60)
     print("Test: Output Shape")
     print("=" * 60)
@@ -109,7 +109,7 @@ def test_output_shape():
 
 def test_uniform_flow_zero_residual():
     """Test that uniform flow has zero residual (to machine precision)."""
-    results = TestResults()
+    results = ResultsData()
     print("\n" + "=" * 60)
     print("Test: Uniform Flow Zero Residual")
     print("=" * 60)
@@ -139,7 +139,7 @@ def test_uniform_flow_zero_residual():
 
 def test_conservation():
     """Test that fluxes are conservative (sum of residuals = 0)."""
-    results = TestResults()
+    results = ResultsData()
     print("\n" + "=" * 60)
     print("Test: Conservation (Sum of Residuals = 0)")
     print("=" * 60)
@@ -176,7 +176,7 @@ def test_conservation():
 
 def test_pressure_spike_dissipation():
     """Test that pressure spike triggers dissipation."""
-    results = TestResults()
+    results = ResultsData()
     print("\n" + "=" * 60)
     print("Test: Pressure Spike Triggers Dissipation")
     print("=" * 60)
@@ -221,7 +221,7 @@ def test_pressure_spike_dissipation():
 
 def test_spectral_radius():
     """Test spectral radius computation."""
-    results = TestResults()
+    results = ResultsData()
     print("\n" + "=" * 60)
     print("Test: Spectral Radius Computation")
     print("=" * 60)
@@ -284,7 +284,7 @@ def test_spectral_radius():
 
 def test_convective_flux():
     """Test convective flux computation."""
-    results = TestResults()
+    results = ResultsData()
     print("\n" + "=" * 60)
     print("Test: Convective Flux Computation")
     print("=" * 60)
@@ -325,7 +325,7 @@ def test_convective_flux():
 
 def test_time_step():
     """Test local time step computation."""
-    results = TestResults()
+    results = ResultsData()
     print("\n" + "=" * 60)
     print("Test: Local Time Step Computation")
     print("=" * 60)
@@ -368,7 +368,7 @@ def test_time_step():
 
 def test_different_grid_sizes():
     """Test flux computation on various grid sizes."""
-    results = TestResults()
+    results = ResultsData()
     print("\n" + "=" * 60)
     print("Test: Different Grid Sizes")
     print("=" * 60)
@@ -411,7 +411,7 @@ def test_jst_switch_logic():
     residual contains physical contributions from dp/dx that are not
     related to the dissipation switch.
     """
-    results = TestResults()
+    results = ResultsData()
     print("\n" + "=" * 60)
     print("Test: JST Pressure Switch Logic")
     print("=" * 60)
@@ -472,7 +472,7 @@ def test_symmetry_preservation():
     Visual/Logic Test: Does a symmetric condition result in symmetric output?
     This catches 'off-by-one' indexing errors in flux calculations.
     """
-    results = TestResults()
+    results = ResultsData()
     print("\n" + "=" * 60)
     print("Test: Symmetry Preservation")
     print("=" * 60)

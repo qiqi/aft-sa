@@ -28,7 +28,7 @@ from src.solvers.boundary_conditions import (
 
 
 @dataclass
-class TestResult:
+class ResultData:
     name: str
     passed: bool
     message: str
@@ -61,9 +61,9 @@ class BoundaryConditionTests:
         """Run a single test and record result."""
         try:
             passed, message = test_func()
-            self.results.append(TestResult(name, passed, message))
+            self.results.append(ResultData(name, passed, message))
         except Exception as e:
-            self.results.append(TestResult(name, False, f"Exception: {e}"))
+            self.results.append(ResultData(name, False, f"Exception: {e}"))
     
     # ===== FreestreamConditions Tests =====
     

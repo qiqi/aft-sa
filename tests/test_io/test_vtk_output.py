@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 from src.io.output import write_vtk, write_vtk_series, VTKWriter
 
 
-class TestVTKOutput:
+class VTKOutputChecker:
     """Test suite for VTK output."""
     
     def __init__(self):
@@ -379,7 +379,7 @@ def main():
     print("VTK Output Module Tests")
     print("=" * 60)
     
-    tester = TestVTKOutput()
+    tester = VTKOutputChecker()
     tester.run_all()
     success = tester.print_results()
     
