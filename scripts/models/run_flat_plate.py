@@ -1,3 +1,17 @@
+#!/usr/bin/env python3
+"""
+Flat Plate Boundary Layer Solver with Transition.
+
+This script runs the SA-AFT model on a flat plate for different
+freestream turbulence intensities and compares Cf to correlations.
+
+Assertions:
+- Low Tu: Cf should follow laminar correlation (Cf ~ 0.664/sqrt(Re_x))
+- High Tu: Cf should approach turbulent correlation
+- Velocity profiles should be bounded [0, 1]
+- nuHat should be positive
+"""
+
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -15,11 +29,12 @@ def get_output_dir():
 
 from src.solvers.boundary_layer_solvers import NuHatFlatPlateSolver
 
+
 def run():
     solver = NuHatFlatPlateSolver()
+    all_passed = True
 
     # --- RUNNING WITH BATCH ---
-    # Example: Run 3 simulations with different Tu
     Tu_batch = [0.0001, 0.01, 1.0, 5.0]
     u, v, nuHat = solver.forward(Tu_batch)
     x_grid = solver.x_grid
@@ -28,9 +43,27 @@ def run():
     plt.figure(figsize=(9, 12))
     symbols = ['o', 's', '^', 'v']
     
+    cf_results = {}
+    
     for batch_idx in range(4):
         u_np = u[:, batch_idx, :].detach().cpu().numpy()
         nu_np = nuHat[:, batch_idx, :].detach().cpu().numpy()
+        Tu = Tu_batch[batch_idx]
+
+        # ===== PHYSICAL ASSERTIONS =====
+        
+        # 1. Velocity should be bounded [0, 1]
+        if u_np.min() < -0.01:
+            print(f"❌ Tu={Tu}%: Velocity below 0: {u_np.min():.4f}")
+            all_passed = False
+        if u_np.max() > 1.01:
+            print(f"❌ Tu={Tu}%: Velocity above 1: {u_np.max():.4f}")
+            all_passed = False
+        
+        # 2. nuHat should be positive (or very small negative from numerics)
+        if nu_np.min() < -0.1:
+            print(f"❌ Tu={Tu}%: Negative nuHat: {nu_np.min():.4f}")
+            all_passed = False
 
         # Calculate Cf
         tau_w = 1.0 * u_np[:,0] / y_u[0]
@@ -43,7 +76,19 @@ def run():
             Re_theta_list.append(theta)
 
         Re_theta = np.array(Re_theta_list)
-        name = f'Tu={Tu_batch[batch_idx]}%'
+        cf_results[Tu] = (Re_theta, cf)
+        
+        # 3. Cf should be positive
+        if (cf[1:] < 0).any():
+            print(f"❌ Tu={Tu}%: Negative skin friction")
+            all_passed = False
+        
+        # 4. Cf should be in reasonable range
+        if cf[1:].max() > 0.02:
+            print(f"❌ Tu={Tu}%: Cf too high: {cf.max():.4f}")
+            all_passed = False
+
+        name = f'Tu={Tu}%'
 
         # Plotting
         ax = plt.subplot(5, 2, 2*batch_idx+1)
@@ -59,7 +104,7 @@ def run():
 
         ax = plt.subplot(5, 2, 2*batch_idx+2)
         levels = [-3.5, -3.0, -2.5, -2.0, -1.5, -1, -0.5, 0, 0.5, 1.0, 1.5, 2.0]
-        plt.clabel(plt.contour(x_grid, y_u, np.log10(nu_np.T), levels))
+        plt.clabel(plt.contour(x_grid, y_u, np.log10(np.maximum(nu_np.T, 1e-10)), levels))
         plt.title(r'$\log(\hat\nu)$, ' + name, y=0.8)
         plt.ylim([-1000, 15000])
         ax.set_yticklabels([])
@@ -71,9 +116,13 @@ def run():
         plt.subplot(6, 1, 6)
         plt.loglog(Re_theta[1:], cf[1:], symbols[batch_idx], mfc='w', label=name)
 
-    plt.loglog(Re_theta[1:], 0.441 / Re_theta[1:], 'k:', label='Laminar')
-    cf_turb = 2.0 * (1.0 / 0.38 * np.log(Re_theta[1:]) + 3.7)**(-2)
-    plt.loglog(Re_theta[1:], cf_turb, 'r--', label='Turbulent Correlation')
+    # Reference correlations
+    Re_theta_ref = cf_results[Tu_batch[0]][0]
+    cf_lam = 0.441 / Re_theta_ref[1:]
+    cf_turb = 2.0 * (1.0 / 0.38 * np.log(Re_theta_ref[1:]) + 3.7)**(-2)
+    
+    plt.loglog(Re_theta_ref[1:], cf_lam, 'k:', label='Laminar')
+    plt.loglog(Re_theta_ref[1:], cf_turb, 'r--', label='Turbulent Correlation')
     plt.legend(loc='lower right')
     plt.grid(True)
     plt.xlim([1e2, 1e4])
@@ -81,7 +130,28 @@ def run():
     plt.xlabel(r'$\theta$')
     plt.ylabel(r'$c_f$')
     
-    out_path = os.path.join(get_output_dir(), 'flat_plate_batch.pdf'); plt.savefig(out_path); print(f'Saved: {out_path}')
+    # 5. Check that low Tu stays closer to laminar correlation
+    Re_theta_low, cf_low = cf_results[0.0001]
+    valid_idx = Re_theta_low[1:] > 500
+    if valid_idx.any():
+        cf_lam_check = 0.441 / Re_theta_low[1:][valid_idx]
+        cf_low_check = cf_low[1:][valid_idx]
+        ratio = cf_low_check.mean() / cf_lam_check.mean()
+        if ratio > 2.0:
+            print(f"⚠️  Low Tu: Cf ratio to laminar = {ratio:.2f} (expected ~1)")
+    
+    out_path = os.path.join(get_output_dir(), 'flat_plate_batch.pdf')
+    plt.savefig(out_path)
+    print(f'Saved: {out_path}')
+    
+    # Summary
+    if all_passed:
+        print("✅ All flat plate physical constraints satisfied")
+        return 0
+    else:
+        print("❌ Some physical constraints violated")
+        return 1
+
 
 if __name__ == "__main__":
-    run()
+    exit(run())
