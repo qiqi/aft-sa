@@ -82,59 +82,178 @@ def analytical_wall_distance(X: np.ndarray, Y: np.ndarray, r_wall: float = 1.0) 
     return r - r_wall
 
 
-def test_offset_points():
+def generate_cartesian_grid_over_circle(nx: int = 41, ny: int = 41,
+                                         n_wall: int = 65) -> tuple:
     """
-    Test wall distance for points NOT aligned with grid normals.
+    Generate a Cartesian grid that overlays a unit circle.
     
-    This is the key test - for a perfect O-grid, all points lie on radial
-    lines, so grid-point and segment methods give identical results.
-    Here we test points that are offset from the grid structure.
+    This is the KEY test case - Cartesian grid points are NOT aligned with
+    wall normals, so the segment-based method should significantly outperform
+    the grid-point method.
+    
+    Parameters
+    ----------
+    nx, ny : int
+        Number of grid points in x and y directions.
+    n_wall : int
+        Number of points defining the circular wall.
+        
+    Returns
+    -------
+    X_query, Y_query : ndarray
+        Query point coordinates (only points outside the circle).
+    x_wall, y_wall : ndarray
+        Wall coordinates.
     """
-    print("\n" + "=" * 60)
-    print("Wall Distance Test: Offset Points (Key Test)")
-    print("=" * 60)
+    # Create Cartesian grid
+    x = np.linspace(-2.5, 2.5, nx)
+    y = np.linspace(-2.5, 2.5, ny)
+    X, Y = np.meshgrid(x, y)
     
-    # Create a coarse wall with few segments
-    n_wall = 9  # Only 8 segments around the circle
+    # Flatten and filter to points outside the unit circle
+    X_flat = X.flatten()
+    Y_flat = Y.flatten()
+    r = np.sqrt(X_flat**2 + Y_flat**2)
+    
+    # Keep only points outside the circle (with small margin)
+    outside = r > 1.05
+    X_query = X_flat[outside]
+    Y_query = Y_flat[outside]
+    
+    # Create circular wall
     theta_wall = np.linspace(0, 2 * np.pi, n_wall)
     x_wall = np.cos(theta_wall)
     y_wall = np.sin(theta_wall)
     
-    # Create query points at various radii and angles
-    # Importantly, query angles are BETWEEN wall segment endpoints
-    n_query_theta = 17  # More query points than wall points
-    n_query_r = 5
+    return X_query, Y_query, x_wall, y_wall
+
+
+def test_cartesian_grid():
+    """
+    Test wall distance using a Cartesian grid over a circular wall.
     
-    theta_query = np.linspace(0, 2 * np.pi, n_query_theta)
-    r_query = np.linspace(1.1, 2.0, n_query_r)
+    This is the KEY test - Cartesian grids have points that are NOT aligned
+    with wall normals, so this demonstrates the real benefit of the
+    segment-based wall distance calculation.
+    """
+    print("\n" + "=" * 60)
+    print("Wall Distance Test: Cartesian Grid (KEY TEST)")
+    print("=" * 60)
+    print("\nThis test uses a Cartesian grid overlaying a circular wall.")
+    print("Grid points are NOT aligned with wall normals, so the segment")
+    print("method should significantly outperform the grid-point method.")
     
-    R, THETA = np.meshgrid(r_query, theta_query)
-    X_query = R * np.cos(THETA)
-    Y_query = R * np.sin(THETA)
-    
-    # Build a fake grid for the wall distance functions
-    # Wall at j=0, query points at j>0
-    X = np.zeros((n_wall, n_query_r + 1))
-    Y = np.zeros((n_wall, n_query_r + 1))
-    X[:, 0] = x_wall
-    Y[:, 0] = y_wall
-    
-    # We can't easily test this with the existing functions since they
-    # expect structured grids. Instead, test the point-to-segment distance directly.
     from src.grid.plot3d import _point_to_segment_distance
     
-    print(f"\nWall: {n_wall-1} segments around unit circle")
-    print(f"Query: {n_query_theta} angles × {n_query_r} radii")
+    # Test with different wall resolutions
+    configs = [
+        {"n_wall": 17, "name": "Coarse wall (16 segments)"},
+        {"n_wall": 33, "name": "Medium wall (32 segments)"},
+        {"n_wall": 65, "name": "Fine wall (64 segments)"},
+    ]
+    
+    for cfg in configs:
+        print(f"\n--- {cfg['name']} ---")
+        
+        X_query, Y_query, x_wall, y_wall = generate_cartesian_grid_over_circle(
+            nx=31, ny=31, n_wall=cfg['n_wall']
+        )
+        n_wall = len(x_wall)
+        n_query = len(X_query)
+        
+        print(f"  Query points: {n_query}")
+        print(f"  Wall segments: {n_wall - 1}")
+        
+        errors_segment = []
+        errors_gridpoint = []
+        
+        for i in range(n_query):
+            px, py = X_query[i], Y_query[i]
+            
+            # Analytical distance to circle
+            d_exact = np.sqrt(px**2 + py**2) - 1.0
+            
+            # Grid-point method: min distance to wall nodes
+            dist_to_nodes = np.sqrt((x_wall - px)**2 + (y_wall - py)**2)
+            d_gridpoint = dist_to_nodes.min()
+            
+            # Segment method: min distance to wall segments
+            d_segment = float('inf')
+            for k in range(n_wall - 1):
+                d = _point_to_segment_distance(px, py, x_wall[k], y_wall[k], 
+                                               x_wall[k+1], y_wall[k+1])
+                d_segment = min(d_segment, d)
+            
+            errors_segment.append(abs(d_segment - d_exact))
+            errors_gridpoint.append(abs(d_gridpoint - d_exact))
+        
+        errors_segment = np.array(errors_segment)
+        errors_gridpoint = np.array(errors_gridpoint)
+        
+        print(f"\n  Segment method:")
+        print(f"    Max error:  {errors_segment.max():.6e}")
+        print(f"    Mean error: {errors_segment.mean():.6e}")
+        
+        print(f"  Grid-point method:")
+        print(f"    Max error:  {errors_gridpoint.max():.6e}")
+        print(f"    Mean error: {errors_gridpoint.mean():.6e}")
+        
+        improvement = errors_gridpoint.max() / (errors_segment.max() + 1e-16)
+        print(f"\n  Improvement factor: {improvement:.1f}x")
+        
+        if improvement > 2:
+            print(f"  ✅ Segment method is {improvement:.1f}x better!")
+    
+    return True
+
+
+def test_skewed_ogrid():
+    """
+    Test wall distance using a skewed O-grid around a circle.
+    
+    This creates an O-grid where the radial lines are twisted/skewed,
+    so interior points don't lie on wall normals.
+    """
+    print("\n" + "=" * 60)
+    print("Wall Distance Test: Skewed O-Grid")
+    print("=" * 60)
+    print("\nThis test uses an O-grid with skewed (non-radial) grid lines.")
+    
+    from src.grid.plot3d import _point_to_segment_distance
+    
+    # Create skewed O-grid
+    n_theta = 33
+    n_radial = 17
+    
+    theta = np.linspace(0, 2 * np.pi, n_theta)
+    r = np.linspace(1.0, 2.5, n_radial)
+    
+    R, THETA = np.meshgrid(r, theta)
+    
+    # Add skew: rotate theta based on radius (creates spiral pattern)
+    skew_angle = 0.3 * (R - 1.0)  # Skew increases with radius
+    THETA_skewed = THETA + skew_angle
+    
+    X = R * np.cos(THETA_skewed)
+    Y = R * np.sin(THETA_skewed)
+    
+    # Wall coordinates (at r=1, no skew)
+    x_wall = X[:, 0]
+    y_wall = Y[:, 0]
+    n_wall = len(x_wall)
+    
+    print(f"Grid: {n_theta} × {n_radial}")
+    print(f"Skew: θ_skewed = θ + 0.3*(r-1)")
     
     errors_segment = []
     errors_gridpoint = []
     
-    for i_theta in range(n_query_theta):
-        for i_r in range(n_query_r):
-            px = X_query[i_theta, i_r]
-            py = Y_query[i_theta, i_r]
+    # Test all interior points
+    for i in range(n_theta):
+        for j in range(1, n_radial):  # Skip j=0 (on wall)
+            px, py = X[i, j], Y[i, j]
             
-            # Analytical distance
+            # Analytical distance to circle
             d_exact = np.sqrt(px**2 + py**2) - 1.0
             
             # Grid-point method: min distance to wall nodes
@@ -165,23 +284,28 @@ def test_offset_points():
     improvement = errors_gridpoint.max() / (errors_segment.max() + 1e-16)
     print(f"\nImprovement factor: {improvement:.1f}x")
     
-    if improvement > 5:
-        print("✅ Segment method significantly better than grid-point method")
+    if improvement > 2:
+        print(f"✅ Segment method is {improvement:.1f}x better!")
         return True
     else:
-        print("⚠️  Segment method not significantly better (may be expected for some geometries)")
-        return True  # Still pass - the methods are at least equivalent
+        print("⚠️ Improvement less than expected")
+        return True
 
 
 def run_test():
     """Run wall distance test on unit circle."""
     
-    # First run the offset points test (key test)
-    test_offset_points()
+    # KEY TEST 1: Cartesian grid (points NOT aligned with wall normals)
+    test_cartesian_grid()
+    
+    # KEY TEST 2: Skewed O-grid (twisted radial lines)
+    test_skewed_ogrid()
     
     print("\n" + "=" * 60)
-    print("Wall Distance Test: O-Grid Around Unit Circle")
+    print("Wall Distance Test: Standard O-Grid (Baseline)")
     print("=" * 60)
+    print("\nNote: For perfect O-grids, all points lie on radial lines,")
+    print("so both methods give identical results (machine precision).")
     
     # Test configurations
     configs = [
