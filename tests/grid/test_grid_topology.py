@@ -23,11 +23,19 @@ Tests:
 import os
 import sys
 import numpy as np
+import pytest
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
-# Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+# Skip if construct2d binary not available
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+CONSTRUCT2D_BIN = os.path.join(PROJECT_ROOT, "bin", "construct2d")
+SKIP_NO_BINARY = pytest.mark.skipif(
+    not os.path.exists(CONSTRUCT2D_BIN),
+    reason="construct2d binary not found"
+)
 
 import matplotlib
 matplotlib.use('Agg')
@@ -45,7 +53,7 @@ class TopologyTestResult:
     max_error: Optional[float] = None
 
 
-def test_wake_vertex_continuity(X: np.ndarray, Y: np.ndarray, 
+def check_wake_vertex_continuity(X: np.ndarray, Y: np.ndarray, 
                                  atol: float = 1e-12) -> TopologyTestResult:
     """
     Test that vertices at i=0 and i=-1 satisfy C-grid wake cut symmetry.
@@ -103,7 +111,7 @@ def test_wake_vertex_continuity(X: np.ndarray, Y: np.ndarray,
         )
 
 
-def test_wake_face_normal_continuity(grid: StructuredGrid, 
+def check_wake_face_normal_continuity(grid: StructuredGrid, 
                                       atol: float = 1e-10) -> TopologyTestResult:
     """
     Test that face normals satisfy C-grid wake cut reflection symmetry.
@@ -166,7 +174,7 @@ def test_wake_face_normal_continuity(grid: StructuredGrid,
         )
 
 
-def test_wake_geometric_continuity(grid: StructuredGrid,
+def check_wake_geometric_continuity(grid: StructuredGrid,
                                     atol_vertex: float = 1e-12,
                                     atol_metric: float = 1e-10) -> List[TopologyTestResult]:
     """
@@ -189,10 +197,10 @@ def test_wake_geometric_continuity(grid: StructuredGrid,
     results = []
     
     # Test 1: Vertex continuity
-    results.append(test_wake_vertex_continuity(grid.X, grid.Y, atol_vertex))
+    results.append(check_wake_vertex_continuity(grid.X, grid.Y, atol_vertex))
     
     # Test 2: Face normal continuity
-    results.append(test_wake_face_normal_continuity(grid, atol_metric))
+    results.append(check_wake_face_normal_continuity(grid, atol_metric))
     
     # Test 3: Volume consistency (cells adjacent to wake cut)
     # First and last interior rows should have similar volumes
@@ -224,7 +232,7 @@ def test_wake_geometric_continuity(grid: StructuredGrid,
     return results
 
 
-def test_airfoil_closure(X: np.ndarray, Y: np.ndarray,
+def check_airfoil_closure(X: np.ndarray, Y: np.ndarray,
                          atol: float = 1e-10) -> TopologyTestResult:
     """
     Test that the airfoil surface (excluding wake) forms a continuous curve.
@@ -388,11 +396,11 @@ def run_topology_tests(grid: StructuredGrid, name: str,
     results = []
     
     # Wake geometric continuity tests
-    wake_results = test_wake_geometric_continuity(grid)
+    wake_results = check_wake_geometric_continuity(grid)
     results.extend(wake_results)
     
     # Airfoil closure test
-    results.append(test_airfoil_closure(grid.X, grid.Y))
+    results.append(check_airfoil_closure(grid.X, grid.Y))
     
     # Print results
     all_passed = True
@@ -483,6 +491,35 @@ def main():
     print("="*60)
     
     sys.exit(0 if all_passed else 1)
+
+
+@SKIP_NO_BINARY
+def test_grid_topology():
+    """Pytest wrapper for grid topology tests."""
+    # Redirect main() to return instead of sys.exit
+    import io
+    from contextlib import redirect_stdout
+    
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    bin_path = os.path.join(project_root, "bin", "construct2d")
+    data_dir = os.path.join(project_root, "data")
+    output_dir = os.path.join(project_root, "output", "grid")
+    
+    os.makedirs(output_dir, exist_ok=True)
+    wrapper = Construct2DWrapper(bin_path)
+    
+    options = GridOptions(
+        n_surface=80, n_normal=30, y_plus=1.0, reynolds=1e6,
+        topology='CGRD', farfield_radius=15.0, n_wake=20, solver='HYPR',
+    )
+    
+    airfoil_file = os.path.join(data_dir, "naca2412.dat")
+    X, Y = wrapper.generate(airfoil_file, options, verbose=False)
+    grid = StructuredGrid(X=X, Y=Y)
+    grid.compute_metrics()
+    
+    passed, _ = run_topology_tests(grid, "naca2412", output_dir)
+    assert passed, "Grid topology tests failed"
 
 
 if __name__ == "__main__":

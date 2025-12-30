@@ -11,6 +11,7 @@ Generates C-grids for common airfoils used in RANS transition model testing:
 import os
 import sys
 import numpy as np
+import pytest
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -18,10 +19,17 @@ from matplotlib.collections import PolyCollection
 from matplotlib.colors import Normalize
 import matplotlib.cm as cm
 
-# Add project root to path (go up two levels: grid/ -> scripts/ -> project root)
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from src.grid import Construct2DWrapper, GridOptions, StructuredGrid, check_grid_quality
+
+# Skip if construct2d binary not available
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+CONSTRUCT2D_BIN = os.path.join(PROJECT_ROOT, "bin", "construct2d")
+SKIP_NO_BINARY = pytest.mark.skipif(
+    not os.path.exists(CONSTRUCT2D_BIN),
+    reason="construct2d binary not found"
+)
 
 
 def compute_cell_quality_metrics(X: np.ndarray, Y: np.ndarray) -> dict:
@@ -199,8 +207,8 @@ def plot_grid_overview(grid: StructuredGrid, name: str, output_dir: str = "."):
     plt.close()
 
 
-def test_airfoil(wrapper: Construct2DWrapper, airfoil_file: str, name: str, 
-                 options: GridOptions, output_dir: str):
+def run_airfoil_test(wrapper: Construct2DWrapper, airfoil_file: str, name: str, 
+                     options: GridOptions, output_dir: str):
     """Generate and test grid for a single airfoil."""
     print(f"\n{'='*60}")
     print(f"Testing: {name}")
@@ -310,7 +318,7 @@ def main():
             results[name] = False
             continue
         
-        results[name] = test_airfoil(wrapper, airfoil_file, name, options, output_dir)
+        results[name] = run_airfoil_test(wrapper, airfoil_file, name, options, output_dir)
     
     # Summary
     print("\n" + "="*60)
@@ -335,6 +343,13 @@ def main():
     else:
         print("\nSome tests failed.")
         return 1
+
+
+@SKIP_NO_BINARY
+def test_construct2d_grids():
+    """Pytest wrapper for construct2d grid generation tests."""
+    result = main()
+    assert result == 0, "Some grid generation tests failed"
 
 
 if __name__ == "__main__":
