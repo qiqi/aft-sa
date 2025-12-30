@@ -22,25 +22,47 @@ from src.numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxG
 from src.numerics.viscous_fluxes import add_viscous_fluxes
 
 
-def create_grid(NI, NJ, L, H):
-    """Create simple uniform grid."""
-    x = np.linspace(0, L, NI + 1)
+def create_grid(NI, NJ, L, H, stretch_x=1.0):
+    """
+    Create grid with optional x-stretching.
+    
+    stretch_x > 1.0: finer near leading edge (x=0)
+    stretch_x = 1.0: uniform
+    """
+    if abs(stretch_x - 1.0) < 1e-10:
+        x = np.linspace(0, L, NI + 1)
+    else:
+        # Geometric stretching: finer at x=0
+        # Use tanh-based clustering for smooth distribution
+        s = np.linspace(0, 1, NI + 1)
+        # Stretch parameter: higher = more clustering at start
+        x = L * (1 - np.tanh(stretch_x * (1 - s)) / np.tanh(stretch_x))
+    
     y = np.linspace(0, H, NJ + 1)
     X, Y = np.meshgrid(x, y, indexing='ij')
     return X, Y
 
 
 def compute_metrics(X, Y):
-    """Compute FVM metrics."""
+    """Compute FVM metrics for potentially non-uniform grid."""
     NI, NJ = X.shape[0] - 1, X.shape[1] - 1
-    dx = X[1, 0] - X[0, 0]
-    dy = Y[0, 1] - Y[0, 0]
     
+    # Cell sizes (can vary)
+    dx = np.diff(X[:, 0])  # (NI,)
+    dy = Y[0, 1] - Y[0, 0]  # Uniform in y
+    
+    # I-faces: normal (1,0), area = dy
     Si_x = np.full((NI + 1, NJ), dy)
     Si_y = np.zeros((NI + 1, NJ))
+    
+    # J-faces: normal (0,1), area = dx[i]
     Sj_x = np.zeros((NI, NJ + 1))
-    Sj_y = np.full((NI, NJ + 1), dx)
-    volume = np.full((NI, NJ), dx * dy)
+    Sj_y = np.zeros((NI, NJ + 1))
+    for i in range(NI):
+        Sj_y[i, :] = dx[i]
+    
+    # Cell volumes
+    volume = np.outer(dx, np.full(NJ, dy))
     
     return FluxGridMetrics(Si_x, Si_y, Sj_x, Sj_y, volume), \
            GradientMetrics(Si_x, Si_y, Sj_x, Sj_y, volume), dx, dy
@@ -186,9 +208,10 @@ def run():
     delta_max = 5.0 * L / np.sqrt(Re)
     H = 3.0 * delta_max  # Domain height = 3δ ≈ 0.05
     
-    # Grid parameters - coarsest that gives <15% error
-    NI = 100      # x cells
+    # Grid parameters - stretched x, uniform y
+    NI = 60       # x cells (reduced due to stretching)
     NJ = 30       # y cells (~10 cells in BL)
+    stretch_x = 1.5  # Cluster near leading edge
     
     # Numerics
     beta = 5.0
@@ -201,20 +224,23 @@ def run():
     print(f"\nRe = {Re}, δ_max ≈ {delta_max:.4f}")
     print(f"Grid: {NI} x {NJ}, L={L}, H={H:.4f}")
     print(f"Aspect ratio L/H = {L/H:.1f}")
+    print(f"Stretch x = {stretch_x}")
     print(f"beta = {beta}, CFL = {cfl}")
     print(f"JST: k2={jst_k2}, k4={jst_k4}")
     
     # Create grid and metrics
-    X, Y = create_grid(NI, NJ, L, H)
+    X, Y = create_grid(NI, NJ, L, H, stretch_x=stretch_x)
     flux_met, grad_met, dx, dy = compute_metrics(X, Y)
     
-    print(f"dx = {dx:.4f}, dy = {dy:.4f}")
-    print(f"dx/dy = {dx/dy:.1f}")
+    dx_min, dx_max = dx.min(), dx.max()
+    print(f"dx: min={dx_min:.4f}, max={dx_max:.4f}, ratio={dx_max/dx_min:.1f}")
+    print(f"dy = {dy:.4f}")
     print(f"Cells in BL: ~{int(delta_max/dy)}")
     
-    # Time step
-    dt_conv = cfl * min(dx, dy) / (1.0 + np.sqrt(beta))
-    dt_visc = cfl * min(dx, dy)**2 / (4 * nu)
+    # Time step (based on minimum cell size)
+    dh_min = min(dx_min, dy)
+    dt_conv = cfl * dh_min / (1.0 + np.sqrt(beta))
+    dt_visc = cfl * dh_min**2 / (4 * nu)
     dt = min(dt_conv, dt_visc)
     print(f"dt = {dt:.2e} (conv={dt_conv:.2e}, visc={dt_visc:.2e})")
     

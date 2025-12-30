@@ -20,25 +20,31 @@ from src.numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxG
 from src.numerics.viscous_fluxes import add_viscous_fluxes
 
 
-def create_grid(NI, NJ, L, H):
-    """Create uniform Cartesian grid."""
-    x = np.linspace(0, L, NI + 1)
+def create_grid(NI, NJ, L, H, stretch_x=1.0):
+    """Create grid with optional x-stretching (finer near leading edge)."""
+    if abs(stretch_x - 1.0) < 1e-10:
+        x = np.linspace(0, L, NI + 1)
+    else:
+        s = np.linspace(0, 1, NI + 1)
+        x = L * (1 - np.tanh(stretch_x * (1 - s)) / np.tanh(stretch_x))
     y = np.linspace(0, H, NJ + 1)
     X, Y = np.meshgrid(x, y, indexing='ij')
     return X, Y
 
 
 def compute_metrics(X, Y):
-    """Compute FVM metrics."""
+    """Compute FVM metrics for potentially non-uniform grid."""
     NI, NJ = X.shape[0] - 1, X.shape[1] - 1
-    dx = X[1, 0] - X[0, 0]
-    dy = Y[0, 1] - Y[0, 0]
+    dx = np.diff(X[:, 0])  # (NI,) - can vary
+    dy = Y[0, 1] - Y[0, 0]  # Uniform in y
     
     Si_x = np.full((NI + 1, NJ), dy)
     Si_y = np.zeros((NI + 1, NJ))
     Sj_x = np.zeros((NI, NJ + 1))
-    Sj_y = np.full((NI, NJ + 1), dx)
-    volume = np.full((NI, NJ), dx * dy)
+    Sj_y = np.zeros((NI, NJ + 1))
+    for i in range(NI):
+        Sj_y[i, :] = dx[i]
+    volume = np.outer(dx, np.full(NJ, dy))
     
     return FluxGridMetrics(Si_x, Si_y, Sj_x, Sj_y, volume), \
            GradientMetrics(Si_x, Si_y, Sj_x, Sj_y, volume), dx, dy
@@ -104,16 +110,18 @@ class TestBlasiusFlatPlate:
         delta_max = 5.0 * L / np.sqrt(Re)
         H = 3.0 * delta_max
         
-        NI, NJ = 100, 30
+        NI, NJ = 60, 30  # Reduced NI due to x-stretching
+        stretch_x = 1.5   # Cluster near leading edge
         beta = 5.0
         cfl = 0.5
-        max_iter = 8000  # Balance speed vs accuracy
+        max_iter = 8000
         
-        # Create grid
-        X, Y = create_grid(NI, NJ, L, H)
+        # Create grid with x-stretching
+        X, Y = create_grid(NI, NJ, L, H, stretch_x=stretch_x)
         flux_met, grad_met, dx, dy = compute_metrics(X, Y)
         
-        dt = cfl * min(dx, dy) / (1.0 + np.sqrt(beta))
+        dh_min = min(dx.min(), dy)
+        dt = cfl * dh_min / (1.0 + np.sqrt(beta))
         dt_over_vol = dt / flux_met.volume
         
         # Initialize
@@ -163,12 +171,14 @@ class TestBlasiusFlatPlate:
         Re = 100000
         nu = 1.0 / Re
         L, H = 1.0, 0.05
-        NI, NJ = 50, 20
+        NI, NJ = 40, 20
+        stretch_x = 1.5
         beta = 5.0
         
-        X, Y = create_grid(NI, NJ, L, H)
+        X, Y = create_grid(NI, NJ, L, H, stretch_x=stretch_x)
         flux_met, grad_met, dx, dy = compute_metrics(X, Y)
-        dt = 0.5 * min(dx, dy) / (1.0 + np.sqrt(beta))
+        dh_min = min(dx.min(), dy)
+        dt = 0.5 * dh_min / (1.0 + np.sqrt(beta))
         dt_over_vol = dt / flux_met.volume
         
         Q = np.zeros((NI + 2, NJ + 2, 4))
