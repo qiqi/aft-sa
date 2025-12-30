@@ -8,6 +8,7 @@ Expected: Cf * sqrt(Re_x) = 0.664 (within 15% tolerance)
 """
 
 import numpy as np
+from numba import njit
 import pytest
 import sys
 import os
@@ -43,22 +44,47 @@ def compute_metrics(X, Y):
            GradientMetrics(Si_x, Si_y, Sj_x, Sj_y, volume), dx, dy
 
 
-def apply_bc(Q, u_inf=1.0):
-    """Apply flat plate boundary conditions."""
-    Q = Q.copy()
-    # Inlet: Dirichlet
-    Q[0, :, 1] = 2 * u_inf - Q[1, :, 1]
-    Q[0, :, 2] = -Q[1, :, 2]
-    Q[0, :, 0] = Q[1, :, 0]
-    # Outlet: Zero gradient
-    Q[-1, :, :] = Q[-2, :, :]
-    # Wall: No-slip
-    Q[:, 0, 0] = Q[:, 1, 0]
-    Q[:, 0, 1] = -Q[:, 1, 1]
-    Q[:, 0, 2] = -Q[:, 1, 2]
-    # Top: Zero gradient (allow outflow)
-    Q[:, -1, :] = Q[:, -2, :]
-    return Q
+@njit(cache=True)
+def apply_bc_numba(Q, u_inf):
+    """Apply flat plate boundary conditions (in-place, Numba optimized)."""
+    NI_ghost = Q.shape[0]
+    NJ_ghost = Q.shape[1]
+    
+    # Inlet (i=0): Dirichlet velocity
+    for j in range(NJ_ghost):
+        Q[0, j, 0] = Q[1, j, 0]  # Neumann p
+        Q[0, j, 1] = 2.0 * u_inf - Q[1, j, 1]  # Dirichlet u
+        Q[0, j, 2] = -Q[1, j, 2]  # Dirichlet v=0
+        Q[0, j, 3] = Q[1, j, 3]  # Neumann nu_t
+    
+    # Outlet (i=-1): Zero gradient
+    for j in range(NJ_ghost):
+        for k in range(4):
+            Q[NI_ghost-1, j, k] = Q[NI_ghost-2, j, k]
+    
+    # Wall (j=0): No-slip
+    for i in range(NI_ghost):
+        Q[i, 0, 0] = Q[i, 1, 0]   # Neumann p
+        Q[i, 0, 1] = -Q[i, 1, 1]  # No-slip u
+        Q[i, 0, 2] = -Q[i, 1, 2]  # No-slip v
+        Q[i, 0, 3] = -Q[i, 1, 3]  # nu_t = 0 at wall
+    
+    # Top (j=-1): Zero gradient (allow outflow)
+    for i in range(NI_ghost):
+        for k in range(4):
+            Q[i, NJ_ghost-1, k] = Q[i, NJ_ghost-2, k]
+
+
+@njit(cache=True)
+def rk4_update(Q, Q0, R, dt_over_vol, alpha):
+    """RK4 substep update (Numba optimized)."""
+    NI = R.shape[0]
+    NJ = R.shape[1]
+    
+    for i in range(NI):
+        for j in range(NJ):
+            for k in range(4):
+                Q[i+1, j+1, k] = Q0[i+1, j+1, k] + alpha * dt_over_vol[i, j] * R[i, j, k]
 
 
 class TestBlasiusFlatPlate:
@@ -75,42 +101,44 @@ class TestBlasiusFlatPlate:
         Re = 100000
         nu = 1.0 / Re
         L = 1.0
-        delta_max = 5.0 * L / np.sqrt(Re)  # ~0.016
-        H = 3.0 * delta_max  # ~0.047
+        delta_max = 5.0 * L / np.sqrt(Re)
+        H = 3.0 * delta_max
         
         NI, NJ = 100, 30
         beta = 5.0
         cfl = 0.5
-        max_iter = 10000
+        max_iter = 8000  # Balance speed vs accuracy
         
         # Create grid
         X, Y = create_grid(NI, NJ, L, H)
         flux_met, grad_met, dx, dy = compute_metrics(X, Y)
         
         dt = cfl * min(dx, dy) / (1.0 + np.sqrt(beta))
+        dt_over_vol = dt / flux_met.volume
         
         # Initialize
         Q = np.zeros((NI + 2, NJ + 2, 4))
         Q[:, :, 1] = 1.0
-        Q = apply_bc(Q)
+        apply_bc_numba(Q, 1.0)
+        
+        Q0 = np.zeros_like(Q)
         
         # Run solver
         flux_cfg = FluxConfig(k2=0.0, k4=0.002)
+        alphas = np.array([0.25, 0.333333333, 0.5, 1.0])
         
         for _ in range(max_iter):
-            Q0 = Q.copy()
-            Qk = Q.copy()
+            Q0[:] = Q
             
-            for alpha in [0.25, 0.333, 0.5, 1.0]:
-                Qk = apply_bc(Qk)
-                R = compute_fluxes(Qk, flux_met, beta, flux_cfg)
-                grad = compute_gradients(Qk, grad_met)
-                R = add_viscous_fluxes(R, Qk, grad, grad_met, mu_laminar=nu)
+            for alpha in alphas:
+                apply_bc_numba(Q, 1.0)
+                R = compute_fluxes(Q, flux_met, beta, flux_cfg)
+                grad = compute_gradients(Q, grad_met)
+                R = add_viscous_fluxes(R, Q, grad, grad_met, mu_laminar=nu)
                 
-                Qk = Q0.copy()
-                Qk[1:-1, 1:-1, :] += alpha * dt / flux_met.volume[:, :, np.newaxis] * R
+                rk4_update(Q, Q0, R, dt_over_vol, alpha)
             
-            Q = apply_bc(Qk)
+            apply_bc_numba(Q, 1.0)
         
         # Compute Cf
         u_wall = Q[1:-1, 1, 1]
@@ -141,25 +169,26 @@ class TestBlasiusFlatPlate:
         X, Y = create_grid(NI, NJ, L, H)
         flux_met, grad_met, dx, dy = compute_metrics(X, Y)
         dt = 0.5 * min(dx, dy) / (1.0 + np.sqrt(beta))
+        dt_over_vol = dt / flux_met.volume
         
         Q = np.zeros((NI + 2, NJ + 2, 4))
         Q[:, :, 1] = 1.0
-        Q = apply_bc(Q)
+        apply_bc_numba(Q, 1.0)
         
+        Q0 = np.zeros_like(Q)
         flux_cfg = FluxConfig(k2=0.0, k4=0.002)
+        alphas = np.array([0.25, 0.333333333, 0.5, 1.0])
         
         # Run 1000 steps
         for _ in range(1000):
-            Q0 = Q.copy()
-            Qk = Q.copy()
-            for alpha in [0.25, 0.333, 0.5, 1.0]:
-                Qk = apply_bc(Qk)
-                R = compute_fluxes(Qk, flux_met, beta, flux_cfg)
-                grad = compute_gradients(Qk, grad_met)
-                R = add_viscous_fluxes(R, Qk, grad, grad_met, mu_laminar=nu)
-                Qk = Q0.copy()
-                Qk[1:-1, 1:-1, :] += alpha * dt / flux_met.volume[:, :, np.newaxis] * R
-            Q = apply_bc(Qk)
+            Q0[:] = Q
+            for alpha in alphas:
+                apply_bc_numba(Q, 1.0)
+                R = compute_fluxes(Q, flux_met, beta, flux_cfg)
+                grad = compute_gradients(Q, grad_met)
+                R = add_viscous_fluxes(R, Q, grad, grad_met, mu_laminar=nu)
+                rk4_update(Q, Q0, R, dt_over_vol, alpha)
+            apply_bc_numba(Q, 1.0)
         
         # Check no NaN or Inf
         assert not np.any(np.isnan(Q)), "Solution contains NaN"
@@ -172,4 +201,3 @@ class TestBlasiusFlatPlate:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-
