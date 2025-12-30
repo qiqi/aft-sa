@@ -210,7 +210,7 @@ def run():
     
     # Grid parameters - stretched x, uniform y
     NI = 60       # x cells (reduced due to stretching)
-    NJ = 30       # y cells (~10 cells in BL)
+    NJ = 30       # y cells
     stretch_x = 1.5  # Cluster near leading edge
     
     # Numerics

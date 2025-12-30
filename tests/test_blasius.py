@@ -110,7 +110,7 @@ class TestBlasiusFlatPlate:
         delta_max = 5.0 * L / np.sqrt(Re)
         H = 3.0 * delta_max
         
-        NI, NJ = 60, 30  # Reduced NI due to x-stretching
+        NI, NJ = 60, 30  # Grid with x-stretching
         stretch_x = 1.5   # Cluster near leading edge
         beta = 5.0
         cfl = 0.5
