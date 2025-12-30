@@ -7,6 +7,7 @@ Cf * sqrt(Re_x) = 0.664
 """
 
 import numpy as np
+from numba import njit
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -45,28 +46,35 @@ def compute_metrics(X, Y):
            GradientMetrics(Si_x, Si_y, Sj_x, Sj_y, volume), dx, dy
 
 
+@njit(cache=True)
 def apply_bc(Q, u_inf=1.0):
-    """Apply boundary conditions."""
-    Q = Q.copy()
-    # Inlet (i=0): Dirichlet velocity
-    Q[0, :, 1] = 2 * u_inf - Q[1, :, 1]
-    Q[0, :, 2] = -Q[1, :, 2]
-    Q[0, :, 0] = Q[1, :, 0]
+    """Apply boundary conditions (Numba optimized, in-place)."""
+    NI_ghost = Q.shape[0]
+    NJ_ghost = Q.shape[1]
     
-    # Outlet (i=-1): Zero gradient (convective outflow)
-    Q[-1, :, :] = Q[-2, :, :]
+    # Inlet (i=0): Dirichlet velocity
+    for j in range(NJ_ghost):
+        Q[0, j, 0] = Q[1, j, 0]
+        Q[0, j, 1] = 2.0 * u_inf - Q[1, j, 1]
+        Q[0, j, 2] = -Q[1, j, 2]
+        Q[0, j, 3] = Q[1, j, 3]
+    
+    # Outlet (i=-1): Zero gradient
+    for j in range(NJ_ghost):
+        for k in range(4):
+            Q[NI_ghost-1, j, k] = Q[NI_ghost-2, j, k]
     
     # Wall (j=0): No-slip
-    Q[:, 0, 0] = Q[:, 1, 0]
-    Q[:, 0, 1] = -Q[:, 1, 1]
-    Q[:, 0, 2] = -Q[:, 1, 2]
+    for i in range(NI_ghost):
+        Q[i, 0, 0] = Q[i, 1, 0]
+        Q[i, 0, 1] = -Q[i, 1, 1]
+        Q[i, 0, 2] = -Q[i, 1, 2]
+        Q[i, 0, 3] = -Q[i, 1, 3]
     
-    # Top (j=-1): Zero gradient (allow v > 0 outflow for displacement)
-    Q[:, -1, 0] = Q[:, -2, 0]
-    Q[:, -1, 1] = Q[:, -2, 1]
-    Q[:, -1, 2] = Q[:, -2, 2]
-    
-    return Q
+    # Top (j=-1): Zero gradient (allow v > 0 outflow)
+    for i in range(NI_ghost):
+        for k in range(4):
+            Q[i, NJ_ghost-1, k] = Q[i, NJ_ghost-2, k]
 
 
 def plot_solution(X, Y, Q, output_dir, iteration, Re):
@@ -213,7 +221,7 @@ def run():
     # Initialize
     Q = np.zeros((NI + 2, NJ + 2, 4))
     Q[:, :, 1] = 1.0
-    Q = apply_bc(Q)
+    apply_bc(Q, 1.0)
     
     # Dump initial
     plot_solution(X, Y, Q, output_dir, 0, Re)
@@ -224,21 +232,21 @@ def run():
     print("-" * 40)
     
     flux_cfg = FluxConfig(k2=jst_k2, k4=jst_k4)
+    Q0 = np.zeros_like(Q)
+    dt_over_vol = dt / flux_met.volume
     
     for n in range(max_iter):
-        Q0 = Q.copy()
-        Qk = Q.copy()
+        Q0[:] = Q
         
         for alpha in [0.25, 0.333, 0.5, 1.0]:
-            Qk = apply_bc(Qk)
-            R = compute_fluxes(Qk, flux_met, beta, flux_cfg)
-            grad = compute_gradients(Qk, grad_met)
-            R = add_viscous_fluxes(R, Qk, grad, grad_met, mu_laminar=nu)
+            apply_bc(Q, 1.0)
+            R = compute_fluxes(Q, flux_met, beta, flux_cfg)
+            grad = compute_gradients(Q, grad_met)
+            R = add_viscous_fluxes(R, Q, grad, grad_met, mu_laminar=nu)
             
-            Qk = Q0.copy()
-            Qk[1:-1, 1:-1, :] += alpha * dt / flux_met.volume[:, :, np.newaxis] * R
+            Q[1:-1, 1:-1, :] = Q0[1:-1, 1:-1, :] + alpha * dt_over_vol[:, :, np.newaxis] * R
         
-        Q = apply_bc(Qk)
+        apply_bc(Q, 1.0)
         res = np.sqrt(np.mean(R[:, :, 0]**2))
         
         if (n + 1) % 2000 == 0 or n == 0:
