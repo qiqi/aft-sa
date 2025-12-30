@@ -1,0 +1,654 @@
+#!/usr/bin/env python3
+"""
+NACA 0012 Airfoil Simulation Script with Diagnostic Visualization.
+
+This script sets up and runs a 2D incompressible RANS simulation around
+a NACA 0012 airfoil using the artificial compressibility method.
+
+Features:
+    - On-the-fly grid generation with configurable density
+    - Flow field visualization (VTK + PDF) at specified intervals
+    - Residual monitoring and divergence detection
+    - Surface data extraction
+
+Usage:
+    python run_airfoil.py <grid_file.p3d>
+    python run_airfoil.py <airfoil.dat> --n-surface 100 --n-normal 50
+    python run_airfoil.py <airfoil.dat> --dump-freq 10 --coarse
+"""
+
+import os
+import sys
+import argparse
+from pathlib import Path
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # Non-interactive backend for server
+import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
+import matplotlib.cm as cm
+
+# Add project root to path
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+from src.solvers.rans_solver import RANSSolver, SolverConfig
+from src.grid.mesher import Construct2DWrapper, GridOptions
+from src.grid.plot3d import read_plot3d
+from src.grid.metrics import MetricComputer
+from src.solvers.boundary_conditions import (
+    FreestreamConditions, 
+    BoundaryConditions,
+    initialize_state,
+    apply_initial_wall_damping
+)
+from src.numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxGridMetrics
+from src.solvers.time_stepping import compute_local_timestep, TimeStepConfig
+from src.io.output import VTKWriter, write_vtk
+
+
+def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray, 
+                    iteration: int, residual: float, cfl: float,
+                    output_dir: str, case_name: str = "flow"):
+    """
+    Plot flow field with global and zoomed views.
+    
+    Creates PDF with:
+    - Global view showing full domain
+    - Zoomed view near airfoil
+    
+    Shows pressure contours and velocity magnitude.
+    """
+    # Strip ghost cells from Q
+    NI = X.shape[0] - 1
+    NJ = X.shape[1] - 1
+    
+    if Q.shape[0] == NI + 2:
+        Q_int = Q[1:-1, 1:-1, :]
+    else:
+        Q_int = Q
+    
+    # Extract fields
+    p = Q_int[:, :, 0]
+    u = Q_int[:, :, 1]
+    v = Q_int[:, :, 2]
+    nu_t = Q_int[:, :, 3]
+    
+    vel_mag = np.sqrt(u**2 + v**2)
+    
+    # Cell centers for pcolormesh (need nodes, data is cell-centered)
+    # Use node coordinates directly, pcolormesh will interpret correctly
+    
+    fig, axes = plt.subplots(2, 2, figsize=(14, 12))
+    
+    # --- Pressure: Global View ---
+    ax = axes[0, 0]
+    # Clip extreme values for better visualization
+    p_clip = np.clip(p, np.percentile(p, 1), np.percentile(p, 99))
+    pc = ax.pcolormesh(X.T, Y.T, p_clip.T, cmap='RdBu_r', shading='flat', rasterized=True)
+    ax.plot(X[:, 0], Y[:, 0], 'k-', lw=1.5)
+    ax.set_aspect('equal')
+    ax.set_title(f'Pressure (Global) - Iter {iteration}')
+    ax.set_xlabel('x/c')
+    ax.set_ylabel('y/c')
+    plt.colorbar(pc, ax=ax, shrink=0.8, label='p')
+    
+    # --- Pressure: Zoomed View ---
+    ax = axes[0, 1]
+    pc = ax.pcolormesh(X.T, Y.T, p_clip.T, cmap='RdBu_r', shading='flat', rasterized=True)
+    ax.plot(X[:, 0], Y[:, 0], 'k-', lw=2)
+    ax.set_aspect('equal')
+    ax.set_xlim(-0.2, 1.4)
+    ax.set_ylim(-0.4, 0.4)
+    ax.set_title(f'Pressure (Near Airfoil) - Iter {iteration}')
+    ax.set_xlabel('x/c')
+    ax.set_ylabel('y/c')
+    plt.colorbar(pc, ax=ax, shrink=0.8, label='p')
+    
+    # --- Velocity Magnitude: Global View ---
+    ax = axes[1, 0]
+    vel_clip = np.clip(vel_mag, 0, np.percentile(vel_mag, 99))
+    pc = ax.pcolormesh(X.T, Y.T, vel_clip.T, cmap='viridis', shading='flat', rasterized=True)
+    ax.plot(X[:, 0], Y[:, 0], 'k-', lw=1.5)
+    ax.set_aspect('equal')
+    ax.set_title(f'Velocity Magnitude (Global) - CFL={cfl:.2f}')
+    ax.set_xlabel('x/c')
+    ax.set_ylabel('y/c')
+    plt.colorbar(pc, ax=ax, shrink=0.8, label='|V|')
+    
+    # --- Velocity Magnitude: Zoomed View ---
+    ax = axes[1, 1]
+    pc = ax.pcolormesh(X.T, Y.T, vel_clip.T, cmap='viridis', shading='flat', rasterized=True)
+    ax.plot(X[:, 0], Y[:, 0], 'k-', lw=2)
+    ax.set_aspect('equal')
+    ax.set_xlim(-0.2, 1.4)
+    ax.set_ylim(-0.4, 0.4)
+    ax.set_title(f'Velocity Magnitude (Near Airfoil) - Res={residual:.2e}')
+    ax.set_xlabel('x/c')
+    ax.set_ylabel('y/c')
+    plt.colorbar(pc, ax=ax, shrink=0.8, label='|V|')
+    
+    plt.tight_layout()
+    
+    # Save
+    output_path = os.path.join(output_dir, f'{case_name}_iter{iteration:06d}.pdf')
+    plt.savefig(output_path, dpi=100)
+    plt.close()
+    
+    return output_path
+
+
+def plot_residual_history(residuals: list, output_dir: str, case_name: str = "residual"):
+    """Plot residual convergence history."""
+    if len(residuals) < 2:
+        return
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    iterations = np.arange(1, len(residuals) + 1)
+    ax.semilogy(iterations, residuals, 'b-', lw=1.5)
+    
+    ax.set_xlabel('Iteration')
+    ax.set_ylabel('Residual RMS')
+    ax.set_title('Convergence History')
+    ax.grid(True, alpha=0.3)
+    ax.set_xlim(1, len(residuals))
+    
+    plt.tight_layout()
+    
+    output_path = os.path.join(output_dir, f'{case_name}_convergence.pdf')
+    plt.savefig(output_path, dpi=100)
+    plt.close()
+    
+    return output_path
+
+
+class DiagnosticRANSSolver:
+    """
+    Enhanced RANS Solver with diagnostic visualization capabilities.
+    
+    Extends the basic RANSSolver with:
+    - Flow field visualization at specified intervals
+    - PDF output for debugging
+    - More detailed residual information
+    """
+    
+    def __init__(self, 
+                 X: np.ndarray, 
+                 Y: np.ndarray,
+                 config: SolverConfig):
+        """
+        Initialize solver with pre-loaded grid.
+        
+        Parameters
+        ----------
+        X, Y : ndarray
+            Grid node coordinates.
+        config : SolverConfig
+            Solver configuration.
+        """
+        self.config = config
+        self.X = X
+        self.Y = Y
+        
+        # Grid dimensions
+        self.NI = X.shape[0] - 1
+        self.NJ = X.shape[1] - 1
+        
+        # Initialize state
+        self.iteration = 0
+        self.residual_history = []
+        self.converged = False
+        
+        # Compute metrics
+        self._compute_metrics()
+        
+        # Initialize state
+        self._initialize_state()
+        
+        # Initialize output
+        self._initialize_output()
+        
+        print(f"\n{'='*60}")
+        print(f"Diagnostic RANS Solver Initialized")
+        print(f"{'='*60}")
+        print(f"Grid size: {self.NI} x {self.NJ} cells")
+        print(f"Mach: {self.config.mach}, Alpha: {self.config.alpha}°")
+        print(f"Reynolds: {self.config.reynolds:.2e}")
+        print(f"Target CFL: {self.config.cfl_target}")
+        print(f"{'='*60}\n")
+    
+    def _compute_metrics(self):
+        """Compute FVM grid metrics."""
+        print("Computing grid metrics...")
+        
+        computer = MetricComputer(self.X, self.Y, wall_j=0)
+        self.metrics = computer.compute()
+        
+        gcl = computer.validate_gcl()
+        print(f"  {gcl}")
+        
+        # Print some grid statistics
+        print(f"  Min cell volume: {self.metrics.volume.min():.6e}")
+        print(f"  Max cell volume: {self.metrics.volume.max():.6e}")
+        print(f"  Min wall distance: {self.metrics.wall_distance.min():.6e}")
+    
+    def _initialize_state(self):
+        """Initialize state vector."""
+        print("Initializing flow state...")
+        
+        self.freestream = FreestreamConditions.from_mach_alpha(
+            mach=self.config.mach,
+            alpha_deg=self.config.alpha
+        )
+        
+        self.Q = initialize_state(self.NI, self.NJ, self.freestream)
+        
+        self.Q = apply_initial_wall_damping(
+            self.Q, 
+            self.metrics,
+            decay_length=self.config.wall_damping_length
+        )
+        
+        self.bc = BoundaryConditions(freestream=self.freestream)
+        self.Q = self.bc.apply(self.Q)
+        
+        print(f"  Freestream: u={self.freestream.u_inf:.4f}, v={self.freestream.v_inf:.4f}")
+    
+    def _initialize_output(self):
+        """Initialize output directories and writers."""
+        output_path = Path(self.config.output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+        
+        # Create subdirectory for snapshots
+        self.snapshot_dir = output_path / "snapshots"
+        self.snapshot_dir.mkdir(exist_ok=True)
+        
+        # VTK writer
+        base_path = output_path / self.config.case_name
+        self.vtk_writer = VTKWriter(
+            str(base_path),
+            self.X, self.Y,
+            beta=self.config.beta
+        )
+        
+        # Write initial state
+        self.vtk_writer.write(self.Q, iteration=0)
+        print(f"  Output directory: {output_path}")
+    
+    def _get_cfl(self, iteration: int) -> float:
+        """Get CFL with linear ramping."""
+        if iteration >= self.config.cfl_ramp_iters:
+            return self.config.cfl_target
+        
+        t = iteration / self.config.cfl_ramp_iters
+        return self.config.cfl_start + t * (self.config.cfl_target - self.config.cfl_start)
+    
+    def _compute_residual(self, Q: np.ndarray) -> np.ndarray:
+        """Compute flux residual."""
+        flux_cfg = FluxConfig(k2=self.config.jst_k2, k4=self.config.jst_k4)
+        
+        flux_metrics = FluxGridMetrics(
+            Si_x=self.metrics.Si_x,
+            Si_y=self.metrics.Si_y,
+            Sj_x=self.metrics.Sj_x,
+            Sj_y=self.metrics.Sj_y,
+            volume=self.metrics.volume
+        )
+        
+        return compute_fluxes(Q, flux_metrics, self.config.beta, flux_cfg)
+    
+    def _compute_residual_rms(self, residual: np.ndarray) -> float:
+        """Compute RMS of density residual."""
+        R_rho = residual[:, :, 0]
+        return np.sqrt(np.sum(R_rho**2) / R_rho.size)
+    
+    def _check_solution_bounds(self, Q: np.ndarray) -> dict:
+        """Check solution for physical bounds and NaN."""
+        Q_int = Q[1:-1, 1:-1, :]
+        
+        info = {
+            'has_nan': np.any(np.isnan(Q_int)),
+            'has_inf': np.any(np.isinf(Q_int)),
+            'p_min': Q_int[:, :, 0].min(),
+            'p_max': Q_int[:, :, 0].max(),
+            'u_min': Q_int[:, :, 1].min(),
+            'u_max': Q_int[:, :, 1].max(),
+            'v_min': Q_int[:, :, 2].min(),
+            'v_max': Q_int[:, :, 2].max(),
+            'nu_min': Q_int[:, :, 3].min(),
+            'nu_max': Q_int[:, :, 3].max(),
+        }
+        
+        vel_mag = np.sqrt(Q_int[:, :, 1]**2 + Q_int[:, :, 2]**2)
+        info['vel_max'] = vel_mag.max()
+        info['vel_max_loc'] = np.unravel_index(np.argmax(vel_mag), vel_mag.shape)
+        
+        return info
+    
+    def step(self) -> tuple:
+        """Perform one iteration."""
+        cfl = self._get_cfl(self.iteration)
+        
+        ts_config = TimeStepConfig(cfl=cfl)
+        
+        dt = compute_local_timestep(
+            self.Q,
+            self.metrics.Si_x, self.metrics.Si_y,
+            self.metrics.Sj_x, self.metrics.Sj_y,
+            self.metrics.volume,
+            self.config.beta,
+            ts_config
+        )
+        
+        # RK4 integration
+        Q0 = self.Q.copy()
+        Qk = self.Q.copy()
+        
+        alphas = [0.25, 0.333333333, 0.5, 1.0]
+        
+        for alpha in alphas:
+            Qk = self.bc.apply(Qk)
+            R = self._compute_residual(Qk)
+            Qk = Q0.copy()
+            Qk[1:-1, 1:-1, :] += alpha * (dt / self.metrics.volume)[:, :, np.newaxis] * R
+        
+        Qk = self.bc.apply(Qk)
+        final_residual = self._compute_residual(Qk)
+        
+        self.Q = Qk
+        
+        residual_rms = self._compute_residual_rms(final_residual)
+        
+        self.iteration += 1
+        
+        return residual_rms, final_residual, cfl
+    
+    def run_with_diagnostics(self, dump_freq: int = 100) -> bool:
+        """
+        Run simulation with diagnostic output.
+        
+        Parameters
+        ----------
+        dump_freq : int
+            Frequency of flow field dumps (PDF + VTK).
+        """
+        print(f"\n{'='*60}")
+        print("Starting Steady-State Iteration (Diagnostic Mode)")
+        print(f"Dumping flow field every {dump_freq} iterations")
+        print(f"{'='*60}")
+        print(f"{'Iter':>8} {'Residual':>14} {'CFL':>8} {'|V|_max':>10} {'p_range':>20}")
+        print(f"{'-'*62}")
+        
+        initial_residual = None
+        
+        # Dump initial state
+        plot_flow_field(
+            self.X, self.Y, self.Q,
+            iteration=0, residual=0, cfl=self._get_cfl(0),
+            output_dir=str(self.snapshot_dir),
+            case_name=self.config.case_name
+        )
+        
+        for n in range(self.config.max_iter):
+            res_rms, _, cfl = self.step()
+            
+            self.residual_history.append(res_rms)
+            
+            if initial_residual is None:
+                initial_residual = res_rms
+            
+            # Check solution bounds
+            bounds = self._check_solution_bounds(self.Q)
+            
+            # Print progress
+            if self.iteration % self.config.print_freq == 0 or self.iteration == 1:
+                p_range = f"[{bounds['p_min']:.2f}, {bounds['p_max']:.2f}]"
+                print(f"{self.iteration:>8d} {res_rms:>14.6e} {cfl:>8.2f} "
+                      f"{bounds['vel_max']:>10.4f} {p_range:>20}")
+            
+            # Dump flow field
+            if self.iteration % dump_freq == 0:
+                pdf_path = plot_flow_field(
+                    self.X, self.Y, self.Q,
+                    iteration=self.iteration, 
+                    residual=res_rms, 
+                    cfl=cfl,
+                    output_dir=str(self.snapshot_dir),
+                    case_name=self.config.case_name
+                )
+                self.vtk_writer.write(self.Q, iteration=self.iteration)
+                print(f"         -> Dumped: {pdf_path}")
+            
+            # Write VTK at output_freq
+            elif self.iteration % self.config.output_freq == 0:
+                self.vtk_writer.write(self.Q, iteration=self.iteration)
+            
+            # Check for NaN/Inf
+            if bounds['has_nan'] or bounds['has_inf']:
+                print(f"\n{'='*60}")
+                print(f"DIVERGED at iteration {self.iteration} - NaN/Inf detected!")
+                print(f"  Max velocity location: {bounds['vel_max_loc']}")
+                self._dump_divergence_info(bounds)
+                break
+            
+            # Check convergence
+            if res_rms < self.config.tol:
+                self.converged = True
+                print(f"\n{'='*60}")
+                print(f"CONVERGED at iteration {self.iteration}")
+                print(f"Final residual: {res_rms:.6e}")
+                break
+            
+            # Check divergence
+            if res_rms > 1000 * initial_residual:
+                print(f"\n{'='*60}")
+                print(f"DIVERGED at iteration {self.iteration}")
+                print(f"Residual: {res_rms:.6e} (initial: {initial_residual:.6e})")
+                self._dump_divergence_info(bounds)
+                break
+        
+        else:
+            print(f"\n{'='*60}")
+            print(f"Maximum iterations ({self.config.max_iter}) reached")
+        
+        # Final dumps
+        plot_flow_field(
+            self.X, self.Y, self.Q,
+            iteration=self.iteration, 
+            residual=self.residual_history[-1] if self.residual_history else 0, 
+            cfl=self._get_cfl(self.iteration),
+            output_dir=str(self.snapshot_dir),
+            case_name=f"{self.config.case_name}_final"
+        )
+        
+        self.vtk_writer.write(self.Q, iteration=self.iteration)
+        self.vtk_writer.finalize()
+        
+        # Plot residual history
+        plot_residual_history(
+            self.residual_history,
+            str(self.snapshot_dir),
+            self.config.case_name
+        )
+        
+        print(f"{'='*60}")
+        print(f"Output in: {self.config.output_dir}")
+        print(f"Snapshots in: {self.snapshot_dir}")
+        
+        return self.converged
+    
+    def _dump_divergence_info(self, bounds: dict):
+        """Print detailed info when divergence is detected."""
+        print(f"\nDivergence Diagnostics:")
+        print(f"  Pressure range: [{bounds['p_min']:.4f}, {bounds['p_max']:.4f}]")
+        print(f"  U-velocity range: [{bounds['u_min']:.4f}, {bounds['u_max']:.4f}]")
+        print(f"  V-velocity range: [{bounds['v_min']:.4f}, {bounds['v_max']:.4f}]")
+        print(f"  Max velocity: {bounds['vel_max']:.4f} at cell {bounds['vel_max_loc']}")
+        print(f"  Nu_t range: [{bounds['nu_min']:.6e}, {bounds['nu_max']:.6e}]")
+
+
+def main():
+    """Main entry point."""
+    parser = argparse.ArgumentParser(
+        description="Run RANS simulation with diagnostic visualization"
+    )
+    parser.add_argument(
+        "grid_file",
+        help="Path to grid file (.p3d) or airfoil file (.dat)"
+    )
+    
+    # Flow conditions
+    parser.add_argument("--mach", "-M", type=float, default=0.15,
+                        help="Mach number (default: 0.15)")
+    parser.add_argument("--alpha", "-a", type=float, default=0.0,
+                        help="Angle of attack in degrees (default: 0.0)")
+    parser.add_argument("--reynolds", "-Re", type=float, default=6e6,
+                        help="Reynolds number (default: 6e6)")
+    
+    # Solver settings
+    parser.add_argument("--max-iter", "-n", type=int, default=10000,
+                        help="Maximum iterations (default: 10000)")
+    parser.add_argument("--cfl", type=float, default=5.0,
+                        help="Target CFL number (default: 5.0)")
+    parser.add_argument("--cfl-start", type=float, default=0.1,
+                        help="Initial CFL for ramping (default: 0.1)")
+    parser.add_argument("--cfl-ramp", type=int, default=500,
+                        help="CFL ramp iterations (default: 500)")
+    parser.add_argument("--tol", type=float, default=1e-10,
+                        help="Convergence tolerance (default: 1e-10)")
+    parser.add_argument("--beta", type=float, default=10.0,
+                        help="Artificial compressibility parameter (default: 10.0)")
+    
+    # Grid generation options
+    parser.add_argument("--n-surface", type=int, default=250,
+                        help="Surface points for grid generation (default: 250)")
+    parser.add_argument("--n-normal", type=int, default=100,
+                        help="Normal points for grid generation (default: 100)")
+    parser.add_argument("--n-wake", type=int, default=50,
+                        help="Wake points for grid generation (default: 50)")
+    parser.add_argument("--coarse", action="store_true",
+                        help="Use coarse grid (80x30) for debugging")
+    
+    # Output settings
+    parser.add_argument("--output-dir", "-o", type=str, default="output/solver",
+                        help="Output directory (default: output/solver)")
+    parser.add_argument("--case-name", type=str, default="naca0012",
+                        help="Case name for output files (default: naca0012)")
+    parser.add_argument("--dump-freq", type=int, default=100,
+                        help="Flow field dump frequency (default: 100)")
+    parser.add_argument("--print-freq", type=int, default=10,
+                        help="Console print frequency (default: 10)")
+    parser.add_argument("--output-freq", type=int, default=100,
+                        help="VTK output frequency (default: 100)")
+    
+    args = parser.parse_args()
+    
+    # Override grid settings for coarse mode
+    if args.coarse:
+        args.n_surface = 80
+        args.n_normal = 30
+        args.n_wake = 20
+        print("Using COARSE grid mode for debugging")
+    
+    # Print banner
+    print("\n" + "="*70)
+    print("   2D Incompressible RANS Solver - Diagnostic Mode")
+    print("="*70)
+    
+    grid_path = Path(args.grid_file)
+    
+    # Load or generate grid
+    if grid_path.suffix.lower() in ['.p3d', '.x', '.xyz']:
+        print(f"Loading grid from: {grid_path}")
+        X, Y = read_plot3d(str(grid_path))
+    elif grid_path.suffix.lower() == '.dat':
+        print(f"Generating grid from airfoil: {grid_path}")
+        print(f"  Surface points: {args.n_surface}")
+        print(f"  Normal points:  {args.n_normal}")
+        print(f"  Wake points:    {args.n_wake}")
+        
+        # Find construct2d binary
+        construct2d_paths = [
+            project_root / "bin" / "construct2d",
+            Path("./construct2d"),
+        ]
+        
+        binary_path = None
+        for p in construct2d_paths:
+            if p.exists():
+                binary_path = p
+                break
+        
+        if binary_path is None:
+            print("ERROR: Construct2D binary not found.")
+            sys.exit(1)
+        
+        wrapper = Construct2DWrapper(str(binary_path))
+        grid_opts = GridOptions(
+            n_surface=args.n_surface,
+            n_normal=args.n_normal,
+            n_wake=args.n_wake,
+            y_plus=1.0,
+            reynolds=args.reynolds,
+            topology='CGRD',
+            farfield_radius=15.0,
+        )
+        X, Y = wrapper.generate(str(grid_path), grid_opts, verbose=True)
+    else:
+        print(f"ERROR: Unknown grid file format: {grid_path.suffix}")
+        sys.exit(1)
+    
+    print(f"\nGrid loaded: {X.shape[0]} x {X.shape[1]} nodes")
+    print(f"            {X.shape[0]-1} x {X.shape[1]-1} cells")
+    
+    # Configure solver
+    config = SolverConfig(
+        mach=args.mach,
+        alpha=args.alpha,
+        reynolds=args.reynolds,
+        beta=args.beta,
+        cfl_start=args.cfl_start,
+        cfl_target=args.cfl,
+        cfl_ramp_iters=args.cfl_ramp,
+        max_iter=args.max_iter,
+        tol=args.tol,
+        output_freq=args.output_freq,
+        print_freq=args.print_freq,
+        output_dir=args.output_dir,
+        case_name=args.case_name,
+        wall_damping_length=0.1,
+        jst_k2=0.5,
+        jst_k4=0.016,
+    )
+    
+    # Create solver
+    solver = DiagnosticRANSSolver(X, Y, config)
+    
+    # Run with diagnostics
+    try:
+        converged = solver.run_with_diagnostics(dump_freq=args.dump_freq)
+    except KeyboardInterrupt:
+        print("\n\nSimulation interrupted by user.")
+        converged = False
+    except Exception as e:
+        print(f"\nError during simulation: {e}")
+        import traceback
+        traceback.print_exc()
+        converged = False
+    
+    # Final status
+    print("\n" + "="*70)
+    if converged:
+        print("Simulation completed successfully - CONVERGED")
+    else:
+        print("Simulation completed - NOT CONVERGED")
+    print("="*70 + "\n")
+    
+    return 0 if converged else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+

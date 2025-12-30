@@ -304,6 +304,68 @@ def initialize_state(NI: int, NJ: int,
     return Q
 
 
+def apply_initial_wall_damping(Q: np.ndarray, 
+                                grid_metrics,
+                                decay_length: float = 0.1) -> np.ndarray:
+    """
+    Apply initial wall damping to prevent impulsive start shockwaves.
+    
+    This function damps the velocity near the wall to zero before the first
+    iteration, providing a smooth "cold start" for the simulation.
+    
+    The damping formula is:
+        u_new = u_old * (1 - exp(-d / L))
+        
+    where:
+        d = wall distance
+        L = decay_length (characteristic length scale)
+    
+    As d → 0 (near wall): damping → 0 (velocity → 0)
+    As d → ∞ (far from wall): damping → 1 (velocity unchanged)
+    
+    Parameters
+    ----------
+    Q : ndarray, shape (NI+2, NJ+2, 4)
+        State vector with ghost cells: [p, u, v, ν̃].
+    grid_metrics : object
+        Grid metrics object containing wall_distance array of shape (NI, NJ).
+    decay_length : float
+        Characteristic decay length scale (default 0.1, in chord units).
+        Larger values create a thicker damping region.
+        
+    Returns
+    -------
+    Q : ndarray
+        State vector with damped velocities near the wall.
+        
+    Notes
+    -----
+    This function modifies only the velocity components (u, v) of interior cells.
+    Ghost cells are not modified and should be updated via apply_boundary_conditions
+    after this function is called.
+    """
+    Q = Q.copy()
+    
+    # Get wall distance from metrics
+    # Handle both FVMMetrics (from metrics.py) and GridMetrics (from plot3d.py)
+    if hasattr(grid_metrics, 'wall_distance'):
+        wall_dist = grid_metrics.wall_distance
+    else:
+        raise ValueError("grid_metrics must have a 'wall_distance' attribute")
+    
+    # Compute damping factor: 1 - exp(-d/L)
+    # Near wall (d=0): factor = 0 (fully damped)
+    # Far from wall: factor = 1 (no damping)
+    damping_factor = 1.0 - np.exp(-wall_dist / decay_length)
+    
+    # Apply damping to velocity components (indices 1 and 2 in state vector)
+    # Only modify interior cells (1:-1 in ghost-padded array)
+    Q[1:-1, 1:-1, 1] *= damping_factor  # u-velocity
+    Q[1:-1, 1:-1, 2] *= damping_factor  # v-velocity
+    
+    return Q
+
+
 class InletOutletBC:
     """
     Alternative BC for channel/duct flows (not C-grid).

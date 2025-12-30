@@ -1,0 +1,516 @@
+"""
+RANS Solver for 2D Incompressible Flow.
+
+This module provides the main RANSSolver class that orchestrates the
+CFD simulation by integrating all components:
+- Grid loading and metric computation
+- State initialization with wall damping
+- Time stepping with CFL ramping
+- RK4 integration with JST flux scheme
+- Residual monitoring and convergence checking
+- VTK output for visualization
+
+Physics: Artificial Compressibility formulation for incompressible RANS
+    - State vector: Q = [p, u, v, ν̃]
+    - Turbulence model: Spalart-Allmaras (one-equation)
+"""
+
+import numpy as np
+from pathlib import Path
+from typing import Dict, Optional, Tuple, Union
+from dataclasses import dataclass, field
+
+# Grid components
+from ..grid.metrics import MetricComputer, FVMMetrics
+from ..grid.mesher import Construct2DWrapper, GridOptions
+from ..grid.plot3d import read_plot3d, StructuredGrid
+
+# Numerics
+from ..numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxGridMetrics
+
+# Solvers and BCs
+from .boundary_conditions import (
+    FreestreamConditions, 
+    BoundaryConditions,
+    initialize_state,
+    apply_initial_wall_damping,
+    apply_boundary_conditions
+)
+from .time_stepping import (
+    compute_local_timestep,
+    TimeStepConfig,
+    RungeKutta4
+)
+
+# IO
+from ..io.output import VTKWriter, write_vtk
+
+
+@dataclass
+class SolverConfig:
+    """Configuration for RANS solver."""
+    
+    # Flow conditions
+    mach: float = 0.15              # Reference Mach number
+    alpha: float = 0.0              # Angle of attack (degrees)
+    reynolds: float = 6e6           # Reynolds number
+    
+    # Artificial compressibility
+    beta: float = 10.0              # Artificial compressibility parameter
+    
+    # Time stepping
+    cfl_start: float = 0.1          # Initial CFL number
+    cfl_target: float = 5.0         # Target CFL number
+    cfl_ramp_iters: int = 500       # Iterations for CFL ramp
+    
+    # Convergence
+    max_iter: int = 10000           # Maximum iterations
+    tol: float = 1e-10              # Residual tolerance for convergence
+    
+    # Output
+    output_freq: int = 100          # VTK output frequency
+    print_freq: int = 50            # Console print frequency
+    output_dir: str = "output"      # Output directory
+    case_name: str = "solution"     # Base name for output files
+    
+    # Initial conditions
+    wall_damping_length: float = 0.1  # Wall damping decay length
+    
+    # JST flux parameters
+    jst_k2: float = 0.5             # 2nd-order dissipation coefficient
+    jst_k4: float = 0.016           # 4th-order dissipation coefficient
+
+
+class RANSSolver:
+    """
+    Main RANS Solver for 2D incompressible flow around airfoils.
+    
+    This class orchestrates the complete CFD simulation workflow:
+    1. Grid loading (Plot3D file or Construct2D generation)
+    2. Metric computation (cell volumes, face normals, wall distance)
+    3. State initialization with wall damping
+    4. Time integration with RK4 and CFL ramping
+    5. Residual monitoring and convergence checking
+    6. VTK output for visualization
+    
+    Example
+    -------
+    >>> config = SolverConfig(mach=0.15, alpha=0.0, reynolds=6e6)
+    >>> solver = RANSSolver("grid/naca0012.p3d", config)
+    >>> solver.run_steady_state()
+    
+    Attributes
+    ----------
+    config : SolverConfig
+        Solver configuration parameters.
+    X, Y : ndarray
+        Grid node coordinates.
+    metrics : FVMMetrics
+        Computed grid metrics.
+    Q : ndarray
+        Current state vector [p, u, v, ν̃].
+    iteration : int
+        Current iteration number.
+    residual_history : list
+        History of density residual RMS values.
+    """
+    
+    def __init__(self, 
+                 grid_file: str, 
+                 config: Optional[Union[SolverConfig, Dict]] = None):
+        """
+        Initialize the RANS solver.
+        
+        Parameters
+        ----------
+        grid_file : str
+            Path to the grid file (.p3d format) or airfoil file (.dat) for
+            on-the-fly grid generation.
+        config : SolverConfig or dict, optional
+            Solver configuration. Can be a SolverConfig object or a dictionary
+            of configuration parameters.
+        """
+        # Parse configuration
+        if config is None:
+            self.config = SolverConfig()
+        elif isinstance(config, dict):
+            self.config = SolverConfig(**config)
+        else:
+            self.config = config
+        
+        # Initialize state
+        self.iteration = 0
+        self.residual_history = []
+        self.converged = False
+        
+        # Load grid
+        self._load_grid(grid_file)
+        
+        # Compute metrics
+        self._compute_metrics()
+        
+        # Initialize state
+        self._initialize_state()
+        
+        # Initialize VTK writer
+        self._initialize_output()
+        
+        print(f"\n{'='*60}")
+        print(f"RANS Solver Initialized")
+        print(f"{'='*60}")
+        print(f"Grid size: {self.NI} x {self.NJ} cells")
+        print(f"Mach: {self.config.mach}, Alpha: {self.config.alpha}°")
+        print(f"Reynolds: {self.config.reynolds:.2e}")
+        print(f"Target CFL: {self.config.cfl_target}")
+        print(f"Max iterations: {self.config.max_iter}")
+        print(f"Convergence tolerance: {self.config.tol:.2e}")
+        print(f"{'='*60}\n")
+    
+    def _load_grid(self, grid_file: str):
+        """Load grid from file or generate using Construct2D."""
+        grid_path = Path(grid_file)
+        
+        if not grid_path.exists():
+            raise FileNotFoundError(f"Grid file not found: {grid_path}")
+        
+        suffix = grid_path.suffix.lower()
+        
+        if suffix in ['.p3d', '.x', '.xyz']:
+            # Load Plot3D grid
+            print(f"Loading grid from: {grid_path}")
+            self.X, self.Y = read_plot3d(str(grid_path))
+            
+        elif suffix == '.dat':
+            # Airfoil file - generate grid with Construct2D
+            print(f"Generating grid from airfoil: {grid_path}")
+            # Look for construct2d binary
+            construct2d_paths = [
+                Path("bin/construct2d"),
+                Path("./construct2d"),
+                Path("/usr/local/bin/construct2d"),
+            ]
+            
+            binary_path = None
+            for p in construct2d_paths:
+                if p.exists():
+                    binary_path = p
+                    break
+            
+            if binary_path is None:
+                raise FileNotFoundError(
+                    "Construct2D binary not found. Please provide a .p3d grid file "
+                    "or install Construct2D."
+                )
+            
+            wrapper = Construct2DWrapper(str(binary_path))
+            grid_opts = GridOptions(
+                n_surface=250,
+                n_normal=100,
+                y_plus=1.0,
+                reynolds=self.config.reynolds
+            )
+            self.X, self.Y = wrapper.generate(str(grid_path), grid_opts)
+        else:
+            raise ValueError(f"Unsupported grid file format: {suffix}")
+        
+        # Store grid dimensions (number of cells)
+        self.NI = self.X.shape[0] - 1
+        self.NJ = self.X.shape[1] - 1
+        
+        print(f"Grid loaded: {self.X.shape[0]} x {self.X.shape[1]} nodes")
+        print(f"            {self.NI} x {self.NJ} cells")
+    
+    def _compute_metrics(self):
+        """Compute FVM grid metrics."""
+        print("Computing grid metrics...")
+        
+        computer = MetricComputer(self.X, self.Y, wall_j=0)
+        self.metrics = computer.compute()
+        
+        # Validate GCL
+        gcl = computer.validate_gcl()
+        print(f"  {gcl}")
+        
+        if not gcl.passed:
+            print("  WARNING: GCL validation failed. Results may be inaccurate.")
+    
+    def _initialize_state(self):
+        """Initialize state vector with freestream and wall damping."""
+        print("Initializing flow state...")
+        
+        # Create freestream conditions
+        self.freestream = FreestreamConditions.from_mach_alpha(
+            mach=self.config.mach,
+            alpha_deg=self.config.alpha
+        )
+        
+        # Initialize to freestream
+        self.Q = initialize_state(self.NI, self.NJ, self.freestream)
+        
+        # Apply wall damping for cold start
+        self.Q = apply_initial_wall_damping(
+            self.Q, 
+            self.metrics,
+            decay_length=self.config.wall_damping_length
+        )
+        
+        # Apply boundary conditions
+        self.bc = BoundaryConditions(freestream=self.freestream)
+        self.Q = self.bc.apply(self.Q)
+        
+        print(f"  Freestream: u={self.freestream.u_inf:.4f}, "
+              f"v={self.freestream.v_inf:.4f}")
+        print(f"  Wall damping applied (L={self.config.wall_damping_length})")
+    
+    def _initialize_output(self):
+        """Initialize VTK writer for output."""
+        # Create output directory
+        output_path = Path(self.config.output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+        
+        # Create VTK writer
+        base_path = output_path / self.config.case_name
+        self.vtk_writer = VTKWriter(
+            str(base_path),
+            self.X, self.Y,
+            beta=self.config.beta
+        )
+        
+        # Write initial state
+        self.vtk_writer.write(self.Q, iteration=0)
+        print(f"  Initial solution written to: {output_path}")
+    
+    def _get_cfl(self, iteration: int) -> float:
+        """Get CFL number with linear ramping."""
+        if iteration >= self.config.cfl_ramp_iters:
+            return self.config.cfl_target
+        
+        # Linear ramp from cfl_start to cfl_target
+        t = iteration / self.config.cfl_ramp_iters
+        return self.config.cfl_start + t * (self.config.cfl_target - self.config.cfl_start)
+    
+    def _compute_residual(self, Q: np.ndarray) -> np.ndarray:
+        """Compute flux residual using JST scheme."""
+        # Create flux config
+        flux_cfg = FluxConfig(
+            k2=self.config.jst_k2,
+            k4=self.config.jst_k4
+        )
+        
+        # Create metrics in format expected by flux computation
+        flux_metrics = FluxGridMetrics(
+            Si_x=self.metrics.Si_x,
+            Si_y=self.metrics.Si_y,
+            Sj_x=self.metrics.Sj_x,
+            Sj_y=self.metrics.Sj_y,
+            volume=self.metrics.volume
+        )
+        
+        # Compute fluxes
+        residual = compute_fluxes(Q, flux_metrics, self.config.beta, flux_cfg)
+        
+        return residual
+    
+    def _apply_bc(self, Q: np.ndarray) -> np.ndarray:
+        """Apply boundary conditions."""
+        return self.bc.apply(Q)
+    
+    def _compute_residual_rms(self, residual: np.ndarray) -> float:
+        """Compute RMS of density (continuity) residual."""
+        # Density residual is the first component (pressure for incompressible)
+        R_rho = residual[:, :, 0]
+        
+        n_cells = R_rho.size
+        rms = np.sqrt(np.sum(R_rho**2) / n_cells)
+        
+        return rms
+    
+    def step(self) -> Tuple[float, np.ndarray]:
+        """
+        Perform one iteration of the solver.
+        
+        Returns
+        -------
+        residual_rms : float
+            RMS of the density residual.
+        residual : ndarray
+            Full residual array.
+        """
+        # Get current CFL
+        cfl = self._get_cfl(self.iteration)
+        
+        # Time step config
+        ts_config = TimeStepConfig(cfl=cfl)
+        
+        # Compute local timestep
+        dt = compute_local_timestep(
+            self.Q,
+            self.metrics.Si_x, self.metrics.Si_y,
+            self.metrics.Sj_x, self.metrics.Sj_y,
+            self.metrics.volume,
+            self.config.beta,
+            ts_config
+        )
+        
+        # RK4 integration
+        Q0 = self.Q.copy()
+        Qk = self.Q.copy()
+        
+        # RK4 coefficients (Jameson scheme)
+        alphas = [0.25, 0.333333333, 0.5, 1.0]
+        
+        for alpha in alphas:
+            # Apply boundary conditions
+            Qk = self._apply_bc(Qk)
+            
+            # Compute residual
+            R = self._compute_residual(Qk)
+            
+            # Update: Q^(k) = Q^(0) + α * dt/Ω * R
+            Qk = Q0.copy()
+            Qk[1:-1, 1:-1, :] += alpha * (dt / self.metrics.volume)[:, :, np.newaxis] * R
+        
+        # Store final residual for monitoring
+        Qk = self._apply_bc(Qk)
+        final_residual = self._compute_residual(Qk)
+        
+        # Update state
+        self.Q = Qk
+        
+        # Compute residual RMS
+        residual_rms = self._compute_residual_rms(final_residual)
+        
+        # Update iteration counter
+        self.iteration += 1
+        
+        return residual_rms, final_residual
+    
+    def run_steady_state(self) -> bool:
+        """
+        Run steady-state simulation to convergence.
+        
+        Returns
+        -------
+        converged : bool
+            True if residual dropped below tolerance.
+        """
+        print(f"\n{'='*60}")
+        print("Starting Steady-State Iteration")
+        print(f"{'='*60}")
+        print(f"{'Iter':>8} {'Residual':>14} {'CFL':>8} {'Status':>12}")
+        print(f"{'-'*42}")
+        
+        # Initial residual for normalization
+        initial_residual = None
+        
+        for n in range(self.config.max_iter):
+            # Perform one step
+            res_rms, _ = self.step()
+            
+            # Store history
+            self.residual_history.append(res_rms)
+            
+            # Store initial residual
+            if initial_residual is None:
+                initial_residual = res_rms
+            
+            # Normalized residual
+            res_norm = res_rms / (initial_residual + 1e-30)
+            
+            # Current CFL
+            cfl = self._get_cfl(self.iteration)
+            
+            # Print progress
+            if self.iteration % self.config.print_freq == 0 or self.iteration == 1:
+                print(f"{self.iteration:>8d} {res_rms:>14.6e} {cfl:>8.2f}")
+            
+            # Write VTK output
+            if self.iteration % self.config.output_freq == 0:
+                self.vtk_writer.write(self.Q, iteration=self.iteration)
+            
+            # Check convergence
+            if res_rms < self.config.tol:
+                self.converged = True
+                print(f"\n{'='*60}")
+                print(f"CONVERGED at iteration {self.iteration}")
+                print(f"Final residual: {res_rms:.6e}")
+                print(f"{'='*60}")
+                break
+            
+            # Check for divergence (residual increased by factor of 1000)
+            if res_rms > 1000 * initial_residual:
+                print(f"\n{'='*60}")
+                print(f"DIVERGED at iteration {self.iteration}")
+                print(f"Residual: {res_rms:.6e} (initial: {initial_residual:.6e})")
+                print(f"{'='*60}")
+                break
+        
+        else:
+            # Max iterations reached
+            print(f"\n{'='*60}")
+            print(f"Maximum iterations ({self.config.max_iter}) reached")
+            print(f"Final residual: {self.residual_history[-1]:.6e}")
+            print(f"{'='*60}")
+        
+        # Write final solution
+        self.vtk_writer.write(self.Q, iteration=self.iteration)
+        series_file = self.vtk_writer.finalize()
+        print(f"VTK series written to: {series_file}")
+        
+        return self.converged
+    
+    def get_surface_data(self) -> Dict[str, np.ndarray]:
+        """
+        Extract surface quantities for post-processing.
+        
+        Returns
+        -------
+        data : dict
+            Dictionary containing:
+            - 'x': x-coordinates along surface
+            - 'y': y-coordinates along surface
+            - 'cp': pressure coefficient
+            - 'cf': skin friction coefficient (approximate)
+        """
+        # Surface is at j=0, use first interior cell (j=1 in ghost array)
+        # Cell-centered values
+        p_surface = self.Q[1:-1, 1, 0]  # Pressure at first interior cell layer
+        u_surface = self.Q[1:-1, 1, 1]
+        v_surface = self.Q[1:-1, 1, 2]
+        
+        # Surface coordinates (average of nodes)
+        x_surface = 0.5 * (self.X[:-1, 0] + self.X[1:, 0])
+        y_surface = 0.5 * (self.Y[:-1, 0] + self.Y[1:, 0])
+        
+        # Pressure coefficient (Cp = (p - p_inf) / (0.5 * rho * V_inf^2))
+        # For incompressible with unit velocity: Cp = 2 * (p - p_inf)
+        V_inf_sq = self.freestream.u_inf**2 + self.freestream.v_inf**2
+        cp = 2.0 * (p_surface - self.freestream.p_inf) / (V_inf_sq + 1e-12)
+        
+        # Approximate skin friction from wall-adjacent velocity
+        # Cf = tau_w / (0.5 * rho * V_inf^2)
+        # tau_w ≈ mu * du/dy ≈ mu * u_cell / (0.5 * cell_height)
+        # For unit Reynolds number normalization: mu = 1/Re
+        wall_dist = self.metrics.wall_distance[:, 0]
+        vel_mag = np.sqrt(u_surface**2 + v_surface**2)
+        cf = 2.0 * vel_mag / (wall_dist * self.config.reynolds * V_inf_sq + 1e-12)
+        
+        return {
+            'x': x_surface,
+            'y': y_surface,
+            'cp': cp,
+            'cf': cf
+        }
+    
+    def save_residual_history(self, filename: str = None):
+        """Save residual history to file."""
+        if filename is None:
+            filename = Path(self.config.output_dir) / "residual_history.dat"
+        
+        with open(filename, 'w') as f:
+            f.write("# Iteration  Residual\n")
+            for i, res in enumerate(self.residual_history):
+                f.write(f"{i+1:8d}  {res:.10e}\n")
+        
+        print(f"Residual history saved to: {filename}")
+

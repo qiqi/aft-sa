@@ -21,7 +21,13 @@ from .boundary_conditions import (
     BoundaryConditions,
     apply_boundary_conditions,
     initialize_state,
+    apply_initial_wall_damping,
     InletOutletBC,
+)
+
+from .rans_solver import (
+    RANSSolver,
+    SolverConfig,
 )
 
 __all__ = [
@@ -38,6 +44,10 @@ __all__ = [
     'BoundaryConditions',
     'apply_boundary_conditions',
     'initialize_state',
+    'apply_initial_wall_damping',
     'InletOutletBC',
+    # Main solver
+    'RANSSolver',
+    'SolverConfig',
 ]
 
