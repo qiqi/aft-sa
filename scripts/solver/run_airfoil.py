@@ -111,10 +111,10 @@ def compute_total_pressure_loss(Q: np.ndarray, freestream) -> np.ndarray:
     return C_pt
 
 
-def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray, 
+def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
                     iteration: int, residual: float, cfl: float,
                     output_dir: str, case_name: str = "flow",
-                    freestream=None):
+                    freestream=None, residual_field=None):
     """
     Plot flow field with global and zoomed views.
     
@@ -122,6 +122,7 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     - Pressure (global and zoomed)
     - Velocity magnitude (global and zoomed)
     - Total Pressure Loss C_pt (global and zoomed) - entropy check
+    - Residual field (global and zoomed) - if provided
     
     Parameters
     ----------
@@ -133,6 +134,8 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
         Current iteration number.
     residual : float
         Current residual value.
+    residual_field : ndarray, optional
+        Residual field (NI, NJ, 4) for visualization.
     cfl : float
         Current CFL number.
     output_dir : str
@@ -165,11 +168,19 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     else:
         C_pt = None
     
-    # Create figure: 3 rows x 2 columns if C_pt available, else 2x2
+    # Determine number of rows based on available data
+    n_rows = 2  # Pressure + Velocity
     if C_pt is not None:
-        fig, axes = plt.subplots(3, 2, figsize=(14, 16))
-    else:
-        fig, axes = plt.subplots(2, 2, figsize=(14, 12))
+        n_rows += 1
+    if residual_field is not None:
+        n_rows += 1
+    
+    # Create figure
+    fig, axes = plt.subplots(n_rows, 2, figsize=(14, 5 * n_rows))
+    
+    # Ensure axes is always 2D
+    if n_rows == 2:
+        axes = axes.reshape(2, 2)
     
     # --- Row 1: Pressure ---
     ax = axes[0, 0]
@@ -215,6 +226,9 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     ax.set_ylabel('y/c')
     plt.colorbar(pc, ax=ax, shrink=0.8, label='|V|')
     
+    # Track current row index
+    row_idx = 2
+    
     # --- Row 3: Total Pressure Loss (Entropy Check) ---
     if C_pt is not None:
         # Use symmetric colormap centered at 0
@@ -222,7 +236,7 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
         C_pt_abs_max = max(np.abs(np.percentile(C_pt, 1)), np.abs(np.percentile(C_pt, 99)))
         C_pt_abs_max = max(C_pt_abs_max, 0.01)  # Minimum range
         
-        ax = axes[2, 0]
+        ax = axes[row_idx, 0]
         pc = ax.pcolormesh(X.T, Y.T, C_pt.T, cmap='RdBu_r', shading='flat', 
                            rasterized=True, vmin=-C_pt_abs_max, vmax=C_pt_abs_max)
         ax.plot(X[:, 0], Y[:, 0], 'k-', lw=1.5)
@@ -230,9 +244,9 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
         ax.set_title(f'Total Pressure Loss C_pt (Global) - Entropy Check')
         ax.set_xlabel('x/c')
         ax.set_ylabel('y/c')
-        cbar = plt.colorbar(pc, ax=ax, shrink=0.8, label='C_pt')
+        plt.colorbar(pc, ax=ax, shrink=0.8, label='C_pt')
         
-        ax = axes[2, 1]
+        ax = axes[row_idx, 1]
         pc = ax.pcolormesh(X.T, Y.T, C_pt.T, cmap='RdBu_r', shading='flat', 
                            rasterized=True, vmin=-C_pt_abs_max, vmax=C_pt_abs_max)
         ax.plot(X[:, 0], Y[:, 0], 'k-', lw=2)
@@ -249,6 +263,52 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
                     fontsize=8, ha='left', va='bottom',
                     bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
         plt.colorbar(pc, ax=ax, shrink=0.8, label='C_pt')
+        
+        row_idx += 1
+    
+    # --- Residual Field (if provided) ---
+    if residual_field is not None:
+        # Use pressure residual (component 0) as the main diagnostic
+        R_p = np.abs(residual_field[:, :, 0])
+        
+        # Log scale for better visualization
+        R_log = np.log10(R_p + 1e-12)
+        R_min = np.percentile(R_log, 1)
+        R_max = np.percentile(R_log, 99)
+        
+        ax = axes[row_idx, 0]
+        pc = ax.pcolormesh(X.T, Y.T, R_log.T, cmap='hot_r', shading='flat', 
+                           rasterized=True, vmin=R_min, vmax=R_max)
+        ax.plot(X[:, 0], Y[:, 0], 'k-', lw=1.5)
+        ax.set_aspect('equal')
+        ax.set_title(f'log₁₀|Residual| (Global) - Iter {iteration}')
+        ax.set_xlabel('x/c')
+        ax.set_ylabel('y/c')
+        plt.colorbar(pc, ax=ax, shrink=0.8, label='log₁₀|R_p|')
+        
+        ax = axes[row_idx, 1]
+        pc = ax.pcolormesh(X.T, Y.T, R_log.T, cmap='hot_r', shading='flat', 
+                           rasterized=True, vmin=R_min, vmax=R_max)
+        ax.plot(X[:, 0], Y[:, 0], 'k-', lw=2)
+        ax.set_aspect('equal')
+        ax.set_xlim(-0.2, 1.4)
+        ax.set_ylim(-0.4, 0.4)
+        ax.set_title(f'log₁₀|Residual| (Near Airfoil)')
+        ax.set_xlabel('x/c')
+        ax.set_ylabel('y/c')
+        
+        # Find and mark max residual location
+        max_idx = np.unravel_index(np.argmax(R_p), R_p.shape)
+        x_max = 0.5 * (X[max_idx[0], max_idx[1]] + X[max_idx[0]+1, max_idx[1]])
+        y_max = 0.5 * (Y[max_idx[0], max_idx[1]] + Y[max_idx[0]+1, max_idx[1]])
+        ax.plot(x_max, y_max, 'g*', markersize=15, markeredgecolor='white', markeredgewidth=1)
+        
+        # Add statistics annotation
+        R_stats = f"Max |R|={R_p.max():.4e} at ({max_idx[0]},{max_idx[1]})"
+        ax.annotate(R_stats, xy=(0.02, 0.02), xycoords='axes fraction', 
+                    fontsize=8, ha='left', va='bottom',
+                    bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+        plt.colorbar(pc, ax=ax, shrink=0.8, label='log₁₀|R_p|')
     
     plt.tight_layout()
     
@@ -490,9 +550,25 @@ class DiagnosticRANSSolver:
         
         residual_rms = self._compute_residual_rms(final_residual)
         
+        # Find max residual location
+        R_abs = np.abs(final_residual[:, :, 0])  # Pressure residual
+        max_idx = np.unravel_index(np.argmax(R_abs), R_abs.shape)
+        max_res = R_abs[max_idx]
+        i_max, j_max = max_idx
+        x_max = 0.5 * (self.X[i_max, j_max] + self.X[i_max+1, j_max])
+        y_max = 0.5 * (self.Y[i_max, j_max] + self.Y[i_max+1, j_max])
+        
+        max_res_info = {
+            'value': max_res,
+            'i': i_max,
+            'j': j_max,
+            'x': x_max,
+            'y': y_max,
+        }
+        
         self.iteration += 1
         
-        return residual_rms, final_residual, cfl
+        return residual_rms, final_residual, cfl, max_res_info
     
     def run_with_diagnostics(self, dump_freq: int = 100) -> bool:
         """
@@ -503,12 +579,12 @@ class DiagnosticRANSSolver:
         dump_freq : int
             Frequency of flow field dumps (PDF + VTK).
         """
-        print(f"\n{'='*60}")
+        print(f"\n{'='*100}")
         print("Starting Steady-State Iteration (Diagnostic Mode)")
         print(f"Dumping flow field every {dump_freq} iterations")
-        print(f"{'='*60}")
-        print(f"{'Iter':>8} {'Residual':>14} {'CFL':>8} {'|V|_max':>10} {'p_range':>20}")
-        print(f"{'-'*62}")
+        print(f"{'='*100}")
+        print(f"{'Iter':>8} {'RMS':>12} {'Max':>12} {'MaxLoc':>18} {'CFL':>8} {'|V|_max':>10} {'p_range':>18}")
+        print(f"{'-'*100}")
         
         initial_residual = None
         
@@ -522,9 +598,10 @@ class DiagnosticRANSSolver:
         )
         
         for n in range(self.config.max_iter):
-            res_rms, _, cfl = self.step()
+            res_rms, R_field, cfl, max_info = self.step()
             
             self.residual_history.append(res_rms)
+            self._last_residual_field = R_field  # Store for visualization
             
             if initial_residual is None:
                 initial_residual = res_rms
@@ -532,11 +609,12 @@ class DiagnosticRANSSolver:
             # Check solution bounds
             bounds = self._check_solution_bounds(self.Q)
             
-            # Print progress
-            if self.iteration % self.config.print_freq == 0 or self.iteration == 1:
+            # Print progress every 10 iterations
+            if self.iteration % 10 == 0 or self.iteration == 1:
                 p_range = f"[{bounds['p_min']:.2f}, {bounds['p_max']:.2f}]"
-                print(f"{self.iteration:>8d} {res_rms:>14.6e} {cfl:>8.2f} "
-                      f"{bounds['vel_max']:>10.4f} {p_range:>20}")
+                max_loc = f"({max_info['i']:3d},{max_info['j']:3d}) x={max_info['x']:.2f}"
+                print(f"{self.iteration:>8d} {res_rms:>12.4e} {max_info['value']:>12.4e} {max_loc:>18} "
+                      f"{cfl:>8.2f} {bounds['vel_max']:>10.4f} {p_range:>18}")
             
             # Dump flow field
             if self.iteration % dump_freq == 0:
@@ -547,7 +625,8 @@ class DiagnosticRANSSolver:
                     cfl=cfl,
                     output_dir=str(self.snapshot_dir),
                     case_name=self.config.case_name,
-                    freestream=self.freestream
+                    freestream=self.freestream,
+                    residual_field=R_field
                 )
                 C_pt = self._compute_total_pressure_loss()
                 self.vtk_writer.write(self.Q, iteration=self.iteration,
@@ -716,6 +795,7 @@ def main():
         
         # Find construct2d binary
         construct2d_paths = [
+            project_root / "external" / "construct2d" / "construct2d",
             project_root / "bin" / "construct2d",
             Path("./construct2d"),
         ]
@@ -727,7 +807,9 @@ def main():
                 break
         
         if binary_path is None:
-            print("ERROR: Construct2D binary not found.")
+            print("ERROR: Construct2D binary not found. Tried:")
+            for p in construct2d_paths:
+                print(f"  - {p}")
             sys.exit(1)
         
         wrapper = Construct2DWrapper(str(binary_path))

@@ -157,7 +157,7 @@ def run_rans_solver(X, Y, reynolds, max_iter=2000, cfl=1.0, k4=0.04):
         
         Q = bc.apply(Qk)
         
-        # Print progress
+        # Print progress every 200 iterations
         if (n + 1) % 200 == 0:
             R = compute_fluxes(Q, flux_metrics, beta, flux_cfg)
             res_rms = np.sqrt(np.sum(R[:, :, 0]**2) / R[:, :, 0].size)
