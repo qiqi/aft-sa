@@ -34,8 +34,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.solvers.rans_solver import RANSSolver, SolverConfig
-from src.grid.mesher import Construct2DWrapper, GridOptions
-from src.grid.plot3d import read_plot3d
+from src.grid.loader import load_or_generate_grid
 from src.grid.metrics import MetricComputer
 from src.solvers.boundary_conditions import (
     FreestreamConditions, 
@@ -893,61 +892,31 @@ def main():
     print("   2D Incompressible RANS Solver - Diagnostic Mode")
     print("="*70)
     
-    grid_path = Path(args.grid_file)
+    # Use y_plus from args if set (e.g., super-coarse mode), else default 1.0
+    y_plus = getattr(args, 'y_plus', 1.0)
+    # For super-coarse, also increase max_first_cell to allow bigger cells
+    max_first_cell = 0.005 if args.super_coarse else 0.001
     
-    # Load or generate grid
-    if grid_path.suffix.lower() in ['.p3d', '.x', '.xyz']:
-        print(f"Loading grid from: {grid_path}")
-        X, Y = read_plot3d(str(grid_path))
-    elif grid_path.suffix.lower() == '.dat':
-        print(f"Generating grid from airfoil: {grid_path}")
-        print(f"  Surface points: {args.n_surface}")
-        print(f"  Normal points:  {args.n_normal}")
-        print(f"  Wake points:    {args.n_wake}")
-        
-        # Find construct2d binary
-        construct2d_paths = [
-            project_root / "external" / "construct2d" / "construct2d",
-            project_root / "bin" / "construct2d",
-            Path("./construct2d"),
-        ]
-        
-        binary_path = None
-        for p in construct2d_paths:
-            if p.exists():
-                binary_path = p
-                break
-        
-        if binary_path is None:
-            print("ERROR: Construct2D binary not found. Tried:")
-            for p in construct2d_paths:
-                print(f"  - {p}")
-            sys.exit(1)
-        
-        wrapper = Construct2DWrapper(str(binary_path))
-        
-        # Use y_plus from args if set (e.g., super-coarse mode), else default 1.0
-        y_plus = getattr(args, 'y_plus', 1.0)
-        # For super-coarse, also increase max_first_cell to allow bigger cells
-        max_first_cell = 0.005 if args.super_coarse else 0.001
-        
-        grid_opts = GridOptions(
+    # Load or generate grid using shared utility
+    try:
+        X, Y = load_or_generate_grid(
+            args.grid_file,
             n_surface=args.n_surface,
             n_normal=args.n_normal,
             n_wake=args.n_wake,
             y_plus=y_plus,
             reynolds=args.reynolds,
-            topology='CGRD',
             farfield_radius=15.0,
             max_first_cell=max_first_cell,
+            project_root=project_root,
+            verbose=True
         )
-        X, Y = wrapper.generate(str(grid_path), grid_opts, verbose=True)
-    else:
-        print(f"ERROR: Unknown grid file format: {grid_path.suffix}")
+    except FileNotFoundError as e:
+        print(f"ERROR: {e}")
         sys.exit(1)
-    
-    print(f"\nGrid loaded: {X.shape[0]} x {X.shape[1]} nodes")
-    print(f"            {X.shape[0]-1} x {X.shape[1]-1} cells")
+    except ValueError as e:
+        print(f"ERROR: {e}")
+        sys.exit(1)
     
     # Determine if viscous
     use_viscous = args.viscous or (not args.inviscid and args.reynolds < 1e8)

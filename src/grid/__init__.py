@@ -36,6 +36,11 @@ from .metrics import (
     compute_metrics
 )
 
+from .loader import (
+    load_or_generate_grid,
+    find_construct2d_binary
+)
+
 __all__ = [
     # Mesher
     'Construct2DWrapper',
@@ -59,7 +64,10 @@ __all__ = [
     'MetricComputer',
     'FVMMetrics',
     'GCLValidation',
-    'compute_metrics'
+    'compute_metrics',
+    # Loader
+    'load_or_generate_grid',
+    'find_construct2d_binary',
 ]
 
 

@@ -7,7 +7,6 @@ skin friction distributions compared to mfoil (panel code) results.
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add project root to path
@@ -20,17 +19,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from src.validation.mfoil import mfoil
-from src.grid.mesher import Construct2DWrapper, GridOptions
-from src.grid.plot3d import read_plot3d
-from src.grid.metrics import MetricComputer
-from src.solvers.boundary_conditions import (
-    FreestreamConditions, BoundaryConditions, 
-    initialize_state, apply_initial_wall_damping
-)
-from src.numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxGridMetrics
-from src.numerics.gradients import compute_gradients, GradientMetrics
-from src.numerics.viscous_fluxes import add_viscous_fluxes
-from src.solvers.time_stepping import compute_local_timestep, TimeStepConfig
+from src.grid.loader import load_or_generate_grid
+from src.solvers.rans_solver import RANSSolver, SolverConfig
 
 
 def run_mfoil_laminar(reynolds: float, alpha: float = 0.0):
@@ -43,30 +33,17 @@ def run_mfoil_laminar(reynolds: float, alpha: float = 0.0):
     M.solve()
     
     # Extract surface data from mfoil
-    # M.foil.x has shape (2, N) where x[0,:] = x-coords, x[1,:] = y-coords
-    # M.vsol.Is tells us the indexing:
-    #   Is[0] = upper surface (TE to LE, reversed)
-    #   Is[1] = lower surface (LE to TE)
-    #   Is[2] = wake
-    x_coords = M.foil.x[0, :].copy()  # x coordinates on foil
-    y_coords = M.foil.x[1, :].copy()  # y coordinates on foil
+    x_coords = M.foil.x[0, :].copy()
+    y_coords = M.foil.x[1, :].copy()
     
-    # Get Cp and Cf from post-processing results (length = N + wake nodes)
+    # Get Cp and Cf from post-processing results
     cp_all = M.post.cp.copy() if hasattr(M.post, 'cp') and M.post.cp is not None else None
     cf_all = M.post.cf.copy() if hasattr(M.post, 'cf') and M.post.cf is not None else None
     
-    # Extract foil surface only (exclude wake)
     N = M.foil.N
-    
-    # Reorganize to get upper and lower surfaces
-    # Upper surface: indices 0 to N/2 (stored reversed in vsol)
-    # Lower surface: indices N/2 to N
     n_half = N // 2
     
-    # For mfoil, the foil is ordered from TE (upper) -> LE -> TE (lower)
-    # So x_coords[0] is at TE upper, x_coords[n_half] is at LE, x_coords[-1] is at TE lower
-    
-    # Upper surface: first half, need to reverse to go LE to TE
+    # Upper surface: first half, reversed to go LE to TE
     x_upper = x_coords[:n_half+1][::-1]
     y_upper = y_coords[:n_half+1][::-1]
     
@@ -75,8 +52,6 @@ def run_mfoil_laminar(reynolds: float, alpha: float = 0.0):
     y_lower = y_coords[n_half:]
     
     if cp_all is not None:
-        # cp_all has solution at each node including wake
-        # First N nodes are foil surface
         cp_upper = cp_all[:n_half+1][::-1]
         cp_lower = cp_all[n_half:N]
     else:
@@ -104,180 +79,14 @@ def run_mfoil_laminar(reynolds: float, alpha: float = 0.0):
     }
 
 
-def run_rans_solver(X, Y, reynolds, max_iter=2000, cfl=0.5, k4=0.04, use_viscous=False):
-    """Run the RANS solver and return surface distributions."""
-    NI = X.shape[0] - 1
-    NJ = X.shape[1] - 1
-    
-    # Compute metrics
-    computer = MetricComputer(X, Y, wall_j=0)
-    metrics = computer.compute()
-    
-    # Initialize state
-    freestream = FreestreamConditions.from_mach_alpha(mach=0.1, alpha_deg=0.0)
-    Q = initialize_state(NI, NJ, freestream)
-    Q = apply_initial_wall_damping(Q, metrics, decay_length=0.1)
-    
-    # Compute far-field outward unit normals for Riemann BC
-    beta = 10.0
-    Sj_x_ff = metrics.Sj_x[:, -1]
-    Sj_y_ff = metrics.Sj_y[:, -1]
-    Sj_mag = np.sqrt(Sj_x_ff**2 + Sj_y_ff**2) + 1e-12
-    nx_ff = Sj_x_ff / Sj_mag
-    ny_ff = Sj_y_ff / Sj_mag
-    
-    bc = BoundaryConditions(
-        freestream=freestream,
-        farfield_normals=(nx_ff, ny_ff),
-        beta=beta
-    )
-    Q = bc.apply(Q)
-    
-    # Flux configuration
-    # k2: 2nd-order dissipation (shock capturing)
-    # k4: 4th-order dissipation (background smoothing to reduce oscillations)
-    # Typical values: k2=0.5, k4=0.016-0.064
-    flux_cfg = FluxConfig(k2=0.5, k4=k4)
-    flux_metrics = FluxGridMetrics(
-        Si_x=metrics.Si_x, Si_y=metrics.Si_y,
-        Sj_x=metrics.Sj_x, Sj_y=metrics.Sj_y,
-        volume=metrics.volume
-    )
-    
-    # Gradient metrics for viscous fluxes
-    grad_metrics = GradientMetrics(
-        Si_x=metrics.Si_x, Si_y=metrics.Si_y,
-        Sj_x=metrics.Sj_x, Sj_y=metrics.Sj_y,
-        volume=metrics.volume
-    )
-    
-    # Laminar viscosity
-    mu_laminar = 1.0 / reynolds if reynolds > 0 else 0.0
-    
-    ts_config = TimeStepConfig(cfl=cfl)
-    
-    mode_str = "VISCOUS" if use_viscous else "INVISCID"
-    print(f"Running RANS solver ({mode_str}): {NI}x{NJ} grid, {max_iter} iterations, CFL={cfl}")
-    
-    # RK4 coefficients
-    alphas = [0.25, 0.333333333, 0.5, 1.0]
-    
-    for n in range(max_iter):
-        # Compute time step (with viscous constraint if enabled)
-        nu = mu_laminar if use_viscous else 0.0
-        dt = compute_local_timestep(
-            Q, metrics.Si_x, metrics.Si_y, metrics.Sj_x, metrics.Sj_y,
-            metrics.volume, beta, ts_config, nu=nu
-        )
-        
-        # RK4 integration
-        Q0 = Q.copy()
-        Qk = Q.copy()
-        
-        for alpha in alphas:
-            Qk = bc.apply(Qk)
-            # Compute convective fluxes
-            R = compute_fluxes(Qk, flux_metrics, beta, flux_cfg)
-            # Add viscous fluxes if enabled
-            if use_viscous:
-                gradients = compute_gradients(Qk, grad_metrics)
-                R = add_viscous_fluxes(R, Qk, gradients, grad_metrics, mu_laminar)
-            Qk = Q0.copy()
-            Qk[1:-1, 1:-1, :] += alpha * (dt / metrics.volume)[:, :, np.newaxis] * R
-        
-        Q = bc.apply(Qk)
-        
-        # Print progress every 200 iterations
-        if (n + 1) % 200 == 0:
-            R = compute_fluxes(Q, flux_metrics, beta, flux_cfg)
-            if use_viscous:
-                gradients = compute_gradients(Q, grad_metrics)
-                R = add_viscous_fluxes(R, Q, gradients, grad_metrics, mu_laminar)
-            res_rms = np.sqrt(np.sum(R[:, :, 0]**2) / R[:, :, 0].size)
-            print(f"  Iter {n+1:5d}: residual = {res_rms:.6e}")
-    
-    # Extract surface data
-    Q_int = Q[1:-1, 1:-1, :]
-    
-    # Surface is at j=0 in interior indexing
-    p_surface = Q_int[:, 0, 0]
-    u_surface = Q_int[:, 1, 1]  # First interior cell
-    v_surface = Q_int[:, 1, 2]
-    
-    # Cell centers at the surface
-    x_surface = 0.5 * (X[:-1, 0] + X[1:, 0])
-    y_surface = 0.5 * (Y[:-1, 0] + Y[1:, 0])
-    
-    # Freestream values
-    p_inf = freestream.p_inf
-    V_inf_sq = freestream.u_inf**2 + freestream.v_inf**2
-    q_inf = 0.5 * V_inf_sq
-    
-    # Cp = (p - p_inf) / q_inf
-    Cp = (p_surface - p_inf) / (q_inf + 1e-12)
-    
-    # Cf estimation using wall shear
-    # tau_w = mu * du/dy at wall
-    # Approximate du/dn using ghost cell formulation: du/dn ≈ 2*u_interior / Delta_n
-    # Delta_n is the distance to the first interior cell
-    
-    # Get first interior cell velocity
-    u_int = Q_int[:, 1, 1]
-    v_int = Q_int[:, 1, 2]
-    
-    # Normal distance (use wall distance from metrics for first cell)
-    dn = metrics.wall_distance[:, 1]  # Distance at j=1 interior cells
-    
-    # Wall-tangent velocity (project onto surface tangent)
-    # For a C-grid, the tangent direction is roughly the i-direction
-    dx = np.diff(X[:, 0])
-    dy = np.diff(Y[:, 0])
-    ds = np.sqrt(dx**2 + dy**2)
-    
-    # Tangent vector at cell centers
-    tx = np.zeros(NI)
-    ty = np.zeros(NI)
-    tx[:-1] = 0.5 * (dx[:-1] + dx[1:]) / (0.5 * (ds[:-1] + ds[1:]))
-    ty[:-1] = 0.5 * (dy[:-1] + dy[1:]) / (0.5 * (ds[:-1] + ds[1:]))
-    tx[-1] = dx[-1] / ds[-1]
-    ty[-1] = dy[-1] / ds[-1]
-    
-    # Normalize
-    t_mag = np.sqrt(tx**2 + ty**2)
-    tx /= (t_mag + 1e-12)
-    ty /= (t_mag + 1e-12)
-    
-    # Project velocity onto tangent
-    u_tan = u_int * tx + v_int * ty
-    
-    # Wall shear stress (using finite difference)
-    mu_laminar = 1.0 / reynolds
-    tau_w = mu_laminar * u_tan / (dn + 1e-12)
-    
-    # Cf = tau_w / q_inf
-    Cf = tau_w / (q_inf + 1e-12)
-    
-    return {
-        'x': x_surface,
-        'y': y_surface,
-        'Cp': Cp,
-        'Cf': Cf,
-        'Q': Q,
-        'freestream': freestream,
-        'X': X,
-        'Y': Y,
-        'metrics': metrics,
-    }
-
-
-def extract_boundary_layer_profiles(rans_result, x_locations=[0.25, 0.5, 0.75], n_wake=30):
+def extract_boundary_layer_profiles(solver, x_locations=[0.25, 0.5, 0.75], n_wake=30):
     """
     Extract boundary layer velocity profiles at specified x/c locations.
     
     Parameters
     ----------
-    rans_result : dict
-        Result from run_rans_solver containing Q, X, Y, metrics.
+    solver : RANSSolver
+        Solver object with converged solution.
     x_locations : list
         List of x/c locations to extract profiles.
     n_wake : int
@@ -287,13 +96,11 @@ def extract_boundary_layer_profiles(rans_result, x_locations=[0.25, 0.5, 0.75], 
     -------
     profiles : dict
         Dictionary with 'upper' and 'lower' keys, each containing list of profiles.
-        Each profile is a dict with 'x', 'y_wall', 'y', 'u', 'v', 'u_edge'.
     """
-    Q = rans_result['Q']
-    X = rans_result['X']
-    Y = rans_result['Y']
-    metrics = rans_result['metrics']
-    freestream = rans_result['freestream']
+    Q = solver.Q
+    X = solver.X
+    Y = solver.Y
+    metrics = solver.metrics
     
     NI = X.shape[0] - 1
     NJ = X.shape[1] - 1
@@ -311,9 +118,7 @@ def extract_boundary_layer_profiles(rans_result, x_locations=[0.25, 0.5, 0.75], 
     profiles = {'upper': [], 'lower': []}
     
     for x_target in x_locations:
-        # Find closest cell on upper surface (y >= 0, x in [0, 1])
         for surface in ['upper', 'lower']:
-            # Search in airfoil region (skip wake cells)
             best_i = None
             best_dist = float('inf')
             
@@ -321,7 +126,6 @@ def extract_boundary_layer_profiles(rans_result, x_locations=[0.25, 0.5, 0.75], 
                 x_cell = x_surface[i]
                 y_cell = y_surface[i]
                 
-                # Check if on correct surface and on airfoil (0 <= x <= 1)
                 if x_cell < 0 or x_cell > 1:
                     continue
                     
@@ -338,20 +142,15 @@ def extract_boundary_layer_profiles(rans_result, x_locations=[0.25, 0.5, 0.75], 
             if best_i is None:
                 continue
             
-            # Extract profile at this i location
-            # y-coordinates along normal direction
             y_profile = []
             u_profile = []
             v_profile = []
             
-            # Wall location
             x_wall = x_surface[best_i]
             y_wall = y_surface[best_i]
             
-            # Extract from j=0 to j=NJ-1
-            n_profile = min(NJ, 20)  # Limit to first 20 cells for BL
+            n_profile = min(NJ, 20)
             for j in range(n_profile):
-                # Distance from wall
                 y_dist = metrics.wall_distance[best_i, j]
                 u = Q_int[best_i, j, 1]
                 v = Q_int[best_i, j, 2]
@@ -360,7 +159,6 @@ def extract_boundary_layer_profiles(rans_result, x_locations=[0.25, 0.5, 0.75], 
                 u_profile.append(u)
                 v_profile.append(v)
             
-            # Edge velocity (last point in profile)
             u_edge = np.sqrt(u_profile[-1]**2 + v_profile[-1]**2)
             
             profiles[surface].append({
@@ -383,14 +181,14 @@ def main():
                         help="Reynolds number (default: 10000)")
     parser.add_argument("--max-iter", "-n", type=int, default=4000,
                         help="Maximum iterations (default: 4000)")
-    parser.add_argument("--cfl", type=float, default=0.5,
-                        help="CFL number (default: 0.5)")
+    parser.add_argument("--cfl", type=float, default=0.8,
+                        help="CFL number (default: 0.8)")
     parser.add_argument("--n-surface", type=int, default=100,
                         help="Surface points (default: 100)")
     parser.add_argument("--n-normal", type=int, default=40,
                         help="Normal points (default: 40)")
-    parser.add_argument("--k4", type=float, default=0.04,
-                        help="JST 4th-order dissipation coefficient (default: 0.04)")
+    parser.add_argument("--k4", type=float, default=0.016,
+                        help="JST 4th-order dissipation coefficient (default: 0.016)")
     parser.add_argument("--output", "-o", type=str, default="output/cp_cf_comparison.pdf",
                         help="Output PDF path")
     parser.add_argument("--viscous", action="store_true",
@@ -420,53 +218,81 @@ def main():
     
     # Generate grid
     print("\nGenerating grid...")
-    binary_paths = [
-        project_root / "bin" / "construct2d",
-        Path("./construct2d"),
-    ]
-    
-    binary_path = None
-    for p in binary_paths:
-        if p.exists():
-            binary_path = p
-            break
-    
-    if binary_path is None:
-        print("ERROR: construct2d binary not found")
-        sys.exit(1)
-    
-    wrapper = Construct2DWrapper(str(binary_path))
-    grid_opts = GridOptions(
+    airfoil_file = project_root / "data" / "naca0012.dat"
+    X, Y = load_or_generate_grid(
+        str(airfoil_file),
         n_surface=args.n_surface,
         n_normal=args.n_normal,
         n_wake=30,
         y_plus=1.0,
         reynolds=args.reynolds,
-        topology='CGRD',
-        farfield_radius=15.0,
+        project_root=project_root,
+        verbose=True
     )
     
-    airfoil_file = project_root / "data" / "naca0012.dat"
-    X, Y = wrapper.generate(str(airfoil_file), grid_opts, verbose=False)
-    print(f"  Grid: {X.shape[0]} x {X.shape[1]} nodes")
+    # Configure solver
+    config = SolverConfig(
+        mach=0.1,
+        alpha=0.0,
+        reynolds=args.reynolds,
+        beta=10.0,
+        cfl_start=args.cfl,
+        cfl_target=args.cfl,
+        cfl_ramp_iters=1,  # No ramping for simple case
+        max_iter=args.max_iter,
+        tol=1e-10,
+        output_freq=args.max_iter + 1,  # No VTK output
+        print_freq=200,
+        output_dir="output/validation",
+        case_name="cp_cf_comparison",
+        jst_k2=0.5,
+        jst_k4=args.k4,
+    )
     
-    # Run RANS
+    # Create solver with pre-loaded grid
     print("\nRunning RANS solver...")
-    rans_result = run_rans_solver(X, Y, args.reynolds, args.max_iter, args.cfl, args.k4, use_viscous)
+    solver = RANSSolver.__new__(RANSSolver)
+    solver.config = config
+    solver.X = X
+    solver.Y = Y
+    solver.NI = X.shape[0] - 1
+    solver.NJ = X.shape[1] - 1
+    solver.iteration = 0
+    solver.residual_history = []
+    solver.converged = False
     
-    # Create comparison plots
-    print("\nCreating comparison plots...")
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+    # Initialize components
+    solver._compute_metrics()
+    solver._initialize_state()
     
-    # Sort RANS data by x for plotting
-    x_rans = rans_result['x']
-    cp_rans = rans_result['Cp']
-    cf_rans = rans_result['Cf']
+    # Override viscous behavior if inviscid requested
+    if not use_viscous:
+        # Monkey-patch to skip viscous fluxes
+        original_compute_residual = solver._compute_residual
+        def inviscid_residual(Q):
+            from src.numerics.fluxes import compute_fluxes, FluxConfig
+            flux_cfg = FluxConfig(k2=config.jst_k2, k4=config.jst_k4)
+            return compute_fluxes(Q, solver.flux_metrics, config.beta, flux_cfg)
+        solver._compute_residual = inviscid_residual
+    
+    # Skip VTK output for this validation script
+    class DummyVTKWriter:
+        def write(self, *args, **kwargs): pass
+        def finalize(self): return ""
+    solver.vtk_writer = DummyVTKWriter()
+    
+    # Run
+    solver.run_steady_state()
+    
+    # Get surface data
+    surface = solver.get_surface_distributions()
+    x_rans = surface.x
+    cp_rans = surface.Cp
+    cf_rans = surface.Cf
+    y_rans = surface.y
     
     # Filter to airfoil only (exclude wake: x must be in [0, 1])
-    y_rans = rans_result['y']
     airfoil_mask = (x_rans >= 0) & (x_rans <= 1.0)
-    
     x_airfoil = x_rans[airfoil_mask]
     y_airfoil = y_rans[airfoil_mask]
     cp_airfoil = cp_rans[airfoil_mask]
@@ -494,6 +320,10 @@ def main():
     cp_mfoil_lower = mfoil_result['cp_lower']
     cf_mfoil_upper = mfoil_result['cf_upper']
     cf_mfoil_lower = mfoil_result['cf_lower']
+    
+    # Create comparison plots
+    print("\nCreating comparison plots...")
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     
     # --- Plot 1: Cp distribution ---
     ax = axes[0, 0]
@@ -565,12 +395,10 @@ def main():
     
     # --- Boundary Layer Profile Plots ---
     print("Extracting boundary layer profiles...")
-    bl_profiles = extract_boundary_layer_profiles(rans_result, x_locations=[0.25, 0.5, 0.75])
+    bl_profiles = extract_boundary_layer_profiles(solver, x_locations=[0.25, 0.5, 0.75], n_wake=30)
     
     # Create BL profile figure
     fig_bl, axes_bl = plt.subplots(2, 3, figsize=(15, 10))
-    
-    colors = ['b', 'g', 'r']
     
     # Upper surface profiles
     for idx, profile in enumerate(bl_profiles['upper']):
@@ -578,11 +406,8 @@ def main():
             break
         ax = axes_bl[0, idx]
         
-        # Velocity magnitude
         u_mag = np.sqrt(profile['u']**2 + profile['v']**2)
         u_edge = profile['u_edge']
-        
-        # Normalize by edge velocity
         u_norm = u_mag / (u_edge + 1e-12)
         
         ax.plot(u_norm, profile['y'], 'b-', lw=2, label='|u|/u_e')
@@ -604,11 +429,8 @@ def main():
             break
         ax = axes_bl[1, idx]
         
-        # Velocity magnitude
         u_mag = np.sqrt(profile['u']**2 + profile['v']**2)
         u_edge = profile['u_edge']
-        
-        # Normalize by edge velocity
         u_norm = u_mag / (u_edge + 1e-12)
         
         ax.plot(u_norm, profile['y'], 'b-', lw=2, label='|u|/u_e')
