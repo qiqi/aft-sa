@@ -104,7 +104,7 @@ def run_mfoil_laminar(reynolds: float, alpha: float = 0.0):
     }
 
 
-def run_rans_solver(X, Y, reynolds, max_iter=2000, cfl=1.0, k4=0.04, use_viscous=False):
+def run_rans_solver(X, Y, reynolds, max_iter=2000, cfl=0.5, k4=0.04, use_viscous=False):
     """Run the RANS solver and return surface distributions."""
     NI = X.shape[0] - 1
     NJ = X.shape[1] - 1
@@ -264,19 +264,127 @@ def run_rans_solver(X, Y, reynolds, max_iter=2000, cfl=1.0, k4=0.04, use_viscous
         'Cf': Cf,
         'Q': Q,
         'freestream': freestream,
+        'X': X,
+        'Y': Y,
+        'metrics': metrics,
     }
+
+
+def extract_boundary_layer_profiles(rans_result, x_locations=[0.25, 0.5, 0.75], n_wake=30):
+    """
+    Extract boundary layer velocity profiles at specified x/c locations.
+    
+    Parameters
+    ----------
+    rans_result : dict
+        Result from run_rans_solver containing Q, X, Y, metrics.
+    x_locations : list
+        List of x/c locations to extract profiles.
+    n_wake : int
+        Number of wake cells at each end of i-direction (to skip).
+        
+    Returns
+    -------
+    profiles : dict
+        Dictionary with 'upper' and 'lower' keys, each containing list of profiles.
+        Each profile is a dict with 'x', 'y_wall', 'y', 'u', 'v', 'u_edge'.
+    """
+    Q = rans_result['Q']
+    X = rans_result['X']
+    Y = rans_result['Y']
+    metrics = rans_result['metrics']
+    freestream = rans_result['freestream']
+    
+    NI = X.shape[0] - 1
+    NJ = X.shape[1] - 1
+    
+    Q_int = Q[1:-1, 1:-1, :]  # Strip ghost cells
+    
+    # Cell center coordinates
+    xc = metrics.xc
+    yc = metrics.yc
+    
+    # Surface x coordinates (at j=0)
+    x_surface = xc[:, 0]
+    y_surface = yc[:, 0]
+    
+    profiles = {'upper': [], 'lower': []}
+    
+    for x_target in x_locations:
+        # Find closest cell on upper surface (y >= 0, x in [0, 1])
+        for surface in ['upper', 'lower']:
+            # Search in airfoil region (skip wake cells)
+            best_i = None
+            best_dist = float('inf')
+            
+            for i in range(n_wake, NI - n_wake):
+                x_cell = x_surface[i]
+                y_cell = y_surface[i]
+                
+                # Check if on correct surface and on airfoil (0 <= x <= 1)
+                if x_cell < 0 or x_cell > 1:
+                    continue
+                    
+                if surface == 'upper' and y_cell < -0.001:
+                    continue
+                if surface == 'lower' and y_cell > 0.001:
+                    continue
+                
+                dist = abs(x_cell - x_target)
+                if dist < best_dist:
+                    best_dist = dist
+                    best_i = i
+            
+            if best_i is None:
+                continue
+            
+            # Extract profile at this i location
+            # y-coordinates along normal direction
+            y_profile = []
+            u_profile = []
+            v_profile = []
+            
+            # Wall location
+            x_wall = x_surface[best_i]
+            y_wall = y_surface[best_i]
+            
+            # Extract from j=0 to j=NJ-1
+            n_profile = min(NJ, 20)  # Limit to first 20 cells for BL
+            for j in range(n_profile):
+                # Distance from wall
+                y_dist = metrics.wall_distance[best_i, j]
+                u = Q_int[best_i, j, 1]
+                v = Q_int[best_i, j, 2]
+                
+                y_profile.append(y_dist)
+                u_profile.append(u)
+                v_profile.append(v)
+            
+            # Edge velocity (last point in profile)
+            u_edge = np.sqrt(u_profile[-1]**2 + v_profile[-1]**2)
+            
+            profiles[surface].append({
+                'x': x_wall,
+                'y_wall': y_wall,
+                'y': np.array(y_profile),
+                'u': np.array(u_profile),
+                'v': np.array(v_profile),
+                'u_edge': u_edge,
+            })
+    
+    return profiles
 
 
 def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="Compare RANS Cp/Cf against mfoil")
-    parser.add_argument("--reynolds", "-Re", type=float, default=10000,
+    parser.add_argument("--reynolds", "-Re", type=float, default=100000,
                         help="Reynolds number (default: 10000)")
-    parser.add_argument("--max-iter", "-n", type=int, default=2000,
-                        help="Maximum iterations (default: 2000)")
-    parser.add_argument("--cfl", type=float, default=1.0,
-                        help="CFL number (default: 1.0)")
+    parser.add_argument("--max-iter", "-n", type=int, default=4000,
+                        help="Maximum iterations (default: 4000)")
+    parser.add_argument("--cfl", type=float, default=0.5,
+                        help="CFL number (default: 0.5)")
     parser.add_argument("--n-surface", type=int, default=100,
                         help="Surface points (default: 100)")
     parser.add_argument("--n-normal", type=int, default=40,
@@ -440,12 +548,81 @@ def main():
     
     plt.tight_layout()
     
-    # Save
+    # Save Cp/Cf comparison
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(output_path, dpi=150)
     print(f"\nSaved comparison plot to: {output_path}")
+    plt.close()
     
+    # --- Boundary Layer Profile Plots ---
+    print("Extracting boundary layer profiles...")
+    bl_profiles = extract_boundary_layer_profiles(rans_result, x_locations=[0.25, 0.5, 0.75])
+    
+    # Create BL profile figure
+    fig_bl, axes_bl = plt.subplots(2, 3, figsize=(15, 10))
+    
+    colors = ['b', 'g', 'r']
+    
+    # Upper surface profiles
+    for idx, profile in enumerate(bl_profiles['upper']):
+        if idx >= 3:
+            break
+        ax = axes_bl[0, idx]
+        
+        # Velocity magnitude
+        u_mag = np.sqrt(profile['u']**2 + profile['v']**2)
+        u_edge = profile['u_edge']
+        
+        # Normalize by edge velocity
+        u_norm = u_mag / (u_edge + 1e-12)
+        
+        ax.plot(u_norm, profile['y'], 'b-', lw=2, label='|u|/u_e')
+        ax.plot(profile['u'] / (u_edge + 1e-12), profile['y'], 'g--', lw=1.5, label='u/u_e')
+        ax.plot(profile['v'] / (u_edge + 1e-12), profile['y'], 'r:', lw=1.5, label='v/u_e')
+        
+        ax.set_xlabel('u/u_e')
+        ax.set_ylabel('y (wall distance)')
+        ax.set_title(f"Upper Surface x/c = {profile['x']:.2f}")
+        ax.legend(loc='lower right', fontsize=8)
+        ax.grid(True, alpha=0.3)
+        ax.set_xlim(-0.2, 1.2)
+        ax.axvline(x=0, color='k', linestyle='-', alpha=0.3)
+        ax.axvline(x=1, color='k', linestyle='--', alpha=0.3)
+    
+    # Lower surface profiles
+    for idx, profile in enumerate(bl_profiles['lower']):
+        if idx >= 3:
+            break
+        ax = axes_bl[1, idx]
+        
+        # Velocity magnitude
+        u_mag = np.sqrt(profile['u']**2 + profile['v']**2)
+        u_edge = profile['u_edge']
+        
+        # Normalize by edge velocity
+        u_norm = u_mag / (u_edge + 1e-12)
+        
+        ax.plot(u_norm, profile['y'], 'b-', lw=2, label='|u|/u_e')
+        ax.plot(profile['u'] / (u_edge + 1e-12), profile['y'], 'g--', lw=1.5, label='u/u_e')
+        ax.plot(profile['v'] / (u_edge + 1e-12), profile['y'], 'r:', lw=1.5, label='v/u_e')
+        
+        ax.set_xlabel('u/u_e')
+        ax.set_ylabel('y (wall distance)')
+        ax.set_title(f"Lower Surface x/c = {profile['x']:.2f}")
+        ax.legend(loc='lower right', fontsize=8)
+        ax.grid(True, alpha=0.3)
+        ax.set_xlim(-0.2, 1.2)
+        ax.axvline(x=0, color='k', linestyle='-', alpha=0.3)
+        ax.axvline(x=1, color='k', linestyle='--', alpha=0.3)
+    
+    fig_bl.suptitle(f'Boundary Layer Profiles (Re={args.reynolds:.0f})', fontsize=14)
+    plt.tight_layout()
+    
+    # Save BL profiles
+    bl_output_path = output_path.parent / (output_path.stem + '_bl_profiles.pdf')
+    plt.savefig(bl_output_path, dpi=150)
+    print(f"Saved boundary layer profiles to: {bl_output_path}")
     plt.close()
     
     print("\nDone!")
