@@ -84,7 +84,7 @@ class SolverConfig:
     
     # JST flux parameters
     jst_k2: float = 0.5             # 2nd-order dissipation coefficient
-    jst_k4: float = 0.016           # 4th-order dissipation coefficient
+    jst_k4: float = 0.04            # 4th-order dissipation coefficient (increased from 0.016)
 
 
 class RANSSolver:

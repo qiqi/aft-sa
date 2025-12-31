@@ -102,7 +102,7 @@ def run_mfoil_laminar(reynolds: float, alpha: float = 0.0):
     }
 
 
-def run_rans_solver(X, Y, reynolds, max_iter=2000, cfl=1.0):
+def run_rans_solver(X, Y, reynolds, max_iter=2000, cfl=1.0, k4=0.04):
     """Run the RANS solver and return surface distributions."""
     NI = X.shape[0] - 1
     NJ = X.shape[1] - 1
@@ -120,7 +120,10 @@ def run_rans_solver(X, Y, reynolds, max_iter=2000, cfl=1.0):
     Q = bc.apply(Q)
     
     # Flux configuration
-    flux_cfg = FluxConfig(k2=0.5, k4=0.016)
+    # k2: 2nd-order dissipation (shock capturing)
+    # k4: 4th-order dissipation (background smoothing to reduce oscillations)
+    # Typical values: k2=0.5, k4=0.016-0.064
+    flux_cfg = FluxConfig(k2=0.5, k4=k4)
     flux_metrics = FluxGridMetrics(
         Si_x=metrics.Si_x, Si_y=metrics.Si_y,
         Sj_x=metrics.Sj_x, Sj_y=metrics.Sj_y,
@@ -245,6 +248,8 @@ def main():
                         help="Surface points (default: 100)")
     parser.add_argument("--n-normal", type=int, default=40,
                         help="Normal points (default: 40)")
+    parser.add_argument("--k4", type=float, default=0.04,
+                        help="JST 4th-order dissipation coefficient (default: 0.04)")
     parser.add_argument("--output", "-o", type=str, default="output/cp_cf_comparison.pdf",
                         help="Output PDF path")
     args = parser.parse_args()
@@ -254,6 +259,7 @@ def main():
     print("="*60)
     print(f"Reynolds: {args.reynolds}")
     print(f"Iterations: {args.max_iter}")
+    print(f"JST k4 (4th-order dissipation): {args.k4}")
     print(f"Grid: {args.n_surface} x {args.n_normal}")
     print()
     
@@ -297,7 +303,7 @@ def main():
     
     # Run RANS
     print("\nRunning RANS solver...")
-    rans_result = run_rans_solver(X, Y, args.reynolds, args.max_iter, args.cfl)
+    rans_result = run_rans_solver(X, Y, args.reynolds, args.max_iter, args.cfl, args.k4)
     
     # Create comparison plots
     print("\nCreating comparison plots...")

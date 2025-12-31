@@ -765,7 +765,7 @@ def main():
         case_name=args.case_name,
         wall_damping_length=0.1,
         jst_k2=0.5,
-        jst_k4=0.016,
+        jst_k4=0.04,  # Increased from 0.016 to reduce oscillations
     )
     
     # Create solver
