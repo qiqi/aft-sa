@@ -44,6 +44,8 @@ from src.solvers.boundary_conditions import (
     apply_initial_wall_damping
 )
 from src.numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxGridMetrics
+from src.numerics.gradients import compute_gradients, GradientMetrics
+from src.numerics.viscous_fluxes import add_viscous_fluxes
 from src.solvers.time_stepping import compute_local_timestep, TimeStepConfig
 from src.io.output import VTKWriter, write_vtk
 
@@ -487,7 +489,7 @@ class DiagnosticRANSSolver:
         return self.config.cfl_start + t * (self.config.cfl_target - self.config.cfl_start)
     
     def _compute_residual(self, Q: np.ndarray) -> np.ndarray:
-        """Compute flux residual."""
+        """Compute flux residual (convective + optional viscous)."""
         flux_cfg = FluxConfig(k2=self.config.jst_k2, k4=self.config.jst_k4)
         
         flux_metrics = FluxGridMetrics(
@@ -498,7 +500,31 @@ class DiagnosticRANSSolver:
             volume=self.metrics.volume
         )
         
-        return compute_fluxes(Q, flux_metrics, self.config.beta, flux_cfg)
+        # Compute convective fluxes (JST scheme)
+        conv_residual = compute_fluxes(Q, flux_metrics, self.config.beta, flux_cfg)
+        
+        # Add viscous fluxes if enabled
+        if getattr(self.config, 'use_viscous', False):
+            # Compute gradients
+            grad_metrics = GradientMetrics(
+                Si_x=self.metrics.Si_x,
+                Si_y=self.metrics.Si_y,
+                Sj_x=self.metrics.Sj_x,
+                Sj_y=self.metrics.Sj_y,
+                volume=self.metrics.volume
+            )
+            gradients = compute_gradients(Q, grad_metrics)
+            
+            # Laminar viscosity from Reynolds number
+            mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
+            
+            # Add viscous fluxes
+            residual = add_viscous_fluxes(
+                conv_residual, Q, gradients, grad_metrics, mu_laminar
+            )
+            return residual
+        
+        return conv_residual
     
     def _compute_residual_rms(self, residual: np.ndarray) -> float:
         """Compute RMS of density residual."""
@@ -766,6 +792,10 @@ def main():
                         help="Wake points for grid generation (default: 50)")
     parser.add_argument("--coarse", action="store_true",
                         help="Use coarse grid (80x30) for debugging")
+    parser.add_argument("--inviscid", action="store_true",
+                        help="Run inviscid (no viscous fluxes)")
+    parser.add_argument("--viscous", action="store_true",
+                        help="Run with viscous fluxes (default if Re specified)")
     
     # Output settings
     parser.add_argument("--output-dir", "-o", type=str, default="output/solver",
@@ -842,6 +872,13 @@ def main():
     print(f"\nGrid loaded: {X.shape[0]} x {X.shape[1]} nodes")
     print(f"            {X.shape[0]-1} x {X.shape[1]-1} cells")
     
+    # Determine if viscous
+    use_viscous = args.viscous or (not args.inviscid and args.reynolds < 1e8)
+    if use_viscous:
+        print(f"Running VISCOUS simulation (Re = {args.reynolds:.2e})")
+    else:
+        print(f"Running INVISCID simulation")
+    
     # Configure solver
     config = SolverConfig(
         mach=args.mach,
@@ -861,6 +898,7 @@ def main():
         jst_k2=0.5,
         jst_k4=0.04,  # Increased from 0.016 to reduce oscillations
     )
+    config.use_viscous = use_viscous  # Add this attribute
     
     # Create solver
     solver = DiagnosticRANSSolver(X, Y, config)
