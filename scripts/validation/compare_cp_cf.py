@@ -23,9 +23,53 @@ from src.grid.loader import load_or_generate_grid
 from src.solvers.rans_solver import RANSSolver, SolverConfig
 
 
-def run_mfoil_laminar(reynolds: float, alpha: float = 0.0):
-    """Run mfoil and extract Cp distribution."""
-    M = mfoil(naca='0012', npanel=199)
+def load_airfoil_coords(airfoil_file: str):
+    """
+    Load airfoil coordinates from a .dat file.
+    
+    Returns coordinates in mfoil format: (2, N) array with x in row 0, y in row 1.
+    """
+    coords = []
+    with open(airfoil_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split()
+            if len(parts) >= 2:
+                try:
+                    x, y = float(parts[0]), float(parts[1])
+                    coords.append([x, y])
+                except ValueError:
+                    # Skip header lines
+                    continue
+    
+    coords = np.array(coords).T  # Shape (2, N)
+    return coords
+
+
+def run_mfoil_laminar(reynolds: float, alpha: float = 0.0, 
+                      airfoil_file: str = None, naca: str = '0012'):
+    """
+    Run mfoil and extract Cp/Cf distributions and force coefficients.
+    
+    Parameters
+    ----------
+    reynolds : float
+        Reynolds number.
+    alpha : float
+        Angle of attack in degrees.
+    airfoil_file : str, optional
+        Path to airfoil .dat file. If provided, uses this instead of NACA.
+    naca : str
+        NACA 4-digit code (default: '0012'). Used if airfoil_file is None.
+    """
+    if airfoil_file is not None:
+        coords = load_airfoil_coords(airfoil_file)
+        M = mfoil(coords=coords, npanel=199)
+    else:
+        M = mfoil(naca=naca, npanel=199)
+    
     M.param.ncrit = 1000.0  # Force laminar
     M.param.doplot = False
     M.param.verb = 0
@@ -177,6 +221,12 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="Compare RANS Cp/Cf against mfoil")
+    parser.add_argument("airfoil", nargs="?", default=None,
+                        help="Path to airfoil .dat file (default: data/naca0012.dat)")
+    parser.add_argument("--naca", type=str, default="0012",
+                        help="NACA 4-digit code if no airfoil file (default: 0012)")
+    parser.add_argument("--alpha", "-a", type=float, default=0.0,
+                        help="Angle of attack in degrees (default: 0.0)")
     parser.add_argument("--reynolds", "-Re", type=float, default=10000,
                         help="Reynolds number (default: 10000)")
     parser.add_argument("--max-iter", "-n", type=int, default=4000,
@@ -189,36 +239,51 @@ def main():
                         help="Normal points (default: 40)")
     parser.add_argument("--k4", type=float, default=0.016,
                         help="JST 4th-order dissipation coefficient (default: 0.016)")
-    parser.add_argument("--output", "-o", type=str, default="output/cp_cf_comparison.pdf",
-                        help="Output PDF path")
+    parser.add_argument("--output", "-o", type=str, default=None,
+                        help="Output PDF path (default: auto-generated)")
     parser.add_argument("--viscous", action="store_true",
                         help="Run with viscous fluxes (Navier-Stokes)")
     parser.add_argument("--inviscid", action="store_true",
                         help="Run without viscous fluxes (Euler)")
     args = parser.parse_args()
     
+    # Determine airfoil file
+    if args.airfoil is not None:
+        airfoil_file = Path(args.airfoil)
+        airfoil_name = airfoil_file.stem
+    else:
+        airfoil_file = project_root / "data" / f"naca{args.naca}.dat"
+        airfoil_name = f"naca{args.naca}"
+    
+    # Generate output path if not specified
+    if args.output is None:
+        args.output = f"output/{airfoil_name}_a{args.alpha:.1f}_Re{args.reynolds:.0f}.pdf"
+    
     # Determine viscous mode
     use_viscous = args.viscous or (not args.inviscid and args.reynolds < 1e6)
     
-    print("="*60)
+    print("="*70)
     print("  RANS vs mfoil Cp/Cf Comparison")
-    print("="*60)
+    print("="*70)
+    print(f"Airfoil:  {airfoil_name}")
+    print(f"Alpha:    {args.alpha}°")
     print(f"Reynolds: {args.reynolds}")
-    print(f"Mode: {'VISCOUS' if use_viscous else 'INVISCID'}")
-    print(f"Iterations: {args.max_iter}")
-    print(f"JST k4 (4th-order dissipation): {args.k4}")
-    print(f"Grid: {args.n_surface} x {args.n_normal}")
+    print(f"Mode:     {'VISCOUS' if use_viscous else 'INVISCID'}")
+    print(f"Grid:     {args.n_surface} x {args.n_normal}")
     print()
     
     # Run mfoil first
     print("Running mfoil...")
-    mfoil_result = run_mfoil_laminar(args.reynolds)
-    print(f"  mfoil: CL={mfoil_result['cl']:.6f}, CD={mfoil_result['cd']:.6f}")
-    print(f"         Cdf={mfoil_result['cdf']:.6f}, Cdp={mfoil_result['cdp']:.6f}")
+    # Use airfoil file for mfoil if provided, otherwise use NACA code
+    if args.airfoil is not None:
+        mfoil_result = run_mfoil_laminar(args.reynolds, args.alpha, 
+                                          airfoil_file=str(airfoil_file))
+    else:
+        mfoil_result = run_mfoil_laminar(args.reynolds, args.alpha, 
+                                          naca=args.naca)
     
     # Generate grid
     print("\nGenerating grid...")
-    airfoil_file = project_root / "data" / "naca0012.dat"
     X, Y = load_or_generate_grid(
         str(airfoil_file),
         n_surface=args.n_surface,
@@ -233,7 +298,7 @@ def main():
     # Configure solver
     config = SolverConfig(
         mach=0.1,
-        alpha=0.0,
+        alpha=args.alpha,
         reynolds=args.reynolds,
         beta=10.0,
         cfl_start=args.cfl,
@@ -284,6 +349,47 @@ def main():
     # Run
     solver.run_steady_state()
     
+    # Compute forces
+    rans_forces = solver.compute_forces()
+    
+    # Print force comparison
+    print("\n" + "="*70)
+    print("  FORCE COEFFICIENT COMPARISON")
+    print("="*70)
+    print(f"{'Coefficient':<15} {'mfoil':>12} {'RANS':>12} {'Difference':>12} {'Error %':>10}")
+    print("-"*70)
+    
+    # CL
+    cl_mfoil = mfoil_result['cl']
+    cl_rans = rans_forces.CL
+    cl_diff = cl_rans - cl_mfoil
+    cl_err = abs(cl_diff / (cl_mfoil + 1e-10)) * 100 if abs(cl_mfoil) > 1e-6 else 0
+    print(f"{'CL':<15} {cl_mfoil:>12.6f} {cl_rans:>12.6f} {cl_diff:>+12.6f} {cl_err:>10.2f}")
+    
+    # CD total
+    cd_mfoil = mfoil_result['cd']
+    cd_rans = rans_forces.CD
+    cd_diff = cd_rans - cd_mfoil
+    cd_err = abs(cd_diff / (cd_mfoil + 1e-10)) * 100 if abs(cd_mfoil) > 1e-6 else 0
+    print(f"{'CD':<15} {cd_mfoil:>12.6f} {cd_rans:>12.6f} {cd_diff:>+12.6f} {cd_err:>10.2f}")
+    
+    # CD pressure
+    cdp_mfoil = mfoil_result['cdp']
+    cdp_rans = rans_forces.CD_p
+    cdp_diff = cdp_rans - cdp_mfoil
+    cdp_err = abs(cdp_diff / (cdp_mfoil + 1e-10)) * 100 if abs(cdp_mfoil) > 1e-6 else 0
+    print(f"{'CD_pressure':<15} {cdp_mfoil:>12.6f} {cdp_rans:>12.6f} {cdp_diff:>+12.6f} {cdp_err:>10.2f}")
+    
+    # CD friction
+    cdf_mfoil = mfoil_result['cdf']
+    cdf_rans = rans_forces.CD_f
+    cdf_diff = cdf_rans - cdf_mfoil
+    cdf_err = abs(cdf_diff / (cdf_mfoil + 1e-10)) * 100 if abs(cdf_mfoil) > 1e-6 else 0
+    print(f"{'CD_friction':<15} {cdf_mfoil:>12.6f} {cdf_rans:>12.6f} {cdf_diff:>+12.6f} {cdf_err:>10.2f}")
+    
+    print("-"*70)
+    print()
+    
     # Get surface data
     surface = solver.get_surface_distributions()
     x_rans = surface.x
@@ -322,8 +428,12 @@ def main():
     cf_mfoil_lower = mfoil_result['cf_lower']
     
     # Create comparison plots
-    print("\nCreating comparison plots...")
+    print("Creating comparison plots...")
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+    
+    # Figure title with all key info
+    fig.suptitle(f'{airfoil_name.upper()}, α={args.alpha}°, Re={args.reynolds:.0f}', 
+                 fontsize=14, fontweight='bold')
     
     # --- Plot 1: Cp distribution ---
     ax = axes[0, 0]
@@ -333,7 +443,7 @@ def main():
     ax.plot(x_mfoil_lower, -cp_mfoil_lower, 'r--', lw=1.5, alpha=0.7, label='mfoil lower')
     ax.set_xlabel('x/c')
     ax.set_ylabel('-Cp')
-    ax.set_title(f'Pressure Coefficient (Re={args.reynolds:.0f})')
+    ax.set_title('Pressure Coefficient')
     ax.legend(loc='upper right')
     ax.grid(True, alpha=0.3)
     ax.set_xlim(-0.05, 1.05)
@@ -346,7 +456,7 @@ def main():
     ax.plot(x_mfoil_lower, cf_mfoil_lower, 'r--', lw=1.5, alpha=0.7, label='mfoil lower')
     ax.set_xlabel('x/c')
     ax.set_ylabel('Cf')
-    ax.set_title(f'Skin Friction Coefficient (Re={args.reynolds:.0f})')
+    ax.set_title('Skin Friction Coefficient')
     ax.legend(loc='upper right')
     ax.grid(True, alpha=0.3)
     ax.set_xlim(-0.05, 1.05)
@@ -375,16 +485,18 @@ def main():
     ax.grid(True, alpha=0.3)
     ax.set_xlim(-0.05, 1.05)
     
-    # Add text with statistics (airfoil only)
+    # Add text with force coefficients comparison
     stats_text = (
-        f"mfoil: CD={mfoil_result['cd']:.5f}, Cdf={mfoil_result['cdf']:.5f}\n"
-        f"RANS Cp range: [{cp_airfoil.min():.3f}, {cp_airfoil.max():.3f}]\n"
-        f"RANS Cf range: [{cf_airfoil.min():.5f}, {cf_airfoil.max():.5f}]"
+        f"       mfoil     RANS\n"
+        f"CL: {cl_mfoil:8.5f} {cl_rans:8.5f}\n"
+        f"CD: {cd_mfoil:8.5f} {cd_rans:8.5f}\n"
+        f"CDp:{cdp_mfoil:8.5f} {cdp_rans:8.5f}\n"
+        f"CDf:{cdf_mfoil:8.5f} {cdf_rans:8.5f}"
     )
     fig.text(0.02, 0.02, stats_text, fontsize=9, family='monospace',
              bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
     
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     
     # Save Cp/Cf comparison
     output_path = Path(args.output)
@@ -446,8 +558,9 @@ def main():
         ax.axvline(x=0, color='k', linestyle='-', alpha=0.3)
         ax.axvline(x=1, color='k', linestyle='--', alpha=0.3)
     
-    fig_bl.suptitle(f'Boundary Layer Profiles (Re={args.reynolds:.0f})', fontsize=14)
-    plt.tight_layout()
+    fig_bl.suptitle(f'Boundary Layer Profiles: {airfoil_name.upper()}, α={args.alpha}°, Re={args.reynolds:.0f}', 
+                     fontsize=14, fontweight='bold')
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
     
     # Save BL profiles
     bl_output_path = output_path.parent / (output_path.stem + '_bl_profiles.pdf')

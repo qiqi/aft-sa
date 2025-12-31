@@ -1262,11 +1262,11 @@ def set_coords(M, X):
 
     # ensure CCW
     A = 0.;
-    for i in range(X.shape(1)-1): A += (X[0,i+1]-X[0,i])*(X[1,i+1]+X[1,i])
+    for i in range(X.shape[1]-1): A += (X[0,i+1]-X[0,i])*(X[1,i+1]+X[1,i])
     if (A<0): X = np.fliplr(X)
   
     # store points in M
-    M.geom.npoint = X.shape(1)
+    M.geom.npoint = X.shape[1]
     M.geom.xpoint = X;
     M.geom.chord = max(X[0,:]) - min(X[0,:])
 
