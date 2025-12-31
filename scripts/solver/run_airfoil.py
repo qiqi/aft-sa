@@ -845,6 +845,8 @@ def main():
                         help="Wake points for grid generation (default: 50)")
     parser.add_argument("--coarse", action="store_true",
                         help="Use coarse grid (80x30) for debugging")
+    parser.add_argument("--super-coarse", action="store_true",
+                        help="Use super-coarse grid (40x15) with relaxed y+ for fast convergence tests")
     parser.add_argument("--inviscid", action="store_true",
                         help="Run inviscid (no viscous fluxes)")
     parser.add_argument("--viscous", action="store_true",
@@ -870,12 +872,20 @@ def main():
     
     args = parser.parse_args()
     
-    # Override grid settings for coarse mode
+    # Override grid settings for coarse/super-coarse modes
     # Note: 80x30 works well for viscous; 100x40 has stability issues with viscous
-    if args.coarse:
+    if args.super_coarse:
+        args.n_surface = 60
+        args.n_normal = 20
+        args.n_wake = 15
+        # Store y_plus override for grid generation
+        args.y_plus = 5.0  # Relaxed y+ for bigger cells
+        print("Using SUPER-COARSE grid mode (60x20, y+=5) for fast convergence tests")
+    elif args.coarse:
         args.n_surface = 80
         args.n_normal = 30
         args.n_wake = 20
+        args.y_plus = 1.0
         print("Using COARSE grid mode for debugging (80x30)")
     
     # Print banner
@@ -915,15 +925,21 @@ def main():
             sys.exit(1)
         
         wrapper = Construct2DWrapper(str(binary_path))
+        
+        # Use y_plus from args if set (e.g., super-coarse mode), else default 1.0
+        y_plus = getattr(args, 'y_plus', 1.0)
+        # For super-coarse, also increase max_first_cell to allow bigger cells
+        max_first_cell = 0.005 if args.super_coarse else 0.001
+        
         grid_opts = GridOptions(
             n_surface=args.n_surface,
             n_normal=args.n_normal,
             n_wake=args.n_wake,
-            y_plus=1.0,
+            y_plus=y_plus,
             reynolds=args.reynolds,
             topology='CGRD',
             farfield_radius=15.0,
-            max_first_cell=0.001,  # Cap first cell to prevent huge grids at low Re
+            max_first_cell=max_first_cell,
         )
         X, Y = wrapper.generate(str(grid_path), grid_opts, verbose=True)
     else:
