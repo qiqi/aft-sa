@@ -379,7 +379,7 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="Compare RANS Cp/Cf against mfoil")
-    parser.add_argument("--reynolds", "-Re", type=float, default=100000,
+    parser.add_argument("--reynolds", "-Re", type=float, default=10000,
                         help="Reynolds number (default: 10000)")
     parser.add_argument("--max-iter", "-n", type=int, default=4000,
                         help="Maximum iterations (default: 4000)")
@@ -463,21 +463,29 @@ def main():
     cp_rans = rans_result['Cp']
     cf_rans = rans_result['Cf']
     
-    # Split upper/lower surface (by y coordinate)
+    # Filter to airfoil only (exclude wake: x must be in [0, 1])
     y_rans = rans_result['y']
-    upper = y_rans >= 0
-    lower = y_rans < 0
+    airfoil_mask = (x_rans >= 0) & (x_rans <= 1.0)
+    
+    x_airfoil = x_rans[airfoil_mask]
+    y_airfoil = y_rans[airfoil_mask]
+    cp_airfoil = cp_rans[airfoil_mask]
+    cf_airfoil = cf_rans[airfoil_mask]
+    
+    # Split upper/lower surface (by y coordinate)
+    upper = y_airfoil >= 0
+    lower = y_airfoil < 0
     
     # Sort each surface by x
-    idx_upper = np.argsort(x_rans[upper])
-    idx_lower = np.argsort(x_rans[lower])
+    idx_upper = np.argsort(x_airfoil[upper])
+    idx_lower = np.argsort(x_airfoil[lower])
     
-    x_upper = x_rans[upper][idx_upper]
-    x_lower = x_rans[lower][idx_lower]
-    cp_upper = cp_rans[upper][idx_upper]
-    cp_lower = cp_rans[lower][idx_lower]
-    cf_upper = cf_rans[upper][idx_upper]
-    cf_lower = cf_rans[lower][idx_lower]
+    x_upper = x_airfoil[upper][idx_upper]
+    x_lower = x_airfoil[lower][idx_lower]
+    cp_upper = cp_airfoil[upper][idx_upper]
+    cp_lower = cp_airfoil[lower][idx_lower]
+    cf_upper = cf_airfoil[upper][idx_upper]
+    cf_lower = cf_airfoil[lower][idx_lower]
     
     # mfoil data (already split into upper/lower)
     x_mfoil_upper = mfoil_result['x_upper']
@@ -513,35 +521,35 @@ def main():
     ax.grid(True, alpha=0.3)
     ax.set_xlim(-0.05, 1.05)
     
-    # --- Plot 3: Full Cp vs x ---
+    # --- Plot 3: Full Cp vs x (airfoil only) ---
     ax = axes[1, 0]
-    ax.plot(x_rans, -cp_rans, 'b.', markersize=3, label='RANS')
+    ax.plot(x_airfoil, -cp_airfoil, 'b.', markersize=3, label='RANS')
     ax.plot(x_mfoil_upper, -cp_mfoil_upper, 'r-', lw=1.5, alpha=0.7, label='mfoil')
     ax.plot(x_mfoil_lower, -cp_mfoil_lower, 'r-', lw=1.5, alpha=0.7)
     ax.set_xlabel('x/c')
     ax.set_ylabel('-Cp')
-    ax.set_title('Cp Distribution (all points)')
+    ax.set_title('Cp Distribution (airfoil)')
     ax.legend()
     ax.grid(True, alpha=0.3)
     ax.set_xlim(-0.05, 1.05)
     
-    # --- Plot 4: Cf statistics ---
+    # --- Plot 4: Cf distribution (airfoil only) ---
     ax = axes[1, 1]
-    ax.plot(x_rans, cf_rans, 'b.', markersize=3, label='RANS')
+    ax.plot(x_airfoil, cf_airfoil, 'b.', markersize=3, label='RANS')
     ax.plot(x_mfoil_upper, cf_mfoil_upper, 'r-', lw=1.5, alpha=0.7, label='mfoil')
     ax.plot(x_mfoil_lower, cf_mfoil_lower, 'r-', lw=1.5, alpha=0.7)
     ax.set_xlabel('x/c')
     ax.set_ylabel('Cf')
-    ax.set_title('Cf Distribution (all points)')
+    ax.set_title('Cf Distribution (airfoil)')
     ax.legend()
     ax.grid(True, alpha=0.3)
     ax.set_xlim(-0.05, 1.05)
     
-    # Add text with statistics
+    # Add text with statistics (airfoil only)
     stats_text = (
         f"mfoil: CD={mfoil_result['cd']:.5f}, Cdf={mfoil_result['cdf']:.5f}\n"
-        f"RANS Cp range: [{cp_rans.min():.3f}, {cp_rans.max():.3f}]\n"
-        f"RANS Cf range: [{cf_rans.min():.5f}, {cf_rans.max():.5f}]"
+        f"RANS Cp range: [{cp_airfoil.min():.3f}, {cp_airfoil.max():.3f}]\n"
+        f"RANS Cf range: [{cf_airfoil.min():.5f}, {cf_airfoil.max():.5f}]"
     )
     fig.text(0.02, 0.02, stats_text, fontsize=9, family='monospace',
              bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
