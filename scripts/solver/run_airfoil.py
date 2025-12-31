@@ -188,7 +188,6 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     ax = axes[0, 0]
     p_clip = np.clip(p, np.percentile(p, 1), np.percentile(p, 99))
     pc = ax.pcolormesh(X.T, Y.T, p_clip.T, cmap='RdBu_r', shading='flat', rasterized=True)
-    ax.plot(X[:, 0], Y[:, 0], 'k-', lw=1.5)
     ax.set_aspect('equal')
     ax.set_title(f'Pressure (Global) - Iter {iteration}')
     ax.set_xlabel('x/c')
@@ -197,7 +196,6 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     
     ax = axes[0, 1]
     pc = ax.pcolormesh(X.T, Y.T, p_clip.T, cmap='RdBu_r', shading='flat', rasterized=True)
-    ax.plot(X[:, 0], Y[:, 0], 'k-', lw=2)
     ax.set_aspect('equal')
     ax.set_xlim(-0.2, 1.4)
     ax.set_ylim(-0.4, 0.4)
@@ -210,7 +208,6 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     ax = axes[1, 0]
     vel_clip = np.clip(vel_mag, 0, np.percentile(vel_mag, 99))
     pc = ax.pcolormesh(X.T, Y.T, vel_clip.T, cmap='viridis', shading='flat', rasterized=True)
-    ax.plot(X[:, 0], Y[:, 0], 'k-', lw=1.5)
     ax.set_aspect('equal')
     ax.set_title(f'Velocity Magnitude (Global) - CFL={cfl:.2f}')
     ax.set_xlabel('x/c')
@@ -219,7 +216,6 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     
     ax = axes[1, 1]
     pc = ax.pcolormesh(X.T, Y.T, vel_clip.T, cmap='viridis', shading='flat', rasterized=True)
-    ax.plot(X[:, 0], Y[:, 0], 'k-', lw=2)
     ax.set_aspect('equal')
     ax.set_xlim(-0.2, 1.4)
     ax.set_ylim(-0.4, 0.4)
@@ -241,7 +237,6 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
         ax = axes[row_idx, 0]
         pc = ax.pcolormesh(X.T, Y.T, C_pt.T, cmap='RdBu_r', shading='flat', 
                            rasterized=True, vmin=-C_pt_abs_max, vmax=C_pt_abs_max)
-        ax.plot(X[:, 0], Y[:, 0], 'k-', lw=1.5)
         ax.set_aspect('equal')
         ax.set_title(f'Total Pressure Loss C_pt (Global) - Entropy Check')
         ax.set_xlabel('x/c')
@@ -251,7 +246,6 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
         ax = axes[row_idx, 1]
         pc = ax.pcolormesh(X.T, Y.T, C_pt.T, cmap='RdBu_r', shading='flat', 
                            rasterized=True, vmin=-C_pt_abs_max, vmax=C_pt_abs_max)
-        ax.plot(X[:, 0], Y[:, 0], 'k-', lw=2)
         ax.set_aspect('equal')
         ax.set_xlim(-0.2, 1.4)
         ax.set_ylim(-0.4, 0.4)
@@ -281,7 +275,6 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
         ax = axes[row_idx, 0]
         pc = ax.pcolormesh(X.T, Y.T, R_log.T, cmap='hot_r', shading='flat', 
                            rasterized=True, vmin=R_min, vmax=R_max)
-        ax.plot(X[:, 0], Y[:, 0], 'k-', lw=1.5)
         ax.set_aspect('equal')
         ax.set_title(f'log₁₀|Residual| (Global) - Iter {iteration}')
         ax.set_xlabel('x/c')
@@ -291,7 +284,6 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
         ax = axes[row_idx, 1]
         pc = ax.pcolormesh(X.T, Y.T, R_log.T, cmap='hot_r', shading='flat', 
                            rasterized=True, vmin=R_min, vmax=R_max)
-        ax.plot(X[:, 0], Y[:, 0], 'k-', lw=2)
         ax.set_aspect('equal')
         ax.set_xlim(-0.2, 1.4)
         ax.set_ylim(-0.4, 0.4)
@@ -384,6 +376,10 @@ class DiagnosticRANSSolver:
         self.residual_history = []
         self.converged = False
         
+        # Divergence history buffer (rolling buffer for last N solutions)
+        self.divergence_history_size = getattr(config, 'divergence_history_size', 5)
+        self.solution_history = []  # List of (iteration, Q.copy()) tuples
+        
         # Compute metrics
         self._compute_metrics()
         
@@ -431,7 +427,8 @@ class DiagnosticRANSSolver:
         self.Q = apply_initial_wall_damping(
             self.Q, 
             self.metrics,
-            decay_length=self.config.wall_damping_length
+            decay_length=self.config.wall_damping_length,
+            n_wake=getattr(self.config, 'n_wake', 0)
         )
         
         # Compute far-field outward unit normals for Riemann BC
@@ -444,7 +441,8 @@ class DiagnosticRANSSolver:
         self.bc = BoundaryConditions(
             freestream=self.freestream,
             farfield_normals=(nx_ff, ny_ff),
-            beta=self.config.beta
+            beta=self.config.beta,
+            n_wake_points=getattr(self.config, 'n_wake', 0)
         )
         self.Q = self.bc.apply(self.Q)
         
@@ -490,7 +488,10 @@ class DiagnosticRANSSolver:
     
     def _compute_residual(self, Q: np.ndarray) -> np.ndarray:
         """Compute flux residual (convective + optional viscous)."""
-        flux_cfg = FluxConfig(k2=self.config.jst_k2, k4=self.config.jst_k4)
+        first_order = getattr(self.config, 'first_order', False)
+        nu_min = getattr(self.config, 'nu_min', 0.0)
+        flux_cfg = FluxConfig(k2=self.config.jst_k2, k4=self.config.jst_k4, 
+                              nu_min=nu_min, first_order=first_order)
         
         flux_metrics = FluxGridMetrics(
             Si_x=self.metrics.Si_x,
@@ -522,6 +523,7 @@ class DiagnosticRANSSolver:
             residual = add_viscous_fluxes(
                 conv_residual, Q, gradients, grad_metrics, mu_laminar
             )
+            
             return residual
         
         return conv_residual
@@ -558,7 +560,13 @@ class DiagnosticRANSSolver:
         """Perform one iteration."""
         cfl = self._get_cfl(self.iteration)
         
-        ts_config = TimeStepConfig(cfl=cfl)
+        # Use local time stepping (let each cell march at its own pace)
+        ts_config = TimeStepConfig(cfl=cfl, use_global_dt=False)
+        
+        # Compute kinematic viscosity for viscous stability limit
+        nu = 0.0
+        if getattr(self.config, 'use_viscous', False) and self.config.reynolds > 0:
+            nu = 1.0 / self.config.reynolds
         
         dt = compute_local_timestep(
             self.Q,
@@ -566,7 +574,8 @@ class DiagnosticRANSSolver:
             self.metrics.Sj_x, self.metrics.Sj_y,
             self.metrics.volume,
             self.config.beta,
-            ts_config
+            ts_config,
+            nu=nu
         )
         
         # RK4 integration
@@ -620,9 +629,9 @@ class DiagnosticRANSSolver:
         print(f"\n{'='*100}")
         print("Starting Steady-State Iteration (Diagnostic Mode)")
         print(f"Dumping flow field every {dump_freq} iterations")
-        print(f"{'='*100}")
-        print(f"{'Iter':>8} {'RMS':>12} {'Max':>12} {'MaxLoc':>18} {'CFL':>8} {'|V|_max':>10} {'p_range':>18}")
-        print(f"{'-'*100}")
+        print(f"{'='*108}")
+        print(f"{'Iter':>8} {'RMS':>12} {'Max':>12} {'MaxLoc':>26} {'CFL':>8} {'|V|_max':>10} {'p_range':>18}")
+        print(f"{'-'*108}")
         
         initial_residual = None
         
@@ -641,6 +650,12 @@ class DiagnosticRANSSolver:
             self.residual_history.append(res_rms)
             self._last_residual_field = R_field  # Store for visualization
             
+            # Update divergence history buffer (rolling) - only if enabled
+            if self.divergence_history_size > 0:
+                self.solution_history.append((self.iteration, self.Q.copy(), R_field.copy()))
+                if len(self.solution_history) > self.divergence_history_size:
+                    self.solution_history.pop(0)
+            
             if initial_residual is None:
                 initial_residual = res_rms
             
@@ -650,8 +665,8 @@ class DiagnosticRANSSolver:
             # Print progress every 10 iterations
             if self.iteration % 10 == 0 or self.iteration == 1:
                 p_range = f"[{bounds['p_min']:.2f}, {bounds['p_max']:.2f}]"
-                max_loc = f"({max_info['i']:3d},{max_info['j']:3d}) x={max_info['x']:.2f}"
-                print(f"{self.iteration:>8d} {res_rms:>12.4e} {max_info['value']:>12.4e} {max_loc:>18} "
+                max_loc = f"({max_info['i']:3d},{max_info['j']:3d}) x={max_info['x']:5.2f} y={max_info['y']:5.2f}"
+                print(f"{self.iteration:>8d} {res_rms:>12.4e} {max_info['value']:>12.4e} {max_loc:>26} "
                       f"{cfl:>8.2f} {bounds['vel_max']:>10.4f} {p_range:>18}")
             
             # Dump flow field
@@ -749,6 +764,44 @@ class DiagnosticRANSSolver:
         print(f"  V-velocity range: [{bounds['v_min']:.4f}, {bounds['v_max']:.4f}]")
         print(f"  Max velocity: {bounds['vel_max']:.4f} at cell {bounds['vel_max_loc']}")
         print(f"  Nu_t range: [{bounds['nu_min']:.6e}, {bounds['nu_max']:.6e}]")
+        
+        # Dump divergence history
+        self._visualize_divergence_history()
+    
+    def _visualize_divergence_history(self):
+        """Visualize the last N flow solutions before divergence."""
+        if self.divergence_history_size <= 0:
+            return  # Divergence visualization disabled
+        if not self.solution_history:
+            print("  No solution history available.")
+            return
+        
+        # Create divergence subdirectory
+        divergence_dir = self.snapshot_dir / "divergence"
+        divergence_dir.mkdir(exist_ok=True)
+        
+        print(f"\n  Dumping last {len(self.solution_history)} solutions before divergence:")
+        
+        for idx, (iteration, Q, R_field) in enumerate(self.solution_history):
+            # Dump PDF
+            pdf_path = plot_flow_field(
+                self.X, self.Y, Q,
+                iteration=iteration,
+                residual=np.sqrt(np.mean(R_field**2)),
+                cfl=self._get_cfl(iteration),
+                output_dir=str(divergence_dir),
+                case_name=f"{self.config.case_name}_div",
+                freestream=self.freestream,
+                residual_field=R_field
+            )
+            
+            # Dump VTK
+            vtk_path = divergence_dir / f"{self.config.case_name}_div_{iteration:06d}.vtk"
+            from src.io import write_vtk
+            write_vtk(str(vtk_path), self.X, self.Y, Q, self.config.beta)
+            
+            steps_before = len(self.solution_history) - idx - 1
+            print(f"    Step {iteration} ({steps_before} before divergence): {pdf_path}")
 
 
 def main():
@@ -796,6 +849,10 @@ def main():
                         help="Run inviscid (no viscous fluxes)")
     parser.add_argument("--viscous", action="store_true",
                         help="Run with viscous fluxes (default if Re specified)")
+    parser.add_argument("--first-order", action="store_true",
+                        help="Use 1st-order dissipation (more stable, less accurate)")
+    parser.add_argument("--nu-min", type=float, default=0.0,
+                        help="Minimum sensor value for baseline dissipation (default: 0.0)")
     
     # Output settings
     parser.add_argument("--output-dir", "-o", type=str, default="output/solver",
@@ -808,6 +865,8 @@ def main():
                         help="Console print frequency (default: 10)")
     parser.add_argument("--output-freq", type=int, default=100,
                         help="VTK output frequency (default: 100)")
+    parser.add_argument("--div-history", type=int, default=0,
+                        help="Number of solutions to keep for divergence visualization (0=disabled, default: 0)")
     
     args = parser.parse_args()
     
@@ -864,6 +923,7 @@ def main():
             reynolds=args.reynolds,
             topology='CGRD',
             farfield_radius=15.0,
+            max_first_cell=0.001,  # Cap first cell to prevent huge grids at low Re
         )
         X, Y = wrapper.generate(str(grid_path), grid_opts, verbose=True)
     else:
@@ -900,6 +960,15 @@ def main():
         jst_k4=0.04,  # Increased from 0.016 to reduce oscillations
     )
     config.use_viscous = use_viscous  # Add this attribute
+    config.first_order = args.first_order  # 1st-order dissipation mode
+    config.nu_min = args.nu_min  # Baseline dissipation
+    config.divergence_history_size = args.div_history  # Divergence visualization buffer
+    config.n_wake = args.n_wake  # Wake points for BC region detection
+    
+    if args.first_order:
+        print("Using FIRST-ORDER dissipation (more stable)")
+    elif args.nu_min > 0:
+        print(f"Using baseline dissipation nu_min = {args.nu_min}")
     
     # Create solver
     solver = DiagnosticRANSSolver(X, Y, config)

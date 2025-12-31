@@ -33,7 +33,7 @@ class TimeStepConfig:
     """Configuration for time stepping."""
     
     cfl: float = 0.8           # CFL number (typically 0.5-1.0 for explicit)
-    min_dt: float = 1e-12      # Minimum allowed timestep (avoid division issues)
+    min_dt: float = 0.0        # Minimum allowed timestep (0 = no limit)
     max_dt: float = 1e10       # Maximum allowed timestep
     use_global_dt: bool = False  # If True, use minimum dt across all cells
 

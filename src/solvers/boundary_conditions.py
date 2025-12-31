@@ -153,10 +153,21 @@ class BoundaryConditions:
         """
         Apply airfoil surface boundary conditions (j=0 ghost cells).
         
-        No-slip wall:
+        For a C-grid, j=0 has two regions:
+        1. Airfoil surface: No-slip wall BC
+        2. Wake cut: Symmetry/continuity BC (not a physical wall)
+        
+        The wake region is identified by self.i_wake_start and i_wake_end,
+        which are computed from the grid in __init__.
+        
+        No-slip wall (airfoil):
             - Velocity: u_ghost = -u_interior (so average at face = 0)
             - Pressure: p_ghost = p_interior (zero normal gradient)
             - Turbulence: ν̃_ghost = -ν̃_interior (so ν̃_face = 0)
+        
+        Wake cut (periodic/continuous):
+            - All variables: ghost = interior (zero normal gradient)
+            - This allows flow to pass through the wake cut freely
         
         Parameters
         ----------
@@ -172,18 +183,51 @@ class BoundaryConditions:
         # Q[:, 0, :] is the ghost layer (surface)
         # Q[:, 1, :] is the first interior layer
         
-        # Pressure: zero normal gradient (Neumann)
-        # p_ghost = p_interior
-        Q[:, 0, 0] = Q[:, 1, 0]
+        NI = Q.shape[0] - 2  # Number of interior cells in i
         
-        # Velocity: no-slip (u_face = 0)
-        # u_ghost = -u_interior => (u_ghost + u_interior)/2 = 0
-        Q[:, 0, 1] = -Q[:, 1, 1]  # u
-        Q[:, 0, 2] = -Q[:, 1, 2]  # v
+        # Determine airfoil vs wake regions using n_wake_points
+        # For a C-grid with n_wake points: 
+        #   - Lower wake: i = 1 to n_wake (in interior indexing)
+        #   - Upper wake: i = NI-n_wake+1 to NI
+        n_wake = self.n_wake_points if self.n_wake_points > 0 else NI // 6
+        i_wake_end_lower = n_wake  # Last lower wake cell (interior index)
+        i_wake_start_upper = NI - n_wake  # First upper wake cell (interior index)
+        
+        # Create mask for airfoil cells (interior indices 1 to NI in Q indexing)
+        # Q indices: 0=ghost, 1=first interior, ..., NI=last interior, NI+1=ghost
+        # So airfoil is Q[i_wake_end_lower+1 : i_wake_start_upper+1, 0, :]
+        
+        # ===== AIRFOIL SURFACE (no-slip) =====
+        i_start = i_wake_end_lower + 1  # Q index for first airfoil cell
+        i_end = i_wake_start_upper + 1   # Q index for last airfoil cell (inclusive)
+        
+        # Pressure: zero normal gradient
+        Q[i_start:i_end+1, 0, 0] = Q[i_start:i_end+1, 1, 0]
+        
+        # Velocity: no-slip
+        Q[i_start:i_end+1, 0, 1] = -Q[i_start:i_end+1, 1, 1]  # u
+        Q[i_start:i_end+1, 0, 2] = -Q[i_start:i_end+1, 1, 2]  # v
         
         # Turbulence: ν̃ = 0 at wall
-        # ν̃_ghost = -ν̃_interior => ν̃_face = 0
-        Q[:, 0, 3] = -Q[:, 1, 3]
+        Q[i_start:i_end+1, 0, 3] = -Q[i_start:i_end+1, 1, 3]
+        
+        # ===== WAKE CUT (periodic/continuous boundary) =====
+        # The wake cut is NOT a symmetry plane - it's a periodic boundary where
+        # upper and lower wake meet. All variables should be continuous.
+        # The j=0 ghost cells in the wake should extrapolate from the interior
+        # (zero normal gradient) to allow flow through.
+        
+        # Lower wake: indices 1 to i_wake_end_lower (Q indices 1 to i_wake_end_lower+1)
+        Q[1:i_wake_end_lower+1, 0, 0] = Q[1:i_wake_end_lower+1, 1, 0]    # p continuous
+        Q[1:i_wake_end_lower+1, 0, 1] = Q[1:i_wake_end_lower+1, 1, 1]    # u continuous  
+        Q[1:i_wake_end_lower+1, 0, 2] = Q[1:i_wake_end_lower+1, 1, 2]    # v continuous
+        Q[1:i_wake_end_lower+1, 0, 3] = Q[1:i_wake_end_lower+1, 1, 3]    # nu_t continuous
+        
+        # Upper wake: indices i_wake_start_upper to NI (Q indices i_wake_start_upper+1 to NI+1)
+        Q[i_wake_start_upper+1:NI+1, 0, 0] = Q[i_wake_start_upper+1:NI+1, 1, 0]
+        Q[i_wake_start_upper+1:NI+1, 0, 1] = Q[i_wake_start_upper+1:NI+1, 1, 1]
+        Q[i_wake_start_upper+1:NI+1, 0, 2] = Q[i_wake_start_upper+1:NI+1, 1, 2]
+        Q[i_wake_start_upper+1:NI+1, 0, 3] = Q[i_wake_start_upper+1:NI+1, 1, 3]
         
         return Q
     
@@ -380,7 +424,8 @@ def initialize_state(NI: int, NJ: int,
 
 def apply_initial_wall_damping(Q: np.ndarray, 
                                 grid_metrics,
-                                decay_length: float = 0.1) -> np.ndarray:
+                                decay_length: float = 0.1,
+                                n_wake: int = 0) -> np.ndarray:
     """
     Apply initial wall damping to prevent impulsive start shockwaves.
     
@@ -397,6 +442,9 @@ def apply_initial_wall_damping(Q: np.ndarray,
     As d → 0 (near wall): damping → 0 (velocity → 0)
     As d → ∞ (far from wall): damping → 1 (velocity unchanged)
     
+    For C-grids, the wake region (first and last n_wake cells in i-direction)
+    is NOT damped because there is no wall there.
+    
     Parameters
     ----------
     Q : ndarray, shape (NI+2, NJ+2, 4)
@@ -406,6 +454,9 @@ def apply_initial_wall_damping(Q: np.ndarray,
     decay_length : float
         Characteristic decay length scale (default 0.1, in chord units).
         Larger values create a thicker damping region.
+    n_wake : int
+        Number of wake cells at each end of the i-direction. These cells
+        are not damped because they are in the wake, not near the airfoil.
         
     Returns
     -------
@@ -427,10 +478,18 @@ def apply_initial_wall_damping(Q: np.ndarray,
     else:
         raise ValueError("grid_metrics must have a 'wall_distance' attribute")
     
+    NI = Q.shape[0] - 2  # Number of interior cells in i
+    
     # Compute damping factor: 1 - exp(-d/L)
     # Near wall (d=0): factor = 0 (fully damped)
     # Far from wall: factor = 1 (no damping)
     damping_factor = 1.0 - np.exp(-wall_dist / decay_length)
+    
+    # For C-grid: don't damp wake cells (they're not near a wall)
+    # Wake cells are at i = 0 to n_wake-1 and i = NI-n_wake to NI-1
+    if n_wake > 0:
+        damping_factor[:n_wake, :] = 1.0  # Lower wake: no damping
+        damping_factor[-n_wake:, :] = 1.0  # Upper wake: no damping
     
     # Apply damping to velocity components (indices 1 and 2 in state vector)
     # Only modify interior cells (1:-1 in ghost-padded array)

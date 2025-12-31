@@ -36,6 +36,8 @@ class GridOptions:
     y_plus: float = 1.0             # Target y+ at wall
     reynolds: float = 1e6           # Chord Reynolds number for y+ calculation
     chord_fraction: float = 0.5     # Chord fraction for y+ reference length
+    max_first_cell: float = 0.001   # Maximum first cell height (chord fraction)
+                                    # Prevents huge cells at low Re
     
     # Hyperbolic solver options
     alfa: float = 1.0               # Implicitness parameter (>=0.5)
@@ -96,6 +98,16 @@ class Construct2DWrapper:
         # Adjust funi for topology
         funi = opts.funi if opts.topology == 'CGRD' else 0.2
         
+        # Compute effective y+ that respects max_first_cell limit
+        # First cell height ≈ y+ * 5 / sqrt(Re) (flat plate approximation)
+        # To limit: y+_eff = min(y+, max_first_cell * sqrt(Re) / 5)
+        import math
+        y_plus_eff = opts.y_plus
+        if opts.max_first_cell > 0 and opts.reynolds > 0:
+            y_plus_from_max = opts.max_first_cell * math.sqrt(opts.reynolds) / 5.0
+            if y_plus_from_max < opts.y_plus:
+                y_plus_eff = y_plus_from_max
+        
         return f"""&SOPT
   nsrf = {opts.n_surface}
   lesp = {opts.le_spacing:.6e}
@@ -111,7 +123,7 @@ class Construct2DWrapper:
   jmax = {opts.n_normal}
   slvr = '{opts.solver}'
   topo = '{opts.topology}'
-  ypls = {opts.y_plus:.6f}
+  ypls = {y_plus_eff:.6f}
   recd = {opts.reynolds:.6e}
   cfrc = {opts.chord_fraction:.6f}
   stp1 = {opts.max_steps}

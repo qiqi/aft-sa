@@ -275,7 +275,8 @@ class RANSSolver:
         self.Q = apply_initial_wall_damping(
             self.Q, 
             self.metrics,
-            decay_length=self.config.wall_damping_length
+            decay_length=self.config.wall_damping_length,
+            n_wake=getattr(self.config, 'n_wake', 0)
         )
         
         # Compute far-field outward unit normals for Riemann BC
