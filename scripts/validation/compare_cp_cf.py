@@ -116,7 +116,19 @@ def run_rans_solver(X, Y, reynolds, max_iter=2000, cfl=1.0, k4=0.04):
     Q = initialize_state(NI, NJ, freestream)
     Q = apply_initial_wall_damping(Q, metrics, decay_length=0.1)
     
-    bc = BoundaryConditions(freestream=freestream)
+    # Compute far-field outward unit normals for Riemann BC
+    beta = 10.0
+    Sj_x_ff = metrics.Sj_x[:, -1]
+    Sj_y_ff = metrics.Sj_y[:, -1]
+    Sj_mag = np.sqrt(Sj_x_ff**2 + Sj_y_ff**2) + 1e-12
+    nx_ff = Sj_x_ff / Sj_mag
+    ny_ff = Sj_y_ff / Sj_mag
+    
+    bc = BoundaryConditions(
+        freestream=freestream,
+        farfield_normals=(nx_ff, ny_ff),
+        beta=beta
+    )
     Q = bc.apply(Q)
     
     # Flux configuration
@@ -130,7 +142,6 @@ def run_rans_solver(X, Y, reynolds, max_iter=2000, cfl=1.0, k4=0.04):
         volume=metrics.volume
     )
     
-    beta = 10.0
     ts_config = TimeStepConfig(cfl=cfl)
     
     print(f"Running RANS solver: {NI}x{NJ} grid, {max_iter} iterations, CFL={cfl}")

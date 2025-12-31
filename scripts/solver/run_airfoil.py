@@ -432,10 +432,22 @@ class DiagnosticRANSSolver:
             decay_length=self.config.wall_damping_length
         )
         
-        self.bc = BoundaryConditions(freestream=self.freestream)
+        # Compute far-field outward unit normals for Riemann BC
+        Sj_x_ff = self.metrics.Sj_x[:, -1]
+        Sj_y_ff = self.metrics.Sj_y[:, -1]
+        Sj_mag = np.sqrt(Sj_x_ff**2 + Sj_y_ff**2) + 1e-12
+        nx_ff = Sj_x_ff / Sj_mag
+        ny_ff = Sj_y_ff / Sj_mag
+        
+        self.bc = BoundaryConditions(
+            freestream=self.freestream,
+            farfield_normals=(nx_ff, ny_ff),
+            beta=self.config.beta
+        )
         self.Q = self.bc.apply(self.Q)
         
         print(f"  Freestream: u={self.freestream.u_inf:.4f}, v={self.freestream.v_inf:.4f}")
+        print(f"  Far-field BC: Riemann-invariant based")
     
     def _initialize_output(self):
         """Initialize output directories and writers."""

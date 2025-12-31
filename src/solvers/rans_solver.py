@@ -278,12 +278,25 @@ class RANSSolver:
             decay_length=self.config.wall_damping_length
         )
         
-        # Apply boundary conditions
-        self.bc = BoundaryConditions(freestream=self.freestream)
+        # Compute far-field outward unit normals for Riemann BC
+        # Sj at j=NJ-1 points in +j direction (toward far-field)
+        Sj_x_ff = self.metrics.Sj_x[:, -1]  # Shape: (NI,)
+        Sj_y_ff = self.metrics.Sj_y[:, -1]
+        Sj_mag = np.sqrt(Sj_x_ff**2 + Sj_y_ff**2) + 1e-12
+        nx_ff = Sj_x_ff / Sj_mag
+        ny_ff = Sj_y_ff / Sj_mag
+        
+        # Apply boundary conditions with Riemann-based far-field
+        self.bc = BoundaryConditions(
+            freestream=self.freestream,
+            farfield_normals=(nx_ff, ny_ff),
+            beta=self.config.beta
+        )
         self.Q = self.bc.apply(self.Q)
         
         print(f"  Freestream: u={self.freestream.u_inf:.4f}, "
               f"v={self.freestream.v_inf:.4f}")
+        print(f"  Far-field BC: Riemann-invariant based (non-reflecting)")
         print(f"  Wall damping applied (L={self.config.wall_damping_length})")
     
     def _initialize_output(self):
