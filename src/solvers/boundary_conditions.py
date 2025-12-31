@@ -364,10 +364,14 @@ class BoundaryConditions:
         #   - Left ghost (i=0) gets values from right interior (i=NI, which is Q[-2])
         #   - Right ghost (i=NI+1, which is Q[-1]) gets values from left interior (i=1)
         
-        # Copy from opposite end for periodic connection
-        # No velocity negation needed - grid metrics handle the geometry
-        Q[0, :, :] = Q[-2, :, :]   # Left ghost = right interior
-        Q[-1, :, :] = Q[1, :, :]   # Right ghost = left interior
+        # Use extrapolation BC instead of periodic copy at the outlet
+        # This avoids pressure mismatch when upper/lower wake have different p
+        # due to circulation (lifting flow at angle of attack)
+        #
+        # Extrapolation: ghost = 2*first_interior - second_interior
+        # This sets zero normal gradient at the boundary
+        Q[0, :, :] = 2*Q[1, :, :] - Q[2, :, :]    # Left ghost = extrapolate from lower wake
+        Q[-1, :, :] = 2*Q[-2, :, :] - Q[-3, :, :]  # Right ghost = extrapolate from upper wake
         
         return Q
 
