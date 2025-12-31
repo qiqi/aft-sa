@@ -812,11 +812,12 @@ def main():
     args = parser.parse_args()
     
     # Override grid settings for coarse mode
+    # Note: 80x30 works well for viscous; 100x40 has stability issues with viscous
     if args.coarse:
-        args.n_surface = 100
-        args.n_normal = 40
-        args.n_wake = 30
-        print("Using COARSE grid mode for debugging (100x40)")
+        args.n_surface = 80
+        args.n_normal = 30
+        args.n_wake = 20
+        print("Using COARSE grid mode for debugging (80x30)")
     
     # Print banner
     print("\n" + "="*70)

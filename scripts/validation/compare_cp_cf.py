@@ -28,6 +28,8 @@ from src.solvers.boundary_conditions import (
     initialize_state, apply_initial_wall_damping
 )
 from src.numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxGridMetrics
+from src.numerics.gradients import compute_gradients, GradientMetrics
+from src.numerics.viscous_fluxes import add_viscous_fluxes
 from src.solvers.time_stepping import compute_local_timestep, TimeStepConfig
 
 
@@ -102,7 +104,7 @@ def run_mfoil_laminar(reynolds: float, alpha: float = 0.0):
     }
 
 
-def run_rans_solver(X, Y, reynolds, max_iter=2000, cfl=1.0, k4=0.04):
+def run_rans_solver(X, Y, reynolds, max_iter=2000, cfl=1.0, k4=0.04, use_viscous=False):
     """Run the RANS solver and return surface distributions."""
     NI = X.shape[0] - 1
     NJ = X.shape[1] - 1
@@ -142,18 +144,30 @@ def run_rans_solver(X, Y, reynolds, max_iter=2000, cfl=1.0, k4=0.04):
         volume=metrics.volume
     )
     
+    # Gradient metrics for viscous fluxes
+    grad_metrics = GradientMetrics(
+        Si_x=metrics.Si_x, Si_y=metrics.Si_y,
+        Sj_x=metrics.Sj_x, Sj_y=metrics.Sj_y,
+        volume=metrics.volume
+    )
+    
+    # Laminar viscosity
+    mu_laminar = 1.0 / reynolds if reynolds > 0 else 0.0
+    
     ts_config = TimeStepConfig(cfl=cfl)
     
-    print(f"Running RANS solver: {NI}x{NJ} grid, {max_iter} iterations, CFL={cfl}")
+    mode_str = "VISCOUS" if use_viscous else "INVISCID"
+    print(f"Running RANS solver ({mode_str}): {NI}x{NJ} grid, {max_iter} iterations, CFL={cfl}")
     
     # RK4 coefficients
     alphas = [0.25, 0.333333333, 0.5, 1.0]
     
     for n in range(max_iter):
-        # Compute time step
+        # Compute time step (with viscous constraint if enabled)
+        nu = mu_laminar if use_viscous else 0.0
         dt = compute_local_timestep(
             Q, metrics.Si_x, metrics.Si_y, metrics.Sj_x, metrics.Sj_y,
-            metrics.volume, beta, ts_config
+            metrics.volume, beta, ts_config, nu=nu
         )
         
         # RK4 integration
@@ -162,7 +176,12 @@ def run_rans_solver(X, Y, reynolds, max_iter=2000, cfl=1.0, k4=0.04):
         
         for alpha in alphas:
             Qk = bc.apply(Qk)
+            # Compute convective fluxes
             R = compute_fluxes(Qk, flux_metrics, beta, flux_cfg)
+            # Add viscous fluxes if enabled
+            if use_viscous:
+                gradients = compute_gradients(Qk, grad_metrics)
+                R = add_viscous_fluxes(R, Qk, gradients, grad_metrics, mu_laminar)
             Qk = Q0.copy()
             Qk[1:-1, 1:-1, :] += alpha * (dt / metrics.volume)[:, :, np.newaxis] * R
         
@@ -171,6 +190,9 @@ def run_rans_solver(X, Y, reynolds, max_iter=2000, cfl=1.0, k4=0.04):
         # Print progress every 200 iterations
         if (n + 1) % 200 == 0:
             R = compute_fluxes(Q, flux_metrics, beta, flux_cfg)
+            if use_viscous:
+                gradients = compute_gradients(Q, grad_metrics)
+                R = add_viscous_fluxes(R, Q, gradients, grad_metrics, mu_laminar)
             res_rms = np.sqrt(np.sum(R[:, :, 0]**2) / R[:, :, 0].size)
             print(f"  Iter {n+1:5d}: residual = {res_rms:.6e}")
     
@@ -263,12 +285,20 @@ def main():
                         help="JST 4th-order dissipation coefficient (default: 0.04)")
     parser.add_argument("--output", "-o", type=str, default="output/cp_cf_comparison.pdf",
                         help="Output PDF path")
+    parser.add_argument("--viscous", action="store_true",
+                        help="Run with viscous fluxes (Navier-Stokes)")
+    parser.add_argument("--inviscid", action="store_true",
+                        help="Run without viscous fluxes (Euler)")
     args = parser.parse_args()
+    
+    # Determine viscous mode
+    use_viscous = args.viscous or (not args.inviscid and args.reynolds < 1e6)
     
     print("="*60)
     print("  RANS vs mfoil Cp/Cf Comparison")
     print("="*60)
     print(f"Reynolds: {args.reynolds}")
+    print(f"Mode: {'VISCOUS' if use_viscous else 'INVISCID'}")
     print(f"Iterations: {args.max_iter}")
     print(f"JST k4 (4th-order dissipation): {args.k4}")
     print(f"Grid: {args.n_surface} x {args.n_normal}")
@@ -314,7 +344,7 @@ def main():
     
     # Run RANS
     print("\nRunning RANS solver...")
-    rans_result = run_rans_solver(X, Y, args.reynolds, args.max_iter, args.cfl, args.k4)
+    rans_result = run_rans_solver(X, Y, args.reynolds, args.max_iter, args.cfl, args.k4, use_viscous)
     
     # Create comparison plots
     print("\nCreating comparison plots...")
