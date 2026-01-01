@@ -63,3 +63,4 @@ grid_options.in
 
 # Test output directory
 output/
+.cursor/

@@ -9,7 +9,7 @@ to the upper wake, with:
 
 Boundary Conditions:
     1. Airfoil Surface (j=0): No-slip, zero pressure gradient, ν̃=0
-    2. Farfield (j=N_max): Freestream Dirichlet
+    2. Farfield (j=N_max): Characteristic non-reflecting BC
     3. Wake Cut (i=0 and i=N_max): Periodic connection
 
 State Vector: Q = [p, u, v, ν̃] where
@@ -112,9 +112,9 @@ class BoundaryConditions:
             Number of wake points (used to identify wake region).
         farfield_normals : tuple of (nx, ny), optional
             Outward unit normals at far-field face (j=NJ).
-            If provided, enables Riemann-invariant based BC.
+            If provided, enables characteristic-based BC.
         beta : float
-            Artificial compressibility parameter (for Riemann BC).
+            Artificial compressibility parameter.
         """
         self.freestream = freestream or FreestreamConditions()
         self.j_surface = j_surface
@@ -233,16 +233,20 @@ class BoundaryConditions:
     
     def apply_farfield(self, Q: np.ndarray) -> np.ndarray:
         """
-        Apply farfield boundary conditions (j=NJ+1 ghost cells).
+        Apply characteristic-based non-reflecting farfield boundary conditions.
         
-        Uses Riemann-invariant based non-reflecting BC if normals are provided,
-        otherwise falls back to simple Dirichlet.
+        This BC determines whether each farfield face is inflow or outflow
+        based on the normal velocity component, then:
         
-        For Artificial Compressibility with sound speed c = sqrt(beta):
-        - Riemann invariants: R± = p ± c*Vn  (where Vn = u*nx + v*ny)
-        - Outgoing R+: extrapolate from interior
-        - Incoming R-: compute from freestream
-        - Solve for boundary p and Vn
+        Inflow (U_n < 0):
+            - Velocity: Set to freestream
+            - Turbulence: Set to freestream (nu_t_inf)
+            - Pressure: Extrapolate from interior (zero-order)
+        
+        Outflow (U_n >= 0):
+            - Velocity: Extrapolate from interior
+            - Turbulence: Extrapolate from interior
+            - Pressure: Set to freestream (back-pressure)
         
         Parameters
         ----------
@@ -262,59 +266,51 @@ class BoundaryConditions:
             Q[:, -1, 3] = self.freestream.nu_t_inf
             return Q
         
-        # Riemann-invariant based far-field BC
+        # Characteristic-based non-reflecting BC
         nx, ny = self.farfield_normals  # Shape: (NI,) - outward unit normals
-        c = self.c_art
         
         # Interior values (last interior row, j = -2 with ghost cells)
         p_int = Q[1:-1, -2, 0]
         u_int = Q[1:-1, -2, 1]
         v_int = Q[1:-1, -2, 2]
+        nu_t_int = Q[1:-1, -2, 3]
         
         # Freestream values
         p_inf = self.freestream.p_inf
         u_inf = self.freestream.u_inf
         v_inf = self.freestream.v_inf
+        nu_t_inf = self.freestream.nu_t_inf
         
-        # Normal and tangential velocities (interior)
-        Vn_int = u_int * nx + v_int * ny
-        Vt_int = -u_int * ny + v_int * nx  # Tangential (rotated 90° CCW)
+        # Calculate normal velocity (positive = outflow, negative = inflow)
+        U_n = u_int * nx + v_int * ny
         
-        # Freestream normal and tangential
-        Vn_inf = u_inf * nx + v_inf * ny
-        Vt_inf = -u_inf * ny + v_inf * nx
+        # Determine inflow/outflow
+        is_outflow = U_n >= 0
+        is_inflow = ~is_outflow
         
-        # Riemann invariants
-        # R+ = p + c*Vn (outgoing, extrapolate from interior)
-        # R- = p - c*Vn (incoming, use freestream)
-        R_plus = p_int + c * Vn_int   # From interior (outgoing)
-        R_minus = p_inf - c * Vn_inf  # From freestream (incoming)
+        # Initialize boundary values
+        u_b = np.zeros_like(u_int)
+        v_b = np.zeros_like(v_int)
+        p_b = np.zeros_like(p_int)
+        nu_t_b = np.zeros_like(nu_t_int)
         
-        # Solve for boundary values:
-        # p_b = 0.5 * (R+ + R-)
-        # Vn_b = 0.5 * (R+ - R-) / c
-        p_b = 0.5 * (R_plus + R_minus)
-        Vn_b = 0.5 * (R_plus - R_minus) / c
+        # Inflow (U_n < 0): velocity from freestream, pressure from interior
+        u_b[is_inflow] = u_inf
+        v_b[is_inflow] = v_inf
+        nu_t_b[is_inflow] = nu_t_inf
+        p_b[is_inflow] = p_int[is_inflow]  # Zero-order extrapolation
         
-        # For tangential velocity:
-        # - Outflow (Vn > 0): extrapolate from interior
-        # - Inflow (Vn < 0): use freestream
-        is_outflow = Vn_b > 0
-        Vt_b = np.where(is_outflow, Vt_int, Vt_inf)
-        
-        # Convert back to Cartesian
-        u_b = Vn_b * nx - Vt_b * ny
-        v_b = Vn_b * ny + Vt_b * nx
+        # Outflow (U_n >= 0): velocity from interior, pressure from freestream
+        u_b[is_outflow] = u_int[is_outflow]
+        v_b[is_outflow] = v_int[is_outflow]
+        nu_t_b[is_outflow] = nu_t_int[is_outflow]
+        p_b[is_outflow] = p_inf  # Fix back-pressure
         
         # Set ghost cells (extrapolate to get ghost value)
         # Ghost value = 2*boundary - interior
         Q[1:-1, -1, 0] = 2 * p_b - p_int
         Q[1:-1, -1, 1] = 2 * u_b - u_int
         Q[1:-1, -1, 2] = 2 * v_b - v_int
-        
-        # Turbulent viscosity: extrapolate for outflow, freestream for inflow
-        nu_t_int = Q[1:-1, -2, 3]
-        nu_t_b = np.where(is_outflow, nu_t_int, self.freestream.nu_t_inf)
         Q[1:-1, -1, 3] = 2 * nu_t_b - nu_t_int
         
         # Handle corner ghost cells (i=0, i=-1)

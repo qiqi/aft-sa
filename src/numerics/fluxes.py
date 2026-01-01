@@ -27,16 +27,32 @@ from numba import njit
 
 @dataclass
 class FluxConfig:
-    """Configuration for JST flux computation."""
+    """Configuration for JST flux computation.
+    
+    Note: For incompressible flow, k2 (2nd-order dissipation) should be 0.
+    The 2nd-order dissipation is designed for shock capturing in compressible
+    flow and is not needed (and can harm convergence) for incompressible flow.
+    """
     
     # JST dissipation coefficients
     # ε(2) = k2 * ν   where ν is pressure sensor (0 to 1)
     # ε(4) = max(0, k4 - ε(2))
-    k2: float = 0.5      # 2nd-order dissipation coefficient (typically 0.25-1.0)
-    k4: float = 0.016    # 4th-order dissipation coefficient (typically 1/64-1/32)
+    # Note: k2=0 for incompressible flow (no shocks to capture)
+    k2: float = 0.0      # 2nd-order dissipation (0 for incompressible)
+    k4: float = 0.016    # 4th-order dissipation (background smoothing)
     
     # Limiter for pressure sensor
     eps_p: float = 1e-10  # Small number to avoid division by zero
+    
+    # Minimum sensor value: provides baseline 1st-order dissipation
+    # For incompressible flows without shocks, the sensor is always ~0
+    # Adding nu_min > 0 ensures stable dissipation in smooth regions
+    # Typical values: 0.0 (standard JST), 0.1-0.5 (more stable)
+    nu_min: float = 0.0
+    
+    # First-order mode: use constant maximum dissipation (ν = 1)
+    # This is more stable but only 1st-order accurate
+    first_order: bool = False
 
 
 class GridMetrics(NamedTuple):
@@ -73,6 +89,7 @@ def _flux_kernel(Q: np.ndarray,
                  Si_x: np.ndarray, Si_y: np.ndarray,
                  Sj_x: np.ndarray, Sj_y: np.ndarray,
                  beta: float, k2: float, k4: float, eps_p: float,
+                 nu_min: float, first_order: bool,
                  residual: np.ndarray) -> None:
     """
     Numba-optimized kernel for JST flux computation.
@@ -97,6 +114,8 @@ def _flux_kernel(Q: np.ndarray,
         4th-order dissipation coefficient.
     eps_p : float
         Small number for pressure sensor.
+    first_order : bool
+        If True, use maximum dissipation (nu_sensor = 1).
     residual : ndarray, shape (NI, NJ, 4)
         Output residual array (modified in-place).
     """
@@ -165,30 +184,34 @@ def _flux_kernel(Q: np.ndarray,
             # For boundary faces, use simplified approach
             
             if i >= 1 and i <= NI - 1:
-                # Full 4-point stencil available
-                # Sensor at left cell (i in ghost array = i in 1-based interior)
-                if i >= 2:
-                    p_Lm1 = Q[i - 1, j_cell, 0]
-                    p_Lc = Q[i, j_cell, 0]
-                    p_Lp1 = Q[i + 1, j_cell, 0]
-                    d2p_L = np.abs(p_Lp1 - 2.0 * p_Lc + p_Lm1)
-                    sum_L = np.abs(p_Lp1) + 2.0 * np.abs(p_Lc) + np.abs(p_Lm1) + eps_p
-                    nu_sensor_L = d2p_L / sum_L
+                # First-order mode: skip sensor calculation, use maximum dissipation
+                if first_order:
+                    nu_sensor = 1.0
                 else:
-                    nu_sensor_L = 0.0
-                
-                # Sensor at right cell
-                if i <= NI - 2:
-                    p_Rm1 = Q[i, j_cell, 0]
-                    p_Rc = Q[i + 1, j_cell, 0]
-                    p_Rp1 = Q[i + 2, j_cell, 0]
-                    d2p_R = np.abs(p_Rp1 - 2.0 * p_Rc + p_Rm1)
-                    sum_R = np.abs(p_Rp1) + 2.0 * np.abs(p_Rc) + np.abs(p_Rm1) + eps_p
-                    nu_sensor_R = d2p_R / sum_R
-                else:
-                    nu_sensor_R = 0.0
-                
-                nu_sensor = max(nu_sensor_L, nu_sensor_R)
+                    # Full 4-point stencil available
+                    # Sensor at left cell (i in ghost array = i in 1-based interior)
+                    if i >= 2:
+                        p_Lm1 = Q[i - 1, j_cell, 0]
+                        p_Lc = Q[i, j_cell, 0]
+                        p_Lp1 = Q[i + 1, j_cell, 0]
+                        d2p_L = np.abs(p_Lp1 - 2.0 * p_Lc + p_Lm1)
+                        sum_L = np.abs(p_Lp1) + 2.0 * np.abs(p_Lc) + np.abs(p_Lm1) + eps_p
+                        nu_sensor_L = d2p_L / sum_L
+                    else:
+                        nu_sensor_L = 0.0
+                    
+                    # Sensor at right cell
+                    if i <= NI - 2:
+                        p_Rm1 = Q[i, j_cell, 0]
+                        p_Rc = Q[i + 1, j_cell, 0]
+                        p_Rp1 = Q[i + 2, j_cell, 0]
+                        d2p_R = np.abs(p_Rp1 - 2.0 * p_Rc + p_Rm1)
+                        sum_R = np.abs(p_Rp1) + 2.0 * np.abs(p_Rc) + np.abs(p_Rm1) + eps_p
+                        nu_sensor_R = d2p_R / sum_R
+                    else:
+                        nu_sensor_R = 0.0
+                    
+                    nu_sensor = max(nu_sensor_L, nu_sensor_R, nu_min)
                 
                 # JST dissipation coefficients
                 eps2 = k2 * nu_sensor * lambda_f
@@ -289,28 +312,32 @@ def _flux_kernel(Q: np.ndarray,
             
             # Pressure sensor and dissipation
             if j >= 1 and j <= NJ - 1:
-                # Full stencil available
-                if j >= 2:
-                    p_Lm1 = Q[i_cell, j - 1, 0]
-                    p_Lc = Q[i_cell, j, 0]
-                    p_Lp1 = Q[i_cell, j + 1, 0]
-                    d2p_L = np.abs(p_Lp1 - 2.0 * p_Lc + p_Lm1)
-                    sum_L = np.abs(p_Lp1) + 2.0 * np.abs(p_Lc) + np.abs(p_Lm1) + eps_p
-                    nu_sensor_L = d2p_L / sum_L
+                # First-order mode: skip sensor calculation, use maximum dissipation
+                if first_order:
+                    nu_sensor = 1.0
                 else:
-                    nu_sensor_L = 0.0
-                
-                if j <= NJ - 2:
-                    p_Rm1 = Q[i_cell, j, 0]
-                    p_Rc = Q[i_cell, j + 1, 0]
-                    p_Rp1 = Q[i_cell, j + 2, 0]
-                    d2p_R = np.abs(p_Rp1 - 2.0 * p_Rc + p_Rm1)
-                    sum_R = np.abs(p_Rp1) + 2.0 * np.abs(p_Rc) + np.abs(p_Rm1) + eps_p
-                    nu_sensor_R = d2p_R / sum_R
-                else:
-                    nu_sensor_R = 0.0
-                
-                nu_sensor = max(nu_sensor_L, nu_sensor_R)
+                    # Full stencil available
+                    if j >= 2:
+                        p_Lm1 = Q[i_cell, j - 1, 0]
+                        p_Lc = Q[i_cell, j, 0]
+                        p_Lp1 = Q[i_cell, j + 1, 0]
+                        d2p_L = np.abs(p_Lp1 - 2.0 * p_Lc + p_Lm1)
+                        sum_L = np.abs(p_Lp1) + 2.0 * np.abs(p_Lc) + np.abs(p_Lm1) + eps_p
+                        nu_sensor_L = d2p_L / sum_L
+                    else:
+                        nu_sensor_L = 0.0
+                    
+                    if j <= NJ - 2:
+                        p_Rm1 = Q[i_cell, j, 0]
+                        p_Rc = Q[i_cell, j + 1, 0]
+                        p_Rp1 = Q[i_cell, j + 2, 0]
+                        d2p_R = np.abs(p_Rp1 - 2.0 * p_Rc + p_Rm1)
+                        sum_R = np.abs(p_Rp1) + 2.0 * np.abs(p_Rc) + np.abs(p_Rm1) + eps_p
+                        nu_sensor_R = d2p_R / sum_R
+                    else:
+                        nu_sensor_R = 0.0
+                    
+                    nu_sensor = max(nu_sensor_L, nu_sensor_R, nu_min)
                 
                 eps2 = k2 * nu_sensor * lambda_f
                 eps4 = max(0.0, k4 - k2 * nu_sensor) * lambda_f
@@ -515,7 +542,7 @@ def compute_fluxes(Q: np.ndarray, metrics: GridMetrics, beta: float,
     
     # Call Numba kernel
     _flux_kernel(Q_c, Si_x, Si_y, Sj_x, Sj_y,
-                 beta, cfg.k2, cfg.k4, cfg.eps_p, residual)
+                 beta, cfg.k2, cfg.k4, cfg.eps_p, cfg.nu_min, cfg.first_order, residual)
     
     return residual
 

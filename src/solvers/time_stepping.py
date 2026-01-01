@@ -308,12 +308,16 @@ class RungeKutta4:
         Q^(n+1) = Q^(4)
     
     Coefficients: α = [1/4, 1/3, 1/2, 1]
+    
+    Optionally supports Implicit Residual Smoothing (IRS) to allow
+    higher CFL numbers by filtering high-frequency errors.
     """
     
     # Jameson RK4 coefficients (optimized for steady-state convergence)
     ALPHA = [0.25, 0.333333333, 0.5, 1.0]
     
-    def __init__(self, beta: float, cfg: Optional[TimeStepConfig] = None):
+    def __init__(self, beta: float, cfg: Optional[TimeStepConfig] = None,
+                 irs_epsilon: float = 0.0):
         """
         Initialize RK4 integrator.
         
@@ -323,9 +327,13 @@ class RungeKutta4:
             Artificial compressibility parameter.
         cfg : TimeStepConfig, optional
             Time stepping configuration.
+        irs_epsilon : float, optional
+            Implicit Residual Smoothing coefficient.
+            0 = disabled (default), 0.5-2.0 = typical range.
         """
         self.beta = beta
         self.cfg = cfg if cfg is not None else TimeStepConfig()
+        self.irs_epsilon = irs_epsilon
     
     def step(self, Q: np.ndarray, 
              compute_residual,
@@ -361,12 +369,20 @@ class RungeKutta4:
         Q0 = Q.copy()  # Store initial state
         Qk = Q.copy()
         
+        # Import IRS if needed (lazy import to avoid circular dependency)
+        if self.irs_epsilon > 0.0:
+            from ..numerics.smoothing import apply_residual_smoothing
+        
         for alpha in self.ALPHA:
             # Apply boundary conditions
             Qk = apply_bc(Qk)
             
             # Compute residual
             R = compute_residual(Qk)
+            
+            # Apply Implicit Residual Smoothing if enabled
+            if self.irs_epsilon > 0.0:
+                apply_residual_smoothing(R, self.irs_epsilon)
             
             # Update: Q^(k) = Q^(0) + α_k * dt/Ω * R
             Qk = Q0.copy()

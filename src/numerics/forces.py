@@ -41,6 +41,7 @@ def _compute_surface_forces_kernel(
     Sj_y: np.ndarray,
     volume: np.ndarray,
     mu_eff: np.ndarray,
+    n_wake: int = 0,
 ) -> tuple:
     """
     Compute pressure and viscous forces on airfoil surface (j=0).
@@ -55,6 +56,9 @@ def _compute_surface_forces_kernel(
         Cell volumes.
     mu_eff : ndarray, shape (NI, NJ)
         Effective viscosity (laminar + turbulent).
+    n_wake : int
+        Number of wake cells at each end of i-direction.
+        Only cells from n_wake to NI-n_wake are on the airfoil surface.
         
     Returns
     -------
@@ -70,8 +74,12 @@ def _compute_surface_forces_kernel(
     Fx_v = 0.0
     Fy_v = 0.0
     
-    # Iterate over surface faces (j=0 boundary)
-    for i in range(NI):
+    # Determine airfoil cell range (exclude wake cells)
+    i_start = n_wake if n_wake > 0 else 0
+    i_end = NI - n_wake if n_wake > 0 else NI
+    
+    # Iterate over airfoil surface faces only (j=0 boundary, excluding wake)
+    for i in range(i_start, i_end):
         # Face normal at j=0 (points into domain, away from wall)
         # Note: Sj has shape (NI, NJ+1), j=0 is the wall face
         Sx = Sj_x[i, 0]
@@ -216,6 +224,7 @@ def compute_aerodynamic_forces(
     chord: float = 1.0,
     rho_inf: float = 1.0,
     V_inf: float = 1.0,
+    n_wake: int = 0,
 ) -> AeroForces:
     """
     Compute aerodynamic force coefficients.
@@ -239,6 +248,9 @@ def compute_aerodynamic_forces(
         Freestream density.
     V_inf : float
         Freestream velocity magnitude.
+    n_wake : int
+        Number of wake cells at each end of i-direction.
+        Forces are only computed for airfoil cells (excluding wake).
         
     Returns
     -------
@@ -256,7 +268,7 @@ def compute_aerodynamic_forces(
     
     # Compute forces using kernel
     Fx_p, Fy_p, Fx_v, Fy_v = _compute_surface_forces_kernel(
-        Q, metrics.Sj_x, metrics.Sj_y, metrics.volume, mu_eff
+        Q, metrics.Sj_x, metrics.Sj_y, metrics.volume, mu_eff, n_wake
     )
     
     # Total body-axis forces

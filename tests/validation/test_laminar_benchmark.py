@@ -13,73 +13,8 @@ import numpy as np
 # Import skip marker from conftest
 from tests.conftest import requires_construct2d
 
-
-def run_mfoil_laminar(reynolds: float, alpha: float = 0.0, 
-                      naca: str = '0012', npanel: int = 199) -> dict:
-    """
-    Run mfoil for fully laminar flow.
-    
-    Parameters
-    ----------
-    reynolds : float
-        Reynolds number based on chord.
-    alpha : float, optional
-        Angle of attack in degrees (default 0).
-    naca : str, optional
-        NACA 4-digit airfoil code (default '0012').
-    npanel : int, optional
-        Number of panels (default 199).
-        
-    Returns
-    -------
-    dict
-        Results containing:
-        - cl: Lift coefficient
-        - cd: Total drag coefficient
-        - cdf: Skin friction drag coefficient
-        - cdp: Pressure drag coefficient
-        - converged: Whether solution converged
-    """
-    from src.validation.mfoil import mfoil
-    
-    # Initialize mfoil with NACA airfoil
-    M = mfoil(naca=naca, npanel=npanel)
-    
-    # Force fully laminar by setting ncrit extremely high
-    # This prevents transition from ever occurring
-    M.param.ncrit = 1000.0
-    
-    # Disable plotting for automated tests
-    M.param.doplot = False
-    
-    # Reduce verbosity
-    M.param.verb = 0
-    
-    # Set operating conditions
-    M.setoper(alpha=alpha, Re=reynolds)
-    
-    # Solve
-    try:
-        M.solve()
-        converged = True
-    except Exception as e:
-        print(f"mfoil solve failed: {e}")
-        converged = False
-        return {
-            'cl': np.nan,
-            'cd': np.nan,
-            'cdf': np.nan,
-            'cdp': np.nan,
-            'converged': False
-        }
-    
-    return {
-        'cl': M.post.cl,
-        'cd': M.post.cd,
-        'cdf': M.post.cdf,
-        'cdp': M.post.cdp,
-        'converged': converged
-    }
+# Use consolidated mfoil runner
+from src.validation.mfoil_runner import run_laminar as run_mfoil_laminar
 
 
 class TestMfoilLaminar:
@@ -192,7 +127,7 @@ class TestLaminarBenchmark:
         cd_mfoil = mfoil_result['cd']
         cl_mfoil = mfoil_result['cl']
         
-        # Run RANS solver
+        # Run RANS solver with IRS for higher CFL stability
         config = SolverConfig(
             mach=0.1,  # Low Mach for incompressible
             alpha=0.0,
@@ -201,6 +136,10 @@ class TestLaminarBenchmark:
             tol=1e-8,
             print_freq=500,
             output_freq=1000,
+            cfl_start=3.0,      # Higher CFL with IRS
+            cfl_target=3.0,
+            irs_epsilon=0.5,    # IRS for stability
+            n_wake=30,          # C-grid wake cells
         )
         
         solver = RANSSolver(naca0012_medium_grid['path'], config)
@@ -251,11 +190,13 @@ class TestLaminarBenchmark:
         # Typically: x_cp, cp_upper, cp_lower or similar
         # For now, just verify we can get surface data from RANS
         
-        # Run RANS
+        # Run RANS with IRS for higher CFL stability
         config = SolverConfig(
             mach=0.1, alpha=0.0, reynolds=10000,
             max_iter=3000, tol=1e-7,
             print_freq=1000, output_freq=5000,
+            cfl_start=3.0, cfl_target=3.0,
+            irs_epsilon=0.5, n_wake=30,
         )
         
         solver = RANSSolver(naca0012_medium_grid['path'], config)
@@ -303,6 +244,8 @@ class TestLaminarBenchmark:
             mach=0.1, alpha=0.0, reynolds=10000,
             max_iter=3000, tol=1e-7,
             print_freq=1000, output_freq=5000,
+            cfl_start=3.0, cfl_target=3.0,
+            irs_epsilon=0.5, n_wake=30,
         )
         
         solver = RANSSolver(naca0012_medium_grid['path'], config)

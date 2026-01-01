@@ -30,6 +30,7 @@ from ..numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxGri
 from ..numerics.forces import compute_aerodynamic_forces, AeroForces
 from ..numerics.gradients import compute_gradients, GradientMetrics
 from ..numerics.viscous_fluxes import add_viscous_fluxes
+from ..numerics.smoothing import apply_residual_smoothing
 
 # Solvers and BCs
 from .boundary_conditions import (
@@ -39,17 +40,20 @@ from .boundary_conditions import (
     apply_initial_wall_damping,
     apply_boundary_conditions
 )
-from .time_stepping import (
-    compute_local_timestep,
-    TimeStepConfig,
-    RungeKutta4
-)
+from .time_stepping import compute_local_timestep, TimeStepConfig
 
 # IO
 from ..io.output import VTKWriter, write_vtk
 
 # Surface analysis
 from ..numerics.forces import compute_surface_distributions, create_surface_vtk_fields
+
+# Diagnostics
+from ..numerics.diagnostics import (
+    compute_total_pressure_loss, 
+    compute_solution_bounds,
+    compute_residual_statistics
+)
 
 
 @dataclass
@@ -83,8 +87,21 @@ class SolverConfig:
     wall_damping_length: float = 0.1  # Wall damping decay length
     
     # JST flux parameters
-    jst_k2: float = 0.5             # 2nd-order dissipation coefficient
-    jst_k4: float = 0.04            # 4th-order dissipation coefficient (increased from 0.016)
+    # Note: k2 (2nd-order dissipation) is set to 0 for incompressible flow
+    # since there are no shocks to capture. Only k4 (4th-order) is needed.
+    jst_k4: float = 0.04            # 4th-order dissipation coefficient
+    
+    # Implicit Residual Smoothing (IRS)
+    irs_epsilon: float = 0.0        # IRS smoothing coefficient (0 = disabled)
+                                    # Typical values: 0.5-2.0 for higher CFL
+    
+    # Grid topology (C-grid)
+    n_wake: int = 30                # Number of wake cells at each end of i-direction
+    
+    # Diagnostic options
+    diagnostic_mode: bool = False   # Enable diagnostic output (plots, extra stats)
+    diagnostic_freq: int = 100      # Frequency of diagnostic dumps (when enabled)
+    divergence_history: int = 0     # Number of solutions to save for divergence analysis
 
 
 class RANSSolver:
@@ -279,7 +296,7 @@ class RANSSolver:
             n_wake=getattr(self.config, 'n_wake', 0)
         )
         
-        # Compute far-field outward unit normals for Riemann BC
+        # Compute far-field outward unit normals for characteristic BC
         # Sj at j=NJ-1 points in +j direction (toward far-field)
         Sj_x_ff = self.metrics.Sj_x[:, -1]  # Shape: (NI,)
         Sj_y_ff = self.metrics.Sj_y[:, -1]
@@ -287,17 +304,18 @@ class RANSSolver:
         nx_ff = Sj_x_ff / Sj_mag
         ny_ff = Sj_y_ff / Sj_mag
         
-        # Apply boundary conditions with Riemann-based far-field
+        # Apply boundary conditions with characteristic farfield BC
         self.bc = BoundaryConditions(
             freestream=self.freestream,
             farfield_normals=(nx_ff, ny_ff),
-            beta=self.config.beta
+            beta=self.config.beta,
+            n_wake_points=getattr(self.config, 'n_wake', 0),
         )
         self.Q = self.bc.apply(self.Q)
         
         print(f"  Freestream: u={self.freestream.u_inf:.4f}, "
               f"v={self.freestream.v_inf:.4f}")
-        print(f"  Far-field BC: Riemann-invariant based (non-reflecting)")
+        print(f"  Far-field BC: Characteristic (non-reflecting)")
         print(f"  Wall damping applied (L={self.config.wall_damping_length})")
     
     def _initialize_output(self):
@@ -347,9 +365,9 @@ class RANSSolver:
     
     def _compute_residual(self, Q: np.ndarray) -> np.ndarray:
         """Compute flux residual using JST scheme + viscous fluxes."""
-        # Create flux config
+        # Create flux config (k2=0 for incompressible flow - no shock capturing needed)
         flux_cfg = FluxConfig(
-            k2=self.config.jst_k2,
+            k2=0.0,
             k4=self.config.jst_k4
         )
         
@@ -427,6 +445,10 @@ class RANSSolver:
             
             # Compute residual
             R = self._compute_residual(Qk)
+            
+            # Apply Implicit Residual Smoothing (IRS) if enabled
+            if self.config.irs_epsilon > 0.0:
+                apply_residual_smoothing(R, self.config.irs_epsilon)
             
             # Update: Q^(k) = Q^(0) + α * dt/Ω * R
             Qk = Q0.copy()
@@ -593,6 +615,11 @@ class RANSSolver:
         # For laminar flow, set to None
         mu_turb = None
         
+        # Get n_wake from config or BC handler
+        n_wake = getattr(self.config, 'n_wake', 0)
+        if n_wake == 0 and hasattr(self, 'bc'):
+            n_wake = getattr(self.bc, 'n_wake_points', 0)
+        
         forces = compute_aerodynamic_forces(
             Q=self.Q,
             metrics=self.flux_metrics,
@@ -602,6 +629,7 @@ class RANSSolver:
             chord=1.0,  # Assume unit chord
             rho_inf=1.0,  # AC formulation assumes unit density
             V_inf=V_inf,
+            n_wake=n_wake,
         )
         
         return forces
@@ -641,4 +669,208 @@ class RANSSolver:
                 f.write(f"{i+1:8d}  {res:.10e}\n")
         
         print(f"Residual history saved to: {filename}")
+    
+    def run_with_diagnostics(self, dump_freq: int = None) -> bool:
+        """
+        Run steady-state simulation with enhanced diagnostic output.
+        
+        This method provides detailed diagnostic information including:
+        - Flow field visualizations at specified intervals
+        - Total pressure loss (entropy) monitoring
+        - Max residual location tracking
+        - Divergence history for debugging
+        
+        Parameters
+        ----------
+        dump_freq : int, optional
+            Frequency of diagnostic dumps. If None, uses config.diagnostic_freq.
+            
+        Returns
+        -------
+        converged : bool
+            True if residual dropped below tolerance.
+        """
+        # Lazy import plotting to avoid matplotlib dependency issues
+        from ..io.plotting import plot_flow_field, plot_residual_history
+        
+        if dump_freq is None:
+            dump_freq = getattr(self.config, 'diagnostic_freq', 100)
+        
+        # Create snapshot directory
+        snapshot_dir = Path(self.config.output_dir) / "snapshots"
+        snapshot_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Solution history buffer for divergence analysis
+        div_history_size = getattr(self.config, 'divergence_history', 0)
+        solution_history = []
+        
+        print(f"\n{'='*108}")
+        print("Starting Steady-State Iteration (Diagnostic Mode)")
+        print(f"Dumping flow field every {dump_freq} iterations")
+        print(f"{'='*108}")
+        print(f"{'Iter':>8} {'RMS':>12} {'Max':>12} {'MaxLoc':>18} "
+              f"{'CFL':>8} {'|V|_max':>10} {'p_range':>18}")
+        print(f"{'-'*108}")
+        
+        initial_residual = None
+        
+        # Dump initial state
+        Q_int = self.Q[1:-1, 1:-1, :]
+        C_pt = compute_total_pressure_loss(
+            Q_int, self.freestream.p_inf, 
+            self.freestream.u_inf, self.freestream.v_inf
+        )
+        plot_flow_field(
+            self.X, self.Y, self.Q,
+            iteration=0, residual=0, cfl=self._get_cfl(0),
+            output_dir=str(snapshot_dir),
+            case_name=self.config.case_name,
+            C_pt=C_pt
+        )
+        
+        for n in range(self.config.max_iter):
+            res_rms, R_field = self.step()
+            self.residual_history.append(res_rms)
+            
+            if initial_residual is None:
+                initial_residual = res_rms
+            
+            # Compute diagnostics
+            bounds = compute_solution_bounds(self.Q)
+            res_stats = compute_residual_statistics(R_field)
+            cfl = self._get_cfl(self.iteration)
+            
+            # Update divergence history buffer
+            if div_history_size > 0:
+                solution_history.append((self.iteration, self.Q.copy(), R_field.copy()))
+                if len(solution_history) > div_history_size:
+                    solution_history.pop(0)
+            
+            # Print progress every 10 iterations
+            if self.iteration % 10 == 0 or self.iteration == 1:
+                p_range = f"[{bounds['p_min']:.2f}, {bounds['p_max']:.2f}]"
+                max_loc = f"({res_stats['max_loc'][0]:3d},{res_stats['max_loc'][1]:3d})"
+                print(f"{self.iteration:>8d} {res_rms:>12.4e} {res_stats['max_p']:>12.4e} "
+                      f"{max_loc:>18} {cfl:>8.2f} {bounds['vel_max']:>10.4f} {p_range:>18}")
+            
+            # Dump flow field at specified frequency
+            if self.iteration % dump_freq == 0:
+                Q_int = self.Q[1:-1, 1:-1, :]
+                C_pt = compute_total_pressure_loss(
+                    Q_int, self.freestream.p_inf,
+                    self.freestream.u_inf, self.freestream.v_inf
+                )
+                pdf_path = plot_flow_field(
+                    self.X, self.Y, self.Q,
+                    iteration=self.iteration, residual=res_rms, cfl=cfl,
+                    output_dir=str(snapshot_dir),
+                    case_name=self.config.case_name,
+                    C_pt=C_pt, residual_field=R_field
+                )
+                print(f"         -> Dumped: {pdf_path}")
+                
+                # VTK output with C_pt
+                surface_fields = self._compute_surface_fields()
+                surface_fields['TotalPressureLoss'] = C_pt
+                self.vtk_writer.write(
+                    self.Q, iteration=self.iteration,
+                    additional_scalars=surface_fields
+                )
+            
+            # Check for NaN/Inf
+            if bounds['has_nan'] or bounds['has_inf']:
+                print(f"\n{'='*60}")
+                print(f"DIVERGED at iteration {self.iteration} - NaN/Inf detected!")
+                self._print_divergence_info(bounds, solution_history, snapshot_dir)
+                break
+            
+            # Check convergence
+            if res_rms < self.config.tol:
+                self.converged = True
+                print(f"\n{'='*60}")
+                print(f"CONVERGED at iteration {self.iteration}")
+                print(f"Final residual: {res_rms:.6e}")
+                break
+            
+            # Check for divergence
+            if res_rms > 1000 * initial_residual:
+                print(f"\n{'='*60}")
+                print(f"DIVERGED at iteration {self.iteration}")
+                print(f"Residual: {res_rms:.6e} (initial: {initial_residual:.6e})")
+                self._print_divergence_info(bounds, solution_history, snapshot_dir)
+                break
+        
+        else:
+            print(f"\n{'='*60}")
+            print(f"Maximum iterations ({self.config.max_iter}) reached")
+        
+        # Final dumps
+        Q_int = self.Q[1:-1, 1:-1, :]
+        C_pt = compute_total_pressure_loss(
+            Q_int, self.freestream.p_inf,
+            self.freestream.u_inf, self.freestream.v_inf
+        )
+        plot_flow_field(
+            self.X, self.Y, self.Q,
+            iteration=self.iteration, 
+            residual=self.residual_history[-1] if self.residual_history else 0,
+            cfl=self._get_cfl(self.iteration),
+            output_dir=str(snapshot_dir),
+            case_name=f"{self.config.case_name}_final",
+            C_pt=C_pt
+        )
+        
+        surface_fields = self._compute_surface_fields()
+        surface_fields['TotalPressureLoss'] = C_pt
+        self.vtk_writer.write(self.Q, iteration=self.iteration, additional_scalars=surface_fields)
+        self.vtk_writer.finalize()
+        
+        # Plot residual history
+        plot_residual_history(self.residual_history, str(snapshot_dir), self.config.case_name)
+        
+        # Print C_pt statistics
+        print(f"\nEntropy Check (Total Pressure Loss C_pt):")
+        print(f"  Min:  {C_pt.min():.6f}")
+        print(f"  Max:  {C_pt.max():.6f}")
+        print(f"  Mean: {C_pt.mean():.6f}")
+        
+        print(f"{'='*60}")
+        print(f"Output in: {self.config.output_dir}")
+        print(f"Snapshots in: {snapshot_dir}")
+        
+        return self.converged
+    
+    def _print_divergence_info(self, bounds: dict, solution_history: list, 
+                                snapshot_dir: Path):
+        """Print detailed info and save snapshots when divergence is detected."""
+        print(f"\nDivergence Diagnostics:")
+        print(f"  Pressure range: [{bounds['p_min']:.4f}, {bounds['p_max']:.4f}]")
+        print(f"  U-velocity range: [{bounds['u_min']:.4f}, {bounds['u_max']:.4f}]")
+        print(f"  V-velocity range: [{bounds['v_min']:.4f}, {bounds['v_max']:.4f}]")
+        print(f"  Max velocity: {bounds['vel_max']:.4f} at cell {bounds['vel_max_loc']}")
+        print(f"  Nu_t range: [{bounds['nu_min']:.6e}, {bounds['nu_max']:.6e}]")
+        
+        if solution_history:
+            from ..io.plotting import plot_flow_field
+            
+            divergence_dir = snapshot_dir / "divergence"
+            divergence_dir.mkdir(exist_ok=True)
+            
+            print(f"\n  Dumping last {len(solution_history)} solutions before divergence:")
+            for iteration, Q, R_field in solution_history:
+                Q_int = Q[1:-1, 1:-1, :]
+                C_pt = compute_total_pressure_loss(
+                    Q_int, self.freestream.p_inf,
+                    self.freestream.u_inf, self.freestream.v_inf
+                )
+                pdf_path = plot_flow_field(
+                    self.X, self.Y, Q,
+                    iteration=iteration,
+                    residual=np.sqrt(np.mean(R_field**2)),
+                    cfl=self._get_cfl(iteration),
+                    output_dir=str(divergence_dir),
+                    case_name=f"{self.config.case_name}_div",
+                    C_pt=C_pt, residual_field=R_field
+                )
+                print(f"    {pdf_path}")
 

@@ -299,7 +299,7 @@ def main():
         y_plus=1.0,             # Target y+ (relaxed for speed)
         reynolds=1e6,           # Reynolds number for y+ calculation
         topology='CGRD',        # C-grid for wake resolution
-        farfield_radius=15.0,   # Farfield distance in chord lengths (production: 25)
+        farfield_radius=15.0,
         n_wake=20,              # Points along wake (production: 60)
         solver='HYPR',          # Hyperbolic grid generator
     )
