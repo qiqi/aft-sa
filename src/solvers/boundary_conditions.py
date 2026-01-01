@@ -275,6 +275,15 @@ class BoundaryConditions:
         v_int = Q[1:-1, -2, 2]
         nu_t_int = Q[1:-1, -2, 3]
         
+        # Validate shape consistency
+        NI = Q.shape[0] - 2  # Number of interior cells
+        if len(nx) != NI:
+            raise ValueError(
+                f"Farfield BC shape mismatch: farfield_normals has {len(nx)} values, "
+                f"but Q has {NI} interior cells (Q.shape={Q.shape}). "
+                f"BoundaryConditions object may be from a different grid level."
+            )
+        
         # Freestream values
         p_inf = self.freestream.p_inf
         u_inf = self.freestream.u_inf
@@ -345,6 +354,7 @@ class BoundaryConditions:
         Implementation:
             - Ghost at i=0: Copy from interior at i=NI (Q[-2, :, :])
             - Ghost at i=-1 (i=NI+1): Copy from interior at i=1 (Q[1, :, :])
+            - IMPORTANT: Do NOT modify farfield row (j=-1) - that's set by apply_farfield
         
         Parameters
         ----------
@@ -366,8 +376,11 @@ class BoundaryConditions:
         #
         # Extrapolation: ghost = 2*first_interior - second_interior
         # This sets zero normal gradient at the boundary
-        Q[0, :, :] = 2*Q[1, :, :] - Q[2, :, :]    # Left ghost = extrapolate from lower wake
-        Q[-1, :, :] = 2*Q[-2, :, :] - Q[-3, :, :]  # Right ghost = extrapolate from upper wake
+        #
+        # IMPORTANT: Only apply to j=0:-1 (interior + surface ghost), 
+        # NOT j=-1 (farfield ghost) which was set by apply_farfield
+        Q[0, :-1, :] = 2*Q[1, :-1, :] - Q[2, :-1, :]    # Left ghost (excluding farfield row)
+        Q[-1, :-1, :] = 2*Q[-2, :-1, :] - Q[-3, :-1, :]  # Right ghost (excluding farfield row)
         
         return Q
 

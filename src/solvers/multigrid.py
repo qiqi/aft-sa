@@ -141,6 +141,14 @@ class MultigridHierarchy:
         # Compute farfield normals
         farfield_normals = self._compute_farfield_normals(X, Y)
         
+        # Validate: farfield normals length must match NI
+        nx, ny = farfield_normals
+        if len(nx) != NI:
+            raise ValueError(
+                f"Level 0: Farfield normals length ({len(nx)}) != NI ({NI}). "
+                f"X shape: {X.shape}, expected nodes: ({NI+1}, {NJ+1})"
+            )
+        
         # Create BC handler for finest level
         bc = BoundaryConditions(
             freestream=freestream,
@@ -188,6 +196,14 @@ class MultigridHierarchy:
             
             # Compute coarse farfield normals
             coarse_farfield_normals = self._compute_farfield_normals(coarse_X, coarse_Y)
+            
+            # Validate: farfield normals length must match NI_c
+            nx_c, ny_c = coarse_farfield_normals
+            if len(nx_c) != NI_c:
+                raise ValueError(
+                    f"Level {level_idx}: Farfield normals length ({len(nx_c)}) != NI_c ({NI_c}). "
+                    f"coarse_X shape: {coarse_X.shape}, expected nodes: ({NI_c+1}, {NJ_c+1})"
+                )
             
             # Create BC handler for coarse level
             bc_c = BoundaryConditions(
