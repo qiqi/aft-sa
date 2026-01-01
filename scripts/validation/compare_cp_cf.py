@@ -192,16 +192,17 @@ def main():
     fig.suptitle(f'{airfoil_name.upper()}, α={args.alpha}°, Re={args.reynolds:.0f}', 
                  fontsize=14, fontweight='bold')
     
-    # Cp distribution
+    # Cp distribution (inverted y-axis: suction up, pressure down)
     ax = axes[0, 0]
-    ax.plot(x_upper, -cp_upper, 'b-', lw=2, label='RANS upper')
-    ax.plot(x_lower, -cp_lower, 'b--', lw=2, label='RANS lower')
-    ax.plot(mfoil_result['x_upper'], -mfoil_result['cp_upper'], 'r-', lw=1.5, alpha=0.7, label='mfoil upper')
-    ax.plot(mfoil_result['x_lower'], -mfoil_result['cp_lower'], 'r--', lw=1.5, alpha=0.7, label='mfoil lower')
+    ax.plot(x_upper, cp_upper, 'b-', lw=2, label='RANS upper')
+    ax.plot(x_lower, cp_lower, 'b--', lw=2, label='RANS lower')
+    ax.plot(mfoil_result['x_upper'], mfoil_result['cp_upper'], 'r-', lw=1.5, alpha=0.7, label='mfoil upper')
+    ax.plot(mfoil_result['x_lower'], mfoil_result['cp_lower'], 'r--', lw=1.5, alpha=0.7, label='mfoil lower')
     ax.set_xlabel('x/c')
-    ax.set_ylabel('-Cp')
+    ax.set_ylabel('Cp')
     ax.set_title('Pressure Coefficient')
-    ax.legend(loc='upper right')
+    ax.invert_yaxis()  # Suction (negative Cp) at top
+    ax.legend(loc='lower right')
     ax.grid(True, alpha=0.3)
     ax.set_xlim(-0.05, 1.05)
     
@@ -218,14 +219,15 @@ def main():
     ax.grid(True, alpha=0.3)
     ax.set_xlim(-0.05, 1.05)
     
-    # Full Cp
+    # Full Cp (inverted y-axis)
     ax = axes[1, 0]
-    ax.plot(x_airfoil, -cp_airfoil, 'b.', markersize=3, label='RANS')
-    ax.plot(mfoil_result['x_upper'], -mfoil_result['cp_upper'], 'r-', lw=1.5, alpha=0.7, label='mfoil')
-    ax.plot(mfoil_result['x_lower'], -mfoil_result['cp_lower'], 'r-', lw=1.5, alpha=0.7)
+    ax.plot(x_airfoil, cp_airfoil, 'b.', markersize=3, label='RANS')
+    ax.plot(mfoil_result['x_upper'], mfoil_result['cp_upper'], 'r-', lw=1.5, alpha=0.7, label='mfoil')
+    ax.plot(mfoil_result['x_lower'], mfoil_result['cp_lower'], 'r-', lw=1.5, alpha=0.7)
     ax.set_xlabel('x/c')
-    ax.set_ylabel('-Cp')
+    ax.set_ylabel('Cp')
     ax.set_title('Cp Distribution (all points)')
+    ax.invert_yaxis()
     ax.legend()
     ax.grid(True, alpha=0.3)
     ax.set_xlim(-0.05, 1.05)

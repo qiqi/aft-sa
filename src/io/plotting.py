@@ -285,19 +285,20 @@ def plot_surface_distributions(x: np.ndarray, Cp: np.ndarray, Cf: np.ndarray,
     
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     
-    # Cp distribution
+    # Cp distribution (inverted y-axis: suction up)
     ax = axes[0]
-    ax.plot(x, -Cp, 'b.', markersize=3, label='CFD')
+    ax.plot(x, Cp, 'b.', markersize=3, label='CFD')
     if reference_data is not None:
         if 'cp_upper' in reference_data:
-            ax.plot(reference_data['x_upper'], -reference_data['cp_upper'],
+            ax.plot(reference_data['x_upper'], reference_data['cp_upper'],
                     'r-', lw=1.5, alpha=0.7, label='Reference')
         if 'cp_lower' in reference_data:
-            ax.plot(reference_data['x_lower'], -reference_data['cp_lower'],
+            ax.plot(reference_data['x_lower'], reference_data['cp_lower'],
                     'r-', lw=1.5, alpha=0.7)
     ax.set_xlabel('x/c')
-    ax.set_ylabel('-Cp')
+    ax.set_ylabel('Cp')
     ax.set_title('Pressure Coefficient')
+    ax.invert_yaxis()  # Suction (negative Cp) at top
     ax.legend()
     ax.grid(True, alpha=0.3)
     ax.set_xlim(-0.05, 1.05)

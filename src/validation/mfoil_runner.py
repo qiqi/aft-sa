@@ -111,9 +111,13 @@ def _extract_surface_data(M) -> Dict[str, np.ndarray]:
     """
     Extract surface Cp and Cf distributions from mfoil solution.
     
-    Returns data split into upper and lower surfaces.
+    Returns data split into upper and lower surfaces, ordered from LE to TE.
+    
+    mfoil coordinate ordering: starts at TE lower, goes counterclockwise
+    to LE, then continues to TE upper. So:
+      - Points 0 to N/2-1: Lower surface (TE → LE)
+      - Points N/2 to N-1: Upper surface (LE → TE)
     """
-    # Get coordinates and data from mfoil
     x_coords = M.foil.x[0, :].copy()
     y_coords = M.foil.x[1, :].copy()
     
@@ -123,13 +127,14 @@ def _extract_surface_data(M) -> Dict[str, np.ndarray]:
     N = M.foil.N
     n_half = N // 2
     
-    # Upper surface: first half, reversed to go LE to TE
-    x_upper = x_coords[:n_half+1][::-1]
-    y_upper = y_coords[:n_half+1][::-1]
+    # Lower surface: first half (points 0 to n_half), goes TE→LE
+    # Reverse to get LE→TE ordering
+    x_lower = x_coords[:n_half+1][::-1]
+    y_lower = y_coords[:n_half+1][::-1]
     
-    # Lower surface: second half
-    x_lower = x_coords[n_half:]
-    y_lower = y_coords[n_half:]
+    # Upper surface: second half (points n_half to N-1), already LE→TE
+    x_upper = x_coords[n_half:]
+    y_upper = y_coords[n_half:]
     
     result = {
         'x_upper': x_upper,
@@ -139,18 +144,18 @@ def _extract_surface_data(M) -> Dict[str, np.ndarray]:
     }
     
     if cp_all is not None:
-        result['cp_upper'] = cp_all[:n_half+1][::-1]
-        result['cp_lower'] = cp_all[n_half:N]
+        result['cp_lower'] = cp_all[:n_half+1][::-1]  # LE→TE
+        result['cp_upper'] = cp_all[n_half:N]          # Already LE→TE
     else:
-        result['cp_upper'] = np.zeros(n_half+1)
-        result['cp_lower'] = np.zeros(N - n_half)
+        result['cp_lower'] = np.zeros(n_half+1)
+        result['cp_upper'] = np.zeros(N - n_half)
     
     if cf_all is not None:
-        result['cf_upper'] = cf_all[:n_half+1][::-1]
-        result['cf_lower'] = cf_all[n_half:N]
+        result['cf_lower'] = cf_all[:n_half+1][::-1]
+        result['cf_upper'] = cf_all[n_half:N]
     else:
-        result['cf_upper'] = np.zeros(n_half+1)
-        result['cf_lower'] = np.zeros(N - n_half)
+        result['cf_lower'] = np.zeros(n_half+1)
+        result['cf_upper'] = np.zeros(N - n_half)
     
     return result
 
