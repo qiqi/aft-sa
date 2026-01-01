@@ -41,6 +41,16 @@ from .loader import (
     find_construct2d_binary
 )
 
+from .coarsening import (
+    Coarsener,
+    coarsen_volumes,
+    coarsen_cell_centers,
+    coarsen_i_face_normals,
+    coarsen_j_face_normals,
+    coarsen_wall_distance,
+    validate_gcl_coarse
+)
+
 __all__ = [
     # Mesher
     'Construct2DWrapper',
@@ -68,6 +78,14 @@ __all__ = [
     # Loader
     'load_or_generate_grid',
     'find_construct2d_binary',
+    # Coarsening
+    'Coarsener',
+    'coarsen_volumes',
+    'coarsen_cell_centers',
+    'coarsen_i_face_normals',
+    'coarsen_j_face_normals',
+    'coarsen_wall_distance',
+    'validate_gcl_coarse',
 ]
 
 

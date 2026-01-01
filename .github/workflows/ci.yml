@@ -35,10 +35,18 @@ jobs:
           pip install numpy scipy matplotlib numba pytest
       
       - name: Run tests
-        run: pytest tests/ -v --tb=short -x
+        run: pytest tests/ -v --tb=short
       
       - name: Run visualization scripts (smoke test)
         run: |
           python scripts/models/plot_falkner_skan.py
           python scripts/models/plot_blasius_growth.py
           python scripts/models/run_flat_plate.py
+      
+      - name: Run multigrid visual tests (smoke test)
+        run: |
+          python tests/grid/visual_coarsening.py
+          python tests/numerics/visual_transfers.py
+          python tests/solver/visual_hierarchy.py
+          python tests/solver/visual_vcycle.py
+          python tests/solver/visual_multigrid_validation.py

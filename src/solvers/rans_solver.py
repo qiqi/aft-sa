@@ -41,6 +41,7 @@ from .boundary_conditions import (
     apply_boundary_conditions
 )
 from .time_stepping import compute_local_timestep, TimeStepConfig
+from .multigrid import MultigridHierarchy, build_multigrid_hierarchy
 
 # IO
 from ..io.output import VTKWriter, write_vtk
@@ -102,6 +103,13 @@ class SolverConfig:
     diagnostic_mode: bool = False   # Enable diagnostic output (plots, extra stats)
     diagnostic_freq: int = 100      # Frequency of diagnostic dumps (when enabled)
     divergence_history: int = 0     # Number of solutions to save for divergence analysis
+    
+    # Multigrid options
+    use_multigrid: bool = False     # Enable geometric multigrid (FAS scheme)
+    mg_levels: int = 4              # Maximum number of multigrid levels
+    mg_nu1: int = 2                 # Pre-smoothing iterations
+    mg_nu2: int = 2                 # Post-smoothing iterations
+    mg_min_size: int = 8            # Minimum cells per direction on coarsest grid
 
 
 class RANSSolver:
@@ -174,6 +182,11 @@ class RANSSolver:
         
         # Initialize state
         self._initialize_state()
+        
+        # Initialize multigrid hierarchy if enabled
+        self.mg_hierarchy = None
+        if self.config.use_multigrid:
+            self._initialize_multigrid()
         
         # Initialize VTK writer
         self._initialize_output()
@@ -318,6 +331,25 @@ class RANSSolver:
         print(f"  Far-field BC: Characteristic (non-reflecting)")
         print(f"  Wall damping applied (L={self.config.wall_damping_length})")
     
+    def _initialize_multigrid(self):
+        """Initialize multigrid hierarchy for FAS scheme."""
+        print(f"  Initializing multigrid hierarchy...")
+        
+        self.mg_hierarchy = build_multigrid_hierarchy(
+            X=self.X,
+            Y=self.Y,
+            Q=self.Q,
+            freestream=self.freestream,
+            n_wake=getattr(self.config, 'n_wake', 0),
+            beta=self.config.beta,
+            min_size=self.config.mg_min_size,
+            max_levels=self.config.mg_levels
+        )
+        
+        print(f"  Built {self.mg_hierarchy.num_levels} multigrid levels:")
+        for i, lvl in enumerate(self.mg_hierarchy.levels):
+            print(f"    Level {i}: {lvl.NI} x {lvl.NJ}")
+    
     def _initialize_output(self):
         """Initialize VTK writer for output."""
         # Create output directory
@@ -363,8 +395,35 @@ class RANSSolver:
         t = iteration / self.config.cfl_ramp_iters
         return self.config.cfl_start + t * (self.config.cfl_target - self.config.cfl_start)
     
-    def _compute_residual(self, Q: np.ndarray) -> np.ndarray:
-        """Compute flux residual using JST scheme + viscous fluxes."""
+    def _compute_residual(self, Q: np.ndarray, 
+                           forcing: Optional[np.ndarray] = None,
+                           flux_metrics: Optional[FluxGridMetrics] = None,
+                           grad_metrics: Optional[GradientMetrics] = None) -> np.ndarray:
+        """
+        Compute flux residual using JST scheme + viscous fluxes.
+        
+        Parameters
+        ----------
+        Q : ndarray, shape (NI+2, NJ+2, 4)
+            State vector with ghost cells.
+        forcing : ndarray, shape (NI, NJ, 4), optional
+            FAS forcing term to add to residual (for multigrid).
+        flux_metrics : FluxGridMetrics, optional
+            Grid metrics for flux computation (default: self.flux_metrics).
+        grad_metrics : GradientMetrics, optional
+            Gradient metrics (default: self.grad_metrics).
+            
+        Returns
+        -------
+        residual : ndarray, shape (NI, NJ, 4)
+            Computed residual (optionally with forcing added).
+        """
+        # Use default metrics if not provided
+        if flux_metrics is None:
+            flux_metrics = self.flux_metrics
+        if grad_metrics is None:
+            grad_metrics = self.grad_metrics
+        
         # Create flux config (k2=0 for incompressible flow - no shock capturing needed)
         flux_cfg = FluxConfig(
             k2=0.0,
@@ -372,18 +431,22 @@ class RANSSolver:
         )
         
         # Compute convective fluxes (JST scheme)
-        conv_residual = compute_fluxes(Q, self.flux_metrics, self.config.beta, flux_cfg)
+        conv_residual = compute_fluxes(Q, flux_metrics, self.config.beta, flux_cfg)
         
         # Compute gradients for viscous fluxes
-        gradients = compute_gradients(Q, self.grad_metrics)
+        gradients = compute_gradients(Q, grad_metrics)
         
         # Compute laminar viscosity from Reynolds number
         mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
         
         # Add viscous fluxes (laminar only for now)
         residual = add_viscous_fluxes(
-            conv_residual, Q, gradients, self.grad_metrics, mu_laminar
+            conv_residual, Q, gradients, grad_metrics, mu_laminar
         )
+        
+        # Add FAS forcing term if provided (for multigrid coarse levels)
+        if forcing is not None:
+            residual = residual + forcing
         
         return residual
     
@@ -469,6 +532,215 @@ class RANSSolver:
         
         return residual_rms, final_residual
     
+    def step_multigrid(self) -> Tuple[float, np.ndarray]:
+        """
+        Perform one V-cycle iteration with multigrid acceleration.
+        
+        Returns
+        -------
+        residual_rms : float
+            RMS of the density residual.
+        residual : ndarray
+            Full residual array.
+        """
+        if self.mg_hierarchy is None:
+            raise RuntimeError("Multigrid not initialized. Set use_multigrid=True.")
+        
+        # Sync fine level state
+        self.mg_hierarchy.levels[0].Q[:] = self.Q
+        
+        # Get current CFL
+        cfl = self._get_cfl(self.iteration)
+        
+        # Compute timestep for finest level
+        ts_config = TimeStepConfig(cfl=cfl)
+        nu = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
+        
+        dt = compute_local_timestep(
+            self.Q,
+            self.metrics.Si_x, self.metrics.Si_y,
+            self.metrics.Sj_x, self.metrics.Sj_y,
+            self.metrics.volume,
+            self.config.beta,
+            ts_config,
+            nu=nu
+        )
+        self.mg_hierarchy.levels[0].dt[:] = dt
+        
+        # Run V-cycle starting from finest level
+        self._run_v_cycle(0)
+        
+        # Copy result back from hierarchy
+        self.Q = self.mg_hierarchy.levels[0].Q.copy()
+        
+        # Compute final residual for monitoring
+        final_residual = self._compute_residual(self.Q)
+        residual_rms = self._compute_residual_rms(final_residual)
+        
+        # Update iteration counter
+        self.iteration += 1
+        
+        return residual_rms, final_residual
+    
+    def _run_v_cycle(self, level: int):
+        """
+        Run recursive V-cycle from given level.
+        
+        FAS V-cycle algorithm:
+        1. Pre-smoothing (nu1 iterations)
+        2. Compute residual R_f
+        3. Restrict Q_f -> Q_c and R_f -> R_c
+        4. Compute coarse residual R(Q_c)
+        5. Compute FAS forcing: P_c = R_c - R(Q_c)
+        6. Recurse to coarser level (or solve if coarsest)
+        7. Prolongate correction: Q_f += interpolate(Q_c_new - Q_c_old)
+        8. Post-smoothing (nu2 iterations)
+        
+        Parameters
+        ----------
+        level : int
+            Current multigrid level (0 = finest).
+        """
+        lvl = self.mg_hierarchy.levels[level]
+        
+        # ===== Pre-smoothing =====
+        for _ in range(self.config.mg_nu1):
+            self._smooth_level(level)
+        
+        # ===== If coarsest level, do extra smoothing and return =====
+        if level >= self.mg_hierarchy.num_levels - 1:
+            # Extra smoothing on coarsest level
+            for _ in range(self.config.mg_nu1 + self.config.mg_nu2):
+                self._smooth_level(level)
+            return
+        
+        # ===== Compute fine residual =====
+        lvl.Q = lvl.bc.apply(lvl.Q)
+        lvl.R = self._compute_residual_level(level)
+        
+        # ===== Restrict to coarse level =====
+        self.mg_hierarchy.restrict_to_coarse(level)
+        
+        # ===== Compute coarse residual and FAS forcing =====
+        coarse = self.mg_hierarchy.levels[level + 1]
+        coarse.Q = coarse.bc.apply(coarse.Q)
+        R_coarse = self._compute_residual_level(level + 1)
+        
+        # FAS forcing: P_c = R_restricted - R(Q_c)
+        coarse.forcing = coarse.R - R_coarse
+        
+        # Store Q_old for correction computation
+        coarse.Q_old[:] = coarse.Q
+        
+        # ===== Recurse to coarser level =====
+        self._run_v_cycle(level + 1)
+        
+        # ===== Prolongate correction =====
+        self.mg_hierarchy.prolongate_correction(level + 1)
+        
+        # ===== Post-smoothing =====
+        for _ in range(self.config.mg_nu2):
+            self._smooth_level(level)
+    
+    def _smooth_level(self, level: int):
+        """
+        Perform one smoothing step on a multigrid level.
+        
+        Uses RK4 with local timestepping.
+        
+        Parameters
+        ----------
+        level : int
+            Multigrid level to smooth.
+        """
+        lvl = self.mg_hierarchy.levels[level]
+        
+        # Compute timestep if not already computed
+        if level > 0:
+            # For coarse levels, scale timestep from fine
+            fine = self.mg_hierarchy.levels[level - 1]
+            # Average 4 fine timesteps for each coarse cell
+            NI_c, NJ_c = lvl.NI, lvl.NJ
+            for i_c in range(NI_c):
+                for j_c in range(NJ_c):
+                    i_f, j_f = 2 * i_c, 2 * j_c
+                    lvl.dt[i_c, j_c] = 0.25 * (
+                        fine.dt[i_f, j_f] + fine.dt[i_f+1, j_f] +
+                        fine.dt[i_f, j_f+1] + fine.dt[i_f+1, j_f+1]
+                    )
+        
+        # Get forcing term (zero for finest, computed for coarse)
+        forcing = lvl.forcing if level > 0 else None
+        
+        # RK4 smoothing step
+        Q0 = lvl.Q.copy()
+        Qk = lvl.Q.copy()
+        
+        alphas = [0.25, 0.333333333, 0.5, 1.0]
+        
+        for alpha in alphas:
+            Qk = lvl.bc.apply(Qk)
+            
+            # Compute residual with forcing
+            R = self._compute_residual_level(level, Q=Qk, forcing=forcing)
+            
+            # Apply IRS if enabled
+            if self.config.irs_epsilon > 0.0:
+                apply_residual_smoothing(R, self.config.irs_epsilon)
+            
+            # Update
+            Qk = Q0.copy()
+            Qk[1:-1, 1:-1, :] += alpha * (lvl.dt / lvl.metrics.volume)[:, :, np.newaxis] * R
+        
+        lvl.Q = lvl.bc.apply(Qk)
+    
+    def _compute_residual_level(self, level: int, 
+                                  Q: Optional[np.ndarray] = None,
+                                  forcing: Optional[np.ndarray] = None) -> np.ndarray:
+        """
+        Compute residual on a specific multigrid level.
+        
+        Parameters
+        ----------
+        level : int
+            Multigrid level.
+        Q : ndarray, optional
+            State to use (default: level's current Q).
+        forcing : ndarray, optional
+            FAS forcing term.
+            
+        Returns
+        -------
+        R : ndarray, shape (NI, NJ, 4)
+            Residual.
+        """
+        lvl = self.mg_hierarchy.levels[level]
+        
+        if Q is None:
+            Q = lvl.Q
+        
+        # Build flux metrics for this level
+        flux_metrics = FluxGridMetrics(
+            Si_x=lvl.metrics.Si_x,
+            Si_y=lvl.metrics.Si_y,
+            Sj_x=lvl.metrics.Sj_x,
+            Sj_y=lvl.metrics.Sj_y,
+            volume=lvl.metrics.volume
+        )
+        
+        # Build gradient metrics for this level
+        grad_metrics = GradientMetrics(
+            Si_x=lvl.metrics.Si_x,
+            Si_y=lvl.metrics.Si_y,
+            Sj_x=lvl.metrics.Sj_x,
+            Sj_y=lvl.metrics.Sj_y,
+            volume=lvl.metrics.volume,
+            xc=lvl.metrics.xc,
+            yc=lvl.metrics.yc
+        )
+        
+        return self._compute_residual(Q, forcing, flux_metrics, grad_metrics)
+    
     def run_steady_state(self) -> bool:
         """
         Run steady-state simulation to convergence.
@@ -489,8 +761,11 @@ class RANSSolver:
         initial_residual = None
         
         for n in range(self.config.max_iter):
-            # Perform one step
-            res_rms, _ = self.step()
+            # Perform one step (use multigrid if enabled)
+            if self.config.use_multigrid:
+                res_rms, _ = self.step_multigrid()
+            else:
+                res_rms, _ = self.step()
             
             # Store history
             self.residual_history.append(res_rms)

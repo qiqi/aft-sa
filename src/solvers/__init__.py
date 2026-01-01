@@ -30,6 +30,12 @@ from .rans_solver import (
     SolverConfig,
 )
 
+from .multigrid import (
+    MultigridLevel,
+    MultigridHierarchy,
+    build_multigrid_hierarchy,
+)
+
 __all__ = [
     # Time stepping
     'TimeStepConfig',
@@ -49,5 +55,9 @@ __all__ = [
     # Main solver
     'RANSSolver',
     'SolverConfig',
+    # Multigrid
+    'MultigridLevel',
+    'MultigridHierarchy',
+    'build_multigrid_hierarchy',
 ]
 

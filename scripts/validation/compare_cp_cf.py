@@ -185,6 +185,58 @@ def main():
     cp_upper, cp_lower = cp_airfoil[upper][idx_upper], cp_airfoil[lower][idx_lower]
     cf_upper, cf_lower = cf_airfoil[upper][idx_upper], cf_airfoil[lower][idx_lower]
     
+    # Quantitative comparison: interpolate mfoil to RANS grid and compute errors
+    print("\n" + "="*70)
+    print("  Cp/Cf DISTRIBUTION COMPARISON")
+    print("="*70)
+    
+    # Interpolate mfoil data to RANS x-locations
+    cp_mfoil_upper_interp = np.interp(x_upper, mfoil_result['x_upper'], mfoil_result['cp_upper'])
+    cp_mfoil_lower_interp = np.interp(x_lower, mfoil_result['x_lower'], mfoil_result['cp_lower'])
+    cf_mfoil_upper_interp = np.interp(x_upper, mfoil_result['x_upper'], mfoil_result['cf_upper'])
+    cf_mfoil_lower_interp = np.interp(x_lower, mfoil_result['x_lower'], mfoil_result['cf_lower'])
+    
+    # Compute errors
+    cp_err_upper = cp_upper - cp_mfoil_upper_interp
+    cp_err_lower = cp_lower - cp_mfoil_lower_interp
+    cf_err_upper = cf_upper - cf_mfoil_upper_interp
+    cf_err_lower = cf_lower - cf_mfoil_lower_interp
+    
+    # L2 and Linf norms
+    def compute_norms(err, ref):
+        """Compute L2 and Linf norms, normalized by reference magnitude."""
+        ref_scale = np.sqrt(np.mean(ref**2)) + 1e-10
+        l2 = np.sqrt(np.mean(err**2))
+        linf = np.max(np.abs(err))
+        return l2, linf, l2 / ref_scale * 100, linf / ref_scale * 100
+    
+    print(f"{'Surface':<12} {'Variable':<8} {'L2 error':>12} {'L∞ error':>12} {'L2 %':>10} {'L∞ %':>10}")
+    print("-"*70)
+    
+    l2_cp_u, linf_cp_u, l2p_cp_u, linfp_cp_u = compute_norms(cp_err_upper, cp_mfoil_upper_interp)
+    l2_cp_l, linf_cp_l, l2p_cp_l, linfp_cp_l = compute_norms(cp_err_lower, cp_mfoil_lower_interp)
+    l2_cf_u, linf_cf_u, l2p_cf_u, linfp_cf_u = compute_norms(cf_err_upper, cf_mfoil_upper_interp)
+    l2_cf_l, linf_cf_l, l2p_cf_l, linfp_cf_l = compute_norms(cf_err_lower, cf_mfoil_lower_interp)
+    
+    print(f"{'Upper':<12} {'Cp':<8} {l2_cp_u:>12.6f} {linf_cp_u:>12.6f} {l2p_cp_u:>10.2f} {linfp_cp_u:>10.2f}")
+    print(f"{'Lower':<12} {'Cp':<8} {l2_cp_l:>12.6f} {linf_cp_l:>12.6f} {l2p_cp_l:>10.2f} {linfp_cp_l:>10.2f}")
+    print(f"{'Upper':<12} {'Cf':<8} {l2_cf_u:>12.6f} {linf_cf_u:>12.6f} {l2p_cf_u:>10.2f} {linfp_cf_u:>10.2f}")
+    print(f"{'Lower':<12} {'Cf':<8} {l2_cf_l:>12.6f} {linf_cf_l:>12.6f} {l2p_cf_l:>10.2f} {linfp_cf_l:>10.2f}")
+    print("-"*70)
+    
+    # Combined metrics
+    cp_all_err = np.concatenate([cp_err_upper, cp_err_lower])
+    cf_all_err = np.concatenate([cf_err_upper, cf_err_lower])
+    cp_all_ref = np.concatenate([cp_mfoil_upper_interp, cp_mfoil_lower_interp])
+    cf_all_ref = np.concatenate([cf_mfoil_upper_interp, cf_mfoil_lower_interp])
+    
+    l2_cp, linf_cp, l2p_cp, linfp_cp = compute_norms(cp_all_err, cp_all_ref)
+    l2_cf, linf_cf, l2p_cf, linfp_cf = compute_norms(cf_all_err, cf_all_ref)
+    
+    print(f"{'Total':<12} {'Cp':<8} {l2_cp:>12.6f} {linf_cp:>12.6f} {l2p_cp:>10.2f} {linfp_cp:>10.2f}")
+    print(f"{'Total':<12} {'Cf':<8} {l2_cf:>12.6f} {linf_cf:>12.6f} {l2p_cf:>10.2f} {linfp_cf:>10.2f}")
+    print("="*70)
+    
     # Create comparison plots
     print("Creating comparison plots...")
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))

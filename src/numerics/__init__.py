@@ -46,6 +46,16 @@ from .diagnostics import (
     compute_residual_statistics,
 )
 
+from .multigrid import (
+    restrict_state,
+    restrict_residual,
+    prolongate_correction,
+    prolongate_injection,
+    compute_integral,
+    compute_residual_sum,
+    create_coarse_arrays,
+)
+
 __all__ = [
     # Convective fluxes
     'compute_fluxes',
@@ -75,5 +85,13 @@ __all__ = [
     'compute_total_pressure_loss',
     'compute_solution_bounds',
     'compute_residual_statistics',
+    # Multigrid transfers
+    'restrict_state',
+    'restrict_residual',
+    'prolongate_correction',
+    'prolongate_injection',
+    'compute_integral',
+    'compute_residual_sum',
+    'create_coarse_arrays',
 ]
 
