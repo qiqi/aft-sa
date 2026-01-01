@@ -1051,24 +1051,26 @@ class RANSSolver:
                     Q_int, self.freestream.p_inf,
                     self.freestream.u_inf, self.freestream.v_inf
                 )
-                pdf_path = plot_flow_field(
-                    self.X, self.Y, self.Q,
-                    iteration=self.iteration, residual=res_rms, cfl=cfl,
-                    output_dir=str(snapshot_dir),
-                    case_name=self.config.case_name,
-                    C_pt=C_pt, residual_field=R_field
-                )
-                print(f"         -> Dumped: {pdf_path}")
                 
-                # Also dump all multigrid levels if enabled
+                # Use multigrid plot (all levels in one PDF) or single-level plot
                 if self.config.use_multigrid and self.mg_hierarchy is not None:
-                    mg_pdf_path = plot_multigrid_levels(
+                    pdf_path = plot_multigrid_levels(
                         self.mg_hierarchy,
+                        X_fine=self.X, Y_fine=self.Y,
                         iteration=self.iteration, residual=res_rms, cfl=cfl,
                         output_dir=str(snapshot_dir),
-                        case_name=self.config.case_name
+                        case_name=self.config.case_name,
+                        C_pt_fine=C_pt, residual_field_fine=R_field
                     )
-                    print(f"         -> MG Levels: {mg_pdf_path}")
+                else:
+                    pdf_path = plot_flow_field(
+                        self.X, self.Y, self.Q,
+                        iteration=self.iteration, residual=res_rms, cfl=cfl,
+                        output_dir=str(snapshot_dir),
+                        case_name=self.config.case_name,
+                        C_pt=C_pt, residual_field=R_field
+                    )
+                print(f"         -> Dumped: {pdf_path}")
                 
                 # VTK output with C_pt
                 surface_fields = self._compute_surface_fields()

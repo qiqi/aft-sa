@@ -254,17 +254,26 @@ def plot_residual_history(residuals: List[float], output_dir: str,
     return output_path
 
 
-def plot_multigrid_levels(mg_hierarchy, iteration: int, residual: float, cfl: float,
-                          output_dir: str, case_name: str = "flow") -> str:
+def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
+                          iteration: int, residual: float, cfl: float,
+                          output_dir: str, case_name: str = "flow",
+                          C_pt_fine: Optional[np.ndarray] = None,
+                          residual_field_fine: Optional[np.ndarray] = None) -> str:
     """
-    Plot flow field for all multigrid levels.
+    Plot flow field for all multigrid levels in a single multi-page PDF.
     
-    Creates a multi-page PDF with pressure and velocity for each level.
+    Each page shows the same content as plot_flow_field:
+    - Pressure (global and zoomed)
+    - Velocity magnitude (global and zoomed)
+    - Total Pressure Loss C_pt (if provided, finest level only)
+    - Residual field (if provided, finest level only)
     
     Parameters
     ----------
     mg_hierarchy : MultigridHierarchy
         The multigrid hierarchy object containing all levels.
+    X_fine, Y_fine : ndarray
+        Node coordinates for finest grid (for proper pcolormesh).
     iteration : int
         Current iteration number.
     residual : float
@@ -275,6 +284,10 @@ def plot_multigrid_levels(mg_hierarchy, iteration: int, residual: float, cfl: fl
         Output directory for PDF files.
     case_name : str
         Base name for output files.
+    C_pt_fine : ndarray, optional
+        Total pressure loss for finest level.
+    residual_field_fine : ndarray, optional
+        Residual field for finest level.
         
     Returns
     -------
@@ -286,16 +299,16 @@ def plot_multigrid_levels(mg_hierarchy, iteration: int, residual: float, cfl: fl
     import warnings
     
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    output_path = os.path.join(output_dir, f'{case_name}_mg_iter{iteration:06d}.pdf')
+    output_path = os.path.join(output_dir, f'{case_name}_iter{iteration:06d}.pdf')
     
     # Suppress pcolormesh warnings for curvilinear grids
     with warnings.catch_warnings(), PdfPages(output_path) as pdf:
         warnings.filterwarnings('ignore', category=UserWarning, 
                                 message='.*pcolormesh.*monotonically.*')
+        
         for level_idx, level in enumerate(mg_hierarchy.levels):
             # Get level data
             NI, NJ = level.NI, level.NJ
-            metrics = level.metrics
             Q = level.Q
             
             # Strip ghost cells
@@ -304,9 +317,18 @@ def plot_multigrid_levels(mg_hierarchy, iteration: int, residual: float, cfl: fl
             else:
                 Q_int = Q
             
-            # Create grid coordinates from cell centers
-            # For plotting, we create a simple structured grid
-            xc, yc = metrics.xc, metrics.yc
+            # Get grid coordinates for this level
+            if level_idx == 0:
+                X, Y = X_fine, Y_fine
+                C_pt = C_pt_fine
+                residual_field = residual_field_fine
+            else:
+                # Coarsen grid coordinates by taking every 2^level_idx node
+                step = 2 ** level_idx
+                X = X_fine[::step, ::step]
+                Y = Y_fine[::step, ::step]
+                C_pt = None  # Only show C_pt for finest
+                residual_field = None  # Only show residual for finest
             
             # Extract fields
             p = Q_int[:, :, 0]
@@ -314,26 +336,33 @@ def plot_multigrid_levels(mg_hierarchy, iteration: int, residual: float, cfl: fl
             v = Q_int[:, :, 2]
             vel_mag = np.sqrt(u**2 + v**2)
             
-            # Create figure for this level
-            fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+            # Determine number of rows for this level
+            n_rows = 2  # Pressure + Velocity always
+            if C_pt is not None:
+                n_rows += 1
+            if residual_field is not None:
+                n_rows += 1
+            
+            fig, axes = plt.subplots(n_rows, 2, figsize=(14, 5 * n_rows))
+            if n_rows == 2:
+                axes = axes.reshape(2, 2)
             
             level_title = f"Level {level_idx}: {NI}x{NJ} cells"
             fig.suptitle(f'{level_title} - Iter {iteration}, Res={residual:.2e}, CFL={cfl:.2f}', 
                         fontsize=14, fontweight='bold')
             
-            # Pressure - global
+            # --- Row 1: Pressure ---
             ax = axes[0, 0]
             p_clip = np.clip(p, np.percentile(p, 1), np.percentile(p, 99))
-            pc = ax.pcolormesh(xc.T, yc.T, p_clip.T, cmap='RdBu_r', shading='auto', rasterized=True)
+            pc = ax.pcolormesh(X.T, Y.T, p_clip.T, cmap='RdBu_r', shading='flat', rasterized=True)
             ax.set_aspect('equal')
             ax.set_title('Pressure (Global)')
             ax.set_xlabel('x/c')
             ax.set_ylabel('y/c')
             plt.colorbar(pc, ax=ax, shrink=0.8, label='p')
             
-            # Pressure - zoomed
             ax = axes[0, 1]
-            pc = ax.pcolormesh(xc.T, yc.T, p_clip.T, cmap='RdBu_r', shading='auto', rasterized=True)
+            pc = ax.pcolormesh(X.T, Y.T, p_clip.T, cmap='RdBu_r', shading='flat', rasterized=True)
             ax.set_aspect('equal')
             ax.set_xlim(-0.2, 1.4)
             ax.set_ylim(-0.4, 0.4)
@@ -342,19 +371,18 @@ def plot_multigrid_levels(mg_hierarchy, iteration: int, residual: float, cfl: fl
             ax.set_ylabel('y/c')
             plt.colorbar(pc, ax=ax, shrink=0.8, label='p')
             
-            # Velocity - global
+            # --- Row 2: Velocity Magnitude ---
             ax = axes[1, 0]
             vel_clip = np.clip(vel_mag, 0, np.percentile(vel_mag, 99))
-            pc = ax.pcolormesh(xc.T, yc.T, vel_clip.T, cmap='viridis', shading='auto', rasterized=True)
+            pc = ax.pcolormesh(X.T, Y.T, vel_clip.T, cmap='viridis', shading='flat', rasterized=True)
             ax.set_aspect('equal')
             ax.set_title('Velocity Magnitude (Global)')
             ax.set_xlabel('x/c')
             ax.set_ylabel('y/c')
             plt.colorbar(pc, ax=ax, shrink=0.8, label='|V|')
             
-            # Velocity - zoomed
             ax = axes[1, 1]
-            pc = ax.pcolormesh(xc.T, yc.T, vel_clip.T, cmap='viridis', shading='auto', rasterized=True)
+            pc = ax.pcolormesh(X.T, Y.T, vel_clip.T, cmap='viridis', shading='flat', rasterized=True)
             ax.set_aspect('equal')
             ax.set_xlim(-0.2, 1.4)
             ax.set_ylim(-0.4, 0.4)
@@ -363,41 +391,71 @@ def plot_multigrid_levels(mg_hierarchy, iteration: int, residual: float, cfl: fl
             ax.set_ylabel('y/c')
             plt.colorbar(pc, ax=ax, shrink=0.8, label='|V|')
             
-            plt.tight_layout(rect=[0, 0, 1, 0.95])
-            pdf.savefig(fig, dpi=100)
-            plt.close(fig)
+            row_idx = 2
             
-            # Add a page for residual and forcing if level > 0
-            if level_idx > 0 and np.any(level.forcing != 0):
-                fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-                fig.suptitle(f'{level_title} - FAS Forcing Term', fontsize=14)
+            # --- Total Pressure Loss (finest level only) ---
+            if C_pt is not None:
+                C_pt_abs_max = max(np.abs(np.percentile(C_pt, 1)), np.abs(np.percentile(C_pt, 99)))
+                C_pt_abs_max = max(C_pt_abs_max, 0.01)
                 
-                # Forcing term for pressure equation
-                forcing_p = level.forcing[:, :, 0]
-                
-                ax = axes[0]
-                f_abs = np.abs(forcing_p)
-                f_log = np.log10(f_abs + 1e-15)
-                pc = ax.pcolormesh(xc.T, yc.T, f_log.T, cmap='hot_r', shading='auto', rasterized=True)
+                ax = axes[row_idx, 0]
+                pc = ax.pcolormesh(X.T, Y.T, C_pt.T, cmap='RdBu_r', shading='flat',
+                                   rasterized=True, vmin=-C_pt_abs_max, vmax=C_pt_abs_max)
                 ax.set_aspect('equal')
-                ax.set_title('log₁₀|FAS Forcing| (Global)')
+                ax.set_title('Total Pressure Loss C_pt (Global)')
                 ax.set_xlabel('x/c')
                 ax.set_ylabel('y/c')
-                plt.colorbar(pc, ax=ax, shrink=0.8, label='log₁₀|P_c|')
+                plt.colorbar(pc, ax=ax, shrink=0.8, label='C_pt')
                 
-                ax = axes[1]
-                pc = ax.pcolormesh(xc.T, yc.T, f_log.T, cmap='hot_r', shading='auto', rasterized=True)
+                ax = axes[row_idx, 1]
+                pc = ax.pcolormesh(X.T, Y.T, C_pt.T, cmap='RdBu_r', shading='flat',
+                                   rasterized=True, vmin=-C_pt_abs_max, vmax=C_pt_abs_max)
                 ax.set_aspect('equal')
                 ax.set_xlim(-0.2, 1.4)
                 ax.set_ylim(-0.4, 0.4)
-                ax.set_title('log₁₀|FAS Forcing| (Near Airfoil)')
+                ax.set_title('Total Pressure Loss C_pt (Near Airfoil)')
                 ax.set_xlabel('x/c')
                 ax.set_ylabel('y/c')
-                plt.colorbar(pc, ax=ax, shrink=0.8, label='log₁₀|P_c|')
+                plt.colorbar(pc, ax=ax, shrink=0.8, label='C_pt')
                 
-                plt.tight_layout(rect=[0, 0, 1, 0.92])
-                pdf.savefig(fig, dpi=100)
-                plt.close(fig)
+                row_idx += 1
+            
+            # --- Residual Field (finest level only) ---
+            if residual_field is not None:
+                R_p = np.abs(residual_field[:, :, 0])
+                R_log = np.log10(R_p + 1e-12)
+                R_min = np.percentile(R_log, 1)
+                R_max = np.percentile(R_log, 99)
+                
+                ax = axes[row_idx, 0]
+                pc = ax.pcolormesh(X.T, Y.T, R_log.T, cmap='hot_r', shading='flat',
+                                   rasterized=True, vmin=R_min, vmax=R_max)
+                ax.set_aspect('equal')
+                ax.set_title('log₁₀|Residual| (Global)')
+                ax.set_xlabel('x/c')
+                ax.set_ylabel('y/c')
+                plt.colorbar(pc, ax=ax, shrink=0.8, label='log₁₀|R_p|')
+                
+                ax = axes[row_idx, 1]
+                pc = ax.pcolormesh(X.T, Y.T, R_log.T, cmap='hot_r', shading='flat',
+                                   rasterized=True, vmin=R_min, vmax=R_max)
+                ax.set_aspect('equal')
+                ax.set_xlim(-0.2, 1.4)
+                ax.set_ylim(-0.4, 0.4)
+                ax.set_title('log₁₀|Residual| (Near Airfoil)')
+                ax.set_xlabel('x/c')
+                ax.set_ylabel('y/c')
+                
+                # Mark max residual location
+                max_idx = np.unravel_index(np.argmax(R_p), R_p.shape)
+                x_max = 0.5 * (X[max_idx[0], max_idx[1]] + X[max_idx[0]+1, max_idx[1]])
+                y_max = 0.5 * (Y[max_idx[0], max_idx[1]] + Y[max_idx[0]+1, max_idx[1]])
+                ax.plot(x_max, y_max, 'g*', markersize=15, markeredgecolor='white', markeredgewidth=1)
+                plt.colorbar(pc, ax=ax, shrink=0.8, label='log₁₀|R_p|')
+            
+            plt.tight_layout(rect=[0, 0, 1, 0.95])
+            pdf.savefig(fig, dpi=100)
+            plt.close(fig)
     
     return output_path
 
