@@ -193,15 +193,8 @@ subroutine set_defaults(options, surf, filename)
       if (input == 'Y' .or. input == 'y') options%topology = 'OGRD'
     end if
   elseif (topo == 'CGRD' .or. topo == 'Cgrd' .or. topo == 'cgrd') then
-    if (options%topology == 'OGRD') then
-      write(*,*)
-      write(*,*) ' Warning: grid_options.in has topo = CGRD, but this airfoil' 
-      write(*,*) '  has a blunt trailing edge.  Do you really want to use the' 
-      write(*,*) '  C-grid topology instead of the recommended O-grid (y/n)?'
-      write(*,999)
-      read(*,*) input
-      if (input == 'Y' .or. input == 'y') options%topology = 'CGRD'
-    end if
+    ! Always use CGRD if requested, even for blunt trailing edge
+    options%topology = 'CGRD'
   end if
 
   if (options%topology == 'CGRD') then

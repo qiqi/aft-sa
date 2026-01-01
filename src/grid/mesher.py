@@ -21,13 +21,13 @@ class GridOptions:
     
     # Surface grid options (SOPT)
     n_surface: int = 250            # Number of points on airfoil surface
-    le_spacing: float = 0.004       # Leading edge point spacing
-    te_spacing: float = 0.004       # Trailing edge point spacing  
+    le_spacing: float = 0.001       # Leading edge point spacing
+    te_spacing: float = 0.001       # Trailing edge point spacing  
     farfield_radius: float = 15.0   # Farfield radius in chord lengths
     n_wake: int = 50                # Points along wake for C-grid
-    farfield_dist: float = 1.0      # O-grid farfield spacing parameter
+    farfield_dist: float = 2.0      # O-grid farfield spacing parameter
     wake_length_ratio: float = 1.0  # C-grid farfield wake length ratio
-    wake_init_ratio: float = 10.0   # C-grid farfield wake initial length ratio
+    wake_init_ratio: float = 0.1    # C-grid farfield wake initial length ratio
     
     # Volume grid options (VOPT)
     n_normal: int = 100             # Points in wall-normal direction
@@ -42,15 +42,15 @@ class GridOptions:
     # Hyperbolic solver options
     alfa: float = 1.0               # Implicitness parameter (>=0.5)
     epsi: float = 15.0              # Implicit smoothing parameter
-    epse: float = 0.0               # Explicit smoothing parameter
+    epse: float = 0.0               # Explicit smoothing parameter  
     funi: float = 0.01              # Farfield uniformness (0-1, 0.01 for C-grid)
-    asmt: int = 20                  # Cell area smoothing steps
+    asmt: int = 1                   # Cell area smoothing steps
     
     # Elliptic solver options
-    max_steps: int = 1000           # Initial grid smoothing steps
-    final_steps: int = 20           # Final grid smoothing steps
-    nrmt: int = 1                   # First top point to enforce surface-normal grid
-    nrmb: int = 1                   # First bottom point to enforce surface-normal grid
+    max_steps: int = 100            # Initial grid smoothing steps
+    final_steps: int = 50           # Final grid smoothing steps
+    nrmt: int = 5                   # First top point to enforce surface-normal grid
+    nrmb: int = 5                   # First bottom point to enforce surface-normal grid
     
     # Output options (OOPT)
     grid_dim: int = 2               # Output grid dimension (2 or 3)
@@ -219,9 +219,9 @@ class Construct2DWrapper:
                 print(f"  Topology:       {options.topology}")
             
             # Prepare input commands for interactive mode
-            # The tool may ask for confirmation if topology doesn't match TE type
-            # Format: answer prompt, then main commands: GRID -> SMTH -> QUIT
-            commands = "y\nGRID\nSMTH\nQUIT\n"
+            # Leading newline helps synchronize stdin with construct2d
+            # Main menu: GRID -> submenu: SMTH (smoothed airfoil) -> main: QUIT
+            commands = "\nGRID\nSMTH\nQUIT\n"
             
             # Run Construct2D
             result = subprocess.run(
