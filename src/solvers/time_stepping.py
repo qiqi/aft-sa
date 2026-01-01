@@ -298,28 +298,35 @@ class ExplicitEuler:
         return Q_new
 
 
-class RungeKutta4:
+class RungeKutta5:
     """
-    4-stage Runge-Kutta time integration for steady-state problems.
+    5-stage Runge-Kutta time integration for multigrid.
     
-    This is the classic Jameson RK4 scheme optimized for steady-state:
+    This is Jameson's 5-stage scheme with extended stability region,
+    optimized for central difference schemes and multigrid:
         Q^(0) = Q^n
         Q^(k) = Q^(0) + α_k * Δt * R(Q^(k-1))
-        Q^(n+1) = Q^(4)
+        Q^(n+1) = Q^(5)
     
-    Coefficients: α = [1/4, 1/3, 1/2, 1]
+    Coefficients: α = [1/4, 1/6, 3/8, 1/2, 1]
+    
+    This extends the stability region along the negative real axis,
+    allowing CFL ≈ 4 for central differences (vs ~2.8 for 4-stage).
+    
+    Reference: Jameson, Schmidt, Turkel (1981), AIAA Paper 81-1259
     
     Optionally supports Implicit Residual Smoothing (IRS) to allow
-    higher CFL numbers by filtering high-frequency errors.
+    even higher CFL numbers by filtering high-frequency errors.
     """
     
-    # Jameson RK4 coefficients (optimized for steady-state convergence)
-    ALPHA = [0.25, 0.333333333, 0.5, 1.0]
+    # Jameson 5-stage coefficients for multigrid (extended stability region)
+    # These maximize CFL for central differences: CFL_max ≈ 4.0
+    ALPHA = [0.25, 0.166666667, 0.375, 0.5, 1.0]
     
     def __init__(self, beta: float, cfg: Optional[TimeStepConfig] = None,
                  irs_epsilon: float = 0.0):
         """
-        Initialize RK4 integrator.
+        Initialize RK5 integrator (Jameson multigrid scheme).
         
         Parameters
         ----------
@@ -342,7 +349,7 @@ class RungeKutta4:
              Sj_x: np.ndarray, Sj_y: np.ndarray,
              volume: np.ndarray) -> np.ndarray:
         """
-        Perform one RK4 step.
+        Perform one RK5 step (Jameson's 5-stage multigrid scheme).
         
         Parameters
         ----------
@@ -360,7 +367,7 @@ class RungeKutta4:
         Returns
         -------
         Q_new : ndarray, shape (NI+2, NJ+2, 4)
-            Updated state after full RK4 step.
+            Updated state after full RK5 step.
         """
         # Compute local time step based on initial state
         dt = compute_local_timestep(Q, Si_x, Si_y, Sj_x, Sj_y, 
@@ -389,4 +396,8 @@ class RungeKutta4:
             Qk[1:-1, 1:-1, :] += alpha * (dt / volume)[:, :, np.newaxis] * R
         
         return Qk
+
+
+# Backward compatibility alias
+RungeKutta4 = RungeKutta5
 

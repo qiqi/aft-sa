@@ -2,7 +2,7 @@
 Solver components for 2D Incompressible RANS.
 
 This package provides:
-    - Time stepping schemes (explicit Euler, RK4 with local time stepping)
+    - Time stepping schemes (explicit Euler, RK5 with local time stepping)
     - Boundary conditions for C-grid topology (airfoil, farfield, wake cut)
 """
 
@@ -13,7 +13,8 @@ from .time_stepping import (
     compute_local_timestep,
     compute_global_timestep,
     ExplicitEuler,
-    RungeKutta4,
+    RungeKutta5,
+    RungeKutta4,  # Backward compatibility alias
 )
 
 from .boundary_conditions import (
@@ -44,7 +45,8 @@ __all__ = [
     'compute_local_timestep', 
     'compute_global_timestep',
     'ExplicitEuler',
-    'RungeKutta4',
+    'RungeKutta5',
+    'RungeKutta4',  # Backward compatibility alias
     # Boundary conditions
     'FreestreamConditions',
     'BoundaryConditions',

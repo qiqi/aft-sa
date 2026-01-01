@@ -501,8 +501,9 @@ class RANSSolver:
         Q0 = self.Q.copy()
         Qk = self.Q.copy()
         
-        # RK4 coefficients (Jameson scheme)
-        alphas = [0.25, 0.333333333, 0.5, 1.0]
+        # Jameson 5-stage RK coefficients (extended stability for multigrid)
+        # CFL_max ≈ 4.0 for central differences (vs ~2.8 for 4-stage)
+        alphas = [0.25, 0.166666667, 0.375, 0.5, 1.0]
         
         for alpha in alphas:
             # Apply boundary conditions
@@ -686,11 +687,11 @@ class RANSSolver:
         # Get forcing term (zero for finest, computed for coarse)
         forcing = lvl.forcing if level > 0 else None
         
-        # RK4 smoothing step
+        # Jameson 5-stage RK smoothing step (extended stability for multigrid)
         Q0 = lvl.Q.copy()
         Qk = lvl.Q.copy()
         
-        alphas = [0.25, 0.333333333, 0.5, 1.0]
+        alphas = [0.25, 0.166666667, 0.375, 0.5, 1.0]
         
         for alpha in alphas:
             Qk = lvl.bc.apply(Qk)
