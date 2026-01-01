@@ -258,15 +258,17 @@ def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
                           iteration: int, residual: float, cfl: float,
                           output_dir: str, case_name: str = "flow",
                           C_pt_fine: Optional[np.ndarray] = None,
-                          residual_field_fine: Optional[np.ndarray] = None) -> str:
+                          residual_field_fine: Optional[np.ndarray] = None,
+                          freestream: Optional[object] = None,
+                          residual_fields: Optional[List[np.ndarray]] = None) -> str:
     """
     Plot flow field for all multigrid levels in a single multi-page PDF.
     
     Each page shows the same content as plot_flow_field:
     - Pressure (global and zoomed)
     - Velocity magnitude (global and zoomed)
-    - Total Pressure Loss C_pt (if provided, finest level only)
-    - Residual field (if provided, finest level only)
+    - Total Pressure Loss C_pt (computed for all levels)
+    - Residual field (for all levels if provided)
     
     Parameters
     ----------
@@ -285,9 +287,13 @@ def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
     case_name : str
         Base name for output files.
     C_pt_fine : ndarray, optional
-        Total pressure loss for finest level.
+        Total pressure loss for finest level (used if freestream not provided).
     residual_field_fine : ndarray, optional
-        Residual field for finest level.
+        Residual field for finest level (used if residual_fields not provided).
+    freestream : FreestreamConditions, optional
+        Freestream conditions to compute C_pt for all levels.
+    residual_fields : list of ndarray, optional
+        Residual field for each level (same length as mg_hierarchy.levels).
         
     Returns
     -------
@@ -297,6 +303,9 @@ def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
     plt = _ensure_matplotlib()
     from matplotlib.backends.backend_pdf import PdfPages
     import warnings
+    
+    # Import for C_pt computation
+    from ..numerics.diagnostics import compute_total_pressure_loss
     
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     output_path = os.path.join(output_dir, f'{case_name}_iter{iteration:06d}.pdf')
@@ -318,17 +327,34 @@ def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
                 Q_int = Q
             
             # Get grid coordinates for this level
+            step = 2 ** level_idx
             if level_idx == 0:
                 X, Y = X_fine, Y_fine
-                C_pt = C_pt_fine
-                residual_field = residual_field_fine
             else:
-                # Coarsen grid coordinates by taking every 2^level_idx node
-                step = 2 ** level_idx
                 X = X_fine[::step, ::step]
                 Y = Y_fine[::step, ::step]
-                C_pt = None  # Only show C_pt for finest
-                residual_field = None  # Only show residual for finest
+            
+            # Compute C_pt for this level
+            if freestream is not None:
+                C_pt = compute_total_pressure_loss(
+                    Q_int, freestream.p_inf, freestream.u_inf, freestream.v_inf
+                )
+            elif level_idx == 0 and C_pt_fine is not None:
+                C_pt = C_pt_fine
+            else:
+                C_pt = None
+            
+            # Get residual field for this level
+            if residual_fields is not None and level_idx < len(residual_fields):
+                residual_field = residual_fields[level_idx]
+            elif level_idx == 0 and residual_field_fine is not None:
+                residual_field = residual_field_fine
+            else:
+                # Use forcing term as proxy for coarse level residual
+                if level_idx > 0 and hasattr(level, 'forcing') and level.forcing is not None:
+                    residual_field = level.forcing
+                else:
+                    residual_field = None
             
             # Extract fields
             p = Q_int[:, :, 0]

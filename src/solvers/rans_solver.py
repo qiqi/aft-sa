@@ -1061,7 +1061,8 @@ class RANSSolver:
                         iteration=self.iteration, residual=res_rms, cfl=cfl,
                         output_dir=str(snapshot_dir),
                         case_name=self.config.case_name,
-                        C_pt_fine=C_pt, residual_field_fine=R_field
+                        C_pt_fine=C_pt, residual_field_fine=R_field,
+                        freestream=self.freestream
                     )
                 else:
                     pdf_path = plot_flow_field(
