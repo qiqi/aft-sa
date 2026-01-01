@@ -220,8 +220,7 @@ class Construct2DWrapper:
             
             # Prepare input commands for interactive mode
             # The tool may ask for confirmation if topology doesn't match TE type
-            # We answer 'y' to any such prompts, then: GRID -> SMTH -> QUIT
-            # Add extra 'y' answers to handle potential topology confirmation
+            # Format: answer prompt, then main commands: GRID -> SMTH -> QUIT
             commands = "y\nGRID\nSMTH\nQUIT\n"
             
             # Run Construct2D
@@ -230,27 +229,25 @@ class Construct2DWrapper:
                 input=commands,
                 capture_output=True,
                 text=True,
-                cwd=work_dir
+                cwd=work_dir,
+                timeout=120
             )
             
-            if result.returncode != 0:
-                raise Construct2DError(
-                    f"Construct2D failed with return code {result.returncode}\n"
-                    f"stdout: {result.stdout}\n"
-                    f"stderr: {result.stderr}"
-                )
+            output = result.stdout
+            
+            # Non-zero exit code may still produce grid, so check output file first
             
             # Check for output file
             output_file = work_dir / f"{name}.p3d"
             if not output_file.exists():
                 raise Construct2DError(
                     f"Expected output file not found: {output_file}\n"
-                    f"Construct2D output:\n{result.stdout}"
+                    f"Construct2D output:\n{output}"
                 )
             
             # Parse wall distance from output
             if verbose:
-                for line in result.stdout.split('\n'):
+                for line in output.split('\n'):
                     if 'First layer wall distance' in line:
                         print(f"  {line.strip()}")
                     elif 'Max skew angle' in line:

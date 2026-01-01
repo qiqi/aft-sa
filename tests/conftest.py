@@ -101,7 +101,7 @@ def naca0012_coarse_grid(construct2d_wrapper, naca0012_airfoil_file, tmp_path_fa
     Generate a coarse NACA 0012 grid for quick tests.
     
     Session-scoped: generated once, shared across all tests.
-    Grid size: ~40x10 (very coarse, for fast tests only)
+    Grid size: 64x16 cells (power-of-2 for multigrid, nodes = cells + 1)
     
     Returns None if construct2d is not available.
     """
@@ -112,8 +112,8 @@ def naca0012_coarse_grid(construct2d_wrapper, naca0012_airfoil_file, tmp_path_fa
     
     tmp_dir = tmp_path_factory.mktemp("grid_coarse")
     options = GridOptions(
-        n_surface=40,
-        n_normal=10,
+        n_surface=65,   # 64 cells
+        n_normal=17,    # 16 cells
         topology='CGRD',
     )
     
@@ -141,7 +141,7 @@ def naca0012_medium_grid(construct2d_wrapper, naca0012_airfoil_file, tmp_path_fa
     Generate a medium NACA 0012 grid for validation tests.
     
     Session-scoped: generated once, shared across all tests.
-    Grid size: ~100x30 (reasonable for validation)
+    Grid size: 128x32 cells (power-of-2 for multigrid, nodes = cells + 1)
     
     Returns None if construct2d is not available.
     """
@@ -152,8 +152,8 @@ def naca0012_medium_grid(construct2d_wrapper, naca0012_airfoil_file, tmp_path_fa
     
     tmp_dir = tmp_path_factory.mktemp("grid_medium")
     options = GridOptions(
-        n_surface=100,
-        n_normal=30,
+        n_surface=129,  # 128 cells
+        n_normal=33,    # 32 cells
         topology='CGRD',
         farfield_radius=20.0,
     )

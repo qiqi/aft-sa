@@ -110,6 +110,8 @@ class SolverConfig:
     mg_nu1: int = 2                 # Pre-smoothing iterations
     mg_nu2: int = 2                 # Post-smoothing iterations
     mg_min_size: int = 8            # Minimum cells per direction on coarsest grid
+    mg_omega: float = 0.5           # Prolongation relaxation factor (0.5-1.0)
+    mg_use_injection: bool = True   # Use injection instead of bilinear prolongation
 
 
 class RANSSolver:
@@ -635,8 +637,16 @@ class RANSSolver:
         # ===== Recurse to coarser level =====
         self._run_v_cycle(level + 1)
         
-        # ===== Prolongate correction =====
-        self.mg_hierarchy.prolongate_correction(level + 1)
+        # ===== Prolongate correction with relaxation =====
+        # Store fine Q before correction
+        lvl.Q_before_correction = lvl.Q.copy()
+        self.mg_hierarchy.prolongate_correction(level + 1, 
+                                                 use_injection=self.config.mg_use_injection)
+        
+        # Apply relaxation: Q = Q_old + omega * (Q_new - Q_old)
+        omega = self.config.mg_omega
+        if omega < 1.0:
+            lvl.Q = lvl.Q_before_correction + omega * (lvl.Q - lvl.Q_before_correction)
         
         # ===== Post-smoothing =====
         for _ in range(self.config.mg_nu2):
@@ -734,9 +744,7 @@ class RANSSolver:
             Si_y=lvl.metrics.Si_y,
             Sj_x=lvl.metrics.Sj_x,
             Sj_y=lvl.metrics.Sj_y,
-            volume=lvl.metrics.volume,
-            xc=lvl.metrics.xc,
-            yc=lvl.metrics.yc
+            volume=lvl.metrics.volume
         )
         
         return self._compute_residual(Q, forcing, flux_metrics, grad_metrics)
@@ -1004,7 +1012,11 @@ class RANSSolver:
         )
         
         for n in range(self.config.max_iter):
-            res_rms, R_field = self.step()
+            # Use multigrid if enabled
+            if self.config.use_multigrid:
+                res_rms, R_field = self.step_multigrid()
+            else:
+                res_rms, R_field = self.step()
             self.residual_history.append(res_rms)
             
             if initial_residual is None:

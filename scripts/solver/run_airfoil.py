@@ -63,17 +63,29 @@ def main():
     parser.add_argument("--irs", type=float, default=1.0,
                         help="Implicit Residual Smoothing epsilon (0=disabled, default: 1.0)")
     
-    # Grid generation options
-    parser.add_argument("--n-surface", type=int, default=250,
-                        help="Surface points for grid generation (default: 250)")
-    parser.add_argument("--n-normal", type=int, default=100,
-                        help="Normal points for grid generation (default: 100)")
-    parser.add_argument("--n-wake", type=int, default=50,
-                        help="Wake points for grid generation (default: 50)")
+    # Multigrid options
+    parser.add_argument("--multigrid", "-mg", action="store_true",
+                        help="Enable FAS multigrid acceleration")
+    parser.add_argument("--mg-levels", type=int, default=4,
+                        help="Maximum multigrid levels (default: 4)")
+    parser.add_argument("--mg-nu1", type=int, default=2,
+                        help="Pre-smoothing iterations per level (default: 2)")
+    parser.add_argument("--mg-nu2", type=int, default=2,
+                        help="Post-smoothing iterations per level (default: 2)")
+    parser.add_argument("--mg-omega", type=float, default=0.5,
+                        help="Multigrid correction relaxation factor (default: 0.5)")
+    
+    # Grid generation options (nodes = cells + 1, power-of-2 cells for multigrid)
+    parser.add_argument("--n-surface", type=int, default=257,
+                        help="Surface nodes for grid generation (default: 257 = 256 cells)")
+    parser.add_argument("--n-normal", type=int, default=65,
+                        help="Normal nodes for grid generation (default: 65 = 64 cells)")
+    parser.add_argument("--n-wake", type=int, default=64,
+                        help="Wake nodes for grid generation (default: 64)")
     parser.add_argument("--coarse", action="store_true",
-                        help="Use coarse grid (80x30) for debugging")
+                        help="Use coarse grid (128x32 cells) for debugging")
     parser.add_argument("--super-coarse", action="store_true",
-                        help="Use super-coarse grid (60x20) for fast tests")
+                        help="Use super-coarse grid (64x16 cells) for fast tests")
     
     # Output settings
     parser.add_argument("--output-dir", "-o", type=str, default="output/solver",
@@ -96,18 +108,24 @@ def main():
     args = parser.parse_args()
     
     # Override grid settings for coarse modes
+    # For C-grid: total_I_nodes = n_surface + 2*n_wake, cells = nodes - 1
+    # For power-of-2 cells: n_surface + 2*n_wake = power_of_2 + 1
+    # Note: construct2d needs at least ~130 surface points for C-grid stability
     if args.super_coarse:
-        args.n_surface = 60
-        args.n_normal = 20
-        args.n_wake = 15
+        # Same as coarse but with 16 J-cells for faster runs
+        # 256 I-cells: n_surface + 2*n_wake = 257, e.g., 193 + 2*32 = 257
+        args.n_surface = 193
+        args.n_normal = 17    # 16 J-cells
+        args.n_wake = 32      # 193 + 64 = 257 nodes → 256 cells
         args.y_plus = 5.0
-        print("Using SUPER-COARSE grid mode (60x20)")
+        print("Using SUPER-COARSE grid mode (256x16 cells)")
     elif args.coarse:
-        args.n_surface = 80
-        args.n_normal = 30
-        args.n_wake = 20
+        # 256 I-cells: n_surface + 2*n_wake = 257, e.g., 193 + 2*32 = 257
+        args.n_surface = 193
+        args.n_normal = 33    # 32 J-cells  
+        args.n_wake = 32
         args.y_plus = 1.0
-        print("Using COARSE grid mode (80x30)")
+        print("Using COARSE grid mode (256x32 cells)")
     
     # Print banner
     print("\n" + "="*70)
@@ -158,6 +176,12 @@ def main():
         diagnostic_mode=args.diagnostic,
         diagnostic_freq=args.dump_freq,
         divergence_history=args.div_history,
+        # Multigrid options
+        use_multigrid=args.multigrid,
+        mg_levels=args.mg_levels,
+        mg_nu1=args.mg_nu1,
+        mg_nu2=args.mg_nu2,
+        mg_omega=args.mg_omega,
     )
     
     # Create solver with pre-loaded grid
@@ -174,11 +198,18 @@ def main():
     # Initialize components
     solver._compute_metrics()
     solver._initialize_state()
+    
+    # Initialize multigrid if enabled
+    solver.mg_hierarchy = None
+    if config.use_multigrid:
+        solver._initialize_multigrid()
+    
     solver._initialize_output()
     
     print(f"\nGrid size: {solver.NI} x {solver.NJ} cells")
     print(f"Reynolds: {args.reynolds:.2e}")
-    print(f"Target CFL: {args.cfl} with IRS ε={args.irs}")
+    mg_info = f" + Multigrid ({args.mg_levels} levels)" if args.multigrid else ""
+    print(f"Target CFL: {args.cfl} with IRS ε={args.irs}{mg_info}")
     
     # Run
     try:

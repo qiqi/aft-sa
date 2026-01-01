@@ -39,10 +39,10 @@ def main():
                         help="Maximum iterations (default: 4000)")
     parser.add_argument("--cfl", type=float, default=3.0,
                         help="CFL number (default: 3.0)")
-    parser.add_argument("--n-surface", type=int, default=100,
-                        help="Surface points (default: 100)")
-    parser.add_argument("--n-normal", type=int, default=40,
-                        help="Normal points (default: 40)")
+    parser.add_argument("--n-surface", type=int, default=129,
+                        help="Surface nodes (default: 129 = 128 cells)")
+    parser.add_argument("--n-normal", type=int, default=33,
+                        help="Normal nodes (default: 33 = 32 cells)")
     parser.add_argument("--k4", type=float, default=0.016,
                         help="JST 4th-order dissipation coefficient (default: 0.016)")
     parser.add_argument("--irs", type=float, default=0.5,

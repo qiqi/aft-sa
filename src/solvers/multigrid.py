@@ -17,7 +17,7 @@ from dataclasses import dataclass
 
 from ..grid.metrics import MetricComputer, FVMMetrics
 from ..grid.coarsening import Coarsener
-from ..numerics.multigrid import restrict_state, restrict_residual, prolongate_correction
+from ..numerics.multigrid import restrict_state, restrict_residual, prolongate_correction, prolongate_injection
 
 from .boundary_conditions import BoundaryConditions, FreestreamConditions
 
@@ -300,7 +300,7 @@ class MultigridHierarchy:
         # Restrict residual (simple summation)
         restrict_residual(fine.R, coarse.R)
     
-    def prolongate_correction(self, coarse_level: int) -> None:
+    def prolongate_correction(self, coarse_level: int, use_injection: bool = True) -> None:
         """
         Prolongate correction from coarse level to fine level.
         
@@ -308,6 +308,9 @@ class MultigridHierarchy:
         ----------
         coarse_level : int
             Index of coarse level (fine level is coarse_level - 1).
+        use_injection : bool
+            If True, use piecewise constant (injection) prolongation.
+            If False, use bilinear interpolation.
         """
         if coarse_level <= 0:
             return
@@ -316,11 +319,18 @@ class MultigridHierarchy:
         coarse = self.levels[coarse_level]
         
         # Prolongate correction dQ = Q_new - Q_old
-        prolongate_correction(
-            fine.Q[1:-1, 1:-1, :],  # Fine interior (modified in place)
-            coarse.Q[1:-1, 1:-1, :],  # Coarse new
-            coarse.Q_old[1:-1, 1:-1, :]  # Coarse old
-        )
+        if use_injection:
+            prolongate_injection(
+                fine.Q[1:-1, 1:-1, :],  # Fine interior (modified in place)
+                coarse.Q[1:-1, 1:-1, :],  # Coarse new
+                coarse.Q_old[1:-1, 1:-1, :]  # Coarse old
+            )
+        else:
+            prolongate_correction(
+                fine.Q[1:-1, 1:-1, :],  # Fine interior (modified in place)
+                coarse.Q[1:-1, 1:-1, :],  # Coarse new
+                coarse.Q_old[1:-1, 1:-1, :]  # Coarse old
+            )
         
         # Apply BCs to fine level after correction
         fine.Q = fine.bc.apply(fine.Q)
