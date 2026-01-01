@@ -978,7 +978,7 @@ class RANSSolver:
             True if residual dropped below tolerance.
         """
         # Lazy import plotting to avoid matplotlib dependency issues
-        from ..io.plotting import plot_flow_field, plot_residual_history
+        from ..io.plotting import plot_flow_field, plot_residual_history, plot_multigrid_levels
         
         if dump_freq is None:
             dump_freq = getattr(self.config, 'diagnostic_freq', 100)
@@ -1059,6 +1059,16 @@ class RANSSolver:
                     C_pt=C_pt, residual_field=R_field
                 )
                 print(f"         -> Dumped: {pdf_path}")
+                
+                # Also dump all multigrid levels if enabled
+                if self.config.use_multigrid and self.mg_hierarchy is not None:
+                    mg_pdf_path = plot_multigrid_levels(
+                        self.mg_hierarchy,
+                        iteration=self.iteration, residual=res_rms, cfl=cfl,
+                        output_dir=str(snapshot_dir),
+                        case_name=self.config.case_name
+                    )
+                    print(f"         -> MG Levels: {mg_pdf_path}")
                 
                 # VTK output with C_pt
                 surface_fields = self._compute_surface_fields()

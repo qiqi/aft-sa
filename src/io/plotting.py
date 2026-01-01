@@ -254,6 +254,154 @@ def plot_residual_history(residuals: List[float], output_dir: str,
     return output_path
 
 
+def plot_multigrid_levels(mg_hierarchy, iteration: int, residual: float, cfl: float,
+                          output_dir: str, case_name: str = "flow") -> str:
+    """
+    Plot flow field for all multigrid levels.
+    
+    Creates a multi-page PDF with pressure and velocity for each level.
+    
+    Parameters
+    ----------
+    mg_hierarchy : MultigridHierarchy
+        The multigrid hierarchy object containing all levels.
+    iteration : int
+        Current iteration number.
+    residual : float
+        Current residual value.
+    cfl : float
+        Current CFL number.
+    output_dir : str
+        Output directory for PDF files.
+    case_name : str
+        Base name for output files.
+        
+    Returns
+    -------
+    output_path : str
+        Path to saved PDF file.
+    """
+    plt = _ensure_matplotlib()
+    from matplotlib.backends.backend_pdf import PdfPages
+    import warnings
+    
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    output_path = os.path.join(output_dir, f'{case_name}_mg_iter{iteration:06d}.pdf')
+    
+    # Suppress pcolormesh warnings for curvilinear grids
+    with warnings.catch_warnings(), PdfPages(output_path) as pdf:
+        warnings.filterwarnings('ignore', category=UserWarning, 
+                                message='.*pcolormesh.*monotonically.*')
+        for level_idx, level in enumerate(mg_hierarchy.levels):
+            # Get level data
+            NI, NJ = level.NI, level.NJ
+            metrics = level.metrics
+            Q = level.Q
+            
+            # Strip ghost cells
+            if Q.shape[0] == NI + 2:
+                Q_int = Q[1:-1, 1:-1, :]
+            else:
+                Q_int = Q
+            
+            # Create grid coordinates from cell centers
+            # For plotting, we create a simple structured grid
+            xc, yc = metrics.xc, metrics.yc
+            
+            # Extract fields
+            p = Q_int[:, :, 0]
+            u = Q_int[:, :, 1]
+            v = Q_int[:, :, 2]
+            vel_mag = np.sqrt(u**2 + v**2)
+            
+            # Create figure for this level
+            fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+            
+            level_title = f"Level {level_idx}: {NI}x{NJ} cells"
+            fig.suptitle(f'{level_title} - Iter {iteration}, Res={residual:.2e}, CFL={cfl:.2f}', 
+                        fontsize=14, fontweight='bold')
+            
+            # Pressure - global
+            ax = axes[0, 0]
+            p_clip = np.clip(p, np.percentile(p, 1), np.percentile(p, 99))
+            pc = ax.pcolormesh(xc.T, yc.T, p_clip.T, cmap='RdBu_r', shading='auto', rasterized=True)
+            ax.set_aspect('equal')
+            ax.set_title('Pressure (Global)')
+            ax.set_xlabel('x/c')
+            ax.set_ylabel('y/c')
+            plt.colorbar(pc, ax=ax, shrink=0.8, label='p')
+            
+            # Pressure - zoomed
+            ax = axes[0, 1]
+            pc = ax.pcolormesh(xc.T, yc.T, p_clip.T, cmap='RdBu_r', shading='auto', rasterized=True)
+            ax.set_aspect('equal')
+            ax.set_xlim(-0.2, 1.4)
+            ax.set_ylim(-0.4, 0.4)
+            ax.set_title('Pressure (Near Airfoil)')
+            ax.set_xlabel('x/c')
+            ax.set_ylabel('y/c')
+            plt.colorbar(pc, ax=ax, shrink=0.8, label='p')
+            
+            # Velocity - global
+            ax = axes[1, 0]
+            vel_clip = np.clip(vel_mag, 0, np.percentile(vel_mag, 99))
+            pc = ax.pcolormesh(xc.T, yc.T, vel_clip.T, cmap='viridis', shading='auto', rasterized=True)
+            ax.set_aspect('equal')
+            ax.set_title('Velocity Magnitude (Global)')
+            ax.set_xlabel('x/c')
+            ax.set_ylabel('y/c')
+            plt.colorbar(pc, ax=ax, shrink=0.8, label='|V|')
+            
+            # Velocity - zoomed
+            ax = axes[1, 1]
+            pc = ax.pcolormesh(xc.T, yc.T, vel_clip.T, cmap='viridis', shading='auto', rasterized=True)
+            ax.set_aspect('equal')
+            ax.set_xlim(-0.2, 1.4)
+            ax.set_ylim(-0.4, 0.4)
+            ax.set_title('Velocity Magnitude (Near Airfoil)')
+            ax.set_xlabel('x/c')
+            ax.set_ylabel('y/c')
+            plt.colorbar(pc, ax=ax, shrink=0.8, label='|V|')
+            
+            plt.tight_layout(rect=[0, 0, 1, 0.95])
+            pdf.savefig(fig, dpi=100)
+            plt.close(fig)
+            
+            # Add a page for residual and forcing if level > 0
+            if level_idx > 0 and np.any(level.forcing != 0):
+                fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+                fig.suptitle(f'{level_title} - FAS Forcing Term', fontsize=14)
+                
+                # Forcing term for pressure equation
+                forcing_p = level.forcing[:, :, 0]
+                
+                ax = axes[0]
+                f_abs = np.abs(forcing_p)
+                f_log = np.log10(f_abs + 1e-15)
+                pc = ax.pcolormesh(xc.T, yc.T, f_log.T, cmap='hot_r', shading='auto', rasterized=True)
+                ax.set_aspect('equal')
+                ax.set_title('log₁₀|FAS Forcing| (Global)')
+                ax.set_xlabel('x/c')
+                ax.set_ylabel('y/c')
+                plt.colorbar(pc, ax=ax, shrink=0.8, label='log₁₀|P_c|')
+                
+                ax = axes[1]
+                pc = ax.pcolormesh(xc.T, yc.T, f_log.T, cmap='hot_r', shading='auto', rasterized=True)
+                ax.set_aspect('equal')
+                ax.set_xlim(-0.2, 1.4)
+                ax.set_ylim(-0.4, 0.4)
+                ax.set_title('log₁₀|FAS Forcing| (Near Airfoil)')
+                ax.set_xlabel('x/c')
+                ax.set_ylabel('y/c')
+                plt.colorbar(pc, ax=ax, shrink=0.8, label='log₁₀|P_c|')
+                
+                plt.tight_layout(rect=[0, 0, 1, 0.92])
+                pdf.savefig(fig, dpi=100)
+                plt.close(fig)
+    
+    return output_path
+
+
 def plot_surface_distributions(x: np.ndarray, Cp: np.ndarray, Cf: np.ndarray,
                                 output_dir: str, case_name: str = "surface",
                                 reference_data: Optional[dict] = None) -> str:
