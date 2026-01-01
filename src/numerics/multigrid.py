@@ -141,19 +141,23 @@ def prolongate_correction(Q_f: np.ndarray,
             eta = 0.25 + 0.5 * dj  # 0.25 or 0.75
             
             # Determine the 4 coarse cells for interpolation
+            # Clamp i_c, j_c to valid range first (handles odd fine dimensions)
+            i_c_clamped = min(i_c, NI_c - 1)
+            j_c_clamped = min(j_c, NJ_c - 1)
+            
             # If xi < 0.5, use i_c-1 and i_c; else use i_c and i_c+1
             if xi < 0.5:
-                i0, i1 = max(0, i_c - 1), i_c
+                i0, i1 = max(0, i_c_clamped - 1), i_c_clamped
                 alpha = xi + 0.5  # weight for i1
             else:
-                i0, i1 = i_c, min(NI_c - 1, i_c + 1)
+                i0, i1 = i_c_clamped, min(NI_c - 1, i_c_clamped + 1)
                 alpha = xi - 0.5  # weight for i1
             
             if eta < 0.5:
-                j0, j1 = max(0, j_c - 1), j_c
+                j0, j1 = max(0, j_c_clamped - 1), j_c_clamped
                 beta = eta + 0.5  # weight for j1
             else:
-                j0, j1 = j_c, min(NJ_c - 1, j_c + 1)
+                j0, j1 = j_c_clamped, min(NJ_c - 1, j_c_clamped + 1)
                 beta = eta - 0.5  # weight for j1
             
             for k in range(nvar):
@@ -180,6 +184,7 @@ def prolongate_injection(Q_f: np.ndarray,
     Prolongate coarse grid correction to fine grid using injection (piecewise constant).
     
     Simpler than bilinear, just copies the coarse correction to all 4 fine children.
+    Handles odd fine dimensions by using boundary clamping for edge cells.
     
     Parameters
     ----------
@@ -190,21 +195,19 @@ def prolongate_injection(Q_f: np.ndarray,
     Q_c_old : ndarray, shape (NI_c, NJ_c, nvar)
         Old coarse grid state before smoothing.
     """
-    NI_c, NJ_c, nvar = Q_c_new.shape
+    NI_f, NJ_f, nvar = Q_f.shape
+    NI_c, NJ_c = Q_c_new.shape[0], Q_c_new.shape[1]
     
-    for i_c in prange(NI_c):
-        for j_c in range(NJ_c):
-            i_f = 2 * i_c
-            j_f = 2 * j_c
+    # Loop over fine cells (handles odd dimensions properly)
+    for i_f in prange(NI_f):
+        for j_f in range(NJ_f):
+            # Map to coarse cell (clamp for odd dimensions)
+            i_c = min(i_f // 2, NI_c - 1)
+            j_c = min(j_f // 2, NJ_c - 1)
             
             for k in range(nvar):
                 dQ = Q_c_new[i_c, j_c, k] - Q_c_old[i_c, j_c, k]
-                
-                # Apply same correction to all 4 fine children
                 Q_f[i_f, j_f, k] += dQ
-                Q_f[i_f+1, j_f, k] += dQ
-                Q_f[i_f, j_f+1, k] += dQ
-                Q_f[i_f+1, j_f+1, k] += dQ
 
 
 @njit(cache=True)

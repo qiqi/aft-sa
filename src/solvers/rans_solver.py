@@ -671,12 +671,16 @@ class RANSSolver:
             fine = self.mg_hierarchy.levels[level - 1]
             # Average 4 fine timesteps for each coarse cell
             NI_c, NJ_c = lvl.NI, lvl.NJ
+            NI_f, NJ_f = fine.NI, fine.NJ
             for i_c in range(NI_c):
                 for j_c in range(NJ_c):
                     i_f, j_f = 2 * i_c, 2 * j_c
+                    # Clamp indices for odd fine dimensions
+                    i_f1 = min(i_f + 1, NI_f - 1)
+                    j_f1 = min(j_f + 1, NJ_f - 1)
                     lvl.dt[i_c, j_c] = 0.25 * (
-                        fine.dt[i_f, j_f] + fine.dt[i_f+1, j_f] +
-                        fine.dt[i_f, j_f+1] + fine.dt[i_f+1, j_f+1]
+                        fine.dt[i_f, j_f] + fine.dt[i_f1, j_f] +
+                        fine.dt[i_f, j_f1] + fine.dt[i_f1, j_f1]
                     )
         
         # Get forcing term (zero for finest, computed for coarse)
