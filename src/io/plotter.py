@@ -218,9 +218,9 @@ class PlotlyDashboard:
             rows=3, cols=2,
             subplot_titles=subplot_titles,
             specs=[
-                [{"type": "heatmap"}, {"type": "heatmap"}],
-                [{"type": "heatmap"}, {"type": "heatmap"}],
-                [{"type": "heatmap"}, {"type": "scatter"}],  # Last is line plot
+                [{"type": "contour"}, {"type": "contour"}],
+                [{"type": "contour"}, {"type": "contour"}],
+                [{"type": "contour"}, {"type": "scatter"}],  # Last is line plot
             ],
             horizontal_spacing=0.08,
             vertical_spacing=0.08,
@@ -233,8 +233,8 @@ class PlotlyDashboard:
         field5_data = snap0.C_pt if has_cpt else snap0.nu
         field5_cmap = 'Reds' if has_cpt else 'Plasma'
         
-        # Add base heatmaps (5 heatmaps)
-        heatmap_configs = [
+        # Add base contour plots (5 contours) - using 2D curvilinear coordinates
+        contour_configs = [
             (snap0.p, 1, 1, 'RdBu_r', 'p'),
             (vel_mag0, 1, 2, 'Viridis', '|V|'),
             (snap0.u, 2, 1, 'RdBu', 'u'),
@@ -242,13 +242,17 @@ class PlotlyDashboard:
             (field5_data, 3, 1, field5_cmap, 'C_pt' if has_cpt else 'ν'),
         ]
         
-        for data, row, col, colorscale, name in heatmap_configs:
+        for data, row, col, colorscale, name in contour_configs:
             fig.add_trace(
-                go.Heatmap(
+                go.Contour(
                     z=data.T,
-                    x=xc[:, 0],
-                    y=yc[0, :],
+                    x=xc.T,  # Full 2D array for curvilinear grid
+                    y=yc.T,  # Full 2D array for curvilinear grid
                     colorscale=colorscale,
+                    contours=dict(
+                        coloring='heatmap',  # Fill like a heatmap
+                        showlines=False,     # No contour lines for cleaner look
+                    ),
                     colorbar=dict(
                         len=0.25,
                         y=1.0 - (row - 0.5) / 3,
@@ -301,13 +305,18 @@ class PlotlyDashboard:
             vel_mag = np.sqrt(snap.u**2 + snap.v**2)
             field5 = snap.C_pt if has_cpt and snap.C_pt is not None else snap.nu
             
-            # Heatmap data for this frame
+            # Contour data for this frame (using 2D curvilinear coordinates)
             frame_data = [
-                go.Heatmap(z=snap.p.T, colorscale='RdBu_r'),
-                go.Heatmap(z=vel_mag.T, colorscale='Viridis'),
-                go.Heatmap(z=snap.u.T, colorscale='RdBu'),
-                go.Heatmap(z=snap.v.T, colorscale='RdBu'),
-                go.Heatmap(z=field5.T, colorscale=field5_cmap),
+                go.Contour(z=snap.p.T, x=xc.T, y=yc.T, colorscale='RdBu_r',
+                           contours=dict(coloring='heatmap', showlines=False)),
+                go.Contour(z=vel_mag.T, x=xc.T, y=yc.T, colorscale='Viridis',
+                           contours=dict(coloring='heatmap', showlines=False)),
+                go.Contour(z=snap.u.T, x=xc.T, y=yc.T, colorscale='RdBu',
+                           contours=dict(coloring='heatmap', showlines=False)),
+                go.Contour(z=snap.v.T, x=xc.T, y=yc.T, colorscale='RdBu',
+                           contours=dict(coloring='heatmap', showlines=False)),
+                go.Contour(z=field5.T, x=xc.T, y=yc.T, colorscale=field5_cmap,
+                           contours=dict(coloring='heatmap', showlines=False)),
             ]
             
             # Update residual marker position
