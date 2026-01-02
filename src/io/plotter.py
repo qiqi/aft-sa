@@ -194,9 +194,9 @@ class PlotlyDashboard:
         output_path = Path(filename)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Get grid coordinates (cell centers)
-        xc = grid_metrics.xc
-        yc = grid_metrics.yc
+        # Get grid coordinates (cell centers) - slice to match interior data
+        xc = grid_metrics.xc[NGHOST:-NGHOST, NGHOST:-NGHOST]
+        yc = grid_metrics.yc[NGHOST:-NGHOST, NGHOST:-NGHOST]
         
         # Determine layout based on available data
         snap0 = self.snapshots[0]
