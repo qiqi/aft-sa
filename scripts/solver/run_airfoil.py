@@ -96,22 +96,16 @@ def main():
                         help="Output directory (default: output/solver)")
     parser.add_argument("--case-name", type=str, default="naca0012",
                         help="Case name for output files (default: naca0012)")
-    parser.add_argument("--dump-freq", type=int, default=100,
-                        help="Flow field dump frequency (default: 100)")
+    parser.add_argument("--diagnostic-freq", "--dump-freq", type=int, default=100,
+                        help="Diagnostic snapshot frequency (default: 100)")
     parser.add_argument("--print-freq", type=int, default=10,
                         help="Console print frequency (default: 10)")
     parser.add_argument("--vtk-freq", type=int, default=0,
                         help="VTK output frequency (0=disabled, default: 0)")
-    parser.add_argument("--html-freq", type=int, default=100,
-                        help="HTML animation snapshot frequency (default: 100)")
-    parser.add_argument("--no-html", action="store_true",
-                        help="Disable HTML animation output")
+    parser.add_argument("--pdf", action="store_true",
+                        help="Use PDF output instead of HTML animation")
     parser.add_argument("--div-history", type=int, default=0,
                         help="Solutions to keep for divergence visualization (0=disabled)")
-    
-    # Run mode
-    parser.add_argument("--diagnostic", "-d", action="store_true",
-                        help="Enable diagnostic mode with enhanced output")
     
     args = parser.parse_args()
     
@@ -165,10 +159,8 @@ def main():
         print(f"ERROR: {e}")
         sys.exit(1)
     
-    # Determine output frequencies
-    html_enabled = not args.no_html
-    
     # Configure solver with IRS for stability
+    # html_animation=True (default) -> HTML output, False -> PDF output
     config = SolverConfig(
         mach=args.mach,
         alpha=args.alpha,
@@ -179,8 +171,8 @@ def main():
         cfl_ramp_iters=args.cfl_ramp,
         max_iter=args.max_iter,
         tol=args.tol,
-        output_freq=args.html_freq,      # HTML animation snapshot frequency
-        vtk_output_freq=args.vtk_freq,   # VTK output frequency (0 = disabled)
+        diagnostic_freq=args.diagnostic_freq,
+        vtk_output_freq=args.vtk_freq,
         print_freq=args.print_freq,
         output_dir=args.output_dir,
         case_name=args.case_name,
@@ -188,10 +180,8 @@ def main():
         jst_k4=0.04,
         irs_epsilon=args.irs,
         n_wake=args.n_wake,
-        diagnostic_mode=args.diagnostic,
-        diagnostic_freq=args.dump_freq,
+        html_animation=not args.pdf,  # True=HTML (default), False=PDF
         divergence_history=args.div_history,
-        html_animation=html_enabled,
         # Multigrid options
         use_multigrid=args.multigrid,
         mg_levels=args.mg_levels,
@@ -227,15 +217,17 @@ def main():
     print(f"\nGrid size: {solver.NI} x {solver.NJ} cells")
     print(f"Reynolds: {args.reynolds:.2e}")
     mg_info = f" + Multigrid ({args.mg_levels} levels)" if args.multigrid else ""
+    output_fmt = "PDF" if args.pdf else "HTML"
     print(f"Target CFL: {args.cfl} with IRS ε={args.irs}{mg_info}")
+    print(f"Output: {output_fmt} snapshots every {args.diagnostic_freq} iterations")
     
     # Run
     try:
-        if args.diagnostic or args.dump_freq < args.max_iter:
-            # Use diagnostic mode with flow field dumps
-            converged = solver.run_with_diagnostics(dump_freq=args.dump_freq)
+        if args.pdf:
+            # PDF mode: use run_with_diagnostics for matplotlib output
+            converged = solver.run_with_diagnostics(dump_freq=args.diagnostic_freq)
         else:
-            # Standard run
+            # HTML mode (default): use run_steady_state with HTML animation
             converged = solver.run_steady_state()
     except KeyboardInterrupt:
         print("\n\nSimulation interrupted by user.")

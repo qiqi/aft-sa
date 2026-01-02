@@ -86,7 +86,7 @@ class SolverConfig:
     tol: float = 1e-10              # Residual tolerance for convergence
     
     # Output
-    output_freq: int = 100          # HTML animation snapshot frequency
+    diagnostic_freq: int = 100      # Diagnostic output frequency (HTML or PDF snapshots)
     vtk_output_freq: int = 0        # VTK output frequency (0 = disabled)
     print_freq: int = 50            # Console print frequency
     output_dir: str = "output"      # Output directory
@@ -107,13 +107,9 @@ class SolverConfig:
     # Grid topology (C-grid)
     n_wake: int = 30                # Number of wake cells at each end of i-direction
     
-    # Diagnostic options
-    diagnostic_mode: bool = False   # Enable diagnostic output (plots, extra stats)
-    diagnostic_freq: int = 100      # Frequency of diagnostic dumps (when enabled)
+    # Diagnostic output format
+    html_animation: bool = True     # True: HTML animation, False: PDF snapshots
     divergence_history: int = 0     # Number of solutions to save for divergence analysis
-    
-    # HTML animation output
-    html_animation: bool = False    # Enable Plotly HTML animation output
     
     # Multigrid options
     use_multigrid: bool = False     # Enable geometric multigrid (FAS scheme)
@@ -392,7 +388,15 @@ class RANSSolver:
         
         # Store initial snapshot for HTML animation
         if self.config.html_animation:
-            self.plotter.store_snapshot(self.Q, 0, self.residual_history)
+            Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
+            C_pt = compute_total_pressure_loss(
+                Q_int, self.freestream.p_inf,
+                self.freestream.u_inf, self.freestream.v_inf
+            )
+            self.plotter.store_snapshot(
+                self.Q, 0, self.residual_history,
+                cfl=self._get_cfl(0), C_pt=C_pt, freestream=self.freestream
+            )
         
         print(f"  Output directory: {output_path}")
     
@@ -855,10 +859,17 @@ class RANSSolver:
                     additional_scalars=surface_fields
                 )
             
-            # Store snapshot for HTML animation
-            if self.config.html_animation and self.iteration % self.config.output_freq == 0:
+            # Store diagnostic snapshot (HTML animation)
+            if self.config.html_animation and self.iteration % self.config.diagnostic_freq == 0:
+                # Compute total pressure loss for diagnostics
+                Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
+                C_pt = compute_total_pressure_loss(
+                    Q_int, self.freestream.p_inf,
+                    self.freestream.u_inf, self.freestream.v_inf
+                )
                 self.plotter.store_snapshot(
-                    self.Q, self.iteration, self.residual_history
+                    self.Q, self.iteration, self.residual_history,
+                    cfl=cfl, C_pt=C_pt, freestream=self.freestream
                 )
             
             # Check convergence
