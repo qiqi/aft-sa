@@ -112,6 +112,7 @@ class SolverConfig:
     mg_min_size: int = 8            # Minimum cells per direction on coarsest grid
     mg_omega: float = 0.5           # Prolongation relaxation factor (0.5-1.0)
     mg_use_injection: bool = True   # Use injection instead of bilinear prolongation
+    mg_dissipation_scaling: float = 2.0  # k4 scaling per coarse level (reduces aliasing)
 
 
 class RANSSolver:
@@ -345,12 +346,14 @@ class RANSSolver:
             n_wake=getattr(self.config, 'n_wake', 0),
             beta=self.config.beta,
             min_size=self.config.mg_min_size,
-            max_levels=self.config.mg_levels
+            max_levels=self.config.mg_levels,
+            base_k4=self.config.jst_k4,
+            dissipation_scaling=self.config.mg_dissipation_scaling
         )
         
         print(f"  Built {self.mg_hierarchy.num_levels} multigrid levels:")
         for i, lvl in enumerate(self.mg_hierarchy.levels):
-            print(f"    Level {i}: {lvl.NI} x {lvl.NJ}")
+            print(f"    Level {i}: {lvl.NI} x {lvl.NJ} (k4={lvl.k4:.4f})")
     
     def _initialize_output(self):
         """Initialize VTK writer for output."""
@@ -400,7 +403,8 @@ class RANSSolver:
     def _compute_residual(self, Q: np.ndarray, 
                            forcing: Optional[np.ndarray] = None,
                            flux_metrics: Optional[FluxGridMetrics] = None,
-                           grad_metrics: Optional[GradientMetrics] = None) -> np.ndarray:
+                           grad_metrics: Optional[GradientMetrics] = None,
+                           k4: Optional[float] = None) -> np.ndarray:
         """
         Compute flux residual using JST scheme + viscous fluxes.
         
@@ -414,6 +418,9 @@ class RANSSolver:
             Grid metrics for flux computation (default: self.flux_metrics).
         grad_metrics : GradientMetrics, optional
             Gradient metrics (default: self.grad_metrics).
+        k4 : float, optional
+            JST 4th-order dissipation coefficient (default: config.jst_k4).
+            Multigrid uses level-specific k4 for coarse grids.
             
         Returns
         -------
@@ -425,11 +432,13 @@ class RANSSolver:
             flux_metrics = self.flux_metrics
         if grad_metrics is None:
             grad_metrics = self.grad_metrics
+        if k4 is None:
+            k4 = self.config.jst_k4
         
         # Create flux config (k2=0 for incompressible flow - no shock capturing needed)
         flux_cfg = FluxConfig(
             k2=0.0,
-            k4=self.config.jst_k4
+            k4=k4
         )
         
         # Compute convective fluxes (JST scheme)
@@ -765,7 +774,8 @@ class RANSSolver:
             volume=lvl.metrics.volume
         )
         
-        return self._compute_residual(Q, forcing, flux_metrics, grad_metrics)
+        # Use level-specific k4 (scaled for coarse grids)
+        return self._compute_residual(Q, forcing, flux_metrics, grad_metrics, k4=lvl.k4)
     
     def run_steady_state(self) -> bool:
         """

@@ -74,6 +74,8 @@ def main():
                         help="Post-smoothing iterations per level (default: 2)")
     parser.add_argument("--mg-omega", type=float, default=0.5,
                         help="Multigrid correction relaxation factor (default: 0.5)")
+    parser.add_argument("--mg-diss-scale", type=float, default=2.0,
+                        help="Dissipation (k4) scaling per coarse level (default: 2.0)")
     
     # Grid generation options (nodes = cells + 1, power-of-2 cells for multigrid)
     parser.add_argument("--n-surface", type=int, default=257,
@@ -185,6 +187,7 @@ def main():
         mg_nu1=args.mg_nu1,
         mg_nu2=args.mg_nu2,
         mg_omega=args.mg_omega,
+        mg_dissipation_scaling=args.mg_diss_scale,
     )
     
     # Create solver with pre-loaded grid

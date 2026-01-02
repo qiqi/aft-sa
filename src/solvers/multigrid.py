@@ -56,6 +56,10 @@ class MultigridLevel:
     # Boundary conditions handler
     bc: BoundaryConditions
     
+    # Level-specific dissipation coefficient (scaled for coarse grids)
+    # k4 increases on coarser levels to stabilize aliasing noise
+    k4: float = 0.04
+    
     # Storage for pre-smoothing Q (needed for FAS correction)
     Q_old: Optional[np.ndarray] = None
     
@@ -107,7 +111,9 @@ class MultigridHierarchy:
               Q_fine: np.ndarray,
               freestream: FreestreamConditions,
               n_wake: int = 0,
-              beta: float = 10.0) -> int:
+              beta: float = 10.0,
+              base_k4: float = 0.04,
+              dissipation_scaling: float = 2.0) -> int:
         """
         Build the multigrid hierarchy.
         
@@ -123,6 +129,12 @@ class MultigridHierarchy:
             Number of wake points (scaled for coarse levels).
         beta : float
             Artificial compressibility parameter.
+        base_k4 : float
+            Base JST 4th-order dissipation coefficient (for Level 0).
+        dissipation_scaling : float
+            Factor to scale k4 for each coarse level.
+            k4[level] = base_k4 * (dissipation_scaling ** level)
+            Default 2.0 doubles dissipation each coarse level.
             
         Returns
         -------
@@ -157,7 +169,7 @@ class MultigridHierarchy:
             beta=beta
         )
         
-        # Create level 0
+        # Create level 0 (finest - use base k4)
         level0 = MultigridLevel(
             NI=NI,
             NJ=NJ,
@@ -167,6 +179,7 @@ class MultigridHierarchy:
             forcing=np.zeros((NI, NJ, 4)),
             dt=np.zeros((NI, NJ)),
             bc=bc,
+            k4=base_k4,  # Level 0: original dissipation
             Q_old=np.zeros((NI + 2, NJ + 2, 4))
         )
         self.levels.append(level0)
@@ -228,6 +241,9 @@ class MultigridHierarchy:
             # Apply BCs to coarse state
             Q_c = bc_c.apply(Q_c)
             
+            # Scale dissipation for coarse level (reduces aliasing noise)
+            level_k4 = base_k4 * (dissipation_scaling ** level_idx)
+            
             # Create level
             level = MultigridLevel(
                 NI=NI_c,
@@ -238,6 +254,7 @@ class MultigridHierarchy:
                 forcing=np.zeros((NI_c, NJ_c, 4)),
                 dt=np.zeros((NI_c, NJ_c)),
                 bc=bc_c,
+                k4=level_k4,  # Scaled dissipation for stability
                 Q_old=np.zeros((NI_c + 2, NJ_c + 2, 4))
             )
             self.levels.append(level)
@@ -424,7 +441,9 @@ def build_multigrid_hierarchy(
     n_wake: int = 0,
     beta: float = 10.0,
     min_size: int = 8,
-    max_levels: int = 5
+    max_levels: int = 5,
+    base_k4: float = 0.04,
+    dissipation_scaling: float = 2.0
 ) -> MultigridHierarchy:
     """
     Convenience function to build multigrid hierarchy.
@@ -445,6 +464,11 @@ def build_multigrid_hierarchy(
         Minimum cells per direction on coarsest grid.
     max_levels : int
         Maximum number of levels.
+    base_k4 : float
+        Base JST 4th-order dissipation coefficient (for Level 0).
+    dissipation_scaling : float
+        Factor to scale k4 for each coarse level.
+        k4[level] = base_k4 * (dissipation_scaling ** level)
         
     Returns
     -------
@@ -452,6 +476,6 @@ def build_multigrid_hierarchy(
         Built hierarchy ready for V-cycle.
     """
     hierarchy = MultigridHierarchy(min_size=min_size, max_levels=max_levels)
-    hierarchy.build(X, Y, Q, freestream, n_wake, beta)
+    hierarchy.build(X, Y, Q, freestream, n_wake, beta, base_k4, dissipation_scaling)
     return hierarchy
 
