@@ -50,12 +50,12 @@ def main():
     # Solver settings
     parser.add_argument("--max-iter", "-n", type=int, default=10000,
                         help="Maximum iterations (default: 10000)")
-    parser.add_argument("--cfl", type=float, default=5.0,
-                        help="Target CFL number (default: 5.0)")
+    parser.add_argument("--cfl", type=float, default=3.0,
+                        help="Target CFL number (default: 3.0)")
     parser.add_argument("--cfl-start", type=float, default=0.1,
                         help="Initial CFL for ramping (default: 0.1)")
-    parser.add_argument("--cfl-ramp", type=int, default=500,
-                        help="CFL ramp iterations (default: 500)")
+    parser.add_argument("--cfl-ramp", type=int, default=100,
+                        help="CFL ramp iterations (default: 100)")
     parser.add_argument("--tol", type=float, default=1e-10,
                         help="Convergence tolerance (default: 1e-10)")
     parser.add_argument("--beta", type=float, default=10.0,

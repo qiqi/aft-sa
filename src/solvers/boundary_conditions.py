@@ -370,17 +370,24 @@ class BoundaryConditions:
         #   - Left ghost (i=0) gets values from right interior (i=NI, which is Q[-2])
         #   - Right ghost (i=NI+1, which is Q[-1]) gets values from left interior (i=1)
         
-        # Use extrapolation BC instead of periodic copy at the outlet
-        # This avoids pressure mismatch when upper/lower wake have different p
-        # due to circulation (lifting flow at angle of attack)
+        # Conservation-preserving wake cut BC:
+        # Use AVERAGED ghost values for flux consistency at the wake cut.
         #
-        # Extrapolation: ghost = 2*first_interior - second_interior
-        # This sets zero normal gradient at the boundary
+        # For a C-grid, the wake cut is where the grid wraps around. The cells on
+        # either side (i=1 and i=NI) are physical neighbors. 
+        #
+        # By setting both ghost values to the SAME average, we ensure:
+        # - Flux at face i=0.5 and face i=NI+0.5 are computed with identical stencils
+        # - The JST artificial dissipation is consistent across the cut
+        # - Mass and momentum are conserved
         #
         # IMPORTANT: Only apply to j=0:-1 (interior + surface ghost), 
         # NOT j=-1 (farfield ghost) which was set by apply_farfield
-        Q[0, :-1, :] = 2*Q[1, :-1, :] - Q[2, :-1, :]    # Left ghost (excluding farfield row)
-        Q[-1, :-1, :] = 2*Q[-2, :-1, :] - Q[-3, :-1, :]  # Right ghost (excluding farfield row)
+        
+        # Average of the two interior cells adjacent to the wake cut
+        avg = 0.5 * (Q[1, :-1, :] + Q[-2, :-1, :])
+        Q[0, :-1, :] = avg    # Left ghost = average
+        Q[-1, :-1, :] = avg   # Right ghost = average
         
         return Q
 
