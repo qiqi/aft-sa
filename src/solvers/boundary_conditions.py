@@ -209,10 +209,10 @@ class BoundaryConditions:
         Q[i_start:i_end, 1, 2] = -Q[i_start:i_end, j_int_first, 2]      # v: no-slip
         Q[i_start:i_end, 1, 3] = -Q[i_start:i_end, j_int_first, 3]      # nu_t: wall value = 0
         
-        # Outer ghost layer (j=0): linear extrapolation
+        # Outer ghost layer (j=0): linear extrapolation Q[0] = 2*Q[1] - Q[2]
         Q[i_start:i_end, 0, 0] = Q[i_start:i_end, 1, 0]       # p: zero gradient
-        Q[i_start:i_end, 0, 1] = Q[i_start:i_end, 1, 1] - Q[i_start:i_end, j_int_first, 1]  # u: linear extrap
-        Q[i_start:i_end, 0, 2] = Q[i_start:i_end, 1, 2] - Q[i_start:i_end, j_int_first, 2]  # v: linear extrap
+        Q[i_start:i_end, 0, 1] = 2*Q[i_start:i_end, 1, 1] - Q[i_start:i_end, j_int_first, 1]  # u: linear extrap
+        Q[i_start:i_end, 0, 2] = 2*Q[i_start:i_end, 1, 2] - Q[i_start:i_end, j_int_first, 2]  # v: linear extrap
         Q[i_start:i_end, 0, 3] = Q[i_start:i_end, 1, 3]       # nu_t: zero gradient
         
         # ===== WAKE CUT (2-layer periodic boundary at J=0) =====
