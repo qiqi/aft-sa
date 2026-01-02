@@ -76,6 +76,8 @@ def main():
                         help="Multigrid correction relaxation factor (default: 0.5)")
     parser.add_argument("--mg-diss-scale", type=float, default=2.0,
                         help="Dissipation (k4) scaling per coarse level (default: 2.0)")
+    parser.add_argument("--mg-coarse-cfl", type=float, default=0.5,
+                        help="CFL factor for coarse levels (default: 0.5, RK3 without IRS)")
     
     # Grid generation options (nodes = cells + 1, power-of-2 cells for multigrid)
     parser.add_argument("--n-surface", type=int, default=257,
@@ -188,6 +190,7 @@ def main():
         mg_nu2=args.mg_nu2,
         mg_omega=args.mg_omega,
         mg_dissipation_scaling=args.mg_diss_scale,
+        mg_coarse_cfl=args.mg_coarse_cfl,
     )
     
     # Create solver with pre-loaded grid

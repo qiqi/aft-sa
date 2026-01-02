@@ -113,6 +113,7 @@ class SolverConfig:
     mg_omega: float = 0.5           # Prolongation relaxation factor (0.5-1.0)
     mg_use_injection: bool = True   # Use injection instead of bilinear prolongation
     mg_dissipation_scaling: float = 2.0  # k4 scaling per coarse level (reduces aliasing)
+    mg_coarse_cfl: float = 0.5      # CFL factor for coarse levels (RK3 without IRS)
 
 
 class RANSSolver:
@@ -348,12 +349,13 @@ class RANSSolver:
             min_size=self.config.mg_min_size,
             max_levels=self.config.mg_levels,
             base_k4=self.config.jst_k4,
-            dissipation_scaling=self.config.mg_dissipation_scaling
+            dissipation_scaling=self.config.mg_dissipation_scaling,
+            coarse_cfl_factor=self.config.mg_coarse_cfl
         )
         
         print(f"  Built {self.mg_hierarchy.num_levels} multigrid levels:")
         for i, lvl in enumerate(self.mg_hierarchy.levels):
-            print(f"    Level {i}: {lvl.NI} x {lvl.NJ} (k4={lvl.k4:.4f})")
+            print(f"    Level {i}: {lvl.NI} x {lvl.NJ} (k4={lvl.k4:.4f}, cfl_scale={lvl.cfl_scale:.2f})")
     
     def _initialize_output(self):
         """Initialize VTK writer for output."""
@@ -725,9 +727,10 @@ class RANSSolver:
             if level == 0 and self.config.irs_epsilon > 0.0:
                 apply_residual_smoothing(R, self.config.irs_epsilon)
             
-            # Update
+            # Update (apply level-specific CFL scaling)
             Qk = Q0.copy()
-            Qk[1:-1, 1:-1, :] += alpha * (lvl.dt / lvl.metrics.volume)[:, :, np.newaxis] * R
+            dt_scaled = lvl.dt * lvl.cfl_scale
+            Qk[1:-1, 1:-1, :] += alpha * (dt_scaled / lvl.metrics.volume)[:, :, np.newaxis] * R
         
         lvl.Q = lvl.bc.apply(Qk)
     

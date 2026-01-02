@@ -60,6 +60,10 @@ class MultigridLevel:
     # k4 increases on coarser levels to stabilize aliasing noise
     k4: float = 0.04
     
+    # CFL scaling factor for this level (coarse grids use RK3 without IRS)
+    # Level 0: 1.0 (RK5 + IRS), Coarse: reduced (RK3, no IRS)
+    cfl_scale: float = 1.0
+    
     # Storage for pre-smoothing Q (needed for FAS correction)
     Q_old: Optional[np.ndarray] = None
     
@@ -112,8 +116,9 @@ class MultigridHierarchy:
               freestream: FreestreamConditions,
               n_wake: int = 0,
               beta: float = 10.0,
-              base_k4: float = 0.04,
-              dissipation_scaling: float = 2.0) -> int:
+        base_k4: float = 0.04,
+        dissipation_scaling: float = 2.0,
+        coarse_cfl_factor: float = 0.5) -> int:
         """
         Build the multigrid hierarchy.
         
@@ -135,6 +140,9 @@ class MultigridHierarchy:
             Factor to scale k4 for each coarse level.
             k4[level] = base_k4 * (dissipation_scaling ** level)
             Default 2.0 doubles dissipation each coarse level.
+        coarse_cfl_factor : float
+            CFL reduction factor for coarse levels (default 0.5).
+            Coarse levels use RK3 without IRS, requiring lower CFL.
             
         Returns
         -------
@@ -169,7 +177,7 @@ class MultigridHierarchy:
             beta=beta
         )
         
-        # Create level 0 (finest - use base k4)
+        # Create level 0 (finest - use base k4, full CFL)
         level0 = MultigridLevel(
             NI=NI,
             NJ=NJ,
@@ -180,6 +188,7 @@ class MultigridHierarchy:
             dt=np.zeros((NI, NJ)),
             bc=bc,
             k4=base_k4,  # Level 0: original dissipation
+            cfl_scale=1.0,  # Level 0: full CFL (RK5 + IRS)
             Q_old=np.zeros((NI + 2, NJ + 2, 4))
         )
         self.levels.append(level0)
@@ -244,7 +253,7 @@ class MultigridHierarchy:
             # Scale dissipation for coarse level (reduces aliasing noise)
             level_k4 = base_k4 * (dissipation_scaling ** level_idx)
             
-            # Create level
+            # Create level (coarse levels use reduced CFL due to RK3 without IRS)
             level = MultigridLevel(
                 NI=NI_c,
                 NJ=NJ_c,
@@ -255,6 +264,7 @@ class MultigridHierarchy:
                 dt=np.zeros((NI_c, NJ_c)),
                 bc=bc_c,
                 k4=level_k4,  # Scaled dissipation for stability
+                cfl_scale=coarse_cfl_factor,  # Reduced CFL (RK3, no IRS)
                 Q_old=np.zeros((NI_c + 2, NJ_c + 2, 4))
             )
             self.levels.append(level)
@@ -443,7 +453,8 @@ def build_multigrid_hierarchy(
     min_size: int = 8,
     max_levels: int = 5,
     base_k4: float = 0.04,
-    dissipation_scaling: float = 2.0
+    dissipation_scaling: float = 2.0,
+    coarse_cfl_factor: float = 0.5
 ) -> MultigridHierarchy:
     """
     Convenience function to build multigrid hierarchy.
@@ -469,6 +480,8 @@ def build_multigrid_hierarchy(
     dissipation_scaling : float
         Factor to scale k4 for each coarse level.
         k4[level] = base_k4 * (dissipation_scaling ** level)
+    coarse_cfl_factor : float
+        CFL reduction for coarse levels (RK3 without IRS).
         
     Returns
     -------
@@ -476,6 +489,6 @@ def build_multigrid_hierarchy(
         Built hierarchy ready for V-cycle.
     """
     hierarchy = MultigridHierarchy(min_size=min_size, max_levels=max_levels)
-    hierarchy.build(X, Y, Q, freestream, n_wake, beta, base_k4, dissipation_scaling)
+    hierarchy.build(X, Y, Q, freestream, n_wake, beta, base_k4, dissipation_scaling, coarse_cfl_factor)
     return hierarchy
 
