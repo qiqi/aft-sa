@@ -634,8 +634,9 @@ class PlotlyDashboard:
             fig.update_yaxes(title_text='y', range=[-0.6, 0.6], matches='y', row=row, col=col)
         
         # Convergence history plot (row 3, col 2) - keep independent, no zoom/pan linking
-        fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, row=3, col=2)
-        fig.update_yaxes(title_text='Residual', matches=None, type='log', autorange=True, row=3, col=2)
+        # fixedrange=True prevents modebar zoom buttons from affecting this subplot
+        fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, fixedrange=True, row=3, col=2)
+        fig.update_yaxes(title_text='Residual', matches=None, type='log', autorange=True, fixedrange=True, row=3, col=2)
         
         fig.write_html(str(output_path), auto_play=False)
         
