@@ -107,8 +107,8 @@ class SolverConfig:
     # Multigrid options
     use_multigrid: bool = False     # Enable geometric multigrid (FAS scheme)
     mg_levels: int = 4              # Maximum number of multigrid levels
-    mg_nu1: int = 2                 # Pre-smoothing iterations
-    mg_nu2: int = 2                 # Post-smoothing iterations
+    mg_nu1: int = 1                 # Pre-smoothing iterations (1 is usually sufficient)
+    mg_nu2: int = 1                 # Post-smoothing iterations (1 for stability)
     mg_min_size: int = 8            # Minimum cells per direction on coarsest grid
     mg_omega: float = 0.5           # Prolongation relaxation factor (0.5-1.0)
     mg_use_injection: bool = True   # Use injection instead of bilinear prolongation
@@ -687,30 +687,24 @@ class RANSSolver:
         
         # Compute timestep if not already computed
         if level > 0:
-            # For coarse levels, scale timestep from fine
+            # For coarse levels, average timestep from fine (using Numba kernel)
+            from src.numerics.multigrid import restrict_timestep
             fine = self.mg_hierarchy.levels[level - 1]
-            # Average 4 fine timesteps for each coarse cell
-            NI_c, NJ_c = lvl.NI, lvl.NJ
-            NI_f, NJ_f = fine.NI, fine.NJ
-            for i_c in range(NI_c):
-                for j_c in range(NJ_c):
-                    i_f, j_f = 2 * i_c, 2 * j_c
-                    # Clamp indices for odd fine dimensions
-                    i_f1 = min(i_f + 1, NI_f - 1)
-                    j_f1 = min(j_f + 1, NJ_f - 1)
-                    lvl.dt[i_c, j_c] = 0.25 * (
-                        fine.dt[i_f, j_f] + fine.dt[i_f1, j_f] +
-                        fine.dt[i_f, j_f1] + fine.dt[i_f1, j_f1]
-                    )
+            restrict_timestep(fine.dt, lvl.dt)
         
         # Get forcing term (zero for finest, computed for coarse)
         forcing = lvl.forcing if level > 0 else None
         
-        # Jameson 5-stage RK smoothing step (extended stability for multigrid)
+        # RK smoothing step
+        # - Finest level: 5-stage for accuracy
+        # - Coarse levels: 3-stage for efficiency (just need to smooth)
         Q0 = lvl.Q.copy()
         Qk = lvl.Q.copy()
         
-        alphas = [0.25, 0.166666667, 0.375, 0.5, 1.0]
+        if level == 0:
+            alphas = [0.25, 0.166666667, 0.375, 0.5, 1.0]  # 5-stage Jameson
+        else:
+            alphas = [0.333333, 0.5, 1.0]  # 3-stage for coarse grids
         
         for alpha in alphas:
             Qk = lvl.bc.apply(Qk)
@@ -718,8 +712,8 @@ class RANSSolver:
             # Compute residual with forcing
             R = self._compute_residual_level(level, Q=Qk, forcing=forcing)
             
-            # Apply IRS if enabled
-            if self.config.irs_epsilon > 0.0:
+            # Apply IRS only on finest level (coarse levels are more stable)
+            if level == 0 and self.config.irs_epsilon > 0.0:
                 apply_residual_smoothing(R, self.config.irs_epsilon)
             
             # Update

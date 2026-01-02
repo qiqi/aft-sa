@@ -8,6 +8,7 @@ Transfer Operators:
 - restrict_state: Volume-weighted average Q_c = (sum Q_f * V_f) / V_c
 - restrict_residual: Simple summation R_c = sum R_f  
 - prolongate_correction: Bilinear interpolation of correction dQ
+- restrict_timestep: Average 4 fine timesteps to coarse cell
 
 Design: GPU-ready with flat arrays and @njit kernels.
 """
@@ -15,6 +16,39 @@ Design: GPU-ready with flat arrays and @njit kernels.
 import numpy as np
 from numba import njit, prange
 from typing import Tuple
+
+
+@njit(cache=True, parallel=True)
+def restrict_timestep(dt_fine: np.ndarray, dt_coarse: np.ndarray) -> None:
+    """
+    Restrict timestep from fine to coarse grid by averaging.
+    
+    Each coarse cell gets the average of 4 fine cell timesteps.
+    Handles odd fine dimensions by clamping indices.
+    
+    Parameters
+    ----------
+    dt_fine : ndarray, shape (NI_f, NJ_f)
+        Fine grid timestep array.
+    dt_coarse : ndarray, shape (NI_c, NJ_c) [output]
+        Coarse grid timestep array (modified in-place).
+    """
+    NI_c, NJ_c = dt_coarse.shape
+    NI_f, NJ_f = dt_fine.shape
+    
+    for i_c in prange(NI_c):
+        for j_c in range(NJ_c):
+            i_f = 2 * i_c
+            j_f = 2 * j_c
+            
+            # Clamp indices for odd fine dimensions
+            i_f1 = i_f + 1 if i_f + 1 < NI_f else NI_f - 1
+            j_f1 = j_f + 1 if j_f + 1 < NJ_f else NJ_f - 1
+            
+            dt_coarse[i_c, j_c] = 0.25 * (
+                dt_fine[i_f, j_f] + dt_fine[i_f1, j_f] +
+                dt_fine[i_f, j_f1] + dt_fine[i_f1, j_f1]
+            )
 
 
 @njit(cache=True, parallel=True)
