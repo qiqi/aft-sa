@@ -147,10 +147,9 @@ class BoundaryConditions:
         """
         Q = Q.copy()
         
-        # Apply in order: surface, farfield, then wake cut
+        # Apply in order: surface (J=0), then farfield (J=JMAX, I=0, I=IMAX)
         Q = self.apply_surface(Q)
         Q = self.apply_farfield(Q)
-        Q = self.apply_wake_cut(Q)
         
         return Q
     
@@ -251,8 +250,13 @@ class BoundaryConditions:
     
     def apply_farfield(self, Q: np.ndarray) -> np.ndarray:
         """
-        Apply characteristic-based non-reflecting farfield boundary conditions.
+        Apply farfield boundary conditions at all farfield boundaries.
         
+        For a C-grid around an airfoil, the farfield boundaries are:
+        - J=JMAX: Outer farfield (characteristic-based non-reflecting BC)
+        - I=0 and I=IMAX: Downstream farfield/outlet (zero-gradient extrapolation)
+        
+        J-direction farfield (outer boundary):
         This BC determines whether each farfield face is inflow or outflow
         based on the normal velocity component, then:
         
@@ -265,6 +269,9 @@ class BoundaryConditions:
             - Velocity: Extrapolate from interior
             - Turbulence: Extrapolate from interior
             - Pressure: Set to freestream (back-pressure)
+        
+        I-direction farfield (downstream outlet):
+            - Zero-gradient (linear extrapolation) for subsonic outflow
         
         Parameters
         ----------
@@ -360,78 +367,24 @@ class BoundaryConditions:
         Q[i_int, -1, 2] = 2 * Q[i_int, -2, 2] - v_b
         Q[i_int, -1, 3] = 2 * Q[i_int, -2, 3] - nu_t_b
         
-        # Handle corner ghost cells (copy from adjacent interior ghost cells)
-        # Left corners (i=0,1)
-        for i in range(NGHOST):
-            Q[i, -2:, :] = Q[NGHOST, -2:, :]
-        # Right corners (i=-2,-1)
-        for i in range(-NGHOST, 0):
-            Q[i, -2:, :] = Q[-NGHOST-1, -2:, :]
+        # ===== I-DIRECTION FARFIELD (downstream outlet at I=0 and I=IMAX) =====
+        # For a C-grid, I=0 and I=IMAX are the downstream farfield boundaries
+        # Use zero-gradient (extrapolation) BC for subsonic outflow
         
-        return Q
-    
-    def apply_wake_cut(self, Q: np.ndarray) -> np.ndarray:
-        """
-        Apply periodic boundary conditions at the wake cut (I-direction ghosts).
+        # All j except J-farfield ghosts (which were just set above)
+        j_slice = slice(0, -NGHOST)
         
-        For a C-grid topology, the grid wraps around the airfoil and reconnects
-        at the wake cut. The left edge (i=0,1) is physically adjacent to the
-        right edge (i=NI+2, NI+3).
+        # Left I-ghosts (i=0,1): extrapolate from left interior
+        # Inner ghost (i=1) = first interior (i=NGHOST)
+        # Outer ghost (i=0) = linear extrapolation: 2*Q[NGHOST] - Q[NGHOST+1]
+        Q[1, j_slice, :] = Q[NGHOST, j_slice, :]
+        Q[0, j_slice, :] = 2 * Q[NGHOST, j_slice, :] - Q[NGHOST + 1, j_slice, :]
         
-        With NGHOST=2 ghost layers, we can ensure EXACT conservation at the wake
-        cut by making it fully periodic. The 4th-order flux stencil at the wake
-        cut will see identical values from both sides.
-        
-        Implementation (with NGHOST=2):
-            - Outer left ghost (i=0): Copy from interior Q[-4] = Q[NI+2-2] = Q[NI]
-            - Inner left ghost (i=1): Copy from interior Q[-3] = Q[NI+1]
-            - Inner right ghost (i=-2): Copy from interior Q[2]
-            - Outer right ghost (i=-1): Copy from interior Q[3]
-            - IMPORTANT: Do NOT modify farfield ghosts (j=-2,-1) - set by apply_farfield
-        
-        Parameters
-        ----------
-        Q : ndarray, shape (NI + 2*NGHOST, NJ + 2*NGHOST, 4)
-            State vector with NGHOST ghost layers on each side.
-            
-        Returns
-        -------
-        Q : ndarray
-            Updated state with wake cut ghost cells set.
-        """
-        # Fully periodic BC for the wake cut:
-        # Interior cells are at Q[NGHOST:-NGHOST, ...]
-        # We need to copy interior values to the ghost cells
-        #
-        # Left ghosts (i=0,1) get values from right interior (i=NI, NI-1)
-        # Right ghosts (i=-2,-1) get values from left interior (i=0, 1)
-        #
-        # This applies to all J-indices EXCEPT the farfield ghosts (j=-NGHOST:)
-        
-        # Left ghost layers: copy from right interior
-        # Q[0, ...] = Q[-2*NGHOST, ...] = Q[NI, ...]  (last interior)
-        # Q[1, ...] = Q[-2*NGHOST+1, ...] = Q[NI+1, ...]  Wait, that's a ghost!
-        # 
-        # Let me reconsider: With NGHOST=2:
-        # Q indices: 0, 1 (left ghosts), 2, 3, ..., NI+1 (interior), NI+2, NI+3 (right ghosts)
-        # Interior: Q[2:NI+2] (NI cells)
-        # 
-        # For periodic:
-        # Q[0] should match Q[NI] = Q[-4]
-        # Q[1] should match Q[NI+1] = Q[-3]
-        # Q[-2] = Q[NI+2] should match Q[2]
-        # Q[-1] = Q[NI+3] should match Q[3]
-        
-        # Exclude farfield ghost rows (j = -2, -1)
-        j_slice = slice(0, -NGHOST)  # All j except farfield ghosts
-        
-        # Left ghost layers: copy from right interior
-        Q[0, j_slice, :] = Q[-2*NGHOST, j_slice, :]    # Outer left = last interior
-        Q[1, j_slice, :] = Q[-2*NGHOST+1, j_slice, :]  # Inner left = second-to-last interior
-        
-        # Right ghost layers: copy from left interior
-        Q[-2, j_slice, :] = Q[NGHOST, j_slice, :]      # Inner right = first interior
-        Q[-1, j_slice, :] = Q[NGHOST+1, j_slice, :]    # Outer right = second interior
+        # Right I-ghosts (i=-2,-1): extrapolate from right interior
+        # Inner ghost (i=-2) = last interior (i=-NGHOST-1)
+        # Outer ghost (i=-1) = linear extrapolation: 2*Q[-NGHOST-1] - Q[-NGHOST-2]
+        Q[-2, j_slice, :] = Q[-NGHOST - 1, j_slice, :]
+        Q[-1, j_slice, :] = 2 * Q[-NGHOST - 1, j_slice, :] - Q[-NGHOST - 2, j_slice, :]
         
         return Q
 

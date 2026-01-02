@@ -97,6 +97,70 @@ def compute_ghost_symmetry(Q: np.ndarray) -> dict:
     }
 
 
+def compute_j_ghost_symmetry(Q: np.ndarray, n_wake: int) -> dict:
+    """
+    Check symmetry of J-direction ghost cells at the wake cut.
+    
+    For the C-grid wake cut at j=0, the lower wake and upper wake should
+    have their J-ghosts set from the opposite side's interior with mirrored i-indices.
+    
+    Parameters
+    ----------
+    Q : ndarray, shape (NI + 2*NGHOST, NJ + 2*NGHOST, 4)
+        State vector with ghost cells.
+    n_wake : int
+        Number of wake cells on each side.
+        
+    Returns
+    -------
+    symmetry : dict
+        Dictionary with J-ghost symmetry metrics:
+        - lower_ghost_j0_error: Error in j=0 ghost of lower wake
+        - lower_ghost_j1_error: Error in j=1 ghost of lower wake
+        - upper_ghost_j0_error: Error in j=0 ghost of upper wake
+        - upper_ghost_j1_error: Error in j=1 ghost of upper wake
+    """
+    NI = Q.shape[0] - 2 * NGHOST
+    
+    # Wake regions (in Q indices)
+    i_wake_lower_start = NGHOST
+    i_wake_lower_end = NGHOST + n_wake
+    i_wake_upper_start = NGHOST + NI - n_wake
+    i_wake_upper_end = NGHOST + NI
+    
+    # j=2 is first interior, j=3 is second interior (with NGHOST=2)
+    j_int_first = NGHOST
+    j_int_second = NGHOST + 1
+    
+    # Expected: lower wake j-ghosts should equal upper wake j-interior (mirrored)
+    # Lower wake j=1 ghost should = upper wake j=2 interior (reversed)
+    # Lower wake j=0 ghost should = upper wake j=3 interior (reversed)
+    
+    lower_wake_ghost_j1 = Q[i_wake_lower_start:i_wake_lower_end, 1, :]
+    lower_wake_ghost_j0 = Q[i_wake_lower_start:i_wake_lower_end, 0, :]
+    upper_wake_int_j2 = Q[i_wake_upper_start:i_wake_upper_end, j_int_first, :]
+    upper_wake_int_j3 = Q[i_wake_upper_start:i_wake_upper_end, j_int_second, :]
+    
+    # Upper wake ghosts should equal lower wake interior (reversed)
+    upper_wake_ghost_j1 = Q[i_wake_upper_start:i_wake_upper_end, 1, :]
+    upper_wake_ghost_j0 = Q[i_wake_upper_start:i_wake_upper_end, 0, :]
+    lower_wake_int_j2 = Q[i_wake_lower_start:i_wake_lower_end, j_int_first, :]
+    lower_wake_int_j3 = Q[i_wake_lower_start:i_wake_lower_end, j_int_second, :]
+    
+    # Check errors (with i-mirroring)
+    lower_ghost_j1_error = float(np.max(np.abs(lower_wake_ghost_j1 - upper_wake_int_j2[::-1, :])))
+    lower_ghost_j0_error = float(np.max(np.abs(lower_wake_ghost_j0 - upper_wake_int_j3[::-1, :])))
+    upper_ghost_j1_error = float(np.max(np.abs(upper_wake_ghost_j1 - lower_wake_int_j2[::-1, :])))
+    upper_ghost_j0_error = float(np.max(np.abs(upper_wake_ghost_j0 - lower_wake_int_j3[::-1, :])))
+    
+    return {
+        'lower_ghost_j0_error': lower_ghost_j0_error,
+        'lower_ghost_j1_error': lower_ghost_j1_error,
+        'upper_ghost_j0_error': upper_ghost_j0_error,
+        'upper_ghost_j1_error': upper_ghost_j1_error,
+    }
+
+
 class TestWakeConservationBaseline:
     """Baseline tests for wake cut conservation (before refactoring)."""
     
@@ -196,26 +260,47 @@ class TestWakeConservationBaseline:
         Q = solver.Q
         
         NI_ghost, NJ_ghost, _ = Q.shape
-        NI = NI_ghost - 2
-        NJ = NJ_ghost - 3  # 2 J-ghosts at wall, 1 at farfield
+        NI = NI_ghost - 2 * NGHOST
+        NJ = NJ_ghost - 2 * NGHOST
         
         print("\n=== J-Stencil Availability at Wake Cut ===")
         print(f"Q shape: {Q.shape}")
-        print(f"Interior cells: Q[1:-1, 2:-1, :] = ({NI}, {NJ}, 4)")
-        print(f"J-ghosts at wall: Q[:, 0:2, :]")
-        print(f"J-ghost at farfield: Q[:, -1, :]")
+        print(f"Interior cells: Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :] = ({NI}, {NJ}, 4)")
+        print(f"J-ghosts at wall: Q[:, 0:{NGHOST}, :]")
+        print(f"J-ghosts at farfield: Q[:, -{NGHOST}:, :]")
         
         # With 2 J-ghosts at wall, we now have full 4th-order stencil available
         # For J-face at j=0 (first interior face), we can access:
         # Q[:, 1, :] (second wall ghost), Q[:, 2, :] (first interior),
         # Q[:, 3, :] (second interior), Q[:, 4, :] (third interior)
         
-        j_ghosts = 2  # Now we have 2 ghost layers
-        print(f"Current J-ghost layers at wall: {j_ghosts}")
+        print(f"Current J-ghost layers at wall: {NGHOST}")
         print(f"Required for full 4th-order stencil: 2 - SATISFIED!")
         
-        # Verify we have 2 J-ghost layers
-        assert NJ_ghost == NJ + 3, f"Expected NJ+3 ghost cells, got {NJ_ghost}"
+        # Verify we have correct ghost layer shape
+        assert NI_ghost == NI + 2 * NGHOST, f"Expected NI+2*NGHOST ghost cells, got {NI_ghost}"
+        assert NJ_ghost == NJ + 2 * NGHOST, f"Expected NJ+2*NGHOST ghost cells, got {NJ_ghost}"
+    
+    def test_j_ghost_wake_symmetry(self, simple_airfoil_solver):
+        """Test that J-ghost cells at wake are properly set from opposite side."""
+        solver = simple_airfoil_solver
+        
+        # Apply boundary conditions to ensure ghosts are set
+        solver.Q = solver.bc.apply(solver.Q)
+        
+        # Compute J-ghost symmetry
+        n_wake = solver.config.n_wake
+        symmetry = compute_j_ghost_symmetry(solver.Q, n_wake)
+        
+        print("\n=== J-Ghost Wake Symmetry ===")
+        print(f"Lower wake j=0 ghost error: {symmetry['lower_ghost_j0_error']:.6e}")
+        print(f"Lower wake j=1 ghost error: {symmetry['lower_ghost_j1_error']:.6e}")
+        print(f"Upper wake j=0 ghost error: {symmetry['upper_ghost_j0_error']:.6e}")
+        print(f"Upper wake j=1 ghost error: {symmetry['upper_ghost_j1_error']:.6e}")
+        
+        # With correct implementation, these should be zero (machine precision)
+        max_error = max(symmetry.values())
+        assert max_error < 1e-10, f"J-ghost symmetry error too large: {max_error}"
 
 
 class TestFluxKernelWakeBehavior:
