@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 
 from src.validation.mfoil_runner import run_laminar as run_mfoil_laminar
 from src.grid.loader import load_or_generate_grid
-from src.solvers.rans_solver import RANSSolver, SolverConfig
+from src.solvers.factory import create_solver_quiet
 
 
 def main():
@@ -98,46 +98,25 @@ def main():
         verbose=True
     )
     
-    # Configure solver with IRS for stability
-    config = SolverConfig(
-        mach=0.1,
+    # Create and run solver using factory with proper CFL ramping
+    print("\nRunning RANS solver...")
+    solver = create_solver_quiet(
+        X, Y,
+        n_wake=N_WAKE,
         alpha=args.alpha,
         reynolds=args.reynolds,
+        mach=0.15,
         beta=10.0,
-        cfl_start=args.cfl,
+        cfl_start=0.1,           # Start with low CFL
         cfl_target=args.cfl,
-        cfl_ramp_iters=1,
+        cfl_ramp_iters=300,      # Ramp up gradually
         max_iter=args.max_iter,
         tol=1e-10,
-        output_freq=args.max_iter + 1,
-        print_freq=200,
-        output_dir="output/validation",
-        case_name="cp_cf_comparison",
         jst_k4=args.k4,
-        n_wake=N_WAKE,
         irs_epsilon=args.irs,
+        wall_damping_length=0.1,
+        print_freq=200,
     )
-    
-    # Create and run solver
-    print("\nRunning RANS solver...")
-    solver = RANSSolver.__new__(RANSSolver)
-    solver.config = config
-    solver.X = X
-    solver.Y = Y
-    solver.NI = X.shape[0] - 1
-    solver.NJ = X.shape[1] - 1
-    solver.iteration = 0
-    solver.residual_history = []
-    solver.converged = False
-    
-    solver._compute_metrics()
-    solver._initialize_state()
-    
-    # Dummy VTK writer
-    class DummyVTKWriter:
-        def write(self, *args, **kwargs): pass
-        def finalize(self): return ""
-    solver.vtk_writer = DummyVTKWriter()
     
     solver.run_steady_state()
     
