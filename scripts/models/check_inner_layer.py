@@ -1,3 +1,13 @@
+#!/usr/bin/env python3
+"""
+Check Inner Layer Properties for Falkner-Skan Profiles (JAX Version).
+
+This script analyzes the inner layer behavior of Falkner-Skan solutions
+across different pressure gradient parameters.
+
+Uses JAX versions of physics functions for consistency with GPU solvers.
+"""
+
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -13,7 +23,11 @@ def get_output_dir():
     return out
 
 from src.physics.boundary_layer import solve_falkner_skan
+
+# Use JAX versions
+from src.physics.jax_config import jnp
 from src.physics.laminar import Re_Omega, compute_nondimensional_amplification_rate
+
 
 def run():
     # --- 2. Phase Space Calculation ---
@@ -31,33 +45,32 @@ def run():
     labels = ['Stagnation', 'Strong Favorable', 'Favorable', 'Blasius', 'Adverse', 'Strong Adverse', 'Separation']
     colors = plt.cm.viridis(np.linspace(0, 1, len(betas)))
 
-    # Reference Reynolds Number for scaling Re_Omega (Gamma is invariant)
-
-    # plt.figure(figsize=(7, 8))
-    _, ax = plt.subplots(2,1,figsize=(7, 8))
+    _, ax = plt.subplots(2, 1, figsize=(7, 8))
 
     for beta, Re_theta, label, color in zip(betas, Re_theta_tr, labels, colors):
         eta, u, shear, v_sc = solve_falkner_skan(beta)
 
+        # Convert to JAX arrays
+        shear_jax = jnp.array(shear)
+        eta_jax = jnp.array(eta)
+
         # --- Compute Invariants ---
-        # 1. Gamma = 2 (y * Omega)**2 / (U**2 + (y * Omega)**2)
-        # Avoid divide by zero at wall (limit is 1.0 for attached, 2.0 for sep)
         gamma = 2 * (eta * shear)**2 / (u**2 + (eta * shear)**2)
 
         # --- Compute Shape Factor H (for reference) ---
-        # Theta = Integral u(1-u) d_eta
-        # Delta_star = Integral (1-u) d_eta
         theta = np.trapezoid(u * (1 - u), eta)
         delta_star = np.trapezoid(1 - u, eta)
         H = delta_star / theta
 
+        # Use JAX version of Re_Omega
+        re_omega = np.array(Re_Omega(shear_jax, eta_jax))
+
         # --- Plotting ---
-        ax[0].plot(gamma[1:], Re_Omega(shear, eta)[1:] * Re_theta / theta,
+        ax[0].plot(gamma[1:], re_omega[1:] * Re_theta / theta,
                  color=color, linewidth=2.5,
                  label=f'{label} (H={H:.1f})')
 
-        # --- Plotting ---
-        amax = np.max(np.log10(Re_Omega(shear, eta)[1:] * Re_theta / theta / 1000) / 50 + gamma[1:])
+        amax = np.max(np.log10(re_omega[1:] * Re_theta / theta / 1000) / 50 + gamma[1:])
         ax[1].plot(amax, rate_target[Re_theta_tr.index(Re_theta)], 'o', color=color)
 
     # --- 3. Decorate the Map ---
@@ -75,17 +88,17 @@ def run():
     re_omega = np.logspace(1, 4, 51)
     Gamma = np.linspace(0, 2, 51)
     re_omega, Gamma = np.meshgrid(re_omega, Gamma, indexing='ij')
-    # amp_rate = compute_nondimensional_amplification_rate(re_omega, Gamma)
     a = np.log10(re_omega / 1000) / 50 + Gamma
     ax[0].clabel(ax[0].contour(Gamma, re_omega, a, [0.9, 0.95, 1, 1.05, 1.1], linestyles=':'))
-    #amp_rate = np.exp(5) * 0.005
-    #plt.clabel(plt.contour(Gamma, re_omega, amp_rate, [0.0001, 0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1], linestyles=':'))
 
     ax[0].set_yscale('log')
     ax[0].set_ylim([10, 10000])
     ax[1].set_yscale('log')
     
-    out_path = os.path.join(get_output_dir(), 'falkner_skan_gamma.pdf'); plt.savefig(out_path); print(f'Saved: {out_path}')
+    out_path = os.path.join(get_output_dir(), 'inner_layer_check.pdf')
+    plt.savefig(out_path)
+    print(f'Saved: {out_path}')
+
 
 if __name__ == "__main__":
     run()

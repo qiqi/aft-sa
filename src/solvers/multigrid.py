@@ -1,14 +1,5 @@
 """
-Multigrid Hierarchy Manager for FAS Scheme.
-
-This module provides the MultigridHierarchy class that manages all data
-structures and operations for geometric multigrid with Full Approximation
-Storage (FAS).
-
-Design: GPU-ready with flat lists of arrays.
-- All heavy operations use Numba-optimized kernels
-- No recursion in kernels - Python driver handles level iteration
-- Pre-allocated buffers at hierarchy build time
+Multigrid Hierarchy Manager for FAS (Full Approximation Storage) Scheme.
 """
 
 import numpy as np
@@ -25,47 +16,18 @@ from ..constants import NGHOST
 
 @dataclass
 class MultigridLevel:
-    """
-    Data for a single multigrid level.
+    """Data for a single multigrid level."""
     
-    All arrays are pre-allocated for efficiency.
-    """
-    
-    # Grid dimensions
     NI: int
     NJ: int
-    
-    # Grid metrics
     metrics: FVMMetrics
-    
-    # State vector: [p, u, v, nu_tilde]
-    # Shape: (NI+2, NJ+2, 4) with ghost cells
     Q: np.ndarray
-    
-    # Residual storage
-    # Shape: (NI, NJ, 4) for interior cells only
     R: np.ndarray
-    
-    # FAS forcing term (coarse levels only)
-    # Shape: (NI, NJ, 4) 
     forcing: np.ndarray
-    
-    # Local timestep
-    # Shape: (NI, NJ)
     dt: np.ndarray
-    
-    # Boundary conditions handler
     bc: BoundaryConditions
-    
-    # Level-specific dissipation coefficient (scaled for coarse grids)
-    # k4 increases on coarser levels to stabilize aliasing noise
     k4: float = 0.04
-    
-    # CFL scaling factor for this level (coarse grids use RK3 without IRS)
-    # Level 0: 1.0 (RK5 + IRS), Coarse: reduced (RK3, no IRS)
     cfl_scale: float = 1.0
-    
-    # Storage for pre-smoothing Q (needed for FAS correction)
     Q_old: Optional[np.ndarray] = None
     
     @property
@@ -74,37 +36,10 @@ class MultigridLevel:
 
 
 class MultigridHierarchy:
-    """
-    Manages the multigrid hierarchy for FAS scheme.
-    
-    This class builds and stores all multigrid levels, and provides
-    methods for:
-    - Restriction of state and residuals
-    - Prolongation of corrections
-    - Boundary condition application at each level
-    
-    Example
-    -------
-    >>> hierarchy = MultigridHierarchy()
-    >>> hierarchy.build(X, Y, Q_fine, freestream, config)
-    >>> print(f"Built {hierarchy.num_levels} levels")
-    >>> 
-    >>> # Access level data
-    >>> Q_coarse = hierarchy.levels[1].Q
-    >>> R_coarse = hierarchy.levels[1].R
-    """
+    """Manages the multigrid hierarchy for FAS scheme."""
     
     def __init__(self, min_size: int = 8, max_levels: int = 5):
-        """
-        Initialize multigrid hierarchy manager.
-        
-        Parameters
-        ----------
-        min_size : int
-            Minimum cells in each direction on coarsest level.
-        max_levels : int
-            Maximum number of multigrid levels.
-        """
+        """Initialize multigrid hierarchy manager."""
         self.min_size = min_size
         self.max_levels = max_levels
         self.levels: List[MultigridLevel] = []
@@ -120,49 +55,17 @@ class MultigridHierarchy:
         base_k4: float = 0.04,
         dissipation_scaling: float = 2.0,
         coarse_cfl_factor: float = 0.5) -> int:
-        """
-        Build the multigrid hierarchy.
-        
-        Parameters
-        ----------
-        X, Y : ndarray, shape (NI+1, NJ+1)
-            Node coordinates for finest grid.
-        Q_fine : ndarray, shape (NI+2, NJ+2, 4)
-            Fine grid state vector with ghost cells.
-        freestream : FreestreamConditions
-            Freestream conditions for BCs.
-        n_wake : int
-            Number of wake points (scaled for coarse levels).
-        beta : float
-            Artificial compressibility parameter.
-        base_k4 : float
-            Base JST 4th-order dissipation coefficient (for Level 0).
-        dissipation_scaling : float
-            Factor to scale k4 for each coarse level.
-            k4[level] = base_k4 * (dissipation_scaling ** level)
-            Default 2.0 doubles dissipation each coarse level.
-        coarse_cfl_factor : float
-            CFL reduction factor for coarse levels (default 0.5).
-            Coarse levels use RK3 without IRS, requiring lower CFL.
-            
-        Returns
-        -------
-        num_levels : int
-            Number of levels built.
-        """
+        """Build the multigrid hierarchy."""
         self.levels = []
         
-        # Level 0: Finest grid
         NI = X.shape[0] - 1
         NJ = X.shape[1] - 1
         
         computer = MetricComputer(X, Y)
         metrics = computer.compute()
         
-        # Compute farfield normals
         farfield_normals = self._compute_farfield_normals(X, Y)
         
-        # Validate: farfield normals length must match NI
         nx, ny = farfield_normals
         if len(nx) != NI:
             raise ValueError(
@@ -170,7 +73,6 @@ class MultigridHierarchy:
                 f"X shape: {X.shape}, expected nodes: ({NI+1}, {NJ+1})"
             )
         
-        # Create BC handler for finest level
         bc = BoundaryConditions(
             freestream=freestream,
             n_wake_points=n_wake,
@@ -178,7 +80,6 @@ class MultigridHierarchy:
             beta=beta
         )
         
-        # Create level 0 (finest - use base k4, full CFL)
         level0 = MultigridLevel(
             NI=NI,
             NJ=NJ,
@@ -188,47 +89,37 @@ class MultigridHierarchy:
             forcing=np.zeros((NI, NJ, 4)),
             dt=np.zeros((NI, NJ)),
             bc=bc,
-            k4=base_k4,  # Level 0: original dissipation
-            cfl_scale=1.0,  # Level 0: full CFL (RK5 + IRS)
+            k4=base_k4,
+            cfl_scale=1.0,
             Q_old=np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         )
         self.levels.append(level0)
         
-        # Build coarse levels
         current_X, current_Y = X, Y
         current_metrics = metrics
         current_n_wake = n_wake
         
         level_idx = 1
         while level_idx < self.max_levels:
-            # Check if we can coarsen
             if not Coarsener.can_coarsen(current_metrics.NI, current_metrics.NJ, 
                                           self.min_size):
                 break
             
-            # Coarsen grid coordinates
             coarse_X = current_X[::2, ::2]
             coarse_Y = current_Y[::2, ::2]
             
-            # Coarsen metrics
             coarse_metrics = Coarsener.coarsen(current_metrics)
             NI_c, NJ_c = coarse_metrics.NI, coarse_metrics.NJ
-            
-            # Scale BC indices
             coarse_n_wake = current_n_wake // 2
-            
-            # Compute coarse farfield normals
             coarse_farfield_normals = self._compute_farfield_normals(coarse_X, coarse_Y)
             
-            # Validate: farfield normals length must match NI_c
             nx_c, ny_c = coarse_farfield_normals
             if len(nx_c) != NI_c:
                 raise ValueError(
                     f"Level {level_idx}: Farfield normals length ({len(nx_c)}) != NI_c ({NI_c}). "
-                    f"coarse_X shape: {coarse_X.shape}, expected nodes: ({NI_c+1}, {NJ_c+1})"
-                )
+                f"coarse_X shape: {coarse_X.shape}, expected nodes: ({NI_c+1}, {NJ_c+1})"
+            )
             
-            # Create BC handler for coarse level
             bc_c = BoundaryConditions(
                 freestream=freestream,
                 n_wake_points=coarse_n_wake,
@@ -236,10 +127,8 @@ class MultigridHierarchy:
                 beta=beta
             )
             
-            # Create state and residual arrays (NGHOST ghosts on each side)
             Q_c = np.zeros((NI_c + 2*NGHOST, NJ_c + 2*NGHOST, 4))
             
-            # Initialize coarse state by restriction from previous level
             prev_level = self.levels[-1]
             restrict_state(
                 prev_level.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],  # Interior only
@@ -248,13 +137,9 @@ class MultigridHierarchy:
                 coarse_metrics.volume
             )
             
-            # Apply BCs to coarse state
             Q_c = bc_c.apply(Q_c)
-            
-            # Scale dissipation for coarse level (reduces aliasing noise)
             level_k4 = base_k4 * (dissipation_scaling ** level_idx)
             
-            # Create level (coarse levels use reduced CFL due to RK3 without IRS)
             level = MultigridLevel(
                 NI=NI_c,
                 NJ=NJ_c,
@@ -264,13 +149,12 @@ class MultigridHierarchy:
                 forcing=np.zeros((NI_c, NJ_c, 4)),
                 dt=np.zeros((NI_c, NJ_c)),
                 bc=bc_c,
-                k4=level_k4,  # Scaled dissipation for stability
-                cfl_scale=coarse_cfl_factor,  # Reduced CFL (RK3, no IRS)
+                k4=level_k4,
+                cfl_scale=coarse_cfl_factor,
                 Q_old=np.zeros((NI_c + 2*NGHOST, NJ_c + 2*NGHOST, 4))
             )
             self.levels.append(level)
             
-            # Update for next iteration
             current_X, current_Y = coarse_X, coarse_Y
             current_metrics = coarse_metrics
             current_n_wake = coarse_n_wake
@@ -280,32 +164,15 @@ class MultigridHierarchy:
         return self.num_levels
     
     def _compute_farfield_normals(self, X: np.ndarray, Y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Compute outward-pointing unit normals at farfield (j=NJ).
-        
-        Parameters
-        ----------
-        X, Y : ndarray, shape (NI+1, NJ+1)
-            Node coordinates.
-            
-        Returns
-        -------
-        nx, ny : ndarray, shape (NI,)
-            Outward unit normals at farfield faces.
-        """
+        """Compute outward-pointing unit normals at farfield (j=NJ)."""
         NI = X.shape[0] - 1
-        NJ = X.shape[1] - 1
         
-        # J-face at j=NJ connects nodes (i, NJ) and (i+1, NJ)
-        dx = X[1:, -1] - X[:-1, -1]  # Shape: (NI,)
+        dx = X[1:, -1] - X[:-1, -1]
         dy = Y[1:, -1] - Y[:-1, -1]
         
-        # Normal pointing in +j direction (outward): rotate 90° CCW
-        # (dx, dy) -> (-dy, dx)
         nx_raw = -dy
         ny_raw = dx
         
-        # Normalize
         mag = np.sqrt(nx_raw**2 + ny_raw**2) + 1e-30
         nx = nx_raw / mag
         ny = ny_raw / mag
@@ -313,121 +180,64 @@ class MultigridHierarchy:
         return nx, ny
     
     def restrict_to_coarse(self, fine_level: int) -> None:
-        """
-        Restrict state and residual from fine level to coarse level.
-        
-        Parameters
-        ----------
-        fine_level : int
-            Index of fine level (coarse level is fine_level + 1).
-        """
+        """Restrict state and residual from fine level to coarse level."""
         if fine_level >= self.num_levels - 1:
             return
         
         fine = self.levels[fine_level]
         coarse = self.levels[fine_level + 1]
         
-        # Store current coarse Q for correction computation
         coarse.Q_old[:] = coarse.Q
         
-        # Restrict state (volume-weighted average)
         restrict_state(
-            fine.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],  # Interior (new indexing)
+            fine.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],
             fine.metrics.volume,
             coarse.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],
             coarse.metrics.volume
         )
         
-        # Apply BCs to coarse state
         coarse.Q = coarse.bc.apply(coarse.Q)
-        
-        # Restrict residual (simple summation)
         restrict_residual(fine.R, coarse.R)
     
     def prolongate_correction(self, coarse_level: int, use_injection: bool = True) -> None:
-        """
-        Prolongate correction from coarse level to fine level.
-        
-        Parameters
-        ----------
-        coarse_level : int
-            Index of coarse level (fine level is coarse_level - 1).
-        use_injection : bool
-            If True, use piecewise constant (injection) prolongation.
-            If False, use bilinear interpolation.
-        """
+        """Prolongate correction from coarse level to fine level."""
         if coarse_level <= 0:
             return
         
         fine = self.levels[coarse_level - 1]
         coarse = self.levels[coarse_level]
         
-        # Prolongate correction dQ = Q_new - Q_old
         if use_injection:
             prolongate_injection(
-                fine.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],  # Fine interior (new indexing)
-                coarse.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],  # Coarse new
-                coarse.Q_old[NGHOST:-NGHOST, NGHOST:-NGHOST, :]  # Coarse old
+                fine.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],
+                coarse.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],
+                coarse.Q_old[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
             )
         else:
             prolongate_correction(
-                fine.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],  # Fine interior (new indexing)
-                coarse.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],  # Coarse new
-                coarse.Q_old[NGHOST:-NGHOST, NGHOST:-NGHOST, :]  # Coarse old
+                fine.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],
+                coarse.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],
+                coarse.Q_old[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
             )
         
-        # Apply BCs to fine level after correction
         fine.Q = fine.bc.apply(fine.Q)
     
     def compute_fas_forcing(self, coarse_level: int) -> None:
-        """
-        Compute FAS forcing term for coarse level.
-        
-        P_c = R_c^inj - R(Q_c)
-        
-        where R_c^inj is the restricted residual and R(Q_c) is the
-        residual computed on the coarse grid.
-        
-        Parameters
-        ----------
-        coarse_level : int
-            Index of coarse level (must be > 0).
-        """
+        """Compute FAS forcing term: P_c = R_c^inj - R(Q_c)."""
         if coarse_level <= 0:
             return
         
         coarse = self.levels[coarse_level]
-        
-        # R_c^inj is already stored in coarse.R after restrict_to_coarse
         R_inj = coarse.R.copy()
-        
-        # R(Q_c) must be computed by the solver and stored in coarse.R
-        # After that, the forcing is computed as:
-        # coarse.forcing = R_inj - coarse.R
-        # This method should be called after computing coarse residual
         coarse.forcing = R_inj - coarse.R
     
     def apply_bcs(self, level: int) -> None:
-        """
-        Apply boundary conditions at specified level.
-        
-        Parameters
-        ----------
-        level : int
-            Level index.
-        """
+        """Apply boundary conditions at specified level."""
         lvl = self.levels[level]
         lvl.Q = lvl.bc.apply(lvl.Q)
     
     def get_level_info(self) -> str:
-        """
-        Get summary of all levels in hierarchy.
-        
-        Returns
-        -------
-        info : str
-            Formatted string with level information.
-        """
+        """Get summary of all levels in hierarchy."""
         lines = [f"Multigrid Hierarchy: {self.num_levels} levels"]
         lines.append("-" * 50)
         
@@ -457,38 +267,7 @@ def build_multigrid_hierarchy(
     dissipation_scaling: float = 2.0,
     coarse_cfl_factor: float = 0.5
 ) -> MultigridHierarchy:
-    """
-    Convenience function to build multigrid hierarchy.
-    
-    Parameters
-    ----------
-    X, Y : ndarray, shape (NI+1, NJ+1)
-        Node coordinates for finest grid.
-    Q : ndarray, shape (NI+2, NJ+2, 4)
-        Fine grid state vector with ghost cells.
-    freestream : FreestreamConditions
-        Freestream conditions for BCs.
-    n_wake : int
-        Number of wake points for C-grid.
-    beta : float
-        Artificial compressibility parameter.
-    min_size : int
-        Minimum cells per direction on coarsest grid.
-    max_levels : int
-        Maximum number of levels.
-    base_k4 : float
-        Base JST 4th-order dissipation coefficient (for Level 0).
-    dissipation_scaling : float
-        Factor to scale k4 for each coarse level.
-        k4[level] = base_k4 * (dissipation_scaling ** level)
-    coarse_cfl_factor : float
-        CFL reduction for coarse levels (RK3 without IRS).
-        
-    Returns
-    -------
-    hierarchy : MultigridHierarchy
-        Built hierarchy ready for V-cycle.
-    """
+    """Convenience function to build multigrid hierarchy."""
     hierarchy = MultigridHierarchy(min_size=min_size, max_levels=max_levels)
     hierarchy.build(X, Y, Q, freestream, n_wake, beta, base_k4, dissipation_scaling, coarse_cfl_factor)
     return hierarchy

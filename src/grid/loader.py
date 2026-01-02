@@ -1,8 +1,5 @@
 """
 Grid loading utilities.
-
-This module provides common utilities for loading or generating grids,
-used by multiple scripts to avoid code duplication.
 """
 
 import numpy as np
@@ -14,19 +11,7 @@ from .plot3d import read_plot3d
 
 
 def find_construct2d_binary(project_root: Optional[Path] = None) -> Optional[Path]:
-    """
-    Find the construct2d binary.
-    
-    Parameters
-    ----------
-    project_root : Path, optional
-        Project root directory. If not provided, searches common locations.
-        
-    Returns
-    -------
-    binary_path : Path or None
-        Path to construct2d binary, or None if not found.
-    """
+    """Find the construct2d binary in common locations."""
     search_paths = []
     
     if project_root is not None:
@@ -60,37 +45,7 @@ def load_or_generate_grid(
     project_root: Optional[Path] = None,
     verbose: bool = True
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Load a grid from file or generate from airfoil coordinates.
-    
-    Parameters
-    ----------
-    grid_file : str
-        Path to grid file (.p3d, .x, .xyz) or airfoil file (.dat).
-    n_surface : int
-        Number of surface points (for grid generation).
-    n_normal : int
-        Number of normal points (for grid generation).
-    n_wake : int
-        Number of wake points (for grid generation).
-    y_plus : float
-        Target y+ value (for grid generation).
-    reynolds : float
-        Reynolds number (for grid generation).
-    farfield_radius : float
-        Farfield radius in chord lengths.
-    max_first_cell : float
-        Maximum first cell height in chord lengths.
-    project_root : Path, optional
-        Project root for finding construct2d binary.
-    verbose : bool
-        Print progress messages.
-        
-    Returns
-    -------
-    X, Y : ndarray
-        Grid node coordinates, shape (NI+1, NJ+1).
-    """
+    """Load a grid from file or generate from airfoil coordinates."""
     grid_path = Path(grid_file)
     
     if not grid_path.exists():
@@ -99,13 +54,11 @@ def load_or_generate_grid(
     suffix = grid_path.suffix.lower()
     
     if suffix in ['.p3d', '.x', '.xyz']:
-        # Load Plot3D grid
         if verbose:
             print(f"Loading grid from: {grid_path}")
         X, Y = read_plot3d(str(grid_path))
         
     elif suffix == '.dat':
-        # Airfoil file - generate grid with Construct2D
         if verbose:
             print(f"Generating grid from airfoil: {grid_path}")
             print(f"  Surface points: {n_surface}")
@@ -140,5 +93,3 @@ def load_or_generate_grid(
         print(f"            {X.shape[0]-1} x {X.shape[1]-1} cells")
     
     return X, Y
-
-

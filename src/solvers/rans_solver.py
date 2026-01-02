@@ -1,178 +1,85 @@
 """
-RANS Solver for 2D Incompressible Flow.
+RANS Solver for 2D Incompressible Flow using Artificial Compressibility.
 
-This module provides the main RANSSolver class that orchestrates the
-CFD simulation by integrating all components:
-- Grid loading and metric computation
-- State initialization with wall damping
-- Time stepping with CFL ramping
-- RK4 integration with JST flux scheme
-- Residual monitoring and convergence checking
-- VTK output for visualization
-
-Physics: Artificial Compressibility formulation for incompressible RANS
-    - State vector: Q = [p, u, v, ν̃]
-    - Turbulence model: Spalart-Allmaras (one-equation)
+State vector: Q = [p, u, v, ν̃]
 """
 
 import numpy as np
 from pathlib import Path
-from typing import Dict, Optional, Tuple, Union
-from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Tuple, Union
+from dataclasses import dataclass
 
-# Grid components
 from ..grid.metrics import MetricComputer, FVMMetrics
 from ..grid.mesher import Construct2DWrapper, GridOptions
-from ..grid.plot3d import read_plot3d, StructuredGrid
-
-# Numerics
+from ..grid.plot3d import read_plot3d
 from ..numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxGridMetrics
 from ..numerics.forces import compute_aerodynamic_forces, AeroForces
 from ..numerics.gradients import compute_gradients, GradientMetrics
 from ..numerics.viscous_fluxes import add_viscous_fluxes
 from ..numerics.smoothing import apply_residual_smoothing
-
-# Solvers and BCs
 from .boundary_conditions import (
     FreestreamConditions, 
     BoundaryConditions,
     initialize_state,
     apply_initial_wall_damping,
-    apply_boundary_conditions
 )
 from .time_stepping import compute_local_timestep, TimeStepConfig
 from .multigrid import MultigridHierarchy, build_multigrid_hierarchy
-
-# IO
-from ..io.output import VTKWriter, write_vtk
+from ..io.output import VTKWriter
 from ..io.plotter import PlotlyDashboard
-
-# Surface analysis
 from ..numerics.forces import compute_surface_distributions, create_surface_vtk_fields
-
-# Constants
 from ..constants import NGHOST
-
-# Diagnostics
 from ..numerics.diagnostics import (
     compute_total_pressure_loss, 
     compute_solution_bounds,
     compute_residual_statistics
 )
 
-# Constants
-from ..constants import NGHOST
-
 
 @dataclass
 class SolverConfig:
     """Configuration for RANS solver."""
     
-    # Flow conditions
-    mach: float = 0.15              # Reference Mach number
-    alpha: float = 0.0              # Angle of attack (degrees)
-    reynolds: float = 6e6           # Reynolds number
-    
-    # Artificial compressibility
-    beta: float = 10.0              # Artificial compressibility parameter
-    
-    # Time stepping
-    cfl_start: float = 0.1          # Initial CFL number
-    cfl_target: float = 5.0         # Target CFL number
-    cfl_ramp_iters: int = 500       # Iterations for CFL ramp
-    
-    # Convergence
-    max_iter: int = 10000           # Maximum iterations
-    tol: float = 1e-10              # Residual tolerance for convergence
-    
-    # Output
-    diagnostic_freq: int = 100      # Diagnostic output frequency (HTML or PDF snapshots)
-    vtk_output_freq: int = 0        # VTK output frequency (0 = disabled)
-    print_freq: int = 50            # Console print frequency
-    output_dir: str = "output"      # Output directory
-    case_name: str = "solution"     # Base name for output files
-    
-    # Initial conditions
-    wall_damping_length: float = 0.1  # Wall damping decay length
-    
-    # JST flux parameters
-    # Note: k2 (2nd-order dissipation) is set to 0 for incompressible flow
-    # since there are no shocks to capture. Only k4 (4th-order) is needed.
-    jst_k4: float = 0.04            # 4th-order dissipation coefficient
-    
-    # Implicit Residual Smoothing (IRS)
-    irs_epsilon: float = 0.0        # IRS smoothing coefficient (0 = disabled)
-                                    # Typical values: 0.5-2.0 for higher CFL
-    
-    # Grid topology (C-grid)
-    n_wake: int = 30                # Number of wake cells at each end of i-direction
-    
-    # Diagnostic output format
-    html_animation: bool = True     # True: HTML animation, False: PDF snapshots
-    divergence_history: int = 0     # Number of solutions to save for divergence analysis
-    
-    # Multigrid options
-    use_multigrid: bool = False     # Enable geometric multigrid (FAS scheme)
-    mg_levels: int = 4              # Maximum number of multigrid levels
-    mg_nu1: int = 1                 # Pre-smoothing iterations (1 is usually sufficient)
-    mg_nu2: int = 1                 # Post-smoothing iterations (1 for stability)
-    mg_min_size: int = 8            # Minimum cells per direction on coarsest grid
-    mg_omega: float = 0.5           # Prolongation relaxation factor (0.5-1.0)
-    mg_use_injection: bool = True   # Use injection instead of bilinear prolongation
-    mg_dissipation_scaling: float = 2.0  # k4 scaling per coarse level (reduces aliasing)
-    mg_coarse_cfl: float = 0.5      # CFL factor for coarse levels (RK3 without IRS)
+    mach: float = 0.15
+    alpha: float = 0.0
+    reynolds: float = 6e6
+    beta: float = 10.0
+    cfl_start: float = 0.1
+    cfl_target: float = 5.0
+    cfl_ramp_iters: int = 500
+    max_iter: int = 10000
+    tol: float = 1e-10
+    diagnostic_freq: int = 100
+    vtk_output_freq: int = 0
+    print_freq: int = 50
+    output_dir: str = "output"
+    case_name: str = "solution"
+    wall_damping_length: float = 0.1
+    jst_k4: float = 0.04
+    irs_epsilon: float = 0.0
+    n_wake: int = 30
+    html_animation: bool = True
+    divergence_history: int = 0
+    use_multigrid: bool = False
+    mg_levels: int = 4
+    mg_nu1: int = 1
+    mg_nu2: int = 1
+    mg_min_size: int = 8
+    mg_omega: float = 0.5
+    mg_use_injection: bool = True
+    mg_dissipation_scaling: float = 2.0
+    mg_coarse_cfl: float = 0.5
 
 
 class RANSSolver:
     """
     Main RANS Solver for 2D incompressible flow around airfoils.
-    
-    This class orchestrates the complete CFD simulation workflow:
-    1. Grid loading (Plot3D file or Construct2D generation)
-    2. Metric computation (cell volumes, face normals, wall distance)
-    3. State initialization with wall damping
-    4. Time integration with RK4 and CFL ramping
-    5. Residual monitoring and convergence checking
-    6. VTK output for visualization
-    
-    Example
-    -------
-    >>> config = SolverConfig(mach=0.15, alpha=0.0, reynolds=6e6)
-    >>> solver = RANSSolver("grid/naca0012.p3d", config)
-    >>> solver.run_steady_state()
-    
-    Attributes
-    ----------
-    config : SolverConfig
-        Solver configuration parameters.
-    X, Y : ndarray
-        Grid node coordinates.
-    metrics : FVMMetrics
-        Computed grid metrics.
-    Q : ndarray
-        Current state vector [p, u, v, ν̃].
-    iteration : int
-        Current iteration number.
-    residual_history : list
-        History of density residual RMS values.
     """
     
     def __init__(self, 
                  grid_file: str, 
                  config: Optional[Union[SolverConfig, Dict]] = None):
-        """
-        Initialize the RANS solver.
-        
-        Parameters
-        ----------
-        grid_file : str
-            Path to the grid file (.p3d format) or airfoil file (.dat) for
-            on-the-fly grid generation.
-        config : SolverConfig or dict, optional
-            Solver configuration. Can be a SolverConfig object or a dictionary
-            of configuration parameters.
-        """
-        # Parse configuration
+        """Initialize the RANS solver."""
         if config is None:
             self.config = SolverConfig()
         elif isinstance(config, dict):
@@ -180,26 +87,18 @@ class RANSSolver:
         else:
             self.config = config
         
-        # Initialize state
         self.iteration = 0
         self.residual_history = []
         self.converged = False
         
-        # Load grid
         self._load_grid(grid_file)
-        
-        # Compute metrics
         self._compute_metrics()
-        
-        # Initialize state
         self._initialize_state()
         
-        # Initialize multigrid hierarchy if enabled
         self.mg_hierarchy = None
         if self.config.use_multigrid:
             self._initialize_multigrid()
         
-        # Initialize VTK writer
         self._initialize_output()
         
         print(f"\n{'='*60}")
@@ -223,14 +122,11 @@ class RANSSolver:
         suffix = grid_path.suffix.lower()
         
         if suffix in ['.p3d', '.x', '.xyz']:
-            # Load Plot3D grid
             print(f"Loading grid from: {grid_path}")
             self.X, self.Y = read_plot3d(str(grid_path))
             
         elif suffix == '.dat':
-            # Airfoil file - generate grid with Construct2D
             print(f"Generating grid from airfoil: {grid_path}")
-            # Look for construct2d binary
             construct2d_paths = [
                 Path("bin/construct2d"),
                 Path("./construct2d"),
@@ -260,7 +156,6 @@ class RANSSolver:
         else:
             raise ValueError(f"Unsupported grid file format: {suffix}")
         
-        # Store grid dimensions (number of cells)
         self.NI = self.X.shape[0] - 1
         self.NJ = self.X.shape[1] - 1
         
@@ -274,7 +169,6 @@ class RANSSolver:
         computer = MetricComputer(self.X, self.Y, wall_j=0)
         self.metrics = computer.compute()
         
-        # Create flux metrics (needed for residual computation and force computation)
         self.flux_metrics = FluxGridMetrics(
             Si_x=self.metrics.Si_x,
             Si_y=self.metrics.Si_y,
@@ -283,7 +177,6 @@ class RANSSolver:
             volume=self.metrics.volume
         )
         
-        # Create gradient metrics (needed for viscous fluxes)
         self.grad_metrics = GradientMetrics(
             Si_x=self.metrics.Si_x,
             Si_y=self.metrics.Si_y,
@@ -292,7 +185,6 @@ class RANSSolver:
             volume=self.metrics.volume
         )
         
-        # Validate GCL
         gcl = computer.validate_gcl()
         print(f"  {gcl}")
         
@@ -303,16 +195,13 @@ class RANSSolver:
         """Initialize state vector with freestream and wall damping."""
         print("Initializing flow state...")
         
-        # Create freestream conditions
         self.freestream = FreestreamConditions.from_mach_alpha(
             mach=self.config.mach,
             alpha_deg=self.config.alpha
         )
         
-        # Initialize to freestream
         self.Q = initialize_state(self.NI, self.NJ, self.freestream)
         
-        # Apply wall damping for cold start
         self.Q = apply_initial_wall_damping(
             self.Q, 
             self.metrics,
@@ -320,15 +209,12 @@ class RANSSolver:
             n_wake=getattr(self.config, 'n_wake', 0)
         )
         
-        # Compute far-field outward unit normals for characteristic BC
-        # Sj at j=NJ-1 points in +j direction (toward far-field)
-        Sj_x_ff = self.metrics.Sj_x[:, -1]  # Shape: (NI,)
+        Sj_x_ff = self.metrics.Sj_x[:, -1]
         Sj_y_ff = self.metrics.Sj_y[:, -1]
         Sj_mag = np.sqrt(Sj_x_ff**2 + Sj_y_ff**2) + 1e-12
         nx_ff = Sj_x_ff / Sj_mag
         ny_ff = Sj_y_ff / Sj_mag
         
-        # Apply boundary conditions with characteristic farfield BC
         self.bc = BoundaryConditions(
             freestream=self.freestream,
             farfield_normals=(nx_ff, ny_ff),
@@ -366,11 +252,9 @@ class RANSSolver:
     
     def _initialize_output(self):
         """Initialize VTK writer and HTML animation for output."""
-        # Create output directory
         output_path = Path(self.config.output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
         
-        # Create VTK writer (even if disabled, for potential final write)
         base_path = output_path / self.config.case_name
         self.vtk_writer = VTKWriter(
             str(base_path),
@@ -378,24 +262,26 @@ class RANSSolver:
             beta=self.config.beta
         )
         
-        # Create PlotlyDashboard for HTML animation
         self.plotter = PlotlyDashboard()
         
-        # Write initial VTK state (if enabled)
         if self.config.vtk_output_freq > 0:
             surface_fields = self._compute_surface_fields()
             self.vtk_writer.write(self.Q, iteration=0, additional_scalars=surface_fields)
         
-        # Store initial snapshot for HTML animation
         if self.config.html_animation:
             Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
             C_pt = compute_total_pressure_loss(
                 Q_int, self.freestream.p_inf,
                 self.freestream.u_inf, self.freestream.v_inf
             )
+            initial_R = self._compute_residual(self.Q)
+            mg_levels_data = None
+            if self.config.use_multigrid and self.mg_hierarchy is not None:
+                mg_levels_data = self._get_mg_level_snapshots()
             self.plotter.store_snapshot(
                 self.Q, 0, self.residual_history,
-                cfl=self._get_cfl(0), C_pt=C_pt, freestream=self.freestream
+                cfl=self._get_cfl(0), C_pt=C_pt, residual_field=initial_R,
+                mg_levels=mg_levels_data, freestream=self.freestream
             )
         
         print(f"  Output directory: {output_path}")
@@ -431,29 +317,7 @@ class RANSSolver:
                            flux_metrics: Optional[FluxGridMetrics] = None,
                            grad_metrics: Optional[GradientMetrics] = None,
                            k4: Optional[float] = None) -> np.ndarray:
-        """
-        Compute flux residual using JST scheme + viscous fluxes.
-        
-        Parameters
-        ----------
-        Q : ndarray, shape (NI+2, NJ+2, 4)
-            State vector with ghost cells.
-        forcing : ndarray, shape (NI, NJ, 4), optional
-            FAS forcing term to add to residual (for multigrid).
-        flux_metrics : FluxGridMetrics, optional
-            Grid metrics for flux computation (default: self.flux_metrics).
-        grad_metrics : GradientMetrics, optional
-            Gradient metrics (default: self.grad_metrics).
-        k4 : float, optional
-            JST 4th-order dissipation coefficient (default: config.jst_k4).
-            Multigrid uses level-specific k4 for coarse grids.
-            
-        Returns
-        -------
-        residual : ndarray, shape (NI, NJ, 4)
-            Computed residual (optionally with forcing added).
-        """
-        # Use default metrics if not provided
+        """Compute flux residual using JST scheme + viscous fluxes."""
         if flux_metrics is None:
             flux_metrics = self.flux_metrics
         if grad_metrics is None:
@@ -461,27 +325,15 @@ class RANSSolver:
         if k4 is None:
             k4 = self.config.jst_k4
         
-        # Create flux config (k2=0 for incompressible flow - no shock capturing needed)
-        flux_cfg = FluxConfig(
-            k2=0.0,
-            k4=k4
-        )
-        
-        # Compute convective fluxes (JST scheme)
+        flux_cfg = FluxConfig(k4=k4)
         conv_residual = compute_fluxes(Q, flux_metrics, self.config.beta, flux_cfg)
-        
-        # Compute gradients for viscous fluxes
         gradients = compute_gradients(Q, grad_metrics)
-        
-        # Compute laminar viscosity from Reynolds number
         mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
         
-        # Add viscous fluxes (laminar only for now)
         residual = add_viscous_fluxes(
             conv_residual, Q, gradients, grad_metrics, mu_laminar
         )
         
-        # Add FAS forcing term if provided (for multigrid coarse levels)
         if forcing is not None:
             residual = residual + forcing
         
@@ -502,26 +354,11 @@ class RANSSolver:
         return rms
     
     def step(self) -> Tuple[float, np.ndarray]:
-        """
-        Perform one iteration of the solver.
-        
-        Returns
-        -------
-        residual_rms : float
-            RMS of the density residual.
-        residual : ndarray
-            Full residual array.
-        """
-        # Get current CFL
+        """Perform one iteration of the solver."""
         cfl = self._get_cfl(self.iteration)
-        
-        # Time step config
         ts_config = TimeStepConfig(cfl=cfl)
-        
-        # Kinematic viscosity for time step stability
         nu = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
         
-        # Compute local timestep (with viscous stability constraint)
         dt = compute_local_timestep(
             self.Q,
             self.metrics.Si_x, self.metrics.Si_y,
@@ -532,65 +369,36 @@ class RANSSolver:
             nu=nu
         )
         
-        # RK4 integration
         Q0 = self.Q.copy()
         Qk = self.Q.copy()
         
-        # Jameson 5-stage RK coefficients (extended stability for multigrid)
-        # CFL_max ≈ 4.0 for central differences (vs ~2.8 for 4-stage)
         alphas = [0.25, 0.166666667, 0.375, 0.5, 1.0]
         
         for alpha in alphas:
-            # Apply boundary conditions
             Qk = self._apply_bc(Qk)
-            
-            # Compute residual
             R = self._compute_residual(Qk)
             
-            # Apply Implicit Residual Smoothing (IRS) if enabled
             if self.config.irs_epsilon > 0.0:
                 apply_residual_smoothing(R, self.config.irs_epsilon)
             
-            # Update: Q^(k) = Q^(0) + α * dt/Ω * R
             Qk = Q0.copy()
             Qk[NGHOST:-NGHOST, NGHOST:-NGHOST, :] += alpha * (dt / self.metrics.volume)[:, :, np.newaxis] * R
         
-        # Store final residual for monitoring
         Qk = self._apply_bc(Qk)
         final_residual = self._compute_residual(Qk)
-        
-        # Update state
         self.Q = Qk
-        
-        # Compute residual RMS
         residual_rms = self._compute_residual_rms(final_residual)
-        
-        # Update iteration counter
         self.iteration += 1
         
         return residual_rms, final_residual
     
     def step_multigrid(self) -> Tuple[float, np.ndarray]:
-        """
-        Perform one V-cycle iteration with multigrid acceleration.
-        
-        Returns
-        -------
-        residual_rms : float
-            RMS of the density residual.
-        residual : ndarray
-            Full residual array.
-        """
+        """Perform one V-cycle iteration with multigrid acceleration."""
         if self.mg_hierarchy is None:
             raise RuntimeError("Multigrid not initialized. Set use_multigrid=True.")
         
-        # Sync fine level state
         self.mg_hierarchy.levels[0].Q[:] = self.Q
-        
-        # Get current CFL
         cfl = self._get_cfl(self.iteration)
-        
-        # Compute timestep for finest level
         ts_config = TimeStepConfig(cfl=cfl)
         nu = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
         
@@ -605,153 +413,87 @@ class RANSSolver:
         )
         self.mg_hierarchy.levels[0].dt[:] = dt
         
-        # Run V-cycle starting from finest level
         self._run_v_cycle(0)
-        
-        # Copy result back from hierarchy
         self.Q = self.mg_hierarchy.levels[0].Q.copy()
-        
-        # Compute final residual for monitoring
         final_residual = self._compute_residual(self.Q)
         residual_rms = self._compute_residual_rms(final_residual)
-        
-        # Update iteration counter
         self.iteration += 1
         
         return residual_rms, final_residual
     
     def _run_v_cycle(self, level: int):
-        """
-        Run recursive V-cycle from given level.
-        
-        FAS V-cycle algorithm:
-        1. Pre-smoothing (nu1 iterations)
-        2. Compute residual R_f
-        3. Restrict Q_f -> Q_c and R_f -> R_c
-        4. Compute coarse residual R(Q_c)
-        5. Compute FAS forcing: P_c = R_c - R(Q_c)
-        6. Recurse to coarser level (or solve if coarsest)
-        7. Prolongate correction: Q_f += interpolate(Q_c_new - Q_c_old)
-        8. Post-smoothing (nu2 iterations)
-        
-        Parameters
-        ----------
-        level : int
-            Current multigrid level (0 = finest).
-        """
+        """Run recursive V-cycle from given level using FAS algorithm."""
         lvl = self.mg_hierarchy.levels[level]
         
-        # ===== Pre-smoothing =====
         for _ in range(self.config.mg_nu1):
             self._smooth_level(level)
         
-        # ===== If coarsest level, do extra smoothing and return =====
         if level >= self.mg_hierarchy.num_levels - 1:
-            # Extra smoothing on coarsest level
             for _ in range(self.config.mg_nu1 + self.config.mg_nu2):
                 self._smooth_level(level)
             return
         
-        # ===== Compute fine residual =====
         lvl.Q = lvl.bc.apply(lvl.Q)
         lvl.R = self._compute_residual_level(level)
         
-        # ===== Restrict to coarse level =====
         self.mg_hierarchy.restrict_to_coarse(level)
         
-        # ===== Compute coarse residual and FAS forcing =====
         coarse = self.mg_hierarchy.levels[level + 1]
         coarse.Q = coarse.bc.apply(coarse.Q)
         R_coarse = self._compute_residual_level(level + 1)
-        
-        # FAS forcing: P_c = R_restricted - R(Q_c)
         coarse.forcing = coarse.R - R_coarse
-        
-        # Store Q_old for correction computation
         coarse.Q_old[:] = coarse.Q
         
-        # ===== Recurse to coarser level =====
         self._run_v_cycle(level + 1)
         
-        # ===== Prolongate correction with relaxation =====
-        # Store fine Q before correction
         lvl.Q_before_correction = lvl.Q.copy()
         self.mg_hierarchy.prolongate_correction(level + 1, 
                                                  use_injection=self.config.mg_use_injection)
         
-        # Apply relaxation: Q = Q_old + omega * (Q_new - Q_old)
         omega = self.config.mg_omega
         if omega < 1.0:
             lvl.Q = lvl.Q_before_correction + omega * (lvl.Q - lvl.Q_before_correction)
         
-        # === FIX: Make the CORRECTION periodic at wake cut ===
-        # The prolongation adds different corrections at i=1 and i=NI because they
-        # map to different coarse cells. We average the corrections at the wake edges
-        # to prevent artificial discontinuity from accumulating.
-        Q_int = lvl.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]  # Current state (interior)
-        Q_before = lvl.Q_before_correction[NGHOST:-NGHOST, NGHOST:-NGHOST, :]  # State before correction
-        
-        # Compute corrections at wake edges
+        # Average corrections at wake edges to maintain periodicity
+        Q_int = lvl.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
+        Q_before = lvl.Q_before_correction[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
         dQ_left = Q_int[0, :, :] - Q_before[0, :, :]
         dQ_right = Q_int[-1, :, :] - Q_before[-1, :, :]
-        
-        # Average the corrections and apply to both edges
         dQ_avg = 0.5 * (dQ_left + dQ_right)
         Q_int[0, :, :] = Q_before[0, :, :] + dQ_avg
         Q_int[-1, :, :] = Q_before[-1, :, :] + dQ_avg
         
-        # Apply BC (will set ghost cells correctly)
         lvl.Q = lvl.bc.apply(lvl.Q)
         
-        # ===== Post-smoothing =====
         for _ in range(self.config.mg_nu2):
             self._smooth_level(level)
     
     def _smooth_level(self, level: int):
-        """
-        Perform one smoothing step on a multigrid level.
-        
-        Uses RK4 with local timestepping.
-        
-        Parameters
-        ----------
-        level : int
-            Multigrid level to smooth.
-        """
+        """Perform one smoothing step on a multigrid level using RK."""
         lvl = self.mg_hierarchy.levels[level]
         
-        # Compute timestep if not already computed
         if level > 0:
-            # For coarse levels, average timestep from fine (using Numba kernel)
             from src.numerics.multigrid import restrict_timestep
             fine = self.mg_hierarchy.levels[level - 1]
             restrict_timestep(fine.dt, lvl.dt)
         
-        # Get forcing term (zero for finest, computed for coarse)
         forcing = lvl.forcing if level > 0 else None
         
-        # RK smoothing step
-        # - Finest level: 5-stage for accuracy
-        # - Coarse levels: 3-stage for efficiency (just need to smooth)
         Q0 = lvl.Q.copy()
         Qk = lvl.Q.copy()
         
         if level == 0:
-            alphas = [0.25, 0.166666667, 0.375, 0.5, 1.0]  # 5-stage Jameson
+            alphas = [0.25, 0.166666667, 0.375, 0.5, 1.0]
         else:
-            alphas = [0.333333, 0.5, 1.0]  # 3-stage for coarse grids
+            alphas = [0.333333, 0.5, 1.0]
         
         for alpha in alphas:
             Qk = lvl.bc.apply(Qk)
-            
-            # Compute residual with forcing
             R = self._compute_residual_level(level, Q=Qk, forcing=forcing)
             
-            # Apply IRS only on finest level (coarse levels are more stable)
             if level == 0 and self.config.irs_epsilon > 0.0:
                 apply_residual_smoothing(R, self.config.irs_epsilon)
             
-            # Update (apply level-specific CFL scaling)
             Qk = Q0.copy()
             dt_scaled = lvl.dt * lvl.cfl_scale
             Qk[NGHOST:-NGHOST, NGHOST:-NGHOST, :] += alpha * (dt_scaled / lvl.metrics.volume)[:, :, np.newaxis] * R
@@ -761,29 +503,12 @@ class RANSSolver:
     def _compute_residual_level(self, level: int, 
                                   Q: Optional[np.ndarray] = None,
                                   forcing: Optional[np.ndarray] = None) -> np.ndarray:
-        """
-        Compute residual on a specific multigrid level.
-        
-        Parameters
-        ----------
-        level : int
-            Multigrid level.
-        Q : ndarray, optional
-            State to use (default: level's current Q).
-        forcing : ndarray, optional
-            FAS forcing term.
-            
-        Returns
-        -------
-        R : ndarray, shape (NI, NJ, 4)
-            Residual.
-        """
+        """Compute residual on a specific multigrid level."""
         lvl = self.mg_hierarchy.levels[level]
         
         if Q is None:
             Q = lvl.Q
         
-        # Build flux metrics for this level
         flux_metrics = FluxGridMetrics(
             Si_x=lvl.metrics.Si_x,
             Si_y=lvl.metrics.Si_y,
@@ -792,7 +517,6 @@ class RANSSolver:
             volume=lvl.metrics.volume
         )
         
-        # Build gradient metrics for this level
         grad_metrics = GradientMetrics(
             Si_x=lvl.metrics.Si_x,
             Si_y=lvl.metrics.Si_y,
@@ -801,18 +525,31 @@ class RANSSolver:
             volume=lvl.metrics.volume
         )
         
-        # Use level-specific k4 (scaled for coarse grids)
         return self._compute_residual(Q, forcing, flux_metrics, grad_metrics, k4=lvl.k4)
     
-    def run_steady_state(self) -> bool:
-        """
-        Run steady-state simulation to convergence.
+    def _get_mg_level_snapshots(self) -> List[Dict[str, np.ndarray]]:
+        """Extract multigrid level data for visualization."""
+        if self.mg_hierarchy is None:
+            return None
         
-        Returns
-        -------
-        converged : bool
-            True if residual dropped below tolerance.
-        """
+        mg_levels = []
+        for level_idx, lvl in enumerate(self.mg_hierarchy.levels[1:], start=1):
+            Q_int = lvl.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
+            R = self._compute_residual_level(level_idx)
+            residual_rms = np.sqrt(np.mean(R**2, axis=2))
+            
+            mg_levels.append({
+                'p': Q_int[:, :, 0].copy(),
+                'u': Q_int[:, :, 1].copy(),
+                'v': Q_int[:, :, 2].copy(),
+                'xc': lvl.metrics.xc.copy(),
+                'yc': lvl.metrics.yc.copy(),
+                'residual': residual_rms,
+            })
+        return mg_levels if mg_levels else None
+    
+    def run_steady_state(self) -> bool:
+        """Run steady-state simulation to convergence."""
         print(f"\n{'='*60}")
         print("Starting Steady-State Iteration")
         print(f"{'='*60}")
@@ -824,34 +561,25 @@ class RANSSolver:
         initial_residual = None
         
         for n in range(self.config.max_iter):
-            # Perform one step (use multigrid if enabled)
             if self.config.use_multigrid:
-                res_rms, _ = self.step_multigrid()
+                res_rms, R_field = self.step_multigrid()
             else:
-                res_rms, _ = self.step()
+                res_rms, R_field = self.step()
             
-            # Store history
             self.residual_history.append(res_rms)
             
-            # Store initial residual
             if initial_residual is None:
                 initial_residual = res_rms
             
-            # Normalized residual
             res_norm = res_rms / (initial_residual + 1e-30)
-            
-            # Current CFL
             cfl = self._get_cfl(self.iteration)
             
-            # Print progress
             if self.iteration % self.config.print_freq == 0 or self.iteration == 1:
-                # Compute forces for diagnostics
                 forces = self.compute_forces()
                 print(f"{self.iteration:>8d} {res_rms:>14.6e} {cfl:>8.2f}  "
                       f"CL={forces.CL:>8.4f} CD={forces.CD:>8.5f} "
                       f"(p:{forces.CD_p:>7.5f} f:{forces.CD_f:>7.5f})")
             
-            # Write VTK output with surface Cp and Cf (if enabled)
             if self.config.vtk_output_freq > 0 and self.iteration % self.config.vtk_output_freq == 0:
                 surface_fields = self._compute_surface_fields()
                 self.vtk_writer.write(
@@ -859,20 +587,22 @@ class RANSSolver:
                     additional_scalars=surface_fields
                 )
             
-            # Store diagnostic snapshot (HTML animation)
             if self.config.html_animation and self.iteration % self.config.diagnostic_freq == 0:
-                # Compute total pressure loss for diagnostics
                 Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
                 C_pt = compute_total_pressure_loss(
                     Q_int, self.freestream.p_inf,
                     self.freestream.u_inf, self.freestream.v_inf
                 )
+                mg_levels_data = None
+                if self.config.use_multigrid and self.mg_hierarchy is not None:
+                    mg_levels_data = self._get_mg_level_snapshots()
+                
                 self.plotter.store_snapshot(
                     self.Q, self.iteration, self.residual_history,
-                    cfl=cfl, C_pt=C_pt, freestream=self.freestream
+                    cfl=cfl, C_pt=C_pt, residual_field=R_field,
+                    mg_levels=mg_levels_data, freestream=self.freestream
                 )
             
-            # Check convergence
             if res_rms < self.config.tol:
                 self.converged = True
                 print(f"\n{'='*60}")
@@ -881,7 +611,6 @@ class RANSSolver:
                 print(f"{'='*60}")
                 break
             
-            # Check for divergence (residual increased by factor of 1000)
             if res_rms > 1000 * initial_residual:
                 print(f"\n{'='*60}")
                 print(f"DIVERGED at iteration {self.iteration}")
@@ -890,13 +619,11 @@ class RANSSolver:
                 break
         
         else:
-            # Max iterations reached
             print(f"\n{'='*60}")
             print(f"Maximum iterations ({self.config.max_iter}) reached")
             print(f"Final residual: {self.residual_history[-1]:.6e}")
             print(f"{'='*60}")
         
-        # Write final VTK solution with surface data (if VTK enabled)
         if self.config.vtk_output_freq > 0:
             surface_fields = self._compute_surface_fields()
             self.vtk_writer.write(
@@ -906,7 +633,6 @@ class RANSSolver:
             series_file = self.vtk_writer.finalize()
             print(f"VTK series written to: {series_file}")
         
-        # Save HTML animation if enabled
         if self.config.html_animation and self.plotter.num_snapshots > 0:
             html_path = Path(self.config.output_dir) / f"{self.config.case_name}_animation.html"
             self.plotter.save_html(str(html_path), self.metrics)
@@ -914,38 +640,17 @@ class RANSSolver:
         return self.converged
     
     def get_surface_data(self) -> Dict[str, np.ndarray]:
-        """
-        Extract surface quantities for post-processing.
-        
-        Returns
-        -------
-        data : dict
-            Dictionary containing:
-            - 'x': x-coordinates along surface
-            - 'y': y-coordinates along surface
-            - 'cp': pressure coefficient
-            - 'cf': skin friction coefficient (approximate)
-        """
-        # Surface is at j=0, use first interior cell (j=1 in ghost array)
-        # Cell-centered values
-        # With NGHOST=2: first interior row is at j=NGHOST, ghost row is at j=NGHOST-1
-        p_surface = self.Q[NGHOST:-NGHOST, NGHOST-1, 0]  # Pressure at inner ghost (wall-adjacent)
+        """Extract surface quantities for post-processing."""
+        p_surface = self.Q[NGHOST:-NGHOST, NGHOST-1, 0]
         u_surface = self.Q[NGHOST:-NGHOST, NGHOST-1, 1]
         v_surface = self.Q[NGHOST:-NGHOST, NGHOST-1, 2]
         
-        # Surface coordinates (average of nodes)
         x_surface = 0.5 * (self.X[:-1, 0] + self.X[1:, 0])
         y_surface = 0.5 * (self.Y[:-1, 0] + self.Y[1:, 0])
         
-        # Pressure coefficient (Cp = (p - p_inf) / (0.5 * rho * V_inf^2))
-        # For incompressible with unit velocity: Cp = 2 * (p - p_inf)
         V_inf_sq = self.freestream.u_inf**2 + self.freestream.v_inf**2
         cp = 2.0 * (p_surface - self.freestream.p_inf) / (V_inf_sq + 1e-12)
         
-        # Approximate skin friction from wall-adjacent velocity
-        # Cf = tau_w / (0.5 * rho * V_inf^2)
-        # tau_w ≈ mu * du/dy ≈ mu * u_cell / (0.5 * cell_height)
-        # For unit Reynolds number normalization: mu = 1/Re
         wall_dist = self.metrics.wall_distance[:, 0]
         vel_mag = np.sqrt(u_surface**2 + v_surface**2)
         cf = 2.0 * vel_mag / (wall_dist * self.config.reynolds * V_inf_sq + 1e-12)
@@ -958,22 +663,11 @@ class RANSSolver:
         }
     
     def compute_forces(self) -> AeroForces:
-        """
-        Compute aerodynamic force coefficients.
-        
-        Returns
-        -------
-        forces : AeroForces
-            Named tuple with CL, CD, CD_p, CD_f, etc.
-        """
+        """Compute aerodynamic force coefficients."""
         V_inf = np.sqrt(self.freestream.u_inf**2 + self.freestream.v_inf**2)
         mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
-        
-        # Turbulent viscosity (from SA variable nu_tilde)
-        # For laminar flow, set to None
         mu_turb = None
         
-        # Get n_wake from config or BC handler
         n_wake = getattr(self.config, 'n_wake', 0)
         if n_wake == 0 and hasattr(self, 'bc'):
             n_wake = getattr(self.bc, 'n_wake_points', 0)
@@ -984,8 +678,8 @@ class RANSSolver:
             mu_laminar=mu_laminar,
             mu_turb=mu_turb,
             alpha_deg=self.config.alpha,
-            chord=1.0,  # Assume unit chord
-            rho_inf=1.0,  # AC formulation assumes unit density
+            chord=1.0,
+            rho_inf=1.0,
             V_inf=V_inf,
             n_wake=n_wake,
         )
@@ -993,14 +687,7 @@ class RANSSolver:
         return forces
     
     def get_surface_distributions(self):
-        """
-        Get surface Cp and Cf distributions.
-        
-        Returns
-        -------
-        SurfaceData
-            Named tuple with x, y, Cp, Cf arrays.
-        """
+        """Get surface Cp and Cf distributions."""
         V_inf = np.sqrt(self.freestream.u_inf**2 + self.freestream.v_inf**2)
         mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
         
@@ -1029,36 +716,15 @@ class RANSSolver:
         print(f"Residual history saved to: {filename}")
     
     def run_with_diagnostics(self, dump_freq: int = None) -> bool:
-        """
-        Run steady-state simulation with enhanced diagnostic output.
-        
-        This method provides detailed diagnostic information including:
-        - Flow field visualizations at specified intervals
-        - Total pressure loss (entropy) monitoring
-        - Max residual location tracking
-        - Divergence history for debugging
-        
-        Parameters
-        ----------
-        dump_freq : int, optional
-            Frequency of diagnostic dumps. If None, uses config.diagnostic_freq.
-            
-        Returns
-        -------
-        converged : bool
-            True if residual dropped below tolerance.
-        """
-        # Lazy import plotting to avoid matplotlib dependency issues
+        """Run steady-state simulation with enhanced diagnostic output."""
         from ..io.plotting import plot_flow_field, plot_residual_history, plot_multigrid_levels
         
         if dump_freq is None:
             dump_freq = getattr(self.config, 'diagnostic_freq', 100)
         
-        # Create snapshot directory
         snapshot_dir = Path(self.config.output_dir) / "snapshots"
         snapshot_dir.mkdir(parents=True, exist_ok=True)
         
-        # Solution history buffer for divergence analysis
         div_history_size = getattr(self.config, 'divergence_history', 0)
         solution_history = []
         
@@ -1072,7 +738,6 @@ class RANSSolver:
         
         initial_residual = None
         
-        # Dump initial state
         Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
         C_pt = compute_total_pressure_loss(
             Q_int, self.freestream.p_inf, 
@@ -1087,7 +752,6 @@ class RANSSolver:
         )
         
         for n in range(self.config.max_iter):
-            # Use multigrid if enabled
             if self.config.use_multigrid:
                 res_rms, R_field = self.step_multigrid()
             else:
@@ -1097,25 +761,21 @@ class RANSSolver:
             if initial_residual is None:
                 initial_residual = res_rms
             
-            # Compute diagnostics
             bounds = compute_solution_bounds(self.Q)
             res_stats = compute_residual_statistics(R_field)
             cfl = self._get_cfl(self.iteration)
             
-            # Update divergence history buffer
             if div_history_size > 0:
                 solution_history.append((self.iteration, self.Q.copy(), R_field.copy()))
                 if len(solution_history) > div_history_size:
                     solution_history.pop(0)
             
-            # Print progress every 10 iterations
             if self.iteration % 10 == 0 or self.iteration == 1:
                 p_range = f"[{bounds['p_min']:.2f}, {bounds['p_max']:.2f}]"
                 max_loc = f"({res_stats['max_loc'][0]:3d},{res_stats['max_loc'][1]:3d})"
                 print(f"{self.iteration:>8d} {res_rms:>12.4e} {res_stats['max_p']:>12.4e} "
                       f"{max_loc:>18} {cfl:>8.2f} {bounds['vel_max']:>10.4f} {p_range:>18}")
             
-            # Dump flow field at specified frequency
             if self.iteration % dump_freq == 0:
                 Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
                 C_pt = compute_total_pressure_loss(

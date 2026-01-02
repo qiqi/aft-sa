@@ -3,16 +3,13 @@ numpy>=1.21.0
 scipy>=1.7.0
 matplotlib>=3.5.0
 
-# Deep learning / autodiff
-# Note: In CI, CPU-only torch is installed separately for speed.
-# For local development, install torch manually:
-#   pip install torch                    # (with CUDA if available)
-#   pip install torch --index-url https://download.pytorch.org/whl/cpu  # (CPU only)
-torch>=1.10.0
-
 # JIT compilation
 numba>=0.55.0
 
+# JAX for GPU acceleration
+# CPU: pip install jax
+# GPU: pip install jax[cuda12]  (or cuda11 depending on your system)
+jax>=0.4.20
+
 # Testing
 pytest>=7.0.0
-

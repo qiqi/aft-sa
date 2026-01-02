@@ -1,8 +1,5 @@
 """
 Visualization utilities for CFD solutions.
-
-This module provides functions for plotting flow fields, residual history,
-and other diagnostic visualizations.
 """
 
 import os
@@ -12,7 +9,6 @@ from src.constants import NGHOST
 from typing import Optional, List
 from pathlib import Path
 
-# Lazy import matplotlib to avoid issues when not installed
 _plt = None
 _matplotlib = None
 
@@ -22,7 +18,7 @@ def _ensure_matplotlib():
     global _plt, _matplotlib
     if _plt is None:
         import matplotlib
-        matplotlib.use('Agg')  # Non-interactive backend
+        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         _matplotlib = matplotlib
         _plt = plt
@@ -34,48 +30,12 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
                     output_dir: str, case_name: str = "flow",
                     C_pt: Optional[np.ndarray] = None,
                     residual_field: Optional[np.ndarray] = None) -> str:
-    """
-    Plot flow field with global and zoomed views.
-    
-    Creates PDF with:
-    - Pressure (global and zoomed)
-    - Velocity magnitude (global and zoomed)
-    - Total Pressure Loss C_pt (if provided)
-    - Residual field (if provided)
-    
-    Parameters
-    ----------
-    X, Y : ndarray
-        Grid node coordinates.
-    Q : ndarray
-        State vector [p, u, v, nu_t]. Can include ghost cells.
-    iteration : int
-        Current iteration number.
-    residual : float
-        Current residual value.
-    cfl : float
-        Current CFL number.
-    output_dir : str
-        Output directory for PDF files.
-    case_name : str
-        Base name for output files.
-    C_pt : ndarray, optional
-        Total pressure loss coefficient field.
-    residual_field : ndarray, optional
-        Residual field (NI, NJ, 4) for visualization.
-        
-    Returns
-    -------
-    output_path : str
-        Path to saved PDF file.
-    """
+    """Plot flow field with global and zoomed views."""
     plt = _ensure_matplotlib()
     
-    # Strip ghost cells from Q
     NI = X.shape[0] - 1
     NJ = X.shape[1] - 1
     
-    # Q has NGHOST ghost layers on each side in both I and J
     if Q.shape[0] == NI + 2*NGHOST and Q.shape[1] == NJ + 2*NGHOST:
         Q_int = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
     elif Q.shape[0] == NI and Q.shape[1] == NJ:
@@ -83,15 +43,12 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     else:
         raise ValueError(f"Q shape {Q.shape} not compatible with grid ({NI}, {NJ})")
     
-    # Extract fields
     p = Q_int[:, :, 0]
     u = Q_int[:, :, 1]
     v = Q_int[:, :, 2]
-    
     vel_mag = np.sqrt(u**2 + v**2)
     
-    # Determine number of rows
-    n_rows = 2  # Pressure + Velocity
+    n_rows = 2
     if C_pt is not None:
         n_rows += 1
     if residual_field is not None:
@@ -101,7 +58,6 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     if n_rows == 2:
         axes = axes.reshape(2, 2)
     
-    # --- Row 1: Pressure ---
     ax = axes[0, 0]
     p_clip = np.clip(p, np.percentile(p, 1), np.percentile(p, 99))
     pc = ax.pcolormesh(X.T, Y.T, p_clip.T, cmap='RdBu_r', shading='flat', rasterized=True)
@@ -121,7 +77,6 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     ax.set_ylabel('y/c')
     plt.colorbar(pc, ax=ax, shrink=0.8, label='p')
     
-    # --- Row 2: Velocity Magnitude ---
     ax = axes[1, 0]
     vel_clip = np.clip(vel_mag, 0, np.percentile(vel_mag, 99))
     pc = ax.pcolormesh(X.T, Y.T, vel_clip.T, cmap='viridis', shading='flat', rasterized=True)
@@ -143,7 +98,6 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     
     row_idx = 2
     
-    # --- Total Pressure Loss ---
     if C_pt is not None:
         C_pt_abs_max = max(np.abs(np.percentile(C_pt, 1)), np.abs(np.percentile(C_pt, 99)))
         C_pt_abs_max = max(C_pt_abs_max, 0.01)
@@ -170,7 +124,6 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
         
         row_idx += 1
     
-    # --- Residual Field ---
     if residual_field is not None:
         R_p = np.abs(residual_field[:, :, 0])
         R_log = np.log10(R_p + 1e-12)
@@ -196,7 +149,6 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
         ax.set_xlabel('x/c')
         ax.set_ylabel('y/c')
         
-        # Mark max residual location
         max_idx = np.unravel_index(np.argmax(R_p), R_p.shape)
         x_max = 0.5 * (X[max_idx[0], max_idx[1]] + X[max_idx[0]+1, max_idx[1]])
         y_max = 0.5 * (Y[max_idx[0], max_idx[1]] + Y[max_idx[0]+1, max_idx[1]])
@@ -205,7 +157,6 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     
     plt.tight_layout()
     
-    # Save
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     output_path = os.path.join(output_dir, f'{case_name}_iter{iteration:06d}.pdf')
     plt.savefig(output_path, dpi=100)
@@ -216,23 +167,7 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
 
 def plot_residual_history(residuals: List[float], output_dir: str,
                           case_name: str = "residual") -> Optional[str]:
-    """
-    Plot residual convergence history.
-    
-    Parameters
-    ----------
-    residuals : list of float
-        Residual values at each iteration.
-    output_dir : str
-        Output directory.
-    case_name : str
-        Base name for output file.
-        
-    Returns
-    -------
-    output_path : str or None
-        Path to saved PDF, or None if not enough data.
-    """
+    """Plot residual convergence history."""
     if len(residuals) < 2:
         return None
     
@@ -266,66 +201,24 @@ def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
                           residual_field_fine: Optional[np.ndarray] = None,
                           freestream: Optional[object] = None,
                           residual_fields: Optional[List[np.ndarray]] = None) -> str:
-    """
-    Plot flow field for all multigrid levels in a single multi-page PDF.
-    
-    Each page shows the same content as plot_flow_field:
-    - Pressure (global and zoomed)
-    - Velocity magnitude (global and zoomed)
-    - Total Pressure Loss C_pt (computed for all levels)
-    - Residual field (for all levels if provided)
-    
-    Parameters
-    ----------
-    mg_hierarchy : MultigridHierarchy
-        The multigrid hierarchy object containing all levels.
-    X_fine, Y_fine : ndarray
-        Node coordinates for finest grid (for proper pcolormesh).
-    iteration : int
-        Current iteration number.
-    residual : float
-        Current residual value.
-    cfl : float
-        Current CFL number.
-    output_dir : str
-        Output directory for PDF files.
-    case_name : str
-        Base name for output files.
-    C_pt_fine : ndarray, optional
-        Total pressure loss for finest level (used if freestream not provided).
-    residual_field_fine : ndarray, optional
-        Residual field for finest level (used if residual_fields not provided).
-    freestream : FreestreamConditions, optional
-        Freestream conditions to compute C_pt for all levels.
-    residual_fields : list of ndarray, optional
-        Residual field for each level (same length as mg_hierarchy.levels).
-        
-    Returns
-    -------
-    output_path : str
-        Path to saved PDF file.
-    """
+    """Plot flow field for all multigrid levels in a multi-page PDF."""
     plt = _ensure_matplotlib()
     from matplotlib.backends.backend_pdf import PdfPages
     import warnings
     
-    # Import for C_pt computation
     from ..numerics.diagnostics import compute_total_pressure_loss
     
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     output_path = os.path.join(output_dir, f'{case_name}_iter{iteration:06d}.pdf')
     
-    # Suppress pcolormesh warnings for curvilinear grids
     with warnings.catch_warnings(), PdfPages(output_path) as pdf:
         warnings.filterwarnings('ignore', category=UserWarning, 
                                 message='.*pcolormesh.*monotonically.*')
         
         for level_idx, level in enumerate(mg_hierarchy.levels):
-            # Get level data
             NI, NJ = level.NI, level.NJ
             Q = level.Q
             
-            # Strip ghost cells (NGHOST ghost layers on each side)
             if Q.shape[0] == NI + 2*NGHOST and Q.shape[1] == NJ + 2*NGHOST:
                 Q_int = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
             elif Q.shape[0] == NI and Q.shape[1] == NJ:
@@ -333,7 +226,6 @@ def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
             else:
                 raise ValueError(f"Level {level_idx} Q shape {Q.shape} not compatible with grid ({NI}, {NJ})")
             
-            # Get grid coordinates for this level
             step = 2 ** level_idx
             if level_idx == 0:
                 X, Y = X_fine, Y_fine
@@ -341,7 +233,6 @@ def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
                 X = X_fine[::step, ::step]
                 Y = Y_fine[::step, ::step]
             
-            # Compute C_pt for this level
             if freestream is not None:
                 C_pt = compute_total_pressure_loss(
                     Q_int, freestream.p_inf, freestream.u_inf, freestream.v_inf
@@ -351,26 +242,22 @@ def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
             else:
                 C_pt = None
             
-            # Get residual field for this level
             if residual_fields is not None and level_idx < len(residual_fields):
                 residual_field = residual_fields[level_idx]
             elif level_idx == 0 and residual_field_fine is not None:
                 residual_field = residual_field_fine
             else:
-                # Use forcing term as proxy for coarse level residual
                 if level_idx > 0 and hasattr(level, 'forcing') and level.forcing is not None:
                     residual_field = level.forcing
                 else:
                     residual_field = None
             
-            # Extract fields
             p = Q_int[:, :, 0]
             u = Q_int[:, :, 1]
             v = Q_int[:, :, 2]
             vel_mag = np.sqrt(u**2 + v**2)
             
-            # Determine number of rows for this level
-            n_rows = 2  # Pressure + Velocity always
+            n_rows = 2
             if C_pt is not None:
                 n_rows += 1
             if residual_field is not None:
@@ -384,7 +271,6 @@ def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
             fig.suptitle(f'{level_title} - Iter {iteration}, Res={residual:.2e}, CFL={cfl:.2f}', 
                         fontsize=14, fontweight='bold')
             
-            # --- Row 1: Pressure ---
             ax = axes[0, 0]
             p_clip = np.clip(p, np.percentile(p, 1), np.percentile(p, 99))
             pc = ax.pcolormesh(X.T, Y.T, p_clip.T, cmap='RdBu_r', shading='flat', rasterized=True)
@@ -404,7 +290,6 @@ def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
             ax.set_ylabel('y/c')
             plt.colorbar(pc, ax=ax, shrink=0.8, label='p')
             
-            # --- Row 2: Velocity Magnitude ---
             ax = axes[1, 0]
             vel_clip = np.clip(vel_mag, 0, np.percentile(vel_mag, 99))
             pc = ax.pcolormesh(X.T, Y.T, vel_clip.T, cmap='viridis', shading='flat', rasterized=True)
@@ -426,7 +311,6 @@ def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
             
             row_idx = 2
             
-            # --- Total Pressure Loss (finest level only) ---
             if C_pt is not None:
                 C_pt_abs_max = max(np.abs(np.percentile(C_pt, 1)), np.abs(np.percentile(C_pt, 99)))
                 C_pt_abs_max = max(C_pt_abs_max, 0.01)
@@ -453,7 +337,6 @@ def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
                 
                 row_idx += 1
             
-            # --- Residual Field (finest level only) ---
             if residual_field is not None:
                 R_p = np.abs(residual_field[:, :, 0])
                 R_log = np.log10(R_p + 1e-12)
@@ -479,7 +362,6 @@ def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
                 ax.set_xlabel('x/c')
                 ax.set_ylabel('y/c')
                 
-                # Mark max residual location
                 max_idx = np.unravel_index(np.argmax(R_p), R_p.shape)
                 x_max = 0.5 * (X[max_idx[0], max_idx[1]] + X[max_idx[0]+1, max_idx[1]])
                 y_max = 0.5 * (Y[max_idx[0], max_idx[1]] + Y[max_idx[0]+1, max_idx[1]])
@@ -496,35 +378,11 @@ def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
 def plot_surface_distributions(x: np.ndarray, Cp: np.ndarray, Cf: np.ndarray,
                                 output_dir: str, case_name: str = "surface",
                                 reference_data: Optional[dict] = None) -> str:
-    """
-    Plot surface Cp and Cf distributions.
-    
-    Parameters
-    ----------
-    x : ndarray
-        Surface x-coordinates.
-    Cp : ndarray
-        Pressure coefficient.
-    Cf : ndarray
-        Skin friction coefficient.
-    output_dir : str
-        Output directory.
-    case_name : str
-        Base name for output file.
-    reference_data : dict, optional
-        Reference data for comparison (e.g., from mfoil).
-        Should contain 'x_upper', 'x_lower', 'cp_upper', 'cp_lower', etc.
-        
-    Returns
-    -------
-    output_path : str
-        Path to saved PDF.
-    """
+    """Plot surface Cp and Cf distributions."""
     plt = _ensure_matplotlib()
     
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     
-    # Cp distribution (inverted y-axis: suction up)
     ax = axes[0]
     ax.plot(x, Cp, 'b.', markersize=3, label='CFD')
     if reference_data is not None:
@@ -537,12 +395,11 @@ def plot_surface_distributions(x: np.ndarray, Cp: np.ndarray, Cf: np.ndarray,
     ax.set_xlabel('x/c')
     ax.set_ylabel('Cp')
     ax.set_title('Pressure Coefficient')
-    ax.invert_yaxis()  # Suction (negative Cp) at top
+    ax.invert_yaxis()
     ax.legend()
     ax.grid(True, alpha=0.3)
     ax.set_xlim(-0.05, 1.05)
     
-    # Cf distribution
     ax = axes[1]
     ax.plot(x, Cf, 'b.', markersize=3, label='CFD')
     if reference_data is not None:
@@ -567,4 +424,3 @@ def plot_surface_distributions(x: np.ndarray, Cp: np.ndarray, Cf: np.ndarray,
     plt.close()
     
     return output_path
-

@@ -1,3 +1,13 @@
+#!/usr/bin/env python3
+"""
+Plot Drela-Giles Correlation for Transition (JAX Version).
+
+This script visualizes the Drela-Giles correlation for boundary layer
+transition, showing how growth rate and critical Re_theta vary with shape factor.
+
+Uses JAX versions of correlation functions for consistency with GPU solvers.
+"""
+
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -12,20 +22,31 @@ def get_output_dir():
     os.makedirs(out, exist_ok=True)
     return out
 
-from src.physics.correlations import dN_dRe_theta, Re_theta0, compute_nondimensional_spatial_rate
+# Use JAX versions
+from src.physics.jax_config import jnp
+from src.physics.correlations import (
+    dN_dRe_theta,
+    Re_theta0,
+    compute_nondimensional_spatial_rate
+)
+
 
 def run():
     # Define H range from 2 to 6
-    H_vals = np.linspace(2, 6, 51)  # Start slightly above 2 to avoid singularity at H=1
-    # dN_vals = dN_dRe_theta(H_vals) # Unused in this plot, but available
+    H_vals = jnp.linspace(2, 6, 51)
     amp_rate_vals = compute_nondimensional_spatial_rate(H_vals)
     Re_theta0_vals = Re_theta0(H_vals)
+    
+    # Convert to numpy for plotting
+    H_np = np.array(H_vals)
+    amp_rate_np = np.array(amp_rate_vals)
+    Re_theta0_np = np.array(Re_theta0_vals)
 
     # Plotting with two y-axes
     fig, ax1 = plt.subplots(figsize=(5, 4))
 
     # Left axis: growth rate
-    ax1.semilogy(H_vals, amp_rate_vals, linewidth=2, color='b', label=r'$d\tilde{N}/dRe_\theta$')
+    ax1.semilogy(H_np, amp_rate_np, linewidth=2, color='b', label=r'$d\tilde{N}/dRe_\theta$')
     ax1.set_xlabel(r"Shape Factor $H_{12}$")
     ax1.set_ylabel(r"$\theta \frac{d\tilde{N}}{dx}$ (log scale)", color='b')
     ax1.tick_params(axis='y', labelcolor='b')
@@ -39,7 +60,7 @@ def run():
 
     # Right axis: critical Re_theta0
     ax2 = ax1.twinx()
-    ax2.semilogy(H_vals, Re_theta0_vals, linewidth=2, color='g', linestyle='-', label=r'$Re_{\theta0}$')
+    ax2.semilogy(H_np, Re_theta0_np, linewidth=2, color='g', linestyle='-', label=r'$Re_{\theta0}$')
     ax2.set_ylabel(r"$Re_{\theta0}$", color='g')
     ax2.set_ylim([10, 1E4])
     ax2.tick_params(axis='y', labelcolor='g')
@@ -51,7 +72,10 @@ def run():
 
     plt.title(r"Growth Rate and Critical $Re_\theta$ vs Shape Factor $H$")
     plt.tight_layout()
-    out_path = os.path.join(get_output_dir(), 'drela_correlation.pdf'); plt.savefig(out_path); print(f'Saved: {out_path}')
+    out_path = os.path.join(get_output_dir(), 'drela_correlation.pdf')
+    plt.savefig(out_path)
+    print(f'Saved: {out_path}')
+
 
 if __name__ == "__main__":
     run()

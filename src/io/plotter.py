@@ -1,18 +1,5 @@
 """
-Plotly-based HTML Animation for CFD Results.
-
-This module provides a PlotlyDashboard class that accumulates solution
-snapshots during simulation and exports them as an interactive HTML
-animation with comprehensive diagnostic information.
-
-Features:
-- 3x2 subplot layout: Pressure, Velocity Magnitude, Total Pressure Loss,
-  U-velocity, V-velocity, and Residual History
-- Interactive slider to scrub through iterations
-- Play/Pause button for auto-advance
-- Shared axes for synchronized zooming
-- Auto-scaling color ranges per frame
-- Residual history line plot updated per frame
+Plotly-based HTML animation for CFD results.
 """
 
 import numpy as np
@@ -35,54 +22,31 @@ if TYPE_CHECKING:
 
 @dataclass
 class Snapshot:
-    """
-    Stores a single timestep's solution data.
-    
-    All fields are interior cells only (no ghost cells).
-    """
+    """Stores a single timestep's solution data (interior cells only)."""
     iteration: int
     residual: float
     cfl: float
-    p: np.ndarray           # Pressure, shape (NI, NJ)
-    u: np.ndarray           # U-velocity, shape (NI, NJ)
-    v: np.ndarray           # V-velocity, shape (NI, NJ)
-    nu: np.ndarray          # Turbulent viscosity, shape (NI, NJ)
-    C_pt: Optional[np.ndarray] = None  # Total pressure loss coefficient
-    residual_field: Optional[np.ndarray] = None  # RMS of residual per cell
-    # Multigrid level data (list of dicts with 'p', 'u', 'v', 'xc', 'yc')
+    p: np.ndarray  # Relative pressure (p - p_inf)
+    u: np.ndarray  # Relative u-velocity (u - u_inf)
+    v: np.ndarray  # Relative v-velocity (v - v_inf)
+    nu: np.ndarray
+    C_pt: Optional[np.ndarray] = None
+    residual_field: Optional[np.ndarray] = None
     mg_levels: Optional[List[Dict[str, np.ndarray]]] = None
-    # Scalar diagnostics
     vel_max: float = 0.0
     p_min: float = 0.0
     p_max: float = 0.0
 
 
 class PlotlyDashboard:
-    """
-    Accumulates CFD solution snapshots and exports as interactive HTML.
-    
-    Provides comprehensive diagnostic visualization including:
-    - Primary flow variables (p, u, v)
-    - Derived quantities (velocity magnitude, total pressure loss)
-    - Residual history and field
-    - Multigrid level solutions (if enabled)
-    
-    Usage:
-        dashboard = PlotlyDashboard()
-        
-        for iteration in range(max_iter):
-            # ... solver step ...
-            if iteration % diagnostic_freq == 0:
-                dashboard.store_snapshot(Q, iteration, residual_history, cfl,
-                                         C_pt=C_pt, residual_field=R_field)
-        
-        dashboard.save_html("animation.html", grid_metrics)
-    """
+    """Accumulates CFD solution snapshots and exports as interactive HTML."""
     
     def __init__(self):
-        """Initialize empty snapshot storage."""
         self.snapshots: List[Snapshot] = []
         self.residual_history: List[float] = []
+        self.p_inf: float = 0.0
+        self.u_inf: float = 1.0
+        self.v_inf: float = 0.0
     
     def store_snapshot(
         self, 
@@ -95,93 +59,73 @@ class PlotlyDashboard:
         mg_levels: Optional[List[Dict[str, Any]]] = None,
         freestream: Any = None,
     ) -> None:
-        """
-        Store the current solution state with diagnostic data.
-        
-        Parameters
-        ----------
-        Q : ndarray, shape (NI + 2*NGHOST, NJ + 2*NGHOST, 4)
-            Full state vector including ghost cells.
-            Components: [p, u, v, nu]
-        iteration : int
-            Current iteration number.
-        residual_history : list of float
-            Full history of residuals.
-        cfl : float
-            Current CFL number.
-        C_pt : ndarray, optional
-            Total pressure loss coefficient field.
-        residual_field : ndarray, optional
-            Residual magnitude field.
-        mg_levels : list of dict, optional
-            Multigrid level data for visualization.
-        freestream : FreestreamConditions, optional
-            Freestream conditions for C_pt calculation.
-        """
-        # Extract interior cells only
+        """Store current solution state with diagnostic data."""
         Q_int = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
-        
-        # Get current residual
         residual = residual_history[-1] if residual_history else 0.0
         
-        # Compute derived quantities
-        p = Q_int[:, :, 0]
-        u = Q_int[:, :, 1]
-        v = Q_int[:, :, 2]
-        vel_mag = np.sqrt(u**2 + v**2)
+        # Extract freestream values
+        if freestream is not None:
+            self.p_inf = freestream.p_inf
+            self.u_inf = freestream.u_inf
+            self.v_inf = freestream.v_inf
         
-        # Compute C_pt if freestream provided but C_pt not given
+        # Store RELATIVE values (p - p_inf, u - u_inf, v - v_inf)
+        p_rel = Q_int[:, :, 0] - self.p_inf
+        u_rel = Q_int[:, :, 1] - self.u_inf
+        v_rel = Q_int[:, :, 2] - self.v_inf
+        
+        u_abs = Q_int[:, :, 1]
+        v_abs = Q_int[:, :, 2]
+        vel_mag = np.sqrt(u_abs**2 + v_abs**2)
+        
         if C_pt is None and freestream is not None:
-            p_inf = freestream.p_inf
-            u_inf = freestream.u_inf
-            v_inf = freestream.v_inf
-            V_inf_sq = u_inf**2 + v_inf**2
-            p_total = p + 0.5 * (u**2 + v**2)
-            p_total_inf = p_inf + 0.5 * V_inf_sq
+            p = Q_int[:, :, 0]
+            V_inf_sq = self.u_inf**2 + self.v_inf**2
+            p_total = p + 0.5 * (u_abs**2 + v_abs**2)
+            p_total_inf = self.p_inf + 0.5 * V_inf_sq
             C_pt = (p_total_inf - p_total) / (0.5 * V_inf_sq + 1e-12)
         
-        # Extract residual field magnitude if provided (take RMS of components)
         res_field = None
         if residual_field is not None:
-            # residual_field shape: (NI, NJ, 4) - take RMS
             res_field = np.sqrt(np.mean(residual_field**2, axis=2))
         
-        # Create snapshot with copies
+        # Process MG levels to also store relative values
+        mg_levels_rel = None
+        if mg_levels is not None:
+            mg_levels_rel = []
+            for mg in mg_levels:
+                mg_rel = {
+                    'p': mg['p'] - self.p_inf,
+                    'u': mg['u'] - self.u_inf,
+                    'v': mg['v'] - self.v_inf,
+                    'xc': mg['xc'],
+                    'yc': mg['yc'],
+                }
+                if 'residual' in mg:
+                    mg_rel['residual'] = mg['residual']
+                mg_levels_rel.append(mg_rel)
+        
         snapshot = Snapshot(
             iteration=iteration,
             residual=residual,
             cfl=cfl,
-            p=p.copy(),
-            u=u.copy(),
-            v=v.copy(),
+            p=p_rel.copy(),
+            u=u_rel.copy(),
+            v=v_rel.copy(),
             nu=Q_int[:, :, 3].copy(),
             C_pt=C_pt.copy() if C_pt is not None else None,
             residual_field=res_field,
-            mg_levels=mg_levels,
+            mg_levels=mg_levels_rel,
             vel_max=float(vel_mag.max()),
-            p_min=float(p.min()),
-            p_max=float(p.max()),
+            p_min=float(p_rel.min()),
+            p_max=float(p_rel.max()),
         )
         
         self.snapshots.append(snapshot)
         self.residual_history = list(residual_history)
     
     def save_html(self, filename: str, grid_metrics: 'FVMMetrics') -> str:
-        """
-        Export all snapshots as an interactive HTML animation.
-        
-        Parameters
-        ----------
-        filename : str
-            Output HTML file path.
-        grid_metrics : FVMMetrics
-            Grid metrics object containing cell center coordinates.
-        
-        Returns
-        -------
-        str
-            Path to the saved HTML file.
-        """
+        """Export all snapshots as interactive HTML animation."""
         if not HAS_PLOTLY:
             print("Warning: plotly not installed. Skipping HTML animation.")
             return ""
@@ -190,253 +134,510 @@ class PlotlyDashboard:
             print("Warning: No snapshots to save.")
             return ""
         
-        # Create output directory if needed
         output_path = Path(filename)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Get grid coordinates (cell centers) - slice to match interior data
-        xc = grid_metrics.xc[NGHOST:-NGHOST, NGHOST:-NGHOST]
-        yc = grid_metrics.yc[NGHOST:-NGHOST, NGHOST:-NGHOST]
+        xc = grid_metrics.xc
+        yc = grid_metrics.yc
         
-        # Determine layout based on available data
-        snap0 = self.snapshots[0]
+        ni, nj = xc.shape
+        a = np.arange(ni)
+        b = np.arange(nj)
+        A, B = np.meshgrid(a, b, indexing='ij')
+        
+        # Use last snapshot for initial display (matches slider default position)
+        snap0 = self.snapshots[0]  # For checking feature availability
+        snapN = self.snapshots[-1]  # For initial display
         has_cpt = snap0.C_pt is not None
         has_res_field = snap0.residual_field is not None
+        has_mg = snap0.mg_levels is not None and len(snap0.mg_levels) > 0
         
-        # Create 3x2 subplot figure
-        # Row 1: Pressure, Velocity Magnitude
-        # Row 2: U-velocity, V-velocity  
-        # Row 3: Total Pressure Loss / Residual Field, Residual History
+        n_mg_levels = min(len(snap0.mg_levels), 2) if has_mg else 0
+        n_rows = 3 + n_mg_levels
+        
         subplot_titles = [
-            'Pressure (p)', 'Velocity Magnitude',
-            'U-velocity', 'V-velocity',
+            'Pressure (p - p∞)', 
             'Total Pressure Loss (C_pt)' if has_cpt else 'Turbulent Viscosity (ν)',
-            'Residual History'
+            'U-velocity (u - u∞)', 'V-velocity (v - v∞)',
+            'Residual Field (log₁₀)' if has_res_field else 'Velocity Magnitude',
+            'Convergence History'
         ]
+        
+        for i in range(n_mg_levels):
+            subplot_titles.extend([f'MG Level {i+1}: Pressure', f'MG Level {i+1}: Residual (log₁₀)'])
+        
+        specs = [
+            [{"type": "xy"}, {"type": "xy"}],
+            [{"type": "xy"}, {"type": "xy"}],
+            [{"type": "xy"}, {"type": "scatter"}],
+        ]
+        for _ in range(n_mg_levels):
+            specs.append([{"type": "xy"}, {"type": "xy"}])
         
         fig = make_subplots(
-            rows=3, cols=2,
+            rows=n_rows, cols=2,
             subplot_titles=subplot_titles,
-            specs=[
-                [{"type": "contour"}, {"type": "contour"}],
-                [{"type": "contour"}, {"type": "contour"}],
-                [{"type": "contour"}, {"type": "scatter"}],  # Last is line plot
-            ],
+            specs=specs,
             horizontal_spacing=0.08,
-            vertical_spacing=0.08,
+            vertical_spacing=0.06,
         )
         
-        # Compute velocity magnitude for first snapshot
-        vel_mag0 = np.sqrt(snap0.u**2 + snap0.v**2)
+        field2_data = snapN.C_pt if has_cpt else snapN.nu
         
-        # Field 5: C_pt or nu
-        field5_data = snap0.C_pt if has_cpt else snap0.nu
-        field5_cmap = 'Reds' if has_cpt else 'Plasma'
+        if has_res_field and snapN.residual_field is not None:
+            field5_data = np.log10(snapN.residual_field + 1e-12)
+        else:
+            field5_data = np.zeros_like(snapN.p)
         
-        # Add base contour plots (5 contours) - using 2D curvilinear coordinates
+        # Compute GLOBAL symmetric ranges for consistent scaling
+        # Pressure: symmetric around 0
+        p_abs_max = max(
+            max(abs(s.p.min()), abs(s.p.max())) for s in self.snapshots
+        )
+        if has_cpt:
+            cpt_abs_max = max(
+                max(abs(s.C_pt.min()), abs(s.C_pt.max())) 
+                for s in self.snapshots if s.C_pt is not None
+            )
+            p_abs_max = max(p_abs_max, cpt_abs_max)
+        
+        # Velocity: symmetric around 0
+        vel_abs_max = max(
+            max(abs(s.u.min()), abs(s.u.max()), abs(s.v.min()), abs(s.v.max()))
+            for s in self.snapshots
+        )
+        
+        # Residual: 3 orders of magnitude from max
+        if has_res_field:
+            res_vals = [np.log10(s.residual_field + 1e-12) for s in self.snapshots if s.residual_field is not None]
+            res_max = max(v.max() for v in res_vals) if res_vals else 0
+            res_min = res_max - 3  # 3 orders of magnitude
+        else:
+            res_min, res_max = -3, 0
+        
+        # Store ranges for sliders (will be used in layout)
+        p_range = p_abs_max
+        vel_range = vel_abs_max
+        res_range_max = res_max
+        
         contour_configs = [
-            (snap0.p, 1, 1, 'RdBu_r', 'p'),
-            (vel_mag0, 1, 2, 'Viridis', '|V|'),
-            (snap0.u, 2, 1, 'RdBu', 'u'),
-            (snap0.v, 2, 2, 'RdBu', 'v'),
-            (field5_data, 3, 1, field5_cmap, 'C_pt' if has_cpt else 'ν'),
+            (snapN.p, 1, 1, 'pressure', True),
+            (field2_data, 1, 2, 'pressure', False),
+            (snapN.u, 2, 1, 'velocity', True),
+            (snapN.v, 2, 2, 'velocity', False),
+            (field5_data, 3, 1, 'residual', True),
         ]
         
-        for data, row, col, colorscale, name in contour_configs:
+        # Colorbar positions - only 3 colorbars, properly spaced
+        coloraxis_config = {
+            'pressure': {'colorscale': 'RdBu_r', 'cmin': -p_range, 'cmax': p_range, 
+                         'colorbar': dict(title='Δp', len=0.22, y=0.88, x=1.02, 
+                                          tickformat='.2f')},
+            'velocity': {'colorscale': 'RdBu', 'cmin': -vel_range, 'cmax': vel_range,
+                         'colorbar': dict(title='Δvel', len=0.22, y=0.55, x=1.02,
+                                          tickformat='.2f')},
+            'residual': {'colorscale': 'Hot', 'cmin': res_min, 'cmax': res_max,
+                         'colorbar': dict(title='log₁₀(R)', len=0.22, y=0.22, x=1.02,
+                                          tickformat='.1f')},
+        }
+        
+        for data, row, col, caxis_group, show_colorbar in contour_configs:
+            carpet_id = f'carpet_{row}_{col}'
+            caxis_cfg = coloraxis_config[caxis_group]
+            
             fig.add_trace(
-                go.Contour(
-                    z=data.T,
-                    x=xc.T,  # Full 2D array for curvilinear grid
-                    y=yc.T,  # Full 2D array for curvilinear grid
-                    colorscale=colorscale,
-                    contours=dict(
-                        coloring='heatmap',  # Fill like a heatmap
-                        showlines=False,     # No contour lines for cleaner look
-                    ),
-                    colorbar=dict(
-                        len=0.25,
-                        y=1.0 - (row - 0.5) / 3,
-                        title=dict(text=name, side='right'),
-                    ),
-                    name=name,
+                go.Carpet(
+                    a=A.flatten(), b=B.flatten(),
+                    x=xc.flatten(), y=yc.flatten(),
+                    carpet=carpet_id,
+                    aaxis=dict(showgrid=False, showticklabels='none', showline=False),
+                    baxis=dict(showgrid=False, showticklabels='none', showline=False),
+                ),
+                row=row, col=col
+            )
+            
+            colorbar_cfg = caxis_cfg['colorbar'] if show_colorbar else None
+            fig.add_trace(
+                go.Contourcarpet(
+                    a=A.flatten(), b=B.flatten(), z=data.flatten(),
+                    carpet=carpet_id,
+                    colorscale=caxis_cfg['colorscale'],
+                    zmin=caxis_cfg['cmin'], zmax=caxis_cfg['cmax'],
+                    contours=dict(coloring='fill', showlines=False),
+                    ncontours=50,
+                    colorbar=colorbar_cfg,
+                    showscale=show_colorbar,
                 ),
                 row=row, col=col
             )
         
-        # Add residual history line plot (trace index 5)
-        iterations = [s.iteration for s in self.snapshots]
-        residuals = [s.residual for s in self.snapshots]
+        mg_carpet_indices = []
+        mg_contour_indices = []
         
-        # Add full history as background
+        mg_level_info = []
+        p_cfg = coloraxis_config['pressure']
+        r_cfg = coloraxis_config['residual']
+        
+        if has_mg and snapN.mg_levels:
+            for mg_idx, mg_level in enumerate(snapN.mg_levels[:n_mg_levels]):
+                mg_xc = mg_level['xc']
+                mg_yc = mg_level['yc']
+                mg_p = mg_level['p']
+                mg_res = mg_level.get('residual', np.zeros_like(mg_p))
+                
+                mg_ni, mg_nj = mg_xc.shape
+                mg_a = np.arange(mg_ni)
+                mg_b = np.arange(mg_nj)
+                mg_A, mg_B = np.meshgrid(mg_a, mg_b, indexing='ij')
+                
+                row = 4 + mg_idx
+                mg_level_info.append((mg_A, mg_B, row))
+                
+                carpet_id_p = f'mg_carpet_p_{mg_idx}'
+                mg_carpet_indices.append(len(fig.data))
+                fig.add_trace(
+                    go.Carpet(
+                        a=mg_A.flatten(), b=mg_B.flatten(),
+                        x=mg_xc.flatten(), y=mg_yc.flatten(),
+                        carpet=carpet_id_p,
+                        aaxis=dict(showgrid=False, showticklabels='none', showline=False),
+                        baxis=dict(showgrid=False, showticklabels='none', showline=False),
+                    ),
+                    row=row, col=1
+                )
+                mg_contour_indices.append(len(fig.data))
+                fig.add_trace(
+                    go.Contourcarpet(
+                        a=mg_A.flatten(), b=mg_B.flatten(), z=mg_p.flatten(),
+                        carpet=carpet_id_p,
+                        colorscale=p_cfg['colorscale'],
+                        zmin=p_cfg['cmin'], zmax=p_cfg['cmax'],
+                        contours=dict(coloring='fill', showlines=False),
+                        ncontours=50,
+                        showscale=False,
+                    ),
+                    row=row, col=1
+                )
+                
+                carpet_id_r = f'mg_carpet_r_{mg_idx}'
+                mg_carpet_indices.append(len(fig.data))
+                fig.add_trace(
+                    go.Carpet(
+                        a=mg_A.flatten(), b=mg_B.flatten(),
+                        x=mg_xc.flatten(), y=mg_yc.flatten(),
+                        carpet=carpet_id_r,
+                        aaxis=dict(showgrid=False, showticklabels='none', showline=False),
+                        baxis=dict(showgrid=False, showticklabels='none', showline=False),
+                    ),
+                    row=row, col=2
+                )
+                mg_contour_indices.append(len(fig.data))
+                fig.add_trace(
+                    go.Contourcarpet(
+                        a=mg_A.flatten(), b=mg_B.flatten(),
+                        z=np.log10(mg_res + 1e-12).flatten(),
+                        carpet=carpet_id_r,
+                        colorscale=r_cfg['colorscale'],
+                        zmin=r_cfg['cmin'], zmax=r_cfg['cmax'],
+                        contours=dict(coloring='fill', showlines=False),
+                        ncontours=50,
+                        showscale=False,
+                    ),
+                    row=row, col=2
+                )
+        
         if self.residual_history:
             all_iters = list(range(len(self.residual_history)))
             fig.add_trace(
                 go.Scatter(
-                    x=all_iters,
-                    y=self.residual_history,
-                    mode='lines',
-                    line=dict(color='lightgray', width=1),
-                    name='Full History',
-                    showlegend=False,
+                    x=all_iters, y=self.residual_history,
+                    mode='lines', line=dict(color='blue', width=1.5),
+                    showlegend=False, name='Full History',
                 ),
                 row=3, col=2
             )
         
-        # Add marker for current frame (will be updated in animation)
+        snapshot_iters = [s.iteration for s in self.snapshots]
+        snapshot_res = [s.residual for s in self.snapshots]
         fig.add_trace(
             go.Scatter(
-                x=[snap0.iteration],
-                y=[snap0.residual],
-                mode='markers+lines',
-                marker=dict(color='red', size=10),
-                line=dict(color='blue', width=2),
-                name='Snapshots',
+                x=snapshot_iters, y=snapshot_res,
+                mode='markers',
+                marker=dict(color='red', size=10, symbol='circle'),
+                showlegend=False, name='Snapshots',
             ),
             row=3, col=2
         )
         
-        # Make residual y-axis logarithmic
         fig.update_yaxes(type='log', title_text='Residual', row=3, col=2)
         fig.update_xaxes(title_text='Iteration', row=3, col=2)
         
-        # Create frames for animation
+        base_contour_indices = [1, 3, 5, 7, 9]
+        n_mg_traces = len(mg_contour_indices) * 2
+        residual_marker_idx = 10 + n_mg_traces + 1
+        animated_indices = base_contour_indices + mg_contour_indices + [residual_marker_idx]
+        
         frames = []
         for i, snap in enumerate(self.snapshots):
-            vel_mag = np.sqrt(snap.u**2 + snap.v**2)
-            field5 = snap.C_pt if has_cpt and snap.C_pt is not None else snap.nu
+            field2 = snap.C_pt if has_cpt and snap.C_pt is not None else snap.nu
+            if has_res_field and snap.residual_field is not None:
+                field5 = np.log10(snap.residual_field + 1e-12)
+            else:
+                field5 = np.sqrt(snap.u**2 + snap.v**2)
             
-            # Contour data for this frame (using 2D curvilinear coordinates)
             frame_data = [
-                go.Contour(z=snap.p.T, x=xc.T, y=yc.T, colorscale='RdBu_r',
-                           contours=dict(coloring='heatmap', showlines=False)),
-                go.Contour(z=vel_mag.T, x=xc.T, y=yc.T, colorscale='Viridis',
-                           contours=dict(coloring='heatmap', showlines=False)),
-                go.Contour(z=snap.u.T, x=xc.T, y=yc.T, colorscale='RdBu',
-                           contours=dict(coloring='heatmap', showlines=False)),
-                go.Contour(z=snap.v.T, x=xc.T, y=yc.T, colorscale='RdBu',
-                           contours=dict(coloring='heatmap', showlines=False)),
-                go.Contour(z=field5.T, x=xc.T, y=yc.T, colorscale=field5_cmap,
-                           contours=dict(coloring='heatmap', showlines=False)),
+                go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap.p.flatten(), 
+                                 carpet='carpet_1_1', colorscale=p_cfg['colorscale'],
+                                 zmin=p_cfg['cmin'], zmax=p_cfg['cmax'],
+                                 contours=dict(coloring='fill', showlines=False), ncontours=50),
+                go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=field2.flatten(),
+                                 carpet='carpet_1_2', colorscale=p_cfg['colorscale'],
+                                 zmin=p_cfg['cmin'], zmax=p_cfg['cmax'],
+                                 contours=dict(coloring='fill', showlines=False), ncontours=50),
+                go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap.u.flatten(),
+                                 carpet='carpet_2_1', colorscale=coloraxis_config['velocity']['colorscale'],
+                                 zmin=coloraxis_config['velocity']['cmin'], zmax=coloraxis_config['velocity']['cmax'],
+                                 contours=dict(coloring='fill', showlines=False), ncontours=50),
+                go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap.v.flatten(),
+                                 carpet='carpet_2_2', colorscale=coloraxis_config['velocity']['colorscale'],
+                                 zmin=coloraxis_config['velocity']['cmin'], zmax=coloraxis_config['velocity']['cmax'],
+                                 contours=dict(coloring='fill', showlines=False), ncontours=50),
+                go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=field5.flatten(),
+                                 carpet='carpet_3_1', colorscale=r_cfg['colorscale'],
+                                 zmin=r_cfg['cmin'], zmax=r_cfg['cmax'],
+                                 contours=dict(coloring='fill', showlines=False), ncontours=50),
             ]
             
-            # Update residual marker position
+            if has_mg and snap.mg_levels:
+                for mg_idx, mg_level in enumerate(snap.mg_levels[:n_mg_levels]):
+                    mg_xc = mg_level['xc']
+                    mg_ni, mg_nj = mg_xc.shape
+                    mg_a = np.arange(mg_ni)
+                    mg_b = np.arange(mg_nj)
+                    mg_A, mg_B = np.meshgrid(mg_a, mg_b, indexing='ij')
+                    mg_res = mg_level.get('residual', np.zeros_like(mg_level['p']))
+                    
+                    frame_data.append(
+                        go.Contourcarpet(
+                            a=mg_A.flatten(), b=mg_B.flatten(),
+                            z=mg_level['p'].flatten(),
+                            carpet=f'mg_carpet_p_{mg_idx}', colorscale=p_cfg['colorscale'],
+                            zmin=p_cfg['cmin'], zmax=p_cfg['cmax'],
+                            contours=dict(coloring='fill', showlines=False), ncontours=50
+                        )
+                    )
+                    frame_data.append(
+                        go.Contourcarpet(
+                            a=mg_A.flatten(), b=mg_B.flatten(),
+                            z=np.log10(mg_res + 1e-12).flatten(),
+                            carpet=f'mg_carpet_r_{mg_idx}', colorscale=r_cfg['colorscale'],
+                            zmin=r_cfg['cmin'], zmax=r_cfg['cmax'],
+                            contours=dict(coloring='fill', showlines=False), ncontours=50
+                        )
+                    )
+            
             snapshot_iters = [s.iteration for s in self.snapshots[:i+1]]
             snapshot_res = [s.residual for s in self.snapshots[:i+1]]
             frame_data.append(go.Scatter(
-                x=snapshot_iters,
-                y=snapshot_res,
-                mode='markers+lines',
-                marker=dict(color='red', size=10),
-                line=dict(color='blue', width=2),
+                x=snapshot_iters, y=snapshot_res,
+                mode='markers',
+                marker=dict(color='red', size=10, symbol='circle'),
             ))
             
             frames.append(go.Frame(
                 data=frame_data,
                 name=str(snap.iteration),
-                traces=[0, 1, 2, 3, 4, 6],  # Skip trace 5 (background)
+                traces=animated_indices,
             ))
         
         fig.frames = frames
         
-        # Create slider steps
-        slider_steps = []
-        for snap in self.snapshots:
-            step = dict(
+        # Iteration slider steps
+        slider_steps = [
+            dict(
                 method='animate',
-                args=[
-                    [str(snap.iteration)],
-                    dict(
-                        mode='immediate',
-                        frame=dict(duration=100, redraw=True),
-                        transition=dict(duration=0)
-                    )
-                ],
+                args=[[str(snap.iteration)], dict(
+                    mode='immediate',
+                    frame=dict(duration=100, redraw=True),
+                    transition=dict(duration=0)
+                )],
                 label=f"{snap.iteration}",
             )
-            slider_steps.append(step)
+            for snap in self.snapshots
+        ]
         
-        # Build title with diagnostics
-        final_snap = self.snapshots[-1]
-        title_text = (
-            f'CFD Simulation - {len(self.snapshots)} frames | '
-            f'Final: iter={final_snap.iteration}, res={final_snap.residual:.2e}, '
-            f'|V|_max={final_snap.vel_max:.3f}'
-        )
+        # Create continuous logarithmic color range sliders
+        # 50 steps spanning 3 orders of magnitude
+        n_steps = 50
         
-        # Add slider and play button
+        def make_log_range_steps(base_val, trace_indices, is_residual=False):
+            """Create continuous logarithmic slider steps (3 orders of magnitude)."""
+            steps = []
+            # Range from base_val / 10^1.5 to base_val * 10^1.5 (3 orders total)
+            log_factors = np.linspace(-1.5, 1.5, n_steps)
+            
+            for log_f in log_factors:
+                if is_residual:
+                    # For residual: slider controls max level, range is always 3 decades
+                    new_max = base_val + log_f  # base_val is log scale already
+                    new_min = new_max - 3.0
+                    label = f'{new_max:.1f}'
+                    steps.append(dict(
+                        method='restyle',
+                        args=[{'zmin': new_min, 'zmax': new_max, 'ncontours': 50}, trace_indices],
+                        label=label,
+                    ))
+                else:
+                    # For symmetric ranges: log_f controls the multiplier
+                    factor = 10 ** log_f
+                    new_range = base_val * factor
+                    steps.append(dict(
+                        method='restyle',
+                        args=[{'zmin': -new_range, 'zmax': new_range, 'ncontours': 50}, trace_indices],
+                        label=f'{new_range:.2e}',
+                    ))
+            return steps
+        
+        # Trace indices for each color group
+        pressure_traces = [1, 3]  # carpet_1_1 contour, carpet_1_2 contour
+        velocity_traces = [5, 7]  # carpet_2_1 contour, carpet_2_2 contour
+        residual_traces = [9]     # carpet_3_1 contour
+        
+        # Add MG traces to their groups
+        if has_mg:
+            for i in range(n_mg_levels):
+                pressure_traces.append(mg_contour_indices[i * 2] if i * 2 < len(mg_contour_indices) else None)
+                residual_traces.append(mg_contour_indices[i * 2 + 1] if i * 2 + 1 < len(mg_contour_indices) else None)
+            pressure_traces = [t for t in pressure_traces if t is not None]
+            residual_traces = [t for t in residual_traces if t is not None]
+        
+        p_steps = make_log_range_steps(p_range, pressure_traces, is_residual=False)
+        v_steps = make_log_range_steps(vel_range, velocity_traces, is_residual=False)
+        r_steps = make_log_range_steps(res_max, residual_traces, is_residual=True)
+        
         fig.update_layout(
-            title=dict(text=title_text, x=0.5, font=dict(size=14)),
+            showlegend=False,
             updatemenus=[
                 dict(
                     type='buttons',
                     showactive=False,
-                    y=1.02,
-                    x=0.1,
-                    xanchor='right',
+                    y=1.12, x=0.08, xanchor='right',
                     buttons=[
                         dict(
-                            label='▶ Play',
+                            label='▶',
                             method='animate',
-                            args=[
-                                None,
-                                dict(
-                                    frame=dict(duration=200, redraw=True),
-                                    fromcurrent=True,
-                                    transition=dict(duration=0),
-                                    mode='immediate',
-                                )
-                            ]
+                            args=[None, dict(
+                                frame=dict(duration=200, redraw=True),
+                                fromcurrent=True,
+                                transition=dict(duration=0),
+                                mode='immediate',
+                            )]
                         ),
                         dict(
-                            label='⏸ Pause',
+                            label='⏸',
                             method='animate',
-                            args=[
-                                [None],
-                                dict(
-                                    frame=dict(duration=0, redraw=False),
-                                    mode='immediate',
-                                    transition=dict(duration=0)
-                                )
-                            ]
+                            args=[[None], dict(
+                                frame=dict(duration=0, redraw=False),
+                                mode='immediate',
+                                transition=dict(duration=0)
+                            )]
                         ),
                     ]
                 ),
             ],
             sliders=[
+                # Iteration slider (top-left)
                 dict(
-                    active=0,
-                    yanchor='top',
-                    xanchor='left',
+                    active=len(self.snapshots) - 1,
+                    yanchor='bottom', xanchor='left',
                     currentvalue=dict(
-                        font=dict(size=12),
-                        prefix='Iteration: ',
+                        font=dict(size=11),
+                        prefix='Iter: ',
                         visible=True,
                         xanchor='right',
                     ),
                     transition=dict(duration=0),
-                    pad=dict(b=10, t=30),
-                    len=0.9,
-                    x=0.05,
-                    y=0,
+                    pad=dict(b=5, t=5),
+                    len=0.45, x=0.08, y=1.10,
                     steps=slider_steps,
-                )
+                    ticklen=0,
+                ),
+                # Pressure range slider (top row, right side)
+                dict(
+                    active=n_steps // 2,  # Default to 1.0x (center)
+                    yanchor='bottom', xanchor='left',
+                    currentvalue=dict(
+                        font=dict(size=9),
+                        prefix='Δp: ',
+                        visible=True,
+                        xanchor='left',
+                    ),
+                    pad=dict(b=5, t=5),
+                    len=0.14, x=0.55, y=1.10,
+                    steps=p_steps,
+                    ticklen=0,
+                ),
+                # Velocity range slider
+                dict(
+                    active=n_steps // 2,  # Default to 1.0x (center)
+                    yanchor='bottom', xanchor='left',
+                    currentvalue=dict(
+                        font=dict(size=9),
+                        prefix='Δv: ',
+                        visible=True,
+                        xanchor='left',
+                    ),
+                    pad=dict(b=5, t=5),
+                    len=0.14, x=0.70, y=1.10,
+                    steps=v_steps,
+                    ticklen=0,
+                ),
+                # Residual max slider (controls max level, always 3 decades range)
+                dict(
+                    active=n_steps // 2,  # Default to center
+                    yanchor='bottom', xanchor='left',
+                    currentvalue=dict(
+                        font=dict(size=9),
+                        prefix='Res max: ',
+                        visible=True,
+                        xanchor='left',
+                    ),
+                    pad=dict(b=5, t=5),
+                    len=0.14, x=0.85, y=1.10,
+                    steps=r_steps,
+                    ticklen=0,
+                ),
             ],
-            height=1000,
-            width=1200,
+            height=1000 + (250 * n_mg_levels),
+            width=1400,
+            margin=dict(t=120),  # Extra top margin for sliders
         )
         
-        # Set axis labels
-        for row in [1, 2, 3]:
-            fig.update_xaxes(title_text='x', row=row, col=1)
-            fig.update_yaxes(title_text='y', row=row, col=1)
-        for row in [1, 2]:
-            fig.update_xaxes(title_text='x', row=row, col=2)
-            fig.update_yaxes(title_text='y', row=row, col=2)
+        # Link zoom/pan across all contourcarpet plots
+        # All field plots share the same x and y ranges (except row 3 col 2 which is scatter)
+        # Use 'matches' to link axes, and 'scaleanchor' for aspect ratio
         
-        # Write HTML
+        # First, set up row 1 col 1 as the reference axis with aspect ratio
+        fig.update_xaxes(title_text='x', range=[-0.5, 1.5], scaleanchor='y', scaleratio=1, row=1, col=1)
+        fig.update_yaxes(title_text='y', range=[-0.6, 0.6], row=1, col=1)
+        
+        # List of all contourcarpet subplot positions (row, col) - exclude row 3 col 2 (scatter)
+        mg_rows = list(range(4, 4 + n_mg_levels)) if n_mg_levels > 0 else []
+        field_positions = [(1, 1), (1, 2), (2, 1), (2, 2), (3, 1)]
+        for mg_row in mg_rows:
+            field_positions.extend([(mg_row, 1), (mg_row, 2)])
+        
+        # Link all other field plots to the reference (row 1 col 1 = x, y)
+        for row, col in field_positions:
+            if row == 1 and col == 1:
+                continue  # Skip reference
+            fig.update_xaxes(title_text='x', range=[-0.5, 1.5], matches='x', row=row, col=col)
+            fig.update_yaxes(title_text='y', range=[-0.6, 0.6], matches='y', row=row, col=col)
+        
         fig.write_html(str(output_path), auto_play=False)
         
         print(f"Saved HTML animation to: {output_path}")
+        print(f"  Use sliders at top-right to adjust color ranges")
         return str(output_path)
     
     def clear(self) -> None:
@@ -446,5 +647,4 @@ class PlotlyDashboard:
     
     @property
     def num_snapshots(self) -> int:
-        """Return number of stored snapshots."""
         return len(self.snapshots)

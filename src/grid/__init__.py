@@ -1,10 +1,5 @@
 """
 Grid generation and processing module.
-
-This module provides tools for:
-- Wrapping the Construct2D Fortran tool for hyperbolic C-grid generation
-- Reading and writing Plot3D structured grid files
-- Computing FVM grid metrics (cell centers, volumes, face normals, wall distance)
 """
 
 from .mesher import (
@@ -52,12 +47,10 @@ from .coarsening import (
 )
 
 __all__ = [
-    # Mesher
     'Construct2DWrapper',
     'Construct2DError', 
     'GridOptions',
     'estimate_first_cell_height',
-    # Plot3D
     'read_plot3d',
     'read_plot3d_ascii',
     'read_plot3d_binary',
@@ -70,15 +63,12 @@ __all__ = [
     'check_grid_quality',
     'GridMetrics',
     'StructuredGrid',
-    # Metrics
     'MetricComputer',
     'FVMMetrics',
     'GCLValidation',
     'compute_metrics',
-    # Loader
     'load_or_generate_grid',
     'find_construct2d_binary',
-    # Coarsening
     'Coarsener',
     'coarsen_volumes',
     'coarsen_cell_centers',
@@ -87,7 +77,3 @@ __all__ = [
     'coarsen_wall_distance',
     'validate_gcl_coarse',
 ]
-
-
-
-

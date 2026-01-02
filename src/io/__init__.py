@@ -1,8 +1,5 @@
 """
 I/O module for CFD solver.
-
-Provides file readers and writers for various formats,
-as well as plotting utilities.
 """
 
 from .output import write_vtk, write_vtk_series, VTKWriter
@@ -23,4 +20,3 @@ __all__ = [
     'plot_residual_history',
     'plot_surface_distributions',
 ]
-

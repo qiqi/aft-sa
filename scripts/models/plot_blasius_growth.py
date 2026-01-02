@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-Plot Blasius Boundary Layer Properties vs Re_x.
+Plot Blasius Boundary Layer Properties vs Re_x (JAX Version).
 
 This script visualizes how boundary layer properties (Re_Ω, Γ, amplification)
 evolve with Reynolds number for the Blasius similarity solution.
+
+Uses JAX versions of physics functions for consistency with GPU solvers.
 
 Assertions:
 - Velocity profile converges to u=1 at edge
@@ -27,6 +29,9 @@ def get_output_dir():
     return out
 
 from src.physics.boundary_layer import Blasius
+
+# Use JAX versions
+from src.physics.jax_config import jnp
 from src.physics.laminar import Re_Omega, amplification
 
 
@@ -42,6 +47,11 @@ def run():
 
     for Rex in Rex_list:
         yCell, u, dudy, _ = b.at(Rex, y)
+        
+        # Convert to JAX arrays
+        u_jax = jnp.array(u)
+        dudy_jax = jnp.array(dudy)
+        yCell_jax = jnp.array(yCell)
         
         # ===== PHYSICAL ASSERTIONS =====
         
@@ -59,15 +69,15 @@ def run():
             all_passed = False
         
         # 3. Shape factor Gamma should be in [0, 2]
-        # Avoid division issues where u~0
         valid = u > 0.01
         Gamma = 2 * (dudy[valid] * yCell[valid])**2 / (u[valid]**2 + (dudy[valid] * yCell[valid])**2)
         if Gamma.min() < -0.01 or Gamma.max() > 2.01:
             print(f"❌ Rex={Rex}: Gamma out of bounds [{Gamma.min():.3f}, {Gamma.max():.3f}]")
             all_passed = False
         
-        # 4. Amplification should be non-negative and bounded
-        amp = amplification(u, dudy, yCell)
+        # 4. Amplification should be non-negative and bounded (using JAX version)
+        amp_jax = amplification(u_jax, dudy_jax, yCell_jax)
+        amp = np.array(amp_jax)
         if (amp < -1e-10).any():
             print(f"❌ Rex={Rex}: Negative amplification")
             all_passed = False
@@ -75,8 +85,9 @@ def run():
             print(f"❌ Rex={Rex}: Amplification too high: {amp.max():.4f}")
             all_passed = False
         
-        # 5. Re_Omega should be non-negative
-        re_omega = Re_Omega(dudy, yCell)
+        # 5. Re_Omega should be non-negative (using JAX version)
+        re_omega_jax = Re_Omega(dudy_jax, yCell_jax)
+        re_omega = np.array(re_omega_jax)
         if (re_omega < -1e-10).any():
             print(f"❌ Rex={Rex}: Negative Re_Omega")
             all_passed = False

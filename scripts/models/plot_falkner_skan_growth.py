@@ -1,3 +1,13 @@
+#!/usr/bin/env python3
+"""
+Plot Falkner-Skan Boundary Layer Growth Properties (JAX Version).
+
+This script visualizes how boundary layer properties (Re_Ω, Γ, amplification)
+evolve with Reynolds number for Falkner-Skan similarity solutions.
+
+Uses JAX versions of physics functions for consistency with GPU solvers.
+"""
+
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -13,23 +23,37 @@ def get_output_dir():
     return out
 
 from src.physics.boundary_layer import Blasius
+
+# Use JAX versions
+from src.physics.jax_config import jnp
 from src.physics.laminar import Re_Omega, amplification
+
 
 def run():
     b = Blasius()
     y = np.arange(5000)
     Rex_list = np.array([50_000, 200_000, 500_000, 1_000_000, 2_000_000])
 
-    fig, ax = plt.subplots(1, 4, figsize=(10,4), sharey='row')
+    fig, ax = plt.subplots(1, 4, figsize=(10, 4), sharey='row')
     axp = [a.twiny() for a in ax]
 
     for Rex in Rex_list:
         yCell, u, dudy, _ = b.at(Rex, y)
+        
+        # Convert to JAX arrays
+        u_jax = jnp.array(u)
+        dudy_jax = jnp.array(dudy)
+        yCell_jax = jnp.array(yCell)
+        
+        # Use JAX versions
+        re_omega = np.array(Re_Omega(dudy_jax, yCell_jax))
+        amp = np.array(amplification(u_jax, dudy_jax, yCell_jax))
+        
         for a in axp:
             a.plot(u, yCell, '--', linewidth=2, alpha=0.5)
-        ax[0].plot(Re_Omega(dudy, yCell) / 2.2, yCell, linewidth=3)
+        ax[0].plot(re_omega / 2.2, yCell, linewidth=3)
         ax[1].plot(2 * (dudy * yCell)**2 / (u**2 + (dudy * yCell)**2), yCell, linewidth=3)
-        ax[2].plot(amplification(u, dudy, yCell) * 1e3, yCell, linewidth=3)
+        ax[2].plot(amp * 1e3, yCell, linewidth=3)
         ax[3].plot(dudy * 1000, yCell, linewidth=3)
 
     for a in ax:
@@ -41,10 +65,13 @@ def run():
     ax[0].set_ylabel(r"$y$")
     ax[0].set_xlabel(r"$Re_{\Omega} / 2.2$")
     ax[1].set_xlabel(r"$\Gamma$")
-    ax[2].set_xlabel(r"amplfication $(\times 10^{-3})$")
+    ax[2].set_xlabel(r"amplification $(\times 10^{-3})$")
     ax[3].set_xlabel(r"$dU/dy (\times 10^{-3})$")
     
-    out_path = os.path.join(get_output_dir(), 'falkner_skan_ReOmega_growth.pdf'); plt.savefig(out_path); print(f'Saved: {out_path}')
+    out_path = os.path.join(get_output_dir(), 'falkner_skan_ReOmega_growth.pdf')
+    plt.savefig(out_path)
+    print(f'Saved: {out_path}')
+
 
 if __name__ == "__main__":
     run()

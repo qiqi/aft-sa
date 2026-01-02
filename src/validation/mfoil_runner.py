@@ -1,8 +1,5 @@
 """
-Mfoil (XFOIL-like) runner utilities for validation.
-
-This module provides convenience functions for running mfoil simulations
-and extracting results for comparison with RANS solutions.
+Mfoil (XFOIL-like) runner utilities for RANS validation.
 """
 
 import numpy as np
@@ -12,55 +9,20 @@ from typing import Optional, Dict, Any
 def run_laminar(reynolds: float, alpha: float = 0.0,
                 naca: str = '0012', npanel: int = 199,
                 airfoil_file: Optional[str] = None) -> Dict[str, Any]:
-    """
-    Run mfoil for fully laminar flow.
-    
-    Parameters
-    ----------
-    reynolds : float
-        Reynolds number based on chord.
-    alpha : float, optional
-        Angle of attack in degrees (default 0).
-    naca : str, optional
-        NACA 4-digit airfoil code (default '0012').
-        Ignored if airfoil_file is provided.
-    npanel : int, optional
-        Number of panels (default 199).
-    airfoil_file : str, optional
-        Path to airfoil coordinate file. If provided, uses this
-        instead of NACA code.
-        
-    Returns
-    -------
-    result : dict
-        Results containing:
-        - cl: Lift coefficient
-        - cd: Total drag coefficient
-        - cdf: Skin friction drag coefficient
-        - cdp: Pressure drag coefficient
-        - converged: Whether solution converged
-        - x_upper, x_lower: Surface x-coordinates
-        - cp_upper, cp_lower: Surface Cp
-        - cf_upper, cf_lower: Surface Cf
-    """
+    """Run mfoil for fully laminar flow."""
     from .mfoil import mfoil
     
-    # Load airfoil
     if airfoil_file is not None:
         coords = _load_airfoil_coords(airfoil_file)
         M = mfoil(coords=coords, npanel=npanel)
     else:
         M = mfoil(naca=naca, npanel=npanel)
     
-    # Force fully laminar by setting ncrit extremely high
     M.param.ncrit = 1000.0
     M.param.doplot = False
     M.param.verb = 0
-    
-    # Set operating conditions
     M.setoper(alpha=alpha, Re=reynolds)
     
-    # Solve
     try:
         M.solve()
         converged = True
@@ -71,7 +33,6 @@ def run_laminar(reynolds: float, alpha: float = 0.0,
             'converged': False
         }
     
-    # Extract surface data
     result = _extract_surface_data(M)
     result.update({
         'cl': M.post.cl,
@@ -85,11 +46,7 @@ def run_laminar(reynolds: float, alpha: float = 0.0,
 
 
 def _load_airfoil_coords(airfoil_file: str) -> np.ndarray:
-    """
-    Load airfoil coordinates from a .dat file.
-    
-    Returns coordinates in mfoil format: (2, N) array with x in row 0, y in row 1.
-    """
+    """Load airfoil coordinates from a .dat file. Returns (2, N) array."""
     coords = []
     with open(airfoil_file, 'r') as f:
         for line in f:
@@ -108,16 +65,7 @@ def _load_airfoil_coords(airfoil_file: str) -> np.ndarray:
 
 
 def _extract_surface_data(M) -> Dict[str, np.ndarray]:
-    """
-    Extract surface Cp and Cf distributions from mfoil solution.
-    
-    Returns data split into upper and lower surfaces, ordered from LE to TE.
-    
-    mfoil coordinate ordering: starts at TE lower, goes counterclockwise
-    to LE, then continues to TE upper. So:
-      - Points 0 to N/2-1: Lower surface (TE → LE)
-      - Points N/2 to N-1: Upper surface (LE → TE)
-    """
+    """Extract surface Cp and Cf distributions, split into upper/lower surfaces."""
     x_coords = M.foil.x[0, :].copy()
     y_coords = M.foil.x[1, :].copy()
     
@@ -127,12 +75,8 @@ def _extract_surface_data(M) -> Dict[str, np.ndarray]:
     N = M.foil.N
     n_half = N // 2
     
-    # Lower surface: first half (points 0 to n_half), goes TE→LE
-    # Reverse to get LE→TE ordering
     x_lower = x_coords[:n_half+1][::-1]
     y_lower = y_coords[:n_half+1][::-1]
-    
-    # Upper surface: second half (points n_half to N-1), already LE→TE
     x_upper = x_coords[n_half:]
     y_upper = y_coords[n_half:]
     
@@ -163,27 +107,7 @@ def _extract_surface_data(M) -> Dict[str, np.ndarray]:
 def run_turbulent(reynolds: float, alpha: float = 0.0,
                   naca: str = '0012', npanel: int = 199,
                   ncrit: float = 9.0) -> Dict[str, Any]:
-    """
-    Run mfoil with natural transition.
-    
-    Parameters
-    ----------
-    reynolds : float
-        Reynolds number.
-    alpha : float
-        Angle of attack in degrees.
-    naca : str
-        NACA 4-digit code.
-    npanel : int
-        Number of panels.
-    ncrit : float
-        Critical amplification factor for transition (default 9.0).
-        
-    Returns
-    -------
-    result : dict
-        Same format as run_laminar.
-    """
+    """Run mfoil with natural transition (e^N method)."""
     from .mfoil import mfoil
     
     M = mfoil(naca=naca, npanel=npanel)

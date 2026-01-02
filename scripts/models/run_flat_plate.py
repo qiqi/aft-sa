@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-Flat Plate Boundary Layer Solver with Transition.
+Flat Plate Boundary Layer Solver with Transition (JAX Version).
 
 This script runs the SA-AFT model on a flat plate for different
 freestream turbulence intensities and compares Cf to correlations.
+
+Uses JAX for GPU acceleration and improved performance.
 
 Assertions:
 - Low Tu: Cf should follow laminar correlation (Cf ~ 0.664/sqrt(Re_x))
@@ -16,7 +18,6 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import torch
 import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -27,6 +28,7 @@ def get_output_dir():
     os.makedirs(out, exist_ok=True)
     return out
 
+# Use JAX-accelerated solver
 from src.solvers.boundary_layer_solvers import NuHatFlatPlateSolver
 
 
@@ -36,9 +38,9 @@ def run():
 
     # --- RUNNING WITH BATCH ---
     Tu_batch = [0.0001, 0.01, 1.0, 5.0]
-    u, v, nuHat = solver.forward(Tu_batch)
+    u, v, nuHat = solver(Tu_batch)
     x_grid = solver.x_grid
-    y_u = solver.y_cell.detach().cpu().numpy()
+    y_u = np.array(solver.y_cell)
 
     plt.figure(figsize=(9, 12))
     symbols = ['o', 's', '^', 'v']
@@ -46,8 +48,8 @@ def run():
     cf_results = {}
     
     for batch_idx in range(4):
-        u_np = u[:, batch_idx, :].detach().cpu().numpy()
-        nu_np = nuHat[:, batch_idx, :].detach().cpu().numpy()
+        u_np = np.array(u[:, batch_idx, :])
+        nu_np = np.array(nuHat[:, batch_idx, :])
         Tu = Tu_batch[batch_idx]
 
         # ===== PHYSICAL ASSERTIONS =====
@@ -71,8 +73,9 @@ def run():
 
         # Re_theta calculation
         Re_theta_list = []
+        dy_vol = np.array(solver.dy_vol)
         for i in range(u_np.shape[0]):
-            theta = np.sum(u_np[i,:] * (1 - u_np[i,:]) * solver.dy_vol.numpy())
+            theta = np.sum(u_np[i,:] * (1 - u_np[i,:]) * dy_vol)
             Re_theta_list.append(theta)
 
         Re_theta = np.array(Re_theta_list)
