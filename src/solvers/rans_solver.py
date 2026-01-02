@@ -45,6 +45,7 @@ from .multigrid import MultigridHierarchy, build_multigrid_hierarchy
 
 # IO
 from ..io.output import VTKWriter, write_vtk
+from ..io.plotter import PlotlyDashboard
 
 # Surface analysis
 from ..numerics.forces import compute_surface_distributions, create_surface_vtk_fields
@@ -109,6 +110,9 @@ class SolverConfig:
     diagnostic_mode: bool = False   # Enable diagnostic output (plots, extra stats)
     diagnostic_freq: int = 100      # Frequency of diagnostic dumps (when enabled)
     divergence_history: int = 0     # Number of solutions to save for divergence analysis
+    
+    # HTML animation output
+    html_animation: bool = False    # Enable Plotly HTML animation output
     
     # Multigrid options
     use_multigrid: bool = False     # Enable geometric multigrid (FAS scheme)
@@ -364,7 +368,7 @@ class RANSSolver:
             print(f"    Level {i}: {lvl.NI} x {lvl.NJ} (k4={lvl.k4:.4f}, cfl_scale={lvl.cfl_scale:.2f})")
     
     def _initialize_output(self):
-        """Initialize VTK writer for output."""
+        """Initialize VTK writer and HTML animation for output."""
         # Create output directory
         output_path = Path(self.config.output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
@@ -377,9 +381,17 @@ class RANSSolver:
             beta=self.config.beta
         )
         
+        # Create PlotlyDashboard for HTML animation
+        self.plotter = PlotlyDashboard()
+        
         # Write initial state with surface data
         surface_fields = self._compute_surface_fields()
         self.vtk_writer.write(self.Q, iteration=0, additional_scalars=surface_fields)
+        
+        # Store initial snapshot for HTML animation
+        if self.config.html_animation:
+            self.plotter.store_snapshot(self.Q, 0, self.residual_history)
+        
         print(f"  Initial solution written to: {output_path}")
     
     def _compute_surface_fields(self) -> dict:
@@ -840,6 +852,11 @@ class RANSSolver:
                     self.Q, iteration=self.iteration,
                     additional_scalars=surface_fields
                 )
+                # Store snapshot for HTML animation
+                if self.config.html_animation:
+                    self.plotter.store_snapshot(
+                        self.Q, self.iteration, self.residual_history
+                    )
             
             # Check convergence
             if res_rms < self.config.tol:
@@ -873,6 +890,11 @@ class RANSSolver:
         )
         series_file = self.vtk_writer.finalize()
         print(f"VTK series written to: {series_file}")
+        
+        # Save HTML animation if enabled
+        if self.config.html_animation and self.plotter.num_snapshots > 0:
+            html_path = Path(self.config.output_dir) / f"{self.config.case_name}_animation.html"
+            self.plotter.save_html(str(html_path), self.metrics)
         
         return self.converged
     
