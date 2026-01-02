@@ -112,13 +112,16 @@ def main():
     # For power-of-2 cells: n_surface + 2*n_wake = power_of_2 + 1
     # Note: construct2d needs at least ~130 surface points for C-grid stability
     if args.super_coarse:
-        # Same as coarse but with 16 J-cells for faster runs
-        # 256 I-cells: n_surface + 2*n_wake = 257, e.g., 193 + 2*32 = 257
-        args.n_surface = 193
-        args.n_normal = 17    # 16 J-cells
-        args.n_wake = 32      # 193 + 64 = 257 nodes → 256 cells
+        # Use 32 J-cells (minimum for stability) with coarser I-grid
+        # 128 I-cells: n_surface + 2*n_wake = 129, e.g., 65 + 2*32 = 129
+        args.n_surface = 65
+        args.n_normal = 33    # 32 J-cells (minimum for stability)
+        args.n_wake = 32      # 65 + 64 = 129 nodes → 128 cells
         args.y_plus = 5.0
-        print("Using SUPER-COARSE grid mode (256x16 cells)")
+        # Reduce CFL for coarse grid stability
+        if args.cfl > 3.0:
+            args.cfl = 3.0
+        print("Using SUPER-COARSE grid mode (128x32 cells)")
     elif args.coarse:
         # 256 I-cells: n_surface + 2*n_wake = 257, e.g., 193 + 2*32 = 257
         args.n_surface = 193

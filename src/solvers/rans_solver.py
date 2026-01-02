@@ -649,6 +649,25 @@ class RANSSolver:
         if omega < 1.0:
             lvl.Q = lvl.Q_before_correction + omega * (lvl.Q - lvl.Q_before_correction)
         
+        # === FIX: Make the CORRECTION periodic at wake cut ===
+        # The prolongation adds different corrections at i=1 and i=NI because they
+        # map to different coarse cells. We average the corrections at the wake edges
+        # to prevent artificial discontinuity from accumulating.
+        Q_int = lvl.Q[1:-1, 1:-1, :]  # Current state (interior)
+        Q_before = lvl.Q_before_correction[1:-1, 1:-1, :]  # State before correction
+        
+        # Compute corrections at wake edges
+        dQ_left = Q_int[0, :, :] - Q_before[0, :, :]
+        dQ_right = Q_int[-1, :, :] - Q_before[-1, :, :]
+        
+        # Average the corrections and apply to both edges
+        dQ_avg = 0.5 * (dQ_left + dQ_right)
+        Q_int[0, :, :] = Q_before[0, :, :] + dQ_avg
+        Q_int[-1, :, :] = Q_before[-1, :, :] + dQ_avg
+        
+        # Apply BC (will set ghost cells correctly)
+        lvl.Q = lvl.bc.apply(lvl.Q)
+        
         # ===== Post-smoothing =====
         for _ in range(self.config.mg_nu2):
             self._smooth_level(level)
