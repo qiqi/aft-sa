@@ -86,7 +86,8 @@ class SolverConfig:
     tol: float = 1e-10              # Residual tolerance for convergence
     
     # Output
-    output_freq: int = 100          # VTK output frequency
+    output_freq: int = 100          # HTML animation snapshot frequency
+    vtk_output_freq: int = 0        # VTK output frequency (0 = disabled)
     print_freq: int = 50            # Console print frequency
     output_dir: str = "output"      # Output directory
     case_name: str = "solution"     # Base name for output files
@@ -373,7 +374,7 @@ class RANSSolver:
         output_path = Path(self.config.output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
         
-        # Create VTK writer
+        # Create VTK writer (even if disabled, for potential final write)
         base_path = output_path / self.config.case_name
         self.vtk_writer = VTKWriter(
             str(base_path),
@@ -384,15 +385,16 @@ class RANSSolver:
         # Create PlotlyDashboard for HTML animation
         self.plotter = PlotlyDashboard()
         
-        # Write initial state with surface data
-        surface_fields = self._compute_surface_fields()
-        self.vtk_writer.write(self.Q, iteration=0, additional_scalars=surface_fields)
+        # Write initial VTK state (if enabled)
+        if self.config.vtk_output_freq > 0:
+            surface_fields = self._compute_surface_fields()
+            self.vtk_writer.write(self.Q, iteration=0, additional_scalars=surface_fields)
         
         # Store initial snapshot for HTML animation
         if self.config.html_animation:
             self.plotter.store_snapshot(self.Q, 0, self.residual_history)
         
-        print(f"  Initial solution written to: {output_path}")
+        print(f"  Output directory: {output_path}")
     
     def _compute_surface_fields(self) -> dict:
         """Compute surface Cp and Cf fields for VTK output."""
@@ -845,18 +847,19 @@ class RANSSolver:
                       f"CL={forces.CL:>8.4f} CD={forces.CD:>8.5f} "
                       f"(p:{forces.CD_p:>7.5f} f:{forces.CD_f:>7.5f})")
             
-            # Write VTK output with surface Cp and Cf
-            if self.iteration % self.config.output_freq == 0:
+            # Write VTK output with surface Cp and Cf (if enabled)
+            if self.config.vtk_output_freq > 0 and self.iteration % self.config.vtk_output_freq == 0:
                 surface_fields = self._compute_surface_fields()
                 self.vtk_writer.write(
                     self.Q, iteration=self.iteration,
                     additional_scalars=surface_fields
                 )
-                # Store snapshot for HTML animation
-                if self.config.html_animation:
-                    self.plotter.store_snapshot(
-                        self.Q, self.iteration, self.residual_history
-                    )
+            
+            # Store snapshot for HTML animation
+            if self.config.html_animation and self.iteration % self.config.output_freq == 0:
+                self.plotter.store_snapshot(
+                    self.Q, self.iteration, self.residual_history
+                )
             
             # Check convergence
             if res_rms < self.config.tol:
@@ -882,14 +885,15 @@ class RANSSolver:
             print(f"Final residual: {self.residual_history[-1]:.6e}")
             print(f"{'='*60}")
         
-        # Write final solution with surface data
-        surface_fields = self._compute_surface_fields()
-        self.vtk_writer.write(
-            self.Q, iteration=self.iteration,
-            additional_scalars=surface_fields
-        )
-        series_file = self.vtk_writer.finalize()
-        print(f"VTK series written to: {series_file}")
+        # Write final VTK solution with surface data (if VTK enabled)
+        if self.config.vtk_output_freq > 0:
+            surface_fields = self._compute_surface_fields()
+            self.vtk_writer.write(
+                self.Q, iteration=self.iteration,
+                additional_scalars=surface_fields
+            )
+            series_file = self.vtk_writer.finalize()
+            print(f"VTK series written to: {series_file}")
         
         # Save HTML animation if enabled
         if self.config.html_animation and self.plotter.num_snapshots > 0:

@@ -100,8 +100,12 @@ def main():
                         help="Flow field dump frequency (default: 100)")
     parser.add_argument("--print-freq", type=int, default=10,
                         help="Console print frequency (default: 10)")
-    parser.add_argument("--output-freq", type=int, default=100,
-                        help="VTK output frequency (default: 100)")
+    parser.add_argument("--vtk-freq", type=int, default=0,
+                        help="VTK output frequency (0=disabled, default: 0)")
+    parser.add_argument("--html-freq", type=int, default=100,
+                        help="HTML animation snapshot frequency (default: 100)")
+    parser.add_argument("--no-html", action="store_true",
+                        help="Disable HTML animation output")
     parser.add_argument("--div-history", type=int, default=0,
                         help="Solutions to keep for divergence visualization (0=disabled)")
     
@@ -161,6 +165,9 @@ def main():
         print(f"ERROR: {e}")
         sys.exit(1)
     
+    # Determine output frequencies
+    html_enabled = not args.no_html
+    
     # Configure solver with IRS for stability
     config = SolverConfig(
         mach=args.mach,
@@ -172,7 +179,8 @@ def main():
         cfl_ramp_iters=args.cfl_ramp,
         max_iter=args.max_iter,
         tol=args.tol,
-        output_freq=args.output_freq,
+        output_freq=args.html_freq,      # HTML animation snapshot frequency
+        vtk_output_freq=args.vtk_freq,   # VTK output frequency (0 = disabled)
         print_freq=args.print_freq,
         output_dir=args.output_dir,
         case_name=args.case_name,
@@ -183,6 +191,7 @@ def main():
         diagnostic_mode=args.diagnostic,
         diagnostic_freq=args.dump_freq,
         divergence_history=args.div_history,
+        html_animation=html_enabled,
         # Multigrid options
         use_multigrid=args.multigrid,
         mg_levels=args.mg_levels,
