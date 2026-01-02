@@ -20,6 +20,8 @@ import numpy as np
 from numba import njit
 from typing import NamedTuple
 
+from ..constants import NGHOST
+
 
 class GradientMetrics(NamedTuple):
     """
@@ -52,7 +54,8 @@ def _gradient_kernel(Q: np.ndarray,
                      Si_x: np.ndarray, Si_y: np.ndarray,
                      Sj_x: np.ndarray, Sj_y: np.ndarray,
                      volume: np.ndarray,
-                     grad: np.ndarray) -> None:
+                     grad: np.ndarray,
+                     nghost: int) -> None:
     """
     Numba-optimized kernel for Green-Gauss gradient computation.
     
@@ -61,8 +64,8 @@ def _gradient_kernel(Q: np.ndarray,
     
     Parameters
     ----------
-    Q : ndarray, shape (NI+2, NJ+3, 4)
-        State vector with 2 J-ghosts at wall/wake.
+    Q : ndarray, shape (NI + 2*nghost, NJ + 2*nghost, 4)
+        State vector with nghost ghost layers on each side.
         Q[i, j, :] = [p, u, v, nu_tilde]
     Si_x, Si_y : ndarray, shape (NI+1, NJ)
         I-face normals (area-scaled).
@@ -74,6 +77,8 @@ def _gradient_kernel(Q: np.ndarray,
         Output gradient array.
         grad[i, j, k, 0] = dQ[k]/dx at cell (i,j)
         grad[i, j, k, 1] = dQ[k]/dy at cell (i,j)
+    nghost : int
+        Number of ghost layers on each side.
     """
     NI = volume.shape[0]
     NJ = volume.shape[1]
@@ -99,10 +104,10 @@ def _gradient_kernel(Q: np.ndarray,
             ny = Si_y[i, j]
             
             # Left and right cells in Q indexing (with ghost cell offset)
-            # With 2 J-ghosts at wall: interior starts at j=2
-            i_L = i      # Left cell in Q
-            i_R = i + 1  # Right cell in Q
-            j_Q = j + 2  # j index in Q (2 J-ghosts at wall)
+            # With nghost ghost layers: interior starts at i=nghost, j=nghost
+            i_L = i + nghost - 1  # Left cell in Q (interior i-1)
+            i_R = i + nghost      # Right cell in Q (interior i)
+            j_Q = j + nghost      # j index in Q
             
             # Loop over all state variables
             for k in range(4):
@@ -135,10 +140,10 @@ def _gradient_kernel(Q: np.ndarray,
             nx = Sj_x[i, j]
             ny = Sj_y[i, j]
             
-            # Left and right cells in Q indexing (2 J-ghosts at wall)
-            i_Q = i + 1  # i index in Q (ghost offset)
-            j_L = j + 1  # Left cell (lower j) in Q
-            j_R = j + 2  # Right cell (upper j) in Q
+            # Left and right cells in Q indexing (nghost ghost layers)
+            i_Q = i + nghost      # i index in Q
+            j_L = j + nghost - 1  # Left cell (lower j, interior j-1) in Q
+            j_R = j + nghost      # Right cell (upper j, interior j) in Q
             
             # Loop over all state variables
             for k in range(4):
@@ -242,7 +247,8 @@ def compute_gradients(Q: np.ndarray, metrics: GradientMetrics) -> np.ndarray:
         metrics.Sj_x.astype(np.float64),
         metrics.Sj_y.astype(np.float64),
         metrics.volume.astype(np.float64),
-        grad
+        grad,
+        NGHOST
     )
     
     return grad

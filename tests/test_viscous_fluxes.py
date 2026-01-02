@@ -15,6 +15,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from src.constants import NGHOST
 from src.numerics.gradients import compute_gradients, GradientMetrics
 from src.numerics.viscous_fluxes import (
     compute_viscous_fluxes,
@@ -24,12 +25,12 @@ from src.numerics.viscous_fluxes import (
 
 
 def create_uniform_grid(NI: int, NJ: int, Lx: float = 1.0, Ly: float = 1.0):
-    """Create uniform Cartesian grid with metrics (2 J-ghosts at wall)."""
+    """Create uniform Cartesian grid with metrics (NGHOST ghost layers)."""
     dx = Lx / NI
     dy = Ly / NJ
     
-    x = np.linspace(-dx/2, Lx + dx/2, NI + 2)
-    y = np.linspace(-3*dy/2, Ly + dy/2, NJ + 3)  # 2 ghosts at wall
+    x = np.linspace(-(NGHOST - 0.5) * dx, Lx + (NGHOST - 0.5) * dx, NI + 2 * NGHOST)
+    y = np.linspace(-(NGHOST - 0.5) * dy, Ly + (NGHOST - 0.5) * dy, NJ + 2 * NGHOST)
     X, Y = np.meshgrid(x, y, indexing='ij')
     
     Si_x = np.ones((NI + 1, NJ)) * dy
@@ -51,7 +52,7 @@ class TestUniformFlow:
         X, Y, metrics, dx, dy = create_uniform_grid(NI, NJ)
         
         # Uniform flow: u = 1, v = 0.5
-        Q = np.zeros((NI + 2, NJ + 3, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 1] = 1.0   # u
         Q[:, :, 2] = 0.5   # v
         
@@ -61,7 +62,7 @@ class TestUniformFlow:
         res = compute_viscous_fluxes(Q, grad, metrics, mu_lam)
         
         # All interior residuals should be zero
-        assert np.allclose(res[1:-1, 2:-1, :], 0.0, atol=1e-14), \
+        assert np.allclose(res[NGHOST:-NGHOST, NGHOST:-NGHOST, :], 0.0, atol=1e-14), \
             "Uniform flow should have zero viscous residual"
     
     def test_zero_velocity(self):
@@ -69,7 +70,7 @@ class TestUniformFlow:
         NI, NJ = 16, 16
         X, Y, metrics, dx, dy = create_uniform_grid(NI, NJ)
         
-        Q = np.zeros((NI + 2, NJ + 3, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         
         grad = compute_gradients(Q, metrics)
         res = compute_viscous_fluxes(Q, grad, metrics, mu_laminar=0.001)
@@ -85,7 +86,7 @@ class TestLinearVelocity:
         NI, NJ = 16, 16
         X, Y, metrics, dx, dy = create_uniform_grid(NI, NJ)
         
-        Q = np.zeros((NI + 2, NJ + 3, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 1] = Y  # u = y → du/dy = 1
         Q[:, :, 2] = 0  # v = 0
         
@@ -110,7 +111,7 @@ class TestLinearVelocity:
         NI, NJ = 16, 16
         X, Y, metrics, dx, dy = create_uniform_grid(NI, NJ)
         
-        Q = np.zeros((NI + 2, NJ + 3, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 1] = X   # u = x → du/dx = 1
         Q[:, :, 2] = -Y  # v = -y → dv/dy = -1 (div = 0)
         
@@ -136,7 +137,7 @@ class TestConservation:
         X, Y, metrics, dx, dy = create_uniform_grid(NI, NJ)
         
         # Some non-trivial but smooth flow
-        Q = np.zeros((NI + 2, NJ + 3, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 1] = np.sin(2 * np.pi * X) * np.cos(2 * np.pi * Y)
         Q[:, :, 2] = -np.cos(2 * np.pi * X) * np.sin(2 * np.pi * Y)
         
@@ -162,7 +163,7 @@ class TestTurbulentViscosity:
         X, Y, metrics, dx, dy = create_uniform_grid(NI, NJ)
         
         # Use non-uniform velocity so interior residuals are non-zero
-        Q = np.zeros((NI + 2, NJ + 3, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 1] = np.sin(2 * np.pi * X) * np.cos(2 * np.pi * Y)
         Q[:, :, 2] = -np.cos(2 * np.pi * X) * np.sin(2 * np.pi * Y)
         
@@ -191,7 +192,7 @@ class TestAddViscousFluxes:
         NI, NJ = 8, 8
         X, Y, metrics, dx, dy = create_uniform_grid(NI, NJ)
         
-        Q = np.zeros((NI + 2, NJ + 3, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 1] = Y
         
         grad = compute_gradients(Q, metrics)
@@ -213,14 +214,14 @@ class TestNuTildeDiffusion:
         NI, NJ = 16, 16
         X, Y, metrics, dx, dy = create_uniform_grid(NI, NJ)
         
-        Q = np.zeros((NI + 2, NJ + 3, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 3] = 0.001  # Uniform nu_tilde
         
         grad = compute_gradients(Q, metrics)
         
         res = compute_nu_tilde_diffusion(Q, grad, metrics, nu_laminar=1e-5)
         
-        assert np.allclose(res[1:-1, 2:-1], 0.0, atol=1e-14), \
+        assert np.allclose(res[NGHOST:-NGHOST, NGHOST:-NGHOST], 0.0, atol=1e-14), \
             "Uniform nu_tilde should have zero diffusion"
     
     def test_negative_nu_tilde_safety(self):
@@ -228,7 +229,7 @@ class TestNuTildeDiffusion:
         NI, NJ = 16, 16
         X, Y, metrics, dx, dy = create_uniform_grid(NI, NJ)
         
-        Q = np.zeros((NI + 2, NJ + 3, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 3] = -0.001 + X * 0.002  # Goes negative in some cells
         
         grad = compute_gradients(Q, metrics)
@@ -267,7 +268,7 @@ class TestConvergenceOrder:
         X, Y, metrics, dx, dy = create_uniform_grid(NI, NJ, Lx, Ly)
         
         # Manufactured solution
-        Q = np.zeros((NI + 2, NJ + 3, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 1] = np.sin(np.pi * X) * np.sin(np.pi * Y)
         Q[:, :, 2] = 0.0
         
@@ -276,8 +277,8 @@ class TestConvergenceOrder:
         res = compute_viscous_fluxes(Q, grad, metrics, mu)
         
         # Expected: res/vol ≈ -3μπ² sin(πx) sin(πy)
-        X_int = X[1:-1, 2:-1]
-        Y_int = Y[1:-1, 2:-1]
+        X_int = X[NGHOST:-NGHOST, NGHOST:-NGHOST]
+        Y_int = Y[NGHOST:-NGHOST, NGHOST:-NGHOST]
         vol = metrics.volume
         
         res_per_vol = res[:, :, 1] / vol
