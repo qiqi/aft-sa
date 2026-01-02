@@ -219,19 +219,33 @@ class BoundaryConditions:
         # ===== WAKE CUT (2-layer periodic boundary at J=0) =====
         # Lower wake: interior indices 0 to i_wake_end_lower-1 (Q indices NGHOST to i_start-1)
         # Upper wake: interior indices i_wake_start_upper to NI-1 (Q indices i_end to NI+NGHOST-1)
-        # Extrapolate from interior (will be made fully periodic in apply_wake_cut)
+        #
+        # The wake cut connects lower wake to upper wake with mirrored i-indices:
+        # - Lower wake cell at i=0 is adjacent to upper wake cell at i=NI-1
+        # - Lower wake cell at i=1 is adjacent to upper wake cell at i=NI-2
+        # - etc.
+        #
+        # For periodic BC at J=0:
+        # - Lower wake j-ghosts get values from upper wake j-interior (mirrored)
+        # - Upper wake j-ghosts get values from lower wake j-interior (mirrored)
         
-        # Lower wake
-        i_wake_lower_start = NGHOST
-        i_wake_lower_end = i_start
-        Q[i_wake_lower_start:i_wake_lower_end, 1, :] = Q[i_wake_lower_start:i_wake_lower_end, j_int_first, :]
-        Q[i_wake_lower_start:i_wake_lower_end, 0, :] = Q[i_wake_lower_start:i_wake_lower_end, j_int_first+1, :]
+        # Lower wake Q-indices: NGHOST to i_start (exclusive) = NGHOST to NGHOST + n_wake
+        # Upper wake Q-indices: i_end to NI + NGHOST (exclusive) = NI - n_wake + NGHOST to NI + NGHOST
         
-        # Upper wake
-        i_wake_upper_start = i_end
-        i_wake_upper_end = NI + NGHOST
-        Q[i_wake_upper_start:i_wake_upper_end, 1, :] = Q[i_wake_upper_start:i_wake_upper_end, j_int_first, :]
-        Q[i_wake_upper_start:i_wake_upper_end, 0, :] = Q[i_wake_upper_start:i_wake_upper_end, j_int_first+1, :]
+        # Get the interior values from each side (reversed for mirroring)
+        lower_wake_int_j0 = Q[NGHOST:i_start, j_int_first, :]      # Lower wake, first interior j
+        lower_wake_int_j1 = Q[NGHOST:i_start, j_int_first + 1, :]  # Lower wake, second interior j
+        upper_wake_int_j0 = Q[i_end:NI + NGHOST, j_int_first, :]   # Upper wake, first interior j
+        upper_wake_int_j1 = Q[i_end:NI + NGHOST, j_int_first + 1, :]  # Upper wake, second interior j
+        
+        # Lower wake ghosts (j=0, j=1) get values from upper wake interior (mirrored i)
+        # Flip the i-direction: [::-1]
+        Q[NGHOST:i_start, 1, :] = upper_wake_int_j0[::-1, :]  # Inner ghost from first interior
+        Q[NGHOST:i_start, 0, :] = upper_wake_int_j1[::-1, :]  # Outer ghost from second interior
+        
+        # Upper wake ghosts (j=0, j=1) get values from lower wake interior (mirrored i)
+        Q[i_end:NI + NGHOST, 1, :] = lower_wake_int_j0[::-1, :]  # Inner ghost from first interior
+        Q[i_end:NI + NGHOST, 0, :] = lower_wake_int_j1[::-1, :]  # Outer ghost from second interior
         
         return Q
     
