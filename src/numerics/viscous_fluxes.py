@@ -433,8 +433,8 @@ def compute_nu_tilde_diffusion(
     """
     NI, NJ = gradients.shape[:2]
     
-    # Extract nu_tilde from Q
-    nu_tilde = Q[1:-1, 1:-1, 3]
+    # Extract nu_tilde from Q (interior cells with 2 J-ghosts at wall)
+    nu_tilde = Q[1:-1, 2:-1, 3]
     
     # Effective diffusivity: ν + max(0, ν̃)
     # This ensures non-negative diffusivity even if nu_tilde < 0

@@ -75,12 +75,12 @@ def compute_spectral_radii(Q: np.ndarray,
     SpectralRadius
         Spectral radii in I and J directions, shape (NI, NJ).
     """
-    NI = Q.shape[0] - 2
-    NJ = Q.shape[1] - 2
+    NI = Q.shape[0] - 2  # 1 I-ghost on each side
+    NJ = Q.shape[1] - 3  # 2 J-ghosts at wall, 1 at farfield
     
-    # Interior cell velocities (cell-centered)
-    u = Q[1:-1, 1:-1, 1]  # Shape: (NI, NJ)
-    v = Q[1:-1, 1:-1, 2]  # Shape: (NI, NJ)
+    # Interior cell velocities (cell-centered, 2 J-ghosts at wall)
+    u = Q[1:-1, 2:-1, 1]  # Shape: (NI, NJ)
+    v = Q[1:-1, 2:-1, 2]  # Shape: (NI, NJ)
     
     # Artificial sound speed at each cell
     c_art = np.sqrt(u**2 + v**2 + beta)  # Shape: (NI, NJ)
@@ -293,7 +293,7 @@ class ExplicitEuler:
         # Update interior cells: Q^{n+1} = Q^n + dt/Ω * R
         # Note: Residual is defined as net flux INTO cell (positive = accumulation)
         Q_new = Q.copy()
-        Q_new[1:-1, 1:-1, :] += (dt / volume)[:, :, np.newaxis] * residual
+        Q_new[1:-1, 2:-1, :] += (dt / volume)[:, :, np.newaxis] * residual
         
         return Q_new
 
@@ -393,7 +393,7 @@ class RungeKutta5:
             
             # Update: Q^(k) = Q^(0) + α_k * dt/Ω * R
             Qk = Q0.copy()
-            Qk[1:-1, 1:-1, :] += alpha * (dt / volume)[:, :, np.newaxis] * R
+            Qk[1:-1, 2:-1, :] += alpha * (dt / volume)[:, :, np.newaxis] * R
         
         return Qk
 

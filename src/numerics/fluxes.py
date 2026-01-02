@@ -121,8 +121,8 @@ def _flux_kernel(Q: np.ndarray,
     """
     NI_ghost = Q.shape[0]
     NJ_ghost = Q.shape[1]
-    NI = NI_ghost - 2
-    NJ = NJ_ghost - 2
+    NI = NI_ghost - 2  # 1 I-ghost on each side
+    NJ = NJ_ghost - 3  # 2 J-ghosts at wall/wake, 1 at farfield
     
     # Temporary arrays for face fluxes
     # I-face fluxes: shape (NI+1, NJ, 4)
@@ -139,7 +139,7 @@ def _flux_kernel(Q: np.ndarray,
             # Ghost-array indices for cells left and right of face
             i_L = i      # Left cell (ghost index)
             i_R = i + 1  # Right cell (ghost index)
-            j_cell = j + 1  # Interior j-index in ghost array
+            j_cell = j + 2  # Interior j-index in ghost array (2 J-ghosts at wall)
             
             # Get face normal (scaled by area)
             nx = Si_x[i, j]
@@ -267,10 +267,10 @@ def _flux_kernel(Q: np.ndarray,
     # =========================================================================
     for i in range(NI):
         for j in range(NJ + 1):
-            # Ghost-array indices
+            # Ghost-array indices (2 J-ghosts at wall/wake)
             i_cell = i + 1  # Interior i-index in ghost array
-            j_L = j      # Left (bottom) cell
-            j_R = j + 1  # Right (top) cell
+            j_L = j + 1    # Left (bottom) cell - offset by 1 due to 2 ghosts
+            j_R = j + 2    # Right (top) cell
             
             # Get face normal
             nx = Sj_x[i, j]
@@ -311,26 +311,29 @@ def _flux_kernel(Q: np.ndarray,
             lambda_f = (np.abs(U_n_unit) + c_art) * S
             
             # Pressure sensor and dissipation
-            if j >= 1 and j <= NJ - 1:
+            # With 2 J-ghost layers at wall/wake, we can apply 4th-order at j=0
+            if j >= 0 and j <= NJ - 1:
                 # First-order mode: skip sensor calculation, use maximum dissipation
                 if first_order:
                     nu_sensor = 1.0
                 else:
-                    # Full stencil available
-                    if j >= 2:
-                        p_Lm1 = Q[i_cell, j - 1, 0]
-                        p_Lc = Q[i_cell, j, 0]
-                        p_Lp1 = Q[i_cell, j + 1, 0]
+                    # With 2 J-ghosts at wall: j_L = j + 1, j_R = j + 2
+                    # Sensor for left cell (at j_L = j + 1)
+                    if j >= 1:  # Need j_L - 1 = j >= 0 (always valid with 2 ghosts)
+                        p_Lm1 = Q[i_cell, j, 0]      # j_L - 1 = j
+                        p_Lc = Q[i_cell, j + 1, 0]   # j_L = j + 1
+                        p_Lp1 = Q[i_cell, j + 2, 0]  # j_L + 1 = j + 2
                         d2p_L = np.abs(p_Lp1 - 2.0 * p_Lc + p_Lm1)
                         sum_L = np.abs(p_Lp1) + 2.0 * np.abs(p_Lc) + np.abs(p_Lm1) + eps_p
                         nu_sensor_L = d2p_L / sum_L
                     else:
                         nu_sensor_L = 0.0
                     
-                    if j <= NJ - 2:
-                        p_Rm1 = Q[i_cell, j, 0]
-                        p_Rc = Q[i_cell, j + 1, 0]
-                        p_Rp1 = Q[i_cell, j + 2, 0]
+                    # Sensor for right cell (at j_R = j + 2)
+                    if j <= NJ - 2:  # Need j_R + 1 = j + 3 <= NJ + 2 (last ghost)
+                        p_Rm1 = Q[i_cell, j + 1, 0]  # j_R - 1 = j + 1
+                        p_Rc = Q[i_cell, j + 2, 0]   # j_R = j + 2
+                        p_Rp1 = Q[i_cell, j + 3, 0]  # j_R + 1 = j + 3
                         d2p_R = np.abs(p_Rp1 - 2.0 * p_Rc + p_Rm1)
                         sum_R = np.abs(p_Rp1) + 2.0 * np.abs(p_Rc) + np.abs(p_Rm1) + eps_p
                         nu_sensor_R = d2p_R / sum_R
@@ -342,15 +345,17 @@ def _flux_kernel(Q: np.ndarray,
                 eps2 = k2 * nu_sensor * lambda_f
                 eps4 = max(0.0, k4 - k2 * nu_sensor) * lambda_f
                 
-                Q_Lm1_0 = Q[i_cell, j - 1, 0]
-                Q_Lm1_1 = Q[i_cell, j - 1, 1]
-                Q_Lm1_2 = Q[i_cell, j - 1, 2]
-                Q_Lm1_3 = Q[i_cell, j - 1, 3]
+                # 4th-order stencil: Q_Lm1, Q_L, Q_R, Q_Rp1
+                # With j_L = j + 1, j_R = j + 2:
+                Q_Lm1_0 = Q[i_cell, j, 0]      # j_L - 1 = j
+                Q_Lm1_1 = Q[i_cell, j, 1]
+                Q_Lm1_2 = Q[i_cell, j, 2]
+                Q_Lm1_3 = Q[i_cell, j, 3]
                 
-                Q_Rp1_0 = Q[i_cell, j + 2, 0]
-                Q_Rp1_1 = Q[i_cell, j + 2, 1]
-                Q_Rp1_2 = Q[i_cell, j + 2, 2]
-                Q_Rp1_3 = Q[i_cell, j + 2, 3]
+                Q_Rp1_0 = Q[i_cell, j + 3, 0]  # j_R + 1 = j + 3
+                Q_Rp1_1 = Q[i_cell, j + 3, 1]
+                Q_Rp1_2 = Q[i_cell, j + 3, 2]
+                Q_Rp1_3 = Q[i_cell, j + 3, 3]
                 
                 D2_0 = eps2 * (p_R - p_L)
                 D2_1 = eps2 * (u_R - u_L)
@@ -527,8 +532,8 @@ def compute_fluxes(Q: np.ndarray, metrics: GridMetrics, beta: float,
     - 4th-order background dissipation (removes odd-even decoupling)
     """
     NI_ghost, NJ_ghost, n_vars = Q.shape
-    NI = NI_ghost - 2
-    NJ = NJ_ghost - 2
+    NI = NI_ghost - 2  # 1 I-ghost on each side
+    NJ = NJ_ghost - 3  # 2 J-ghosts at wall, 1 at farfield
     
     # Ensure arrays are contiguous for Numba
     Q_c = np.ascontiguousarray(Q)
@@ -573,11 +578,11 @@ def compute_time_step(Q: np.ndarray, metrics: GridMetrics, beta: float,
     dt : ndarray, shape (NI, NJ)
         Local time step for each cell.
     """
-    NI = Q.shape[0] - 2
-    NJ = Q.shape[1] - 2
+    NI = Q.shape[0] - 2  # 1 I-ghost on each side
+    NJ = Q.shape[1] - 3  # 2 J-ghosts at wall, 1 at farfield
     
-    # Interior cell states
-    Q_int = Q[1:-1, 1:-1, :]
+    # Interior cell states (2 J-ghosts at wall/wake)
+    Q_int = Q[1:-1, 2:-1, :]
     u = Q_int[..., 1]
     v = Q_int[..., 2]
     

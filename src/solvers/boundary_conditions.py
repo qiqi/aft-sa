@@ -18,9 +18,10 @@ State Vector: Q = [p, u, v, ν̃] where
     - ν̃: SA turbulent viscosity
 
 Ghost Cell Convention:
-    - Q has shape (NI+2, NJ+2, 4)
-    - Interior cells: Q[1:-1, 1:-1, :]
-    - Ghost cells: Q[0, :], Q[-1, :], Q[:, 0], Q[:, -1]
+    - Q has shape (NI+2, NJ+3, 4) - 2 J-ghost layers at wall/wake for conservation
+    - Interior cells: Q[1:-1, 2:-1, :]
+    - I-direction ghosts: Q[0, :] (left), Q[-1, :] (right)
+    - J-direction ghosts: Q[:, 0:2] (wall/wake, 2 layers), Q[:, -1] (farfield)
 """
 
 import numpy as np
@@ -171,61 +172,57 @@ class BoundaryConditions:
         
         Parameters
         ----------
-        Q : ndarray, shape (NI+2, NJ+2, 4)
-            State vector with ghost cells.
+        Q : ndarray, shape (NI+2, NJ+3, 4)
+            State vector with 2 J-ghost layers at wall/wake.
             
         Returns
         -------
         Q : ndarray
             Updated state with surface ghost cells set.
         """
-        # Ghost cells at j=0, interior cells at j=1
-        # Q[:, 0, :] is the ghost layer (surface)
-        # Q[:, 1, :] is the first interior layer
+        # With 2 J-ghost layers at wall/wake:
+        # Q[:, 0, :] is the second ghost layer (farthest from wall)
+        # Q[:, 1, :] is the first ghost layer (adjacent to wall)
+        # Q[:, 2, :] is the first interior layer
         
         NI = Q.shape[0] - 2  # Number of interior cells in i
         
         # Determine airfoil vs wake regions using n_wake_points
-        # For a C-grid with n_wake points: 
-        #   - Lower wake: i = 1 to n_wake (in interior indexing)
-        #   - Upper wake: i = NI-n_wake+1 to NI
         n_wake = self.n_wake_points if self.n_wake_points > 0 else NI // 6
-        i_wake_end_lower = n_wake  # Last lower wake cell (interior index)
-        i_wake_start_upper = NI - n_wake  # First upper wake cell (interior index)
+        i_wake_end_lower = n_wake
+        i_wake_start_upper = NI - n_wake
         
-        # Create mask for airfoil cells (interior indices 1 to NI in Q indexing)
-        # Q indices: 0=ghost, 1=first interior, ..., NI=last interior, NI+1=ghost
-        # So airfoil is Q[i_wake_end_lower+1 : i_wake_start_upper+1, 0, :]
+        # Q indices: 0=I-ghost, 1=first interior, ..., NI=last interior, NI+1=I-ghost
+        i_start = i_wake_end_lower + 1  # Q index for first airfoil cell
+        i_end = i_wake_start_upper + 1  # Q index for last airfoil cell (inclusive)
         
         # ===== AIRFOIL SURFACE (no-slip) =====
-        i_start = i_wake_end_lower + 1  # Q index for first airfoil cell
-        i_end = i_wake_start_upper + 1   # Q index for last airfoil cell (inclusive)
+        # First ghost layer (j=1): anti-symmetric for velocity, copy for pressure
+        Q[i_start:i_end+1, 1, 0] = Q[i_start:i_end+1, 2, 0]       # p: zero gradient
+        Q[i_start:i_end+1, 1, 1] = -Q[i_start:i_end+1, 2, 1]      # u: no-slip
+        Q[i_start:i_end+1, 1, 2] = -Q[i_start:i_end+1, 2, 2]      # v: no-slip
+        Q[i_start:i_end+1, 1, 3] = -Q[i_start:i_end+1, 2, 3]      # nu_t: wall value = 0
         
-        # Pressure: zero normal gradient
-        Q[i_start:i_end+1, 0, 0] = Q[i_start:i_end+1, 1, 0]
+        # Second ghost layer (j=0): extrapolate from j=1
+        Q[i_start:i_end+1, 0, 0] = Q[i_start:i_end+1, 1, 0]       # p: zero gradient
+        Q[i_start:i_end+1, 0, 1] = 2*Q[i_start:i_end+1, 1, 1] - Q[i_start:i_end+1, 2, 1]  # u: linear extrap
+        Q[i_start:i_end+1, 0, 2] = 2*Q[i_start:i_end+1, 1, 2] - Q[i_start:i_end+1, 2, 2]  # v: linear extrap
+        Q[i_start:i_end+1, 0, 3] = Q[i_start:i_end+1, 1, 3]       # nu_t: zero gradient
         
-        # Velocity: no-slip
-        Q[i_start:i_end+1, 0, 1] = -Q[i_start:i_end+1, 1, 1]  # u
-        Q[i_start:i_end+1, 0, 2] = -Q[i_start:i_end+1, 1, 2]  # v
-        
-        # Turbulence: ν̃ = 0 at wall
-        Q[i_start:i_end+1, 0, 3] = -Q[i_start:i_end+1, 1, 3]
-        
-        # ===== WAKE CUT (periodic/continuous boundary) =====
-        # The wake cut is NOT a symmetry plane - it's a periodic boundary where
-        # upper and lower wake meet. All variables should be continuous.
-        # The j=0 ghost cells in the wake should extrapolate from the interior
-        # (zero normal gradient) to allow flow through.
-        
+        # ===== WAKE CUT (2-layer periodic boundary) =====
         # Lower wake: indices 1 to i_wake_end_lower (Q indices 1 to i_wake_end_lower+1)
-        Q[1:i_wake_end_lower+1, 0, 0] = Q[1:i_wake_end_lower+1, 1, 0]    # p continuous
-        Q[1:i_wake_end_lower+1, 0, 1] = Q[1:i_wake_end_lower+1, 1, 1]    # u continuous  
-        Q[1:i_wake_end_lower+1, 0, 2] = Q[1:i_wake_end_lower+1, 1, 2]    # v continuous
-        Q[1:i_wake_end_lower+1, 0, 3] = Q[1:i_wake_end_lower+1, 1, 3]    # nu_t continuous
-        
         # Upper wake: indices i_wake_start_upper to NI (Q indices i_wake_start_upper+1 to NI+1)
-        Q[i_wake_start_upper+1:NI+1, 0, 0] = Q[i_wake_start_upper+1:NI+1, 1, 0]
-        Q[i_wake_start_upper+1:NI+1, 0, 1] = Q[i_wake_start_upper+1:NI+1, 1, 1]
+        # For now, extrapolate from interior (will be made fully periodic in apply_wake_cut)
+        
+        # Lower wake - first ghost layer (j=1)
+        Q[1:i_wake_end_lower+1, 1, :] = Q[1:i_wake_end_lower+1, 2, :]
+        # Lower wake - second ghost layer (j=0)
+        Q[1:i_wake_end_lower+1, 0, :] = Q[1:i_wake_end_lower+1, 3, :]  # Copy from j=3 interior
+        
+        # Upper wake - first ghost layer (j=1)
+        Q[i_wake_start_upper+1:NI+1, 1, :] = Q[i_wake_start_upper+1:NI+1, 2, :]
+        # Upper wake - second ghost layer (j=0)
+        Q[i_wake_start_upper+1:NI+1, 0, :] = Q[i_wake_start_upper+1:NI+1, 3, :]
         Q[i_wake_start_upper+1:NI+1, 0, 2] = Q[i_wake_start_upper+1:NI+1, 1, 2]
         Q[i_wake_start_upper+1:NI+1, 0, 3] = Q[i_wake_start_upper+1:NI+1, 1, 3]
         
@@ -250,8 +247,8 @@ class BoundaryConditions:
         
         Parameters
         ----------
-        Q : ndarray, shape (NI+2, NJ+2, 4)
-            State vector with ghost cells.
+        Q : ndarray, shape (NI+2, NJ+3, 4)
+            State vector with 2 J-ghost layers at wall/wake.
             
         Returns
         -------
@@ -330,26 +327,15 @@ class BoundaryConditions:
     
     def apply_wake_cut(self, Q: np.ndarray) -> np.ndarray:
         """
-        Apply wake cut periodic boundary conditions.
+        Apply periodic boundary conditions at the wake cut (I-direction ghosts).
         
-        C-grid Topology:
-            The C-grid wraps around the airfoil with a "cut" in the wake:
-            
-            - i=1 (first interior): adjacent to wake cut on lower side
-            - i=NI (last interior): adjacent to wake cut on upper side  
-            - These cells are NEIGHBORS across the wake cut
-            
-            The grid has reflection symmetry about the wake (Y=0):
-            - X[0, :] == X[-1, :]  (same X coordinates)
-            - Y[0, :] == -Y[-1, :] (opposite Y coordinates)
-            
-            However, this is handled by the GRID METRICS (face normals), not
-            by negating velocities. The face normals satisfy:
-            - Si_x[0, :] == -Si_x[-1, :]  (opposite, pointing into domain)
-            - Si_y[0, :] == Si_y[-1, :]   (same)
-            
-            Therefore, simple copy is correct - the flux computation using
-            these ghost values will automatically handle the geometry.
+        For a C-grid topology, the grid wraps around the airfoil and reconnects
+        at the wake cut. The left edge (i=0) is physically adjacent to the
+        right edge (i=NI+1).
+        
+        With 2 J-ghost layers at the wall/wake, we can now ensure EXACT conservation
+        at the wake cut by making it fully periodic. The 4th-order flux stencil at
+        the wake cut will see identical values from both sides.
         
         Implementation:
             - Ghost at i=0: Copy from interior at i=NI (Q[-2, :, :])
@@ -358,36 +344,24 @@ class BoundaryConditions:
         
         Parameters
         ----------
-        Q : ndarray, shape (NI+2, NJ+2, 4)
-            State vector with ghost cells.
+        Q : ndarray, shape (NI+2, NJ+3, 4)
+            State vector with 2 J-ghost layers at wall/wake.
             
         Returns
         -------
         Q : ndarray
             Updated state with wake cut ghost cells set.
         """
-        # The C-grid has a cut in the wake:
-        #   - Left ghost (i=0) gets values from right interior (i=NI, which is Q[-2])
-        #   - Right ghost (i=NI+1, which is Q[-1]) gets values from left interior (i=1)
+        # Fully periodic BC for the wake cut:
+        # - Left ghost (i=0) = Right interior (i=NI, which is Q[-2])
+        # - Right ghost (i=-1) = Left interior (i=1, which is Q[1])
+        #
+        # This applies to all J-indices EXCEPT the farfield ghost (j=-1)
+        # The 2 J-ghosts at j=0,1 are included to ensure the 4th-order stencil
+        # sees consistent values across the wake cut.
         
-        # Conservation-preserving wake cut BC:
-        # Use AVERAGED ghost values for flux consistency at the wake cut.
-        #
-        # For a C-grid, the wake cut is where the grid wraps around. The cells on
-        # either side (i=1 and i=NI) are physical neighbors. 
-        #
-        # By setting both ghost values to the SAME average, we ensure:
-        # - Flux at face i=0.5 and face i=NI+0.5 are computed with identical stencils
-        # - The JST artificial dissipation is consistent across the cut
-        # - Mass and momentum are conserved
-        #
-        # IMPORTANT: Only apply to j=0:-1 (interior + surface ghost), 
-        # NOT j=-1 (farfield ghost) which was set by apply_farfield
-        
-        # Average of the two interior cells adjacent to the wake cut
-        avg = 0.5 * (Q[1, :-1, :] + Q[-2, :-1, :])
-        Q[0, :-1, :] = avg    # Left ghost = average
-        Q[-1, :-1, :] = avg   # Right ghost = average
+        Q[0, :-1, :] = Q[-2, :-1, :]   # Left ghost = right interior
+        Q[-1, :-1, :] = Q[1, :-1, :]   # Right ghost = left interior
         
         return Q
 
@@ -399,7 +373,7 @@ def apply_boundary_conditions(Q: np.ndarray,
     
     Parameters
     ----------
-    Q : ndarray, shape (NI+2, NJ+2, 4)
+    Q : ndarray, shape (NI+2, NJ+3, 4)
         State vector with ghost cells.
     freestream : FreestreamConditions, optional
         Freestream conditions.
@@ -427,13 +401,14 @@ def initialize_state(NI: int, NJ: int,
         
     Returns
     -------
-    Q : ndarray, shape (NI+2, NJ+2, 4)
-        Initialized state vector.
+    Q : ndarray, shape (NI+2, NJ+3, 4)
+        Initialized state vector with 2 J-ghost layers at wall/wake.
     """
     if freestream is None:
         freestream = FreestreamConditions()
     
-    Q = np.zeros((NI + 2, NJ + 2, 4))
+    # 2 J-ghost layers at j=0 (wall/wake cut), 1 at j=NJ (farfield)
+    Q = np.zeros((NI + 2, NJ + 3, 4))
     Q[:, :, 0] = freestream.p_inf
     Q[:, :, 1] = freestream.u_inf
     Q[:, :, 2] = freestream.v_inf
@@ -512,9 +487,9 @@ def apply_initial_wall_damping(Q: np.ndarray,
         damping_factor[-n_wake:, :] = 1.0  # Upper wake: no damping
     
     # Apply damping to velocity components (indices 1 and 2 in state vector)
-    # Only modify interior cells (1:-1 in ghost-padded array)
-    Q[1:-1, 1:-1, 1] *= damping_factor  # u-velocity
-    Q[1:-1, 1:-1, 2] *= damping_factor  # v-velocity
+    # Only modify interior cells (2 J-ghosts at wall/wake)
+    Q[1:-1, 2:-1, 1] *= damping_factor  # u-velocity
+    Q[1:-1, 2:-1, 2] *= damping_factor  # v-velocity
     
     return Q
 

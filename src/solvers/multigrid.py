@@ -189,7 +189,7 @@ class MultigridHierarchy:
             bc=bc,
             k4=base_k4,  # Level 0: original dissipation
             cfl_scale=1.0,  # Level 0: full CFL (RK5 + IRS)
-            Q_old=np.zeros((NI + 2, NJ + 2, 4))
+            Q_old=np.zeros((NI + 2, NJ + 3, 4))  # 2 J-ghosts at wall/wake
         )
         self.levels.append(level0)
         
@@ -235,15 +235,15 @@ class MultigridHierarchy:
                 beta=beta
             )
             
-            # Create state and residual arrays
-            Q_c = np.zeros((NI_c + 2, NJ_c + 2, 4))
+            # Create state and residual arrays (2 J-ghosts at wall/wake)
+            Q_c = np.zeros((NI_c + 2, NJ_c + 3, 4))
             
             # Initialize coarse state by restriction from previous level
             prev_level = self.levels[-1]
             restrict_state(
-                prev_level.Q[1:-1, 1:-1, :],  # Interior only
+                prev_level.Q[1:-1, 2:-1, :],  # Interior only (new indexing)
                 prev_level.metrics.volume,
-                Q_c[1:-1, 1:-1, :],
+                Q_c[1:-1, 2:-1, :],
                 coarse_metrics.volume
             )
             
@@ -265,7 +265,7 @@ class MultigridHierarchy:
                 bc=bc_c,
                 k4=level_k4,  # Scaled dissipation for stability
                 cfl_scale=coarse_cfl_factor,  # Reduced CFL (RK3, no IRS)
-                Q_old=np.zeros((NI_c + 2, NJ_c + 2, 4))
+                Q_old=np.zeros((NI_c + 2, NJ_c + 3, 4))  # 2 J-ghosts at wall/wake
             )
             self.levels.append(level)
             
@@ -331,9 +331,9 @@ class MultigridHierarchy:
         
         # Restrict state (volume-weighted average)
         restrict_state(
-            fine.Q[1:-1, 1:-1, :],
+            fine.Q[1:-1, 2:-1, :],  # Interior (new indexing)
             fine.metrics.volume,
-            coarse.Q[1:-1, 1:-1, :],
+            coarse.Q[1:-1, 2:-1, :],
             coarse.metrics.volume
         )
         
@@ -364,15 +364,15 @@ class MultigridHierarchy:
         # Prolongate correction dQ = Q_new - Q_old
         if use_injection:
             prolongate_injection(
-                fine.Q[1:-1, 1:-1, :],  # Fine interior (modified in place)
-                coarse.Q[1:-1, 1:-1, :],  # Coarse new
-                coarse.Q_old[1:-1, 1:-1, :]  # Coarse old
+                fine.Q[1:-1, 2:-1, :],  # Fine interior (new indexing)
+                coarse.Q[1:-1, 2:-1, :],  # Coarse new
+                coarse.Q_old[1:-1, 2:-1, :]  # Coarse old
             )
         else:
             prolongate_correction(
-                fine.Q[1:-1, 1:-1, :],  # Fine interior (modified in place)
-                coarse.Q[1:-1, 1:-1, :],  # Coarse new
-                coarse.Q_old[1:-1, 1:-1, :]  # Coarse old
+                fine.Q[1:-1, 2:-1, :],  # Fine interior (new indexing)
+                coarse.Q[1:-1, 2:-1, :],  # Coarse new
+                coarse.Q_old[1:-1, 2:-1, :]  # Coarse old
             )
         
         # Apply BCs to fine level after correction

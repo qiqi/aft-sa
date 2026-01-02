@@ -257,8 +257,8 @@ def compute_aerodynamic_forces(
     forces : AeroForces
         Named tuple with CL, CD, CD_p, CD_f, etc.
     """
-    NI = Q.shape[0] - 2
-    NJ = Q.shape[1] - 2
+    NI = Q.shape[0] - 2  # 1 I-ghost on each side
+    NJ = Q.shape[1] - 3  # 2 J-ghosts at wall, 1 at farfield
     
     # Build effective viscosity array
     if mu_turb is None:
@@ -427,8 +427,8 @@ def compute_surface_distributions(
     SurfaceData
         Named tuple with x, y, Cp, Cf arrays.
     """
-    NI = Q.shape[0] - 2
-    NJ = Q.shape[1] - 2
+    NI = Q.shape[0] - 2  # 1 I-ghost on each side
+    NJ = Q.shape[1] - 3  # 2 J-ghosts at wall, 1 at farfield
     
     # Build effective viscosity
     if mu_turb is None:
@@ -475,8 +475,8 @@ def create_surface_vtk_fields(
     Returns dictionary with 'Cp' and 'Cf' as (NI, NJ) arrays.
     Values are only meaningful at j=0 (surface); rest filled with NaN.
     """
-    NI = Q.shape[0] - 2
-    NJ = Q.shape[1] - 2
+    NI = Q.shape[0] - 2  # 1 I-ghost on each side
+    NJ = Q.shape[1] - 3  # 2 J-ghosts at wall, 1 at farfield
     
     # Get surface distributions
     surf = compute_surface_distributions(

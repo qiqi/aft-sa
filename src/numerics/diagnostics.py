@@ -93,8 +93,9 @@ def compute_solution_bounds(Q: np.ndarray) -> dict:
         Dictionary with bounds and anomaly flags.
     """
     # Strip ghost cells if present (heuristic: check if shape suggests ghosts)
-    if Q.shape[0] > 2 and Q.shape[1] > 2:
-        Q_int = Q[1:-1, 1:-1, :] if Q.shape[0] > Q.shape[1] else Q
+    # Q has 2 J-ghosts at wall/wake, 1 at farfield
+    if Q.shape[0] > 2 and Q.shape[1] > 3:
+        Q_int = Q[1:-1, 2:-1, :] if Q.shape[0] > Q.shape[1] else Q
     else:
         Q_int = Q
     

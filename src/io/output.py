@@ -73,9 +73,9 @@ def write_vtk(filename: str,
     NJ = NJ_nodes - 1  # Number of cells in j
     
     # Handle ghost cells in Q
-    if Q.shape[0] == NI + 2 and Q.shape[1] == NJ + 2:
-        # Strip ghost cells
-        Q = Q[1:-1, 1:-1, :]
+    if Q.shape[0] == NI + 2 and Q.shape[1] == NJ + 3:
+        # Strip ghost cells (2 J-ghosts at wall/wake, 1 at farfield)
+        Q = Q[1:-1, 2:-1, :]
     elif Q.shape[0] != NI or Q.shape[1] != NJ:
         raise ValueError(f"Q shape {Q.shape} incompatible with grid ({NI}, {NJ})")
     

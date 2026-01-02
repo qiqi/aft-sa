@@ -529,7 +529,7 @@ class RANSSolver:
             
             # Update: Q^(k) = Q^(0) + α * dt/Ω * R
             Qk = Q0.copy()
-            Qk[1:-1, 1:-1, :] += alpha * (dt / self.metrics.volume)[:, :, np.newaxis] * R
+            Qk[1:-1, 2:-1, :] += alpha * (dt / self.metrics.volume)[:, :, np.newaxis] * R
         
         # Store final residual for monitoring
         Qk = self._apply_bc(Qk)
@@ -664,8 +664,8 @@ class RANSSolver:
         # The prolongation adds different corrections at i=1 and i=NI because they
         # map to different coarse cells. We average the corrections at the wake edges
         # to prevent artificial discontinuity from accumulating.
-        Q_int = lvl.Q[1:-1, 1:-1, :]  # Current state (interior)
-        Q_before = lvl.Q_before_correction[1:-1, 1:-1, :]  # State before correction
+        Q_int = lvl.Q[1:-1, 2:-1, :]  # Current state (interior)
+        Q_before = lvl.Q_before_correction[1:-1, 2:-1, :]  # State before correction
         
         # Compute corrections at wake edges
         dQ_left = Q_int[0, :, :] - Q_before[0, :, :]
@@ -730,7 +730,7 @@ class RANSSolver:
             # Update (apply level-specific CFL scaling)
             Qk = Q0.copy()
             dt_scaled = lvl.dt * lvl.cfl_scale
-            Qk[1:-1, 1:-1, :] += alpha * (dt_scaled / lvl.metrics.volume)[:, :, np.newaxis] * R
+            Qk[1:-1, 2:-1, :] += alpha * (dt_scaled / lvl.metrics.volume)[:, :, np.newaxis] * R
         
         lvl.Q = lvl.bc.apply(Qk)
     
@@ -1029,7 +1029,7 @@ class RANSSolver:
         initial_residual = None
         
         # Dump initial state
-        Q_int = self.Q[1:-1, 1:-1, :]
+        Q_int = self.Q[1:-1, 2:-1, :]
         C_pt = compute_total_pressure_loss(
             Q_int, self.freestream.p_inf, 
             self.freestream.u_inf, self.freestream.v_inf
@@ -1073,7 +1073,7 @@ class RANSSolver:
             
             # Dump flow field at specified frequency
             if self.iteration % dump_freq == 0:
-                Q_int = self.Q[1:-1, 1:-1, :]
+                Q_int = self.Q[1:-1, 2:-1, :]
                 C_pt = compute_total_pressure_loss(
                     Q_int, self.freestream.p_inf,
                     self.freestream.u_inf, self.freestream.v_inf
@@ -1136,7 +1136,7 @@ class RANSSolver:
             print(f"Maximum iterations ({self.config.max_iter}) reached")
         
         # Final dumps
-        Q_int = self.Q[1:-1, 1:-1, :]
+        Q_int = self.Q[1:-1, 2:-1, :]
         C_pt = compute_total_pressure_loss(
             Q_int, self.freestream.p_inf,
             self.freestream.u_inf, self.freestream.v_inf
@@ -1189,7 +1189,7 @@ class RANSSolver:
             
             print(f"\n  Dumping last {len(solution_history)} solutions before divergence:")
             for iteration, Q, R_field in solution_history:
-                Q_int = Q[1:-1, 1:-1, :]
+                Q_int = Q[1:-1, 2:-1, :]
                 C_pt = compute_total_pressure_loss(
                     Q_int, self.freestream.p_inf,
                     self.freestream.u_inf, self.freestream.v_inf
