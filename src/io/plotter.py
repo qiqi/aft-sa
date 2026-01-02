@@ -369,8 +369,7 @@ class PlotlyDashboard:
             row=3, col=2
         )
         
-        fig.update_yaxes(type='log', title_text='Residual', row=3, col=2)
-        fig.update_xaxes(title_text='Iteration', row=3, col=2)
+        # Convergence history y-axis: log scale (x-axis configured at end with matches=None)
         
         base_contour_indices = [1, 3, 5, 7, 9]
         n_mg_traces = len(mg_contour_indices) * 2
@@ -633,6 +632,10 @@ class PlotlyDashboard:
                 continue  # Skip reference
             fig.update_xaxes(title_text='x', range=[-0.5, 1.5], matches='x', row=row, col=col)
             fig.update_yaxes(title_text='y', range=[-0.6, 0.6], matches='y', row=row, col=col)
+        
+        # Convergence history plot (row 3, col 2) - keep independent, no zoom/pan linking
+        fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, row=3, col=2)
+        fig.update_yaxes(title_text='Residual', matches=None, type='log', autorange=True, row=3, col=2)
         
         fig.write_html(str(output_path), auto_play=False)
         

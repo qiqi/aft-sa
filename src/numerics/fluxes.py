@@ -17,6 +17,13 @@ from numba import njit
 
 from src.constants import NGHOST
 
+# JAX imports
+try:
+    from src.physics.jax_config import jax, jnp
+    JAX_AVAILABLE = True
+except ImportError:
+    JAX_AVAILABLE = False
+
 NDArrayFloat = npt.NDArray[np.floating]
 
 
@@ -217,3 +224,124 @@ def compute_time_step(Q: NDArrayFloat, metrics: GridMetrics, beta: float,
     dt: NDArrayFloat = cfl * metrics.volume / (lambda_i + lambda_j + 1e-12)
     
     return dt
+
+
+# =============================================================================
+# JAX Implementations
+# =============================================================================
+
+if JAX_AVAILABLE:
+    
+    def compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost):
+        """
+        JAX: Compute flux residual using JST scheme with 4th-order dissipation.
+        
+        Parameters
+        ----------
+        Q : jnp.ndarray
+            State array (NI+2*nghost, NJ+2*nghost, 4).
+        Si_x, Si_y : jnp.ndarray
+            I-face normal vectors (NI+1, NJ).
+        Sj_x, Sj_y : jnp.ndarray
+            J-face normal vectors (NI, NJ+1).
+        beta : float
+            Artificial compressibility parameter.
+        k4 : float
+            4th-order dissipation coefficient.
+        nghost : int
+            Number of ghost cells.
+            
+        Returns
+        -------
+        residual : jnp.ndarray
+            Flux residual (NI, NJ, 4).
+        """
+        # Use slicing instead of dynamic indexing for JIT compatibility
+        # Interior cells: Q[nghost:-nghost, nghost:-nghost, :]
+        # For flux at face i: need cells i-1 and i (relative to interior)
+        
+        NI_p1, NJ = Si_x.shape  # (NI+1, NJ)
+        NI = NI_p1 - 1
+        
+        # I-direction fluxes
+        # Q_L: cells nghost-1 to nghost+NI-1 (left of each face)
+        # Q_R: cells nghost to nghost+NI (right of each face)
+        Q_L_i = Q[nghost-1:nghost+NI, nghost:nghost+NJ, :]     # (NI+1, NJ, 4)
+        Q_R_i = Q[nghost:nghost+NI+1, nghost:nghost+NJ, :]     # (NI+1, NJ, 4)
+        Q_Lm1_i = Q[nghost-2:nghost+NI-1, nghost:nghost+NJ, :] # (NI+1, NJ, 4)
+        Q_Rp1_i = Q[nghost+1:nghost+NI+2, nghost:nghost+NJ, :] # (NI+1, NJ, 4)
+        
+        return _compute_fluxes_jax_impl(
+            Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
+            Q[nghost:nghost+NI, nghost-1:nghost+NJ, :],       # Q_L_j
+            Q[nghost:nghost+NI, nghost:nghost+NJ+1, :],       # Q_R_j  
+            Q[nghost:nghost+NI, nghost-2:nghost+NJ-1, :],     # Q_Lm1_j
+            Q[nghost:nghost+NI, nghost+1:nghost+NJ+2, :],     # Q_Rp1_j
+            Sj_x, Sj_y, beta, k4
+        )
+    
+    @jax.jit
+    def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
+                                  Q_L_j, Q_R_j, Q_Lm1_j, Q_Rp1_j, Sj_x, Sj_y,
+                                  beta, k4):
+        """JIT-compiled flux computation kernel."""
+        
+        # I-direction
+        S_i = jnp.sqrt(Si_x**2 + Si_y**2)
+        
+        Q_avg_i = 0.5 * (Q_L_i + Q_R_i)
+        p_avg_i = Q_avg_i[:, :, 0]
+        u_avg_i = Q_avg_i[:, :, 1]
+        v_avg_i = Q_avg_i[:, :, 2]
+        nu_avg_i = Q_avg_i[:, :, 3]
+        
+        U_n_i = u_avg_i * Si_x + v_avg_i * Si_y
+        
+        F_conv_i = jnp.stack([
+            beta * U_n_i,
+            u_avg_i * U_n_i + p_avg_i * Si_x,
+            v_avg_i * U_n_i + p_avg_i * Si_y,
+            nu_avg_i * U_n_i
+        ], axis=-1)
+        
+        c_art_i = jnp.sqrt(u_avg_i**2 + v_avg_i**2 + beta)
+        nx_hat_i = Si_x / (S_i + 1e-12)
+        ny_hat_i = Si_y / (S_i + 1e-12)
+        U_n_unit_i = u_avg_i * nx_hat_i + v_avg_i * ny_hat_i
+        eps4_i = k4 * (jnp.abs(U_n_unit_i) + c_art_i) * S_i
+        
+        diss_i = eps4_i[:, :, None] * (Q_Rp1_i - 3.0 * Q_R_i + 3.0 * Q_L_i - Q_Lm1_i)
+        F_i = F_conv_i + diss_i
+        
+        # J-direction
+        S_j = jnp.sqrt(Sj_x**2 + Sj_y**2)
+        
+        Q_avg_j = 0.5 * (Q_L_j + Q_R_j)
+        p_avg_j = Q_avg_j[:, :, 0]
+        u_avg_j = Q_avg_j[:, :, 1]
+        v_avg_j = Q_avg_j[:, :, 2]
+        nu_avg_j = Q_avg_j[:, :, 3]
+        
+        U_n_j = u_avg_j * Sj_x + v_avg_j * Sj_y
+        
+        F_conv_j = jnp.stack([
+            beta * U_n_j,
+            u_avg_j * U_n_j + p_avg_j * Sj_x,
+            v_avg_j * U_n_j + p_avg_j * Sj_y,
+            nu_avg_j * U_n_j
+        ], axis=-1)
+        
+        c_art_j = jnp.sqrt(u_avg_j**2 + v_avg_j**2 + beta)
+        nx_hat_j = Sj_x / (S_j + 1e-12)
+        ny_hat_j = Sj_y / (S_j + 1e-12)
+        U_n_unit_j = u_avg_j * nx_hat_j + v_avg_j * ny_hat_j
+        eps4_j = k4 * (jnp.abs(U_n_unit_j) + c_art_j) * S_j
+        
+        diss_j = eps4_j[:, :, None] * (Q_Rp1_j - 3.0 * Q_R_j + 3.0 * Q_L_j - Q_Lm1_j)
+        F_j = F_conv_j + diss_j
+        
+        # Residual
+        R_i = F_i[:-1, :, :] - F_i[1:, :, :]
+        R_j = F_j[:, :-1, :] - F_j[:, 1:, :]
+        
+        return R_i + R_j
