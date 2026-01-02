@@ -54,8 +54,8 @@ def main():
                         help="Target CFL number (default: 3.0)")
     parser.add_argument("--cfl-start", type=float, default=0.1,
                         help="Initial CFL for ramping (default: 0.1)")
-    parser.add_argument("--cfl-ramp", type=int, default=100,
-                        help="CFL ramp iterations (default: 100)")
+    parser.add_argument("--cfl-ramp", type=int, default=300,
+                        help="CFL ramp iterations (default: 300)")
     parser.add_argument("--tol", type=float, default=1e-10,
                         help="Convergence tolerance (default: 1e-10)")
     parser.add_argument("--beta", type=float, default=10.0,

@@ -7,6 +7,8 @@ and other diagnostic visualizations.
 
 import os
 import numpy as np
+
+from src.constants import NGHOST
 from typing import Optional, List
 from pathlib import Path
 
@@ -73,11 +75,13 @@ def plot_flow_field(X: np.ndarray, Y: np.ndarray, Q: np.ndarray,
     NI = X.shape[0] - 1
     NJ = X.shape[1] - 1
     
-    # Q has 2 J-ghosts at wall/wake, 1 at farfield
-    if Q.shape[0] == NI + 2 and Q.shape[1] == NJ + 3:
-        Q_int = Q[1:-1, 2:-1, :]
-    else:
+    # Q has NGHOST ghost layers on each side in both I and J
+    if Q.shape[0] == NI + 2*NGHOST and Q.shape[1] == NJ + 2*NGHOST:
+        Q_int = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
+    elif Q.shape[0] == NI and Q.shape[1] == NJ:
         Q_int = Q
+    else:
+        raise ValueError(f"Q shape {Q.shape} not compatible with grid ({NI}, {NJ})")
     
     # Extract fields
     p = Q_int[:, :, 0]
@@ -321,11 +325,13 @@ def plot_multigrid_levels(mg_hierarchy, X_fine: np.ndarray, Y_fine: np.ndarray,
             NI, NJ = level.NI, level.NJ
             Q = level.Q
             
-            # Strip ghost cells (2 J-ghosts at wall/wake, 1 at farfield)
-            if Q.shape[0] == NI + 2 and Q.shape[1] == NJ + 3:
-                Q_int = Q[1:-1, 2:-1, :]
-            else:
+            # Strip ghost cells (NGHOST ghost layers on each side)
+            if Q.shape[0] == NI + 2*NGHOST and Q.shape[1] == NJ + 2*NGHOST:
+                Q_int = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
+            elif Q.shape[0] == NI and Q.shape[1] == NJ:
                 Q_int = Q
+            else:
+                raise ValueError(f"Level {level_idx} Q shape {Q.shape} not compatible with grid ({NI}, {NJ})")
             
             # Get grid coordinates for this level
             step = 2 ** level_idx

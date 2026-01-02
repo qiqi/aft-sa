@@ -20,6 +20,8 @@ from pathlib import Path
 from typing import Dict, Optional, Any
 import os
 
+from src.constants import NGHOST
+
 
 def write_vtk(filename: str, 
               X: np.ndarray, 
@@ -72,12 +74,12 @@ def write_vtk(filename: str,
     NI = NI_nodes - 1  # Number of cells in i
     NJ = NJ_nodes - 1  # Number of cells in j
     
-    # Handle ghost cells in Q
-    if Q.shape[0] == NI + 2 and Q.shape[1] == NJ + 3:
-        # Strip ghost cells (2 J-ghosts at wall/wake, 1 at farfield)
-        Q = Q[1:-1, 2:-1, :]
+    # Handle ghost cells in Q (NGHOST ghost layers on each side)
+    if Q.shape[0] == NI + 2*NGHOST and Q.shape[1] == NJ + 2*NGHOST:
+        # Strip ghost cells (NGHOST ghosts on each side)
+        Q = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
     elif Q.shape[0] != NI or Q.shape[1] != NJ:
-        raise ValueError(f"Q shape {Q.shape} incompatible with grid ({NI}, {NJ})")
+        raise ValueError(f"Q shape {Q.shape} incompatible with grid ({NI}, {NJ}), expected interior ({NI}, {NJ}) or with ghosts ({NI + 2*NGHOST}, {NJ + 2*NGHOST})")
     
     # Extract solution components
     p = Q[:, :, 0]

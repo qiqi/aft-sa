@@ -11,6 +11,7 @@ Tests verify:
 import numpy as np
 import pytest
 
+from src.constants import NGHOST
 from src.numerics.forces import compute_aerodynamic_forces, AeroForces
 
 
@@ -29,7 +30,7 @@ class TestForceComputation:
     def test_returns_aero_forces(self):
         """Should return AeroForces named tuple."""
         NI, NJ = 10, 5
-        Q = np.ones((NI + 2, NJ + 2, 4))
+        Q = np.ones((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         metrics = SimpleMetrics(NI, NJ)
         
         forces = compute_aerodynamic_forces(Q, metrics, mu_laminar=0.01)
@@ -43,7 +44,7 @@ class TestForceComputation:
     def test_uniform_pressure_symmetric_force(self):
         """Uniform pressure on symmetric airfoil should give zero lift."""
         NI, NJ = 20, 5
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 0] = 1.0  # Uniform pressure
         Q[:, :, 1] = 0.0  # No velocity (no viscous)
         
@@ -61,7 +62,7 @@ class TestForceComputation:
     def test_rotation_to_wind_axes(self):
         """Force rotation should follow wind axis convention."""
         NI, NJ = 10, 5
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 0] = 1.0  # pressure
         
         metrics = SimpleMetrics(NI, NJ)
@@ -85,9 +86,9 @@ class TestForceComputation:
     def test_friction_drag_from_velocity(self):
         """Wall velocity gradient should produce friction drag."""
         NI, NJ = 10, 5
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 0] = 0.5  # Some pressure (not important for friction)
-        Q[:, 1, 1] = 1.0  # u-velocity in first interior cell
+        Q[:, NGHOST, 1] = 1.0  # u-velocity in first interior cell
         
         metrics = SimpleMetrics(NI, NJ, dx=0.1, dy=0.05)
         
@@ -108,7 +109,7 @@ class TestForceComputation:
     def test_coefficient_normalization(self):
         """Coefficients should be normalized by dynamic pressure."""
         NI, NJ = 10, 5
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 0] = 2.0  # Pressure = 2
         
         metrics = SimpleMetrics(NI, NJ)
@@ -134,9 +135,9 @@ class TestDecomposition:
     def test_total_equals_sum(self):
         """Total drag should equal pressure + friction."""
         NI, NJ = 10, 5
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 0] = 1.0
-        Q[:, 1, 1] = 0.5
+        Q[:, NGHOST, 1] = 0.5
         
         metrics = SimpleMetrics(NI, NJ)
         forces = compute_aerodynamic_forces(Q, metrics, mu_laminar=0.01)

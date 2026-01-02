@@ -19,6 +19,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+from src.constants import NGHOST
 from src.grid.metrics import MetricComputer
 from src.solvers.multigrid import build_multigrid_hierarchy
 from src.solvers.boundary_conditions import FreestreamConditions, initialize_state
@@ -68,7 +69,7 @@ class TestSingleVCycle:
         
         # Add some perturbation
         np.random.seed(42)
-        Q[1:-1, 1:-1, :] += 0.01 * np.random.randn(NI, NJ, 4)
+        Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :] += 0.01 * np.random.randn(NI, NJ, 4)
         
         # Build hierarchy
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream, n_wake=5)
@@ -87,7 +88,7 @@ class TestSingleVCycle:
         Q = initialize_state(NI, NJ, freestream)
         
         # Add perturbation
-        Q[1:-1, 1:-1, 0] = np.sin(np.pi * np.linspace(0, 1, NI))[:, np.newaxis]
+        Q[NGHOST:-NGHOST, NGHOST:-NGHOST, 0] = np.sin(np.pi * np.linspace(0, 1, NI))[:, np.newaxis]
         
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream)
         
@@ -118,7 +119,7 @@ class TestCorrectionProlongation:
         hierarchy.restrict_to_coarse(0)
         
         # Modify coarse Q (simulate smoothing)
-        hierarchy.levels[1].Q[1:-1, 1:-1, 0] += 0.1
+        hierarchy.levels[1].Q[NGHOST:-NGHOST, NGHOST:-NGHOST, 0] += 0.1
         
         # Prolongate correction
         hierarchy.prolongate_correction(1)

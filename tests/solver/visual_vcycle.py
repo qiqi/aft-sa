@@ -63,7 +63,7 @@ def main():
     
     # Add smooth perturbation (Gaussian bump)
     for k in range(4):
-        Q[1:-1, 1:-1, k] += 0.1 * np.exp(-((metrics.xc)**2 + (metrics.yc)**2) / 0.1) * (k + 1)
+        Q[1:-1, 2:-1, k] += 0.1 * np.exp(-((metrics.xc)**2 + (metrics.yc)**2) / 0.1) * (k + 1)
     
     # Build hierarchy
     hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream, n_wake=n_wake)
@@ -87,7 +87,7 @@ def main():
                 continue
             
             level = hierarchy.levels[idx]
-            Q_interior = level.Q[1:-1, 1:-1, 0]
+            Q_interior = level.Q[1:-1, 2:-1, 0]
             
             # Plot state field
             step = 2 ** idx
@@ -215,7 +215,7 @@ information lost during restriction.
         hierarchy.restrict_to_coarse(0)
         
         # Modify coarse Q (simulate smoothing)
-        hierarchy.levels[1].Q[1:-1, 1:-1, 0] += 0.05
+        hierarchy.levels[1].Q[1:-1, 2:-1, 0] += 0.05
         
         # Prolongate correction
         hierarchy.prolongate_correction(1)
@@ -224,20 +224,20 @@ information lost during restriction.
         
         # Plot before
         sc1 = axes[0, 0].scatter(level0.metrics.xc.flatten(), level0.metrics.yc.flatten(),
-                                  c=Q_before[1:-1, 1:-1, 0].flatten(), cmap='viridis', s=5)
+                                  c=Q_before[1:-1, 2:-1, 0].flatten(), cmap='viridis', s=5)
         plt.colorbar(sc1, ax=axes[0, 0])
         axes[0, 0].set_title('Q[0] Before Correction')
         axes[0, 0].set_aspect('equal')
         
         # Plot after
         sc2 = axes[0, 1].scatter(level0.metrics.xc.flatten(), level0.metrics.yc.flatten(),
-                                  c=Q_after[1:-1, 1:-1, 0].flatten(), cmap='viridis', s=5)
+                                  c=Q_after[1:-1, 2:-1, 0].flatten(), cmap='viridis', s=5)
         plt.colorbar(sc2, ax=axes[0, 1])
         axes[0, 1].set_title('Q[0] After Correction')
         axes[0, 1].set_aspect('equal')
         
         # Plot difference
-        diff = Q_after[1:-1, 1:-1, 0] - Q_before[1:-1, 1:-1, 0]
+        diff = Q_after[1:-1, 2:-1, 0] - Q_before[1:-1, 2:-1, 0]
         sc3 = axes[1, 0].scatter(level0.metrics.xc.flatten(), level0.metrics.yc.flatten(),
                                   c=diff.flatten(), cmap='RdBu_r', s=5)
         plt.colorbar(sc3, ax=axes[1, 0])
@@ -276,7 +276,7 @@ corrections from coarse to fine.
         for i, level in enumerate(hierarchy.levels):
             cells = level.NI * level.NJ
             vol_total = np.sum(level.metrics.volume)
-            q_mean = level.Q[1:-1, 1:-1, :].mean()
+            q_mean = level.Q[1:-1, 2:-1, :].mean()
             
             data.append([
                 f'Level {i}',

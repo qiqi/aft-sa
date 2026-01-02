@@ -13,6 +13,8 @@ import numpy as np
 from numba import njit
 from typing import NamedTuple
 
+from src.constants import NGHOST
+
 
 class AeroForces(NamedTuple):
     """Aerodynamic force coefficients."""
@@ -67,7 +69,7 @@ def _compute_surface_forces_kernel(
     Fx_v, Fy_v : float
         Viscous force components (body axes).
     """
-    NI = Q.shape[0] - 2
+    NI = Q.shape[0] - 2 * NGHOST  # NGHOST ghost layers on each side
     
     Fx_p = 0.0
     Fy_p = 0.0
@@ -97,7 +99,7 @@ def _compute_surface_forces_kernel(
         # Pressure at wall face (average of interior and ghost)
         # Ghost cell: p_ghost = p_interior (Neumann BC for pressure)
         # So p_wall = p_interior
-        p_wall = Q[i+1, 1, 0]  # Interior cell (i+1 due to ghost, j=1 is first interior)
+        p_wall = Q[i + NGHOST, NGHOST, 0]  # Interior cell (NGHOST offset, j=NGHOST is first interior)
         
         # Force on body from pressure: F = -p * S (pressure pushes in)
         # The normal S points into domain (away from body)
@@ -130,8 +132,8 @@ def _compute_surface_forces_kernel(
         dy = vol / area  # Approximate wall-normal distance to cell center
         
         # Velocity at first interior cell
-        u_int = Q[i+1, 1, 1]
-        v_int = Q[i+1, 1, 2]
+        u_int = Q[i + NGHOST, NGHOST, 1]
+        v_int = Q[i + NGHOST, NGHOST, 2]
         
         # Wall velocity gradients (assuming wall at y=0 locally)
         # du/dn = (u_int - 0) / (dy/2) = 2*u_int / dy (to cell center)
@@ -257,8 +259,8 @@ def compute_aerodynamic_forces(
     forces : AeroForces
         Named tuple with CL, CD, CD_p, CD_f, etc.
     """
-    NI = Q.shape[0] - 2  # 1 I-ghost on each side
-    NJ = Q.shape[1] - 3  # 2 J-ghosts at wall, 1 at farfield
+    NI = Q.shape[0] - 2 * NGHOST  # NGHOST ghost layers on each side
+    NJ = Q.shape[1] - 2 * NGHOST  # NGHOST ghost layers on each side
     
     # Build effective viscosity array
     if mu_turb is None:
@@ -351,7 +353,7 @@ def _compute_surface_cp_cf_kernel(
     Cf_out : ndarray, shape (NI,)
         Output: skin friction coefficient.
     """
-    NI = Q.shape[0] - 2
+    NI = Q.shape[0] - 2 * NGHOST  # NGHOST ghost layers on each side
     
     for i in range(NI):
         # Face normal at j=0
@@ -365,7 +367,7 @@ def _compute_surface_cp_cf_kernel(
             continue
         
         # ===== Pressure coefficient =====
-        p_wall = Q[i+1, 1, 0]
+        p_wall = Q[i + NGHOST, NGHOST, 0]
         Cp_out[i] = (p_wall - p_inf) / q_inf
         
         # ===== Skin friction coefficient =====
@@ -374,8 +376,8 @@ def _compute_surface_cp_cf_kernel(
         dy = vol / area
         
         # Velocity at first interior cell
-        u_int = Q[i+1, 1, 1]
-        v_int = Q[i+1, 1, 2]
+        u_int = Q[i + NGHOST, NGHOST, 1]
+        v_int = Q[i + NGHOST, NGHOST, 2]
         
         # Velocity gradients at wall
         dudn = 2.0 * u_int / dy
@@ -427,8 +429,8 @@ def compute_surface_distributions(
     SurfaceData
         Named tuple with x, y, Cp, Cf arrays.
     """
-    NI = Q.shape[0] - 2  # 1 I-ghost on each side
-    NJ = Q.shape[1] - 3  # 2 J-ghosts at wall, 1 at farfield
+    NI = Q.shape[0] - 2 * NGHOST  # NGHOST ghost layers on each side
+    NJ = Q.shape[1] - 2 * NGHOST  # NGHOST ghost layers on each side
     
     # Build effective viscosity
     if mu_turb is None:
@@ -475,8 +477,9 @@ def create_surface_vtk_fields(
     Returns dictionary with 'Cp' and 'Cf' as (NI, NJ) arrays.
     Values are only meaningful at j=0 (surface); rest filled with NaN.
     """
-    NI = Q.shape[0] - 2  # 1 I-ghost on each side
-    NJ = Q.shape[1] - 3  # 2 J-ghosts at wall, 1 at farfield
+    from src.constants import NGHOST
+    NI = Q.shape[0] - 2 * NGHOST  # NGHOST ghosts on each side
+    NJ = Q.shape[1] - 2 * NGHOST  # NGHOST ghosts on each side
     
     # Get surface distributions
     surf = compute_surface_distributions(

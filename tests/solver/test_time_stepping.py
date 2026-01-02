@@ -64,7 +64,7 @@ class TimeSteppingTests:
     
     def setup_uniform_flow(self, u=1.0, v=0.0, p=0.0):
         """Create uniform flow state."""
-        Q = np.zeros((self.NI + 2, self.NJ + 2, 4))
+        Q = np.zeros((self.NI + 2, self.NJ + 3, 4))
         Q[:, :, 0] = p
         Q[:, :, 1] = u
         Q[:, :, 2] = v
@@ -247,7 +247,7 @@ class TimeSteppingTests:
         Sj_y = np.outer(dx, np.ones(NJ + 1))  # |Sj| * ny where ny=1
         
         # Uniform flow Q (with ghost cells)
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2, NJ + 3, 4))
         Q[:, :, 1] = 1.0  # u = 1
         
         dt = compute_local_timestep(Q, Si_x, Si_y, Sj_x, Sj_y, volume, self.beta)
@@ -345,7 +345,7 @@ class TimeSteppingTests:
         Q_new = euler.step(Q, R, Si_x, Si_y, Sj_x, Sj_y, volume)
         
         # Interior should be unchanged
-        if not np.allclose(Q_new[1:-1, 1:-1, :], Q[1:-1, 1:-1, :]):
+        if not np.allclose(Q_new[1:-1, 2:-1, :], Q[1:-1, 2:-1, :]):
             return False, "Interior changed with zero residual"
         return True, "No change with zero residual"
     

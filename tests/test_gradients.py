@@ -17,12 +17,16 @@ from src.numerics.gradients import (
 
 
 def create_uniform_grid(NI: int, NJ: int, Lx: float = 1.0, Ly: float = 1.0):
-    """Create uniform Cartesian grid with metrics."""
+    """Create uniform Cartesian grid with metrics.
+    
+    With 2 J-ghosts at wall: X, Y have shape (NI+2, NJ+3)
+    """
     dx = Lx / NI
     dy = Ly / NJ
     
     x = np.linspace(-dx/2, Lx + dx/2, NI + 2)
-    y = np.linspace(-dy/2, Ly + dy/2, NJ + 2)
+    # NJ+3: 2 ghosts at j=0,1, NJ interior, 1 ghost at j=NJ+2
+    y = np.linspace(-3*dy/2, Ly + dy/2, NJ + 3)
     X, Y = np.meshgrid(x, y, indexing='ij')
     
     metrics = GradientMetrics(
@@ -57,7 +61,8 @@ def create_stretched_grid(NI: int, NJ: int, Lx: float = 1.0, Ly: float = 1.0,
     dy_first, dy_last = y_nodes[1] - y_nodes[0], y_nodes[-1] - y_nodes[-2]
     
     x_full = np.concatenate([[x_cell[0] - dx_first], x_cell, [x_cell[-1] + dx_last]])
-    y_full = np.concatenate([[y_cell[0] - dy_first], y_cell, [y_cell[-1] + dy_last]])
+    # NJ+3: 2 ghosts at j=0,1, NJ interior, 1 ghost at j=NJ+2
+    y_full = np.concatenate([[y_cell[0] - 2*dy_first], [y_cell[0] - dy_first], y_cell, [y_cell[-1] + dy_last]])
     X, Y = np.meshgrid(x_full, y_full, indexing='ij')
     
     dx_arr, dy_arr = np.diff(x_nodes), np.diff(y_nodes)
@@ -91,7 +96,7 @@ class TestLinearExactness:
         a, b, c = 2.5, -1.7, 3.0
         X, Y, metrics = create_uniform_grid(NI, NJ)
         
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2, NJ + 3, 4))
         Q[:, :, 1] = a * X + b * Y + c
         
         grad = compute_gradients(Q, metrics)
@@ -104,12 +109,12 @@ class TestLinearExactness:
         """Quadratic field u = x² + y² should give exact gradients on uniform grid."""
         X, Y, metrics = create_uniform_grid(NI, NJ)
         
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2, NJ + 3, 4))
         Q[:, :, 1] = X**2 + Y**2
         
         grad = compute_gradients(Q, metrics)
         
-        X_int, Y_int = X[1:-1, 1:-1], Y[1:-1, 1:-1]
+        X_int, Y_int = X[1:-1, 2:-1], Y[1:-1, 2:-1]
         
         assert np.allclose(grad[:, :, 1, 0], 2 * X_int, atol=1e-12)
         assert np.allclose(grad[:, :, 1, 1], 2 * Y_int, atol=1e-12)
@@ -122,11 +127,11 @@ class TestConvergenceOrder:
         """Compute gradient error for a given field."""
         X, Y, metrics = create_uniform_grid(NI, NJ)
         
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2, NJ + 3, 4))
         Q[:, :, 1] = field_func(X, Y)
         
         grad = compute_gradients(Q, metrics)
-        X_int, Y_int = X[1:-1, 1:-1], Y[1:-1, 1:-1]
+        X_int, Y_int = X[1:-1, 2:-1], Y[1:-1, 2:-1]
         
         err_x = np.sqrt(np.mean((grad[:, :, 1, 0] - grad_x_func(X_int, Y_int))**2))
         err_y = np.sqrt(np.mean((grad[:, :, 1, 1] - grad_y_func(X_int, Y_int))**2))
@@ -178,7 +183,7 @@ class TestVorticityAndStrain:
         NI, NJ = 32, 32
         X, Y, metrics = create_uniform_grid(NI, NJ)
         
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2, NJ + 3, 4))
         Q[:, :, 1] = -Y
         Q[:, :, 2] = X
         
@@ -194,7 +199,7 @@ class TestVorticityAndStrain:
         NI, NJ = 32, 32
         X, Y, metrics = create_uniform_grid(NI, NJ)
         
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2, NJ + 3, 4))
         Q[:, :, 1] = Y
         Q[:, :, 2] = 0
         
@@ -208,7 +213,7 @@ class TestVorticityAndStrain:
         NI, NJ = 32, 32
         X, Y, metrics = create_uniform_grid(NI, NJ)
         
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2, NJ + 3, 4))
         Q[:, :, 1] = X
         Q[:, :, 2] = -Y
         
@@ -226,7 +231,7 @@ class TestMultipleVariables:
         NI, NJ = 16, 16
         X, Y, metrics = create_uniform_grid(NI, NJ)
         
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2, NJ + 3, 4))
         Q[:, :, 0] = X          # p = x
         Q[:, :, 1] = Y          # u = y
         Q[:, :, 2] = X + Y      # v = x + y
@@ -258,7 +263,7 @@ class TestStretchedGrid:
         
         X, Y, metrics = create_stretched_grid(NI, NJ, stretch_x=1.1, stretch_y=1.05)
         
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2, NJ + 3, 4))
         Q[:, :, 1] = a * X + b * Y
         
         grad = compute_gradients(Q, metrics)
@@ -313,11 +318,11 @@ def run_convergence_study(output_dir: str = None):
         
         for NI, NJ in grid_sizes:
             X, Y, metrics = create_uniform_grid(NI, NJ)
-            Q = np.zeros((NI + 2, NJ + 2, 4))
+            Q = np.zeros((NI + 2, NJ + 3, 4))
             Q[:, :, 1] = field(X, Y)
             grad = compute_gradients(Q, metrics)
             
-            X_int, Y_int = X[1:-1, 1:-1], Y[1:-1, 1:-1]
+            X_int, Y_int = X[1:-1, 2:-1], Y[1:-1, 2:-1]
             err_x = np.sqrt(np.mean((grad[:, :, 1, 0] - grad_x(X_int, Y_int))**2))
             err_y = np.sqrt(np.mean((grad[:, :, 1, 1] - grad_y(X_int, Y_int))**2))
             

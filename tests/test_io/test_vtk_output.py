@@ -49,11 +49,11 @@ class VTKOutputChecker:
     def setup_solution(self, with_ghosts=False):
         """Create a test solution."""
         if with_ghosts:
-            Q = np.zeros((self.NI + 2, self.NJ + 2, 4))
-            Q[1:-1, 1:-1, 0] = 1.0  # p
-            Q[1:-1, 1:-1, 1] = 0.5  # u
-            Q[1:-1, 1:-1, 2] = 0.1  # v
-            Q[1:-1, 1:-1, 3] = 1e-5  # nu_t
+            Q = np.zeros((self.NI + 2, self.NJ + 3, 4))
+            Q[1:-1, 2:-1, 0] = 1.0  # p
+            Q[1:-1, 2:-1, 1] = 0.5  # u
+            Q[1:-1, 2:-1, 2] = 0.1  # v
+            Q[1:-1, 2:-1, 3] = 1e-5  # nu_t
         else:
             Q = np.zeros((self.NI, self.NJ, 4))
             Q[:, :, 0] = 1.0

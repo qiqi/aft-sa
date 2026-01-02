@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 from typing import Tuple
 
+from src.constants import NGHOST
 from src.grid.metrics import MetricComputer
 from src.solvers.multigrid import (
     MultigridHierarchy,
@@ -53,7 +54,7 @@ class TestHierarchyLevels:
         """Hierarchy has correct number of levels based on grid size."""
         NI, NJ = 64, 48
         X, Y = create_cartesian_grid(NI, NJ)
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         freestream = FreestreamConditions()
         
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream, min_size=8)
@@ -69,7 +70,7 @@ class TestHierarchyLevels:
         """Coarsening stops when min dimension < 2*min_size."""
         NI, NJ = 32, 32
         X, Y = create_cartesian_grid(NI, NJ)
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         freestream = FreestreamConditions()
         
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream, min_size=8)
@@ -87,7 +88,7 @@ class TestLevelDimensions:
         """Each level has NI, NJ halved from previous."""
         NI, NJ = 64, 48
         X, Y = create_cartesian_grid(NI, NJ)
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         freestream = FreestreamConditions()
         
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream)
@@ -108,7 +109,7 @@ class TestBCIndexScaling:
         NI, NJ = 64, 48
         n_wake = 16
         X, Y = create_cartesian_grid(NI, NJ)
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         freestream = FreestreamConditions()
         
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream, n_wake=n_wake)
@@ -126,7 +127,7 @@ class TestFarfieldNormals:
         """Farfield normals are computed at each level."""
         NI, NJ = 32, 24
         X, Y = create_cartesian_grid(NI, NJ)
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         freestream = FreestreamConditions()
         
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream)
@@ -141,7 +142,7 @@ class TestFarfieldNormals:
         """Farfield normals are unit vectors."""
         NI, NJ = 32, 24
         X, Y = create_cartesian_grid(NI, NJ)
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         freestream = FreestreamConditions()
         
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream)
@@ -160,13 +161,13 @@ class TestArrayShapes:
         """Q has correct shape with ghost cells."""
         NI, NJ = 32, 24
         X, Y = create_cartesian_grid(NI, NJ)
-        Q = np.ones((NI + 2, NJ + 2, 4))
+        Q = np.ones((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         freestream = FreestreamConditions()
         
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream)
         
         for level in hierarchy.levels:
-            expected_shape = (level.NI + 2, level.NJ + 2, 4)
+            expected_shape = (level.NI + 2*NGHOST, level.NJ + 2*NGHOST, 4)
             assert level.Q.shape == expected_shape
             assert level.Q_old.shape == expected_shape
     
@@ -174,7 +175,7 @@ class TestArrayShapes:
         """R has correct shape for interior cells."""
         NI, NJ = 32, 24
         X, Y = create_cartesian_grid(NI, NJ)
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         freestream = FreestreamConditions()
         
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream)
@@ -188,7 +189,7 @@ class TestArrayShapes:
         """Metrics arrays have correct shapes."""
         NI, NJ = 32, 24
         X, Y = create_cartesian_grid(NI, NJ)
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         freestream = FreestreamConditions()
         
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream)
@@ -210,7 +211,7 @@ class TestInitialRestriction:
         X, Y = create_cartesian_grid(NI, NJ)
         
         # Create non-uniform fine state
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         for k in range(4):
             Q[:, :, k] = k + 1
         
@@ -221,7 +222,7 @@ class TestInitialRestriction:
         # (exactly same for uniform field)
         for k in range(4):
             expected = k + 1
-            coarse_interior = hierarchy.levels[1].Q[1:-1, 1:-1, k]
+            coarse_interior = hierarchy.levels[1].Q[NGHOST:-NGHOST, NGHOST:-NGHOST, k]
             np.testing.assert_allclose(coarse_interior, expected, rtol=1e-10)
     
     def test_restriction_preserves_smooth_field(self):
@@ -233,16 +234,16 @@ class TestInitialRestriction:
         metrics = computer.compute()
         
         # Create smooth field
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         for k in range(4):
-            Q[1:-1, 1:-1, k] = np.sin(np.pi * metrics.xc) * np.sin(np.pi * metrics.yc)
+            Q[NGHOST:-NGHOST, NGHOST:-NGHOST, k] = np.sin(np.pi * metrics.xc) * np.sin(np.pi * metrics.yc)
         
         freestream = FreestreamConditions()
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream)
         
         # Coarse level should have similar pattern
         coarse = hierarchy.levels[1]
-        coarse_interior = coarse.Q[1:-1, 1:-1, 0]
+        coarse_interior = coarse.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, 0]
         
         # Check that the field has a similar shape (max near center)
         center_i, center_j = coarse.NI // 2, coarse.NJ // 2
@@ -259,7 +260,7 @@ class TestBCApplication:
         """apply_bcs works at all levels without error."""
         NI, NJ = 32, 24
         X, Y = create_cartesian_grid(NI, NJ)
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 1] = 1.0  # u = 1
         freestream = FreestreamConditions()
         
@@ -277,7 +278,7 @@ class TestBCApplication:
         NI, NJ = 32, 24
         n_wake = 5  # Explicit wake points
         X, Y = create_cartesian_grid(NI, NJ)
-        Q = np.ones((NI + 2, NJ + 2, 4))
+        Q = np.ones((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 1] = 1.0  # u = 1
         Q[:, :, 2] = 0.5  # v = 0.5
         
@@ -290,15 +291,17 @@ class TestBCApplication:
             level = hierarchy.levels[i]
             level_n_wake = n_wake // (2 ** i)
             
-            # Ghost at j=0 should have u_ghost = -u_interior for no-slip
+            # Ghost at j=0,1 (NGHOST-1, NGHOST-2) should have u_ghost = -u_interior for no-slip
             # But only in airfoil region (not wake)
-            # Airfoil region: from level_n_wake+1 to NI-level_n_wake
-            i_start = level_n_wake + 1  # +1 for Q index offset
-            i_end = level.NI - level_n_wake + 1
+            # Airfoil region: from level_n_wake to NI-level_n_wake (in interior indices)
+            # In Q array: from level_n_wake + NGHOST to NI - level_n_wake + NGHOST
+            i_start = level_n_wake + NGHOST
+            i_end = level.NI - level_n_wake + NGHOST
             
             if i_end > i_start:  # Only check if there's airfoil region
-                u_ghost = level.Q[i_start:i_end, 0, 1]  # Ghost layer
-                u_interior = level.Q[i_start:i_end, 1, 1]  # First interior
+                # With NGHOST=2 J-ghosts: j=0,1 are ghosts, j=NGHOST is first interior
+                u_ghost = level.Q[i_start:i_end, NGHOST-1, 1]  # Inner ghost layer (j=1)
+                u_interior = level.Q[i_start:i_end, NGHOST, 1]  # First interior (j=2)
                 
                 np.testing.assert_allclose(u_ghost, -u_interior, rtol=1e-10,
                                             err_msg=f"Level {i} wall BC failed")
@@ -311,26 +314,26 @@ class TestRestrictionProlongation:
         """restrict_to_coarse updates coarse level state."""
         NI, NJ = 32, 24
         X, Y = create_cartesian_grid(NI, NJ)
-        Q = np.ones((NI + 2, NJ + 2, 4))
+        Q = np.ones((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         freestream = FreestreamConditions()
         
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream)
         
         # Modify fine state
-        hierarchy.levels[0].Q[1:-1, 1:-1, 0] = 2.0
+        hierarchy.levels[0].Q[NGHOST:-NGHOST, NGHOST:-NGHOST, 0] = 2.0
         
         # Restrict
         hierarchy.restrict_to_coarse(0)
         
         # Coarse interior should now be 2.0
-        coarse_interior = hierarchy.levels[1].Q[1:-1, 1:-1, 0]
+        coarse_interior = hierarchy.levels[1].Q[NGHOST:-NGHOST, NGHOST:-NGHOST, 0]
         np.testing.assert_allclose(coarse_interior, 2.0, rtol=1e-10)
     
     def test_prolongate_correction(self):
         """prolongate_correction adds correction to fine level."""
         NI, NJ = 32, 24
         X, Y = create_cartesian_grid(NI, NJ)
-        Q = np.ones((NI + 2, NJ + 2, 4))
+        Q = np.ones((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         freestream = FreestreamConditions()
         
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream)
@@ -339,16 +342,16 @@ class TestRestrictionProlongation:
         hierarchy.levels[1].Q_old[:] = 1.0
         
         # Modify coarse Q (new)
-        hierarchy.levels[1].Q[1:-1, 1:-1, 0] = 2.0  # dQ = 1.0
+        hierarchy.levels[1].Q[NGHOST:-NGHOST, NGHOST:-NGHOST, 0] = 2.0  # dQ = 1.0
         
         # Store fine Q before
-        fine_before = hierarchy.levels[0].Q[1:-1, 1:-1, 0].mean()
+        fine_before = hierarchy.levels[0].Q[NGHOST:-NGHOST, NGHOST:-NGHOST, 0].mean()
         
         # Prolongate
         hierarchy.prolongate_correction(1)
         
         # Fine Q should have correction added (approximately 1.0)
-        fine_after = hierarchy.levels[0].Q[1:-1, 1:-1, 0].mean()
+        fine_after = hierarchy.levels[0].Q[NGHOST:-NGHOST, NGHOST:-NGHOST, 0].mean()
         
         assert fine_after > fine_before, "Correction not added to fine level"
 
@@ -360,7 +363,7 @@ class TestConvenienceFunction:
         """build_multigrid_hierarchy returns valid hierarchy."""
         NI, NJ = 32, 24
         X, Y = create_cartesian_grid(NI, NJ)
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         freestream = FreestreamConditions()
         
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream)
@@ -373,7 +376,7 @@ class TestConvenienceFunction:
         """get_level_info returns formatted string."""
         NI, NJ = 32, 24
         X, Y = create_cartesian_grid(NI, NJ)
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         freestream = FreestreamConditions()
         
         hierarchy = build_multigrid_hierarchy(X, Y, Q, freestream)

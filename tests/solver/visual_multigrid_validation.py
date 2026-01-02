@@ -73,7 +73,7 @@ def main():
     Q = initialize_state(NI, NJ, freestream)
     
     # Add perturbation for testing
-    Q[1:-1, 1:-1, 0] += 0.1 * np.exp(-((metrics_fine.xc)**2 + (metrics_fine.yc)**2) / 0.1)
+    Q[1:-1, 2:-1, 0] += 0.1 * np.exp(-((metrics_fine.xc)**2 + (metrics_fine.yc)**2) / 0.1)
     
     # Build hierarchy
     print("\nBuilding multigrid hierarchy...")
@@ -87,7 +87,7 @@ def main():
     for i, level in enumerate(hierarchy.levels):
         gcl_x, gcl_y = Coarsener.validate_gcl(level.metrics)
         vol_total = np.sum(level.metrics.volume)
-        q_integral = compute_integral(level.Q[1:-1, 1:-1, :], level.metrics.volume)
+        q_integral = compute_integral(level.Q[1:-1, 2:-1, :], level.metrics.volume)
         
         result = {
             'level': i,

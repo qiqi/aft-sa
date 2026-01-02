@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 from pathlib import Path
 
+from src.constants import NGHOST
 from src.solvers.rans_solver import RANSSolver, SolverConfig
 from src.solvers.boundary_conditions import FreestreamConditions, initialize_state
 from src.numerics.fluxes import compute_fluxes, FluxConfig
@@ -224,7 +225,7 @@ class TestFluxKernelWakeBehavior:
         """Verify which faces are treated as boundary vs interior."""
         # Create a simple test grid with new ghost cell layout
         NI, NJ = 8, 4
-        Q = np.ones((NI + 2, NJ + 3, 4))  # 2 J-ghosts at wall, 1 at farfield
+        Q = np.ones((NI + 2*NGHOST, NJ + 2*NGHOST, 4))  # NGHOST ghosts on each side
         
         # Set some variation
         for i in range(NI + 2):

@@ -144,7 +144,7 @@ def step_coarse(solver_data, mu_laminar):
             apply_residual_smoothing(R, config.irs_epsilon)
         
         Qk = Q0.copy()
-        Qk[1:-1, 1:-1, :] += alpha * (dt / metrics.volume)[:, :, np.newaxis] * R
+        Qk[1:-1, 2:-1, :] += alpha * (dt / metrics.volume)[:, :, np.newaxis] * R
     
     solver_data['Q'] = bc.apply(Qk)
     
@@ -374,7 +374,7 @@ def main():
     print("=" * 70)
     
     Q = solver_data['Q']
-    Q_int = Q[1:-1, 1:-1, :]
+    Q_int = Q[1:-1, 2:-1, :]
     metrics = solver_data['metrics']
     
     # Compute C_pt

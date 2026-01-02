@@ -20,6 +20,7 @@ from ..grid.coarsening import Coarsener
 from ..numerics.multigrid import restrict_state, restrict_residual, prolongate_correction, prolongate_injection
 
 from .boundary_conditions import BoundaryConditions, FreestreamConditions
+from ..constants import NGHOST
 
 
 @dataclass
@@ -189,7 +190,7 @@ class MultigridHierarchy:
             bc=bc,
             k4=base_k4,  # Level 0: original dissipation
             cfl_scale=1.0,  # Level 0: full CFL (RK5 + IRS)
-            Q_old=np.zeros((NI + 2, NJ + 3, 4))  # 2 J-ghosts at wall/wake
+            Q_old=np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         )
         self.levels.append(level0)
         
@@ -235,15 +236,15 @@ class MultigridHierarchy:
                 beta=beta
             )
             
-            # Create state and residual arrays (2 J-ghosts at wall/wake)
-            Q_c = np.zeros((NI_c + 2, NJ_c + 3, 4))
+            # Create state and residual arrays (NGHOST ghosts on each side)
+            Q_c = np.zeros((NI_c + 2*NGHOST, NJ_c + 2*NGHOST, 4))
             
             # Initialize coarse state by restriction from previous level
             prev_level = self.levels[-1]
             restrict_state(
-                prev_level.Q[1:-1, 2:-1, :],  # Interior only (new indexing)
+                prev_level.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],  # Interior only
                 prev_level.metrics.volume,
-                Q_c[1:-1, 2:-1, :],
+                Q_c[NGHOST:-NGHOST, NGHOST:-NGHOST, :],
                 coarse_metrics.volume
             )
             
@@ -265,7 +266,7 @@ class MultigridHierarchy:
                 bc=bc_c,
                 k4=level_k4,  # Scaled dissipation for stability
                 cfl_scale=coarse_cfl_factor,  # Reduced CFL (RK3, no IRS)
-                Q_old=np.zeros((NI_c + 2, NJ_c + 3, 4))  # 2 J-ghosts at wall/wake
+                Q_old=np.zeros((NI_c + 2*NGHOST, NJ_c + 2*NGHOST, 4))
             )
             self.levels.append(level)
             
@@ -331,9 +332,9 @@ class MultigridHierarchy:
         
         # Restrict state (volume-weighted average)
         restrict_state(
-            fine.Q[1:-1, 2:-1, :],  # Interior (new indexing)
+            fine.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],  # Interior (new indexing)
             fine.metrics.volume,
-            coarse.Q[1:-1, 2:-1, :],
+            coarse.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],
             coarse.metrics.volume
         )
         
@@ -364,15 +365,15 @@ class MultigridHierarchy:
         # Prolongate correction dQ = Q_new - Q_old
         if use_injection:
             prolongate_injection(
-                fine.Q[1:-1, 2:-1, :],  # Fine interior (new indexing)
-                coarse.Q[1:-1, 2:-1, :],  # Coarse new
-                coarse.Q_old[1:-1, 2:-1, :]  # Coarse old
+                fine.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],  # Fine interior (new indexing)
+                coarse.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],  # Coarse new
+                coarse.Q_old[NGHOST:-NGHOST, NGHOST:-NGHOST, :]  # Coarse old
             )
         else:
             prolongate_correction(
-                fine.Q[1:-1, 2:-1, :],  # Fine interior (new indexing)
-                coarse.Q[1:-1, 2:-1, :],  # Coarse new
-                coarse.Q_old[1:-1, 2:-1, :]  # Coarse old
+                fine.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],  # Fine interior (new indexing)
+                coarse.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :],  # Coarse new
+                coarse.Q_old[NGHOST:-NGHOST, NGHOST:-NGHOST, :]  # Coarse old
             )
         
         # Apply BCs to fine level after correction

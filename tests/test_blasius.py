@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.numerics.gradients import compute_gradients, GradientMetrics
 from src.numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxGridMetrics
 from src.numerics.viscous_fluxes import add_viscous_fluxes
+from src.constants import NGHOST
 
 
 def create_grid(NI, NJ, L, H, stretch_x=1.0):
@@ -51,46 +52,75 @@ def compute_metrics(X, Y):
 
 
 @njit(cache=True)
-def apply_bc_numba(Q, u_inf):
-    """Apply flat plate boundary conditions (in-place, Numba optimized)."""
+def apply_bc_numba(Q, u_inf, nghost):
+    """Apply flat plate boundary conditions (in-place, Numba optimized).
+    
+    Uses nghost ghost layers on each side:
+    - Q[:, 0:nghost, :] are ghost layers at wall
+    - Q[:, nghost, :] is first interior cell at wall
+    - Q[:, -nghost:, :] are ghost layers at farfield
+    - Q[:, -nghost-1, :] is last interior cell at farfield
+    """
     NI_ghost = Q.shape[0]
     NJ_ghost = Q.shape[1]
     
-    # Inlet (i=0): Dirichlet velocity
-    for j in range(NJ_ghost):
-        Q[0, j, 0] = Q[1, j, 0]  # Neumann p
-        Q[0, j, 1] = 2.0 * u_inf - Q[1, j, 1]  # Dirichlet u
-        Q[0, j, 2] = -Q[1, j, 2]  # Dirichlet v=0
-        Q[0, j, 3] = Q[1, j, 3]  # Neumann nu_t
+    # First interior cell index
+    j_int_first = nghost
     
-    # Outlet (i=-1): Zero gradient
+    # Inlet (i=0,1): Dirichlet velocity
+    for j in range(NJ_ghost):
+        # Inner inlet ghost (i=1)
+        Q[1, j, 0] = Q[nghost, j, 0]  # Neumann p
+        Q[1, j, 1] = 2.0 * u_inf - Q[nghost, j, 1]  # Dirichlet u
+        Q[1, j, 2] = -Q[nghost, j, 2]  # Dirichlet v=0
+        Q[1, j, 3] = Q[nghost, j, 3]  # Neumann nu_t
+        # Outer inlet ghost (i=0)
+        Q[0, j, 0] = 2.0 * Q[1, j, 0] - Q[nghost, j, 0]
+        Q[0, j, 1] = 2.0 * Q[1, j, 1] - Q[nghost, j, 1]
+        Q[0, j, 2] = 2.0 * Q[1, j, 2] - Q[nghost, j, 2]
+        Q[0, j, 3] = 2.0 * Q[1, j, 3] - Q[nghost, j, 3]
+    
+    # Outlet (i=-2,-1): Zero gradient
     for j in range(NJ_ghost):
         for k in range(4):
+            Q[NI_ghost-2, j, k] = Q[NI_ghost-nghost-1, j, k]
             Q[NI_ghost-1, j, k] = Q[NI_ghost-2, j, k]
     
-    # Wall (j=0): No-slip
+    # Wall (j=0,1): No-slip, mirror from j=nghost (first interior)
     for i in range(NI_ghost):
-        Q[i, 0, 0] = Q[i, 1, 0]   # Neumann p
-        Q[i, 0, 1] = -Q[i, 1, 1]  # No-slip u
-        Q[i, 0, 2] = -Q[i, 1, 2]  # No-slip v
-        Q[i, 0, 3] = -Q[i, 1, 3]  # nu_t = 0 at wall
+        # j=1 (inner ghost) - mirror from j=nghost
+        Q[i, 1, 0] = Q[i, j_int_first, 0]   # Neumann p
+        Q[i, 1, 1] = -Q[i, j_int_first, 1]  # No-slip u
+        Q[i, 1, 2] = -Q[i, j_int_first, 2]  # No-slip v
+        Q[i, 1, 3] = -Q[i, j_int_first, 3]  # nu_t = 0 at wall
+        # j=0 (outer ghost) - extrapolate from j=1 and j=nghost
+        Q[i, 0, 0] = 2.0 * Q[i, 1, 0] - Q[i, j_int_first, 0]
+        Q[i, 0, 1] = 2.0 * Q[i, 1, 1] - Q[i, j_int_first, 1]
+        Q[i, 0, 2] = 2.0 * Q[i, 1, 2] - Q[i, j_int_first, 2]
+        Q[i, 0, 3] = 2.0 * Q[i, 1, 3] - Q[i, j_int_first, 3]
     
-    # Top (j=-1): Zero gradient (allow outflow)
+    # Top (j=-2,-1): Zero gradient (allow outflow)
     for i in range(NI_ghost):
         for k in range(4):
+            Q[i, NJ_ghost-2, k] = Q[i, NJ_ghost-nghost-1, k]
             Q[i, NJ_ghost-1, k] = Q[i, NJ_ghost-2, k]
 
 
 @njit(cache=True)
-def rk4_update(Q, Q0, R, dt_over_vol, alpha):
-    """RK4 substep update (Numba optimized)."""
+def rk4_update(Q, Q0, R, dt_over_vol, alpha, nghost):
+    """RK4 substep update (Numba optimized).
+    
+    With nghost ghost cells on each side:
+    - Interior cells are at Q[nghost:-nghost, nghost:-nghost, :]
+    - R[i, j, :] corresponds to Q[i+nghost, j+nghost, :]
+    """
     NI = R.shape[0]
     NJ = R.shape[1]
     
     for i in range(NI):
         for j in range(NJ):
             for k in range(4):
-                Q[i+1, j+1, k] = Q0[i+1, j+1, k] + alpha * dt_over_vol[i, j] * R[i, j, k]
+                Q[i+nghost, j+nghost, k] = Q0[i+nghost, j+nghost, k] + alpha * dt_over_vol[i, j] * R[i, j, k]
 
 
 class TestBlasiusFlatPlate:
@@ -124,10 +154,10 @@ class TestBlasiusFlatPlate:
         dt = cfl * dh_min / (1.0 + np.sqrt(beta))
         dt_over_vol = dt / flux_met.volume
         
-        # Initialize
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        # Initialize with NGHOST=2 ghost layers on each side
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 1] = 1.0
-        apply_bc_numba(Q, 1.0)
+        apply_bc_numba(Q, 1.0, NGHOST)
         
         Q0 = np.zeros_like(Q)
         
@@ -139,17 +169,17 @@ class TestBlasiusFlatPlate:
             Q0[:] = Q
             
             for alpha in alphas:
-                apply_bc_numba(Q, 1.0)
+                apply_bc_numba(Q, 1.0, NGHOST)
                 R = compute_fluxes(Q, flux_met, beta, flux_cfg)
                 grad = compute_gradients(Q, grad_met)
                 R = add_viscous_fluxes(R, Q, grad, grad_met, mu_laminar=nu)
                 
-                rk4_update(Q, Q0, R, dt_over_vol, alpha)
+                rk4_update(Q, Q0, R, dt_over_vol, alpha, NGHOST)
             
-            apply_bc_numba(Q, 1.0)
+            apply_bc_numba(Q, 1.0, NGHOST)
         
-        # Compute Cf
-        u_wall = Q[1:-1, 1, 1]
+        # Compute Cf - first interior cell is at j=NGHOST
+        u_wall = Q[NGHOST:-NGHOST, NGHOST, 1]
         y_first = 0.5 * dy
         tau_w = nu * u_wall / y_first
         Cf = 2.0 * tau_w
@@ -181,9 +211,9 @@ class TestBlasiusFlatPlate:
         dt = 0.5 * dh_min / (1.0 + np.sqrt(beta))
         dt_over_vol = dt / flux_met.volume
         
-        Q = np.zeros((NI + 2, NJ + 2, 4))
+        Q = np.zeros((NI + 2*NGHOST, NJ + 2*NGHOST, 4))
         Q[:, :, 1] = 1.0
-        apply_bc_numba(Q, 1.0)
+        apply_bc_numba(Q, 1.0, NGHOST)
         
         Q0 = np.zeros_like(Q)
         flux_cfg = FluxConfig(k2=0.0, k4=0.002)
@@ -193,20 +223,21 @@ class TestBlasiusFlatPlate:
         for _ in range(1000):
             Q0[:] = Q
             for alpha in alphas:
-                apply_bc_numba(Q, 1.0)
+                apply_bc_numba(Q, 1.0, NGHOST)
                 R = compute_fluxes(Q, flux_met, beta, flux_cfg)
                 grad = compute_gradients(Q, grad_met)
                 R = add_viscous_fluxes(R, Q, grad, grad_met, mu_laminar=nu)
-                rk4_update(Q, Q0, R, dt_over_vol, alpha)
-            apply_bc_numba(Q, 1.0)
+                rk4_update(Q, Q0, R, dt_over_vol, alpha, NGHOST)
+            apply_bc_numba(Q, 1.0, NGHOST)
         
         # Check no NaN or Inf
         assert not np.any(np.isnan(Q)), "Solution contains NaN"
         assert not np.any(np.isinf(Q)), "Solution contains Inf"
         
-        # Check velocity is reasonable
-        assert Q[1:-1, 1:-1, 1].max() < 2.0, "u velocity unreasonably high"
-        assert Q[1:-1, 1:-1, 1].min() > -0.5, "u velocity unreasonably negative"
+        # Check velocity is reasonable (interior cells)
+        int_slice = slice(NGHOST, -NGHOST)
+        assert Q[int_slice, int_slice, 1].max() < 2.0, "u velocity unreasonably high"
+        assert Q[int_slice, int_slice, 1].min() > -0.5, "u velocity unreasonably negative"
 
 
 if __name__ == "__main__":

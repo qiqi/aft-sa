@@ -76,7 +76,7 @@ def main():
     X, Y = create_c_grid_like(NI, NJ, radius=1.0)
     
     # Create initial state with smooth variation
-    Q = np.zeros((NI + 2, NJ + 2, 4))
+    Q = np.zeros((NI + 2, NJ + 3, 4))
     
     # Compute metrics for creating smooth field
     computer = MetricComputer(X, Y)
@@ -144,8 +144,8 @@ def main():
         fig.suptitle('State Variable Q[0] (Pressure) Across Levels', fontsize=14)
         
         # Find global colormap range
-        vmin = min(lvl.Q[1:-1, 1:-1, 0].min() for lvl in hierarchy.levels[:n_levels])
-        vmax = max(lvl.Q[1:-1, 1:-1, 0].max() for lvl in hierarchy.levels[:n_levels])
+        vmin = min(lvl.Q[1:-1, 2:-1, 0].min() for lvl in hierarchy.levels[:n_levels])
+        vmax = max(lvl.Q[1:-1, 2:-1, 0].max() for lvl in hierarchy.levels[:n_levels])
         
         for idx, ax in enumerate(axes.flat):
             if idx >= n_levels:
@@ -153,7 +153,7 @@ def main():
                 continue
             
             level = hierarchy.levels[idx]
-            Q_interior = level.Q[1:-1, 1:-1, 0]
+            Q_interior = level.Q[1:-1, 2:-1, 0]
             
             im = ax.imshow(Q_interior.T, origin='lower', aspect='auto',
                           cmap='viridis', vmin=vmin, vmax=vmax)

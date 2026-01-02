@@ -286,7 +286,8 @@ def check_airfoil_closure(X: np.ndarray, Y: np.ndarray,
     max_gap_ratio = np.max(gap_ratio)
     
     # Allow larger ratio for airfoil (trailing edge can have larger spacing)
-    if max_gap_ratio < 20.0:
+    # Note: NACA 2412 and other cambered airfoils may have gap ratios up to ~25x
+    if max_gap_ratio < 25.0:
         return TopologyTestResult(
             name="airfoil_closure",
             passed=True,

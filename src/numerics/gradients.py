@@ -61,8 +61,8 @@ def _gradient_kernel(Q: np.ndarray,
     
     Parameters
     ----------
-    Q : ndarray, shape (NI+2, NJ+2, 4)
-        State vector with ghost cells.
+    Q : ndarray, shape (NI+2, NJ+3, 4)
+        State vector with 2 J-ghosts at wall/wake.
         Q[i, j, :] = [p, u, v, nu_tilde]
     Si_x, Si_y : ndarray, shape (NI+1, NJ)
         I-face normals (area-scaled).
@@ -99,11 +99,10 @@ def _gradient_kernel(Q: np.ndarray,
             ny = Si_y[i, j]
             
             # Left and right cells in Q indexing (with ghost cell offset)
-            # Cell (i-1) in interior = Q[i, j+1] (ghost offset +1 in j)
-            # Cell (i) in interior = Q[i+1, j+1]
+            # With 2 J-ghosts at wall: interior starts at j=2
             i_L = i      # Left cell in Q
             i_R = i + 1  # Right cell in Q
-            j_Q = j + 1  # j index in Q (ghost offset)
+            j_Q = j + 2  # j index in Q (2 J-ghosts at wall)
             
             # Loop over all state variables
             for k in range(4):
@@ -136,10 +135,10 @@ def _gradient_kernel(Q: np.ndarray,
             nx = Sj_x[i, j]
             ny = Sj_y[i, j]
             
-            # Left and right cells in Q indexing
+            # Left and right cells in Q indexing (2 J-ghosts at wall)
             i_Q = i + 1  # i index in Q (ghost offset)
-            j_L = j      # Left cell (lower j) in Q
-            j_R = j + 1  # Right cell (upper j) in Q
+            j_L = j + 1  # Left cell (lower j) in Q
+            j_R = j + 2  # Right cell (upper j) in Q
             
             # Loop over all state variables
             for k in range(4):
@@ -187,8 +186,8 @@ def compute_gradients(Q: np.ndarray, metrics: GradientMetrics) -> np.ndarray:
     
     Parameters
     ----------
-    Q : ndarray, shape (NI+2, NJ+2, 4)
-        State vector with ghost cells.
+    Q : ndarray, shape (NI+2, NJ+3, 4)
+        State vector with 2 J-ghosts at wall/wake.
         Q[:, :, 0] = pressure
         Q[:, :, 1] = u-velocity
         Q[:, :, 2] = v-velocity

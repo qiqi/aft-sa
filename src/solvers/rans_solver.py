@@ -49,12 +49,18 @@ from ..io.output import VTKWriter, write_vtk
 # Surface analysis
 from ..numerics.forces import compute_surface_distributions, create_surface_vtk_fields
 
+# Constants
+from ..constants import NGHOST
+
 # Diagnostics
 from ..numerics.diagnostics import (
     compute_total_pressure_loss, 
     compute_solution_bounds,
     compute_residual_statistics
 )
+
+# Constants
+from ..constants import NGHOST
 
 
 @dataclass
@@ -529,7 +535,7 @@ class RANSSolver:
             
             # Update: Q^(k) = Q^(0) + α * dt/Ω * R
             Qk = Q0.copy()
-            Qk[1:-1, 2:-1, :] += alpha * (dt / self.metrics.volume)[:, :, np.newaxis] * R
+            Qk[NGHOST:-NGHOST, NGHOST:-NGHOST, :] += alpha * (dt / self.metrics.volume)[:, :, np.newaxis] * R
         
         # Store final residual for monitoring
         Qk = self._apply_bc(Qk)
@@ -664,8 +670,8 @@ class RANSSolver:
         # The prolongation adds different corrections at i=1 and i=NI because they
         # map to different coarse cells. We average the corrections at the wake edges
         # to prevent artificial discontinuity from accumulating.
-        Q_int = lvl.Q[1:-1, 2:-1, :]  # Current state (interior)
-        Q_before = lvl.Q_before_correction[1:-1, 2:-1, :]  # State before correction
+        Q_int = lvl.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]  # Current state (interior)
+        Q_before = lvl.Q_before_correction[NGHOST:-NGHOST, NGHOST:-NGHOST, :]  # State before correction
         
         # Compute corrections at wake edges
         dQ_left = Q_int[0, :, :] - Q_before[0, :, :]
@@ -730,7 +736,7 @@ class RANSSolver:
             # Update (apply level-specific CFL scaling)
             Qk = Q0.copy()
             dt_scaled = lvl.dt * lvl.cfl_scale
-            Qk[1:-1, 2:-1, :] += alpha * (dt_scaled / lvl.metrics.volume)[:, :, np.newaxis] * R
+            Qk[NGHOST:-NGHOST, NGHOST:-NGHOST, :] += alpha * (dt_scaled / lvl.metrics.volume)[:, :, np.newaxis] * R
         
         lvl.Q = lvl.bc.apply(Qk)
     
@@ -885,9 +891,10 @@ class RANSSolver:
         """
         # Surface is at j=0, use first interior cell (j=1 in ghost array)
         # Cell-centered values
-        p_surface = self.Q[1:-1, 1, 0]  # Pressure at first interior cell layer
-        u_surface = self.Q[1:-1, 1, 1]
-        v_surface = self.Q[1:-1, 1, 2]
+        # With NGHOST=2: first interior row is at j=NGHOST, ghost row is at j=NGHOST-1
+        p_surface = self.Q[NGHOST:-NGHOST, NGHOST-1, 0]  # Pressure at inner ghost (wall-adjacent)
+        u_surface = self.Q[NGHOST:-NGHOST, NGHOST-1, 1]
+        v_surface = self.Q[NGHOST:-NGHOST, NGHOST-1, 2]
         
         # Surface coordinates (average of nodes)
         x_surface = 0.5 * (self.X[:-1, 0] + self.X[1:, 0])
@@ -1029,7 +1036,7 @@ class RANSSolver:
         initial_residual = None
         
         # Dump initial state
-        Q_int = self.Q[1:-1, 2:-1, :]
+        Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
         C_pt = compute_total_pressure_loss(
             Q_int, self.freestream.p_inf, 
             self.freestream.u_inf, self.freestream.v_inf
@@ -1073,7 +1080,7 @@ class RANSSolver:
             
             # Dump flow field at specified frequency
             if self.iteration % dump_freq == 0:
-                Q_int = self.Q[1:-1, 2:-1, :]
+                Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
                 C_pt = compute_total_pressure_loss(
                     Q_int, self.freestream.p_inf,
                     self.freestream.u_inf, self.freestream.v_inf
@@ -1136,7 +1143,7 @@ class RANSSolver:
             print(f"Maximum iterations ({self.config.max_iter}) reached")
         
         # Final dumps
-        Q_int = self.Q[1:-1, 2:-1, :]
+        Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
         C_pt = compute_total_pressure_loss(
             Q_int, self.freestream.p_inf,
             self.freestream.u_inf, self.freestream.v_inf
@@ -1189,7 +1196,7 @@ class RANSSolver:
             
             print(f"\n  Dumping last {len(solution_history)} solutions before divergence:")
             for iteration, Q, R_field in solution_history:
-                Q_int = Q[1:-1, 2:-1, :]
+                Q_int = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
                 C_pt = compute_total_pressure_loss(
                     Q_int, self.freestream.p_inf,
                     self.freestream.u_inf, self.freestream.v_inf

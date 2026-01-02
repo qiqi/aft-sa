@@ -42,7 +42,7 @@ def run_pulse_test():
     dx, dy = 1.0, 1.0
     
     # 2. Initial State (Quiescent with Pressure Pulse)
-    Q = np.zeros((NI + 2, NJ + 2, 4))
+    Q = np.zeros((NI + 2, NJ + 3, 4))
     Q[:, :, 0] = 1.0  # Background pressure
     Q[:, :, 1] = 0.0  # u = 0 (quiescent)
     Q[:, :, 2] = 0.0  # v = 0 (quiescent)
@@ -87,7 +87,7 @@ def run_pulse_test():
     for n in range(steps + 1):
         if n % plot_interval == 0 and plot_idx < 4:
             ax = axes[plot_idx]
-            p = Q[1:-1, 1:-1, 0].T
+            p = Q[1:-1, 2:-1, 0].T
             im = ax.imshow(p, origin='lower', cmap='RdBu_r', 
                           vmin=0.8, vmax=2.2, extent=[0, NI, 0, NJ])
             ax.set_title(f"Step {n}, t = {n*dt:.2f}")
@@ -112,7 +112,7 @@ def run_pulse_test():
             
             # Explicit Euler update: Q_new = Q_old + dt/Vol * R
             # (R is defined as net flux INTO cell, so positive R = accumulation)
-            Q[1:-1, 1:-1, :] += (dt / vol[:, :, np.newaxis]) * R
+            Q[1:-1, 2:-1, :] += (dt / vol[:, :, np.newaxis]) * R
             
             # Simple extrapolation BCs
             Q[0, :, :] = Q[1, :, :]
@@ -138,7 +138,7 @@ def run_pulse_test():
     print(f"  Final pressure range: [{Q[:,:,0].min():.3f}, {Q[:,:,0].max():.3f}]")
     
     # Quantitative symmetry check (adjusted for smaller grid)
-    p = Q[1:-1, 1:-1, 0]
+    p = Q[1:-1, 2:-1, 0]
     center = NI // 2
     r_check = 10  # Reduced for smaller grid
     

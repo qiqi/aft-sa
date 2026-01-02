@@ -13,6 +13,7 @@ import numpy as np
 # Add project root to path (go up two levels: solver/ -> scripts/ -> project root)
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+from src.constants import NGHOST
 from src.numerics.fluxes import (
     compute_fluxes,
     compute_convective_flux,
@@ -42,7 +43,7 @@ def create_cartesian_grid(NI: int, NJ: int, dx: float = 0.1, dy: float = 0.1) ->
 def create_uniform_state(NI: int, NJ: int, p: float = 1.0, u: float = 1.0, 
                          v: float = 0.0, nu_t: float = 1e-4) -> np.ndarray:
     """Create uniform flow state with ghost cells."""
-    NI_ghost, NJ_ghost = NI + 2, NJ + 2
+    NI_ghost, NJ_ghost = NI + 2*NGHOST, NJ + 2*NGHOST
     Q = np.zeros((NI_ghost, NJ_ghost, 4))
     Q[:, :, 0] = p
     Q[:, :, 1] = u

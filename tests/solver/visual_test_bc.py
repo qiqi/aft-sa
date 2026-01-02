@@ -99,7 +99,7 @@ def test_bc_visual():
     
     # Re-initialize and set a distinct spike at the wake cut interior
     Q2 = initialize_state(NI, NJ, fs)
-    Q2[1:-1, 1:-1, 0] = 1.0  # Baseline pressure
+    Q2[1:-1, 2:-1, 0] = 1.0  # Baseline pressure
     Q2[-2, :, 0] = 50.0  # Spike at right interior boundary (source)
     Q2[1, :, 0] = 10.0   # Different value at left interior (to check direction)
     

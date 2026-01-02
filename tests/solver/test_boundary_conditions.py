@@ -100,7 +100,7 @@ class BoundaryConditionTests:
         """Test initialized state shape."""
         Q = self.setup_state()
         
-        expected_shape = (self.NI + 2, self.NJ + 2, 4)
+        expected_shape = (self.NI + 2, self.NJ + 3, 4)
         if Q.shape != expected_shape:
             return False, f"Shape {Q.shape} != {expected_shape}"
         return True, "Correct shape"
@@ -377,7 +377,7 @@ class BoundaryConditionTests:
         Q_bc = bc.apply(Q)
         
         # Interior should be unchanged
-        if not np.allclose(Q_bc[1:-1, 1:-1, :], Q_original[1:-1, 1:-1, :]):
+        if not np.allclose(Q_bc[1:-1, 2:-1, :], Q_original[1:-1, 2:-1, :]):
             return False, "Interior modified"
         
         return True, "Interior preserved"
