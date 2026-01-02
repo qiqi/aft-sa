@@ -5,11 +5,14 @@ These correlations are used to predict laminar-turbulent transition
 based on the shape factor H and Mach number.
 """
 
+from typing import Union
 from .jax_config import jax, jnp
+
+ArrayLike = Union[jnp.ndarray, float]
 
 
 @jax.jit
-def dN_dRe_theta(H, Mach=0.0):
+def dN_dRe_theta(H: ArrayLike, Mach: ArrayLike = 0.0) -> jnp.ndarray:
     """
     Calculate dN/dRe_theta using the Drela-Giles (1987) correlation.
     
@@ -38,23 +41,11 @@ def dN_dRe_theta(H, Mach=0.0):
 
 
 @jax.jit
-def Re_theta0(H, Mach=0.0):
+def Re_theta0(H: ArrayLike, Mach: ArrayLike = 0.0) -> jnp.ndarray:
     """
     Calculate Critical Re_theta0 using the Drela-Giles (1987) correlation.
     
     Source: Eqn 30 and Eqn 9 from Drela & Giles (1987).
-    
-    Parameters
-    ----------
-    H : jnp.ndarray
-        Shape factor (any shape).
-    Mach : float or jnp.ndarray
-        Mach number (default 0.0).
-        
-    Returns
-    -------
-    Re_theta0 : jnp.ndarray
-        Critical Reynolds number (same shape as H).
     """
     # Convert H to Kinematic Shape Factor Hk (Eqn 9)
     Hk = (H - 0.290 * Mach**2) / (1.0 + 0.113 * Mach**2)
@@ -73,25 +64,12 @@ def Re_theta0(H, Mach=0.0):
 
 
 @jax.jit
-def compute_nondimensional_spatial_rate(H, Mach=0.0):
+def compute_nondimensional_spatial_rate(H: ArrayLike, Mach: ArrayLike = 0.0) -> jnp.ndarray:
     """
     Calculate the nondimensional spatial envelope growth rate: θ · dN/dx.
     
     Combines the Envelope Slope (Eq 29) with the Falkner-Skan
     spatial transformation (Eqs 33, 34) from Drela & Giles (1987).
-    
-    Parameters
-    ----------
-    H : jnp.ndarray
-        Shape factor (any shape).
-    Mach : float or jnp.ndarray
-        Mach number (default 0.0).
-        
-    Returns
-    -------
-    theta_dN_dx : jnp.ndarray
-        Growth rate of N per unit (x/theta).
-        Values: ~0.002 (Blasius) to ~0.03 (Separation).
     """
     # Kinematic Shape Factor Hk (Eq 9)
     Hk = (H - 0.290 * Mach**2) / (1.0 + 0.113 * Mach**2)

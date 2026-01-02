@@ -1,10 +1,13 @@
 """Aerodynamic force computation: CL, CD, Cp, Cf."""
 
 import numpy as np
+import numpy.typing as npt
 from numba import njit
-from typing import NamedTuple
+from typing import NamedTuple, Tuple, Dict, Any
 
 from src.constants import NGHOST
+
+NDArrayFloat = npt.NDArray[np.floating]
 
 
 class AeroForces(NamedTuple):
@@ -21,10 +24,10 @@ class AeroForces(NamedTuple):
 
 class SurfaceData(NamedTuple):
     """Surface distribution data."""
-    x: np.ndarray
-    y: np.ndarray
-    Cp: np.ndarray
-    Cf: np.ndarray
+    x: NDArrayFloat
+    y: NDArrayFloat
+    Cp: NDArrayFloat
+    Cf: NDArrayFloat
 
 
 @njit(cache=True, fastmath=True)

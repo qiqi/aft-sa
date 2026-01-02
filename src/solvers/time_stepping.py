@@ -7,10 +7,13 @@ Reference: Jameson, Schmidt, Turkel (1981), AIAA 81-1259.
 """
 
 import numpy as np
-from typing import NamedTuple, Optional
+import numpy.typing as npt
+from typing import NamedTuple, Optional, Callable
 from dataclasses import dataclass
 
 from src.constants import NGHOST
+
+NDArrayFloat = npt.NDArray[np.floating]
 
 
 @dataclass
@@ -24,77 +27,78 @@ class TimeStepConfig:
 
 class SpectralRadius(NamedTuple):
     """Spectral radii in each direction."""
-    lambda_i: np.ndarray
-    lambda_j: np.ndarray
+    lambda_i: NDArrayFloat
+    lambda_j: NDArrayFloat
 
 
-def compute_spectral_radii(Q: np.ndarray, 
-                           Si_x: np.ndarray, Si_y: np.ndarray,
-                           Sj_x: np.ndarray, Sj_y: np.ndarray,
+def compute_spectral_radii(Q: NDArrayFloat, 
+                           Si_x: NDArrayFloat, Si_y: NDArrayFloat,
+                           Sj_x: NDArrayFloat, Sj_y: NDArrayFloat,
                            beta: float) -> SpectralRadius:
     """Compute spectral radii Λ = |U_n| + c * |S| in I and J directions."""
-    NI = Q.shape[0] - 2
-    NJ = Q.shape[1] - 3
+    NI: int = Q.shape[0] - 2
+    NJ: int = Q.shape[1] - 3
     
-    int_slice = slice(NGHOST, -NGHOST)
-    u = Q[int_slice, int_slice, 1]
-    v = Q[int_slice, int_slice, 2]
+    int_slice: slice = slice(NGHOST, -NGHOST)
+    u: NDArrayFloat = Q[int_slice, int_slice, 1]
+    v: NDArrayFloat = Q[int_slice, int_slice, 2]
     
-    c_art = np.sqrt(u**2 + v**2 + beta)
+    c_art: NDArrayFloat = np.sqrt(u**2 + v**2 + beta)
     
-    Si_mag = np.sqrt(Si_x**2 + Si_y**2)
-    Si_L = Si_mag[:-1, :]
-    Si_R = Si_mag[1:, :]
-    Si_avg = 0.5 * (Si_L + Si_R)
+    Si_mag: NDArrayFloat = np.sqrt(Si_x**2 + Si_y**2)
+    Si_L: NDArrayFloat = Si_mag[:-1, :]
+    Si_R: NDArrayFloat = Si_mag[1:, :]
+    Si_avg: NDArrayFloat = 0.5 * (Si_L + Si_R)
     
-    Si_nx_avg = 0.5 * (Si_x[:-1, :] + Si_x[1:, :]) / (Si_avg + 1e-12)
-    Si_ny_avg = 0.5 * (Si_y[:-1, :] + Si_y[1:, :]) / (Si_avg + 1e-12)
+    Si_nx_avg: NDArrayFloat = 0.5 * (Si_x[:-1, :] + Si_x[1:, :]) / (Si_avg + 1e-12)
+    Si_ny_avg: NDArrayFloat = 0.5 * (Si_y[:-1, :] + Si_y[1:, :]) / (Si_avg + 1e-12)
     
-    U_I = np.abs(u * Si_nx_avg + v * Si_ny_avg) * Si_avg
-    lambda_i = U_I + c_art * Si_avg
+    U_I: NDArrayFloat = np.abs(u * Si_nx_avg + v * Si_ny_avg) * Si_avg
+    lambda_i: NDArrayFloat = U_I + c_art * Si_avg
     
-    Sj_mag = np.sqrt(Sj_x**2 + Sj_y**2)
-    Sj_B = Sj_mag[:, :-1]
-    Sj_T = Sj_mag[:, 1:]
-    Sj_avg = 0.5 * (Sj_B + Sj_T)
+    Sj_mag: NDArrayFloat = np.sqrt(Sj_x**2 + Sj_y**2)
+    Sj_B: NDArrayFloat = Sj_mag[:, :-1]
+    Sj_T: NDArrayFloat = Sj_mag[:, 1:]
+    Sj_avg: NDArrayFloat = 0.5 * (Sj_B + Sj_T)
     
-    Sj_nx_avg = 0.5 * (Sj_x[:, :-1] + Sj_x[:, 1:]) / (Sj_avg + 1e-12)
-    Sj_ny_avg = 0.5 * (Sj_y[:, :-1] + Sj_y[:, 1:]) / (Sj_avg + 1e-12)
+    Sj_nx_avg: NDArrayFloat = 0.5 * (Sj_x[:, :-1] + Sj_x[:, 1:]) / (Sj_avg + 1e-12)
+    Sj_ny_avg: NDArrayFloat = 0.5 * (Sj_y[:, :-1] + Sj_y[:, 1:]) / (Sj_avg + 1e-12)
     
-    U_J = np.abs(u * Sj_nx_avg + v * Sj_ny_avg) * Sj_avg
-    lambda_j = U_J + c_art * Sj_avg
+    U_J: NDArrayFloat = np.abs(u * Sj_nx_avg + v * Sj_ny_avg) * Sj_avg
+    lambda_j: NDArrayFloat = U_J + c_art * Sj_avg
     
     return SpectralRadius(lambda_i=lambda_i, lambda_j=lambda_j)
 
 
-def compute_local_timestep(Q: np.ndarray,
-                           Si_x: np.ndarray, Si_y: np.ndarray,
-                           Sj_x: np.ndarray, Sj_y: np.ndarray,
-                           volume: np.ndarray,
+def compute_local_timestep(Q: NDArrayFloat,
+                           Si_x: NDArrayFloat, Si_y: NDArrayFloat,
+                           Sj_x: NDArrayFloat, Sj_y: NDArrayFloat,
+                           volume: NDArrayFloat,
                            beta: float,
                            cfg: Optional[TimeStepConfig] = None,
-                           nu: float = 0.0) -> np.ndarray:
+                           nu: float = 0.0) -> NDArrayFloat:
     """Compute local time step for each cell."""
     if cfg is None:
         cfg = TimeStepConfig()
     
-    spec_rad = compute_spectral_radii(Q, Si_x, Si_y, Sj_x, Sj_y, beta)
+    spec_rad: SpectralRadius = compute_spectral_radii(Q, Si_x, Si_y, Sj_x, Sj_y, beta)
     
-    lambda_sum = spec_rad.lambda_i + spec_rad.lambda_j
+    lambda_sum: NDArrayFloat = spec_rad.lambda_i + spec_rad.lambda_j
     lambda_sum = np.maximum(lambda_sum, 1e-12)
-    dt_conv = cfg.cfl * volume / lambda_sum
+    dt_conv: NDArrayFloat = cfg.cfl * volume / lambda_sum
     
+    dt: NDArrayFloat
     if nu > 1e-12:
-        Si_avg = 0.5 * (np.sqrt(Si_x[:-1, :]**2 + Si_y[:-1, :]**2) + 
+        Si_avg: NDArrayFloat = 0.5 * (np.sqrt(Si_x[:-1, :]**2 + Si_y[:-1, :]**2) + 
                         np.sqrt(Si_x[1:, :]**2 + Si_y[1:, :]**2))
-        Sj_avg = 0.5 * (np.sqrt(Sj_x[:, :-1]**2 + Sj_y[:, :-1]**2) + 
+        Sj_avg: NDArrayFloat = 0.5 * (np.sqrt(Sj_x[:, :-1]**2 + Sj_y[:, :-1]**2) + 
                         np.sqrt(Sj_x[:, 1:]**2 + Sj_y[:, 1:]**2))
         
-        dx = volume / (Sj_avg + 1e-12)
-        dy = volume / (Si_avg + 1e-12)
+        dx: NDArrayFloat = volume / (Sj_avg + 1e-12)
+        dy: NDArrayFloat = volume / (Si_avg + 1e-12)
         
-        dx_min = np.minimum(dx, dy)
-        dt_visc = 0.25 * dx_min**2 / nu * cfg.cfl
+        dx_min: NDArrayFloat = np.minimum(dx, dy)
+        dt_visc: NDArrayFloat = 0.25 * dx_min**2 / nu * cfg.cfl
         
         dt = np.minimum(dt_conv, dt_visc)
     else:
@@ -103,40 +107,43 @@ def compute_local_timestep(Q: np.ndarray,
     dt = np.clip(dt, cfg.min_dt, cfg.max_dt)
     
     if cfg.use_global_dt:
-        dt_global = np.min(dt)
+        dt_global: float = float(np.min(dt))
         dt = np.full_like(dt, dt_global)
     
     return dt
 
 
-def compute_global_timestep(Q: np.ndarray,
-                            Si_x: np.ndarray, Si_y: np.ndarray,
-                            Sj_x: np.ndarray, Sj_y: np.ndarray,
-                            volume: np.ndarray,
+def compute_global_timestep(Q: NDArrayFloat,
+                            Si_x: NDArrayFloat, Si_y: NDArrayFloat,
+                            Sj_x: NDArrayFloat, Sj_y: NDArrayFloat,
+                            volume: NDArrayFloat,
                             beta: float,
                             cfl: float = 0.8) -> float:
     """Compute global (minimum) time step."""
-    cfg = TimeStepConfig(cfl=cfl, use_global_dt=False)
-    dt_local = compute_local_timestep(Q, Si_x, Si_y, Sj_x, Sj_y, volume, beta, cfg)
+    cfg: TimeStepConfig = TimeStepConfig(cfl=cfl, use_global_dt=False)
+    dt_local: NDArrayFloat = compute_local_timestep(Q, Si_x, Si_y, Sj_x, Sj_y, volume, beta, cfg)
     return float(np.min(dt_local))
 
 
 class ExplicitEuler:
     """Explicit Euler time integration with local time stepping."""
     
-    def __init__(self, beta: float, cfg: Optional[TimeStepConfig] = None):
+    beta: float
+    cfg: TimeStepConfig
+    
+    def __init__(self, beta: float, cfg: Optional[TimeStepConfig] = None) -> None:
         self.beta = beta
         self.cfg = cfg if cfg is not None else TimeStepConfig()
     
-    def step(self, Q: np.ndarray, residual: np.ndarray,
-             Si_x: np.ndarray, Si_y: np.ndarray,
-             Sj_x: np.ndarray, Sj_y: np.ndarray,
-             volume: np.ndarray) -> np.ndarray:
+    def step(self, Q: NDArrayFloat, residual: NDArrayFloat,
+             Si_x: NDArrayFloat, Si_y: NDArrayFloat,
+             Sj_x: NDArrayFloat, Sj_y: NDArrayFloat,
+             volume: NDArrayFloat) -> NDArrayFloat:
         """Perform one explicit Euler step."""
-        dt = compute_local_timestep(Q, Si_x, Si_y, Sj_x, Sj_y, 
+        dt: NDArrayFloat = compute_local_timestep(Q, Si_x, Si_y, Sj_x, Sj_y, 
                                     volume, self.beta, self.cfg)
         
-        Q_new = Q.copy()
+        Q_new: NDArrayFloat = Q.copy()
         Q_new[NGHOST:-NGHOST, NGHOST:-NGHOST, :] += (dt / volume)[:, :, np.newaxis] * residual
         
         return Q_new
@@ -149,33 +156,37 @@ class RungeKutta5:
     Coefficients: α = [1/4, 1/6, 3/8, 1/2, 1]
     """
     
-    ALPHA = [0.25, 0.166666667, 0.375, 0.5, 1.0]
+    ALPHA: list[float] = [0.25, 0.166666667, 0.375, 0.5, 1.0]
+    
+    beta: float
+    cfg: TimeStepConfig
+    irs_epsilon: float
     
     def __init__(self, beta: float, cfg: Optional[TimeStepConfig] = None,
-                 irs_epsilon: float = 0.0):
+                 irs_epsilon: float = 0.0) -> None:
         self.beta = beta
         self.cfg = cfg if cfg is not None else TimeStepConfig()
         self.irs_epsilon = irs_epsilon
     
-    def step(self, Q: np.ndarray, 
-             compute_residual,
-             apply_bc,
-             Si_x: np.ndarray, Si_y: np.ndarray,
-             Sj_x: np.ndarray, Sj_y: np.ndarray,
-             volume: np.ndarray) -> np.ndarray:
+    def step(self, Q: NDArrayFloat, 
+             compute_residual: Callable[[NDArrayFloat], NDArrayFloat],
+             apply_bc: Callable[[NDArrayFloat], NDArrayFloat],
+             Si_x: NDArrayFloat, Si_y: NDArrayFloat,
+             Sj_x: NDArrayFloat, Sj_y: NDArrayFloat,
+             volume: NDArrayFloat) -> NDArrayFloat:
         """Perform one RK5 step."""
-        dt = compute_local_timestep(Q, Si_x, Si_y, Sj_x, Sj_y, 
+        dt: NDArrayFloat = compute_local_timestep(Q, Si_x, Si_y, Sj_x, Sj_y, 
                                     volume, self.beta, self.cfg)
         
-        Q0 = Q.copy()
-        Qk = Q.copy()
+        Q0: NDArrayFloat = Q.copy()
+        Qk: NDArrayFloat = Q.copy()
         
         if self.irs_epsilon > 0.0:
             from ..numerics.smoothing import apply_residual_smoothing
         
         for alpha in self.ALPHA:
             Qk = apply_bc(Qk)
-            R = compute_residual(Qk)
+            R: NDArrayFloat = compute_residual(Qk)
             
             if self.irs_epsilon > 0.0:
                 apply_residual_smoothing(R, self.irs_epsilon)

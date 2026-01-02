@@ -9,10 +9,13 @@ Coarsening rules:
 """
 
 import numpy as np
+import numpy.typing as npt
 from numba import njit, prange
 from typing import Tuple
 
 from .metrics import FVMMetrics
+
+NDArrayFloat = npt.NDArray[np.floating]
 
 
 @njit(cache=True, parallel=True)
@@ -164,21 +167,27 @@ class Coarsener:
     @staticmethod
     def coarsen(fine_metrics: FVMMetrics) -> FVMMetrics:
         """Coarsen grid metrics from fine to coarse level."""
-        vol_c = coarsen_volumes(fine_metrics.volume)
+        vol_c: NDArrayFloat = coarsen_volumes(fine_metrics.volume)
         
+        xc_c: NDArrayFloat
+        yc_c: NDArrayFloat
         xc_c, yc_c = coarsen_cell_centers(
             fine_metrics.xc, fine_metrics.yc,
             fine_metrics.volume, vol_c
         )
         
+        Si_x_c: NDArrayFloat
+        Si_y_c: NDArrayFloat
         Si_x_c, Si_y_c = coarsen_i_face_normals(
             fine_metrics.Si_x, fine_metrics.Si_y
         )
+        Sj_x_c: NDArrayFloat
+        Sj_y_c: NDArrayFloat
         Sj_x_c, Sj_y_c = coarsen_j_face_normals(
             fine_metrics.Sj_x, fine_metrics.Sj_y
         )
         
-        wall_dist_c = coarsen_wall_distance(fine_metrics.wall_distance)
+        wall_dist_c: NDArrayFloat = coarsen_wall_distance(fine_metrics.wall_distance)
         
         return FVMMetrics(
             volume=vol_c,
@@ -205,8 +214,9 @@ class Coarsener:
     @staticmethod
     def max_levels(NI: int, NJ: int, min_size: int = 4) -> int:
         """Compute maximum number of multigrid levels."""
-        levels = 1
-        ni, nj = NI, NJ
+        levels: int = 1
+        ni: int = NI
+        nj: int = NJ
         
         while ni >= 2 * min_size and nj >= 2 * min_size:
             ni = ni // 2

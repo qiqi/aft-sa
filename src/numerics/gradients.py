@@ -5,19 +5,22 @@ Boundary handling relies on properly set ghost cells.
 """
 
 import numpy as np
+import numpy.typing as npt
 from numba import njit
 from typing import NamedTuple
 
 from ..constants import NGHOST
 
+NDArrayFloat = npt.NDArray[np.floating]
+
 
 class GradientMetrics(NamedTuple):
     """Grid metrics for gradient computation (interior cells only)."""
-    Si_x: np.ndarray  # (NI+1, NJ)
-    Si_y: np.ndarray  # (NI+1, NJ)
-    Sj_x: np.ndarray  # (NI, NJ+1)
-    Sj_y: np.ndarray  # (NI, NJ+1)
-    volume: np.ndarray  # (NI, NJ)
+    Si_x: NDArrayFloat
+    Si_y: NDArrayFloat
+    Sj_x: NDArrayFloat
+    Sj_y: NDArrayFloat
+    volume: NDArrayFloat
 
 
 @njit(cache=True)
@@ -94,10 +97,12 @@ def _gradient_kernel(Q: np.ndarray,
                 grad[i, j, k, 1] *= inv_vol
 
 
-def compute_gradients(Q: np.ndarray, metrics: GradientMetrics) -> np.ndarray:
+def compute_gradients(Q: NDArrayFloat, metrics: GradientMetrics) -> NDArrayFloat:
     """Compute cell-centered gradients using Green-Gauss theorem."""
+    NI: int
+    NJ: int
     NI, NJ = metrics.volume.shape
-    grad = np.zeros((NI, NJ, 4, 2), dtype=np.float64)
+    grad: NDArrayFloat = np.zeros((NI, NJ, 4, 2), dtype=np.float64)
     
     _gradient_kernel(
         Q.astype(np.float64),
@@ -118,19 +123,23 @@ def _compute_vorticity_kernel(dudx: np.ndarray, dudy: np.ndarray,
                                dvdx: np.ndarray, dvdy: np.ndarray,
                                omega: np.ndarray) -> None:
     """Compute vorticity magnitude ω = |∂v/∂x - ∂u/∂y|."""
+    NI: int
+    NJ: int
     NI, NJ = dudx.shape
     for i in range(NI):
         for j in range(NJ):
             omega[i, j] = abs(dvdx[i, j] - dudy[i, j])
 
 
-def compute_vorticity(grad: np.ndarray) -> np.ndarray:
+def compute_vorticity(grad: NDArrayFloat) -> NDArrayFloat:
     """Compute vorticity magnitude from gradient array."""
+    NI: int
+    NJ: int
     NI, NJ = grad.shape[:2]
-    dudy = grad[:, :, 1, 1]
-    dvdx = grad[:, :, 2, 0]
+    dudy: NDArrayFloat = grad[:, :, 1, 1]
+    dvdx: NDArrayFloat = grad[:, :, 2, 0]
     
-    omega = np.zeros((NI, NJ), dtype=np.float64)
+    omega: NDArrayFloat = np.zeros((NI, NJ), dtype=np.float64)
     _compute_vorticity_kernel(
         grad[:, :, 1, 0].astype(np.float64),
         dudy.astype(np.float64),
@@ -142,16 +151,16 @@ def compute_vorticity(grad: np.ndarray) -> np.ndarray:
     return omega
 
 
-def compute_strain_rate(grad: np.ndarray) -> np.ndarray:
+def compute_strain_rate(grad: NDArrayFloat) -> NDArrayFloat:
     """Compute strain rate magnitude |S| = sqrt(2·S_ij·S_ij)."""
-    dudx = grad[:, :, 1, 0]
-    dudy = grad[:, :, 1, 1]
-    dvdx = grad[:, :, 2, 0]
-    dvdy = grad[:, :, 2, 1]
+    dudx: NDArrayFloat = grad[:, :, 1, 0]
+    dudy: NDArrayFloat = grad[:, :, 1, 1]
+    dvdx: NDArrayFloat = grad[:, :, 2, 0]
+    dvdy: NDArrayFloat = grad[:, :, 2, 1]
     
-    S_xx = dudx
-    S_yy = dvdy
-    S_xy = 0.5 * (dudy + dvdx)
+    S_xx: NDArrayFloat = dudx
+    S_yy: NDArrayFloat = dvdy
+    S_xy: NDArrayFloat = 0.5 * (dudy + dvdx)
     
-    S_mag = np.sqrt(2.0 * (S_xx**2 + S_yy**2 + 2.0 * S_xy**2))
+    S_mag: NDArrayFloat = np.sqrt(2.0 * (S_xx**2 + S_yy**2 + 2.0 * S_xy**2))
     return S_mag

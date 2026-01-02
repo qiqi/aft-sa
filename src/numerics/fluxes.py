@@ -10,26 +10,29 @@ References:
 """
 
 import numpy as np
+import numpy.typing as npt
 from typing import NamedTuple
 from dataclasses import dataclass
 from numba import njit
 
 from src.constants import NGHOST
 
+NDArrayFloat = npt.NDArray[np.floating]
+
 
 @dataclass
 class FluxConfig:
     """Configuration for JST flux computation."""
-    k4: float = 0.016     # 4th-order dissipation
+    k4: float = 0.016
 
 
 class GridMetrics(NamedTuple):
     """Grid metrics for flux computation."""
-    Si_x: np.ndarray  # I-face x-normal (scaled by area), shape (NI+1, NJ)
-    Si_y: np.ndarray  # I-face y-normal
-    Sj_x: np.ndarray  # J-face x-normal, shape (NI, NJ+1)
-    Sj_y: np.ndarray  # J-face y-normal
-    volume: np.ndarray  # Cell volumes, shape (NI, NJ)
+    Si_x: NDArrayFloat
+    Si_y: NDArrayFloat
+    Sj_x: NDArrayFloat
+    Sj_y: NDArrayFloat
+    volume: NDArrayFloat
 
 
 @njit(cache=True, fastmath=True)
@@ -134,17 +137,17 @@ def _flux_kernel(Q: np.ndarray,
                 residual[i, j, k] = R_i + R_j
 
 
-def compute_convective_flux(Q: np.ndarray, nx: np.ndarray, ny: np.ndarray, 
-                            beta: float) -> np.ndarray:
+def compute_convective_flux(Q: NDArrayFloat, nx: NDArrayFloat, ny: NDArrayFloat, 
+                            beta: float) -> NDArrayFloat:
     """Compute projected convective flux F·n."""
-    p = Q[..., 0]
-    u = Q[..., 1]
-    v = Q[..., 2]
-    nu_t = Q[..., 3]
+    p: NDArrayFloat = Q[..., 0]
+    u: NDArrayFloat = Q[..., 1]
+    v: NDArrayFloat = Q[..., 2]
+    nu_t: NDArrayFloat = Q[..., 3]
     
-    U_n = u * nx + v * ny
+    U_n: NDArrayFloat = u * nx + v * ny
     
-    F = np.zeros_like(Q)
+    F: NDArrayFloat = np.zeros_like(Q)
     F[..., 0] = beta * U_n
     F[..., 1] = u * U_n + p * nx
     F[..., 2] = v * U_n + p * ny
@@ -153,63 +156,64 @@ def compute_convective_flux(Q: np.ndarray, nx: np.ndarray, ny: np.ndarray,
     return F
 
 
-def compute_spectral_radius(Q: np.ndarray, nx: np.ndarray, ny: np.ndarray,
-                           beta: float) -> np.ndarray:
+def compute_spectral_radius(Q: NDArrayFloat, nx: NDArrayFloat, ny: NDArrayFloat,
+                           beta: float) -> NDArrayFloat:
     """Compute spectral radius λ = |U_n| + c_art * |S|."""
-    u = Q[..., 1]
-    v = Q[..., 2]
+    u: NDArrayFloat = Q[..., 1]
+    v: NDArrayFloat = Q[..., 2]
     
-    S = np.sqrt(nx**2 + ny**2)
-    nx_hat = nx / (S + 1e-12)
-    ny_hat = ny / (S + 1e-12)
-    U_n = u * nx_hat + v * ny_hat
-    c_art = np.sqrt(u**2 + v**2 + beta)
+    S: NDArrayFloat = np.sqrt(nx**2 + ny**2)
+    nx_hat: NDArrayFloat = nx / (S + 1e-12)
+    ny_hat: NDArrayFloat = ny / (S + 1e-12)
+    U_n: NDArrayFloat = u * nx_hat + v * ny_hat
+    c_art: NDArrayFloat = np.sqrt(u**2 + v**2 + beta)
     
     return (np.abs(U_n) + c_art) * S
 
 
-def compute_fluxes(Q: np.ndarray, metrics: GridMetrics, beta: float,
-                   cfg: FluxConfig) -> np.ndarray:
+def compute_fluxes(Q: NDArrayFloat, metrics: GridMetrics, beta: float,
+                   cfg: FluxConfig) -> NDArrayFloat:
     """Compute flux residual using JST scheme with 4th-order dissipation."""
-    NI_ghost, NJ_ghost, n_vars = Q.shape
-    NI = NI_ghost - 2 * NGHOST
-    NJ = NJ_ghost - 2 * NGHOST
+    NI_ghost: int = Q.shape[0]
+    NJ_ghost: int = Q.shape[1]
+    NI: int = NI_ghost - 2 * NGHOST
+    NJ: int = NJ_ghost - 2 * NGHOST
     
-    Q_c = np.ascontiguousarray(Q)
-    Si_x = np.ascontiguousarray(metrics.Si_x)
-    Si_y = np.ascontiguousarray(metrics.Si_y)
-    Sj_x = np.ascontiguousarray(metrics.Sj_x)
-    Sj_y = np.ascontiguousarray(metrics.Sj_y)
+    Q_c: NDArrayFloat = np.ascontiguousarray(Q)
+    Si_x: NDArrayFloat = np.ascontiguousarray(metrics.Si_x)
+    Si_y: NDArrayFloat = np.ascontiguousarray(metrics.Si_y)
+    Sj_x: NDArrayFloat = np.ascontiguousarray(metrics.Sj_x)
+    Sj_y: NDArrayFloat = np.ascontiguousarray(metrics.Sj_y)
     
-    residual = np.zeros((NI, NJ, 4), dtype=Q.dtype)
+    residual: NDArrayFloat = np.zeros((NI, NJ, 4), dtype=Q.dtype)
     
     _flux_kernel(Q_c, Si_x, Si_y, Sj_x, Sj_y, beta, cfg.k4, residual, NGHOST)
     
     return residual
 
 
-def compute_time_step(Q: np.ndarray, metrics: GridMetrics, beta: float,
-                      cfl: float = 0.8) -> np.ndarray:
+def compute_time_step(Q: NDArrayFloat, metrics: GridMetrics, beta: float,
+                      cfl: float = 0.8) -> NDArrayFloat:
     """Compute local time step based on CFL condition."""
-    NI = Q.shape[0] - 2 * NGHOST
-    NJ = Q.shape[1] - 2 * NGHOST
+    NI: int = Q.shape[0] - 2 * NGHOST
+    NJ: int = Q.shape[1] - 2 * NGHOST
     
-    int_slice = slice(NGHOST, -NGHOST)
-    Q_int = Q[int_slice, int_slice, :]
-    u = Q_int[..., 1]
-    v = Q_int[..., 2]
+    int_slice: slice = slice(NGHOST, -NGHOST)
+    Q_int: NDArrayFloat = Q[int_slice, int_slice, :]
+    u: NDArrayFloat = Q_int[..., 1]
+    v: NDArrayFloat = Q_int[..., 2]
     
-    c_art = np.sqrt(u**2 + v**2 + beta)
+    c_art: NDArrayFloat = np.sqrt(u**2 + v**2 + beta)
     
-    Si_mag = np.sqrt(metrics.Si_x**2 + metrics.Si_y**2)
-    Si_avg = 0.5 * (Si_mag[:-1, :] + Si_mag[1:, :])
+    Si_mag: NDArrayFloat = np.sqrt(metrics.Si_x**2 + metrics.Si_y**2)
+    Si_avg: NDArrayFloat = 0.5 * (Si_mag[:-1, :] + Si_mag[1:, :])
     
-    Sj_mag = np.sqrt(metrics.Sj_x**2 + metrics.Sj_y**2)
-    Sj_avg = 0.5 * (Sj_mag[:, :-1] + Sj_mag[:, 1:])
+    Sj_mag: NDArrayFloat = np.sqrt(metrics.Sj_x**2 + metrics.Sj_y**2)
+    Sj_avg: NDArrayFloat = 0.5 * (Sj_mag[:, :-1] + Sj_mag[:, 1:])
     
-    lambda_i = (np.abs(u) + c_art) * Si_avg / metrics.volume
-    lambda_j = (np.abs(v) + c_art) * Sj_avg / metrics.volume
+    lambda_i: NDArrayFloat = (np.abs(u) + c_art) * Si_avg / metrics.volume
+    lambda_j: NDArrayFloat = (np.abs(v) + c_art) * Sj_avg / metrics.volume
     
-    dt = cfl * metrics.volume / (lambda_i + lambda_j + 1e-12)
+    dt: NDArrayFloat = cfl * metrics.volume / (lambda_i + lambda_j + 1e-12)
     
     return dt

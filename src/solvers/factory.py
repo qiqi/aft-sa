@@ -3,11 +3,14 @@ Solver Factory Module for standardized RANSSolver creation.
 """
 
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, List
 import numpy as np
+import numpy.typing as npt
 
 from .rans_solver import RANSSolver, SolverConfig
 from ..grid.loader import load_or_generate_grid
+
+NDArrayFloat = npt.NDArray[np.floating]
 
 
 def create_solver(
@@ -40,7 +43,6 @@ def create_solver(
     print_freq: int = 10,
     output_dir: str = "output/solver",
     case_name: str = "airfoil",
-    diagnostic_mode: bool = False,
     diagnostic_freq: int = 100,
     divergence_history: int = 0,
     project_root: Optional[Path] = None,
@@ -50,6 +52,8 @@ def create_solver(
     if project_root is None:
         project_root = Path(__file__).parent.parent.parent
     
+    X: NDArrayFloat
+    Y: NDArrayFloat
     X, Y = load_or_generate_grid(
         grid_file,
         n_surface=n_surface,
@@ -62,7 +66,7 @@ def create_solver(
         verbose=verbose
     )
     
-    config = SolverConfig(
+    config: SolverConfig = SolverConfig(
         mach=mach,
         alpha=alpha,
         reynolds=reynolds,
@@ -80,10 +84,8 @@ def create_solver(
         jst_k4=jst_k4,
         irs_epsilon=irs_epsilon,
         n_wake=n_wake,
-        diagnostic_mode=diagnostic_mode,
         diagnostic_freq=diagnostic_freq,
         divergence_history=divergence_history,
-        # Multigrid options
         use_multigrid=use_multigrid,
         mg_levels=mg_levels,
         mg_nu1=mg_nu1,
@@ -93,7 +95,7 @@ def create_solver(
         mg_coarse_cfl=mg_coarse_cfl,
     )
     
-    solver = RANSSolver.__new__(RANSSolver)
+    solver: RANSSolver = RANSSolver.__new__(RANSSolver)
     solver.config = config
     solver.X = X
     solver.Y = Y
@@ -115,15 +117,15 @@ def create_solver(
     if verbose:
         print(f"\nGrid size: {solver.NI} x {solver.NJ} cells")
         print(f"Reynolds: {reynolds:.2e}")
-        mg_info = f" + Multigrid ({mg_levels} levels)" if use_multigrid else ""
+        mg_info: str = f" + Multigrid ({mg_levels} levels)" if use_multigrid else ""
         print(f"CFL: {cfl_start} → {cfl_target} (ramp {cfl_ramp_iters} iters), IRS ε={irs_epsilon}{mg_info}")
     
     return solver
 
 
 def create_solver_quiet(
-    X: np.ndarray,
-    Y: np.ndarray,
+    X: NDArrayFloat,
+    Y: NDArrayFloat,
     n_wake: int,
     alpha: float = 0.0,
     reynolds: float = 6e6,
@@ -140,7 +142,7 @@ def create_solver_quiet(
     print_freq: int = 200,
 ) -> RANSSolver:
     """Create a solver with pre-loaded grid and minimal output."""
-    config = SolverConfig(
+    config: SolverConfig = SolverConfig(
         mach=mach,
         alpha=alpha,
         reynolds=reynolds,
@@ -150,7 +152,7 @@ def create_solver_quiet(
         cfl_ramp_iters=cfl_ramp_iters,
         max_iter=max_iter,
         tol=tol,
-        output_freq=max_iter + 1,  # Disable VTK output
+        output_freq=max_iter + 1,
         print_freq=print_freq,
         output_dir="output/validation",
         case_name="validation",
@@ -159,7 +161,7 @@ def create_solver_quiet(
         irs_epsilon=irs_epsilon,
         n_wake=n_wake,
     )
-    solver = RANSSolver.__new__(RANSSolver)
+    solver: RANSSolver = RANSSolver.__new__(RANSSolver)
     solver.config = config
     solver.X = X
     solver.Y = Y
@@ -174,8 +176,8 @@ def create_solver_quiet(
     solver.mg_hierarchy = None
     
     class DummyVTKWriter:
-        def write(self, *args, **kwargs): pass
-        def finalize(self): return ""
+        def write(self, *args: object, **kwargs: object) -> None: pass
+        def finalize(self) -> str: return ""
     solver.vtk_writer = DummyVTKWriter()
     
     return solver

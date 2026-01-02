@@ -3,16 +3,19 @@ Grid loading utilities.
 """
 
 import numpy as np
+import numpy.typing as npt
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 
 from .mesher import Construct2DWrapper, GridOptions
 from .plot3d import read_plot3d
 
+NDArrayFloat = npt.NDArray[np.floating]
+
 
 def find_construct2d_binary(project_root: Optional[Path] = None) -> Optional[Path]:
     """Find the construct2d binary in common locations."""
-    search_paths = []
+    search_paths: List[Path] = []
     
     if project_root is not None:
         search_paths.extend([
@@ -44,14 +47,17 @@ def load_or_generate_grid(
     max_first_cell: float = 0.001,
     project_root: Optional[Path] = None,
     verbose: bool = True
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[NDArrayFloat, NDArrayFloat]:
     """Load a grid from file or generate from airfoil coordinates."""
-    grid_path = Path(grid_file)
+    grid_path: Path = Path(grid_file)
     
     if not grid_path.exists():
         raise FileNotFoundError(f"Grid file not found: {grid_path}")
     
-    suffix = grid_path.suffix.lower()
+    suffix: str = grid_path.suffix.lower()
+    
+    X: NDArrayFloat
+    Y: NDArrayFloat
     
     if suffix in ['.p3d', '.x', '.xyz']:
         if verbose:
@@ -65,7 +71,7 @@ def load_or_generate_grid(
             print(f"  Normal points:  {n_normal}")
             print(f"  Wake points:    {n_wake}")
         
-        binary_path = find_construct2d_binary(project_root)
+        binary_path: Optional[Path] = find_construct2d_binary(project_root)
         
         if binary_path is None:
             raise FileNotFoundError(
@@ -73,8 +79,8 @@ def load_or_generate_grid(
                 "or install Construct2D."
             )
         
-        wrapper = Construct2DWrapper(str(binary_path))
-        grid_opts = GridOptions(
+        wrapper: Construct2DWrapper = Construct2DWrapper(str(binary_path))
+        grid_opts: GridOptions = GridOptions(
             n_surface=n_surface,
             n_normal=n_normal,
             n_wake=n_wake,

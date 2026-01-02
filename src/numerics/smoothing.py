@@ -7,7 +7,10 @@ Reference: Jameson, Schmidt, Turkel (1981). AIAA paper 81-1259.
 """
 
 import numpy as np
+import numpy.typing as npt
 from numba import njit
+
+NDArrayFloat = npt.NDArray[np.floating]
 
 
 @njit(cache=True)

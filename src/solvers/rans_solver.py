@@ -330,8 +330,21 @@ class RANSSolver:
         gradients = compute_gradients(Q, grad_metrics)
         mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
         
+        # Compute turbulent viscosity from SA working variable (ν̃)
+        # μ_t = ν̃ * f_v1, where f_v1 = χ³/(χ³ + c_v1³), χ = ν̃/ν
+        Q_int = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
+        nu_tilde = np.maximum(Q_int[:, :, 3], 0.0)  # SA working variable, prevent negative
+        if mu_laminar > 0:
+            chi = nu_tilde / mu_laminar  # χ = ν̃/ν
+            cv1 = 7.1
+            chi3 = chi ** 3
+            f_v1 = chi3 / (chi3 + cv1 ** 3)
+            mu_turbulent = nu_tilde * f_v1
+        else:
+            mu_turbulent = np.zeros_like(nu_tilde)
+        
         residual = add_viscous_fluxes(
-            conv_residual, Q, gradients, grad_metrics, mu_laminar
+            conv_residual, Q, gradients, grad_metrics, mu_laminar, mu_turbulent
         )
         
         if forcing is not None:

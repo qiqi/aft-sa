@@ -8,8 +8,11 @@ Operations:
 """
 
 import numpy as np
+import numpy.typing as npt
 from numba import njit, prange
 from typing import Tuple
+
+NDArrayFloat = npt.NDArray[np.floating]
 
 
 @njit(cache=True, parallel=True)
@@ -165,8 +168,8 @@ def compute_residual_sum(R: np.ndarray) -> np.ndarray:
     return result
 
 
-def create_coarse_arrays(NI_c: int, NJ_c: int, nvar: int = 4) -> Tuple[np.ndarray, np.ndarray]:
+def create_coarse_arrays(NI_c: int, NJ_c: int, nvar: int = 4) -> Tuple[NDArrayFloat, NDArrayFloat]:
     """Create arrays for coarse grid state and residual."""
-    Q_c = np.zeros((NI_c, NJ_c, nvar), dtype=np.float64)
-    R_c = np.zeros((NI_c, NJ_c, nvar), dtype=np.float64)
+    Q_c: NDArrayFloat = np.zeros((NI_c, NJ_c, nvar), dtype=np.float64)
+    R_c: NDArrayFloat = np.zeros((NI_c, NJ_c, nvar), dtype=np.float64)
     return Q_c, R_c

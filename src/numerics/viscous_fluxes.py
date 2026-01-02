@@ -5,9 +5,12 @@ Stress tensor (incompressible): τ_xx = 2μ·∂u/∂x, τ_yy = 2μ·∂v/∂y, 
 """
 
 import numpy as np
+import numpy.typing as npt
 from src.constants import NGHOST
 from numba import njit
 from .gradients import GradientMetrics
+
+NDArrayFloat = npt.NDArray[np.floating]
 
 
 @njit(cache=True, fastmath=True)
@@ -124,16 +127,19 @@ def _viscous_flux_kernel(
 
 
 def compute_viscous_fluxes(
-    Q: np.ndarray,
-    gradients: np.ndarray,
+    Q: NDArrayFloat,
+    gradients: NDArrayFloat,
     grid_metrics: GradientMetrics,
     mu_laminar: float,
-    mu_turbulent: np.ndarray = None
-) -> np.ndarray:
+    mu_turbulent: NDArrayFloat | None = None
+) -> NDArrayFloat:
     """Compute viscous flux residuals."""
+    NI: int
+    NJ: int
     NI, NJ = gradients.shape[:2]
-    residual = np.zeros((NI, NJ, 4), dtype=np.float64)
+    residual: NDArrayFloat = np.zeros((NI, NJ, 4), dtype=np.float64)
     
+    mu_eff: NDArrayFloat
     if mu_turbulent is None:
         mu_eff = np.full((NI, NJ), mu_laminar, dtype=np.float64)
     else:
@@ -151,17 +157,18 @@ def compute_viscous_fluxes(
 
 
 def add_viscous_fluxes(
-    convective_residual: np.ndarray,
-    Q: np.ndarray,
-    gradients: np.ndarray,
+    convective_residual: NDArrayFloat,
+    Q: NDArrayFloat,
+    gradients: NDArrayFloat,
     grid_metrics: GradientMetrics,
     mu_laminar: float,
-    mu_turbulent: np.ndarray = None
-) -> np.ndarray:
+    mu_turbulent: NDArrayFloat | None = None
+) -> NDArrayFloat:
     """Add viscous fluxes to convective residual."""
-    viscous_residual = compute_viscous_fluxes(
+    viscous_residual: NDArrayFloat = compute_viscous_fluxes(
         Q, gradients, grid_metrics, mu_laminar, mu_turbulent
     )
+    
     return convective_residual + viscous_residual
 
 
@@ -254,20 +261,22 @@ def compute_nu_tilde_diffusion_kernel(
 
 
 def compute_nu_tilde_diffusion(
-    Q: np.ndarray,
-    gradients: np.ndarray,
+    Q: NDArrayFloat,
+    gradients: NDArrayFloat,
     grid_metrics: GradientMetrics,
     nu_laminar: float,
     sigma: float = 2.0/3.0
-) -> np.ndarray:
+) -> NDArrayFloat:
     """Compute SA nu_tilde diffusion residual."""
+    NI: int
+    NJ: int
     NI, NJ = gradients.shape[:2]
     
-    nu_tilde = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, 3]
-    nu_eff = nu_laminar + np.maximum(0.0, nu_tilde)
-    grad_nu_tilde = gradients[:, :, 3, :]
+    nu_tilde: NDArrayFloat = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, 3]
+    nu_eff: NDArrayFloat = nu_laminar + np.maximum(0.0, nu_tilde)
+    grad_nu_tilde: NDArrayFloat = gradients[:, :, 3, :]
     
-    residual = np.zeros((NI, NJ), dtype=np.float64)
+    residual: NDArrayFloat = np.zeros((NI, NJ), dtype=np.float64)
     
     compute_nu_tilde_diffusion_kernel(
         Q[:, :, 3],

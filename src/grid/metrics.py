@@ -7,20 +7,23 @@ Coordinate system:
 """
 
 import numpy as np
+import numpy.typing as npt
 from typing import NamedTuple, Tuple, Optional
 from dataclasses import dataclass
+
+NDArrayFloat = npt.NDArray[np.floating]
 
 
 class FVMMetrics(NamedTuple):
     """Finite Volume Method metrics for 2D structured grid."""
-    volume: np.ndarray       # (NI, NJ) cell areas
-    xc: np.ndarray           # (NI, NJ) cell center x
-    yc: np.ndarray           # (NI, NJ) cell center y
-    Si_x: np.ndarray         # (NI+1, NJ) I-face normal x * length
-    Si_y: np.ndarray         # (NI+1, NJ) I-face normal y * length
-    Sj_x: np.ndarray         # (NI, NJ+1) J-face normal x * length
-    Sj_y: np.ndarray         # (NI, NJ+1) J-face normal y * length
-    wall_distance: np.ndarray  # (NI, NJ)
+    volume: NDArrayFloat
+    xc: NDArrayFloat
+    yc: NDArrayFloat
+    Si_x: NDArrayFloat
+    Si_y: NDArrayFloat
+    Sj_x: NDArrayFloat
+    Sj_y: NDArrayFloat
+    wall_distance: NDArrayFloat
     
     @property
     def NI(self) -> int:
@@ -31,11 +34,11 @@ class FVMMetrics(NamedTuple):
         return self.volume.shape[1]
     
     @property
-    def Si_mag(self) -> np.ndarray:
+    def Si_mag(self) -> NDArrayFloat:
         return np.sqrt(self.Si_x**2 + self.Si_y**2)
     
     @property
-    def Sj_mag(self) -> np.ndarray:
+    def Sj_mag(self) -> NDArrayFloat:
         return np.sqrt(self.Sj_x**2 + self.Sj_y**2)
 
 
@@ -58,21 +61,34 @@ class GCLValidation:
 class MetricComputer:
     """Computes FVM metrics from grid node coordinates."""
     
-    def __init__(self, X: np.ndarray, Y: np.ndarray, wall_j: int = 0):
+    X: NDArrayFloat
+    Y: NDArrayFloat
+    wall_j: int
+    NI: int
+    NJ: int
+    _metrics: Optional[FVMMetrics]
+    
+    def __init__(self, X: NDArrayFloat, Y: NDArrayFloat, wall_j: int = 0) -> None:
         self.X = X
         self.Y = Y
         self.wall_j = wall_j
         self.NI = X.shape[0] - 1
         self.NJ = X.shape[1] - 1
-        self._metrics: Optional[FVMMetrics] = None
+        self._metrics = None
     
     def compute(self) -> FVMMetrics:
         """Compute all FVM metrics."""
+        xc: NDArrayFloat
+        yc: NDArrayFloat
         xc, yc = self._compute_cell_centers()
-        volume = self._compute_cell_volumes()
+        volume: NDArrayFloat = self._compute_cell_volumes()
+        Si_x: NDArrayFloat
+        Si_y: NDArrayFloat
         Si_x, Si_y = self._compute_i_face_normals()
+        Sj_x: NDArrayFloat
+        Sj_y: NDArrayFloat
         Sj_x, Sj_y = self._compute_j_face_normals()
-        wall_distance = self._compute_wall_distance()
+        wall_distance: NDArrayFloat = self._compute_wall_distance()
         
         self._metrics = FVMMetrics(
             volume=volume,
@@ -84,34 +100,38 @@ class MetricComputer:
         
         return self._metrics
     
-    def _compute_cell_centers(self) -> Tuple[np.ndarray, np.ndarray]:
+    def _compute_cell_centers(self) -> Tuple[NDArrayFloat, NDArrayFloat]:
         """Cell center = average of four corner nodes."""
-        X, Y = self.X, self.Y
-        xc = 0.25 * (X[:-1, :-1] + X[1:, :-1] + X[1:, 1:] + X[:-1, 1:])
-        yc = 0.25 * (Y[:-1, :-1] + Y[1:, :-1] + Y[1:, 1:] + Y[:-1, 1:])
+        X: NDArrayFloat = self.X
+        Y: NDArrayFloat = self.Y
+        xc: NDArrayFloat = 0.25 * (X[:-1, :-1] + X[1:, :-1] + X[1:, 1:] + X[:-1, 1:])
+        yc: NDArrayFloat = 0.25 * (Y[:-1, :-1] + Y[1:, :-1] + Y[1:, 1:] + Y[:-1, 1:])
         return xc, yc
     
-    def _compute_cell_volumes(self) -> np.ndarray:
+    def _compute_cell_volumes(self) -> NDArrayFloat:
         """Cell area = 0.5 * |diagonal1 × diagonal2|."""
-        X, Y = self.X, self.Y
-        dx_ac = X[1:, 1:] - X[:-1, :-1]
-        dy_ac = Y[1:, 1:] - Y[:-1, :-1]
-        dx_bd = X[:-1, 1:] - X[1:, :-1]
-        dy_bd = Y[:-1, 1:] - Y[1:, :-1]
+        X: NDArrayFloat = self.X
+        Y: NDArrayFloat = self.Y
+        dx_ac: NDArrayFloat = X[1:, 1:] - X[:-1, :-1]
+        dy_ac: NDArrayFloat = Y[1:, 1:] - Y[:-1, :-1]
+        dx_bd: NDArrayFloat = X[:-1, 1:] - X[1:, :-1]
+        dy_bd: NDArrayFloat = Y[:-1, 1:] - Y[1:, :-1]
         return 0.5 * np.abs(dx_ac * dy_bd - dy_ac * dx_bd)
     
-    def _compute_i_face_normals(self) -> Tuple[np.ndarray, np.ndarray]:
+    def _compute_i_face_normals(self) -> Tuple[NDArrayFloat, NDArrayFloat]:
         """I-face normal = 90° CW rotation of face vector, scaled by length."""
-        X, Y = self.X, self.Y
-        dx = X[:, 1:] - X[:, :-1]
-        dy = Y[:, 1:] - Y[:, :-1]
+        X: NDArrayFloat = self.X
+        Y: NDArrayFloat = self.Y
+        dx: NDArrayFloat = X[:, 1:] - X[:, :-1]
+        dy: NDArrayFloat = Y[:, 1:] - Y[:, :-1]
         return dy, -dx
     
-    def _compute_j_face_normals(self) -> Tuple[np.ndarray, np.ndarray]:
+    def _compute_j_face_normals(self) -> Tuple[NDArrayFloat, NDArrayFloat]:
         """J-face normal = 90° CCW rotation of face vector, scaled by length."""
-        X, Y = self.X, self.Y
-        dx = X[1:, :] - X[:-1, :]
-        dy = Y[1:, :] - Y[:-1, :]
+        X: NDArrayFloat = self.X
+        Y: NDArrayFloat = self.Y
+        dx: NDArrayFloat = X[1:, :] - X[:-1, :]
+        dy: NDArrayFloat = Y[1:, :] - Y[:-1, :]
         return -dy, dx
     
     @staticmethod
@@ -119,48 +139,54 @@ class MetricComputer:
                                     ax: float, ay: float, 
                                     bx: float, by: float) -> float:
         """Minimum distance from point P to line segment AB."""
-        abx = bx - ax
-        aby = by - ay
-        apx = px - ax
-        apy = py - ay
-        ab_sq = abx * abx + aby * aby
+        abx: float = bx - ax
+        aby: float = by - ay
+        apx: float = px - ax
+        apy: float = py - ay
+        ab_sq: float = abx * abx + aby * aby
         
         if ab_sq < 1e-30:
-            return np.sqrt(apx * apx + apy * apy)
+            return float(np.sqrt(apx * apx + apy * apy))
         
-        t = max(0.0, min(1.0, (apx * abx + apy * aby) / ab_sq))
-        closest_x = ax + t * abx
-        closest_y = ay + t * aby
-        dx = px - closest_x
-        dy = py - closest_y
+        t: float = max(0.0, min(1.0, (apx * abx + apy * aby) / ab_sq))
+        closest_x: float = ax + t * abx
+        closest_y: float = ay + t * aby
+        dx: float = px - closest_x
+        dy: float = py - closest_y
         
-        return np.sqrt(dx * dx + dy * dy)
+        return float(np.sqrt(dx * dx + dy * dy))
     
-    def _compute_wall_distance(self, search_radius: int = 20) -> np.ndarray:
+    def _compute_wall_distance(self, search_radius: int = 20) -> NDArrayFloat:
         """Compute wall distance using point-to-segment distance."""
-        X, Y = self.X, self.Y
-        NI, NJ = self.NI, self.NJ
+        X: NDArrayFloat = self.X
+        Y: NDArrayFloat = self.Y
+        NI: int = self.NI
+        NJ: int = self.NJ
         
+        xc: NDArrayFloat
+        yc: NDArrayFloat
         xc, yc = self._compute_cell_centers()
-        x_wall = X[:, self.wall_j]
-        y_wall = Y[:, self.wall_j]
-        n_wall = len(x_wall)
+        x_wall: NDArrayFloat = X[:, self.wall_j]
+        y_wall: NDArrayFloat = Y[:, self.wall_j]
+        n_wall: int = len(x_wall)
         
-        wall_dist = np.zeros((NI, NJ))
+        wall_dist: NDArrayFloat = np.zeros((NI, NJ))
         
         for i in range(NI):
             for j in range(NJ):
-                px = xc[i, j]
-                py = yc[i, j]
-                start_idx = i
-                min_dist = float('inf')
-                idx_min = max(0, start_idx - search_radius)
-                idx_max = min(n_wall - 2, start_idx + search_radius)
+                px: float = float(xc[i, j])
+                py: float = float(yc[i, j])
+                start_idx: int = i
+                min_dist: float = float('inf')
+                idx_min: int = max(0, start_idx - search_radius)
+                idx_max: int = min(n_wall - 2, start_idx + search_radius)
                 
                 for k in range(idx_min, idx_max + 1):
-                    ax, ay = x_wall[k], y_wall[k]
-                    bx, by = x_wall[k + 1], y_wall[k + 1]
-                    dist = self._point_to_segment_distance(px, py, ax, ay, bx, by)
+                    a_x: float = float(x_wall[k])
+                    a_y: float = float(y_wall[k])
+                    b_x: float = float(x_wall[k + 1])
+                    b_y: float = float(y_wall[k + 1])
+                    dist: float = self._point_to_segment_distance(px, py, a_x, a_y, b_x, b_y)
                     min_dist = min(min_dist, dist)
                 
                 wall_dist[i, j] = min_dist
@@ -172,26 +198,27 @@ class MetricComputer:
         if self._metrics is None:
             self.compute()
         
-        m = self._metrics
-        residual_x = (m.Si_x[1:, :] - m.Si_x[:-1, :] + 
+        m: FVMMetrics = self._metrics  # type: ignore[assignment]
+        residual_x: NDArrayFloat = (m.Si_x[1:, :] - m.Si_x[:-1, :] + 
                       m.Sj_x[:, 1:] - m.Sj_x[:, :-1])
-        residual_y = (m.Si_y[1:, :] - m.Si_y[:-1, :] + 
+        residual_y: NDArrayFloat = (m.Si_y[1:, :] - m.Si_y[:-1, :] + 
                       m.Sj_y[:, 1:] - m.Sj_y[:, :-1])
         
-        perimeter = (m.Si_mag[:-1, :] + m.Si_mag[1:, :] + 
+        perimeter: NDArrayFloat = (m.Si_mag[:-1, :] + m.Si_mag[1:, :] + 
                      m.Sj_mag[:, :-1] + m.Sj_mag[:, 1:])
         
-        rel_residual_x = np.abs(residual_x) / (perimeter + 1e-30)
-        rel_residual_y = np.abs(residual_y) / (perimeter + 1e-30)
+        rel_residual_x: NDArrayFloat = np.abs(residual_x) / (perimeter + 1e-30)
+        rel_residual_y: NDArrayFloat = np.abs(residual_y) / (perimeter + 1e-30)
         
-        max_x = np.max(np.abs(residual_x))
-        max_y = np.max(np.abs(residual_y))
-        mean_x = np.mean(np.abs(residual_x))
-        mean_y = np.mean(np.abs(residual_y))
+        max_x: float = float(np.max(np.abs(residual_x)))
+        max_y: float = float(np.max(np.abs(residual_y)))
+        mean_x: float = float(np.mean(np.abs(residual_x)))
+        mean_y: float = float(np.mean(np.abs(residual_y)))
         
-        max_rel = max(np.max(rel_residual_x), np.max(rel_residual_y))
-        passed = max_rel < tol
+        max_rel: float = float(max(np.max(rel_residual_x), np.max(rel_residual_y)))
+        passed: bool = max_rel < tol
         
+        message: str
         if passed:
             message = f"GCL satisfied (max relative residual: {max_rel:.2e})"
         else:
@@ -207,7 +234,7 @@ class MetricComputer:
         )
 
 
-def compute_metrics(X: np.ndarray, Y: np.ndarray, wall_j: int = 0) -> FVMMetrics:
+def compute_metrics(X: NDArrayFloat, Y: NDArrayFloat, wall_j: int = 0) -> FVMMetrics:
     """Convenience function to compute FVM metrics."""
-    computer = MetricComputer(X, Y, wall_j)
+    computer: MetricComputer = MetricComputer(X, Y, wall_j)
     return computer.compute()

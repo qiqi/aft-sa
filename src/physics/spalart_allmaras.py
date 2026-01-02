@@ -12,52 +12,29 @@ Robustness:
     allowing the Maximum Principle to fill negative regions via diffusion.
 """
 
+from typing import Tuple, Union
 from .jax_config import jax, jnp
+
+ArrayLike = Union[jnp.ndarray, float]
 
 
 @jax.jit
-def fv1(nuHat):
-    """
-    Compute fv1 = chi³/(chi³ + cv1³) and d(fv1)/d(nuHat).
-    
-    Parameters
-    ----------
-    nuHat : jnp.ndarray
-        SA working variable (any shape).
-        
-    Returns
-    -------
-    val : jnp.ndarray
-        fv1 value.
-    grad : jnp.ndarray
-        d(fv1)/d(nuHat).
-    """
-    cv1 = 7.1
-    chi = nuHat
-    chi3 = chi ** 3
-    denom = chi3 + cv1 ** 3
-    val = chi3 / denom
-    grad = (3 * chi**2 * cv1**3) / (denom ** 2)
+def fv1(nuHat: ArrayLike) -> Tuple[jnp.ndarray, jnp.ndarray]:
+    """Compute fv1 = chi³/(chi³ + cv1³) and d(fv1)/d(nuHat)."""
+    cv1: float = 7.1
+    chi: jnp.ndarray = nuHat
+    chi3: jnp.ndarray = chi ** 3
+    denom: jnp.ndarray = chi3 + cv1 ** 3
+    val: jnp.ndarray = chi3 / denom
+    grad: jnp.ndarray = (3 * chi**2 * cv1**3) / (denom ** 2)
     return val, grad
 
 
 @jax.jit
-def fv1_value(nuHat):
-    """
-    Compute fv1 value only (for autograd).
-    
-    Parameters
-    ----------
-    nuHat : jnp.ndarray
-        SA working variable (any shape).
-        
-    Returns
-    -------
-    val : jnp.ndarray
-        fv1 value.
-    """
-    cv1 = 7.1
-    chi3 = nuHat ** 3
+def fv1_value(nuHat: ArrayLike) -> jnp.ndarray:
+    """Compute fv1 value only (for autograd)."""
+    cv1: float = 7.1
+    chi3: jnp.ndarray = nuHat ** 3
     return chi3 / (chi3 + cv1 ** 3)
 
 
