@@ -97,6 +97,11 @@ class RANSSolver:
         self.iteration_history = []  # Track which iteration each residual corresponds to
         self.converged = False
         
+        # Rolling buffer for divergence history (recent snapshots before divergence)
+        from collections import deque
+        div_history_size = self.config.divergence_history if self.config.divergence_history > 0 else 0
+        self._divergence_buffer = deque(maxlen=div_history_size) if div_history_size > 0 else None
+        
         self._load_grid(grid_file)
         self._compute_metrics()
         self._initialize_state()
@@ -549,6 +554,23 @@ class RANSSolver:
                 print(f"{self.iteration:>8d} {res_rms:>14.6e} {cfl:>8.2f}  "
                       f"CL={forces.CL:>8.4f} CD={forces.CD:>8.5f} "
                       f"(p:{forces.CD_p:>7.5f} f:{forces.CD_f:>7.5f})")
+                
+                # Store state in divergence buffer (rolling history)
+                if self._divergence_buffer is not None:
+                    R_field_copy = np.array(self.R_jax)
+                    Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
+                    C_pt = compute_total_pressure_loss(
+                        Q_int, self.freestream.p_inf,
+                        self.freestream.u_inf, self.freestream.v_inf
+                    )
+                    self._divergence_buffer.append({
+                        'Q': self.Q.copy(),
+                        'iteration': self.iteration,
+                        'residual': res_rms,
+                        'cfl': cfl,
+                        'C_pt': C_pt,
+                        'residual_field': R_field_copy,
+                    })
             
             if need_snapshot:
                 if not need_print:  # Only sync if not already done
@@ -580,9 +602,25 @@ class RANSSolver:
                 print(f"Residual: {res_rms:.6e} (initial: {initial_residual:.6e})")
                 print(f"{'='*60}")
                 
-                # Capture divergence dump for HTML visualization
+                # Capture divergence dump(s) for HTML visualization
                 if self.config.html_animation:
                     self.sync_to_cpu()
+                    
+                    # First, dump all snapshots from the divergence buffer (history before divergence)
+                    n_history_dumps = 0
+                    if self._divergence_buffer:
+                        for buf_snap in self._divergence_buffer:
+                            self.plotter.store_snapshot(
+                                buf_snap['Q'], buf_snap['iteration'], self.residual_history,
+                                cfl=buf_snap['cfl'], C_pt=buf_snap['C_pt'], 
+                                residual_field=buf_snap['residual_field'],
+                                freestream=self.freestream,
+                                iteration_history=self.iteration_history,
+                                is_divergence_dump=True
+                            )
+                            n_history_dumps += 1
+                    
+                    # Also capture current state at divergence detection
                     R_field = np.array(self.R_jax)
                     Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
                     C_pt = compute_total_pressure_loss(
@@ -596,7 +634,9 @@ class RANSSolver:
                         iteration_history=self.iteration_history,
                         is_divergence_dump=True
                     )
-                    print("  Divergence snapshot captured for HTML visualization")
+                    
+                    total_dumps = n_history_dumps + 1
+                    print(f"  Divergence snapshots captured: {total_dumps} ({n_history_dumps} from history + 1 current)")
                 break
         
         else:

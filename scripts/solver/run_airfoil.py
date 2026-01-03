@@ -238,6 +238,11 @@ Examples:
     solver.iteration_history = []  # Track which iteration each residual corresponds to
     solver.converged = False
     
+    # Rolling buffer for divergence history
+    from collections import deque
+    div_history_size = config.divergence_history if config.divergence_history > 0 else 0
+    solver._divergence_buffer = deque(maxlen=div_history_size) if div_history_size > 0 else None
+    
     # Initialize components
     solver._compute_metrics()
     solver._initialize_state()

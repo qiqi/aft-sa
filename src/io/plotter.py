@@ -289,16 +289,16 @@ class PlotlyDashboard:
         ]
         
         if has_wall_dist:
-            subplot_titles.extend(['Wall Distance (d/c)', ''])  # Wall dist spans both columns
+            subplot_titles.extend(['Wall Distance (d/c)', ''])  # Wall dist in left column only
         
         specs = [
             [{"type": "xy"}, {"type": "xy"}],
             [{"type": "xy"}, {"type": "xy"}],
             [{"type": "xy"}, {"type": "xy"}],
-            [{"type": "scatter"}, {"type": "scatter"}],  # Convergence in left column only
+            [{"type": "scatter", "colspan": 2}, None],  # Convergence spans both columns
         ]
         if has_wall_dist:
-            specs.append([{"type": "xy", "colspan": 2}, None])  # Wall distance spans both columns
+            specs.append([{"type": "xy"}, {"type": "xy"}])  # Wall distance in left column only
         
         fig = make_subplots(
             rows=n_rows, cols=2,
@@ -530,6 +530,9 @@ class PlotlyDashboard:
         
         chi_cfg = coloraxis_config['chi']
         
+        # Create set of divergence iterations for fast lookup
+        divergence_iters = {s.iteration for s in self.divergence_snapshots}
+        
         frames = []
         for i, snap in enumerate(all_snapshots):
             # Sanitize all data for this frame
@@ -582,10 +585,10 @@ class PlotlyDashboard:
             snapshot_iters = [s.iteration for s in snapshots_so_far]
             snapshot_res = [s.residual for s in snapshots_so_far]
             
-            # Color divergence snapshots differently
+            # Color divergence snapshots differently (use iteration set for comparison)
             colors = []
             for s in snapshots_so_far:
-                if s in self.divergence_snapshots:
+                if s.iteration in divergence_iters:
                     colors.append('orange')
                 else:
                     colors.append('red')
@@ -613,7 +616,7 @@ class PlotlyDashboard:
                     frame=dict(duration=100, redraw=True),
                     transition=dict(duration=0)
                 )],
-                label=f"{snap.iteration}{'*' if snap in self.divergence_snapshots else ''}",
+                label=f"{snap.iteration}{'*' if snap.iteration in divergence_iters else ''}",
             )
             for snap in all_snapshots
         ]
@@ -791,13 +794,14 @@ class PlotlyDashboard:
             fig.update_xaxes(title_text='x', range=[-0.5, 1.5], matches='x', row=row, col=col)
             fig.update_yaxes(title_text='y', range=[-0.5625, 0.5625], matches='y', row=row, col=col)
         
-        # Convergence history plot (row 4, col 1) - same size as other 2D plots, scalable
-        fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, row=4, col=1)
-        fig.update_yaxes(title_text='Residual', matches=None, type='log', autorange=True, row=4, col=1)
+        # Convergence history plot (row 4, col 1, spanning both columns) - keep independent, NOT zoomable
+        fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, fixedrange=True, row=4, col=1)
+        fig.update_yaxes(title_text='Residual', matches=None, type='log', autorange=True, fixedrange=True, row=4, col=1)
         
-        # Hide the empty right column in row 4
-        fig.update_xaxes(visible=False, row=4, col=2)
-        fig.update_yaxes(visible=False, row=4, col=2)
+        # Hide the empty right column in row 5 (wall distance)
+        if has_wall_dist:
+            fig.update_xaxes(visible=False, row=5, col=2)
+            fig.update_yaxes(visible=False, row=5, col=2)
         
         fig.write_html(str(output_path), auto_play=False)
         
