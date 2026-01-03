@@ -27,12 +27,6 @@ from .rans_solver import (
     SolverConfig,
 )
 
-from .multigrid import (
-    MultigridLevel,
-    MultigridHierarchy,
-    build_multigrid_hierarchy,
-)
-
 __all__ = [
     'TimeStepConfig',
     'SpectralRadius',
@@ -50,7 +44,4 @@ __all__ = [
     'InletOutletBC',
     'RANSSolver',
     'SolverConfig',
-    'MultigridLevel',
-    'MultigridHierarchy',
-    'build_multigrid_hierarchy',
 ]

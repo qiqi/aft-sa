@@ -62,24 +62,10 @@ def main():
                         help="Artificial compressibility parameter (default: 10.0)")
     parser.add_argument("--irs", type=float, default=1.0,
                         help="Implicit Residual Smoothing epsilon (0=disabled, default: 1.0)")
+    parser.add_argument("--jax", action="store_true",
+                        help="Use JAX GPU backend instead of Numba CPU")
     
-    # Multigrid options
-    parser.add_argument("--multigrid", "-mg", action="store_true",
-                        help="Enable FAS multigrid acceleration")
-    parser.add_argument("--mg-levels", type=int, default=4,
-                        help="Maximum multigrid levels (default: 4)")
-    parser.add_argument("--mg-nu1", type=int, default=2,
-                        help="Pre-smoothing iterations per level (default: 2)")
-    parser.add_argument("--mg-nu2", type=int, default=2,
-                        help="Post-smoothing iterations per level (default: 2)")
-    parser.add_argument("--mg-omega", type=float, default=0.5,
-                        help="Multigrid correction relaxation factor (default: 0.5)")
-    parser.add_argument("--mg-diss-scale", type=float, default=2.0,
-                        help="Dissipation (k4) scaling per coarse level (default: 2.0)")
-    parser.add_argument("--mg-coarse-cfl", type=float, default=0.5,
-                        help="CFL factor for coarse levels (default: 0.5, RK3 without IRS)")
-    
-    # Grid generation options (nodes = cells + 1, power-of-2 cells for multigrid)
+    # Grid generation options (nodes = cells + 1)
     parser.add_argument("--n-surface", type=int, default=257,
                         help="Surface nodes for grid generation (default: 257 = 256 cells)")
     parser.add_argument("--n-normal", type=int, default=65,
@@ -161,6 +147,7 @@ def main():
     
     # Configure solver with IRS for stability
     # html_animation=True (default) -> HTML output, False -> PDF output
+    backend = "jax" if args.jax else "numpy"
     config = SolverConfig(
         mach=args.mach,
         alpha=args.alpha,
@@ -182,14 +169,7 @@ def main():
         n_wake=args.n_wake,
         html_animation=not args.pdf,  # True=HTML (default), False=PDF
         divergence_history=args.div_history,
-        # Multigrid options
-        use_multigrid=args.multigrid,
-        mg_levels=args.mg_levels,
-        mg_nu1=args.mg_nu1,
-        mg_nu2=args.mg_nu2,
-        mg_omega=args.mg_omega,
-        mg_dissipation_scaling=args.mg_diss_scale,
-        mg_coarse_cfl=args.mg_coarse_cfl,
+        backend=backend,
     )
     
     # Create solver with pre-loaded grid
@@ -206,19 +186,14 @@ def main():
     # Initialize components
     solver._compute_metrics()
     solver._initialize_state()
-    
-    # Initialize multigrid if enabled
-    solver.mg_hierarchy = None
-    if config.use_multigrid:
-        solver._initialize_multigrid()
-    
     solver._initialize_output()
     
     print(f"\nGrid size: {solver.NI} x {solver.NJ} cells")
     print(f"Reynolds: {args.reynolds:.2e}")
-    mg_info = f" + Multigrid ({args.mg_levels} levels)" if args.multigrid else ""
     output_fmt = "PDF" if args.pdf else "HTML"
-    print(f"Target CFL: {args.cfl} with IRS ε={args.irs}{mg_info}")
+    backend_info = "JAX GPU" if args.jax else "Numba CPU"
+    print(f"Backend: {backend_info}")
+    print(f"Target CFL: {args.cfl} with IRS ε={args.irs}")
     print(f"Output: {output_fmt} snapshots every {args.diagnostic_freq} iterations")
     
     # Run

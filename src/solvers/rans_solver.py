@@ -2,6 +2,8 @@
 RANS Solver for 2D Incompressible Flow using Artificial Compressibility.
 
 State vector: Q = [p, u, v, ν̃]
+
+Supports both NumPy/Numba (CPU) and JAX (GPU) backends.
 """
 
 import numpy as np
@@ -17,6 +19,7 @@ from ..numerics.forces import compute_aerodynamic_forces, AeroForces
 from ..numerics.gradients import compute_gradients, GradientMetrics
 from ..numerics.viscous_fluxes import add_viscous_fluxes
 from ..numerics.smoothing import apply_residual_smoothing
+from ..numerics.explicit_smoothing import apply_explicit_smoothing
 from .boundary_conditions import (
     FreestreamConditions, 
     BoundaryConditions,
@@ -24,7 +27,6 @@ from .boundary_conditions import (
     apply_initial_wall_damping,
 )
 from .time_stepping import compute_local_timestep, TimeStepConfig
-from .multigrid import MultigridHierarchy, build_multigrid_hierarchy
 from ..io.output import VTKWriter
 from ..io.plotter import PlotlyDashboard
 from ..numerics.forces import compute_surface_distributions, create_surface_vtk_fields
@@ -34,6 +36,19 @@ from ..numerics.diagnostics import (
     compute_solution_bounds,
     compute_residual_statistics
 )
+
+# JAX imports (optional)
+try:
+    from ..physics.jax_config import jax, jnp
+    from ..numerics.fluxes import compute_fluxes_jax
+    from ..numerics.gradients import compute_gradients_jax
+    from ..numerics.viscous_fluxes import compute_viscous_fluxes_jax
+    from ..numerics.explicit_smoothing import smooth_explicit_jax
+    from .time_stepping import compute_local_timestep_jax
+    from .boundary_conditions import apply_bc_jax
+    JAX_AVAILABLE = True
+except ImportError:
+    JAX_AVAILABLE = False
 
 
 @dataclass
@@ -57,18 +72,15 @@ class SolverConfig:
     wall_damping_length: float = 0.1
     jst_k4: float = 0.04
     irs_epsilon: float = 0.0
+    # Explicit smoothing (preferred over IRS for GPU)
+    smoothing_type: str = "explicit"  # "explicit", "implicit", or "none"
+    smoothing_epsilon: float = 0.2
+    smoothing_passes: int = 2
     n_wake: int = 30
     html_animation: bool = True
     divergence_history: int = 0
-    use_multigrid: bool = False
-    mg_levels: int = 4
-    mg_nu1: int = 1
-    mg_nu2: int = 1
-    mg_min_size: int = 8
-    mg_omega: float = 0.5
-    mg_use_injection: bool = True
-    mg_dissipation_scaling: float = 2.0
-    mg_coarse_cfl: float = 0.5
+    # Backend selection
+    backend: str = "numpy"  # "numpy" (Numba CPU) or "jax" (GPU)
 
 
 class RANSSolver:
@@ -94,11 +106,6 @@ class RANSSolver:
         self._load_grid(grid_file)
         self._compute_metrics()
         self._initialize_state()
-        
-        self.mg_hierarchy = None
-        if self.config.use_multigrid:
-            self._initialize_multigrid()
-        
         self._initialize_output()
         
         print(f"\n{'='*60}")
@@ -197,7 +204,8 @@ class RANSSolver:
         
         self.freestream = FreestreamConditions.from_mach_alpha(
             mach=self.config.mach,
-            alpha_deg=self.config.alpha
+            alpha_deg=self.config.alpha,
+            reynolds=self.config.reynolds
         )
         
         self.Q = initialize_state(self.NI, self.NJ, self.freestream)
@@ -228,27 +236,70 @@ class RANSSolver:
         print(f"  Far-field BC: Characteristic (non-reflecting)")
         print(f"  Wall damping applied (L={self.config.wall_damping_length})")
     
-    def _initialize_multigrid(self):
-        """Initialize multigrid hierarchy for FAS scheme."""
-        print(f"  Initializing multigrid hierarchy...")
+    def _initialize_jax(self):
+        """Initialize JAX arrays for GPU computation."""
+        if not JAX_AVAILABLE:
+            raise RuntimeError("JAX not available. Install with: pip install jax[cuda12]")
         
-        self.mg_hierarchy = build_multigrid_hierarchy(
-            X=self.X,
-            Y=self.Y,
-            Q=self.Q,
-            freestream=self.freestream,
-            n_wake=getattr(self.config, 'n_wake', 0),
-            beta=self.config.beta,
-            min_size=self.config.mg_min_size,
-            max_levels=self.config.mg_levels,
-            base_k4=self.config.jst_k4,
-            dissipation_scaling=self.config.mg_dissipation_scaling,
-            coarse_cfl_factor=self.config.mg_coarse_cfl
-        )
+        # Force CUDA backend
+        jax.config.update('jax_platform_name', 'cuda')
         
-        print(f"  Built {self.mg_hierarchy.num_levels} multigrid levels:")
-        for i, lvl in enumerate(self.mg_hierarchy.levels):
-            print(f"    Level {i}: {lvl.NI} x {lvl.NJ} (k4={lvl.k4:.4f}, cfl_scale={lvl.cfl_scale:.2f})")
+        print(f"  JAX backend initialized on: {jax.devices()[0]}")
+        
+        # Transfer arrays to GPU
+        self.Q_jax = jax.device_put(jnp.array(self.Q))
+        self.Si_x_jax = jax.device_put(jnp.array(self.metrics.Si_x))
+        self.Si_y_jax = jax.device_put(jnp.array(self.metrics.Si_y))
+        self.Sj_x_jax = jax.device_put(jnp.array(self.metrics.Sj_x))
+        self.Sj_y_jax = jax.device_put(jnp.array(self.metrics.Sj_y))
+        self.volume_jax = jax.device_put(jnp.array(self.metrics.volume))
+        
+        # Farfield normals for BC
+        Sj_x_ff = self.metrics.Sj_x[:, -1]
+        Sj_y_ff = self.metrics.Sj_y[:, -1]
+        Sj_mag = np.sqrt(Sj_x_ff**2 + Sj_y_ff**2) + 1e-12
+        self.nx_ff_jax = jax.device_put(jnp.array(Sj_x_ff / Sj_mag))
+        self.ny_ff_jax = jax.device_put(jnp.array(Sj_y_ff / Sj_mag))
+        
+        # Pre-compute laminar viscosity
+        self.mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
+        self.mu_eff_jax = jax.device_put(jnp.full((self.NI, self.NJ), self.mu_laminar))
+        
+        # Warmup JIT compilation
+        print("  Warming up JIT compilation...")
+        self._warmup_jax()
+        print("  JIT compilation complete.")
+    
+    def _warmup_jax(self):
+        """Warm up JAX JIT compilation with dummy iterations."""
+        nghost = NGHOST
+        k4 = self.config.jst_k4
+        beta = self.config.beta
+        cfl = self.config.cfl_start
+        
+        # Run a few iterations to trigger JIT
+        Q_test = self.Q_jax
+        for _ in range(3):
+            dt = compute_local_timestep_jax(
+                Q_test, self.Si_x_jax, self.Si_y_jax, 
+                self.Sj_x_jax, self.Sj_y_jax, self.volume_jax,
+                beta, cfl, nghost, nu=self.mu_laminar
+            )
+            R = compute_fluxes_jax(
+                Q_test, self.Si_x_jax, self.Si_y_jax, 
+                self.Sj_x_jax, self.Sj_y_jax, beta, k4, nghost
+            )
+            grad = compute_gradients_jax(
+                Q_test, self.Si_x_jax, self.Si_y_jax, 
+                self.Sj_x_jax, self.Sj_y_jax, self.volume_jax, nghost
+            )
+            R_visc = compute_viscous_fluxes_jax(
+                grad, self.Si_x_jax, self.Si_y_jax, 
+                self.Sj_x_jax, self.Sj_y_jax, self.mu_eff_jax
+            )
+            R = R + R_visc
+            R = smooth_explicit_jax(R, 0.2, 2)
+        jax.block_until_ready(R)
     
     def _initialize_output(self):
         """Initialize VTK writer and HTML animation for output."""
@@ -262,7 +313,11 @@ class RANSSolver:
             beta=self.config.beta
         )
         
-        self.plotter = PlotlyDashboard()
+        self.plotter = PlotlyDashboard(reynolds=self.config.reynolds)
+        
+        # Initialize JAX if backend is jax
+        if self.config.backend == "jax":
+            self._initialize_jax()
         
         if self.config.vtk_output_freq > 0:
             surface_fields = self._compute_surface_fields()
@@ -275,13 +330,10 @@ class RANSSolver:
                 self.freestream.u_inf, self.freestream.v_inf
             )
             initial_R = self._compute_residual(self.Q)
-            mg_levels_data = None
-            if self.config.use_multigrid and self.mg_hierarchy is not None:
-                mg_levels_data = self._get_mg_level_snapshots()
             self.plotter.store_snapshot(
                 self.Q, 0, self.residual_history,
                 cfl=self._get_cfl(0), C_pt=C_pt, residual_field=initial_R,
-                mg_levels=mg_levels_data, freestream=self.freestream
+                freestream=self.freestream
             )
         
         print(f"  Output directory: {output_path}")
@@ -366,8 +418,32 @@ class RANSSolver:
         
         return rms
     
+    def _apply_smoothing(self, R: np.ndarray) -> np.ndarray:
+        """Apply residual smoothing based on configuration."""
+        smoothing_type = getattr(self.config, 'smoothing_type', 'none')
+        
+        if smoothing_type == "explicit":
+            epsilon = getattr(self.config, 'smoothing_epsilon', 0.2)
+            n_passes = getattr(self.config, 'smoothing_passes', 2)
+            if epsilon > 0.0 and n_passes > 0:
+                return apply_explicit_smoothing(R, epsilon, n_passes)
+        elif smoothing_type == "implicit":
+            epsilon = self.config.irs_epsilon
+            if epsilon > 0.0:
+                apply_residual_smoothing(R, epsilon)
+        # else: no smoothing
+        
+        return R
+    
     def step(self) -> Tuple[float, np.ndarray]:
         """Perform one iteration of the solver."""
+        # Dispatch to JAX backend if configured
+        if self.config.backend == "jax" and JAX_AVAILABLE:
+            return self._step_jax()
+        return self._step_numpy()
+    
+    def _step_numpy(self) -> Tuple[float, np.ndarray]:
+        """Perform one iteration using NumPy/Numba backend."""
         cfl = self._get_cfl(self.iteration)
         ts_config = TimeStepConfig(cfl=cfl)
         nu = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
@@ -391,8 +467,8 @@ class RANSSolver:
             Qk = self._apply_bc(Qk)
             R = self._compute_residual(Qk)
             
-            if self.config.irs_epsilon > 0.0:
-                apply_residual_smoothing(R, self.config.irs_epsilon)
+            # Apply residual smoothing
+            R = self._apply_smoothing(R)
             
             Qk = Q0.copy()
             Qk[NGHOST:-NGHOST, NGHOST:-NGHOST, :] += alpha * (dt / self.metrics.volume)[:, :, np.newaxis] * R
@@ -405,161 +481,101 @@ class RANSSolver:
         
         return residual_rms, final_residual
     
-    def step_multigrid(self) -> Tuple[float, np.ndarray]:
-        """Perform one V-cycle iteration with multigrid acceleration."""
-        if self.mg_hierarchy is None:
-            raise RuntimeError("Multigrid not initialized. Set use_multigrid=True.")
+    def _step_jax(self) -> Tuple[float, np.ndarray]:
+        """Perform one iteration using JAX GPU backend.
         
-        self.mg_hierarchy.levels[0].Q[:] = self.Q
+        Note: Boundary conditions run on CPU (NumPy) because JAX's functional
+        array updates (.at[].set()) are slow for the complex BC logic.
+        The GPU acceleration is still significant for the main computation.
+        """
+        nghost = NGHOST
         cfl = self._get_cfl(self.iteration)
-        ts_config = TimeStepConfig(cfl=cfl)
-        nu = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
+        k4 = self.config.jst_k4
+        beta = self.config.beta
+        nu = self.mu_laminar
         
-        dt = compute_local_timestep(
-            self.Q,
-            self.metrics.Si_x, self.metrics.Si_y,
-            self.metrics.Sj_x, self.metrics.Sj_y,
-            self.metrics.volume,
-            self.config.beta,
-            ts_config,
-            nu=nu
+        # Compute timestep on GPU
+        dt = compute_local_timestep_jax(
+            self.Q_jax, self.Si_x_jax, self.Si_y_jax,
+            self.Sj_x_jax, self.Sj_y_jax, self.volume_jax,
+            beta, cfl, nghost, nu=nu
         )
-        self.mg_hierarchy.levels[0].dt[:] = dt
         
-        self._run_v_cycle(0)
-        self.Q = self.mg_hierarchy.levels[0].Q.copy()
-        final_residual = self._compute_residual(self.Q)
+        # Smoothing params
+        epsilon = getattr(self.config, 'smoothing_epsilon', 0.2)
+        n_passes = getattr(self.config, 'smoothing_passes', 2)
+        
+        # Transfer to CPU for BC, compute on GPU, transfer back for BC
+        # This hybrid approach is faster than pure JAX BCs
+        Q_np = np.array(self.Q_jax)
+        Q0_np = Q_np.copy()
+        
+        alphas = [0.25, 0.166666667, 0.375, 0.5, 1.0]
+        
+        for alpha in alphas:
+            # BC on CPU (fast NumPy)
+            Q_np = self.bc.apply(Q_np)
+            
+            # Transfer to GPU for heavy computation
+            Q_jax = jax.device_put(jnp.array(Q_np))
+            
+            # Convective flux on GPU
+            R = compute_fluxes_jax(
+                Q_jax, self.Si_x_jax, self.Si_y_jax,
+                self.Sj_x_jax, self.Sj_y_jax, beta, k4, nghost
+            )
+            
+            # Gradients + viscous flux on GPU
+            grad = compute_gradients_jax(
+                Q_jax, self.Si_x_jax, self.Si_y_jax,
+                self.Sj_x_jax, self.Sj_y_jax, self.volume_jax, nghost
+            )
+            
+            # Compute turbulent viscosity from SA variable
+            Q_int = Q_jax[nghost:-nghost, nghost:-nghost, :]
+            nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
+            if nu > 0:
+                chi = nu_tilde / nu
+                cv1 = 7.1
+                chi3 = chi ** 3
+                f_v1 = chi3 / (chi3 + cv1 ** 3)
+                mu_t = nu_tilde * f_v1
+                mu_eff = nu + mu_t
+            else:
+                mu_eff = self.mu_eff_jax
+            
+            R_visc = compute_viscous_fluxes_jax(
+                grad, self.Si_x_jax, self.Si_y_jax,
+                self.Sj_x_jax, self.Sj_y_jax, mu_eff
+            )
+            R = R + R_visc
+            
+            # Explicit smoothing on GPU
+            if epsilon > 0 and n_passes > 0:
+                R = smooth_explicit_jax(R, epsilon, n_passes)
+            
+            # Update state on GPU
+            R_np = np.array(R)
+            dt_np = np.array(dt)
+            
+            Q_np = Q0_np.copy()
+            Q_np[nghost:-nghost, nghost:-nghost, :] += \
+                alpha * (dt_np / self.metrics.volume)[:, :, np.newaxis] * R_np
+        
+        # Final BC on CPU
+        Q_np = self.bc.apply(Q_np)
+        
+        # Store results
+        self.Q = Q_np
+        self.Q_jax = jax.device_put(jnp.array(Q_np))
+        
+        # Compute final residual for monitoring
+        final_residual = self._compute_residual(Q_np)
         residual_rms = self._compute_residual_rms(final_residual)
+        
         self.iteration += 1
         
         return residual_rms, final_residual
-    
-    def _run_v_cycle(self, level: int):
-        """Run recursive V-cycle from given level using FAS algorithm."""
-        lvl = self.mg_hierarchy.levels[level]
-        
-        for _ in range(self.config.mg_nu1):
-            self._smooth_level(level)
-        
-        if level >= self.mg_hierarchy.num_levels - 1:
-            for _ in range(self.config.mg_nu1 + self.config.mg_nu2):
-                self._smooth_level(level)
-            return
-        
-        lvl.Q = lvl.bc.apply(lvl.Q)
-        lvl.R = self._compute_residual_level(level)
-        
-        self.mg_hierarchy.restrict_to_coarse(level)
-        
-        coarse = self.mg_hierarchy.levels[level + 1]
-        coarse.Q = coarse.bc.apply(coarse.Q)
-        R_coarse = self._compute_residual_level(level + 1)
-        coarse.forcing = coarse.R - R_coarse
-        coarse.Q_old[:] = coarse.Q
-        
-        self._run_v_cycle(level + 1)
-        
-        lvl.Q_before_correction = lvl.Q.copy()
-        self.mg_hierarchy.prolongate_correction(level + 1, 
-                                                 use_injection=self.config.mg_use_injection)
-        
-        omega = self.config.mg_omega
-        if omega < 1.0:
-            lvl.Q = lvl.Q_before_correction + omega * (lvl.Q - lvl.Q_before_correction)
-        
-        # Average corrections at wake edges to maintain periodicity
-        Q_int = lvl.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
-        Q_before = lvl.Q_before_correction[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
-        dQ_left = Q_int[0, :, :] - Q_before[0, :, :]
-        dQ_right = Q_int[-1, :, :] - Q_before[-1, :, :]
-        dQ_avg = 0.5 * (dQ_left + dQ_right)
-        Q_int[0, :, :] = Q_before[0, :, :] + dQ_avg
-        Q_int[-1, :, :] = Q_before[-1, :, :] + dQ_avg
-        
-        lvl.Q = lvl.bc.apply(lvl.Q)
-        
-        for _ in range(self.config.mg_nu2):
-            self._smooth_level(level)
-    
-    def _smooth_level(self, level: int):
-        """Perform one smoothing step on a multigrid level using RK."""
-        lvl = self.mg_hierarchy.levels[level]
-        
-        if level > 0:
-            from src.numerics.multigrid import restrict_timestep
-            fine = self.mg_hierarchy.levels[level - 1]
-            restrict_timestep(fine.dt, lvl.dt)
-        
-        forcing = lvl.forcing if level > 0 else None
-        
-        Q0 = lvl.Q.copy()
-        Qk = lvl.Q.copy()
-        
-        if level == 0:
-            alphas = [0.25, 0.166666667, 0.375, 0.5, 1.0]
-        else:
-            alphas = [0.333333, 0.5, 1.0]
-        
-        for alpha in alphas:
-            Qk = lvl.bc.apply(Qk)
-            R = self._compute_residual_level(level, Q=Qk, forcing=forcing)
-            
-            if level == 0 and self.config.irs_epsilon > 0.0:
-                apply_residual_smoothing(R, self.config.irs_epsilon)
-            
-            Qk = Q0.copy()
-            dt_scaled = lvl.dt * lvl.cfl_scale
-            Qk[NGHOST:-NGHOST, NGHOST:-NGHOST, :] += alpha * (dt_scaled / lvl.metrics.volume)[:, :, np.newaxis] * R
-        
-        lvl.Q = lvl.bc.apply(Qk)
-    
-    def _compute_residual_level(self, level: int, 
-                                  Q: Optional[np.ndarray] = None,
-                                  forcing: Optional[np.ndarray] = None) -> np.ndarray:
-        """Compute residual on a specific multigrid level."""
-        lvl = self.mg_hierarchy.levels[level]
-        
-        if Q is None:
-            Q = lvl.Q
-        
-        flux_metrics = FluxGridMetrics(
-            Si_x=lvl.metrics.Si_x,
-            Si_y=lvl.metrics.Si_y,
-            Sj_x=lvl.metrics.Sj_x,
-            Sj_y=lvl.metrics.Sj_y,
-            volume=lvl.metrics.volume
-        )
-        
-        grad_metrics = GradientMetrics(
-            Si_x=lvl.metrics.Si_x,
-            Si_y=lvl.metrics.Si_y,
-            Sj_x=lvl.metrics.Sj_x,
-            Sj_y=lvl.metrics.Sj_y,
-            volume=lvl.metrics.volume
-        )
-        
-        return self._compute_residual(Q, forcing, flux_metrics, grad_metrics, k4=lvl.k4)
-    
-    def _get_mg_level_snapshots(self) -> List[Dict[str, np.ndarray]]:
-        """Extract multigrid level data for visualization."""
-        if self.mg_hierarchy is None:
-            return None
-        
-        mg_levels = []
-        for level_idx, lvl in enumerate(self.mg_hierarchy.levels[1:], start=1):
-            Q_int = lvl.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
-            R = self._compute_residual_level(level_idx)
-            residual_rms = np.sqrt(np.mean(R**2, axis=2))
-            
-            mg_levels.append({
-                'p': Q_int[:, :, 0].copy(),
-                'u': Q_int[:, :, 1].copy(),
-                'v': Q_int[:, :, 2].copy(),
-                'xc': lvl.metrics.xc.copy(),
-                'yc': lvl.metrics.yc.copy(),
-                'residual': residual_rms,
-            })
-        return mg_levels if mg_levels else None
     
     def run_steady_state(self) -> bool:
         """Run steady-state simulation to convergence."""
@@ -574,10 +590,7 @@ class RANSSolver:
         initial_residual = None
         
         for n in range(self.config.max_iter):
-            if self.config.use_multigrid:
-                res_rms, R_field = self.step_multigrid()
-            else:
-                res_rms, R_field = self.step()
+            res_rms, R_field = self.step()
             
             self.residual_history.append(res_rms)
             
@@ -606,14 +619,10 @@ class RANSSolver:
                     Q_int, self.freestream.p_inf,
                     self.freestream.u_inf, self.freestream.v_inf
                 )
-                mg_levels_data = None
-                if self.config.use_multigrid and self.mg_hierarchy is not None:
-                    mg_levels_data = self._get_mg_level_snapshots()
-                
                 self.plotter.store_snapshot(
                     self.Q, self.iteration, self.residual_history,
                     cfl=cfl, C_pt=C_pt, residual_field=R_field,
-                    mg_levels=mg_levels_data, freestream=self.freestream
+                    freestream=self.freestream
                 )
             
             if res_rms < self.config.tol:
@@ -730,7 +739,7 @@ class RANSSolver:
     
     def run_with_diagnostics(self, dump_freq: int = None) -> bool:
         """Run steady-state simulation with enhanced diagnostic output."""
-        from ..io.plotting import plot_flow_field, plot_residual_history, plot_multigrid_levels
+        from ..io.plotting import plot_flow_field, plot_residual_history
         
         if dump_freq is None:
             dump_freq = getattr(self.config, 'diagnostic_freq', 100)
@@ -765,10 +774,7 @@ class RANSSolver:
         )
         
         for n in range(self.config.max_iter):
-            if self.config.use_multigrid:
-                res_rms, R_field = self.step_multigrid()
-            else:
-                res_rms, R_field = self.step()
+            res_rms, R_field = self.step()
             self.residual_history.append(res_rms)
             
             if initial_residual is None:
@@ -796,25 +802,13 @@ class RANSSolver:
                     self.freestream.u_inf, self.freestream.v_inf
                 )
                 
-                # Use multigrid plot (all levels in one PDF) or single-level plot
-                if self.config.use_multigrid and self.mg_hierarchy is not None:
-                    pdf_path = plot_multigrid_levels(
-                        self.mg_hierarchy,
-                        X_fine=self.X, Y_fine=self.Y,
-                        iteration=self.iteration, residual=res_rms, cfl=cfl,
-                        output_dir=str(snapshot_dir),
-                        case_name=self.config.case_name,
-                        C_pt_fine=C_pt, residual_field_fine=R_field,
-                        freestream=self.freestream
-                    )
-                else:
-                    pdf_path = plot_flow_field(
-                        self.X, self.Y, self.Q,
-                        iteration=self.iteration, residual=res_rms, cfl=cfl,
-                        output_dir=str(snapshot_dir),
-                        case_name=self.config.case_name,
-                        C_pt=C_pt, residual_field=R_field
-                    )
+                pdf_path = plot_flow_field(
+                    self.X, self.Y, self.Q,
+                    iteration=self.iteration, residual=res_rms, cfl=cfl,
+                    output_dir=str(snapshot_dir),
+                    case_name=self.config.case_name,
+                    C_pt=C_pt, residual_field=R_field
+                )
                 print(f"         -> Dumped: {pdf_path}")
                 
                 # VTK output with C_pt

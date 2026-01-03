@@ -210,6 +210,50 @@ def compute_wall_distance(X: NDArrayFloat, Y: NDArrayFloat, wall_j: int = 0,
     return d
 
 
+def compute_wall_distance_gridpoints(X: NDArrayFloat, Y: NDArrayFloat, wall_j: int = 0) -> NDArrayFloat:
+    """
+    Compute wall distance using grid-point method only (no segment interpolation).
+    
+    This is a simpler but less accurate method that finds the minimum distance
+    to any wall grid point. For comparison with segment-based method.
+    
+    Parameters
+    ----------
+    X, Y : ndarray
+        Grid coordinates with shape (ni, nj).
+    wall_j : int
+        J-index of the wall (default: 0).
+        
+    Returns
+    -------
+    d : ndarray
+        Wall distance at each grid point, shape (ni, nj).
+    """
+    ni: int
+    nj: int
+    ni, nj = X.shape
+    d: NDArrayFloat = np.zeros((ni, nj))
+    
+    # Wall coordinates
+    x_wall: NDArrayFloat = X[:, wall_j]
+    y_wall: NDArrayFloat = Y[:, wall_j]
+    
+    for i in range(ni):
+        for j in range(nj):
+            if j == wall_j:
+                d[i, j] = 0.0
+                continue
+            
+            px: float = float(X[i, j])
+            py: float = float(Y[i, j])
+            
+            # Minimum distance to any wall grid point
+            dist_to_nodes: NDArrayFloat = np.sqrt((x_wall - px)**2 + (y_wall - py)**2)
+            d[i, j] = float(dist_to_nodes.min())
+    
+    return d
+
+
 def compute_wall_distance_fast(X: NDArrayFloat, Y: NDArrayFloat, wall_j: int = 0) -> NDArrayFloat:
     """Compute wall distance using cumulative distance along grid lines."""
     ni: int

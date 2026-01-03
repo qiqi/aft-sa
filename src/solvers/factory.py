@@ -30,15 +30,11 @@ def create_solver(
     max_iter: int = 10000,
     tol: float = 1e-10,
     jst_k4: float = 0.04,
-    irs_epsilon: float = 1.0,
+    irs_epsilon: float = 0.0,
+    smoothing_type: str = "explicit",
+    smoothing_epsilon: float = 0.2,
+    smoothing_passes: int = 2,
     wall_damping_length: float = 0.1,
-    use_multigrid: bool = False,
-    mg_levels: int = 4,
-    mg_nu1: int = 2,
-    mg_nu2: int = 2,
-    mg_omega: float = 0.5,
-    mg_dissipation_scaling: float = 2.0,
-    mg_coarse_cfl: float = 0.5,
     output_freq: int = 100,
     print_freq: int = 10,
     output_dir: str = "output/solver",
@@ -83,16 +79,12 @@ def create_solver(
         wall_damping_length=wall_damping_length,
         jst_k4=jst_k4,
         irs_epsilon=irs_epsilon,
+        smoothing_type=smoothing_type,
+        smoothing_epsilon=smoothing_epsilon,
+        smoothing_passes=smoothing_passes,
         n_wake=n_wake,
         diagnostic_freq=diagnostic_freq,
         divergence_history=divergence_history,
-        use_multigrid=use_multigrid,
-        mg_levels=mg_levels,
-        mg_nu1=mg_nu1,
-        mg_nu2=mg_nu2,
-        mg_omega=mg_omega,
-        mg_dissipation_scaling=mg_dissipation_scaling,
-        mg_coarse_cfl=mg_coarse_cfl,
     )
     
     solver: RANSSolver = RANSSolver.__new__(RANSSolver)
@@ -107,18 +99,13 @@ def create_solver(
     
     solver._compute_metrics()
     solver._initialize_state()
-    
-    solver.mg_hierarchy = None
-    if config.use_multigrid:
-        solver._initialize_multigrid()
-    
     solver._initialize_output()
     
     if verbose:
         print(f"\nGrid size: {solver.NI} x {solver.NJ} cells")
         print(f"Reynolds: {reynolds:.2e}")
-        mg_info: str = f" + Multigrid ({mg_levels} levels)" if use_multigrid else ""
-        print(f"CFL: {cfl_start} → {cfl_target} (ramp {cfl_ramp_iters} iters), IRS ε={irs_epsilon}{mg_info}")
+        smooth_info: str = f"{smoothing_type} (ε={smoothing_epsilon}, {smoothing_passes} passes)" if smoothing_type != "none" else "none"
+        print(f"CFL: {cfl_start} → {cfl_target} (ramp {cfl_ramp_iters} iters), Smoothing: {smooth_info}")
     
     return solver
 
@@ -137,7 +124,10 @@ def create_solver_quiet(
     max_iter: int = 10000,
     tol: float = 1e-10,
     jst_k4: float = 0.04,
-    irs_epsilon: float = 1.0,
+    irs_epsilon: float = 0.0,
+    smoothing_type: str = "explicit",
+    smoothing_epsilon: float = 0.2,
+    smoothing_passes: int = 2,
     wall_damping_length: float = 0.1,
     print_freq: int = 200,
 ) -> RANSSolver:
@@ -159,6 +149,9 @@ def create_solver_quiet(
         wall_damping_length=wall_damping_length,
         jst_k4=jst_k4,
         irs_epsilon=irs_epsilon,
+        smoothing_type=smoothing_type,
+        smoothing_epsilon=smoothing_epsilon,
+        smoothing_passes=smoothing_passes,
         n_wake=n_wake,
     )
     solver: RANSSolver = RANSSolver.__new__(RANSSolver)
@@ -173,7 +166,6 @@ def create_solver_quiet(
     
     solver._compute_metrics()
     solver._initialize_state()
-    solver.mg_hierarchy = None
     
     class DummyVTKWriter:
         def write(self, *args: object, **kwargs: object) -> None: pass

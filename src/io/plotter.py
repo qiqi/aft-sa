@@ -41,12 +41,13 @@ class Snapshot:
 class PlotlyDashboard:
     """Accumulates CFD solution snapshots and exports as interactive HTML."""
     
-    def __init__(self):
+    def __init__(self, reynolds: float = 6e6):
         self.snapshots: List[Snapshot] = []
         self.residual_history: List[float] = []
         self.p_inf: float = 0.0
         self.u_inf: float = 1.0
         self.v_inf: float = 0.0
+        self.nu_laminar: float = 1.0 / reynolds if reynolds > 0 else 1e-6
     
     def store_snapshot(
         self, 
@@ -153,14 +154,16 @@ class PlotlyDashboard:
         has_mg = snap0.mg_levels is not None and len(snap0.mg_levels) > 0
         
         n_mg_levels = min(len(snap0.mg_levels), 2) if has_mg else 0
-        n_rows = 3 + n_mg_levels
+        # Layout: Row 1-2: field pairs, Row 3: residual + chi, Row 4: convergence (full width), Rows 5+: MG
+        n_rows = 4 + n_mg_levels
         
         subplot_titles = [
             'Pressure (p - p∞)', 
             'Total Pressure Loss (C_pt)' if has_cpt else 'Turbulent Viscosity (ν)',
             'U-velocity (u - u∞)', 'V-velocity (v - v∞)',
             'Residual Field (log₁₀)' if has_res_field else 'Velocity Magnitude',
-            'Convergence History'
+            'χ = ν̃/ν (Turbulent/Laminar Viscosity Ratio)',
+            'Convergence History', ''  # Second column empty for colspan
         ]
         
         for i in range(n_mg_levels):
@@ -169,7 +172,8 @@ class PlotlyDashboard:
         specs = [
             [{"type": "xy"}, {"type": "xy"}],
             [{"type": "xy"}, {"type": "xy"}],
-            [{"type": "xy"}, {"type": "scatter"}],
+            [{"type": "xy"}, {"type": "xy"}],
+            [{"type": "scatter", "colspan": 2}, None],  # Convergence spans both columns
         ]
         for _ in range(n_mg_levels):
             specs.append([{"type": "xy"}, {"type": "xy"}])
@@ -188,6 +192,9 @@ class PlotlyDashboard:
             field5_data = np.log10(snapN.residual_field + 1e-12)
         else:
             field5_data = np.zeros_like(snapN.p)
+        
+        # Chi = nu_hat / nu_laminar (turbulent/laminar viscosity ratio)
+        chi_data = snapN.nu / self.nu_laminar
         
         # Compute GLOBAL symmetric ranges for consistent scaling
         # Pressure: symmetric around 0
@@ -215,6 +222,11 @@ class PlotlyDashboard:
         else:
             res_min, res_max = -3, 0
         
+        # Chi range (log scale for display)
+        chi_vals = [s.nu / self.nu_laminar for s in self.snapshots]
+        chi_max = max(np.log10(v.max() + 1e-12) for v in chi_vals)
+        chi_min = min(np.log10(np.maximum(v, 1e-12).min()) for v in chi_vals)
+        
         # Store ranges for sliders (will be used in layout)
         p_range = p_abs_max
         vel_range = vel_abs_max
@@ -226,19 +238,23 @@ class PlotlyDashboard:
             (snapN.u, 2, 1, 'velocity', True),
             (snapN.v, 2, 2, 'velocity', False),
             (field5_data, 3, 1, 'residual', True),
+            (np.log10(chi_data + 1e-12), 3, 2, 'chi', True),  # Chi plot (log scale)
         ]
         
-        # Colorbar positions - only 3 colorbars, properly spaced
+        # Colorbar positions - 4 colorbars, properly spaced
         coloraxis_config = {
             'pressure': {'colorscale': 'RdBu_r', 'cmin': -p_range, 'cmax': p_range, 
-                         'colorbar': dict(title='Δp', len=0.22, y=0.88, x=1.02, 
+                         'colorbar': dict(title='Δp', len=0.18, y=0.90, x=1.02, 
                                           tickformat='.2f')},
             'velocity': {'colorscale': 'RdBu', 'cmin': -vel_range, 'cmax': vel_range,
-                         'colorbar': dict(title='Δvel', len=0.22, y=0.55, x=1.02,
+                         'colorbar': dict(title='Δvel', len=0.18, y=0.68, x=1.02,
                                           tickformat='.2f')},
             'residual': {'colorscale': 'Hot', 'cmin': res_min, 'cmax': res_max,
-                         'colorbar': dict(title='log₁₀(R)', len=0.22, y=0.22, x=1.02,
+                         'colorbar': dict(title='log₁₀(R)', len=0.18, y=0.46, x=1.02,
                                           tickformat='.1f')},
+            'chi': {'colorscale': 'Viridis', 'cmin': chi_min, 'cmax': chi_max,
+                    'colorbar': dict(title='log₁₀(χ)', len=0.18, y=0.24, x=1.02,
+                                     tickformat='.1f')},
         }
         
         for data, row, col, caxis_group, show_colorbar in contour_configs:
@@ -290,7 +306,7 @@ class PlotlyDashboard:
                 mg_b = np.arange(mg_nj)
                 mg_A, mg_B = np.meshgrid(mg_a, mg_b, indexing='ij')
                 
-                row = 4 + mg_idx
+                row = 5 + mg_idx  # MG levels start at row 5 (after convergence plot)
                 mg_level_info.append((mg_A, mg_B, row))
                 
                 carpet_id_p = f'mg_carpet_p_{mg_idx}'
@@ -354,7 +370,7 @@ class PlotlyDashboard:
                     mode='lines', line=dict(color='blue', width=1.5),
                     showlegend=False, name='Full History',
                 ),
-                row=3, col=2
+                row=4, col=1  # Convergence plot now at row 4, spanning both columns
             )
         
         snapshot_iters = [s.iteration for s in self.snapshots]
@@ -366,15 +382,20 @@ class PlotlyDashboard:
                 marker=dict(color='red', size=10, symbol='circle'),
                 showlegend=False, name='Snapshots',
             ),
-            row=3, col=2
+            row=4, col=1  # Convergence plot now at row 4
         )
         
         # Convergence history y-axis: log scale (x-axis configured at end with matches=None)
         
-        base_contour_indices = [1, 3, 5, 7, 9]
+        # 6 contour plots: pressure, cpt, u, v, residual, chi
+        # Each contour plot has a carpet (even index) and contourcarpet (odd index)
+        # So contour indices are: 1, 3, 5, 7, 9, 11
+        base_contour_indices = [1, 3, 5, 7, 9, 11]
         n_mg_traces = len(mg_contour_indices) * 2
-        residual_marker_idx = 10 + n_mg_traces + 1
+        residual_marker_idx = 12 + n_mg_traces + 1  # Updated for 6 base plots (12 traces) + MG + scatter line
         animated_indices = base_contour_indices + mg_contour_indices + [residual_marker_idx]
+        
+        chi_cfg = coloraxis_config['chi']
         
         frames = []
         for i, snap in enumerate(self.snapshots):
@@ -383,6 +404,9 @@ class PlotlyDashboard:
                 field5 = np.log10(snap.residual_field + 1e-12)
             else:
                 field5 = np.sqrt(snap.u**2 + snap.v**2)
+            
+            # Chi for this snapshot (log scale)
+            snap_chi = np.log10(snap.nu / self.nu_laminar + 1e-12)
             
             frame_data = [
                 go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap.p.flatten(), 
@@ -404,6 +428,10 @@ class PlotlyDashboard:
                 go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=field5.flatten(),
                                  carpet='carpet_3_1', colorscale=r_cfg['colorscale'],
                                  zmin=r_cfg['cmin'], zmax=r_cfg['cmax'],
+                                 contours=dict(coloring='fill', showlines=False), ncontours=50),
+                go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap_chi.flatten(),
+                                 carpet='carpet_3_2', colorscale=chi_cfg['colorscale'],
+                                 zmin=chi_cfg['cmin'], zmax=chi_cfg['cmax'],
                                  contours=dict(coloring='fill', showlines=False), ncontours=50),
             ]
             
@@ -501,6 +529,7 @@ class PlotlyDashboard:
         pressure_traces = [1, 3]  # carpet_1_1 contour, carpet_1_2 contour
         velocity_traces = [5, 7]  # carpet_2_1 contour, carpet_2_2 contour
         residual_traces = [9]     # carpet_3_1 contour
+        chi_traces = [11]         # carpet_3_2 contour (chi = nu_tilde/nu)
         
         # Add MG traces to their groups
         if has_mg:
@@ -513,6 +542,7 @@ class PlotlyDashboard:
         p_steps = make_log_range_steps(p_range, pressure_traces, is_residual=False)
         v_steps = make_log_range_steps(vel_range, velocity_traces, is_residual=False)
         r_steps = make_log_range_steps(res_max, residual_traces, is_residual=True)
+        chi_steps = make_log_range_steps(chi_max, chi_traces, is_residual=True)
         
         fig.update_layout(
             showlegend=False,
@@ -520,7 +550,7 @@ class PlotlyDashboard:
                 dict(
                     type='buttons',
                     showactive=False,
-                    y=1.12, x=0.08, xanchor='right',
+                    y=1.05, x=0.08, xanchor='right',
                     buttons=[
                         dict(
                             label='▶',
@@ -557,13 +587,13 @@ class PlotlyDashboard:
                     ),
                     transition=dict(duration=0),
                     pad=dict(b=5, t=5),
-                    len=0.45, x=0.08, y=1.10,
+                    len=0.42, x=0.08, y=1.04,
                     steps=slider_steps,
                     ticklen=0,
                 ),
-                # Pressure range slider (top row, right side)
+                # Pressure range slider
                 dict(
-                    active=n_steps // 2,  # Default to 1.0x (center)
+                    active=n_steps // 2,
                     yanchor='bottom', xanchor='left',
                     currentvalue=dict(
                         font=dict(size=9),
@@ -572,13 +602,13 @@ class PlotlyDashboard:
                         xanchor='left',
                     ),
                     pad=dict(b=5, t=5),
-                    len=0.14, x=0.55, y=1.10,
+                    len=0.11, x=0.52, y=1.04,
                     steps=p_steps,
                     ticklen=0,
                 ),
                 # Velocity range slider
                 dict(
-                    active=n_steps // 2,  # Default to 1.0x (center)
+                    active=n_steps // 2,
                     yanchor='bottom', xanchor='left',
                     currentvalue=dict(
                         font=dict(size=9),
@@ -587,42 +617,63 @@ class PlotlyDashboard:
                         xanchor='left',
                     ),
                     pad=dict(b=5, t=5),
-                    len=0.14, x=0.70, y=1.10,
+                    len=0.11, x=0.64, y=1.04,
                     steps=v_steps,
                     ticklen=0,
                 ),
-                # Residual max slider (controls max level, always 3 decades range)
+                # Residual max slider
                 dict(
-                    active=n_steps // 2,  # Default to center
+                    active=n_steps // 2,
                     yanchor='bottom', xanchor='left',
                     currentvalue=dict(
                         font=dict(size=9),
-                        prefix='Res max: ',
+                        prefix='Res: ',
                         visible=True,
                         xanchor='left',
                     ),
                     pad=dict(b=5, t=5),
-                    len=0.14, x=0.85, y=1.10,
+                    len=0.11, x=0.76, y=1.04,
                     steps=r_steps,
                     ticklen=0,
                 ),
+                # Chi (ν̃/ν) max slider
+                dict(
+                    active=n_steps // 2,
+                    yanchor='bottom', xanchor='left',
+                    currentvalue=dict(
+                        font=dict(size=9),
+                        prefix='χ: ',
+                        visible=True,
+                        xanchor='left',
+                    ),
+                    pad=dict(b=5, t=5),
+                    len=0.11, x=0.88, y=1.04,
+                    steps=chi_steps,
+                    ticklen=0,
+                ),
             ],
-            height=1000 + (250 * n_mg_levels),
+            # Height sized for ~16:9 aspect ratio per subplot
+            # With 2 columns at ~650px each, 16:9 needs ~365px height per row
+            height=1600 + (400 * n_mg_levels),
             width=1400,
-            margin=dict(t=120),  # Extra top margin for sliders
+            margin=dict(t=80),  # Top margin for sliders
         )
         
         # Link zoom/pan across all contourcarpet plots
         # All field plots share the same x and y ranges (except row 3 col 2 which is scatter)
         # Use 'matches' to link axes, and 'scaleanchor' for aspect ratio
         
-        # First, set up row 1 col 1 as the reference axis with aspect ratio
+        # First, set up row 1 col 1 as the reference axis
+        # For 16:9 aspect ratio subplots with equal data scaling:
+        # x range: [-0.5, 1.5] = 2.0 extent
+        # y range for 16:9: 2.0 * 9/16 = 1.125, so [-0.5625, 0.5625]
         fig.update_xaxes(title_text='x', range=[-0.5, 1.5], scaleanchor='y', scaleratio=1, row=1, col=1)
-        fig.update_yaxes(title_text='y', range=[-0.6, 0.6], row=1, col=1)
+        fig.update_yaxes(title_text='y', range=[-0.5625, 0.5625], row=1, col=1)
         
-        # List of all contourcarpet subplot positions (row, col) - exclude row 3 col 2 (scatter)
-        mg_rows = list(range(4, 4 + n_mg_levels)) if n_mg_levels > 0 else []
-        field_positions = [(1, 1), (1, 2), (2, 1), (2, 2), (3, 1)]
+        # List of all contourcarpet subplot positions (row, col) - rows 1-3 have 2D field plots
+        # Row 4 has convergence (scatter), MG levels start at row 5
+        mg_rows = list(range(5, 5 + n_mg_levels)) if n_mg_levels > 0 else []
+        field_positions = [(1, 1), (1, 2), (2, 1), (2, 2), (3, 1), (3, 2)]  # Include chi at (3, 2)
         for mg_row in mg_rows:
             field_positions.extend([(mg_row, 1), (mg_row, 2)])
         
@@ -631,12 +682,12 @@ class PlotlyDashboard:
             if row == 1 and col == 1:
                 continue  # Skip reference
             fig.update_xaxes(title_text='x', range=[-0.5, 1.5], matches='x', row=row, col=col)
-            fig.update_yaxes(title_text='y', range=[-0.6, 0.6], matches='y', row=row, col=col)
+            fig.update_yaxes(title_text='y', range=[-0.5625, 0.5625], matches='y', row=row, col=col)
         
-        # Convergence history plot (row 3, col 2) - keep independent, no zoom/pan linking
+        # Convergence history plot (row 4, col 1, spanning both columns) - keep independent
         # fixedrange=True prevents modebar zoom buttons from affecting this subplot
-        fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, fixedrange=True, row=3, col=2)
-        fig.update_yaxes(title_text='Residual', matches=None, type='log', autorange=True, fixedrange=True, row=3, col=2)
+        fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, fixedrange=True, row=4, col=1)
+        fig.update_yaxes(title_text='Residual', matches=None, type='log', autorange=True, fixedrange=True, row=4, col=1)
         
         fig.write_html(str(output_path), auto_play=False)
         

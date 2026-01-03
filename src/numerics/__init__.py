@@ -40,16 +40,6 @@ from .diagnostics import (
     compute_residual_statistics,
 )
 
-from .multigrid import (
-    restrict_state,
-    restrict_residual,
-    prolongate_correction,
-    prolongate_injection,
-    compute_integral,
-    compute_residual_sum,
-    create_coarse_arrays,
-)
-
 __all__ = [
     'compute_fluxes',
     'compute_time_step',
@@ -73,11 +63,4 @@ __all__ = [
     'compute_total_pressure_loss',
     'compute_solution_bounds',
     'compute_residual_statistics',
-    'restrict_state',
-    'restrict_residual',
-    'prolongate_correction',
-    'prolongate_injection',
-    'compute_integral',
-    'compute_residual_sum',
-    'create_coarse_arrays',
 ]
