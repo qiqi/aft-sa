@@ -27,6 +27,14 @@ from .rans_solver import (
     SolverConfig,
 )
 
+from .batch import (
+    BatchFlowConditions,
+    BatchFlowConditionsJax,
+    BatchState,
+    expand_parameter,
+    compute_batch_size,
+)
+
 __all__ = [
     'TimeStepConfig',
     'SpectralRadius',
@@ -44,4 +52,10 @@ __all__ = [
     'InletOutletBC',
     'RANSSolver',
     'SolverConfig',
+    # Batch solver
+    'BatchFlowConditions',
+    'BatchFlowConditionsJax', 
+    'BatchState',
+    'expand_parameter',
+    'compute_batch_size',
 ]

@@ -5,7 +5,7 @@ Dataclass-based configuration that can be loaded from YAML or constructed progra
 """
 
 from dataclasses import dataclass, field, asdict
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Dict, Any
 import numpy as np
 
 
@@ -45,10 +45,26 @@ class FlowConfig:
     
     reynolds: float = 6.0e6
     mach: float = 0.0          # 0 = incompressible
-    alpha: float = 0.0         # Angle of attack in degrees
     
-    # For future batch mode: sweep specification
-    # alpha can be a single value or a dict like {"sweep": [-5, 15, 21]}
+    # Alpha can be:
+    # - Single value: alpha: 4.0
+    # - Sweep spec: alpha: {sweep: [-5, 15, 21]}  (start, end, count)
+    # - Explicit list: alpha: {values: [0, 2, 4, 6, 8]}
+    alpha: Union[float, Dict[str, Any]] = 0.0
+    
+    def is_batch(self) -> bool:
+        """Check if this is a batch configuration."""
+        return isinstance(self.alpha, dict)
+    
+    def get_batch_size(self) -> int:
+        """Get number of cases in batch."""
+        from src.solvers.batch import expand_parameter
+        return len(expand_parameter(self.alpha))
+    
+    def get_alpha_values(self) -> List[float]:
+        """Get all alpha values (single or expanded sweep)."""
+        from src.solvers.batch import expand_parameter
+        return expand_parameter(self.alpha)
 
 
 @dataclass

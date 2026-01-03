@@ -137,19 +137,21 @@ Could easily do 500+ cases.
 
 ## Part 3: Implementation Phases
 
-### Phase 1: YAML Config (no batch yet) ✅
-1. Create `config/schema.py` with dataclass models
-2. YAML loader with validation
-3. Update `run_airfoil.py`: `--config config.yaml`
-4. Keep CLI options as overrides: `--config base.yaml --alpha 5`
+### Phase 1: YAML Config (no batch yet) ✅ COMPLETE
+1. ✅ Create `src/config/schema.py` with dataclass models
+2. ✅ YAML loader with validation (`src/config/loader.py`)
+3. ✅ Update `run_airfoil.py`: `--config config.yaml`
+4. ✅ Keep CLI options as overrides: `--config base.yaml --alpha 5`
+5. ✅ Example configs in `config/examples/`
 
-**Effort: ~2 hours**
+**Completed: 2025-01-02**
 
-### Phase 2: Batch Data Structures
-1. `BatchState` class holding `Q_batch: (N, NI, NJ, 4)`
-2. `BatchFreestream` with per-case conditions
-3. Expand freestream from YAML sweep specs
-4. Batch initialization
+### Phase 2: Batch Data Structures 🔄 IN PROGRESS
+1. `BatchFlowConditions` - per-case freestream (α, Re, etc.)
+2. Sweep expansion from YAML specs (sweep/values → array)
+3. `BatchState` class holding `Q_batch: (N, NI, NJ, 4)`
+4. Batch initialization from single grid + multiple conditions
+5. Update config schema to parse sweep specifications
 
 **Effort: ~2 hours**
 

@@ -119,9 +119,21 @@ def from_dict(data: Dict[str, Any]) -> SimulationConfig:
     if 'grid' in data:
         config_dict['grid'] = _dict_to_dataclass(GridConfig, data['grid'])
     
-    # Flow config
+    # Flow config (special handling for alpha sweep specs)
     if 'flow' in data:
-        config_dict['flow'] = _dict_to_dataclass(FlowConfig, data['flow'])
+        flow_data = data['flow'].copy()
+        # Don't coerce alpha if it's a dict (sweep spec) - pass through as-is
+        alpha_val = flow_data.get('alpha', 0.0)
+        if isinstance(alpha_val, dict):
+            # Keep sweep/values spec as dict
+            pass
+        elif isinstance(alpha_val, str):
+            # Coerce string to float for single values
+            flow_data['alpha'] = float(alpha_val)
+        config_dict['flow'] = FlowConfig(**{
+            k: (_coerce_type(v, float) if k != 'alpha' and isinstance(v, str) else v)
+            for k, v in flow_data.items()
+        })
     
     # Solver settings (with nested CFL)
     if 'solver' in data:
