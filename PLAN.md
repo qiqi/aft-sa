@@ -133,6 +133,31 @@ For 50 cases on 256×64 grid:
 
 Could easily do 500+ cases.
 
+### Performance Scaling (measured on V100)
+
+**Small grid (128×32 = 4,096 cells/case):**
+| Batch | Total Cells | ms/iter | Speedup |
+|-------|-------------|---------|---------|
+| 1     | 4,096       | 0.16    | 1.0x    |
+| 2     | 8,192       | 0.18    | 1.8x    |
+| 4     | 16,384      | 0.26    | 2.5x    |
+| 8     | 32,768      | 0.41    | **3.1x** |
+| 16    | 65,536      | 0.81    | **3.2x** |
+| 32    | 131,072     | 1.71    | 3.0x    |
+
+**Large grid (256×64 = 16,384 cells/case):**
+| Batch | Total Cells | ms/iter | Speedup |
+|-------|-------------|---------|---------|
+| 1     | 16,384      | 0.30    | 1.0x    |
+| 4     | 65,536      | 0.83    | 1.4x    |
+| 16    | 262,144     | 4.29    | 1.1x    |
+
+**Key findings:**
+- Small grids benefit most from batching (3x speedup at batch=8-16)
+- Larger grids already saturate GPU, less benefit from batching
+- Sweet spot: batch=8-16 for small grids
+- Memory is not a bottleneck (plenty of headroom)
+
 ---
 
 ## Part 3: Implementation Phases
@@ -146,14 +171,14 @@ Could easily do 500+ cases.
 
 **Completed: 2025-01-02**
 
-### Phase 2: Batch Data Structures 🔄 IN PROGRESS
-1. `BatchFlowConditions` - per-case freestream (α, Re, etc.)
-2. Sweep expansion from YAML specs (sweep/values → array)
-3. `BatchState` class holding `Q_batch: (N, NI, NJ, 4)`
-4. Batch initialization from single grid + multiple conditions
-5. Update config schema to parse sweep specifications
+### Phase 2: Batch Data Structures ✅ COMPLETE
+1. ✅ `BatchFlowConditions` - per-case freestream (α, Re, etc.)
+2. ✅ Sweep expansion from YAML specs (sweep/values → array)
+3. ✅ `BatchState` class holding `Q_batch: (N, NI, NJ, 4)`
+4. ✅ Batch initialization from single grid + multiple conditions
+5. ✅ Update config schema to parse sweep specifications
 
-**Effort: ~2 hours**
+**Completed: 2025-01-02**
 
 ### Phase 3: Batch Kernels
 1. Wrap flux computation with `vmap`
