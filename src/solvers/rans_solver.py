@@ -263,48 +263,96 @@ class RANSSolver:
         self.mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
         self.mu_eff_jax = jax.device_put(jnp.full((self.NI, self.NJ), self.mu_laminar))
         
+        # Create JIT-compiled step function (key for performance!)
+        self._create_jit_step_function()
+        
         # Warmup JIT compilation
         print("  Warming up JIT compilation...")
         self._warmup_jax()
         print("  JIT compilation complete.")
     
+    def _create_jit_step_function(self):
+        """Create JIT-compiled step function with all grid data baked in.
+        
+        This is the KEY performance optimization: instead of calling many 
+        separate JIT functions from Python, we compile a single function
+        that does all the work for one RK stage.
+        """
+        # Capture these in closure (they're constants for this solver instance)
+        Si_x = self.Si_x_jax
+        Si_y = self.Si_y_jax
+        Sj_x = self.Sj_x_jax
+        Sj_y = self.Sj_y_jax
+        volume = self.volume_jax
+        volume_inv = self.volume_inv_jax
+        beta = self.config.beta
+        k4 = self.config.jst_k4
+        nu = self.mu_laminar
+        nghost = NGHOST
+        smoothing_epsilon = getattr(self.config, 'smoothing_epsilon', 0.2)
+        smoothing_passes = getattr(self.config, 'smoothing_passes', 2)
+        apply_bc = self.apply_bc_jit
+        
+        @jax.jit
+        def jit_rk_stage(Q, Q0, dt, alpha_rk):
+            """Single RK stage - fully JIT compiled."""
+            # Apply boundary conditions
+            Q = apply_bc(Q)
+            
+            # Convective fluxes
+            R = compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost)
+            
+            # Gradients
+            grad = compute_gradients_jax(Q, Si_x, Si_y, Sj_x, Sj_y, volume, nghost)
+            
+            # Compute turbulent viscosity from SA variable
+            Q_int = Q[nghost:-nghost, nghost:-nghost, :]
+            nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
+            
+            # Turbulent viscosity (SA model)
+            chi = nu_tilde / (nu + 1e-30)
+            cv1 = 7.1
+            chi3 = chi ** 3
+            f_v1 = chi3 / (chi3 + cv1 ** 3)
+            mu_t = nu_tilde * f_v1
+            mu_eff = nu + mu_t
+            
+            # Viscous fluxes
+            R_visc = compute_viscous_fluxes_jax(grad, Si_x, Si_y, Sj_x, Sj_y, mu_eff)
+            R = R + R_visc
+            
+            # Explicit smoothing
+            if smoothing_epsilon > 0 and smoothing_passes > 0:
+                R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
+            
+            # RK update from Q0
+            Q_int_new = Q0[nghost:-nghost, nghost:-nghost, :] + \
+                alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * R
+            Q_new = Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
+            
+            return Q_new, R
+        
+        @jax.jit
+        def jit_compute_dt(Q, cfl):
+            """Compute local timestep - JIT compiled."""
+            return compute_local_timestep_jax(
+                Q, Si_x, Si_y, Sj_x, Sj_y, volume,
+                beta, cfl, nghost, nu=nu
+            )
+        
+        self._jit_rk_stage = jit_rk_stage
+        self._jit_compute_dt = jit_compute_dt
+    
     def _warmup_jax(self):
         """Warm up JAX JIT compilation with dummy iterations."""
-        nghost = NGHOST
-        k4 = self.config.jst_k4
-        beta = self.config.beta
         cfl = self.config.cfl_start
         
-        # Run a few iterations to trigger JIT (including BC JIT)
+        # Warm up the new JIT-compiled functions
         Q_test = self.Q_jax
-        for _ in range(3):
-            # Warm up JIT-compiled BCs
-            Q_test = self.apply_bc_jit(Q_test)
-            
-            dt = compute_local_timestep_jax(
-                Q_test, self.Si_x_jax, self.Si_y_jax, 
-                self.Sj_x_jax, self.Sj_y_jax, self.volume_jax,
-                beta, cfl, nghost, nu=self.mu_laminar
-            )
-            R = compute_fluxes_jax(
-                Q_test, self.Si_x_jax, self.Si_y_jax, 
-                self.Sj_x_jax, self.Sj_y_jax, beta, k4, nghost
-            )
-            grad = compute_gradients_jax(
-                Q_test, self.Si_x_jax, self.Si_y_jax, 
-                self.Sj_x_jax, self.Sj_y_jax, self.volume_jax, nghost
-            )
-            R_visc = compute_viscous_fluxes_jax(
-                grad, self.Si_x_jax, self.Si_y_jax, 
-                self.Sj_x_jax, self.Sj_y_jax, self.mu_eff_jax
-            )
-            R = R + R_visc
-            R = smooth_explicit_jax(R, 0.2, 2)
-            
-            # Warm up RK update
-            Q_int_new = Q_test[nghost:-nghost, nghost:-nghost, :] + \
-                0.25 * (dt * self.volume_inv_jax)[:, :, jnp.newaxis] * R
-            Q_test = Q_test.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
+        dt = self._jit_compute_dt(Q_test, cfl)
+        
+        for alpha in [0.25, 0.5]:
+            Q_test, _ = self._jit_rk_stage(Q_test, Q_test, dt, alpha)
         
         jax.block_until_ready(Q_test)
     
@@ -416,125 +464,39 @@ class RANSSolver:
     def step(self) -> None:
         """Perform one iteration of the solver.
         
-        Fully GPU-accelerated using JIT-compiled boundary conditions.
+        Fully GPU-accelerated using JIT-compiled RK stages.
         No CPU transfers - state stays on GPU.
         """
-        nghost = NGHOST
         cfl = self._get_cfl(self.iteration)
-        k4 = self.config.jst_k4
-        beta = self.config.beta
-        nu = self.mu_laminar
         
-        # Smoothing params
-        epsilon = getattr(self.config, 'smoothing_epsilon', 0.2)
-        n_passes = getattr(self.config, 'smoothing_passes', 2)
-        
-        # Compute timestep on GPU
-        dt = compute_local_timestep_jax(
-            self.Q_jax, self.Si_x_jax, self.Si_y_jax,
-            self.Sj_x_jax, self.Sj_y_jax, self.volume_jax,
-            beta, cfl, nghost, nu=nu
-        )
+        # Compute timestep using JIT function
+        dt = self._jit_compute_dt(self.Q_jax, cfl)
         
         # RK5 coefficients
         alphas = [0.25, 0.166666667, 0.375, 0.5, 1.0]
         
         # Store initial state (on GPU)
-        Q0_jax = self.Q_jax
-        Q_jax = self.Q_jax
+        Q0 = self.Q_jax
+        Q = self.Q_jax
         
-        # RK stages - all on GPU with JIT-compiled BCs
+        # RK stages - all using single JIT-compiled function per stage
         for alpha in alphas:
-            # Apply JIT-compiled boundary conditions on GPU
-            Q_jax = self.apply_bc_jit(Q_jax)
-            
-            # Convective flux on GPU
-            R = compute_fluxes_jax(
-                Q_jax, self.Si_x_jax, self.Si_y_jax,
-                self.Sj_x_jax, self.Sj_y_jax, beta, k4, nghost
-            )
-            
-            # Gradients + viscous flux on GPU
-            grad = compute_gradients_jax(
-                Q_jax, self.Si_x_jax, self.Si_y_jax,
-                self.Sj_x_jax, self.Sj_y_jax, self.volume_jax, nghost
-            )
-            
-            # Compute turbulent viscosity from SA variable
-            Q_int = Q_jax[nghost:-nghost, nghost:-nghost, :]
-            nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
-            if nu > 0:
-                chi = nu_tilde / nu
-                cv1 = 7.1
-                chi3 = chi ** 3
-                f_v1 = chi3 / (chi3 + cv1 ** 3)
-                mu_t = nu_tilde * f_v1
-                mu_eff = nu + mu_t
-            else:
-                mu_eff = self.mu_eff_jax
-            
-            R_visc = compute_viscous_fluxes_jax(
-                grad, self.Si_x_jax, self.Si_y_jax,
-                self.Sj_x_jax, self.Sj_y_jax, mu_eff
-            )
-            R = R + R_visc
-            
-            # Explicit smoothing on GPU
-            if epsilon > 0 and n_passes > 0:
-                R = smooth_explicit_jax(R, epsilon, n_passes)
-            
-            # Update state on GPU (RK update from Q0)
-            Q_int_new = Q0_jax[nghost:-nghost, nghost:-nghost, :] + \
-                alpha * (dt * self.volume_inv_jax)[:, :, jnp.newaxis] * R
-            Q_jax = Q0_jax.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
+            Q, R = self._jit_rk_stage(Q, Q0, dt, alpha)
         
         # Final BC on GPU
-        Q_jax = self.apply_bc_jit(Q_jax)
+        Q = self.apply_bc_jit(Q)
         
         # Store results on GPU (no CPU transfer!)
-        self.Q_jax = Q_jax
+        self.Q_jax = Q
         self.R_jax = R  # Last RK residual (for visualization)
         
         self.iteration += 1
     
     def get_residual_rms(self) -> float:
         """Compute RMS of residual on final state (GPU computation, transfers scalar only)."""
-        nghost = NGHOST
-        k4 = self.config.jst_k4
-        beta = self.config.beta
-        nu = self.mu_laminar
-        
-        # Compute residual on final Q state (same as old _compute_residual but on GPU)
-        R = compute_fluxes_jax(
-            self.Q_jax, self.Si_x_jax, self.Si_y_jax,
-            self.Sj_x_jax, self.Sj_y_jax, beta, k4, nghost
-        )
-        
-        grad = compute_gradients_jax(
-            self.Q_jax, self.Si_x_jax, self.Si_y_jax,
-            self.Sj_x_jax, self.Sj_y_jax, self.volume_jax, nghost
-        )
-        
-        Q_int = self.Q_jax[nghost:-nghost, nghost:-nghost, :]
-        nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
-        if nu > 0:
-            chi = nu_tilde / nu
-            cv1 = 7.1
-            chi3 = chi ** 3
-            f_v1 = chi3 / (chi3 + cv1 ** 3)
-            mu_t = nu_tilde * f_v1
-            mu_eff = nu + mu_t
-        else:
-            mu_eff = self.mu_eff_jax
-        
-        R_visc = compute_viscous_fluxes_jax(
-            grad, self.Si_x_jax, self.Si_y_jax,
-            self.Sj_x_jax, self.Sj_y_jax, mu_eff
-        )
-        R = R + R_visc
-        
-        # Compute RMS on GPU, transfer only scalar
-        R_rho = R[:, :, 0]
+        # Use the last computed residual from step() for efficiency
+        # This is the residual from the final RK stage
+        R_rho = self.R_jax[:, :, 0]
         rms = jnp.sqrt(jnp.mean(R_rho**2))
         return float(rms)
     

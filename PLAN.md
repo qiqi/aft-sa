@@ -180,26 +180,68 @@ Could easily do 500+ cases.
 
 **Completed: 2025-01-02**
 
-### Phase 3: Batch Kernels
-1. Wrap flux computation with `vmap`
-2. Wrap BC application with `vmap`
-3. Wrap timestep computation with `vmap`
-4. Test: verify `step_batch(Q[None,...])` matches `step_single(Q)`
+### Phase 3: Batch Kernels ✅ COMPLETE
+1. ✅ Wrap flux computation with `vmap` → `compute_fluxes_batch()`
+2. ✅ Wrap BC application with `vmap` → `make_apply_bc_batch_jit()` (per-case freestream)
+3. ✅ Wrap timestep computation with `vmap` → `compute_timestep_batch()`
+4. ✅ Wrap gradient and viscous flux computation with `vmap`
+5. ✅ Unified `make_batch_step_jit()` factory for complete RK stage
+6. ✅ Test: verify `batch[0]` matches `single` for all kernels (13 tests passing)
 
-**Effort: ~3 hours**
+**Completed: 2025-01-03**
 
-### Phase 4: Batch Integration
-1. `RANSSolver` batch mode
-2. Per-case residual tracking
-3. Per-case force computation
-4. Batch-aware output (CL-α curve, etc.)
+**Implementation Details:**
+- All batch kernels in `src/solvers/batch.py`
+- Grid metrics shared across batch (no memory duplication)
+- Per-case freestream via function arguments (not closure capture)
+- Tests in `tests/solvers/test_batch_kernels.py`
 
-**Effort: ~3 hours**
+### Phase 4: Batch Integration ✅ COMPLETE
+1. ✅ `BatchRANSSolver` class with full batch mode
+2. ✅ Per-case residual tracking (residual_history per case)
+3. ✅ Per-case force computation → `BatchForces` dataclass
+4. ✅ Batch-aware output (CSV with CL, CD vs α)
+
+**Completed: 2025-01-03**
+
+**Implementation Details:**
+- `BatchRANSSolver` in `src/solvers/batch.py`
+- Full RK5 time stepping with batch kernels
+- Per-case convergence tracking
+- `BatchForces.to_dataframe()` for analysis
+- `BatchForces.save_csv()` for output
 
 ### Phase 5: Advanced Features (optional)
 1. Different geometries (NACA 4-digit family)
 2. Early stopping for converged cases
 3. Checkpointing for long runs
+
+---
+
+## Implementation Summary
+
+**Phases 1-4 Complete** (2025-01-03)
+
+### Key Files
+- `src/solvers/batch.py` - All batch functionality
+- `scripts/solver/run_batch.py` - CLI for batch solving
+- `tests/solvers/test_batch_kernels.py` - Unit tests (13 passing)
+
+### Usage
+```bash
+# AoA sweep from -5° to 15° with 21 cases
+python scripts/solver/run_batch.py data/naca0012.dat --alpha-sweep -5 15 21
+
+# Explicit angles
+python scripts/solver/run_batch.py data/naca0012.dat --alpha-values 0 2 4 6 8 10
+
+# With YAML config
+python scripts/solver/run_batch.py --config config/examples/aoa_sweep.yaml
+```
+
+### Output
+- `output/batch/batch_results.csv` - CL, CD vs α table
+- `output/batch/residual_history.csv` - Per-case convergence
 
 ---
 
