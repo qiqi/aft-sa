@@ -1,8 +1,16 @@
-# SA Turbulence Model Integration Plan
+# SA Turbulence Model Integration
 
-This document outlines the plan to integrate the Spalart-Allmaras (SA) turbulence equation into the RANS solver, including the AFT (Amplification Factor Transport) transition model.
+This document describes the Spalart-Allmaras (SA) turbulence model integration in the RANS solver, including the AFT (Amplification Factor Transport) transition model.
 
-## Current State (January 2025)
+## Implementation Status (January 2025)
+
+### ✅ Completed: SA Turbulence Source Terms
+
+The full SA turbulence model is now integrated into both solvers:
+
+- **Production**: `P = cb1 · S̃ · ν̃` 
+- **Destruction**: `D = cw1 · fw · (ν̃/d)²`
+- **Diffusion**: `(1/σ)∇·[(ν + ν̃)∇ν̃] + (cb2/σ)(∇ν̃)·(∇ν̃)`
 
 ### RANS Solver Architecture
 
@@ -12,15 +20,12 @@ The solver (`src/solvers/rans_solver.py`) is fully GPU-accelerated using JAX:
 - **Full GPU execution**: JIT-compiled RK5 stages, no CPU transfers during iteration
 - **Batch support**: `BatchRANSSolver` in `src/solvers/batch.py` for parallel AoA sweeps
 
-**Current turbulence handling:**
-- Computes `μ_t = ν̃ · fv1(ν̃)` for effective viscosity
+**Turbulence handling:**
+- Computes `μ_t = ν̃ · fv1(ν̃)` for effective viscosity in momentum equations
 - Convects `ν̃` through the JST flux scheme
-- Applies boundary conditions for `ν̃`
-
-**What is NOT yet implemented:**
-- SA production term: `P = cb1 · S̃ · ν̃`
-- SA destruction term: `D = cw1 · fw · (ν̃/d)²`
-- SA diffusion with cb2 term: `(cb2/σ)(∇ν̃)·(∇ν̃)`
+- **SA source terms** added via `compute_sa_source_jax()` - production, destruction, and cb2 gradient term
+- **SA diffusion** included in viscous fluxes via `compute_viscous_fluxes_with_sa_jax()`
+- Applies boundary conditions for `ν̃` (wall: ν̃=0, farfield: small freestream value)
 
 ### SA Model Implementation (`src/physics/spalart_allmaras.py`)
 
@@ -263,16 +268,16 @@ def compute_aft_sa_source_jax(nuHat, grad, wall_dist, nu_laminar):
 
 ---
 
-## Files to Create/Modify
+## Files Modified/Created
 
-| File | Action | Description |
+| File | Status | Description |
 |------|--------|-------------|
-| `src/numerics/sa_sources.py` | **Create** | SA source term computation (P, D, cb2) |
-| `src/numerics/viscous_fluxes.py` | **Modify** | Add SA diffusion to residual index 3 |
-| `src/solvers/rans_solver.py` | **Modify** | Add SA sources to RK stage JIT function |
-| `src/solvers/batch.py` | **Modify** | Add SA sources to batch kernels |
-| `tests/numerics/test_sa_sources.py` | **Create** | Unit tests for SA source terms |
-| `tests/solver/test_sa_rans.py` | **Create** | Integration test (flat plate transition) |
+| `src/numerics/sa_sources.py` | ✅ Created | SA source term computation (P, D, cb2) |
+| `src/numerics/viscous_fluxes.py` | ✅ Modified | Added `compute_viscous_fluxes_with_sa_jax()` |
+| `src/solvers/rans_solver.py` | ✅ Modified | SA sources in RK stage JIT function |
+| `src/solvers/batch.py` | ✅ Modified | SA sources in batch kernels |
+| `tests/numerics/test_sa_sources.py` | ✅ Created | 14 unit tests for SA source terms |
+| `tests/solver/test_sa_rans.py` | ⏳ Pending | Integration test (flat plate transition) |
 
 ---
 

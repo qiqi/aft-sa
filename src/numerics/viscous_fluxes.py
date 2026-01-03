@@ -239,8 +239,60 @@ def compute_nu_tilde_diffusion_jax(grad_nu_tilde, Si_x, Si_y, Sj_x, Sj_y,
     flux_j = coeff * nu_face_j * (grad_face_j[:, :, 0] * nx_j + 
                                    grad_face_j[:, :, 1] * ny_j) * S_j
     
-    # Residual
-    res_i = flux_i[:-1, :] - flux_i[1:, :]
-    res_j = flux_j[:, :-1] - flux_j[:, 1:]
+    # Residual (flux into cell = flux[m+1] - flux[m])
+    res_i = flux_i[1:, :] - flux_i[:-1, :]
+    res_j = flux_j[:, 1:] - flux_j[:, :-1]
     
     return res_i + res_j
+
+
+@jax.jit
+def compute_viscous_fluxes_with_sa_jax(grad, Si_x, Si_y, Sj_x, Sj_y, 
+                                        mu_eff, nu_laminar, nuHat, sigma=2.0/3.0):
+    """
+    JAX: Compute viscous flux residuals including SA diffusion.
+    
+    Computes:
+    - Momentum viscous fluxes (indices 1, 2) using mu_eff
+    - SA diffusion (index 3): (1/σ)∇·[(ν + ν̃)∇ν̃]
+    
+    Parameters
+    ----------
+    grad : jnp.ndarray
+        Gradients of Q (NI, NJ, 4, 2).
+    Si_x, Si_y : jnp.ndarray
+        I-face normal vectors (NI+1, NJ).
+    Sj_x, Sj_y : jnp.ndarray
+        J-face normal vectors (NI, NJ+1).
+    mu_eff : jnp.ndarray
+        Effective viscosity for momentum (NI, NJ).
+    nu_laminar : float
+        Laminar kinematic viscosity.
+    nuHat : jnp.ndarray
+        SA working variable (NI, NJ).
+    sigma : float
+        SA model constant (default 2/3).
+        
+    Returns
+    -------
+    residual : jnp.ndarray
+        Viscous flux residual (NI, NJ, 4).
+    """
+    # Compute momentum viscous fluxes (indices 1, 2)
+    residual = compute_viscous_fluxes_jax(grad, Si_x, Si_y, Sj_x, Sj_y, mu_eff)
+    
+    # SA diffusion coefficient: (ν + max(0, ν̃)) / σ
+    # Note: the 1/σ factor is applied inside compute_nu_tilde_diffusion_jax
+    nuHat_safe = jnp.maximum(nuHat, 0.0)
+    nu_eff_sa = nu_laminar + nuHat_safe
+    
+    # Compute SA diffusion
+    grad_nuHat = grad[:, :, 3, :]  # (NI, NJ, 2)
+    sa_diff = compute_nu_tilde_diffusion_jax(
+        grad_nuHat, Si_x, Si_y, Sj_x, Sj_y, nu_eff_sa, sigma
+    )
+    
+    # Add SA diffusion to index 3
+    residual = residual.at[:, :, 3].set(sa_diff)
+    
+    return residual

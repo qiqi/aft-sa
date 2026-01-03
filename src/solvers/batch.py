@@ -281,8 +281,9 @@ class BatchForces:
 
 from src.numerics.fluxes import _compute_fluxes_jax_impl
 from src.numerics.gradients import _compute_gradients_jax_impl
-from src.numerics.viscous_fluxes import compute_viscous_fluxes_jax
+from src.numerics.viscous_fluxes import compute_viscous_fluxes_jax, compute_viscous_fluxes_with_sa_jax
 from src.numerics.explicit_smoothing import smooth_explicit_jax
+from src.numerics.sa_sources import compute_sa_source_jax
 from src.solvers.time_stepping import _compute_spectral_radii_jax_kernel, _compute_local_timestep_jax_kernel
 from src.constants import NGHOST
 
@@ -401,6 +402,18 @@ _smooth_explicit_batch_vmap = jax.vmap(
     in_axes=(0, None, None)
 )
 
+# SA source terms batched - wall_dist is shared across batch
+_compute_sa_source_batch_vmap = jax.vmap(
+    compute_sa_source_jax,
+    in_axes=(0, 0, None, None)  # nuHat batched, grad batched, wall_dist shared, nu shared
+)
+
+# Viscous fluxes with SA diffusion - batched
+_compute_viscous_fluxes_with_sa_batch_vmap = jax.vmap(
+    compute_viscous_fluxes_with_sa_jax,
+    in_axes=(0, None, None, None, None, 0, None, 0, None)  # grad, Si, Sy, Sj_x, Sj_y, mu_eff, nu, nuHat, sigma
+)
+
 
 def compute_fluxes_batch(Q_batch, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost, 
                          martinelli_alpha=0.667, sigma=None):
@@ -495,7 +508,7 @@ def compute_timestep_batch(Q_batch, Si_x, Si_y, Sj_x, Sj_y, volume, beta, cfl, n
 def compute_viscous_fluxes_batch(grad_batch, Si_x, Si_y, Sj_x, Sj_y, mu_eff_batch):
     """
     Compute viscous flux residuals for a batch of cases.
-    
+
     Parameters
     ----------
     grad_batch : jnp.ndarray
@@ -504,7 +517,7 @@ def compute_viscous_fluxes_batch(grad_batch, Si_x, Si_y, Sj_x, Sj_y, mu_eff_batc
         Grid metrics - shared across batch.
     mu_eff_batch : jnp.ndarray
         Effective viscosity (n_batch, NI, NJ).
-        
+
     Returns
     -------
     R_visc_batch : jnp.ndarray
@@ -513,6 +526,59 @@ def compute_viscous_fluxes_batch(grad_batch, Si_x, Si_y, Sj_x, Sj_y, mu_eff_batc
     return _compute_viscous_fluxes_batch_vmap(
         grad_batch, Si_x, Si_y, Sj_x, Sj_y, mu_eff_batch
     )
+
+
+def compute_viscous_fluxes_with_sa_batch(grad_batch, Si_x, Si_y, Sj_x, Sj_y,
+                                          mu_eff_batch, nu, nuHat_batch, sigma=2.0/3.0):
+    """
+    Compute viscous flux residuals including SA diffusion for a batch of cases.
+
+    Parameters
+    ----------
+    grad_batch : jnp.ndarray
+        Batched gradients (n_batch, NI, NJ, 4, 2).
+    Si_x, Si_y, Sj_x, Sj_y : jnp.ndarray
+        Grid metrics - shared across batch.
+    mu_eff_batch : jnp.ndarray
+        Effective viscosity (n_batch, NI, NJ).
+    nu : float
+        Laminar viscosity.
+    nuHat_batch : jnp.ndarray
+        SA working variable (n_batch, NI, NJ).
+    sigma : float
+        SA model constant.
+
+    Returns
+    -------
+    R_visc_batch : jnp.ndarray
+        Viscous flux residuals (n_batch, NI, NJ, 4).
+    """
+    return _compute_viscous_fluxes_with_sa_batch_vmap(
+        grad_batch, Si_x, Si_y, Sj_x, Sj_y, mu_eff_batch, nu, nuHat_batch, sigma
+    )
+
+
+def compute_sa_source_batch(nuHat_batch, grad_batch, wall_dist, nu):
+    """
+    Compute SA source terms for a batch of cases.
+
+    Parameters
+    ----------
+    nuHat_batch : jnp.ndarray
+        SA working variable (n_batch, NI, NJ).
+    grad_batch : jnp.ndarray
+        Batched gradients (n_batch, NI, NJ, 4, 2).
+    wall_dist : jnp.ndarray
+        Wall distance - shared across batch (NI, NJ).
+    nu : float
+        Laminar viscosity.
+
+    Returns
+    -------
+    sa_source_batch : jnp.ndarray
+        SA source terms (n_batch, NI, NJ).
+    """
+    return _compute_sa_source_batch_vmap(nuHat_batch, grad_batch, wall_dist, nu)
 
 
 def smooth_residual_batch(R_batch, epsilon, n_passes):
@@ -703,6 +769,7 @@ def make_batch_step_jit(NI: int, NJ: int, n_wake_points: int,
                         Si_x: jnp.ndarray, Si_y: jnp.ndarray,
                         Sj_x: jnp.ndarray, Sj_y: jnp.ndarray,
                         volume: jnp.ndarray,
+                        wall_dist: jnp.ndarray,
                         beta: float, k4: float, nu: float,
                         smoothing_epsilon: float = 0.2,
                         smoothing_passes: int = 2,
@@ -710,7 +777,7 @@ def make_batch_step_jit(NI: int, NJ: int, n_wake_points: int,
                         nghost: int = NGHOST):
     """
     Create a JIT-compiled batch step function with all grid data baked in.
-    
+
     Parameters
     ----------
     NI, NJ : int
@@ -721,6 +788,8 @@ def make_batch_step_jit(NI: int, NJ: int, n_wake_points: int,
         Farfield normals (NI,).
     Si_x, Si_y, Sj_x, Sj_y, volume : jnp.ndarray
         Grid metrics.
+    wall_dist : jnp.ndarray
+        Wall distance (NI, NJ).
     beta : float
         Artificial compressibility.
     k4 : float
@@ -733,13 +802,13 @@ def make_batch_step_jit(NI: int, NJ: int, n_wake_points: int,
         Thickness of sponge layer in cells for farfield stabilization.
     nghost : int
         Number of ghost cells.
-        
+
     Returns
     -------
     batch_step : callable
-        JIT-compiled function: 
+        JIT-compiled function:
         Q_new, R = batch_step(Q_batch, dt_batch, flow_conditions, alpha_rk)
-        
+
         Q_batch: (n_batch, NI+2g, NJ+2g, 4)
         dt_batch: (n_batch, NI, NJ)
         flow_conditions: BatchFlowConditionsJax
@@ -747,19 +816,19 @@ def make_batch_step_jit(NI: int, NJ: int, n_wake_points: int,
     """
     # Pre-compute volume inverse
     volume_inv = 1.0 / volume
-    
+
     # Create batch BC function
     apply_bc_batch = make_apply_bc_batch_jit(NI, NJ, n_wake_points, nx, ny, nghost)
-    
+
     # Pre-compute sponge layer coefficient field
     from src.numerics.dissipation import compute_sponge_sigma_jax
     sigma = compute_sponge_sigma_jax(NI, NJ, sponge_thickness)
-    
-    def compute_mu_eff_batch(Q_batch):
-        """Compute effective viscosity for batch."""
+
+    def compute_mu_eff_and_nuHat_batch(Q_batch):
+        """Compute effective viscosity and nuHat for batch."""
         Q_int = Q_batch[:, nghost:-nghost, nghost:-nghost, :]
         nu_tilde = jnp.maximum(Q_int[:, :, :, 3], 0.0)  # (B, NI, NJ)
-        
+
         if nu > 0:
             chi = nu_tilde / nu
             cv1 = 7.1
@@ -769,14 +838,14 @@ def make_batch_step_jit(NI: int, NJ: int, n_wake_points: int,
             mu_eff = nu + mu_t
         else:
             mu_eff = jnp.full_like(nu_tilde, nu)
-        
-        return mu_eff
-    
+
+        return mu_eff, nu_tilde
+
     @jax.jit
     def batch_step(Q_batch, Q0_batch, dt_batch, u_inf, v_inf, p_inf, nu_t_inf, alpha_rk):
         """
-        Perform one RK stage for entire batch.
-        
+        Perform one RK stage for entire batch with SA turbulence.
+
         Parameters
         ----------
         Q_batch : jnp.ndarray
@@ -789,7 +858,7 @@ def make_batch_step_jit(NI: int, NJ: int, n_wake_points: int,
             Per-case freestream (n_batch,).
         alpha_rk : float
             RK stage coefficient.
-            
+
         Returns
         -------
         Q_new : jnp.ndarray
@@ -810,12 +879,19 @@ def make_batch_step_jit(NI: int, NJ: int, n_wake_points: int,
             Q_batch, Si_x, Si_y, Sj_x, Sj_y, volume, nghost
         )
         
-        # Viscous fluxes
-        mu_eff = compute_mu_eff_batch(Q_batch)
-        R_visc = compute_viscous_fluxes_batch(
-            grad, Si_x, Si_y, Sj_x, Sj_y, mu_eff
+        # Effective viscosity and SA variable
+        mu_eff, nu_tilde = compute_mu_eff_and_nuHat_batch(Q_batch)
+        
+        # Viscous fluxes (momentum + SA diffusion)
+        R_visc = compute_viscous_fluxes_with_sa_batch(
+            grad, Si_x, Si_y, Sj_x, Sj_y, mu_eff, nu, nu_tilde
         )
         R = R + R_visc
+        
+        # SA source terms: Production - Destruction + cb2 term
+        sa_source = compute_sa_source_batch(nu_tilde, grad, wall_dist, nu)
+        # Add to residual (scaled by volume for FVM)
+        R = R.at[:, :, :, 3].add(sa_source * volume[None, :, :])
         
         # Smoothing
         if smoothing_epsilon > 0 and smoothing_passes > 0:
@@ -1005,14 +1081,15 @@ class BatchRANSSolver:
         print("Computing grid metrics...")
         computer = MetricComputer(self.X, self.Y, wall_j=0, n_wake=self.n_wake)
         self.metrics = computer.compute()
-        
+
         # Transfer to JAX
         self.Si_x_jax = jnp.array(self.metrics.Si_x)
         self.Si_y_jax = jnp.array(self.metrics.Si_y)
         self.Sj_x_jax = jnp.array(self.metrics.Sj_x)
         self.Sj_y_jax = jnp.array(self.metrics.Sj_y)
         self.volume_jax = jnp.array(self.metrics.volume)
-        
+        self.wall_dist_jax = jnp.array(self.metrics.wall_distance)
+
         # Farfield normals
         Sj_x_ff = self.metrics.Sj_x[:, -1]
         Sj_y_ff = self.metrics.Sj_y[:, -1]
@@ -1058,6 +1135,7 @@ class BatchRANSSolver:
             self.Si_x_jax, self.Si_y_jax,
             self.Sj_x_jax, self.Sj_y_jax,
             self.volume_jax,
+            self.wall_dist_jax,
             self.beta, self.k4, self.nu,
             smoothing_epsilon, smoothing_passes,
             self.sponge_thickness,

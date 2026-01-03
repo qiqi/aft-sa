@@ -40,8 +40,9 @@ from ..numerics.diagnostics import (
 from ..physics.jax_config import jax, jnp
 from ..numerics.fluxes import compute_fluxes_jax
 from ..numerics.gradients import compute_gradients_jax
-from ..numerics.viscous_fluxes import compute_viscous_fluxes_jax
+from ..numerics.viscous_fluxes import compute_viscous_fluxes_jax, compute_viscous_fluxes_with_sa_jax
 from ..numerics.explicit_smoothing import smooth_explicit_jax
+from ..numerics.sa_sources import compute_sa_source_jax
 from .time_stepping import compute_local_timestep_jax
 from .boundary_conditions import apply_bc_jax, make_apply_bc_jit
 
@@ -246,6 +247,7 @@ class RANSSolver:
         self.Sj_x_jax = jax.device_put(jnp.array(self.metrics.Sj_x))
         self.Sj_y_jax = jax.device_put(jnp.array(self.metrics.Sj_y))
         self.volume_jax = jax.device_put(jnp.array(self.metrics.volume))
+        self.wall_dist_jax = jax.device_put(jnp.array(self.metrics.wall_distance))
         
         # Farfield normals for BC
         Sj_x_ff = self.metrics.Sj_x[:, -1]
@@ -292,6 +294,7 @@ class RANSSolver:
         Sj_y = self.Sj_y_jax
         volume = self.volume_jax
         volume_inv = self.volume_inv_jax
+        wall_dist = self.wall_dist_jax
         beta = self.config.beta
         k4 = self.config.jst_k4
         nu = self.mu_laminar
@@ -302,7 +305,7 @@ class RANSSolver:
         
         @jax.jit
         def jit_rk_stage(Q, Q0, dt, alpha_rk):
-            """Single RK stage - fully JIT compiled."""
+            """Single RK stage - fully JIT compiled with SA turbulence."""
             # Apply boundary conditions
             Q = apply_bc(Q)
             
@@ -324,9 +327,16 @@ class RANSSolver:
             mu_t = nu_tilde * f_v1
             mu_eff = nu + mu_t
             
-            # Viscous fluxes
-            R_visc = compute_viscous_fluxes_jax(grad, Si_x, Si_y, Sj_x, Sj_y, mu_eff)
+            # Viscous fluxes (momentum + SA diffusion)
+            R_visc = compute_viscous_fluxes_with_sa_jax(
+                grad, Si_x, Si_y, Sj_x, Sj_y, mu_eff, nu, nu_tilde
+            )
             R = R + R_visc
+            
+            # SA source terms: Production - Destruction + cb2 term
+            sa_source = compute_sa_source_jax(nu_tilde, grad, wall_dist, nu)
+            # Add to residual (scaled by volume for FVM)
+            R = R.at[:, :, 3].add(sa_source * volume)
             
             # Explicit smoothing
             if smoothing_epsilon > 0 and smoothing_passes > 0:

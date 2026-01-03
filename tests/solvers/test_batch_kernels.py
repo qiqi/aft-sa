@@ -40,28 +40,34 @@ def small_grid():
     """Create a small test grid (32x16 cells)."""
     NI, NJ = 32, 16
     nghost = NGHOST
-    
+
     # Create simple rectangular grid
     x = np.linspace(0, 1, NI + 1)
     y = np.linspace(0, 0.5, NJ + 1)
     X, Y = np.meshgrid(x, y, indexing='ij')
-    
+
     # Compute metrics (simplified for unit cell grid)
     dx = x[1] - x[0]
     dy = y[1] - y[0]
-    
+
     # Face normal vectors (scaled by face area in 2D = length)
     Si_x = jnp.ones((NI + 1, NJ)) * dy  # Normal in x-direction at i-faces
     Si_y = jnp.zeros((NI + 1, NJ))
     Sj_x = jnp.zeros((NI, NJ + 1))
     Sj_y = jnp.ones((NI, NJ + 1)) * dx  # Normal in y-direction at j-faces
-    
+
     volume = jnp.ones((NI, NJ)) * dx * dy
-    
+
+    # Wall distance (for SA model) - increases with j
+    wall_dist = np.zeros((NI, NJ))
+    for j in range(NJ):
+        wall_dist[:, j] = (j + 0.5) * dy  # Distance to j=0 wall
+    wall_dist = jnp.array(wall_dist)
+
     # Farfield normals (pointing outward at j=NJ)
     nx_ff = jnp.zeros(NI)
     ny_ff = jnp.ones(NI)
-    
+
     return {
         'NI': NI,
         'NJ': NJ,
@@ -71,6 +77,7 @@ def small_grid():
         'Sj_x': Sj_x,
         'Sj_y': Sj_y,
         'volume': volume,
+        'wall_dist': wall_dist,
         'nx_ff': nx_ff,
         'ny_ff': ny_ff,
     }
@@ -393,6 +400,7 @@ class TestBatchStep:
             Si_x=small_grid['Si_x'], Si_y=small_grid['Si_y'],
             Sj_x=small_grid['Sj_x'], Sj_y=small_grid['Sj_y'],
             volume=small_grid['volume'],
+            wall_dist=small_grid['wall_dist'],
             beta=flow_params['beta'], k4=flow_params['k4'],
             nu=flow_params['nu'],
             smoothing_epsilon=0.2, smoothing_passes=2,
@@ -436,6 +444,7 @@ class TestBatchStep:
             Si_x=small_grid['Si_x'], Si_y=small_grid['Si_y'],
             Sj_x=small_grid['Sj_x'], Sj_y=small_grid['Sj_y'],
             volume=small_grid['volume'],
+            wall_dist=small_grid['wall_dist'],
             beta=flow_params['beta'], k4=flow_params['k4'],
             nu=flow_params['nu'],
             smoothing_epsilon=0.2, smoothing_passes=2,
