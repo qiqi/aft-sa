@@ -1,0 +1,38 @@
+# Production-quality simulation configuration
+# Fine grid for accurate results
+
+preset: production     # Uses 512x128 cell grid
+
+grid:
+  airfoil: data/naca0012.dat
+  y_plus: 1.0
+
+flow:
+  reynolds: 6.0e+6
+  mach: 0.0
+  alpha: 4.0
+
+solver:
+  max_iter: 20000
+  tol: 1.0e-12
+  print_freq: 100
+  diagnostic_freq: 1000
+  
+  cfl:
+    initial: 0.1
+    final: 5.0
+    ramp_iter: 1000
+
+numerics:
+  jst_k4: 0.02        # Lower dissipation for fine grid
+  beta: 10.0
+  
+  smoothing:
+    type: explicit
+    epsilon: 0.15
+    passes: 3
+
+output:
+  directory: output/production
+  case_name: naca0012_production
+  html_animation: true

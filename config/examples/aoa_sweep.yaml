@@ -1,0 +1,42 @@
+# Angle of attack sweep configuration
+# NOTE: Batch mode not yet implemented - this is a template for Phase 2
+# For now, use single values and run multiple simulations
+
+preset: coarse         # Uses 256x32 cell grid
+
+grid:
+  airfoil: data/naca0012.dat
+
+flow:
+  reynolds: 6.0e+6
+  mach: 0.0
+  
+  # Future batch mode: sweep specification
+  # alpha:
+  #   sweep: [-5, 15, 21]    # start, end, count → 21 cases
+  alpha: 0.0               # Single case for now
+
+solver:
+  max_iter: 5000
+  tol: 1.0e-10
+  print_freq: 100
+  diagnostic_freq: 500
+  
+  cfl:
+    initial: 0.2
+    final: 3.0
+    ramp_iter: 500
+
+numerics:
+  jst_k4: 0.04
+  beta: 10.0
+  
+  smoothing:
+    type: explicit
+    epsilon: 0.2
+    passes: 2
+
+output:
+  directory: output/aoa_sweep
+  case_name: naca0012_sweep
+  html_animation: true

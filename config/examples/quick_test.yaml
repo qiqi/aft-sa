@@ -1,0 +1,27 @@
+# Quick test configuration with super-coarse grid
+# Usage: python scripts/solver/run_airfoil.py --config config/examples/quick_test.yaml
+
+preset: super-coarse   # Uses 128x32 cell grid
+
+grid:
+  airfoil: data/naca0012.dat
+
+flow:
+  reynolds: 6.0e+6
+  alpha: 0.0
+
+solver:
+  max_iter: 500
+  tol: 1.0e-8
+  print_freq: 10
+  diagnostic_freq: 50
+  
+  cfl:
+    initial: 0.1
+    final: 2.0
+    ramp_iter: 100
+
+output:
+  directory: output/quick_test
+  case_name: quick
+  html_animation: true

@@ -1,0 +1,39 @@
+# Single airfoil simulation configuration
+# Usage: python scripts/solver/run_airfoil.py --config config/examples/single_case.yaml
+
+grid:
+  airfoil: data/naca0012.dat
+  n_surface: 257      # Surface nodes (256 cells)
+  n_normal: 65        # Normal nodes (64 cells)
+  n_wake: 64          # Wake region nodes
+  y_plus: 1.0         # Target y+ for first cell
+
+flow:
+  reynolds: 6.0e+6
+  mach: 0.0           # Incompressible
+  alpha: 4.0          # 4 degrees angle of attack
+
+solver:
+  max_iter: 10000
+  tol: 1.0e-10
+  print_freq: 50
+  diagnostic_freq: 200
+  
+  cfl:
+    initial: 0.1
+    final: 3.0
+    ramp_iter: 300
+
+numerics:
+  jst_k4: 0.04        # 4th-order dissipation
+  beta: 10.0          # Artificial compressibility
+  
+  smoothing:
+    type: explicit
+    epsilon: 0.2
+    passes: 2
+
+output:
+  directory: output/single_case
+  case_name: naca0012_a4
+  html_animation: true

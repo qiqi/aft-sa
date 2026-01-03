@@ -6,15 +6,21 @@ This script sets up and runs a 2D incompressible RANS simulation around
 an airfoil using the artificial compressibility method.
 
 Features:
+    - YAML configuration files for easy parameter management
     - On-the-fly grid generation with configurable density
     - Interactive HTML visualization with animation
     - Residual monitoring and divergence detection
     - Surface data extraction
 
 Usage:
-    python run_airfoil.py <grid_file.p3d>
-    python run_airfoil.py <airfoil.dat> --n-surface 100 --n-normal 50
-    python run_airfoil.py <airfoil.dat> --dump-freq 10 --coarse
+    # Using YAML config (recommended)
+    python run_airfoil.py --config config/examples/single_case.yaml
+    
+    # With CLI overrides
+    python run_airfoil.py --config config/examples/quick_test.yaml --alpha 4.0
+    
+    # Legacy mode (positional grid file)
+    python run_airfoil.py data/naca0012.dat --super-coarse --max-iter 100
 """
 
 import sys
@@ -28,90 +34,149 @@ sys.path.insert(0, str(project_root))
 from src.solvers.rans_solver import RANSSolver, SolverConfig
 from src.grid.loader import load_or_generate_grid
 from src.physics.jax_config import jax
+from src.config import load_yaml, from_dict, apply_cli_overrides, SimulationConfig
 
 
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Run RANS simulation with diagnostic visualization"
+        description="Run RANS simulation with diagnostic visualization",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Use YAML config
+  %(prog)s --config config/examples/quick_test.yaml
+  
+  # YAML with overrides  
+  %(prog)s --config config/examples/single_case.yaml --alpha 8.0
+  
+  # Legacy mode
+  %(prog)s data/naca0012.dat --super-coarse --max-iter 500
+"""
     )
+    
+    # Configuration file (new primary way)
     parser.add_argument(
-        "grid_file",
+        "--config", "-c",
+        help="Path to YAML configuration file"
+    )
+    
+    # Legacy: positional grid file
+    parser.add_argument(
+        "grid_file", nargs="?",
         help="Path to grid file (.p3d) or airfoil file (.dat)"
     )
     
-    # Flow conditions
-    parser.add_argument("--mach", "-M", type=float, default=0.15,
-                        help="Mach number (default: 0.15)")
-    parser.add_argument("--alpha", "-a", type=float, default=0.0,
-                        help="Angle of attack in degrees (default: 0.0)")
-    parser.add_argument("--reynolds", "-Re", type=float, default=6e6,
-                        help="Reynolds number (default: 6e6)")
+    # Flow conditions (can override YAML)
+    parser.add_argument("--mach", "-M", type=float,
+                        help="Mach number")
+    parser.add_argument("--alpha", "-a", type=float,
+                        help="Angle of attack in degrees")
+    parser.add_argument("--reynolds", "-Re", type=float,
+                        help="Reynolds number")
     
     # Solver settings
-    parser.add_argument("--max-iter", "-n", type=int, default=10000,
-                        help="Maximum iterations (default: 10000)")
-    parser.add_argument("--cfl", type=float, default=3.0,
-                        help="Target CFL number (default: 3.0)")
-    parser.add_argument("--cfl-start", type=float, default=0.1,
-                        help="Initial CFL for ramping (default: 0.1)")
-    parser.add_argument("--cfl-ramp", type=int, default=300,
-                        help="CFL ramp iterations (default: 300)")
-    parser.add_argument("--tol", type=float, default=1e-10,
-                        help="Convergence tolerance (default: 1e-10)")
-    parser.add_argument("--beta", type=float, default=10.0,
-                        help="Artificial compressibility parameter (default: 10.0)")
-    parser.add_argument("--irs", type=float, default=1.0,
-                        help="Implicit Residual Smoothing epsilon (0=disabled, default: 1.0)")
+    parser.add_argument("--max-iter", "-n", type=int,
+                        help="Maximum iterations")
+    parser.add_argument("--cfl", type=float,
+                        help="Target CFL number")
+    parser.add_argument("--cfl-start", type=float,
+                        help="Initial CFL for ramping")
+    parser.add_argument("--cfl-ramp", type=int,
+                        help="CFL ramp iterations")
+    parser.add_argument("--tol", type=float,
+                        help="Convergence tolerance")
+    parser.add_argument("--beta", type=float,
+                        help="Artificial compressibility parameter")
+    parser.add_argument("--irs", type=float,
+                        help="Implicit Residual Smoothing epsilon (legacy)")
     
-    # Grid generation options (nodes = cells + 1)
-    parser.add_argument("--n-surface", type=int, default=257,
-                        help="Surface nodes for grid generation (default: 257 = 256 cells)")
-    parser.add_argument("--n-normal", type=int, default=65,
-                        help="Normal nodes for grid generation (default: 65 = 64 cells)")
-    parser.add_argument("--n-wake", type=int, default=64,
-                        help="Wake nodes for grid generation (default: 64)")
+    # Grid generation options
+    parser.add_argument("--n-surface", type=int,
+                        help="Surface nodes for grid generation")
+    parser.add_argument("--n-normal", type=int,
+                        help="Normal nodes for grid generation")
+    parser.add_argument("--n-wake", type=int,
+                        help="Wake nodes for grid generation")
     parser.add_argument("--coarse", action="store_true",
-                        help="Use coarse grid (128x32 cells) for debugging")
+                        help="Use coarse grid (256x32 cells)")
     parser.add_argument("--super-coarse", action="store_true",
-                        help="Use super-coarse grid (64x16 cells) for fast tests")
+                        help="Use super-coarse grid (128x32 cells)")
     
     # Output settings
-    parser.add_argument("--output-dir", "-o", type=str, default="output/solver",
-                        help="Output directory (default: output/solver)")
-    parser.add_argument("--case-name", type=str, default="naca0012",
-                        help="Case name for output files (default: naca0012)")
-    parser.add_argument("--diagnostic-freq", "--dump-freq", type=int, default=100,
-                        help="Diagnostic snapshot frequency (default: 100)")
-    parser.add_argument("--print-freq", type=int, default=10,
-                        help="Console print frequency (default: 10)")
-    parser.add_argument("--div-history", type=int, default=0,
-                        help="Solutions to keep for divergence visualization (0=disabled)")
+    parser.add_argument("--output-dir", "-o", type=str,
+                        help="Output directory")
+    parser.add_argument("--case-name", type=str,
+                        help="Case name for output files")
+    parser.add_argument("--diagnostic-freq", "--dump-freq", type=int,
+                        help="Diagnostic snapshot frequency")
+    parser.add_argument("--print-freq", type=int,
+                        help="Console print frequency")
+    parser.add_argument("--div-history", type=int,
+                        help="Solutions to keep for divergence visualization")
     
     args = parser.parse_args()
     
-    # Override grid settings for coarse modes
-    # For C-grid: total_I_nodes = n_surface + 2*n_wake, cells = nodes - 1
-    # For power-of-2 cells: n_surface + 2*n_wake = power_of_2 + 1
-    # Note: construct2d needs at least ~130 surface points for C-grid stability
-    if args.super_coarse:
-        # Use 32 J-cells (minimum for stability) with coarser I-grid
-        # 128 I-cells: n_surface + 2*n_wake = 129, e.g., 65 + 2*32 = 129
-        args.n_surface = 65
-        args.n_normal = 33    # 32 J-cells (minimum for stability)
-        args.n_wake = 32      # 65 + 64 = 129 nodes → 128 cells
-        args.y_plus = 5.0
-        # Reduce CFL for coarse grid stability
-        if args.cfl > 3.0:
-            args.cfl = 3.0
-        print("Using SUPER-COARSE grid mode (128x32 cells)")
-    elif args.coarse:
-        # 256 I-cells: n_surface + 2*n_wake = 257, e.g., 193 + 2*32 = 257
-        args.n_surface = 193
-        args.n_normal = 33    # 32 J-cells  
-        args.n_wake = 32
-        args.y_plus = 1.0
-        print("Using COARSE grid mode (256x32 cells)")
+    # Load configuration
+    if args.config:
+        # YAML-based configuration
+        try:
+            sim_config = load_yaml(args.config)
+            print(f"Loaded configuration from: {args.config}")
+        except FileNotFoundError as e:
+            print(f"ERROR: {e}")
+            sys.exit(1)
+        except Exception as e:
+            print(f"ERROR loading config: {e}")
+            sys.exit(1)
+        
+        # Apply CLI overrides
+        sim_config = apply_cli_overrides(sim_config, args)
+        
+    elif args.grid_file:
+        # Legacy mode: build config from CLI args
+        sim_config = SimulationConfig()
+        sim_config.grid.airfoil = args.grid_file
+        
+        # Apply defaults for --coarse and --super-coarse
+        if args.super_coarse:
+            sim_config.grid.n_surface = 65
+            sim_config.grid.n_normal = 33
+            sim_config.grid.n_wake = 32
+            sim_config.grid.y_plus = 5.0
+            print("Using SUPER-COARSE grid mode (128x32 cells)")
+        elif args.coarse:
+            sim_config.grid.n_surface = 193
+            sim_config.grid.n_normal = 33
+            sim_config.grid.n_wake = 32
+            sim_config.grid.y_plus = 1.0
+            print("Using COARSE grid mode (256x32 cells)")
+        
+        # Apply CLI overrides
+        sim_config = apply_cli_overrides(sim_config, args)
+        
+    else:
+        parser.print_help()
+        print("\nERROR: Must provide either --config or a grid file")
+        sys.exit(1)
+    
+    # Handle legacy --coarse/--super-coarse flags with --config
+    if args.config:
+        if args.super_coarse:
+            sim_config.grid.n_surface = 65
+            sim_config.grid.n_normal = 33
+            sim_config.grid.n_wake = 32
+            sim_config.grid.y_plus = 5.0
+            print("Override: Using SUPER-COARSE grid (128x32 cells)")
+        elif args.coarse:
+            sim_config.grid.n_surface = 193
+            sim_config.grid.n_normal = 33
+            sim_config.grid.n_wake = 32
+            sim_config.grid.y_plus = 1.0
+            print("Override: Using COARSE grid (256x32 cells)")
+    
+    # Convert to legacy SolverConfig
+    config = sim_config.to_solver_config()
     
     # Print banner
     print("\n" + "="*70)
@@ -119,19 +184,19 @@ def main():
     print("="*70)
     
     # Grid generation settings
-    y_plus = getattr(args, 'y_plus', 1.0)
-    max_first_cell = 0.005 if args.super_coarse else 0.001
+    y_plus = sim_config.grid.y_plus
+    max_first_cell = 0.005 if sim_config.grid.n_normal <= 33 else 0.001
     
     # Load or generate grid
     try:
         X, Y = load_or_generate_grid(
-            args.grid_file,
-            n_surface=args.n_surface,
-            n_normal=args.n_normal,
-            n_wake=args.n_wake,
+            sim_config.grid.airfoil,
+            n_surface=sim_config.grid.n_surface,
+            n_normal=sim_config.grid.n_normal,
+            n_wake=sim_config.grid.n_wake,
             y_plus=y_plus,
-            reynolds=args.reynolds,
-            farfield_radius=15.0,
+            reynolds=sim_config.flow.reynolds,
+            farfield_radius=sim_config.grid.farfield_radius,
             max_first_cell=max_first_cell,
             project_root=project_root,
             verbose=True
@@ -139,29 +204,6 @@ def main():
     except (FileNotFoundError, ValueError) as e:
         print(f"ERROR: {e}")
         sys.exit(1)
-    
-    # Configure solver
-    config = SolverConfig(
-        mach=args.mach,
-        alpha=args.alpha,
-        reynolds=args.reynolds,
-        beta=args.beta,
-        cfl_start=args.cfl_start,
-        cfl_target=args.cfl,
-        cfl_ramp_iters=args.cfl_ramp,
-        max_iter=args.max_iter,
-        tol=args.tol,
-        diagnostic_freq=args.diagnostic_freq,
-        print_freq=args.print_freq,
-        output_dir=args.output_dir,
-        case_name=args.case_name,
-        wall_damping_length=0.1,
-        jst_k4=0.04,
-        irs_epsilon=args.irs,
-        n_wake=args.n_wake,
-        html_animation=True,
-        divergence_history=args.div_history,
-    )
     
     # Create solver with pre-loaded grid
     solver = RANSSolver.__new__(RANSSolver)
@@ -180,10 +222,11 @@ def main():
     solver._initialize_output()
     
     print(f"\nGrid size: {solver.NI} x {solver.NJ} cells")
-    print(f"Reynolds: {args.reynolds:.2e}")
+    print(f"Reynolds: {sim_config.flow.reynolds:.2e}")
+    print(f"Alpha: {sim_config.flow.alpha}°")
     print(f"Backend: JAX ({jax.devices()[0].device_kind})")
-    print(f"Target CFL: {args.cfl} with IRS ε={args.irs}")
-    print(f"Output: HTML animation every {args.diagnostic_freq} iterations")
+    print(f"Target CFL: {config.cfl_target} (ramp from {config.cfl_start} over {config.cfl_ramp_iters} iters)")
+    print(f"Output: HTML animation every {config.diagnostic_freq} iterations")
     
     # Run
     try:
