@@ -340,15 +340,6 @@ def compute_aerodynamic_forces_jax_pure(
     return CL, CD, CD_p, CD_f
 
 
-def _make_airfoil_mask(NI: int, n_wake: int) -> jnp.ndarray:
-    """Create mask for airfoil cells (excluding wake)."""
-    mask = jnp.ones(NI, dtype=bool)
-    if n_wake > 0:
-        mask = mask.at[:n_wake].set(False)
-        mask = mask.at[-n_wake:].set(False)
-    return mask
-
-
 @jax.jit
 def compute_surface_cp_cf_jax(Q, Sj_x, Sj_y, volume, mu_eff, p_inf, q_inf, nghost):
     """
