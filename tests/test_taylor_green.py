@@ -359,7 +359,6 @@ def compute_errors(Q: np.ndarray, Q_exact: np.ndarray) -> dict:
 # Test Classes
 # =============================================================================
 
-@pytest.mark.slow
 @pytest.mark.xfail(reason="Numerical stability issues with JAX implementation on periodic domains")
 class TestTaylorGreenCartesian:
     """Tests on uniform Cartesian grid (baseline).
@@ -532,7 +531,6 @@ class TestTaylorGreenCartesian:
         assert relative_error < 0.5, f"KE decay error = {relative_error*100:.1f}%"
 
 
-@pytest.mark.slow
 @pytest.mark.xfail(reason="Numerical stability issues with JAX implementation on distorted grids")
 class TestTaylorGreenDistorted:
     """Tests on sinusoidally-distorted grid (curvilinear test).
@@ -702,7 +700,6 @@ class TestTaylorGreenDistorted:
         assert relative_error < 0.7, f"KE decay error = {relative_error*100:.1f}%"
 
 
-@pytest.mark.slow
 @pytest.mark.xfail(reason="Numerical stability issues with strong convection")
 class TestConvectedTaylorGreen:
     """Tests for convected Taylor-Green vortex with stronger mean flows.

@@ -152,7 +152,6 @@ def get_cfl(iteration, cfl_start=0.1, cfl_final=0.5, ramp_iters=200):
     return cfl_start + (cfl_final - cfl_start) * iteration / ramp_iters
 
 
-@pytest.mark.slow
 @pytest.mark.xfail(reason="Numerical stability issues with JAX implementation on flat plate geometry")
 class TestBlasiusFlatPlate:
     """Validate viscous solver against Blasius solution."""
