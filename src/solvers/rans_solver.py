@@ -65,6 +65,7 @@ class SolverConfig:
     case_name: str = "solution"
     wall_damping_length: float = 0.1
     jst_k4: float = 0.04
+    sponge_thickness: int = 15  # Sponge layer thickness for farfield stabilization
     irs_epsilon: float = 0.0
     # Explicit smoothing (preferred over IRS for GPU)
     smoothing_type: str = "explicit"  # "explicit", "implicit", or "none"
@@ -93,6 +94,7 @@ class RANSSolver:
         
         self.iteration = 0
         self.residual_history = []
+        self.iteration_history = []  # Track which iteration each residual corresponds to
         self.converged = False
         
         self._load_grid(grid_file)
@@ -376,7 +378,8 @@ class RANSSolver:
             self.plotter.store_snapshot(
                 self.Q, 0, self.residual_history,
                 cfl=self._get_cfl(0), C_pt=C_pt, residual_field=initial_R,
-                freestream=self.freestream
+                freestream=self.freestream,
+                iteration_history=self.iteration_history
             )
         
         print(f"  Output directory: {output_path}")
@@ -529,6 +532,7 @@ class RANSSolver:
             if need_residual:
                 res_rms = self.get_residual_rms()
                 self.residual_history.append(res_rms)
+                self.iteration_history.append(self.iteration)
                 
                 if initial_residual is None:
                     initial_residual = res_rms
@@ -558,7 +562,8 @@ class RANSSolver:
                 self.plotter.store_snapshot(
                     self.Q, self.iteration, self.residual_history,
                     cfl=cfl, C_pt=C_pt, residual_field=R_field,
-                    freestream=self.freestream
+                    freestream=self.freestream,
+                    iteration_history=self.iteration_history
                 )
             
             if res_rms < self.config.tol:
@@ -574,6 +579,24 @@ class RANSSolver:
                 print(f"DIVERGED at iteration {self.iteration}")
                 print(f"Residual: {res_rms:.6e} (initial: {initial_residual:.6e})")
                 print(f"{'='*60}")
+                
+                # Capture divergence dump for HTML visualization
+                if self.config.html_animation:
+                    self.sync_to_cpu()
+                    R_field = np.array(self.R_jax)
+                    Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
+                    C_pt = compute_total_pressure_loss(
+                        Q_int, self.freestream.p_inf,
+                        self.freestream.u_inf, self.freestream.v_inf
+                    )
+                    self.plotter.store_snapshot(
+                        self.Q, self.iteration, self.residual_history,
+                        cfl=cfl, C_pt=C_pt, residual_field=R_field,
+                        freestream=self.freestream,
+                        iteration_history=self.iteration_history,
+                        is_divergence_dump=True
+                    )
+                    print("  Divergence snapshot captured for HTML visualization")
                 break
         
         else:

@@ -26,6 +26,7 @@ class FluxConfig:
     k4: float = 0.016
     martinelli_alpha: float = 0.667  # Exponent for aspect ratio scaling (2/3)
     martinelli_max: float = 3.0  # Maximum Martinelli scaling factor
+    sponge_thickness: int = 15  # Sponge layer thickness in cells
 
 
 class GridMetrics(NamedTuple):
@@ -124,9 +125,9 @@ def compute_time_step(Q: NDArrayFloat, metrics: GridMetrics, beta: float,
 # =============================================================================
 
 def compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost, 
-                       martinelli_alpha=0.667):
+                       martinelli_alpha=0.667, sigma=None):
     """
-    JAX: Compute flux residual using JST scheme with Martinelli scaling.
+    JAX: Compute flux residual using JST scheme with Martinelli scaling and sponge layer.
     
     Parameters
     ----------
@@ -144,6 +145,9 @@ def compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost,
         Number of ghost cells.
     martinelli_alpha : float
         Exponent for aspect ratio scaling (default 2/3).
+    sigma : jnp.ndarray, optional
+        Sponge coefficient field (NI, NJ). If None, pure 4th-order dissipation.
+        Values in [0, 1]: 0=interior (pure 4th-order), 1=boundary (pure 2nd-order).
         
     Returns
     -------
@@ -162,21 +166,36 @@ def compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost,
     # Interior cell velocities for spectral radius
     Q_int = Q[nghost:nghost+NI, nghost:nghost+NJ, :]
     
+    # If sigma not provided, use zero (pure 4th-order everywhere)
+    if sigma is None:
+        sigma = jnp.zeros((NI, NJ))
+    
     return _compute_fluxes_jax_impl(
         Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
         Q[nghost:nghost+NI, nghost-1:nghost+NJ, :],       # Q_L_j
         Q[nghost:nghost+NI, nghost:nghost+NJ+1, :],       # Q_R_j  
         Q[nghost:nghost+NI, nghost-2:nghost+NJ-1, :],     # Q_Lm1_j
         Q[nghost:nghost+NI, nghost+1:nghost+NJ+2, :],     # Q_Rp1_j
-        Sj_x, Sj_y, Q_int, beta, k4, martinelli_alpha
+        Sj_x, Sj_y, Q_int, beta, k4, martinelli_alpha, sigma
     )
 
 
 @jax.jit
 def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
                               Q_L_j, Q_R_j, Q_Lm1_j, Q_Rp1_j, Sj_x, Sj_y,
-                              Q_int, beta, k4, martinelli_alpha):
-    """JIT-compiled flux computation kernel with Martinelli scaling."""
+                              Q_int, beta, k4, martinelli_alpha, sigma):
+    """JIT-compiled flux computation kernel with Martinelli scaling and sponge layer.
+    
+    The dissipation uses JST blending with sponge layer:
+    - epsilon_2 = sigma (2nd-order from sponge, 0 in interior, 1 at boundary)
+    - epsilon_4 = max(0, k_4 - epsilon_2) (4th-order with blending)
+    
+    Dissipation flux:
+    F_diss = ε₂ * λ * (Q_{j+1} - Q_j) - ε₄ * λ * (Q_{j+2} - 3Q_{j+1} + 3Q_j - Q_{j-1})
+    
+    Interior (σ=0): pure 4th-order dissipation
+    Boundary (σ=1): pure 2nd-order dissipation for wave absorption
+    """
     NI_p1, NJ_i = Si_x.shape
     NI = NI_p1 - 1
     NJ_j_p1 = Sj_y.shape[1]
@@ -205,6 +224,13 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     nj_y = Sj_y_cell / (Sj_mag_cell + 1e-12)
     U_n_j_cell = u_int * nj_x + v_int * nj_y
     lambda_j_cell = (jnp.abs(U_n_j_cell) + c_art_int) * Sj_mag_cell  # (NI, NJ)
+    
+    # =================================================================
+    # Sponge layer blending coefficients
+    # epsilon_2 = sigma, epsilon_4 = max(0, k4 - sigma)
+    # =================================================================
+    eps2_cell = sigma  # (NI, NJ)
+    eps4_base = jnp.maximum(0.0, k4 - eps2_cell)  # (NI, NJ)
     
     # =================================================================
     # I-direction fluxes
@@ -242,9 +268,22 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     f_i = 1.0 + ratio_i ** martinelli_alpha
     f_i = jnp.minimum(f_i, 5.0)  # Cap to prevent excessive dissipation
     
-    eps4_i = k4 * lambda_face_i * f_i
-    diss_i = eps4_i[:, :, None] * (Q_Rp1_i - 3.0 * Q_R_i + 3.0 * Q_L_i - Q_Lm1_i)
-    F_i = F_conv_i + diss_i
+    # Sponge blending for I-direction: average eps2/eps4 to faces
+    eps2_i_padded = jnp.pad(eps2_cell, ((1, 1), (0, 0)), mode='edge')
+    eps2_face_i = 0.5 * (eps2_i_padded[:-1, :] + eps2_i_padded[1:, :])  # (NI+1, NJ)
+    
+    eps4_i_padded = jnp.pad(eps4_base, ((1, 1), (0, 0)), mode='edge')
+    eps4_face_i = 0.5 * (eps4_i_padded[:-1, :] + eps4_i_padded[1:, :])  # (NI+1, NJ)
+    
+    # 2nd-order dissipation: ε₂ * λ * (Q_R - Q_L)
+    diss2_i = eps2_face_i[:, :, None] * lambda_face_i[:, :, None] * (Q_R_i - Q_L_i)
+    
+    # 4th-order dissipation with Martinelli: ε₄ * λ * f * (Q_{+2} - 3Q_{+1} + 3Q_0 - Q_{-1})
+    diss4_i = eps4_face_i[:, :, None] * lambda_face_i[:, :, None] * f_i[:, :, None] * \
+              (Q_Rp1_i - 3.0 * Q_R_i + 3.0 * Q_L_i - Q_Lm1_i)
+    
+    # Combined dissipation: add 2nd-order, subtract 4th-order (negative sign for 4th-order stencil)
+    F_i = F_conv_i + diss2_i - diss4_i
     
     # =================================================================
     # J-direction fluxes
@@ -280,9 +319,22 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     f_j = 1.0 + ratio_j ** martinelli_alpha
     f_j = jnp.minimum(f_j, 5.0)  # Cap to prevent excessive dissipation
     
-    eps4_j = k4 * lambda_face_j * f_j
-    diss_j = eps4_j[:, :, None] * (Q_Rp1_j - 3.0 * Q_R_j + 3.0 * Q_L_j - Q_Lm1_j)
-    F_j = F_conv_j + diss_j
+    # Sponge blending for J-direction: average eps2/eps4 to faces
+    eps2_j_padded = jnp.pad(eps2_cell, ((0, 0), (1, 1)), mode='edge')
+    eps2_face_j = 0.5 * (eps2_j_padded[:, :-1] + eps2_j_padded[:, 1:])  # (NI, NJ+1)
+    
+    eps4_j_padded = jnp.pad(eps4_base, ((0, 0), (1, 1)), mode='edge')
+    eps4_face_j = 0.5 * (eps4_j_padded[:, :-1] + eps4_j_padded[:, 1:])  # (NI, NJ+1)
+    
+    # 2nd-order dissipation: ε₂ * λ * (Q_R - Q_L)
+    diss2_j = eps2_face_j[:, :, None] * lambda_face_j[:, :, None] * (Q_R_j - Q_L_j)
+    
+    # 4th-order dissipation with Martinelli: ε₄ * λ * f * (Q_{+2} - 3Q_{+1} + 3Q_0 - Q_{-1})
+    diss4_j = eps4_face_j[:, :, None] * lambda_face_j[:, :, None] * f_j[:, :, None] * \
+              (Q_Rp1_j - 3.0 * Q_R_j + 3.0 * Q_L_j - Q_Lm1_j)
+    
+    # Combined dissipation
+    F_j = F_conv_j + diss2_j - diss4_j
     
     # =================================================================
     # Residual

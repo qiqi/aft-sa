@@ -321,15 +321,22 @@ def _extract_flux_slices(Q, Si_x, Si_y, Sj_x, Sj_y, nghost):
     return Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Q_L_j, Q_R_j, Q_Lm1_j, Q_Rp1_j, Q_int
 
 
-def compute_fluxes_single(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost, martinelli_alpha=0.667):
+def compute_fluxes_single(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost, martinelli_alpha=0.667, sigma=None):
     """Single-case flux computation (for vmap)."""
     slices = _extract_flux_slices(Q, Si_x, Si_y, Sj_x, Sj_y, nghost)
     Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Q_L_j, Q_R_j, Q_Lm1_j, Q_Rp1_j, Q_int = slices
     
+    NI = Si_x.shape[0] - 1
+    NJ = Si_x.shape[1]
+    
+    # Default sigma to zeros if not provided
+    if sigma is None:
+        sigma = jnp.zeros((NI, NJ))
+    
     return _compute_fluxes_jax_impl(
         Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
         Q_L_j, Q_R_j, Q_Lm1_j, Q_Rp1_j, Sj_x, Sj_y,
-        Q_int, beta, k4, martinelli_alpha
+        Q_int, beta, k4, martinelli_alpha, sigma
     )
 
 
@@ -367,10 +374,10 @@ def compute_timestep_single(Q, Si_x, Si_y, Sj_x, Sj_y, volume, beta, cfl, nghost
 
 
 # Create vmapped versions
-# Q is batched (axis 0), metrics are shared (None)
+# Q is batched (axis 0), metrics are shared (None), sigma is shared (None)
 _compute_fluxes_batch_vmap = jax.vmap(
     compute_fluxes_single,
-    in_axes=(0, None, None, None, None, None, None, None, None)
+    in_axes=(0, None, None, None, None, None, None, None, None, None)
 )
 
 _compute_gradients_batch_vmap = jax.vmap(
@@ -395,9 +402,10 @@ _smooth_explicit_batch_vmap = jax.vmap(
 )
 
 
-def compute_fluxes_batch(Q_batch, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost, martinelli_alpha=0.667):
+def compute_fluxes_batch(Q_batch, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost, 
+                         martinelli_alpha=0.667, sigma=None):
     """
-    Compute flux residuals for a batch of cases.
+    Compute flux residuals for a batch of cases with sponge layer.
     
     Parameters
     ----------
@@ -415,14 +423,23 @@ def compute_fluxes_batch(Q_batch, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost, mart
         Number of ghost cells.
     martinelli_alpha : float
         Exponent for aspect ratio scaling.
+    sigma : jnp.ndarray, optional
+        Sponge coefficient field (NI, NJ). If None, pure 4th-order dissipation.
         
     Returns
     -------
     R_batch : jnp.ndarray
         Flux residuals (n_batch, NI, NJ, 4).
     """
+    NI = Si_x.shape[0] - 1
+    NJ = Si_x.shape[1]
+    
+    # Default sigma to zeros if not provided
+    if sigma is None:
+        sigma = jnp.zeros((NI, NJ))
+    
     return _compute_fluxes_batch_vmap(
-        Q_batch, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost, martinelli_alpha
+        Q_batch, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost, martinelli_alpha, sigma
     )
 
 
@@ -529,10 +546,10 @@ def make_apply_bc_batch_jit(NI: int, NJ: int, n_wake_points: int,
                             nx: jnp.ndarray, ny: jnp.ndarray,
                             nghost: int = NGHOST):
     """
-    Create a JIT-compiled batch BC function with per-case freestream.
+    Create a JIT-compiled batch BC function with Dirichlet farfield.
     
-    Unlike the single-case version, this accepts per-case freestream values
-    as input arguments rather than capturing them in closure.
+    Uses per-case freestream values at all farfield boundaries to stabilize
+    the outer boundary. Combined with sponge layer dissipation in flux computation.
     
     Parameters
     ----------
@@ -541,7 +558,7 @@ def make_apply_bc_batch_jit(NI: int, NJ: int, n_wake_points: int,
     n_wake_points : int
         Number of wake points on each side.
     nx, ny : jnp.ndarray
-        Farfield outward unit normals (NI,).
+        Farfield outward unit normals (NI,) - not used with Dirichlet.
     nghost : int
         Number of ghost cells.
         
@@ -561,15 +578,10 @@ def make_apply_bc_batch_jit(NI: int, NJ: int, n_wake_points: int,
     j_int_first = nghost
     j_int_last = NJ + nghost - 1
     i_upper_end = NI + nghost
-    
-    # Pre-compute I-outlet mask
-    is_i_outlet = jnp.zeros(NI, dtype=bool)
-    if n_wake_points > 0:
-        is_i_outlet = is_i_outlet.at[:n_wake_points].set(True)
-        is_i_outlet = is_i_outlet.at[-n_wake_points:].set(True)
+    j_end = NJ + nghost
     
     def apply_bc_single(Q, u_inf, v_inf, p_inf, nu_t_inf):
-        """Apply BCs to a single case with given freestream."""
+        """Apply BCs to a single case with Dirichlet farfield."""
         
         # === Surface BC: Airfoil wall (no-slip) ===
         Q = Q.at[i_start:i_end, 1, 0].set(Q[i_start:i_end, j_int_first, 0])
@@ -600,51 +612,71 @@ def make_apply_bc_batch_jit(NI: int, NJ: int, n_wake_points: int,
         Q = Q.at[i_end:i_upper_end, 1, :].set(lower_wake_int_j0[::-1, :])
         Q = Q.at[i_end:i_upper_end, 0, :].set(lower_wake_int_j1[::-1, :])
         
-        # === Farfield BC: J-direction (per-case freestream) ===
-        p_int = Q[nghost:-nghost, j_int_last, 0]
-        u_int = Q[nghost:-nghost, j_int_last, 1]
-        v_int = Q[nghost:-nghost, j_int_last, 2]
-        nu_t_int = Q[nghost:-nghost, j_int_last, 3]
+        # === Farfield BC: J-direction (Dirichlet to freestream) ===
+        Q = Q.at[:, -2, 0].set(p_inf)
+        Q = Q.at[:, -2, 1].set(u_inf)
+        Q = Q.at[:, -2, 2].set(v_inf)
+        Q = Q.at[:, -2, 3].set(nu_t_inf)
+        Q = Q.at[:, -1, 0].set(p_inf)
+        Q = Q.at[:, -1, 1].set(u_inf)
+        Q = Q.at[:, -1, 2].set(v_inf)
+        Q = Q.at[:, -1, 3].set(nu_t_inf)
         
-        U_n = u_int * nx + v_int * ny
-        is_outflow = jnp.logical_or(U_n >= 0, is_i_outlet)
-        is_inflow = ~is_outflow
+        # === Farfield BC: I-direction (Dirichlet to freestream) ===
+        # Lower I boundary (i=0, i=1)
+        Q = Q.at[0, :j_end, 0].set(p_inf)
+        Q = Q.at[0, :j_end, 1].set(u_inf)
+        Q = Q.at[0, :j_end, 2].set(v_inf)
+        Q = Q.at[0, :j_end, 3].set(nu_t_inf)
+        Q = Q.at[1, :j_end, 0].set(p_inf)
+        Q = Q.at[1, :j_end, 1].set(u_inf)
+        Q = Q.at[1, :j_end, 2].set(v_inf)
+        Q = Q.at[1, :j_end, 3].set(nu_t_inf)
         
-        u_b = jnp.where(is_inflow, u_inf, u_int)
-        v_b = jnp.where(is_inflow, v_inf, v_int)
-        nu_t_b = jnp.where(is_inflow, nu_t_inf, nu_t_int)
-        p_b = jnp.where(is_inflow, p_int, p_inf)
-        p_b = jnp.where(is_i_outlet, p_int, p_b)
+        # Upper I boundary (i=-2, i=-1)
+        Q = Q.at[-2, :j_end, 0].set(p_inf)
+        Q = Q.at[-2, :j_end, 1].set(u_inf)
+        Q = Q.at[-2, :j_end, 2].set(v_inf)
+        Q = Q.at[-2, :j_end, 3].set(nu_t_inf)
+        Q = Q.at[-1, :j_end, 0].set(p_inf)
+        Q = Q.at[-1, :j_end, 1].set(u_inf)
+        Q = Q.at[-1, :j_end, 2].set(v_inf)
+        Q = Q.at[-1, :j_end, 3].set(nu_t_inf)
         
-        Q = Q.at[nghost:-nghost, -2, 0].set(2 * p_b - p_int)
-        Q = Q.at[nghost:-nghost, -2, 1].set(2 * u_b - u_int)
-        Q = Q.at[nghost:-nghost, -2, 2].set(2 * v_b - v_int)
-        Q = Q.at[nghost:-nghost, -2, 3].set(2 * nu_t_b - nu_t_int)
+        # Corner ghost cells - also freestream
+        Q = Q.at[0, -2, 0].set(p_inf)
+        Q = Q.at[0, -2, 1].set(u_inf)
+        Q = Q.at[0, -2, 2].set(v_inf)
+        Q = Q.at[0, -2, 3].set(nu_t_inf)
+        Q = Q.at[0, -1, 0].set(p_inf)
+        Q = Q.at[0, -1, 1].set(u_inf)
+        Q = Q.at[0, -1, 2].set(v_inf)
+        Q = Q.at[0, -1, 3].set(nu_t_inf)
+        Q = Q.at[1, -2, 0].set(p_inf)
+        Q = Q.at[1, -2, 1].set(u_inf)
+        Q = Q.at[1, -2, 2].set(v_inf)
+        Q = Q.at[1, -2, 3].set(nu_t_inf)
+        Q = Q.at[1, -1, 0].set(p_inf)
+        Q = Q.at[1, -1, 1].set(u_inf)
+        Q = Q.at[1, -1, 2].set(v_inf)
+        Q = Q.at[1, -1, 3].set(nu_t_inf)
         
-        Q = Q.at[nghost:-nghost, -1, 0].set(2 * Q[nghost:-nghost, -2, 0] - p_b)
-        Q = Q.at[nghost:-nghost, -1, 1].set(2 * Q[nghost:-nghost, -2, 1] - u_b)
-        Q = Q.at[nghost:-nghost, -1, 2].set(2 * Q[nghost:-nghost, -2, 2] - v_b)
-        Q = Q.at[nghost:-nghost, -1, 3].set(2 * Q[nghost:-nghost, -2, 3] - nu_t_b)
-        
-        # === Farfield BC: I-direction (downstream outlet) ===
-        j_end = NJ + nghost
-        Q = Q.at[1, :j_end, :].set(Q[nghost, :j_end, :])
-        Q = Q.at[0, :j_end, :].set(2 * Q[nghost, :j_end, :] - Q[nghost + 1, :j_end, :])
-        Q = Q.at[-2, :j_end, :].set(Q[-nghost - 1, :j_end, :])
-        Q = Q.at[-1, :j_end, :].set(2 * Q[-nghost - 1, :j_end, :] - Q[-nghost - 2, :j_end, :])
-        
-        # Corner ghost cells
-        corner_ll = Q[nghost, j_int_last, :]
-        Q = Q.at[0, -2, :].set(corner_ll)
-        Q = Q.at[0, -1, :].set(corner_ll)
-        Q = Q.at[1, -2, :].set(corner_ll)
-        Q = Q.at[1, -1, :].set(corner_ll)
-        
-        corner_lr = Q[-nghost - 1, j_int_last, :]
-        Q = Q.at[-2, -2, :].set(corner_lr)
-        Q = Q.at[-2, -1, :].set(corner_lr)
-        Q = Q.at[-1, -2, :].set(corner_lr)
-        Q = Q.at[-1, -1, :].set(corner_lr)
+        Q = Q.at[-2, -2, 0].set(p_inf)
+        Q = Q.at[-2, -2, 1].set(u_inf)
+        Q = Q.at[-2, -2, 2].set(v_inf)
+        Q = Q.at[-2, -2, 3].set(nu_t_inf)
+        Q = Q.at[-2, -1, 0].set(p_inf)
+        Q = Q.at[-2, -1, 1].set(u_inf)
+        Q = Q.at[-2, -1, 2].set(v_inf)
+        Q = Q.at[-2, -1, 3].set(nu_t_inf)
+        Q = Q.at[-1, -2, 0].set(p_inf)
+        Q = Q.at[-1, -2, 1].set(u_inf)
+        Q = Q.at[-1, -2, 2].set(v_inf)
+        Q = Q.at[-1, -2, 3].set(nu_t_inf)
+        Q = Q.at[-1, -1, 0].set(p_inf)
+        Q = Q.at[-1, -1, 1].set(u_inf)
+        Q = Q.at[-1, -1, 2].set(v_inf)
+        Q = Q.at[-1, -1, 3].set(nu_t_inf)
         
         return Q
     
@@ -656,7 +688,7 @@ def make_apply_bc_batch_jit(NI: int, NJ: int, n_wake_points: int,
     
     @jax.jit
     def apply_bc_batch(Q_batch, u_inf, v_inf, p_inf, nu_t_inf):
-        """Apply BCs to batch with per-case freestream (JIT-compiled)."""
+        """Apply BCs to batch with per-case Dirichlet freestream (JIT-compiled)."""
         return apply_bc_batch_vmap(Q_batch, u_inf, v_inf, p_inf, nu_t_inf)
     
     return apply_bc_batch
@@ -674,6 +706,7 @@ def make_batch_step_jit(NI: int, NJ: int, n_wake_points: int,
                         beta: float, k4: float, nu: float,
                         smoothing_epsilon: float = 0.2,
                         smoothing_passes: int = 2,
+                        sponge_thickness: int = 15,
                         nghost: int = NGHOST):
     """
     Create a JIT-compiled batch step function with all grid data baked in.
@@ -696,6 +729,8 @@ def make_batch_step_jit(NI: int, NJ: int, n_wake_points: int,
         Kinematic viscosity (laminar).
     smoothing_epsilon, smoothing_passes : float, int
         Residual smoothing parameters.
+    sponge_thickness : int
+        Thickness of sponge layer in cells for farfield stabilization.
     nghost : int
         Number of ghost cells.
         
@@ -715,6 +750,10 @@ def make_batch_step_jit(NI: int, NJ: int, n_wake_points: int,
     
     # Create batch BC function
     apply_bc_batch = make_apply_bc_batch_jit(NI, NJ, n_wake_points, nx, ny, nghost)
+    
+    # Pre-compute sponge layer coefficient field
+    from src.numerics.dissipation import compute_sponge_sigma_jax
+    sigma = compute_sponge_sigma_jax(NI, NJ, sponge_thickness)
     
     def compute_mu_eff_batch(Q_batch):
         """Compute effective viscosity for batch."""
@@ -761,9 +800,9 @@ def make_batch_step_jit(NI: int, NJ: int, n_wake_points: int,
         # Apply boundary conditions
         Q_batch = apply_bc_batch(Q_batch, u_inf, v_inf, p_inf, nu_t_inf)
         
-        # Convective fluxes
+        # Convective fluxes with sponge layer
         R = compute_fluxes_batch(
-            Q_batch, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost
+            Q_batch, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost, sigma=sigma
         )
         
         # Gradients
@@ -834,6 +873,7 @@ class BatchRANSSolver:
                  print_freq: int = 50,
                  smoothing_epsilon: float = 0.2,
                  smoothing_passes: int = 2,
+                 sponge_thickness: int = 15,
                  n_wake: int = 30,
                  output_dir: str = "output/batch"):
         """
@@ -861,6 +901,8 @@ class BatchRANSSolver:
             Print frequency.
         smoothing_epsilon, smoothing_passes : float, int
             Residual smoothing parameters.
+        sponge_thickness : int
+            Thickness of sponge layer in cells for farfield stabilization.
         n_wake : int
             Number of wake points.
         output_dir : str
@@ -876,6 +918,7 @@ class BatchRANSSolver:
         self.max_iter = max_iter
         self.tol = tol
         self.print_freq = print_freq
+        self.sponge_thickness = sponge_thickness
         self.n_wake = n_wake
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -1007,6 +1050,7 @@ class BatchRANSSolver:
     def _create_batch_functions(self, smoothing_epsilon, smoothing_passes):
         """Create JIT-compiled batch functions."""
         print("Creating JIT-compiled batch functions...")
+        print(f"  Sponge layer thickness: {self.sponge_thickness} cells")
         
         self.batch_step, self.apply_bc_batch, self.compute_dt = make_batch_step_jit(
             self.NI, self.NJ, self.n_wake,
@@ -1016,8 +1060,13 @@ class BatchRANSSolver:
             self.volume_jax,
             self.beta, self.k4, self.nu,
             smoothing_epsilon, smoothing_passes,
+            self.sponge_thickness,
             NGHOST
         )
+        
+        # Store sigma for residual computation
+        from src.numerics.dissipation import compute_sponge_sigma_jax
+        self.sigma_jax = compute_sponge_sigma_jax(self.NI, self.NJ, self.sponge_thickness)
         
         # Warmup JIT
         print("  Warming up JIT compilation...")
@@ -1081,7 +1130,7 @@ class BatchRANSSolver:
         R = compute_fluxes_batch(
             Q, self.Si_x_jax, self.Si_y_jax,
             self.Sj_x_jax, self.Sj_y_jax,
-            self.beta, self.k4, NGHOST
+            self.beta, self.k4, NGHOST, sigma=self.sigma_jax
         )
         
         # RMS over spatial dimensions

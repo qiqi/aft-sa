@@ -108,6 +108,8 @@ class PlotlyDashboard:
     def __init__(self, reynolds: float = 6e6):
         self.snapshots: List[Snapshot] = []
         self.residual_history: List[float] = []
+        self.iteration_history: List[int] = []  # Track iteration numbers for each residual
+        self.divergence_snapshots: List[Snapshot] = []  # Snapshots captured during divergence
         self.p_inf: float = 0.0
         self.u_inf: float = 1.0
         self.v_inf: float = 0.0
@@ -122,10 +124,34 @@ class PlotlyDashboard:
         C_pt: Optional[np.ndarray] = None,
         residual_field: Optional[np.ndarray] = None,
         freestream: Any = None,
+        iteration_history: Optional[List[int]] = None,
+        is_divergence_dump: bool = False,
     ) -> None:
         """Store current solution state with diagnostic data.
         
         NaN/Inf values are automatically sanitized to prevent HTML rendering issues.
+        
+        Parameters
+        ----------
+        Q : np.ndarray
+            State array.
+        iteration : int
+            Current iteration number.
+        residual_history : List[float]
+            List of residual values.
+        cfl : float
+            Current CFL number.
+        C_pt : np.ndarray, optional
+            Total pressure loss coefficient.
+        residual_field : np.ndarray, optional
+            Spatial residual field.
+        freestream : Any, optional
+            Freestream conditions.
+        iteration_history : List[int], optional
+            List of iteration numbers corresponding to residual_history.
+            If None, assumes consecutive iterations starting from 0.
+        is_divergence_dump : bool
+            If True, stores in divergence_snapshots instead of regular snapshots.
         """
         Q_int = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
         residual = residual_history[-1] if residual_history else 0.0
@@ -187,9 +213,18 @@ class PlotlyDashboard:
             p_max=float(p_max),
         )
         
-        self.snapshots.append(snapshot)
-        # Sanitize residual history as well
+        if is_divergence_dump:
+            self.divergence_snapshots.append(snapshot)
+        else:
+            self.snapshots.append(snapshot)
+        
+        # Store residual history with iteration numbers
         self.residual_history = [r if np.isfinite(r) else 1e10 for r in residual_history]
+        if iteration_history is not None:
+            self.iteration_history = list(iteration_history)
+        elif len(self.iteration_history) != len(self.residual_history):
+            # Default: assume consecutive iterations starting from 0
+            self.iteration_history = list(range(len(self.residual_history)))
     
     def save_html(self, filename: str, grid_metrics: 'FVMMetrics', 
                   wall_distance: Optional[np.ndarray] = None) -> str:
@@ -225,12 +260,22 @@ class PlotlyDashboard:
         
         # Use last snapshot for initial display (matches slider default position)
         snap0 = self.snapshots[0]  # For checking feature availability
-        snapN = self.snapshots[-1]  # For initial display
+        # snapN will be set after combining with divergence snapshots
         has_cpt = snap0.C_pt is not None
         has_res_field = snap0.residual_field is not None
         has_wall_dist = wall_distance is not None
         
-        # Layout: Row 1-2: field pairs, Row 3: residual + chi, Row 4: convergence (full width)
+        # Combine regular snapshots with divergence snapshots for animation
+        all_snapshots = list(self.snapshots)
+        if self.divergence_snapshots:
+            all_snapshots.extend(self.divergence_snapshots)
+            # Sort by iteration to maintain chronological order
+            all_snapshots.sort(key=lambda s: s.iteration)
+        
+        # Use last snapshot (including divergence) for initial display
+        snapN = all_snapshots[-1]
+        
+        # Layout: Row 1-2: field pairs, Row 3: residual + chi, Row 4: convergence (left) + empty (right)
         # Row 5 (optional): wall distance
         n_rows = 5 if has_wall_dist else 4
         
@@ -240,7 +285,7 @@ class PlotlyDashboard:
             'U-velocity (u - u∞)', 'V-velocity (v - v∞)',
             'Residual Field (log₁₀)' if has_res_field else 'Velocity Magnitude',
             'χ = ν̃/ν (Turbulent/Laminar Viscosity Ratio)',
-            'Convergence History', ''  # Second column empty for colspan
+            'Convergence History', ''  # Second column empty
         ]
         
         if has_wall_dist:
@@ -250,7 +295,7 @@ class PlotlyDashboard:
             [{"type": "xy"}, {"type": "xy"}],
             [{"type": "xy"}, {"type": "xy"}],
             [{"type": "xy"}, {"type": "xy"}],
-            [{"type": "scatter", "colspan": 2}, None],  # Convergence spans both columns
+            [{"type": "scatter"}, {"type": "scatter"}],  # Convergence in left column only
         ]
         if has_wall_dist:
             specs.append([{"type": "xy", "colspan": 2}, None])  # Wall distance spans both columns
@@ -395,7 +440,11 @@ class PlotlyDashboard:
             )
         
         if self.residual_history:
-            all_iters = list(range(len(self.residual_history)))
+            # Use actual iteration numbers if available, otherwise use indices
+            if self.iteration_history and len(self.iteration_history) == len(self.residual_history):
+                all_iters = self.iteration_history
+            else:
+                all_iters = list(range(len(self.residual_history)))
             fig.add_trace(
                 go.Scatter(
                     x=all_iters, y=self.residual_history,
@@ -405,6 +454,7 @@ class PlotlyDashboard:
                 row=4, col=1  # Convergence plot at row 4, spanning both columns
             )
         
+        # Regular snapshots (red dots)
         snapshot_iters = [s.iteration for s in self.snapshots]
         snapshot_res = [s.residual for s in self.snapshots]
         fig.add_trace(
@@ -416,6 +466,20 @@ class PlotlyDashboard:
             ),
             row=4, col=1  # Convergence plot at row 4
         )
+        
+        # Divergence snapshots (orange triangles) - show if any divergence was captured
+        if self.divergence_snapshots:
+            div_iters = [s.iteration for s in self.divergence_snapshots]
+            div_res = [s.residual for s in self.divergence_snapshots]
+            fig.add_trace(
+                go.Scatter(
+                    x=div_iters, y=div_res,
+                    mode='markers',
+                    marker=dict(color='orange', size=12, symbol='triangle-up'),
+                    showlegend=False, name='Divergence Dumps',
+                ),
+                row=4, col=1
+            )
         
         # Wall distance plot (static, at end)
         wall_dist_traces_start = None
@@ -456,15 +520,18 @@ class PlotlyDashboard:
         # Each contour plot has a carpet (even index) and contourcarpet (odd index)
         # So contour indices are: 1, 3, 5, 7, 9, 11
         base_contour_indices = [1, 3, 5, 7, 9, 11]
-        # After 6 contour plots (12 traces), we have 2 scatter traces for convergence
-        # Then optionally 2 traces for wall distance (which are NOT animated)
+        # After 6 contour plots (12 traces), we have:
+        # - 1 blue line (full history)
+        # - 1 red dots (snapshots)
+        # - 1 orange triangles (divergence) if present
+        # Then optionally wall distance traces (NOT animated)
         residual_marker_idx = 12 + 1  # 12 contour traces + 1 scatter line
         animated_indices = base_contour_indices + [residual_marker_idx]
         
         chi_cfg = coloraxis_config['chi']
         
         frames = []
-        for i, snap in enumerate(self.snapshots):
+        for i, snap in enumerate(all_snapshots):
             # Sanitize all data for this frame
             snap_p = _sanitize_array(snap.p, fill_value=0.0)
             snap_u = _sanitize_array(snap.u, fill_value=0.0)
@@ -510,12 +577,23 @@ class PlotlyDashboard:
                                  contours=dict(coloring='fill', showlines=False), ncontours=50),
             ]
             
-            snapshot_iters = [s.iteration for s in self.snapshots[:i+1]]
-            snapshot_res = [s.residual for s in self.snapshots[:i+1]]
+            # Show all snapshots up to this point (including divergence)
+            snapshots_so_far = [s for s in all_snapshots[:i+1]]
+            snapshot_iters = [s.iteration for s in snapshots_so_far]
+            snapshot_res = [s.residual for s in snapshots_so_far]
+            
+            # Color divergence snapshots differently
+            colors = []
+            for s in snapshots_so_far:
+                if s in self.divergence_snapshots:
+                    colors.append('orange')
+                else:
+                    colors.append('red')
+            
             frame_data.append(go.Scatter(
                 x=snapshot_iters, y=snapshot_res,
                 mode='markers',
-                marker=dict(color='red', size=10, symbol='circle'),
+                marker=dict(color=colors, size=10, symbol='circle'),
             ))
             
             frames.append(go.Frame(
@@ -535,9 +613,9 @@ class PlotlyDashboard:
                     frame=dict(duration=100, redraw=True),
                     transition=dict(duration=0)
                 )],
-                label=f"{snap.iteration}",
+                label=f"{snap.iteration}{'*' if snap in self.divergence_snapshots else ''}",
             )
-            for snap in self.snapshots
+            for snap in all_snapshots
         ]
         
         # Create continuous logarithmic color range sliders
@@ -616,7 +694,7 @@ class PlotlyDashboard:
             sliders=[
                 # Iteration slider (top-left)
                 dict(
-                    active=len(self.snapshots) - 1,
+                    active=len(all_snapshots) - 1,
                     yanchor='bottom', xanchor='left',
                     currentvalue=dict(
                         font=dict(size=11),
@@ -713,9 +791,13 @@ class PlotlyDashboard:
             fig.update_xaxes(title_text='x', range=[-0.5, 1.5], matches='x', row=row, col=col)
             fig.update_yaxes(title_text='y', range=[-0.5625, 0.5625], matches='y', row=row, col=col)
         
-        # Convergence history plot (row 4, col 1, spanning both columns) - keep independent
-        fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, fixedrange=True, row=4, col=1)
-        fig.update_yaxes(title_text='Residual', matches=None, type='log', autorange=True, fixedrange=True, row=4, col=1)
+        # Convergence history plot (row 4, col 1) - same size as other 2D plots, scalable
+        fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, row=4, col=1)
+        fig.update_yaxes(title_text='Residual', matches=None, type='log', autorange=True, row=4, col=1)
+        
+        # Hide the empty right column in row 4
+        fig.update_xaxes(visible=False, row=4, col=2)
+        fig.update_yaxes(visible=False, row=4, col=2)
         
         fig.write_html(str(output_path), auto_play=False)
         
@@ -727,6 +809,8 @@ class PlotlyDashboard:
         """Clear all stored snapshots."""
         self.snapshots.clear()
         self.residual_history.clear()
+        self.iteration_history.clear()
+        self.divergence_snapshots.clear()
     
     @property
     def num_snapshots(self) -> int:

@@ -164,9 +164,12 @@ def compute_j_ghost_symmetry(Q: np.ndarray, n_wake: int) -> dict:
 class TestWakeConservationBaseline:
     """Baseline tests for wake cut conservation (before refactoring)."""
     
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def simple_airfoil_solver(self):
-        """Create a simple NACA 0012 solver for testing."""
+        """Create a simple NACA 0012 solver for testing.
+        
+        Class-scoped: created once, shared across all tests in this class.
+        """
         project_root = Path(__file__).parent.parent.parent
         
         X, Y = load_or_generate_grid(
@@ -191,6 +194,7 @@ class TestWakeConservationBaseline:
         solver.NJ = X.shape[1] - 1
         solver.iteration = 0
         solver.residual_history = []
+        solver.iteration_history = []
         solver.converged = False
         solver._compute_metrics()
         solver._initialize_state()

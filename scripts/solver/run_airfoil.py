@@ -235,6 +235,7 @@ Examples:
     solver.NJ = X.shape[1] - 1
     solver.iteration = 0
     solver.residual_history = []
+    solver.iteration_history = []  # Track which iteration each residual corresponds to
     solver.converged = False
     
     # Initialize components

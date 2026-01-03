@@ -40,6 +40,13 @@ from .diagnostics import (
     compute_residual_statistics,
 )
 
+from .dissipation import (
+    compute_sponge_sigma,
+    compute_sponge_sigma_jax,
+    compute_jst_blending_coefficients,
+    compute_jst_blending_coefficients_jax,
+)
+
 __all__ = [
     'compute_fluxes',
     'compute_time_step',
@@ -63,4 +70,8 @@ __all__ = [
     'compute_total_pressure_loss',
     'compute_solution_bounds',
     'compute_residual_statistics',
+    'compute_sponge_sigma',
+    'compute_sponge_sigma_jax',
+    'compute_jst_blending_coefficients',
+    'compute_jst_blending_coefficients_jax',
 ]

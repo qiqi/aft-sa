@@ -85,6 +85,7 @@ class NumericsConfig:
     jst_k4: float = 0.04       # 4th-order dissipation coefficient
     beta: float = 10.0         # Artificial compressibility parameter
     wall_damping_length: float = 0.1  # Wall damping length scale
+    sponge_thickness: int = 15  # Sponge layer thickness in cells for farfield stabilization
     smoothing: SmoothingConfig = field(default_factory=SmoothingConfig)
 
 
@@ -137,6 +138,7 @@ class SimulationConfig:
             case_name=self.output.case_name,
             wall_damping_length=self.numerics.wall_damping_length,
             jst_k4=self.numerics.jst_k4,
+            sponge_thickness=self.numerics.sponge_thickness,
             irs_epsilon=self.numerics.smoothing.epsilon if self.numerics.smoothing.type == "implicit" else 0.0,
             smoothing_type=self.numerics.smoothing.type,
             smoothing_epsilon=self.numerics.smoothing.epsilon,

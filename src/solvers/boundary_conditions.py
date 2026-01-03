@@ -138,107 +138,65 @@ class BoundaryConditions:
         return Q
     
     def apply_farfield(self, Q: NDArrayFloat) -> NDArrayFloat:
-        """Apply farfield boundary conditions."""
-        NI: int = Q.shape[0] - 2 * NGHOST
-        i_int: slice = slice(NGHOST, -NGHOST)
-        j_int_last: int = -NGHOST - 1
+        """Apply Dirichlet farfield boundary conditions.
         
-        if self.farfield_normals is None:
-            for j_ghost in range(-NGHOST, 0):
-                Q[:, j_ghost, 0] = self.freestream.p_inf
-                Q[:, j_ghost, 1] = self.freestream.u_inf
-                Q[:, j_ghost, 2] = self.freestream.v_inf
-                Q[:, j_ghost, 3] = self.freestream.nu_t_inf
-            return Q
+        Sets all farfield ghost cells to freestream values to stabilize the
+        outer boundary and prevent oscillations. This is combined with a 
+        sponge layer (2nd-order dissipation) in the flux computation to 
+        absorb outgoing waves.
         
-        nx: NDArrayFloat
-        ny: NDArrayFloat
-        nx, ny = self.farfield_normals
+        J-Farfield (Outer Arc): Ghost cells set to freestream.
+        I-Farfield (Downstream Outlets): Ghost cells set to freestream.
         
-        p_int: NDArrayFloat = Q[i_int, j_int_last, 0]
-        u_int: NDArrayFloat = Q[i_int, j_int_last, 1]
-        v_int: NDArrayFloat = Q[i_int, j_int_last, 2]
-        nu_t_int: NDArrayFloat = Q[i_int, j_int_last, 3]
-        
-        p_int2: NDArrayFloat = Q[i_int, j_int_last - 1, 0]
-        u_int2: NDArrayFloat = Q[i_int, j_int_last - 1, 1]
-        v_int2: NDArrayFloat = Q[i_int, j_int_last - 1, 2]
-        nu_t_int2: NDArrayFloat = Q[i_int, j_int_last - 1, 3]
-        
-        if len(nx) != NI:
-            raise ValueError(
-                f"Farfield BC shape mismatch: farfield_normals has {len(nx)} values, "
-                f"but Q has {NI} interior cells."
-            )
-        
+        Note: This overrides wake extrapolation at outlets - the wake is
+        effectively clamped to freestream at the farfield boundary.
+        """
         p_inf: float = self.freestream.p_inf
         u_inf: float = self.freestream.u_inf
         v_inf: float = self.freestream.v_inf
         nu_t_inf: float = self.freestream.nu_t_inf
         
-        U_n: NDArrayFloat = u_int * nx + v_int * ny
-        is_outflow: NDArrayFloat = U_n >= 0
+        # J-direction farfield (outer arc) - Dirichlet to freestream
+        for j_ghost in range(-NGHOST, 0):
+            Q[:, j_ghost, 0] = p_inf
+            Q[:, j_ghost, 1] = u_inf
+            Q[:, j_ghost, 2] = v_inf
+            Q[:, j_ghost, 3] = nu_t_inf
         
-        # Force outflow at I-direction outlet cells (wake region at farfield corners)
-        # These cells exit in the x-direction, not through the J-farfield boundary
-        # We mark them as a special outlet that needs zero-gradient (Neumann) for all variables
-        is_i_outlet: NDArrayFloat = np.zeros_like(is_outflow)
-        if self.n_wake_points > 0:
-            # Lower wake outlet: i = 0 to n_wake_points-1
-            is_i_outlet[:self.n_wake_points] = True
-            # Upper wake outlet: i = NI - n_wake_points to NI-1
-            is_i_outlet[-self.n_wake_points:] = True
-            # These are outflow cells
-            is_outflow[is_i_outlet] = True
-        
-        is_inflow: NDArrayFloat = ~is_outflow
-        
-        u_b: NDArrayFloat = np.zeros_like(u_int)
-        v_b: NDArrayFloat = np.zeros_like(v_int)
-        p_b: NDArrayFloat = np.zeros_like(p_int)
-        nu_t_b: NDArrayFloat = np.zeros_like(nu_t_int)
-        
-        u_b[is_inflow] = u_inf
-        v_b[is_inflow] = v_inf
-        nu_t_b[is_inflow] = nu_t_inf
-        p_b[is_inflow] = p_int[is_inflow]
-        
-        u_b[is_outflow] = u_int[is_outflow]
-        v_b[is_outflow] = v_int[is_outflow]
-        nu_t_b[is_outflow] = nu_t_int[is_outflow]
-        # For normal outflow, use p_inf; for I-direction outlet cells, use zero-gradient
-        p_b[is_outflow] = p_inf
-        # Override with zero-gradient (extrapolation) for I-direction outlet cells
-        p_b[is_i_outlet] = p_int[is_i_outlet]
-        
-        Q[i_int, -2, 0] = 2 * p_b - p_int
-        Q[i_int, -2, 1] = 2 * u_b - u_int
-        Q[i_int, -2, 2] = 2 * v_b - v_int
-        Q[i_int, -2, 3] = 2 * nu_t_b - nu_t_int
-        
-        Q[i_int, -1, 0] = 2 * Q[i_int, -2, 0] - p_b
-        Q[i_int, -1, 1] = 2 * Q[i_int, -2, 1] - u_b
-        Q[i_int, -1, 2] = 2 * Q[i_int, -2, 2] - v_b
-        Q[i_int, -1, 3] = 2 * Q[i_int, -2, 3] - nu_t_b
-        
-        # I-direction farfield (downstream outlet)
+        # I-direction farfield (downstream outlet) - Dirichlet to freestream
         j_slice: slice = slice(0, -NGHOST)
         
-        Q[1, j_slice, :] = Q[NGHOST, j_slice, :]
-        Q[0, j_slice, :] = 2 * Q[NGHOST, j_slice, :] - Q[NGHOST + 1, j_slice, :]
+        # Lower I boundary (i=0, i=1)
+        Q[0, j_slice, 0] = p_inf
+        Q[0, j_slice, 1] = u_inf
+        Q[0, j_slice, 2] = v_inf
+        Q[0, j_slice, 3] = nu_t_inf
+        Q[1, j_slice, 0] = p_inf
+        Q[1, j_slice, 1] = u_inf
+        Q[1, j_slice, 2] = v_inf
+        Q[1, j_slice, 3] = nu_t_inf
         
-        Q[-2, j_slice, :] = Q[-NGHOST - 1, j_slice, :]
-        Q[-1, j_slice, :] = 2 * Q[-NGHOST - 1, j_slice, :] - Q[-NGHOST - 2, j_slice, :]
+        # Upper I boundary (i=-2, i=-1)
+        Q[-2, j_slice, 0] = p_inf
+        Q[-2, j_slice, 1] = u_inf
+        Q[-2, j_slice, 2] = v_inf
+        Q[-2, j_slice, 3] = nu_t_inf
+        Q[-1, j_slice, 0] = p_inf
+        Q[-1, j_slice, 1] = u_inf
+        Q[-1, j_slice, 2] = v_inf
+        Q[-1, j_slice, 3] = nu_t_inf
         
-        # Set corner ghost cells (intersection of I and J ghost regions)
-        # These are at (i=0,1, j=-2,-1) and (i=-2,-1, j=-2,-1)
-        # Use simple extrapolation from the nearest interior corner
+        # Corner ghost cells - also set to freestream
         for i_g in range(NGHOST):
             for j_g in range(-NGHOST, 0):
-                # Lower-left corner (i=0,1, j=-2,-1) - copy from i=NGHOST, j=-NGHOST-1
-                Q[i_g, j_g, :] = Q[NGHOST, -NGHOST - 1, :]
-                # Upper-right corner (i=-2,-1, j=-2,-1) - copy from i=-NGHOST-1, j=-NGHOST-1
-                Q[-NGHOST + i_g, j_g, :] = Q[-NGHOST - 1, -NGHOST - 1, :]
+                Q[i_g, j_g, 0] = p_inf
+                Q[i_g, j_g, 1] = u_inf
+                Q[i_g, j_g, 2] = v_inf
+                Q[i_g, j_g, 3] = nu_t_inf
+                Q[-NGHOST + i_g, j_g, 0] = p_inf
+                Q[-NGHOST + i_g, j_g, 1] = u_inf
+                Q[-NGHOST + i_g, j_g, 2] = v_inf
+                Q[-NGHOST + i_g, j_g, 3] = nu_t_inf
         
         return Q
 
@@ -402,18 +360,21 @@ if JAX_AVAILABLE:
     def apply_farfield_bc_jax(Q, farfield_normals, p_inf, u_inf, v_inf, nu_t_inf, 
                                n_wake_points, nghost=NGHOST):
         """
-        JAX: Apply farfield boundary conditions.
+        JAX: Apply Dirichlet farfield boundary conditions.
+        
+        Sets all farfield ghost cells to freestream values to stabilize the
+        outer boundary. Combined with sponge layer dissipation in flux computation.
         
         Parameters
         ----------
         Q : jnp.ndarray
             State array (NI+2*nghost, NJ+2*nghost, 4).
         farfield_normals : tuple of jnp.ndarray
-            (nx, ny) outward unit normals at farfield (NI,).
+            (nx, ny) outward unit normals at farfield (NI,) - not used with Dirichlet.
         p_inf, u_inf, v_inf, nu_t_inf : float
             Freestream conditions.
         n_wake_points : int
-            Number of wake points.
+            Number of wake points - not used with Dirichlet.
         nghost : int
             Number of ghost cells.
             
@@ -422,63 +383,53 @@ if JAX_AVAILABLE:
         Q : jnp.ndarray
             State with farfield BCs applied.
         """
-        NI = Q.shape[0] - 2 * nghost
-        j_int_last = -nghost - 1
+        NJ_total = Q.shape[1]
         
-        nx, ny = farfield_normals
+        # J-direction farfield (outer arc) - Dirichlet to freestream
+        # Set all J ghost cells (last nghost columns)
+        Q = Q.at[:, -2, 0].set(p_inf)
+        Q = Q.at[:, -2, 1].set(u_inf)
+        Q = Q.at[:, -2, 2].set(v_inf)
+        Q = Q.at[:, -2, 3].set(nu_t_inf)
+        Q = Q.at[:, -1, 0].set(p_inf)
+        Q = Q.at[:, -1, 1].set(u_inf)
+        Q = Q.at[:, -1, 2].set(v_inf)
+        Q = Q.at[:, -1, 3].set(nu_t_inf)
         
-        p_int = Q[nghost:-nghost, j_int_last, 0]
-        u_int = Q[nghost:-nghost, j_int_last, 1]
-        v_int = Q[nghost:-nghost, j_int_last, 2]
-        nu_t_int = Q[nghost:-nghost, j_int_last, 3]
+        # I-direction farfield (downstream outlets) - Dirichlet to freestream
+        j_end = NJ_total - nghost
         
-        # Determine inflow/outflow
-        U_n = u_int * nx + v_int * ny
-        is_outflow = U_n >= 0
+        # Lower I boundary (i=0, i=1)
+        Q = Q.at[0, :j_end, 0].set(p_inf)
+        Q = Q.at[0, :j_end, 1].set(u_inf)
+        Q = Q.at[0, :j_end, 2].set(v_inf)
+        Q = Q.at[0, :j_end, 3].set(nu_t_inf)
+        Q = Q.at[1, :j_end, 0].set(p_inf)
+        Q = Q.at[1, :j_end, 1].set(u_inf)
+        Q = Q.at[1, :j_end, 2].set(v_inf)
+        Q = Q.at[1, :j_end, 3].set(nu_t_inf)
         
-        # I-direction outlet cells (wake corners)
-        is_i_outlet = jnp.zeros(NI, dtype=bool)
-        if n_wake_points > 0:
-            is_i_outlet = is_i_outlet.at[:n_wake_points].set(True)
-            is_i_outlet = is_i_outlet.at[-n_wake_points:].set(True)
+        # Upper I boundary (i=-2, i=-1)
+        Q = Q.at[-2, :j_end, 0].set(p_inf)
+        Q = Q.at[-2, :j_end, 1].set(u_inf)
+        Q = Q.at[-2, :j_end, 2].set(v_inf)
+        Q = Q.at[-2, :j_end, 3].set(nu_t_inf)
+        Q = Q.at[-1, :j_end, 0].set(p_inf)
+        Q = Q.at[-1, :j_end, 1].set(u_inf)
+        Q = Q.at[-1, :j_end, 2].set(v_inf)
+        Q = Q.at[-1, :j_end, 3].set(nu_t_inf)
         
-        is_outflow = jnp.logical_or(is_outflow, is_i_outlet)
-        is_inflow = ~is_outflow
-        
-        # Boundary values
-        u_b = jnp.where(is_inflow, u_inf, u_int)
-        v_b = jnp.where(is_inflow, v_inf, v_int)
-        nu_t_b = jnp.where(is_inflow, nu_t_inf, nu_t_int)
-        
-        # For pressure: inflow uses interior, outflow uses p_inf (except I-outlet)
-        p_b = jnp.where(is_inflow, p_int, p_inf)
-        p_b = jnp.where(is_i_outlet, p_int, p_b)  # I-outlet uses zero-gradient
-        
-        # Set ghost cells (linear extrapolation)
-        Q = Q.at[nghost:-nghost, -2, 0].set(2 * p_b - p_int)
-        Q = Q.at[nghost:-nghost, -2, 1].set(2 * u_b - u_int)
-        Q = Q.at[nghost:-nghost, -2, 2].set(2 * v_b - v_int)
-        Q = Q.at[nghost:-nghost, -2, 3].set(2 * nu_t_b - nu_t_int)
-        
-        Q = Q.at[nghost:-nghost, -1, 0].set(2 * Q[nghost:-nghost, -2, 0] - p_b)
-        Q = Q.at[nghost:-nghost, -1, 1].set(2 * Q[nghost:-nghost, -2, 1] - u_b)
-        Q = Q.at[nghost:-nghost, -1, 2].set(2 * Q[nghost:-nghost, -2, 2] - v_b)
-        Q = Q.at[nghost:-nghost, -1, 3].set(2 * Q[nghost:-nghost, -2, 3] - nu_t_b)
-        
-        # I-direction farfield (downstream outlet)
-        j_slice = slice(0, -nghost)
-        
-        Q = Q.at[1, j_slice, :].set(Q[nghost, j_slice, :])
-        Q = Q.at[0, j_slice, :].set(2 * Q[nghost, j_slice, :] - Q[nghost + 1, j_slice, :])
-        
-        Q = Q.at[-2, j_slice, :].set(Q[-nghost - 1, j_slice, :])
-        Q = Q.at[-1, j_slice, :].set(2 * Q[-nghost - 1, j_slice, :] - Q[-nghost - 2, j_slice, :])
-        
-        # Corner ghost cells
+        # Corner ghost cells - also freestream
         for i_g in range(nghost):
             for j_g in range(-nghost, 0):
-                Q = Q.at[i_g, j_g, :].set(Q[nghost, -nghost - 1, :])
-                Q = Q.at[-nghost + i_g, j_g, :].set(Q[-nghost - 1, -nghost - 1, :])
+                Q = Q.at[i_g, j_g, 0].set(p_inf)
+                Q = Q.at[i_g, j_g, 1].set(u_inf)
+                Q = Q.at[i_g, j_g, 2].set(v_inf)
+                Q = Q.at[i_g, j_g, 3].set(nu_t_inf)
+                Q = Q.at[-nghost + i_g, j_g, 0].set(p_inf)
+                Q = Q.at[-nghost + i_g, j_g, 1].set(u_inf)
+                Q = Q.at[-nghost + i_g, j_g, 2].set(v_inf)
+                Q = Q.at[-nghost + i_g, j_g, 3].set(nu_t_inf)
         
         return Q
     
@@ -525,9 +476,10 @@ if JAX_AVAILABLE:
                           freestream: FreestreamConditions,
                           nghost: int = NGHOST):
         """
-        Create a JIT-compiled BC function with all indices baked in.
+        Create a JIT-compiled BC function with Dirichlet farfield.
         
-        This avoids the dynamic slicing issue by capturing indices in closure.
+        Uses freestream values at all farfield boundaries to stabilize the
+        outer boundary. Combined with sponge layer dissipation in flux computation.
         
         Parameters
         ----------
@@ -536,7 +488,7 @@ if JAX_AVAILABLE:
         n_wake_points : int
             Number of wake points on each side.
         nx, ny : jnp.ndarray
-            Farfield outward unit normals (NI,).
+            Farfield outward unit normals (NI,) - not used with Dirichlet.
         freestream : FreestreamConditions
             Freestream conditions.
         nghost : int
@@ -563,18 +515,15 @@ if JAX_AVAILABLE:
         v_inf = freestream.v_inf
         nu_t_inf = freestream.nu_t_inf
         
-        # Pre-compute I-outlet mask
-        is_i_outlet = jnp.zeros(NI, dtype=bool)
-        if n_wake_points > 0:
-            is_i_outlet = is_i_outlet.at[:n_wake_points].set(True)
-            is_i_outlet = is_i_outlet.at[-n_wake_points:].set(True)
-        
         # Upper wake end index
         i_upper_end = NI + nghost
         
+        # J boundary end (exclude J ghosts)
+        j_end = NJ + nghost
+        
         @jax.jit
         def apply_bc(Q):
-            """Apply all boundary conditions (JIT-compiled)."""
+            """Apply all boundary conditions (JIT-compiled) with Dirichlet farfield."""
             
             # === Surface BC: Airfoil wall (no-slip) ===
             # Ghost layer 1 (j=1)
@@ -608,52 +557,71 @@ if JAX_AVAILABLE:
             Q = Q.at[i_end:i_upper_end, 1, :].set(lower_wake_int_j0[::-1, :])
             Q = Q.at[i_end:i_upper_end, 0, :].set(lower_wake_int_j1[::-1, :])
             
-            # === Farfield BC: J-direction ===
-            p_int = Q[nghost:-nghost, j_int_last, 0]
-            u_int = Q[nghost:-nghost, j_int_last, 1]
-            v_int = Q[nghost:-nghost, j_int_last, 2]
-            nu_t_int = Q[nghost:-nghost, j_int_last, 3]
+            # === Farfield BC: J-direction (Dirichlet to freestream) ===
+            Q = Q.at[:, -2, 0].set(p_inf)
+            Q = Q.at[:, -2, 1].set(u_inf)
+            Q = Q.at[:, -2, 2].set(v_inf)
+            Q = Q.at[:, -2, 3].set(nu_t_inf)
+            Q = Q.at[:, -1, 0].set(p_inf)
+            Q = Q.at[:, -1, 1].set(u_inf)
+            Q = Q.at[:, -1, 2].set(v_inf)
+            Q = Q.at[:, -1, 3].set(nu_t_inf)
             
-            U_n = u_int * nx + v_int * ny
-            is_outflow = jnp.logical_or(U_n >= 0, is_i_outlet)
-            is_inflow = ~is_outflow
+            # === Farfield BC: I-direction (Dirichlet to freestream) ===
+            # Lower I boundary (i=0, i=1)
+            Q = Q.at[0, :j_end, 0].set(p_inf)
+            Q = Q.at[0, :j_end, 1].set(u_inf)
+            Q = Q.at[0, :j_end, 2].set(v_inf)
+            Q = Q.at[0, :j_end, 3].set(nu_t_inf)
+            Q = Q.at[1, :j_end, 0].set(p_inf)
+            Q = Q.at[1, :j_end, 1].set(u_inf)
+            Q = Q.at[1, :j_end, 2].set(v_inf)
+            Q = Q.at[1, :j_end, 3].set(nu_t_inf)
             
-            u_b = jnp.where(is_inflow, u_inf, u_int)
-            v_b = jnp.where(is_inflow, v_inf, v_int)
-            nu_t_b = jnp.where(is_inflow, nu_t_inf, nu_t_int)
-            p_b = jnp.where(is_inflow, p_int, p_inf)
-            p_b = jnp.where(is_i_outlet, p_int, p_b)
+            # Upper I boundary (i=-2, i=-1)
+            Q = Q.at[-2, :j_end, 0].set(p_inf)
+            Q = Q.at[-2, :j_end, 1].set(u_inf)
+            Q = Q.at[-2, :j_end, 2].set(v_inf)
+            Q = Q.at[-2, :j_end, 3].set(nu_t_inf)
+            Q = Q.at[-1, :j_end, 0].set(p_inf)
+            Q = Q.at[-1, :j_end, 1].set(u_inf)
+            Q = Q.at[-1, :j_end, 2].set(v_inf)
+            Q = Q.at[-1, :j_end, 3].set(nu_t_inf)
             
-            # J ghost cells
-            Q = Q.at[nghost:-nghost, -2, 0].set(2 * p_b - p_int)
-            Q = Q.at[nghost:-nghost, -2, 1].set(2 * u_b - u_int)
-            Q = Q.at[nghost:-nghost, -2, 2].set(2 * v_b - v_int)
-            Q = Q.at[nghost:-nghost, -2, 3].set(2 * nu_t_b - nu_t_int)
+            # Corner ghost cells - also freestream
+            Q = Q.at[0, -2, 0].set(p_inf)
+            Q = Q.at[0, -2, 1].set(u_inf)
+            Q = Q.at[0, -2, 2].set(v_inf)
+            Q = Q.at[0, -2, 3].set(nu_t_inf)
+            Q = Q.at[0, -1, 0].set(p_inf)
+            Q = Q.at[0, -1, 1].set(u_inf)
+            Q = Q.at[0, -1, 2].set(v_inf)
+            Q = Q.at[0, -1, 3].set(nu_t_inf)
+            Q = Q.at[1, -2, 0].set(p_inf)
+            Q = Q.at[1, -2, 1].set(u_inf)
+            Q = Q.at[1, -2, 2].set(v_inf)
+            Q = Q.at[1, -2, 3].set(nu_t_inf)
+            Q = Q.at[1, -1, 0].set(p_inf)
+            Q = Q.at[1, -1, 1].set(u_inf)
+            Q = Q.at[1, -1, 2].set(v_inf)
+            Q = Q.at[1, -1, 3].set(nu_t_inf)
             
-            Q = Q.at[nghost:-nghost, -1, 0].set(2 * Q[nghost:-nghost, -2, 0] - p_b)
-            Q = Q.at[nghost:-nghost, -1, 1].set(2 * Q[nghost:-nghost, -2, 1] - u_b)
-            Q = Q.at[nghost:-nghost, -1, 2].set(2 * Q[nghost:-nghost, -2, 2] - v_b)
-            Q = Q.at[nghost:-nghost, -1, 3].set(2 * Q[nghost:-nghost, -2, 3] - nu_t_b)
-            
-            # === Farfield BC: I-direction (downstream outlet) ===
-            j_end = NJ + nghost
-            Q = Q.at[1, :j_end, :].set(Q[nghost, :j_end, :])
-            Q = Q.at[0, :j_end, :].set(2 * Q[nghost, :j_end, :] - Q[nghost + 1, :j_end, :])
-            Q = Q.at[-2, :j_end, :].set(Q[-nghost - 1, :j_end, :])
-            Q = Q.at[-1, :j_end, :].set(2 * Q[-nghost - 1, :j_end, :] - Q[-nghost - 2, :j_end, :])
-            
-            # Corner ghost cells (nghost=2)
-            corner_ll = Q[nghost, j_int_last, :]
-            Q = Q.at[0, -2, :].set(corner_ll)
-            Q = Q.at[0, -1, :].set(corner_ll)
-            Q = Q.at[1, -2, :].set(corner_ll)
-            Q = Q.at[1, -1, :].set(corner_ll)
-            
-            corner_lr = Q[-nghost - 1, j_int_last, :]
-            Q = Q.at[-2, -2, :].set(corner_lr)
-            Q = Q.at[-2, -1, :].set(corner_lr)
-            Q = Q.at[-1, -2, :].set(corner_lr)
-            Q = Q.at[-1, -1, :].set(corner_lr)
+            Q = Q.at[-2, -2, 0].set(p_inf)
+            Q = Q.at[-2, -2, 1].set(u_inf)
+            Q = Q.at[-2, -2, 2].set(v_inf)
+            Q = Q.at[-2, -2, 3].set(nu_t_inf)
+            Q = Q.at[-2, -1, 0].set(p_inf)
+            Q = Q.at[-2, -1, 1].set(u_inf)
+            Q = Q.at[-2, -1, 2].set(v_inf)
+            Q = Q.at[-2, -1, 3].set(nu_t_inf)
+            Q = Q.at[-1, -2, 0].set(p_inf)
+            Q = Q.at[-1, -2, 1].set(u_inf)
+            Q = Q.at[-1, -2, 2].set(v_inf)
+            Q = Q.at[-1, -2, 3].set(nu_t_inf)
+            Q = Q.at[-1, -1, 0].set(p_inf)
+            Q = Q.at[-1, -1, 1].set(u_inf)
+            Q = Q.at[-1, -1, 2].set(v_inf)
+            Q = Q.at[-1, -1, 3].set(nu_t_inf)
             
             return Q
         

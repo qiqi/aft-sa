@@ -95,6 +95,7 @@ def create_solver(
     solver.NJ = X.shape[1] - 1
     solver.iteration = 0
     solver.residual_history = []
+    solver.iteration_history = []  # Track which iteration each residual corresponds to
     solver.converged = False
     
     solver._compute_metrics()
@@ -162,6 +163,7 @@ def create_solver_quiet(
     solver.NJ = X.shape[1] - 1
     solver.iteration = 0
     solver.residual_history = []
+    solver.iteration_history = []  # Track which iteration each residual corresponds to
     solver.converged = False
     
     solver._compute_metrics()
