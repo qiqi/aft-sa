@@ -27,9 +27,8 @@ from .boundary_conditions import (
     apply_initial_wall_damping,
 )
 from .time_stepping import compute_local_timestep, TimeStepConfig
-from ..io.output import VTKWriter
 from ..io.plotter import PlotlyDashboard
-from ..numerics.forces import compute_surface_distributions, create_surface_vtk_fields
+from ..numerics.forces import compute_surface_distributions
 from ..constants import NGHOST
 from ..numerics.diagnostics import (
     compute_total_pressure_loss, 
@@ -44,7 +43,7 @@ from ..numerics.gradients import compute_gradients_jax
 from ..numerics.viscous_fluxes import compute_viscous_fluxes_jax
 from ..numerics.explicit_smoothing import smooth_explicit_jax
 from .time_stepping import compute_local_timestep_jax
-from .boundary_conditions import apply_bc_jax
+from .boundary_conditions import apply_bc_jax, make_apply_bc_jit
 
 
 @dataclass
@@ -61,7 +60,6 @@ class SolverConfig:
     max_iter: int = 10000
     tol: float = 1e-10
     diagnostic_freq: int = 100
-    vtk_output_freq: int = 0
     print_freq: int = 50
     output_dir: str = "output"
     case_name: str = "solution"
@@ -290,25 +288,14 @@ class RANSSolver:
         jax.block_until_ready(R)
     
     def _initialize_output(self):
-        """Initialize VTK writer and HTML animation for output."""
+        """Initialize HTML animation for output."""
         output_path = Path(self.config.output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
-        
-        base_path = output_path / self.config.case_name
-        self.vtk_writer = VTKWriter(
-            str(base_path),
-            self.X, self.Y,
-            beta=self.config.beta
-        )
         
         self.plotter = PlotlyDashboard(reynolds=self.config.reynolds)
         
         # Initialize JAX arrays
         self._initialize_jax()
-        
-        if self.config.vtk_output_freq > 0:
-            surface_fields = self._compute_surface_fields()
-            self.vtk_writer.write(self.Q, iteration=0, additional_scalars=surface_fields)
         
         if self.config.html_animation:
             Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
@@ -324,23 +311,6 @@ class RANSSolver:
             )
         
         print(f"  Output directory: {output_path}")
-    
-    def _compute_surface_fields(self) -> dict:
-        """Compute surface Cp and Cf fields for VTK output."""
-        V_inf = np.sqrt(self.freestream.u_inf**2 + self.freestream.v_inf**2)
-        mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
-        
-        return create_surface_vtk_fields(
-            Q=self.Q,
-            X=self.X,
-            Y=self.Y,
-            metrics=self.flux_metrics,
-            mu_laminar=mu_laminar,
-            mu_turb=None,  # For laminar flow
-            p_inf=self.freestream.p_inf,
-            rho_inf=1.0,
-            V_inf=V_inf,
-        )
     
     def _get_cfl(self, iteration: int) -> float:
         """Get CFL number with linear ramping."""
@@ -546,13 +516,6 @@ class RANSSolver:
                       f"CL={forces.CL:>8.4f} CD={forces.CD:>8.5f} "
                       f"(p:{forces.CD_p:>7.5f} f:{forces.CD_f:>7.5f})")
             
-            if self.config.vtk_output_freq > 0 and self.iteration % self.config.vtk_output_freq == 0:
-                surface_fields = self._compute_surface_fields()
-                self.vtk_writer.write(
-                    self.Q, iteration=self.iteration,
-                    additional_scalars=surface_fields
-                )
-            
             if self.config.html_animation and self.iteration % self.config.diagnostic_freq == 0:
                 Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
                 C_pt = compute_total_pressure_loss(
@@ -586,18 +549,10 @@ class RANSSolver:
             print(f"Final residual: {self.residual_history[-1]:.6e}")
             print(f"{'='*60}")
         
-        if self.config.vtk_output_freq > 0:
-            surface_fields = self._compute_surface_fields()
-            self.vtk_writer.write(
-                self.Q, iteration=self.iteration,
-                additional_scalars=surface_fields
-            )
-            series_file = self.vtk_writer.finalize()
-            print(f"VTK series written to: {series_file}")
-        
         if self.config.html_animation and self.plotter.num_snapshots > 0:
             html_path = Path(self.config.output_dir) / f"{self.config.case_name}_animation.html"
-            self.plotter.save_html(str(html_path), self.metrics)
+            self.plotter.save_html(str(html_path), self.metrics, 
+                                   wall_distance=self.metrics.wall_distance)
         
         return self.converged
     
@@ -676,183 +631,4 @@ class RANSSolver:
                 f.write(f"{i+1:8d}  {res:.10e}\n")
         
         print(f"Residual history saved to: {filename}")
-    
-    def run_with_diagnostics(self, dump_freq: int = None) -> bool:
-        """Run steady-state simulation with enhanced diagnostic output."""
-        from ..io.plotting import plot_flow_field, plot_residual_history
-        
-        if dump_freq is None:
-            dump_freq = getattr(self.config, 'diagnostic_freq', 100)
-        
-        snapshot_dir = Path(self.config.output_dir) / "snapshots"
-        snapshot_dir.mkdir(parents=True, exist_ok=True)
-        
-        div_history_size = getattr(self.config, 'divergence_history', 0)
-        solution_history = []
-        
-        print(f"\n{'='*108}")
-        print("Starting Steady-State Iteration (Diagnostic Mode)")
-        print(f"Dumping flow field every {dump_freq} iterations")
-        print(f"{'='*108}")
-        print(f"{'Iter':>8} {'RMS':>12} {'Max':>12} {'MaxLoc':>18} "
-              f"{'CFL':>8} {'|V|_max':>10} {'p_range':>18}")
-        print(f"{'-'*108}")
-        
-        initial_residual = None
-        
-        Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
-        C_pt = compute_total_pressure_loss(
-            Q_int, self.freestream.p_inf, 
-            self.freestream.u_inf, self.freestream.v_inf
-        )
-        plot_flow_field(
-            self.X, self.Y, self.Q,
-            iteration=0, residual=0, cfl=self._get_cfl(0),
-            output_dir=str(snapshot_dir),
-            case_name=self.config.case_name,
-            C_pt=C_pt
-        )
-        
-        for n in range(self.config.max_iter):
-            res_rms, R_field = self.step()
-            self.residual_history.append(res_rms)
-            
-            if initial_residual is None:
-                initial_residual = res_rms
-            
-            bounds = compute_solution_bounds(self.Q)
-            res_stats = compute_residual_statistics(R_field)
-            cfl = self._get_cfl(self.iteration)
-            
-            if div_history_size > 0:
-                solution_history.append((self.iteration, self.Q.copy(), R_field.copy()))
-                if len(solution_history) > div_history_size:
-                    solution_history.pop(0)
-            
-            if self.iteration % 10 == 0 or self.iteration == 1:
-                p_range = f"[{bounds['p_min']:.2f}, {bounds['p_max']:.2f}]"
-                max_loc = f"({res_stats['max_loc'][0]:3d},{res_stats['max_loc'][1]:3d})"
-                print(f"{self.iteration:>8d} {res_rms:>12.4e} {res_stats['max_p']:>12.4e} "
-                      f"{max_loc:>18} {cfl:>8.2f} {bounds['vel_max']:>10.4f} {p_range:>18}")
-            
-            if self.iteration % dump_freq == 0:
-                Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
-                C_pt = compute_total_pressure_loss(
-                    Q_int, self.freestream.p_inf,
-                    self.freestream.u_inf, self.freestream.v_inf
-                )
-                
-                pdf_path = plot_flow_field(
-                    self.X, self.Y, self.Q,
-                    iteration=self.iteration, residual=res_rms, cfl=cfl,
-                    output_dir=str(snapshot_dir),
-                    case_name=self.config.case_name,
-                    C_pt=C_pt, residual_field=R_field
-                )
-                print(f"         -> Dumped: {pdf_path}")
-                
-                # VTK output with C_pt
-                surface_fields = self._compute_surface_fields()
-                surface_fields['TotalPressureLoss'] = C_pt
-                self.vtk_writer.write(
-                    self.Q, iteration=self.iteration,
-                    additional_scalars=surface_fields
-                )
-            
-            # Check for NaN/Inf
-            if bounds['has_nan'] or bounds['has_inf']:
-                print(f"\n{'='*60}")
-                print(f"DIVERGED at iteration {self.iteration} - NaN/Inf detected!")
-                self._print_divergence_info(bounds, solution_history, snapshot_dir)
-                break
-            
-            # Check convergence
-            if res_rms < self.config.tol:
-                self.converged = True
-                print(f"\n{'='*60}")
-                print(f"CONVERGED at iteration {self.iteration}")
-                print(f"Final residual: {res_rms:.6e}")
-                break
-            
-            # Check for divergence
-            if res_rms > 1000 * initial_residual:
-                print(f"\n{'='*60}")
-                print(f"DIVERGED at iteration {self.iteration}")
-                print(f"Residual: {res_rms:.6e} (initial: {initial_residual:.6e})")
-                self._print_divergence_info(bounds, solution_history, snapshot_dir)
-                break
-        
-        else:
-            print(f"\n{'='*60}")
-            print(f"Maximum iterations ({self.config.max_iter}) reached")
-        
-        # Final dumps
-        Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
-        C_pt = compute_total_pressure_loss(
-            Q_int, self.freestream.p_inf,
-            self.freestream.u_inf, self.freestream.v_inf
-        )
-        plot_flow_field(
-            self.X, self.Y, self.Q,
-            iteration=self.iteration, 
-            residual=self.residual_history[-1] if self.residual_history else 0,
-            cfl=self._get_cfl(self.iteration),
-            output_dir=str(snapshot_dir),
-            case_name=f"{self.config.case_name}_final",
-            C_pt=C_pt
-        )
-        
-        surface_fields = self._compute_surface_fields()
-        surface_fields['TotalPressureLoss'] = C_pt
-        self.vtk_writer.write(self.Q, iteration=self.iteration, additional_scalars=surface_fields)
-        self.vtk_writer.finalize()
-        
-        # Plot residual history
-        plot_residual_history(self.residual_history, str(snapshot_dir), self.config.case_name)
-        
-        # Print C_pt statistics
-        print(f"\nEntropy Check (Total Pressure Loss C_pt):")
-        print(f"  Min:  {C_pt.min():.6f}")
-        print(f"  Max:  {C_pt.max():.6f}")
-        print(f"  Mean: {C_pt.mean():.6f}")
-        
-        print(f"{'='*60}")
-        print(f"Output in: {self.config.output_dir}")
-        print(f"Snapshots in: {snapshot_dir}")
-        
-        return self.converged
-    
-    def _print_divergence_info(self, bounds: dict, solution_history: list, 
-                                snapshot_dir: Path):
-        """Print detailed info and save snapshots when divergence is detected."""
-        print(f"\nDivergence Diagnostics:")
-        print(f"  Pressure range: [{bounds['p_min']:.4f}, {bounds['p_max']:.4f}]")
-        print(f"  U-velocity range: [{bounds['u_min']:.4f}, {bounds['u_max']:.4f}]")
-        print(f"  V-velocity range: [{bounds['v_min']:.4f}, {bounds['v_max']:.4f}]")
-        print(f"  Max velocity: {bounds['vel_max']:.4f} at cell {bounds['vel_max_loc']}")
-        print(f"  Nu_t range: [{bounds['nu_min']:.6e}, {bounds['nu_max']:.6e}]")
-        
-        if solution_history:
-            from ..io.plotting import plot_flow_field
-            
-            divergence_dir = snapshot_dir / "divergence"
-            divergence_dir.mkdir(exist_ok=True)
-            
-            print(f"\n  Dumping last {len(solution_history)} solutions before divergence:")
-            for iteration, Q, R_field in solution_history:
-                Q_int = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
-                C_pt = compute_total_pressure_loss(
-                    Q_int, self.freestream.p_inf,
-                    self.freestream.u_inf, self.freestream.v_inf
-                )
-                pdf_path = plot_flow_field(
-                    self.X, self.Y, Q,
-                    iteration=iteration,
-                    residual=np.sqrt(np.mean(R_field**2)),
-                    cfl=self._get_cfl(iteration),
-                    output_dir=str(divergence_dir),
-                    case_name=f"{self.config.case_name}_div",
-                    C_pt=C_pt, residual_field=R_field
-                )
-                print(f"    {pdf_path}")
 

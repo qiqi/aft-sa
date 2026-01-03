@@ -515,3 +515,146 @@ if JAX_AVAILABLE:
             )
         
         return Q
+    
+    # =========================================================================
+    # JIT-compiled BC Factory Functions
+    # =========================================================================
+    
+    def make_apply_bc_jit(NI: int, NJ: int, n_wake_points: int, 
+                          nx: 'jnp.ndarray', ny: 'jnp.ndarray',
+                          freestream: FreestreamConditions,
+                          nghost: int = NGHOST):
+        """
+        Create a JIT-compiled BC function with all indices baked in.
+        
+        This avoids the dynamic slicing issue by capturing indices in closure.
+        
+        Parameters
+        ----------
+        NI, NJ : int
+            Number of interior cells.
+        n_wake_points : int
+            Number of wake points on each side.
+        nx, ny : jnp.ndarray
+            Farfield outward unit normals (NI,).
+        freestream : FreestreamConditions
+            Freestream conditions.
+        nghost : int
+            Number of ghost cells.
+            
+        Returns
+        -------
+        apply_bc : callable
+            JIT-compiled function: Q_new = apply_bc(Q)
+        """
+        # Pre-compute all indices (these become constants in the JIT closure)
+        n_wake = n_wake_points if n_wake_points > 0 else NI // 6
+        i_wake_end_lower = n_wake
+        i_wake_start_upper = NI - n_wake
+        
+        i_start = i_wake_end_lower + nghost  # airfoil start
+        i_end = i_wake_start_upper + nghost  # airfoil end
+        j_int_first = nghost
+        j_int_last = NJ + nghost - 1  # last interior J
+        
+        # Farfield values
+        p_inf = freestream.p_inf
+        u_inf = freestream.u_inf
+        v_inf = freestream.v_inf
+        nu_t_inf = freestream.nu_t_inf
+        
+        # Pre-compute I-outlet mask
+        is_i_outlet = jnp.zeros(NI, dtype=bool)
+        if n_wake_points > 0:
+            is_i_outlet = is_i_outlet.at[:n_wake_points].set(True)
+            is_i_outlet = is_i_outlet.at[-n_wake_points:].set(True)
+        
+        # Upper wake end index
+        i_upper_end = NI + nghost
+        
+        @jax.jit
+        def apply_bc(Q):
+            """Apply all boundary conditions (JIT-compiled)."""
+            
+            # === Surface BC: Airfoil wall (no-slip) ===
+            # Ghost layer 1 (j=1)
+            Q = Q.at[i_start:i_end, 1, 0].set(Q[i_start:i_end, j_int_first, 0])
+            Q = Q.at[i_start:i_end, 1, 1].set(-Q[i_start:i_end, j_int_first, 1])
+            Q = Q.at[i_start:i_end, 1, 2].set(-Q[i_start:i_end, j_int_first, 2])
+            Q = Q.at[i_start:i_end, 1, 3].set(-Q[i_start:i_end, j_int_first, 3])
+            
+            # Ghost layer 0 (j=0)
+            Q = Q.at[i_start:i_end, 0, 0].set(Q[i_start:i_end, 1, 0])
+            Q = Q.at[i_start:i_end, 0, 1].set(2*Q[i_start:i_end, 1, 1] - Q[i_start:i_end, j_int_first, 1])
+            Q = Q.at[i_start:i_end, 0, 2].set(2*Q[i_start:i_end, 1, 2] - Q[i_start:i_end, j_int_first, 2])
+            Q = Q.at[i_start:i_end, 0, 3].set(Q[i_start:i_end, 1, 3])
+            
+            # === Surface BC: Wake cut (periodic) ===
+            lower_wake_int_j0 = Q[nghost:i_start, j_int_first, :]
+            upper_wake_int_j0 = Q[i_end:i_upper_end, j_int_first, :]
+            
+            avg_j0 = 0.5 * (lower_wake_int_j0 + upper_wake_int_j0[::-1, :])
+            Q = Q.at[nghost:i_start, j_int_first, :].set(avg_j0)
+            Q = Q.at[i_end:i_upper_end, j_int_first, :].set(avg_j0[::-1, :])
+            
+            # Ghost cells from averaged interior
+            lower_wake_int_j0 = Q[nghost:i_start, j_int_first, :]
+            lower_wake_int_j1 = Q[nghost:i_start, j_int_first + 1, :]
+            upper_wake_int_j0 = Q[i_end:i_upper_end, j_int_first, :]
+            upper_wake_int_j1 = Q[i_end:i_upper_end, j_int_first + 1, :]
+            
+            Q = Q.at[nghost:i_start, 1, :].set(upper_wake_int_j0[::-1, :])
+            Q = Q.at[nghost:i_start, 0, :].set(upper_wake_int_j1[::-1, :])
+            Q = Q.at[i_end:i_upper_end, 1, :].set(lower_wake_int_j0[::-1, :])
+            Q = Q.at[i_end:i_upper_end, 0, :].set(lower_wake_int_j1[::-1, :])
+            
+            # === Farfield BC: J-direction ===
+            p_int = Q[nghost:-nghost, j_int_last, 0]
+            u_int = Q[nghost:-nghost, j_int_last, 1]
+            v_int = Q[nghost:-nghost, j_int_last, 2]
+            nu_t_int = Q[nghost:-nghost, j_int_last, 3]
+            
+            U_n = u_int * nx + v_int * ny
+            is_outflow = jnp.logical_or(U_n >= 0, is_i_outlet)
+            is_inflow = ~is_outflow
+            
+            u_b = jnp.where(is_inflow, u_inf, u_int)
+            v_b = jnp.where(is_inflow, v_inf, v_int)
+            nu_t_b = jnp.where(is_inflow, nu_t_inf, nu_t_int)
+            p_b = jnp.where(is_inflow, p_int, p_inf)
+            p_b = jnp.where(is_i_outlet, p_int, p_b)
+            
+            # J ghost cells
+            Q = Q.at[nghost:-nghost, -2, 0].set(2 * p_b - p_int)
+            Q = Q.at[nghost:-nghost, -2, 1].set(2 * u_b - u_int)
+            Q = Q.at[nghost:-nghost, -2, 2].set(2 * v_b - v_int)
+            Q = Q.at[nghost:-nghost, -2, 3].set(2 * nu_t_b - nu_t_int)
+            
+            Q = Q.at[nghost:-nghost, -1, 0].set(2 * Q[nghost:-nghost, -2, 0] - p_b)
+            Q = Q.at[nghost:-nghost, -1, 1].set(2 * Q[nghost:-nghost, -2, 1] - u_b)
+            Q = Q.at[nghost:-nghost, -1, 2].set(2 * Q[nghost:-nghost, -2, 2] - v_b)
+            Q = Q.at[nghost:-nghost, -1, 3].set(2 * Q[nghost:-nghost, -2, 3] - nu_t_b)
+            
+            # === Farfield BC: I-direction (downstream outlet) ===
+            j_end = NJ + nghost
+            Q = Q.at[1, :j_end, :].set(Q[nghost, :j_end, :])
+            Q = Q.at[0, :j_end, :].set(2 * Q[nghost, :j_end, :] - Q[nghost + 1, :j_end, :])
+            Q = Q.at[-2, :j_end, :].set(Q[-nghost - 1, :j_end, :])
+            Q = Q.at[-1, :j_end, :].set(2 * Q[-nghost - 1, :j_end, :] - Q[-nghost - 2, :j_end, :])
+            
+            # Corner ghost cells (nghost=2)
+            corner_ll = Q[nghost, j_int_last, :]
+            Q = Q.at[0, -2, :].set(corner_ll)
+            Q = Q.at[0, -1, :].set(corner_ll)
+            Q = Q.at[1, -2, :].set(corner_ll)
+            Q = Q.at[1, -1, :].set(corner_ll)
+            
+            corner_lr = Q[-nghost - 1, j_int_last, :]
+            Q = Q.at[-2, -2, :].set(corner_lr)
+            Q = Q.at[-2, -1, :].set(corner_lr)
+            Q = Q.at[-1, -2, :].set(corner_lr)
+            Q = Q.at[-1, -1, :].set(corner_lr)
+            
+            return Q
+        
+        return apply_bc

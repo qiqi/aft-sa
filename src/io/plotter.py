@@ -32,7 +32,6 @@ class Snapshot:
     nu: np.ndarray
     C_pt: Optional[np.ndarray] = None
     residual_field: Optional[np.ndarray] = None
-    mg_levels: Optional[List[Dict[str, np.ndarray]]] = None
     vel_max: float = 0.0
     p_min: float = 0.0
     p_max: float = 0.0
@@ -57,7 +56,6 @@ class PlotlyDashboard:
         cfl: float = 0.0,
         C_pt: Optional[np.ndarray] = None,
         residual_field: Optional[np.ndarray] = None,
-        mg_levels: Optional[List[Dict[str, Any]]] = None,
         freestream: Any = None,
     ) -> None:
         """Store current solution state with diagnostic data."""
@@ -90,22 +88,6 @@ class PlotlyDashboard:
         if residual_field is not None:
             res_field = np.sqrt(np.mean(residual_field**2, axis=2))
         
-        # Process MG levels to also store relative values
-        mg_levels_rel = None
-        if mg_levels is not None:
-            mg_levels_rel = []
-            for mg in mg_levels:
-                mg_rel = {
-                    'p': mg['p'] - self.p_inf,
-                    'u': mg['u'] - self.u_inf,
-                    'v': mg['v'] - self.v_inf,
-                    'xc': mg['xc'],
-                    'yc': mg['yc'],
-                }
-                if 'residual' in mg:
-                    mg_rel['residual'] = mg['residual']
-                mg_levels_rel.append(mg_rel)
-        
         snapshot = Snapshot(
             iteration=iteration,
             residual=residual,
@@ -116,7 +98,6 @@ class PlotlyDashboard:
             nu=Q_int[:, :, 3].copy(),
             C_pt=C_pt.copy() if C_pt is not None else None,
             residual_field=res_field,
-            mg_levels=mg_levels_rel,
             vel_max=float(vel_mag.max()),
             p_min=float(p_rel.min()),
             p_max=float(p_rel.max()),
@@ -125,8 +106,19 @@ class PlotlyDashboard:
         self.snapshots.append(snapshot)
         self.residual_history = list(residual_history)
     
-    def save_html(self, filename: str, grid_metrics: 'FVMMetrics') -> str:
-        """Export all snapshots as interactive HTML animation."""
+    def save_html(self, filename: str, grid_metrics: 'FVMMetrics', 
+                  wall_distance: Optional[np.ndarray] = None) -> str:
+        """Export all snapshots as interactive HTML animation.
+        
+        Parameters
+        ----------
+        filename : str
+            Output filename for HTML file.
+        grid_metrics : FVMMetrics
+            Grid metrics containing cell centers.
+        wall_distance : np.ndarray, optional
+            Wall distance field (NI, NJ). If provided, adds wall distance plot.
+        """
         if not HAS_PLOTLY:
             print("Warning: plotly not installed. Skipping HTML animation.")
             return ""
@@ -151,11 +143,11 @@ class PlotlyDashboard:
         snapN = self.snapshots[-1]  # For initial display
         has_cpt = snap0.C_pt is not None
         has_res_field = snap0.residual_field is not None
-        has_mg = snap0.mg_levels is not None and len(snap0.mg_levels) > 0
+        has_wall_dist = wall_distance is not None
         
-        n_mg_levels = min(len(snap0.mg_levels), 2) if has_mg else 0
-        # Layout: Row 1-2: field pairs, Row 3: residual + chi, Row 4: convergence (full width), Rows 5+: MG
-        n_rows = 4 + n_mg_levels
+        # Layout: Row 1-2: field pairs, Row 3: residual + chi, Row 4: convergence (full width)
+        # Row 5 (optional): wall distance
+        n_rows = 5 if has_wall_dist else 4
         
         subplot_titles = [
             'Pressure (p - p∞)', 
@@ -166,8 +158,8 @@ class PlotlyDashboard:
             'Convergence History', ''  # Second column empty for colspan
         ]
         
-        for i in range(n_mg_levels):
-            subplot_titles.extend([f'MG Level {i+1}: Pressure', f'MG Level {i+1}: Residual (log₁₀)'])
+        if has_wall_dist:
+            subplot_titles.extend(['Wall Distance (d/c)', ''])  # Wall dist spans both columns
         
         specs = [
             [{"type": "xy"}, {"type": "xy"}],
@@ -175,8 +167,8 @@ class PlotlyDashboard:
             [{"type": "xy"}, {"type": "xy"}],
             [{"type": "scatter", "colspan": 2}, None],  # Convergence spans both columns
         ]
-        for _ in range(n_mg_levels):
-            specs.append([{"type": "xy"}, {"type": "xy"}])
+        if has_wall_dist:
+            specs.append([{"type": "xy", "colspan": 2}, None])  # Wall distance spans both columns
         
         fig = make_subplots(
             rows=n_rows, cols=2,
@@ -255,6 +247,9 @@ class PlotlyDashboard:
             'chi': {'colorscale': 'Viridis', 'cmin': chi_min, 'cmax': chi_max,
                     'colorbar': dict(title='log₁₀(χ)', len=0.18, y=0.24, x=1.02,
                                      tickformat='.1f')},
+            'wall_dist': {'colorscale': 'Viridis', 'cmin': 0, 'cmax': 1,
+                          'colorbar': dict(title='d/c', len=0.12, y=0.06, x=1.02,
+                                           tickformat='.2f')},
         }
         
         for data, row, col, caxis_group, show_colorbar in contour_configs:
@@ -287,81 +282,6 @@ class PlotlyDashboard:
                 row=row, col=col
             )
         
-        mg_carpet_indices = []
-        mg_contour_indices = []
-        
-        mg_level_info = []
-        p_cfg = coloraxis_config['pressure']
-        r_cfg = coloraxis_config['residual']
-        
-        if has_mg and snapN.mg_levels:
-            for mg_idx, mg_level in enumerate(snapN.mg_levels[:n_mg_levels]):
-                mg_xc = mg_level['xc']
-                mg_yc = mg_level['yc']
-                mg_p = mg_level['p']
-                mg_res = mg_level.get('residual', np.zeros_like(mg_p))
-                
-                mg_ni, mg_nj = mg_xc.shape
-                mg_a = np.arange(mg_ni)
-                mg_b = np.arange(mg_nj)
-                mg_A, mg_B = np.meshgrid(mg_a, mg_b, indexing='ij')
-                
-                row = 5 + mg_idx  # MG levels start at row 5 (after convergence plot)
-                mg_level_info.append((mg_A, mg_B, row))
-                
-                carpet_id_p = f'mg_carpet_p_{mg_idx}'
-                mg_carpet_indices.append(len(fig.data))
-                fig.add_trace(
-                    go.Carpet(
-                        a=mg_A.flatten(), b=mg_B.flatten(),
-                        x=mg_xc.flatten(), y=mg_yc.flatten(),
-                        carpet=carpet_id_p,
-                        aaxis=dict(showgrid=False, showticklabels='none', showline=False),
-                        baxis=dict(showgrid=False, showticklabels='none', showline=False),
-                    ),
-                    row=row, col=1
-                )
-                mg_contour_indices.append(len(fig.data))
-                fig.add_trace(
-                    go.Contourcarpet(
-                        a=mg_A.flatten(), b=mg_B.flatten(), z=mg_p.flatten(),
-                        carpet=carpet_id_p,
-                        colorscale=p_cfg['colorscale'],
-                        zmin=p_cfg['cmin'], zmax=p_cfg['cmax'],
-                        contours=dict(coloring='fill', showlines=False),
-                        ncontours=50,
-                        showscale=False,
-                    ),
-                    row=row, col=1
-                )
-                
-                carpet_id_r = f'mg_carpet_r_{mg_idx}'
-                mg_carpet_indices.append(len(fig.data))
-                fig.add_trace(
-                    go.Carpet(
-                        a=mg_A.flatten(), b=mg_B.flatten(),
-                        x=mg_xc.flatten(), y=mg_yc.flatten(),
-                        carpet=carpet_id_r,
-                        aaxis=dict(showgrid=False, showticklabels='none', showline=False),
-                        baxis=dict(showgrid=False, showticklabels='none', showline=False),
-                    ),
-                    row=row, col=2
-                )
-                mg_contour_indices.append(len(fig.data))
-                fig.add_trace(
-                    go.Contourcarpet(
-                        a=mg_A.flatten(), b=mg_B.flatten(),
-                        z=np.log10(mg_res + 1e-12).flatten(),
-                        carpet=carpet_id_r,
-                        colorscale=r_cfg['colorscale'],
-                        zmin=r_cfg['cmin'], zmax=r_cfg['cmax'],
-                        contours=dict(coloring='fill', showlines=False),
-                        ncontours=50,
-                        showscale=False,
-                    ),
-                    row=row, col=2
-                )
-        
         if self.residual_history:
             all_iters = list(range(len(self.residual_history)))
             fig.add_trace(
@@ -370,7 +290,7 @@ class PlotlyDashboard:
                     mode='lines', line=dict(color='blue', width=1.5),
                     showlegend=False, name='Full History',
                 ),
-                row=4, col=1  # Convergence plot now at row 4, spanning both columns
+                row=4, col=1  # Convergence plot at row 4, spanning both columns
             )
         
         snapshot_iters = [s.iteration for s in self.snapshots]
@@ -382,18 +302,49 @@ class PlotlyDashboard:
                 marker=dict(color='red', size=10, symbol='circle'),
                 showlegend=False, name='Snapshots',
             ),
-            row=4, col=1  # Convergence plot now at row 4
+            row=4, col=1  # Convergence plot at row 4
         )
         
-        # Convergence history y-axis: log scale (x-axis configured at end with matches=None)
+        # Wall distance plot (static, at end)
+        wall_dist_traces_start = None
+        if has_wall_dist:
+            wall_dist_traces_start = len(fig.data)
+            carpet_id = 'carpet_wall_dist'
+            wd_cfg = coloraxis_config['wall_dist']
+            
+            fig.add_trace(
+                go.Carpet(
+                    a=A.flatten(), b=B.flatten(),
+                    x=xc.flatten(), y=yc.flatten(),
+                    carpet=carpet_id,
+                    aaxis=dict(showgrid=False, showticklabels='none', showline=False),
+                    baxis=dict(showgrid=False, showticklabels='none', showline=False),
+                ),
+                row=5, col=1
+            )
+            
+            fig.add_trace(
+                go.Contourcarpet(
+                    a=A.flatten(), b=B.flatten(), z=wall_distance.flatten(),
+                    carpet=carpet_id,
+                    colorscale=wd_cfg['colorscale'],
+                    zmin=wd_cfg['cmin'], zmax=wd_cfg['cmax'],
+                    contours=dict(coloring='fill', showlines=False),
+                    ncontours=50,
+                    colorbar=wd_cfg['colorbar'],
+                    showscale=True,
+                ),
+                row=5, col=1
+            )
         
         # 6 contour plots: pressure, cpt, u, v, residual, chi
         # Each contour plot has a carpet (even index) and contourcarpet (odd index)
         # So contour indices are: 1, 3, 5, 7, 9, 11
         base_contour_indices = [1, 3, 5, 7, 9, 11]
-        n_mg_traces = len(mg_contour_indices) * 2
-        residual_marker_idx = 12 + n_mg_traces + 1  # Updated for 6 base plots (12 traces) + MG + scatter line
-        animated_indices = base_contour_indices + mg_contour_indices + [residual_marker_idx]
+        # After 6 contour plots (12 traces), we have 2 scatter traces for convergence
+        # Then optionally 2 traces for wall distance (which are NOT animated)
+        residual_marker_idx = 12 + 1  # 12 contour traces + 1 scatter line
+        animated_indices = base_contour_indices + [residual_marker_idx]
         
         chi_cfg = coloraxis_config['chi']
         
@@ -407,6 +358,9 @@ class PlotlyDashboard:
             
             # Chi for this snapshot (log scale)
             snap_chi = np.log10(snap.nu / self.nu_laminar + 1e-12)
+            
+            p_cfg = coloraxis_config['pressure']
+            r_cfg = coloraxis_config['residual']
             
             frame_data = [
                 go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap.p.flatten(), 
@@ -434,34 +388,6 @@ class PlotlyDashboard:
                                  zmin=chi_cfg['cmin'], zmax=chi_cfg['cmax'],
                                  contours=dict(coloring='fill', showlines=False), ncontours=50),
             ]
-            
-            if has_mg and snap.mg_levels:
-                for mg_idx, mg_level in enumerate(snap.mg_levels[:n_mg_levels]):
-                    mg_xc = mg_level['xc']
-                    mg_ni, mg_nj = mg_xc.shape
-                    mg_a = np.arange(mg_ni)
-                    mg_b = np.arange(mg_nj)
-                    mg_A, mg_B = np.meshgrid(mg_a, mg_b, indexing='ij')
-                    mg_res = mg_level.get('residual', np.zeros_like(mg_level['p']))
-                    
-                    frame_data.append(
-                        go.Contourcarpet(
-                            a=mg_A.flatten(), b=mg_B.flatten(),
-                            z=mg_level['p'].flatten(),
-                            carpet=f'mg_carpet_p_{mg_idx}', colorscale=p_cfg['colorscale'],
-                            zmin=p_cfg['cmin'], zmax=p_cfg['cmax'],
-                            contours=dict(coloring='fill', showlines=False), ncontours=50
-                        )
-                    )
-                    frame_data.append(
-                        go.Contourcarpet(
-                            a=mg_A.flatten(), b=mg_B.flatten(),
-                            z=np.log10(mg_res + 1e-12).flatten(),
-                            carpet=f'mg_carpet_r_{mg_idx}', colorscale=r_cfg['colorscale'],
-                            zmin=r_cfg['cmin'], zmax=r_cfg['cmax'],
-                            contours=dict(coloring='fill', showlines=False), ncontours=50
-                        )
-                    )
             
             snapshot_iters = [s.iteration for s in self.snapshots[:i+1]]
             snapshot_res = [s.residual for s in self.snapshots[:i+1]]
@@ -530,14 +456,6 @@ class PlotlyDashboard:
         velocity_traces = [5, 7]  # carpet_2_1 contour, carpet_2_2 contour
         residual_traces = [9]     # carpet_3_1 contour
         chi_traces = [11]         # carpet_3_2 contour (chi = nu_tilde/nu)
-        
-        # Add MG traces to their groups
-        if has_mg:
-            for i in range(n_mg_levels):
-                pressure_traces.append(mg_contour_indices[i * 2] if i * 2 < len(mg_contour_indices) else None)
-                residual_traces.append(mg_contour_indices[i * 2 + 1] if i * 2 + 1 < len(mg_contour_indices) else None)
-            pressure_traces = [t for t in pressure_traces if t is not None]
-            residual_traces = [t for t in residual_traces if t is not None]
         
         p_steps = make_log_range_steps(p_range, pressure_traces, is_residual=False)
         v_steps = make_log_range_steps(vel_range, velocity_traces, is_residual=False)
@@ -652,30 +570,20 @@ class PlotlyDashboard:
                     ticklen=0,
                 ),
             ],
-            # Height sized for ~16:9 aspect ratio per subplot
-            # With 2 columns at ~650px each, 16:9 needs ~365px height per row
-            height=1600 + (400 * n_mg_levels),
+            height=1600 + (350 if has_wall_dist else 0),
             width=1400,
             margin=dict(t=80),  # Top margin for sliders
         )
         
         # Link zoom/pan across all contourcarpet plots
-        # All field plots share the same x and y ranges (except row 3 col 2 which is scatter)
-        # Use 'matches' to link axes, and 'scaleanchor' for aspect ratio
-        
         # First, set up row 1 col 1 as the reference axis
-        # For 16:9 aspect ratio subplots with equal data scaling:
-        # x range: [-0.5, 1.5] = 2.0 extent
-        # y range for 16:9: 2.0 * 9/16 = 1.125, so [-0.5625, 0.5625]
         fig.update_xaxes(title_text='x', range=[-0.5, 1.5], scaleanchor='y', scaleratio=1, row=1, col=1)
         fig.update_yaxes(title_text='y', range=[-0.5625, 0.5625], row=1, col=1)
         
-        # List of all contourcarpet subplot positions (row, col) - rows 1-3 have 2D field plots
-        # Row 4 has convergence (scatter), MG levels start at row 5
-        mg_rows = list(range(5, 5 + n_mg_levels)) if n_mg_levels > 0 else []
-        field_positions = [(1, 1), (1, 2), (2, 1), (2, 2), (3, 1), (3, 2)]  # Include chi at (3, 2)
-        for mg_row in mg_rows:
-            field_positions.extend([(mg_row, 1), (mg_row, 2)])
+        # List of all contourcarpet subplot positions
+        field_positions = [(1, 1), (1, 2), (2, 1), (2, 2), (3, 1), (3, 2)]
+        if has_wall_dist:
+            field_positions.append((5, 1))
         
         # Link all other field plots to the reference (row 1 col 1 = x, y)
         for row, col in field_positions:
@@ -685,7 +593,6 @@ class PlotlyDashboard:
             fig.update_yaxes(title_text='y', range=[-0.5625, 0.5625], matches='y', row=row, col=col)
         
         # Convergence history plot (row 4, col 1, spanning both columns) - keep independent
-        # fixedrange=True prevents modebar zoom buttons from affecting this subplot
         fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, fixedrange=True, row=4, col=1)
         fig.update_yaxes(title_text='Residual', matches=None, type='log', autorange=True, fixedrange=True, row=4, col=1)
         

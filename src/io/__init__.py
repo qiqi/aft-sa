@@ -2,19 +2,9 @@
 I/O module for CFD solver.
 """
 
-from .output import write_vtk, write_vtk_series, VTKWriter
-
-from .plotting import (
-    plot_flow_field,
-    plot_residual_history,
-    plot_surface_distributions,
-)
+from .plotter import PlotlyDashboard, Snapshot
 
 __all__ = [
-    'write_vtk', 
-    'write_vtk_series', 
-    'VTKWriter',
-    'plot_flow_field',
-    'plot_residual_history',
-    'plot_surface_distributions',
+    'PlotlyDashboard',
+    'Snapshot',
 ]

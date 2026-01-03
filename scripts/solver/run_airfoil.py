@@ -7,7 +7,7 @@ an airfoil using the artificial compressibility method.
 
 Features:
     - On-the-fly grid generation with configurable density
-    - Flow field visualization (VTK + PDF) at specified intervals
+    - Interactive HTML visualization with animation
     - Residual monitoring and divergence detection
     - Surface data extraction
 
@@ -85,10 +85,6 @@ def main():
                         help="Diagnostic snapshot frequency (default: 100)")
     parser.add_argument("--print-freq", type=int, default=10,
                         help="Console print frequency (default: 10)")
-    parser.add_argument("--vtk-freq", type=int, default=0,
-                        help="VTK output frequency (0=disabled, default: 0)")
-    parser.add_argument("--pdf", action="store_true",
-                        help="Use PDF output instead of HTML animation")
     parser.add_argument("--div-history", type=int, default=0,
                         help="Solutions to keep for divergence visualization (0=disabled)")
     
@@ -144,8 +140,7 @@ def main():
         print(f"ERROR: {e}")
         sys.exit(1)
     
-    # Configure solver with IRS for stability
-    # html_animation=True (default) -> HTML output, False -> PDF output
+    # Configure solver
     config = SolverConfig(
         mach=args.mach,
         alpha=args.alpha,
@@ -157,7 +152,6 @@ def main():
         max_iter=args.max_iter,
         tol=args.tol,
         diagnostic_freq=args.diagnostic_freq,
-        vtk_output_freq=args.vtk_freq,
         print_freq=args.print_freq,
         output_dir=args.output_dir,
         case_name=args.case_name,
@@ -165,7 +159,7 @@ def main():
         jst_k4=0.04,
         irs_epsilon=args.irs,
         n_wake=args.n_wake,
-        html_animation=not args.pdf,  # True=HTML (default), False=PDF
+        html_animation=True,
         divergence_history=args.div_history,
     )
     
@@ -187,19 +181,13 @@ def main():
     
     print(f"\nGrid size: {solver.NI} x {solver.NJ} cells")
     print(f"Reynolds: {args.reynolds:.2e}")
-    output_fmt = "PDF" if args.pdf else "HTML"
     print(f"Backend: JAX ({jax.devices()[0].device_kind})")
     print(f"Target CFL: {args.cfl} with IRS ε={args.irs}")
-    print(f"Output: {output_fmt} snapshots every {args.diagnostic_freq} iterations")
+    print(f"Output: HTML animation every {args.diagnostic_freq} iterations")
     
     # Run
     try:
-        if args.pdf:
-            # PDF mode: use run_with_diagnostics for matplotlib output
-            converged = solver.run_with_diagnostics(dump_freq=args.diagnostic_freq)
-        else:
-            # HTML mode (default): use run_steady_state with HTML animation
-            converged = solver.run_steady_state()
+        converged = solver.run_steady_state()
     except KeyboardInterrupt:
         print("\n\nSimulation interrupted by user.")
         converged = False
