@@ -2,25 +2,25 @@
 
 This document outlines the plan to integrate the Spalart-Allmaras (SA) turbulence equation into the RANS solver, including the AFT (Amplification Factor Transport) transition model.
 
-## Current State Analysis
+## Current State (January 2025)
 
-### RANS Solver (`src/solvers/rans_solver.py`)
+### RANS Solver Architecture
 
-The RANS solver already has the 4th state variable `ν̃` (nuHat) in the state vector:
+The solver (`src/solvers/rans_solver.py`) is fully GPU-accelerated using JAX:
 
-```
-Q = [p, u, v, ν̃]
-```
+- **State vector**: `Q = [p, u, v, ν̃]` (4 variables)
+- **Full GPU execution**: JIT-compiled RK5 stages, no CPU transfers during iteration
+- **Batch support**: `BatchRANSSolver` in `src/solvers/batch.py` for parallel AoA sweeps
 
-**What it currently does:**
+**Current turbulence handling:**
 - Computes `μ_t = ν̃ · fv1(ν̃)` for effective viscosity
 - Convects `ν̃` through the JST flux scheme
 - Applies boundary conditions for `ν̃`
 
-**What it does NOT do:**
-- Compute SA production term: `P = cb1 · S̃ · ν̃`
-- Compute SA destruction term: `D = cw1 · fw · (ν̃/d)²`
-- Compute SA diffusion with cb2 term: `(cb2/σ)(∇ν̃)·(∇ν̃)`
+**What is NOT yet implemented:**
+- SA production term: `P = cb1 · S̃ · ν̃`
+- SA destruction term: `D = cw1 · fw · (ν̃/d)²`
+- SA diffusion with cb2 term: `(cb2/σ)(∇ν̃)·(∇ν̃)`
 
 ### SA Model Implementation (`src/physics/spalart_allmaras.py`)
 
@@ -37,21 +37,30 @@ The SA model is **fully implemented and tested** in JAX:
 | `compute_diffusion_coefficient_safe` | D = (ν + ν̃)/σ | ✅ Tested |
 | `effective_viscosity_safe` | ν_eff = ν + max(0, ν̃·fv1) | ✅ Tested |
 
-### Boundary Layer Solver Reference
+### Grid Metrics & Wall Distance
 
-The `NuHatFlatPlateSolver` in `src/solvers/boundary_layer_solvers.py` demonstrates working SA+AFT integration:
+The `MetricComputer` in `src/grid/metrics.py` computes:
+- Face normals and areas (Si, Sj)
+- Cell volumes
+- **Wall distance** with proper wake exclusion via `n_wake` parameter
 
+Wall distance correctly identifies only the airfoil surface (excluding C-grid wake cut):
 ```python
-# Turbulence indicator based on nuHat level
-is_turb = jnp.clip(1 - jnp.exp(-(nuHat - 1) / 4), min=0.0)
-
-# AFT amplification for laminar regime
-Gamma = jnp.abs(dudy) * y_cell / jnp.abs(u)
-a_aft = compute_nondimensional_amplification_rate(Re_Omega(dudy, y_cell), Gamma)
-
-# Blend AFT (laminar) with SA (turbulent)
-P_blended = P_sa * is_turb + a_aft * nuHat * (1 - is_turb)
+# Airfoil surface spans i = n_wake to NI - n_wake at j = 0
+metrics = MetricComputer(X, Y, n_wake=config.n_wake)
 ```
+
+### Boundary Conditions
+
+Current BC implementation (`src/solvers/boundary_conditions.py`):
+
+| Boundary | Treatment |
+|----------|-----------|
+| **Wall** | No-slip (u=v=0), zero pressure gradient, ν̃=0 |
+| **Wake cut** | Periodic/averaging for C-grid topology |
+| **Farfield** | Dirichlet (ghost = freestream) + sponge layer damping |
+
+The sponge layer (`src/numerics/dissipation.py`) gradually damps solution to freestream near outer boundaries, improving stability.
 
 ---
 
@@ -162,100 +171,59 @@ def compute_viscous_fluxes_with_sa_jax(grad, Si_x, Si_y, Sj_x, Sj_y,
     return residual
 ```
 
-### Phase 3: RANS Solver Modification
+### Phase 3: RANS Solver Integration
 
-**Modify `src/solvers/rans_solver.py`:**
+**Modify the JIT-compiled RK stage in `src/solvers/rans_solver.py`:**
 
-#### 3.1 Add Wall Distance to JAX Arrays
-
-In `_initialize_jax()`:
+The current `_make_rk_stage_jit()` returns a JIT-compiled function. Add SA sources:
 
 ```python
-def _initialize_jax(self):
-    # ... existing code ...
-    
-    # Transfer wall distance to GPU (static, computed once)
-    self.wall_dist_jax = jax.device_put(jnp.array(self.metrics.wall_distance))
-```
-
-#### 3.2 Modify `step()` Method
-
-```python
-def step(self) -> Tuple[float, np.ndarray]:
-    nghost = NGHOST
-    cfl = self._get_cfl(self.iteration)
-    k4 = self.config.jst_k4
-    beta = self.config.beta
+def _make_rk_stage_jit(self):
+    # Capture metrics, wall distance, etc.
+    Si_x, Si_y = self.Si_x_jax, self.Si_y_jax
+    Sj_x, Sj_y = self.Sj_x_jax, self.Sj_y_jax
+    volume = self.volume_jax
+    wall_dist = self.metrics.wall_distance_jax  # Pre-transferred to GPU
     nu = self.mu_laminar
     
-    # ... existing timestep computation ...
-    
-    for alpha in alphas:
-        Q_np = self.bc.apply(Q_np)
-        Q_jax = jax.device_put(jnp.array(Q_np))
+    @jax.jit
+    def rk_stage(Q, Q0, dt, alpha):
+        # Apply BCs
+        Q = apply_bc_jax(Q, ...)
         
-        # Convective flux (unchanged)
-        R = compute_fluxes_jax(
-            Q_jax, self.Si_x_jax, self.Si_y_jax,
-            self.Sj_x_jax, self.Sj_y_jax, beta, k4, nghost
-        )
+        # Convective fluxes (JST)
+        R = compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, ...)
         
-        # Gradients (unchanged)
-        grad = compute_gradients_jax(
-            Q_jax, self.Si_x_jax, self.Si_y_jax,
-            self.Sj_x_jax, self.Sj_y_jax, self.volume_jax, nghost
-        )
+        # Gradients
+        grad = compute_gradients_jax(Q, Si_x, Si_y, Sj_x, Sj_y, volume, ...)
         
-        # Turbulent viscosity from SA variable
-        Q_int = Q_jax[nghost:-nghost, nghost:-nghost, :]
-        nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
-        chi = nu_tilde / nu
-        cv1 = 7.1
-        fv1_val = chi**3 / (chi**3 + cv1**3)
-        mu_t = nu_tilde * fv1_val
-        mu_eff = nu + mu_t
+        # Turbulent viscosity
+        nuHat = jnp.maximum(Q[..., 3], 0.0)
+        chi = nuHat / nu
+        fv1_val = chi**3 / (chi**3 + 7.1**3)
+        mu_eff = nu + nuHat * fv1_val
         
-        # Viscous fluxes (extended for SA diffusion)
-        R_visc = compute_viscous_fluxes_with_sa_jax(
-            grad, self.Si_x_jax, self.Si_y_jax,
-            self.Sj_x_jax, self.Sj_y_jax,
-            mu_eff, nu, nu_tilde
-        )
+        # Viscous fluxes (extended for SA)
+        R_visc = compute_viscous_fluxes_with_sa_jax(grad, ..., mu_eff, nu, nuHat)
         R = R + R_visc
         
-        # NEW: SA source terms (P - D + cb2)
-        sa_source = compute_sa_source_jax(
-            nu_tilde, grad, self.wall_dist_jax, nu
-        )
-        # Scale by volume for FVM formulation
-        R = R.at[:, :, 3].add(sa_source * self.volume_jax)
+        # SA source terms (P - D + cb2)
+        sa_source = compute_sa_source_jax(nuHat, grad, wall_dist, nu)
+        R = R.at[..., 3].add(sa_source * volume)
         
-        # Smoothing (unchanged)
-        if epsilon > 0 and n_passes > 0:
-            R = smooth_explicit_jax(R, epsilon, n_passes)
+        # Explicit smoothing
+        R = smooth_explicit_jax(R, ...)
         
-        # Update state (unchanged)
-        R_np = np.array(R)
-        dt_np = np.array(dt)
-        Q_np = Q0_np.copy()
-        Q_np[nghost:-nghost, nghost:-nghost, :] += \
-            alpha * (dt_np / self.metrics.volume)[:, :, np.newaxis] * R_np
+        # RK update
+        Q_new = Q0 + alpha * (dt / volume)[..., None] * R
+        return Q_new, R
     
-    # ... rest unchanged ...
+    return rk_stage
 ```
 
-### Phase 4: Boundary Conditions
+### Phase 4: Batch Solver Extension
 
-The existing BCs already handle `ν̃` correctly:
-
-#### Wall BC (in `apply_surface_bc_jax`)
-- `ν̃ = 0` at wall (reflection gives zero at wall face)
-
-#### Farfield BC (in `apply_farfield_bc_jax`)
-- **Inflow**: `ν̃ = ν̃_∞` (small freestream value, ~0.001·ν)
-- **Outflow**: Zero-gradient extrapolation
-
-No modifications needed.
+Extend `BatchRANSSolver` similarly - the `vmap` structure naturally handles per-case SA sources since wall distance is shared.
 
 ### Phase 5: AFT-SA Transition Model (Optional)
 
@@ -277,18 +245,15 @@ def compute_aft_sa_source_jax(nuHat, grad, wall_dist, nu_laminar):
     D_sa = compute_sa_destruction(omega, nuHat, wall_dist)
     
     # AFT amplification (laminar regime)
-    # Shape factor Gamma approximation from local gradients
-    u = grad[:, :, 1, 0]  # Approximate u from dudx context
+    u = grad[:, :, 1, 0]
     dudy = grad[:, :, 1, 1]
     Gamma = jnp.abs(dudy) * wall_dist / (jnp.abs(u) + 1e-10)
-    Gamma = jnp.clip(Gamma, 0.0, 2.0)  # Physical bounds
+    Gamma = jnp.clip(Gamma, 0.0, 2.0)
     
     Re_omega = wall_dist**2 * omega
     a_aft = compute_nondimensional_amplification_rate(Re_omega, Gamma) * omega
     
     # Smooth blending based on nuHat level
-    # is_turb ≈ 0 for nuHat << 1 (laminar)
-    # is_turb ≈ 1 for nuHat >> 1 (turbulent)
     is_turb = jnp.clip(1 - jnp.exp(-(nuHat - 1) / 4), min=0.0)
     
     P_blended = P_sa * is_turb + a_aft * nuHat * (1 - is_turb)
@@ -304,44 +269,10 @@ def compute_aft_sa_source_jax(nuHat, grad, wall_dist, nu_laminar):
 |------|--------|-------------|
 | `src/numerics/sa_sources.py` | **Create** | SA source term computation (P, D, cb2) |
 | `src/numerics/viscous_fluxes.py` | **Modify** | Add SA diffusion to residual index 3 |
-| `src/solvers/rans_solver.py` | **Modify** | Call SA sources in `step()`, add `wall_dist_jax` |
+| `src/solvers/rans_solver.py` | **Modify** | Add SA sources to RK stage JIT function |
+| `src/solvers/batch.py` | **Modify** | Add SA sources to batch kernels |
 | `tests/numerics/test_sa_sources.py` | **Create** | Unit tests for SA source terms |
 | `tests/solver/test_sa_rans.py` | **Create** | Integration test (flat plate transition) |
-
----
-
-## JAX/GPU Considerations
-
-Since another agent is converting the entire solver to JAX:
-
-1. **Wall Distance**: Static array, transfer once at initialization with `jax.device_put`
-
-2. **SA Sources**: Point-local computation → naturally parallelizes on GPU
-
-3. **Gradient Reuse**: Already computed for viscous fluxes → pass to SA source computation
-
-4. **Memory**: SA source terms are computed in-place, no additional large arrays
-
-5. **Full GPU Loop Structure**:
-   ```python
-   @functools.partial(jax.jit, static_argnums=(8, 9, 10))
-   def rk_stage_with_sa(Q, metrics, wall_dist, beta, k4, nu, cfl, alpha,
-                        nghost, n_wake, epsilon, n_passes):
-       """Single RK stage with SA turbulence - fully on GPU."""
-       Q = apply_bc_jax(Q, ...)
-       R = compute_fluxes_jax(Q, ...)
-       grad = compute_gradients_jax(Q, ...)
-       R_visc = compute_viscous_fluxes_with_sa_jax(grad, ...)
-       R = R + R_visc
-       sa_src = compute_sa_source_jax(...)
-       R = R.at[:, :, 3].add(sa_src * volume)
-       R = smooth_explicit_jax(R, ...)
-       dt = compute_local_timestep_jax(...)
-       Q_new = Q + alpha * dt/volume * R
-       return Q_new
-   ```
-
-6. **Convergence Monitoring**: Only return residual norm (scalar) to CPU
 
 ---
 
@@ -365,22 +296,14 @@ Since another agent is converting the entire solver to JAX:
    - Check Cf levels (laminar vs turbulent regions)
    - Verify force coefficients (CL, CD)
 
-### Convergence Checks
+### Batch Validation
 
-- Monitor `ν̃` residual alongside pressure residual
-- Check for negative `ν̃` (should be handled by safe functions)
-- Verify `μ_t/μ` ratio is physical (typically 10-1000 in turbulent regions)
+Use `BatchRANSSolver` for efficient parameter studies:
+```bash
+python scripts/solver/run_batch.py data/naca0012.dat --alpha-sweep -5 15 21 --re 6e6
+```
 
----
-
-## Implementation Order
-
-1. **Phase 1**: Create `sa_sources.py` with unit tests
-2. **Phase 2**: Extend `viscous_fluxes.py` for SA diffusion
-3. **Phase 3**: Modify `rans_solver.py` to call SA sources
-4. **Phase 4**: Run flat plate validation
-5. **Phase 5**: Add AFT blending (optional, for transition)
-6. **Phase 6**: Full airfoil validation (NACA 0012)
+Output: `output/batch/batch_results.csv` with CL, CD vs α
 
 ---
 
