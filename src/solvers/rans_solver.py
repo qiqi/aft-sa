@@ -3,7 +3,7 @@ RANS Solver for 2D Incompressible Flow using Artificial Compressibility.
 
 State vector: Q = [p, u, v, ν̃]
 
-Supports both NumPy/Numba (CPU) and JAX (GPU) backends.
+JAX-based implementation with GPU acceleration.
 """
 
 import numpy as np
@@ -37,18 +37,14 @@ from ..numerics.diagnostics import (
     compute_residual_statistics
 )
 
-# JAX imports (optional)
-try:
-    from ..physics.jax_config import jax, jnp
-    from ..numerics.fluxes import compute_fluxes_jax
-    from ..numerics.gradients import compute_gradients_jax
-    from ..numerics.viscous_fluxes import compute_viscous_fluxes_jax
-    from ..numerics.explicit_smoothing import smooth_explicit_jax
-    from .time_stepping import compute_local_timestep_jax
-    from .boundary_conditions import apply_bc_jax
-    JAX_AVAILABLE = True
-except ImportError:
-    JAX_AVAILABLE = False
+# JAX imports (required)
+from ..physics.jax_config import jax, jnp
+from ..numerics.fluxes import compute_fluxes_jax
+from ..numerics.gradients import compute_gradients_jax
+from ..numerics.viscous_fluxes import compute_viscous_fluxes_jax
+from ..numerics.explicit_smoothing import smooth_explicit_jax
+from .time_stepping import compute_local_timestep_jax
+from .boundary_conditions import apply_bc_jax
 
 
 @dataclass
@@ -79,8 +75,6 @@ class SolverConfig:
     n_wake: int = 30
     html_animation: bool = True
     divergence_history: int = 0
-    # Backend selection
-    backend: str = "numpy"  # "numpy" (Numba CPU) or "jax" (GPU)
 
 
 class RANSSolver:
@@ -237,13 +231,7 @@ class RANSSolver:
         print(f"  Wall damping applied (L={self.config.wall_damping_length})")
     
     def _initialize_jax(self):
-        """Initialize JAX arrays for GPU computation."""
-        if not JAX_AVAILABLE:
-            raise RuntimeError("JAX not available. Install with: pip install jax[cuda12]")
-        
-        # Force CUDA backend
-        jax.config.update('jax_platform_name', 'cuda')
-        
+        """Initialize JAX arrays for computation."""
         print(f"  JAX backend initialized on: {jax.devices()[0]}")
         
         # Transfer arrays to GPU
@@ -315,9 +303,8 @@ class RANSSolver:
         
         self.plotter = PlotlyDashboard(reynolds=self.config.reynolds)
         
-        # Initialize JAX if backend is jax
-        if self.config.backend == "jax":
-            self._initialize_jax()
+        # Initialize JAX arrays
+        self._initialize_jax()
         
         if self.config.vtk_output_freq > 0:
             surface_fields = self._compute_surface_fields()
@@ -436,57 +423,10 @@ class RANSSolver:
         return R
     
     def step(self) -> Tuple[float, np.ndarray]:
-        """Perform one iteration of the solver."""
-        # Dispatch to JAX backend if configured
-        if self.config.backend == "jax" and JAX_AVAILABLE:
-            return self._step_jax()
-        return self._step_numpy()
-    
-    def _step_numpy(self) -> Tuple[float, np.ndarray]:
-        """Perform one iteration using NumPy/Numba backend."""
-        cfl = self._get_cfl(self.iteration)
-        ts_config = TimeStepConfig(cfl=cfl)
-        nu = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
+        """Perform one iteration of the solver.
         
-        dt = compute_local_timestep(
-            self.Q,
-            self.metrics.Si_x, self.metrics.Si_y,
-            self.metrics.Sj_x, self.metrics.Sj_y,
-            self.metrics.volume,
-            self.config.beta,
-            ts_config,
-            nu=nu
-        )
-        
-        Q0 = self.Q.copy()
-        Qk = self.Q.copy()
-        
-        alphas = [0.25, 0.166666667, 0.375, 0.5, 1.0]
-        
-        for alpha in alphas:
-            Qk = self._apply_bc(Qk)
-            R = self._compute_residual(Qk)
-            
-            # Apply residual smoothing
-            R = self._apply_smoothing(R)
-            
-            Qk = Q0.copy()
-            Qk[NGHOST:-NGHOST, NGHOST:-NGHOST, :] += alpha * (dt / self.metrics.volume)[:, :, np.newaxis] * R
-        
-        Qk = self._apply_bc(Qk)
-        final_residual = self._compute_residual(Qk)
-        self.Q = Qk
-        residual_rms = self._compute_residual_rms(final_residual)
-        self.iteration += 1
-        
-        return residual_rms, final_residual
-    
-    def _step_jax(self) -> Tuple[float, np.ndarray]:
-        """Perform one iteration using JAX GPU backend.
-        
-        Note: Boundary conditions run on CPU (NumPy) because JAX's functional
-        array updates (.at[].set()) are slow for the complex BC logic.
-        The GPU acceleration is still significant for the main computation.
+        Uses JAX for GPU-accelerated flux and gradient computation.
+        Boundary conditions are applied on CPU (NumPy) for performance.
         """
         nghost = NGHOST
         cfl = self._get_cfl(self.iteration)

@@ -194,7 +194,7 @@ class TestWakeConservationBaseline:
         solver.converged = False
         solver._compute_metrics()
         solver._initialize_state()
-        solver.mg_hierarchy = None
+        solver._initialize_jax()
         
         return solver
     
@@ -335,7 +335,7 @@ class TestFluxKernelWakeBehavior:
             volume=volume
         )
         
-        cfg = FluxConfig(k2=0.0, k4=0.04)
+        cfg = FluxConfig(k4=0.04)
         residual = compute_fluxes(Q, metrics, beta=10.0, cfg=cfg)
         
         print("\n=== Flux Kernel Boundary Treatment ===")

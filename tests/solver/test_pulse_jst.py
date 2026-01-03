@@ -63,7 +63,7 @@ def run_pulse_test():
     cfl = 0.5
     dt = cfl * dx / c_art
     
-    cfg = FluxConfig(k2=0.0, k4=0.02)  # k2=0 for incompressible flow
+    cfg = FluxConfig(k4=0.02)
     
     # Grid Metrics (Cartesian)
     vol = np.ones((NI, NJ)) * dx * dy

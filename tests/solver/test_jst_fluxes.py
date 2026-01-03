@@ -191,7 +191,7 @@ def test_pressure_spike_dissipation():
     
     metrics = create_cartesian_grid(NI, NJ)
     beta = 10.0
-    cfg = FluxConfig(k2=0.0, k4=0.016)
+    cfg = FluxConfig(k4=0.016)
     
     residual = compute_fluxes(Q, metrics, beta, cfg)
     
@@ -429,7 +429,7 @@ def test_jst_switch_logic():
     for i in range(NI + 2):
         Q[i, :, 0] = 1.0 + 0.1 * i  # Linear pressure ramp
         
-    cfg = FluxConfig(k2=0.0, k4=0.016)
+    cfg = FluxConfig(k4=0.016)
     
     res_smooth = compute_fluxes(Q, metrics, beta, cfg)
     # Focus on pressure residual - this shows dissipation behavior

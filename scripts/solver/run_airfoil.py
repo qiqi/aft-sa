@@ -27,6 +27,7 @@ sys.path.insert(0, str(project_root))
 
 from src.solvers.rans_solver import RANSSolver, SolverConfig
 from src.grid.loader import load_or_generate_grid
+from src.physics.jax_config import jax
 
 
 def main():
@@ -62,8 +63,6 @@ def main():
                         help="Artificial compressibility parameter (default: 10.0)")
     parser.add_argument("--irs", type=float, default=1.0,
                         help="Implicit Residual Smoothing epsilon (0=disabled, default: 1.0)")
-    parser.add_argument("--jax", action="store_true",
-                        help="Use JAX GPU backend instead of Numba CPU")
     
     # Grid generation options (nodes = cells + 1)
     parser.add_argument("--n-surface", type=int, default=257,
@@ -147,7 +146,6 @@ def main():
     
     # Configure solver with IRS for stability
     # html_animation=True (default) -> HTML output, False -> PDF output
-    backend = "jax" if args.jax else "numpy"
     config = SolverConfig(
         mach=args.mach,
         alpha=args.alpha,
@@ -169,7 +167,6 @@ def main():
         n_wake=args.n_wake,
         html_animation=not args.pdf,  # True=HTML (default), False=PDF
         divergence_history=args.div_history,
-        backend=backend,
     )
     
     # Create solver with pre-loaded grid
@@ -191,8 +188,7 @@ def main():
     print(f"\nGrid size: {solver.NI} x {solver.NJ} cells")
     print(f"Reynolds: {args.reynolds:.2e}")
     output_fmt = "PDF" if args.pdf else "HTML"
-    backend_info = "JAX GPU" if args.jax else "Numba CPU"
-    print(f"Backend: {backend_info}")
+    print(f"Backend: JAX ({jax.devices()[0].device_kind})")
     print(f"Target CFL: {args.cfl} with IRS ε={args.irs}")
     print(f"Output: {output_fmt} snapshots every {args.diagnostic_freq} iterations")
     

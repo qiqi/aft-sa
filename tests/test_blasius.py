@@ -162,7 +162,7 @@ class TestBlasiusFlatPlate:
         Q0 = np.zeros_like(Q)
         
         # Run solver
-        flux_cfg = FluxConfig(k2=0.0, k4=0.002)
+        flux_cfg = FluxConfig(k4=0.002)
         alphas = np.array([0.25, 0.333333333, 0.5, 1.0])
         
         for _ in range(max_iter):
@@ -216,7 +216,7 @@ class TestBlasiusFlatPlate:
         apply_bc_numba(Q, 1.0, NGHOST)
         
         Q0 = np.zeros_like(Q)
-        flux_cfg = FluxConfig(k2=0.0, k4=0.002)
+        flux_cfg = FluxConfig(k4=0.002)
         alphas = np.array([0.25, 0.333333333, 0.5, 1.0])
         
         # Run 1000 steps

@@ -258,7 +258,7 @@ def rk4_step(Q: np.ndarray, flux_metrics, grad_metrics,
         Updated state.
     """
     if flux_cfg is None:
-        flux_cfg = FluxConfig(k2=0.0, k4=0.02)
+        flux_cfg = FluxConfig(k4=0.02)
     
     Q0 = Q.copy()
     Qk = Q.copy()
@@ -401,7 +401,7 @@ class TestTaylorGreenCartesian:
         Q = apply_periodic_bc(Q)
         
         # Compute residual
-        flux_cfg = FluxConfig(k2=0.0, k4=0.02)
+        flux_cfg = FluxConfig(k4=0.02)
         R = compute_fluxes(Q, flux_met, beta, flux_cfg)
         
         res_rms = np.sqrt(np.mean(R**2))
@@ -427,7 +427,7 @@ class TestTaylorGreenCartesian:
         
         Q_init = Q.copy()
         
-        flux_cfg = FluxConfig(k2=0.0, k4=0.02)
+        flux_cfg = FluxConfig(k4=0.02)
         
         for _ in range(n_steps):
             dt = compute_dt_local(Q, flux_met, beta, cfl=0.5)
@@ -483,7 +483,7 @@ class TestTaylorGreenCartesian:
         v0_pert = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, 2] - self.V_INF
         KE_pert_init = 0.5 * np.mean(u0_pert**2 + v0_pert**2)
         
-        flux_cfg = FluxConfig(k2=0.0, k4=0.02)
+        flux_cfg = FluxConfig(k4=0.02)
         
         total_time = 0.0
         for _ in range(n_steps):
@@ -566,7 +566,7 @@ class TestTaylorGreenDistorted:
         Q = apply_periodic_bc(Q)
         
         # Compute residual
-        flux_cfg = FluxConfig(k2=0.0, k4=0.02)
+        flux_cfg = FluxConfig(k4=0.02)
         R = compute_fluxes(Q, flux_met, beta, flux_cfg)
         
         res_rms = np.sqrt(np.mean(R**2))
@@ -592,7 +592,7 @@ class TestTaylorGreenDistorted:
         
         Q_init = Q.copy()
         
-        flux_cfg = FluxConfig(k2=0.0, k4=0.02)
+        flux_cfg = FluxConfig(k4=0.02)
         
         for step in range(n_steps):
             dt = compute_dt_local(Q, flux_met, beta, cfl=0.5)
@@ -646,7 +646,7 @@ class TestTaylorGreenDistorted:
         v0_pert = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, 2] - self.V_INF
         KE_pert_init = 0.5 * np.mean(u0_pert**2 + v0_pert**2)
         
-        flux_cfg = FluxConfig(k2=0.0, k4=0.02)
+        flux_cfg = FluxConfig(k4=0.02)
         
         total_time = 0.0
         for _ in range(n_steps):
@@ -701,7 +701,7 @@ class TestConvectedTaylorGreen:
         Q = taylor_green_exact(X, Y, t=0, nu=0, U_inf=U_inf, V_inf=V_inf)
         Q = apply_periodic_bc(Q)
         
-        flux_cfg = FluxConfig(k2=0.0, k4=0.02)
+        flux_cfg = FluxConfig(k4=0.02)
         
         for _ in range(n_steps):
             dt = compute_dt_local(Q, flux_met, beta, cfl=0.5)
@@ -745,7 +745,7 @@ class TestConvectedTaylorGreen:
         Q = taylor_green_exact(X, Y, t=0, nu=0, U_inf=U_inf, V_inf=V_inf)
         Q = apply_periodic_bc(Q)
         
-        flux_cfg = FluxConfig(k2=0.0, k4=0.02)
+        flux_cfg = FluxConfig(k4=0.02)
         
         for step in range(n_steps):
             dt = compute_dt_local(Q, flux_met, beta, cfl=0.5)
@@ -795,7 +795,7 @@ class TestConvectedTaylorGreen:
         v0_pert = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, 2] - V_inf
         KE_pert_init = 0.5 * np.mean(u0_pert**2 + v0_pert**2)
         
-        flux_cfg = FluxConfig(k2=0.0, k4=0.02)
+        flux_cfg = FluxConfig(k4=0.02)
         
         total_time = 0.0
         for _ in range(n_steps):
@@ -946,7 +946,7 @@ class TestOrderOfAccuracy:
         Q = taylor_green_exact(X, Y, t=0, nu=nu, U_inf=self.U_INF, V_inf=self.V_INF)
         Q = apply_periodic_bc(Q)
         
-        flux_cfg = FluxConfig(k2=0.0, k4=0.02)
+        flux_cfg = FluxConfig(k4=0.02)
         
         # Compute residual
         R = compute_fluxes(Q, flux_met, beta, flux_cfg)
@@ -996,7 +996,7 @@ class TestOrderOfAccuracy:
         Q = apply_periodic_bc(Q)
         Q_init = Q.copy()
         
-        flux_cfg = FluxConfig(k2=0.0, k4=0.02)
+        flux_cfg = FluxConfig(k4=0.02)
         
         # Run fixed number of steps
         for _ in range(n_steps):
@@ -1290,7 +1290,7 @@ class TestOrderOfAccuracyScaledVelocity:
         Q = self._taylor_green_scaled(X, Y, velocity_scale, nu)
         Q = apply_periodic_bc(Q)
         
-        flux_cfg = FluxConfig(k2=0.0, k4=0.02)
+        flux_cfg = FluxConfig(k4=0.02)
         
         # Compute residual
         R = compute_fluxes(Q, flux_met, beta, flux_cfg)
@@ -1332,7 +1332,7 @@ class TestOrderOfAccuracyScaledVelocity:
         Q = apply_periodic_bc(Q)
         Q_init = Q.copy()
         
-        flux_cfg = FluxConfig(k2=0.0, k4=0.02)
+        flux_cfg = FluxConfig(k4=0.02)
         
         for _ in range(n_steps):
             dt = compute_dt_local(Q, flux_met, beta, cfl=0.5, nu=nu)
