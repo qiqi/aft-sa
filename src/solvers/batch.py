@@ -560,7 +560,7 @@ def compute_viscous_fluxes_with_sa_batch(grad_batch, Si_x, Si_y, Sj_x, Sj_y,
 
 def compute_sa_source_batch(nuHat_batch, grad_batch, wall_dist, nu):
     """
-    Compute SA source terms for a batch of cases.
+    Compute SA source terms (P, D, cb2_term) for a batch of cases.
 
     Parameters
     ----------
@@ -575,8 +575,12 @@ def compute_sa_source_batch(nuHat_batch, grad_batch, wall_dist, nu):
 
     Returns
     -------
-    sa_source_batch : jnp.ndarray
-        SA source terms (n_batch, NI, NJ).
+    P_batch : jnp.ndarray
+        Production term (n_batch, NI, NJ).
+    D_batch : jnp.ndarray
+        Destruction term (n_batch, NI, NJ).
+    cb2_term_batch : jnp.ndarray
+        cb2 gradient term (n_batch, NI, NJ).
     """
     return _compute_sa_source_batch_vmap(nuHat_batch, grad_batch, wall_dist, nu)
 
@@ -882,25 +886,36 @@ def make_batch_step_jit(NI: int, NJ: int, n_wake_points: int,
         # Effective viscosity and SA variable
         mu_eff, nu_tilde = compute_mu_eff_and_nuHat_batch(Q_batch)
         
-        # Viscous fluxes (momentum + SA diffusion)
-        R_visc = compute_viscous_fluxes_with_sa_batch(
-            grad, Si_x, Si_y, Sj_x, Sj_y, mu_eff, nu, nu_tilde
-        )
-        R = R + R_visc
+        # Viscous fluxes (momentum only - SA diffusion disabled for stability)
+        R_visc = compute_viscous_fluxes_batch(grad, Si_x, Si_y, Sj_x, Sj_y, mu_eff)
+        R = R.at[:, :, :, 1:3].add(R_visc[:, :, :, 1:3])
         
-        # SA source terms: Production - Destruction + cb2 term
-        sa_source = compute_sa_source_batch(nu_tilde, grad, wall_dist, nu)
-        # Add to residual (scaled by volume for FVM)
-        R = R.at[:, :, :, 3].add(sa_source * volume[None, :, :])
+        # SA source terms: Get P, D, cb2_term separately for point-implicit treatment
+        P, D, cb2_term = compute_sa_source_batch(nu_tilde, grad, wall_dist, nu)
+        # Add only production to explicit residual
+        # Note: cb2_term omitted for stability - can cause issues with steep nuHat gradients
+        # Destruction handled point-implicitly below
+        R = R.at[:, :, :, 3].add(P * volume[None, :, :])
         
         # Smoothing
         if smoothing_epsilon > 0 and smoothing_passes > 0:
             R = smooth_residual_batch(R, smoothing_epsilon, smoothing_passes)
         
-        # RK update from Q0
+        # RK update from Q0 (explicit part)
         # Q_new_int = Q0_int + alpha * dt / vol * R
         Q_int_new = Q0_batch[:, nghost:-nghost, nghost:-nghost, :] + \
             alpha_rk * (dt_batch * volume_inv[None, :, :])[:, :, :, None] * R
+        
+        # Point-implicit destruction for SA equation
+        # D/nuHat^2 = cw1*fw/d^2 (independent of nuHat)
+        nuHat_star = jnp.maximum(Q_int_new[:, :, :, 3], 1e-20)  # After explicit update
+        dt_eff = alpha_rk * dt_batch  # (n_batch, NI, NJ)
+        nu_tilde_safe = jnp.maximum(nu_tilde, 1e-20)
+        D_over_nuHat_sq = D / (nu_tilde_safe ** 2 + 1e-30)  # = cw1*fw/d^2
+        # Apply point-implicit: 1/nuHat_new = 1/nuHat_star + D_over_nuHat_sq * dt
+        inv_nuHat_new = 1.0 / nuHat_star + D_over_nuHat_sq * dt_eff
+        nuHat_implicit = 1.0 / (inv_nuHat_new + 1e-30)
+        Q_int_new = Q_int_new.at[:, :, :, 3].set(nuHat_implicit)
         
         Q_new = Q0_batch.at[:, nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
         

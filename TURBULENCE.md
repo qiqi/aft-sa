@@ -4,13 +4,39 @@ This document describes the Spalart-Allmaras (SA) turbulence model integration i
 
 ## Implementation Status (January 2025)
 
-### ✅ Completed: SA Turbulence Source Terms
+### ⚠️ SA Turbulence Model: Partial Implementation
 
-The full SA turbulence model is now integrated into both solvers:
+The SA turbulence model source terms are integrated with point-implicit destruction:
 
-- **Production**: `P = cb1 · S̃ · ν̃` 
-- **Destruction**: `D = cw1 · fw · (ν̃/d)²`
-- **Diffusion**: `(1/σ)∇·[(ν + ν̃)∇ν̃] + (cb2/σ)(∇ν̃)·(∇ν̃)`
+- **Production**: `P = cb1 · S̃ · ν̃` (explicit) ✅
+- **Destruction**: `D = cw1 · fw · (ν̃/d)²` (point-implicit) ✅
+- **cb2 term**: `(cb2/σ)(∇ν̃)·(∇ν̃)` ⚠️ (disabled for stability)
+- **SA diffusion**: ⚠️ (disabled for stability)
+
+### Point-Implicit Treatment
+
+The destruction term is stiff near the wall where d is small. Instead of explicit update:
+```
+ν̃_new = ν̃_old - D·Δt  (unstable)
+```
+
+We update the reciprocal point-implicitly:
+```
+1/ν̃_new = 1/ν̃_old + D/ν̃_old² · Δt
+ν̃_new = ν̃_old² / (ν̃_old + D·Δt)
+```
+
+This is unconditionally stable for the destruction term.
+
+### Known Limitations
+
+1. **cb2 term disabled**: The gradient-squared term `(cb2/σ)|∇ν̃|²` causes instability when nuHat has steep gradients. Needs implicit treatment or limiting.
+
+2. **SA diffusion disabled**: The diffusion term for ν̃ is not included. The momentum equations still use effective viscosity `μ_eff = μ + μ_t`.
+
+3. **Base solver stability**: The artificial compressibility method can become unstable with flow separation. Low CFL (≤2) recommended.
+
+4. **Turbulence development**: The SA model correctly develops turbulent viscosity (nuHat grows from freestream ~5e-7 to ~1e-3), but drag prediction requires further validation.
 
 ### RANS Solver Architecture
 

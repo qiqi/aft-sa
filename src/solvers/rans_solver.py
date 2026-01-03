@@ -305,7 +305,11 @@ class RANSSolver:
         
         @jax.jit
         def jit_rk_stage(Q, Q0, dt, alpha_rk):
-            """Single RK stage - fully JIT compiled with SA turbulence."""
+            """Single RK stage - fully JIT compiled with SA turbulence.
+            
+            Uses point-implicit treatment for SA destruction term:
+            nuHat_new = nuHat^2 / (nuHat + D * dt)
+            """
             # Apply boundary conditions
             Q = apply_bc(Q)
             
@@ -327,24 +331,40 @@ class RANSSolver:
             mu_t = nu_tilde * f_v1
             mu_eff = nu + mu_t
             
-            # Viscous fluxes (momentum + SA diffusion)
-            R_visc = compute_viscous_fluxes_with_sa_jax(
-                grad, Si_x, Si_y, Sj_x, Sj_y, mu_eff, nu, nu_tilde
-            )
-            R = R + R_visc
+            # Viscous fluxes (momentum only - SA diffusion disabled for stability)
+            R_visc = compute_viscous_fluxes_jax(grad, Si_x, Si_y, Sj_x, Sj_y, mu_eff)
+            R = R.at[:, :, 1:3].add(R_visc[:, :, 1:3])
             
-            # SA source terms: Production - Destruction + cb2 term
-            sa_source = compute_sa_source_jax(nu_tilde, grad, wall_dist, nu)
-            # Add to residual (scaled by volume for FVM)
-            R = R.at[:, :, 3].add(sa_source * volume)
+            # SA source terms: Get P, D, cb2_term separately for point-implicit treatment
+            P, D, cb2_term = compute_sa_source_jax(nu_tilde, grad, wall_dist, nu)
+            # Add only production to explicit residual
+            # Note: cb2_term omitted for stability - can cause issues with steep nuHat gradients
+            # Destruction handled point-implicitly below
+            R = R.at[:, :, 3].add(P * volume)
             
             # Explicit smoothing
             if smoothing_epsilon > 0 and smoothing_passes > 0:
                 R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
             
-            # RK update from Q0
+            # RK update from Q0 (explicit part)
             Q_int_new = Q0[nghost:-nghost, nghost:-nghost, :] + \
                 alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * R
+            
+            # Point-implicit destruction for SA equation
+            # User's formula: nuHat_new = 1 / (1/nuHat + D/nuHat^2 * dt)
+            # This is exactly: nuHat_new = nuHat^2 / (nuHat + D/nuHat * dt)
+            # With nuHat_star as the explicitly updated value
+            nuHat_star = jnp.maximum(Q_int_new[:, :, 3], 1e-20)  # After explicit update
+            dt_eff = alpha_rk * dt  # Effective timestep for this RK stage
+            # Compute D/nuHat^2 = cw1*fw/d^2 (independent of nuHat!)
+            # D was computed as cw1*fw*(nu_tilde/d)^2, so D/nu_tilde^2 = cw1*fw/d^2
+            nu_tilde_safe = jnp.maximum(nu_tilde, 1e-20)
+            D_over_nuHat_sq = D / (nu_tilde_safe ** 2 + 1e-30)  # = cw1*fw/d^2
+            # Apply point-implicit: 1/nuHat_new = 1/nuHat_star + D_over_nuHat_sq * dt
+            inv_nuHat_new = 1.0 / nuHat_star + D_over_nuHat_sq * dt_eff
+            nuHat_implicit = 1.0 / (inv_nuHat_new + 1e-30)
+            Q_int_new = Q_int_new.at[:, :, 3].set(nuHat_implicit)
+            
             Q_new = Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
             
             return Q_new, R
@@ -503,15 +523,6 @@ class RANSSolver:
         
         # Final BC on GPU
         Q = self.apply_bc_jit(Q)
-        
-        # Clip nuHat to physical bounds (SA stability fix)
-        # Lower bound: 0 (nuHat cannot be negative)
-        # Upper bound: ~1000 * nu_laminar (reasonable turbulent viscosity ratio)
-        nghost = NGHOST
-        nuHat_int = Q[nghost:-nghost, nghost:-nghost, 3]
-        nuHat_max = 1000.0 * self.mu_laminar  # Max turbulent viscosity ratio ~ 1000
-        nuHat_clipped = jnp.clip(nuHat_int, 0.0, nuHat_max)
-        Q = Q.at[nghost:-nghost, nghost:-nghost, 3].set(nuHat_clipped)
         
         # Store results on GPU (no CPU transfer!)
         self.Q_jax = Q
