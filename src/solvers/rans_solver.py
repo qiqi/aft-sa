@@ -413,11 +413,11 @@ class RANSSolver:
         
         return R
     
-    def step(self) -> Tuple[float, np.ndarray]:
+    def step(self) -> None:
         """Perform one iteration of the solver.
         
         Fully GPU-accelerated using JIT-compiled boundary conditions.
-        Only transfers to CPU at the end for monitoring.
+        No CPU transfers - state stays on GPU.
         """
         nghost = NGHOST
         cfl = self._get_cfl(self.iteration)
@@ -491,20 +491,56 @@ class RANSSolver:
         # Final BC on GPU
         Q_jax = self.apply_bc_jit(Q_jax)
         
-        # Store JAX result
+        # Store results on GPU (no CPU transfer!)
         self.Q_jax = Q_jax
-        
-        # Transfer to CPU only for monitoring (once per iteration)
-        Q_np = np.array(Q_jax)
-        self.Q = Q_np
-        
-        # Compute final residual for monitoring
-        final_residual = self._compute_residual(Q_np)
-        residual_rms = self._compute_residual_rms(final_residual)
+        self.R_jax = R  # Last RK residual (for visualization)
         
         self.iteration += 1
+    
+    def get_residual_rms(self) -> float:
+        """Compute RMS of residual on final state (GPU computation, transfers scalar only)."""
+        nghost = NGHOST
+        k4 = self.config.jst_k4
+        beta = self.config.beta
+        nu = self.mu_laminar
         
-        return residual_rms, final_residual
+        # Compute residual on final Q state (same as old _compute_residual but on GPU)
+        R = compute_fluxes_jax(
+            self.Q_jax, self.Si_x_jax, self.Si_y_jax,
+            self.Sj_x_jax, self.Sj_y_jax, beta, k4, nghost
+        )
+        
+        grad = compute_gradients_jax(
+            self.Q_jax, self.Si_x_jax, self.Si_y_jax,
+            self.Sj_x_jax, self.Sj_y_jax, self.volume_jax, nghost
+        )
+        
+        Q_int = self.Q_jax[nghost:-nghost, nghost:-nghost, :]
+        nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
+        if nu > 0:
+            chi = nu_tilde / nu
+            cv1 = 7.1
+            chi3 = chi ** 3
+            f_v1 = chi3 / (chi3 + cv1 ** 3)
+            mu_t = nu_tilde * f_v1
+            mu_eff = nu + mu_t
+        else:
+            mu_eff = self.mu_eff_jax
+        
+        R_visc = compute_viscous_fluxes_jax(
+            grad, self.Si_x_jax, self.Si_y_jax,
+            self.Sj_x_jax, self.Sj_y_jax, mu_eff
+        )
+        R = R + R_visc
+        
+        # Compute RMS on GPU, transfer only scalar
+        R_rho = R[:, :, 0]
+        rms = jnp.sqrt(jnp.mean(R_rho**2))
+        return float(rms)
+    
+    def sync_to_cpu(self) -> None:
+        """Transfer Q from GPU to CPU (for visualization/output)."""
+        self.Q = np.array(self.Q_jax)
     
     def run_steady_state(self) -> bool:
         """Run steady-state simulation to convergence."""
@@ -519,23 +555,39 @@ class RANSSolver:
         initial_residual = None
         
         for n in range(self.config.max_iter):
-            res_rms, R_field = self.step()
+            # Step stays entirely on GPU
+            self.step()
             
-            self.residual_history.append(res_rms)
+            # Check if we need CPU data this iteration
+            need_print = (self.iteration % self.config.print_freq == 0) or (self.iteration == 1)
+            need_snapshot = self.config.html_animation and (self.iteration % self.config.diagnostic_freq == 0)
+            need_residual = need_print or need_snapshot or (initial_residual is None)
             
-            if initial_residual is None:
-                initial_residual = res_rms
+            # Only transfer residual when needed
+            if need_residual:
+                res_rms = self.get_residual_rms()
+                self.residual_history.append(res_rms)
+                
+                if initial_residual is None:
+                    initial_residual = res_rms
+            else:
+                # Use previous value for convergence check (approximate)
+                res_rms = self.residual_history[-1] if self.residual_history else 1.0
             
-            res_norm = res_rms / (initial_residual + 1e-30)
             cfl = self._get_cfl(self.iteration)
             
-            if self.iteration % self.config.print_freq == 0 or self.iteration == 1:
+            if need_print:
+                # Transfer Q to CPU for force computation
+                self.sync_to_cpu()
                 forces = self.compute_forces()
                 print(f"{self.iteration:>8d} {res_rms:>14.6e} {cfl:>8.2f}  "
                       f"CL={forces.CL:>8.4f} CD={forces.CD:>8.5f} "
                       f"(p:{forces.CD_p:>7.5f} f:{forces.CD_f:>7.5f})")
             
-            if self.config.html_animation and self.iteration % self.config.diagnostic_freq == 0:
+            if need_snapshot:
+                if not need_print:  # Only sync if not already done
+                    self.sync_to_cpu()
+                R_field = np.array(self.R_jax)
                 Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
                 C_pt = compute_total_pressure_loss(
                     Q_int, self.freestream.p_inf,
@@ -555,7 +607,7 @@ class RANSSolver:
                 print(f"{'='*60}")
                 break
             
-            if res_rms > 1000 * initial_residual:
+            if self.residual_history and res_rms > 1000 * initial_residual:
                 print(f"\n{'='*60}")
                 print(f"DIVERGED at iteration {self.iteration}")
                 print(f"Residual: {res_rms:.6e} (initial: {initial_residual:.6e})")
@@ -565,8 +617,11 @@ class RANSSolver:
         else:
             print(f"\n{'='*60}")
             print(f"Maximum iterations ({self.config.max_iter}) reached")
-            print(f"Final residual: {self.residual_history[-1]:.6e}")
+            print(f"Final residual: {self.residual_history[-1] if self.residual_history else 'N/A':.6e}")
             print(f"{'='*60}")
+        
+        # Final sync to CPU
+        self.sync_to_cpu()
         
         if self.config.html_animation and self.plotter.num_snapshots > 0:
             html_path = Path(self.config.output_dir) / f"{self.config.case_name}_animation.html"
