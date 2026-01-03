@@ -59,19 +59,25 @@ class GCLValidation:
 
 
 class MetricComputer:
-    """Computes FVM metrics from grid node coordinates."""
+    """Computes FVM metrics from grid node coordinates.
+    
+    For C-grids, n_wake specifies how many points at each end of the i-direction
+    are wake (not wall). The wall is only i = n_wake to NI - n_wake.
+    """
     
     X: NDArrayFloat
     Y: NDArrayFloat
     wall_j: int
+    n_wake: int
     NI: int
     NJ: int
     _metrics: Optional[FVMMetrics]
     
-    def __init__(self, X: NDArrayFloat, Y: NDArrayFloat, wall_j: int = 0) -> None:
+    def __init__(self, X: NDArrayFloat, Y: NDArrayFloat, wall_j: int = 0, n_wake: int = 0) -> None:
         self.X = X
         self.Y = Y
         self.wall_j = wall_j
+        self.n_wake = n_wake  # Number of wake points on each end (not part of wall)
         self.NI = X.shape[0] - 1
         self.NJ = X.shape[1] - 1
         self._metrics = None
@@ -157,7 +163,11 @@ class MetricComputer:
         return float(np.sqrt(dx * dx + dy * dy))
     
     def _compute_wall_distance(self, search_radius: int = 20) -> NDArrayFloat:
-        """Compute wall distance using point-to-segment distance."""
+        """Compute wall distance using point-to-segment distance.
+        
+        For C-grids, only the airfoil surface is considered wall (not the wake cut).
+        The airfoil surface is at j=wall_j for i in [n_wake, NI - n_wake].
+        """
         X: NDArrayFloat = self.X
         Y: NDArrayFloat = self.Y
         NI: int = self.NI
@@ -166,8 +176,14 @@ class MetricComputer:
         xc: NDArrayFloat
         yc: NDArrayFloat
         xc, yc = self._compute_cell_centers()
-        x_wall: NDArrayFloat = X[:, self.wall_j]
-        y_wall: NDArrayFloat = Y[:, self.wall_j]
+        
+        # Only use airfoil surface, not wake cut
+        # Wall nodes are from n_wake to NI - n_wake (inclusive) at j=wall_j
+        wall_start: int = self.n_wake
+        wall_end: int = NI + 1 - self.n_wake  # +1 because X has NI+1 nodes
+        
+        x_wall: NDArrayFloat = X[wall_start:wall_end, self.wall_j]
+        y_wall: NDArrayFloat = Y[wall_start:wall_end, self.wall_j]
         n_wall: int = len(x_wall)
         
         wall_dist: NDArrayFloat = np.zeros((NI, NJ))
@@ -176,11 +192,20 @@ class MetricComputer:
             for j in range(NJ):
                 px: float = float(xc[i, j])
                 py: float = float(yc[i, j])
-                start_idx: int = i
-                min_dist: float = float('inf')
-                idx_min: int = max(0, start_idx - search_radius)
-                idx_max: int = min(n_wall - 2, start_idx + search_radius)
                 
+                # For cells on the airfoil, search near the local position
+                # For wake cells, search the entire airfoil
+                if wall_start <= i < wall_end - 1:
+                    # Cell is on the airfoil - use local search
+                    local_i: int = i - wall_start  # Position in wall array
+                    idx_min: int = max(0, local_i - search_radius)
+                    idx_max: int = min(n_wall - 2, local_i + search_radius)
+                else:
+                    # Cell is in wake - search entire airfoil
+                    idx_min = 0
+                    idx_max = n_wall - 2
+                
+                min_dist: float = float('inf')
                 for k in range(idx_min, idx_max + 1):
                     a_x: float = float(x_wall[k])
                     a_y: float = float(y_wall[k])
@@ -234,7 +259,18 @@ class MetricComputer:
         )
 
 
-def compute_metrics(X: NDArrayFloat, Y: NDArrayFloat, wall_j: int = 0) -> FVMMetrics:
-    """Convenience function to compute FVM metrics."""
-    computer: MetricComputer = MetricComputer(X, Y, wall_j)
+def compute_metrics(X: NDArrayFloat, Y: NDArrayFloat, wall_j: int = 0, n_wake: int = 0) -> FVMMetrics:
+    """Convenience function to compute FVM metrics.
+    
+    Parameters
+    ----------
+    X, Y : ndarray
+        Grid node coordinates, shape (NI+1, NJ+1).
+    wall_j : int
+        J-index of the wall boundary (default 0).
+    n_wake : int
+        Number of wake points on each end of i-direction (not part of physical wall).
+        For C-grids, the airfoil surface is i = n_wake to NI - n_wake.
+    """
+    computer: MetricComputer = MetricComputer(X, Y, wall_j, n_wake)
     return computer.compute()

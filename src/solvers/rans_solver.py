@@ -171,8 +171,8 @@ class RANSSolver:
     def _compute_metrics(self):
         """Compute FVM grid metrics."""
         print("Computing grid metrics...")
-        
-        computer = MetricComputer(self.X, self.Y, wall_j=0)
+        n_wake = getattr(self.config, 'n_wake', 0)
+        computer = MetricComputer(self.X, self.Y, wall_j=0, n_wake=n_wake)
         self.metrics = computer.compute()
         
         self.flux_metrics = FluxGridMetrics(

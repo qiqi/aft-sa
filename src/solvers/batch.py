@@ -1003,7 +1003,7 @@ class BatchRANSSolver:
     def _compute_metrics(self):
         """Compute grid metrics."""
         print("Computing grid metrics...")
-        computer = MetricComputer(self.X, self.Y, wall_j=0)
+        computer = MetricComputer(self.X, self.Y, wall_j=0, n_wake=self.n_wake)
         self.metrics = computer.compute()
         
         # Transfer to JAX
