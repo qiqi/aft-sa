@@ -227,9 +227,13 @@ class PlotlyDashboard:
             self.iteration_history = list(range(len(self.residual_history)))
     
     def save_html(self, filename: str, grid_metrics: 'FVMMetrics', 
-                  wall_distance: Optional[np.ndarray] = None) -> str:
+                  wall_distance: Optional[np.ndarray] = None,
+                  X: Optional[np.ndarray] = None,
+                  Y: Optional[np.ndarray] = None,
+                  n_wake: int = 0,
+                  mu_laminar: float = 1e-6) -> str:
         """Export all snapshots as interactive HTML animation.
-        
+
         Parameters
         ----------
         filename : str
@@ -238,6 +242,12 @@ class PlotlyDashboard:
             Grid metrics containing cell centers.
         wall_distance : np.ndarray, optional
             Wall distance field (NI, NJ). If provided, adds wall distance plot.
+        X, Y : np.ndarray, optional
+            Grid coordinates (NI+1, NJ+1). If provided, adds Cp and Cf plots.
+        n_wake : int
+            Number of wake points on each end (airfoil surface is n_wake to NI-n_wake).
+        mu_laminar : float
+            Laminar viscosity for Cf computation.
         """
         if not HAS_PLOTLY:
             print("Warning: plotly not installed. Skipping HTML animation.")
@@ -264,6 +274,7 @@ class PlotlyDashboard:
         has_cpt = snap0.C_pt is not None
         has_res_field = snap0.residual_field is not None
         has_wall_dist = wall_distance is not None
+        has_surface_data = X is not None and Y is not None
         
         # Combine regular snapshots with divergence snapshots for animation
         all_snapshots = list(self.snapshots)
@@ -275,9 +286,14 @@ class PlotlyDashboard:
         # Use last snapshot (including divergence) for initial display
         snapN = all_snapshots[-1]
         
-        # Layout: Row 1-2: field pairs, Row 3: residual + chi, Row 4: convergence (left) + empty (right)
+        # Layout: Row 1-2: field pairs, Row 3: residual + chi, Row 4: convergence
         # Row 5 (optional): wall distance
-        n_rows = 5 if has_wall_dist else 4
+        # Row 6 (optional): Cp and Cf
+        n_rows = 4
+        if has_wall_dist:
+            n_rows += 1
+        if has_surface_data:
+            n_rows += 1
         
         subplot_titles = [
             'Pressure (p - p∞)', 
@@ -289,7 +305,9 @@ class PlotlyDashboard:
         ]
         
         if has_wall_dist:
-            subplot_titles.extend(['Wall Distance (d/c)', ''])  # Wall dist in left column only
+            subplot_titles.extend(['Wall Distance (d/c)', ''])
+        if has_surface_data:
+            subplot_titles.extend(['Pressure Coefficient Cp (airfoil)', 'Skin Friction Cf (airfoil)'])
         
         specs = [
             [{"type": "xy"}, {"type": "xy"}],
@@ -298,7 +316,9 @@ class PlotlyDashboard:
             [{"type": "scatter", "colspan": 2}, None],  # Convergence spans both columns
         ]
         if has_wall_dist:
-            specs.append([{"type": "xy"}, {"type": "xy"}])  # Wall distance in left column only
+            specs.append([{"type": "xy"}, {"type": "xy"}])
+        if has_surface_data:
+            specs.append([{"type": "scatter"}, {"type": "scatter"}])  # Cp and Cf line plots
         
         fig = make_subplots(
             rows=n_rows, cols=2,
@@ -482,6 +502,7 @@ class PlotlyDashboard:
             )
         
         # Wall distance plot (static, at end)
+        wall_dist_row = 5
         wall_dist_traces_start = None
         if has_wall_dist:
             wall_dist_traces_start = len(fig.data)
@@ -499,7 +520,7 @@ class PlotlyDashboard:
                     aaxis=dict(showgrid=False, showticklabels='none', showline=False),
                     baxis=dict(showgrid=False, showticklabels='none', showline=False),
                 ),
-                row=5, col=1
+                row=wall_dist_row, col=1
             )
             
             fig.add_trace(
@@ -513,7 +534,100 @@ class PlotlyDashboard:
                     colorbar=wd_cfg['colorbar'],
                     showscale=True,
                 ),
-                row=5, col=1
+                row=wall_dist_row, col=1
+            )
+        
+        # Cp and Cf surface plots (animated)
+        surface_row = (wall_dist_row + 1) if has_wall_dist else 5
+        cp_trace_idx = None
+        cf_trace_idx = None
+        x_surf_airfoil = None
+        
+        if has_surface_data:
+            NI_cells = ni  # Number of cells in i-direction
+            
+            # Airfoil surface indices (excluding wake)
+            i_start = n_wake
+            i_end = NI_cells - n_wake
+            
+            # Surface x-coordinate (cell centers at j=0, airfoil only)
+            x_surf_full = 0.5 * (X[:-1, 0] + X[1:, 0])  # Cell center x at wall
+            x_surf_airfoil = x_surf_full[i_start:i_end]
+            
+            # Dynamic pressure for normalization
+            V_inf_sq = self.u_inf**2 + self.v_inf**2
+            q_inf = 0.5 * V_inf_sq
+            if q_inf < 1e-14:
+                q_inf = 1e-14
+            
+            # Compute Cp from last snapshot for initial display
+            # snap.p[:, 0] = p_wall - p_inf at first interior cell
+            Cp_full = snapN.p[:, 0] / q_inf
+            Cp_airfoil = _sanitize_array(Cp_full[i_start:i_end], fill_value=0.0)
+            
+            # Compute Cf from last snapshot
+            # Need wall shear: tau_w = mu * du/dy, where dy is distance from wall to cell center
+            vol = grid_metrics.volume[:, 0]
+            Sj_mag = np.sqrt(grid_metrics.Sj_x[:, 0]**2 + grid_metrics.Sj_y[:, 0]**2)
+            dy = vol / (Sj_mag + 1e-14)  # Distance from wall to first cell center
+            
+            # Velocity at first interior (relative + freestream)
+            u_wall = snapN.u[:, 0] + self.u_inf
+            v_wall = snapN.v[:, 0] + self.v_inf
+            
+            # Effective viscosity (laminar + turbulent)
+            nu_wall = snapN.nu[:, 0]
+            mu_eff = mu_laminar + np.maximum(0.0, nu_wall)
+            
+            # Wall shear stress magnitude (using 2*u/dy since u=0 at wall)
+            dudn = 2.0 * u_wall / dy
+            dvdn = 2.0 * v_wall / dy
+            tau_mag = mu_eff * np.sqrt(dudn**2 + dvdn**2)
+            Cf_full = tau_mag / q_inf
+            Cf_airfoil = _sanitize_array(Cf_full[i_start:i_end], fill_value=0.0)
+            
+            # Compute global Cp range for consistent scaling
+            cp_min_global, cp_max_global = -2.0, 1.0
+            cf_max_global = 0.05
+            for snap in all_snapshots:
+                Cp_snap = snap.p[:, 0] / q_inf
+                Cp_snap_airfoil = Cp_snap[i_start:i_end]
+                cp_min_snap, cp_max_snap = _safe_minmax(Cp_snap_airfoil, -2.0, 1.0)
+                cp_min_global = min(cp_min_global, cp_min_snap)
+                cp_max_global = max(cp_max_global, cp_max_snap)
+                
+                u_snap = snap.u[:, 0] + self.u_inf
+                v_snap = snap.v[:, 0] + self.v_inf
+                nu_snap = snap.nu[:, 0]
+                mu_eff_snap = mu_laminar + np.maximum(0.0, nu_snap)
+                dudn_snap = 2.0 * u_snap / dy
+                dvdn_snap = 2.0 * v_snap / dy
+                tau_snap = mu_eff_snap * np.sqrt(dudn_snap**2 + dvdn_snap**2)
+                Cf_snap = tau_snap / q_inf
+                Cf_snap_airfoil = Cf_snap[i_start:i_end]
+                cf_max_snap = _safe_absmax(Cf_snap_airfoil, 0.01)
+                cf_max_global = max(cf_max_global, cf_max_snap)
+            
+            # Add Cp trace (negative up convention: invert y-axis later)
+            cp_trace_idx = len(fig.data)
+            fig.add_trace(
+                go.Scatter(
+                    x=x_surf_airfoil, y=Cp_airfoil,
+                    mode='lines', line=dict(color='blue', width=2),
+                    showlegend=False, name='Cp',
+                ),
+                row=surface_row, col=1
+            )
+            
+            # Add Cf trace
+            cf_trace_idx = len(fig.data)
+            fig.add_trace(
+                go.Scatter(
+                    x=x_surf_airfoil, y=Cf_airfoil,
+                    mode='lines', line=dict(color='red', width=2),
+                    showlegend=False, name='Cf',
+                ),
+                row=surface_row, col=2
             )
         
         # 6 contour plots: pressure, cpt, u, v, residual, chi
@@ -525,8 +639,14 @@ class PlotlyDashboard:
         # - 1 red dots (snapshots)
         # - 1 orange triangles (divergence) if present
         # Then optionally wall distance traces (NOT animated)
+        # Then optionally Cp and Cf traces (animated)
         residual_marker_idx = 12 + 1  # 12 contour traces + 1 scatter line
         animated_indices = base_contour_indices + [residual_marker_idx]
+        
+        # Add Cp and Cf to animated indices if present
+        if has_surface_data and cp_trace_idx is not None and cf_trace_idx is not None:
+            animated_indices.append(cp_trace_idx)
+            animated_indices.append(cf_trace_idx)
         
         chi_cfg = coloraxis_config['chi']
         
@@ -598,6 +718,44 @@ class PlotlyDashboard:
                 mode='markers',
                 marker=dict(color=colors, size=10, symbol='circle'),
             ))
+            
+            # Add Cp and Cf for this snapshot if surface data is available
+            if has_surface_data and x_surf_airfoil is not None:
+                NI_cells = ni
+                i_start = n_wake
+                i_end = NI_cells - n_wake
+                
+                V_inf_sq = self.u_inf**2 + self.v_inf**2
+                q_inf = max(0.5 * V_inf_sq, 1e-14)
+                
+                # Cp from this snapshot
+                Cp_snap = snap.p[:, 0] / q_inf
+                Cp_snap_airfoil = _sanitize_array(Cp_snap[i_start:i_end], fill_value=0.0)
+                
+                # Cf from this snapshot
+                vol = grid_metrics.volume[:, 0]
+                Sj_mag = np.sqrt(grid_metrics.Sj_x[:, 0]**2 + grid_metrics.Sj_y[:, 0]**2)
+                dy = vol / (Sj_mag + 1e-14)
+                
+                u_snap_wall = snap.u[:, 0] + self.u_inf
+                v_snap_wall = snap.v[:, 0] + self.v_inf
+                nu_snap_wall = snap.nu[:, 0]
+                mu_eff_snap = mu_laminar + np.maximum(0.0, nu_snap_wall)
+                
+                dudn = 2.0 * u_snap_wall / dy
+                dvdn = 2.0 * v_snap_wall / dy
+                tau_mag = mu_eff_snap * np.sqrt(dudn**2 + dvdn**2)
+                Cf_snap = tau_mag / q_inf
+                Cf_snap_airfoil = _sanitize_array(Cf_snap[i_start:i_end], fill_value=0.0)
+                
+                frame_data.append(go.Scatter(
+                    x=x_surf_airfoil, y=Cp_snap_airfoil,
+                    mode='lines', line=dict(color='blue', width=2),
+                ))
+                frame_data.append(go.Scatter(
+                    x=x_surf_airfoil, y=Cf_snap_airfoil,
+                    mode='lines', line=dict(color='red', width=2),
+                ))
             
             frames.append(go.Frame(
                 data=frame_data,
@@ -772,7 +930,7 @@ class PlotlyDashboard:
                     ticklen=0,
                 ),
             ],
-            height=1600 + (350 if has_wall_dist else 0),
+            height=1600 + (350 if has_wall_dist else 0) + (300 if has_surface_data else 0),
             width=1400,
             margin=dict(t=80),  # Top margin for sliders
         )
@@ -785,7 +943,7 @@ class PlotlyDashboard:
         # List of all contourcarpet subplot positions
         field_positions = [(1, 1), (1, 2), (2, 1), (2, 2), (3, 1), (3, 2)]
         if has_wall_dist:
-            field_positions.append((5, 1))
+            field_positions.append((wall_dist_row, 1))
         
         # Link all other field plots to the reference (row 1 col 1 = x, y)
         for row, col in field_positions:
@@ -800,8 +958,18 @@ class PlotlyDashboard:
         
         # Hide the empty right column in row 5 (wall distance)
         if has_wall_dist:
-            fig.update_xaxes(visible=False, row=5, col=2)
-            fig.update_yaxes(visible=False, row=5, col=2)
+            fig.update_xaxes(visible=False, row=wall_dist_row, col=2)
+            fig.update_yaxes(visible=False, row=wall_dist_row, col=2)
+        
+        # Cp and Cf plots configuration
+        if has_surface_data:
+            # Cp plot: x/c vs Cp (negative up convention)
+            fig.update_xaxes(title_text='x/c', range=[0, 1], fixedrange=False, row=surface_row, col=1)
+            fig.update_yaxes(title_text='Cp', autorange='reversed', fixedrange=False, row=surface_row, col=1)
+            
+            # Cf plot: x/c vs Cf
+            fig.update_xaxes(title_text='x/c', range=[0, 1], fixedrange=False, row=surface_row, col=2)
+            fig.update_yaxes(title_text='Cf', range=[0, cf_max_global * 1.1], fixedrange=False, row=surface_row, col=2)
         
         fig.write_html(str(output_path), auto_play=False)
         
