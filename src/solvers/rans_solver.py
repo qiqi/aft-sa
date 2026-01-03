@@ -249,20 +249,6 @@ class RANSSolver:
         self.nx_ff_jax = jax.device_put(jnp.array(Sj_x_ff / Sj_mag))
         self.ny_ff_jax = jax.device_put(jnp.array(Sj_y_ff / Sj_mag))
         
-        # Pre-compute BC parameters for JAX
-        n_wake = self.config.n_wake if self.config.n_wake > 0 else self.NI // 6
-        self.n_wake_jax = n_wake
-        
-        # Pre-compute I-outlet mask (for farfield BC)
-        is_i_outlet = np.zeros(self.NI, dtype=bool)
-        if n_wake > 0:
-            is_i_outlet[:n_wake] = True
-            is_i_outlet[-n_wake:] = True
-        self.is_i_outlet_jax = jax.device_put(jnp.array(is_i_outlet))
-        
-        # Pre-compute volume on GPU for RK update
-        self.volume_inv_jax = jax.device_put(jnp.array(1.0 / self.metrics.volume))
-        
         # Pre-compute laminar viscosity
         self.mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
         self.mu_eff_jax = jax.device_put(jnp.full((self.NI, self.NJ), self.mu_laminar))
@@ -279,18 +265,9 @@ class RANSSolver:
         beta = self.config.beta
         cfl = self.config.cfl_start
         
-        # Run a few iterations to trigger JIT (including BC JIT)
+        # Run a few iterations to trigger JIT
         Q_test = self.Q_jax
         for _ in range(3):
-            # Warm up BCs
-            Q_test = apply_bc_jax(
-                Q_test,
-                (self.nx_ff_jax, self.ny_ff_jax),
-                self.freestream,
-                self.n_wake_jax,
-                nghost
-            )
-            
             dt = compute_local_timestep_jax(
                 Q_test, self.Si_x_jax, self.Si_y_jax, 
                 self.Sj_x_jax, self.Sj_y_jax, self.volume_jax,
@@ -310,13 +287,7 @@ class RANSSolver:
             )
             R = R + R_visc
             R = smooth_explicit_jax(R, 0.2, 2)
-            
-            # Warm up RK update
-            Q_int_new = Q_test[nghost:-nghost, nghost:-nghost, :] + \
-                0.25 * (dt * self.volume_inv_jax)[:, :, jnp.newaxis] * R
-            Q_test = Q_test.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
-        
-        jax.block_until_ready(Q_test)
+        jax.block_until_ready(R)
     
     def _initialize_output(self):
         """Initialize VTK writer and HTML animation for output."""
@@ -454,18 +425,14 @@ class RANSSolver:
     def step(self) -> Tuple[float, np.ndarray]:
         """Perform one iteration of the solver.
         
-        Fully GPU-accelerated using JAX for all computations including BCs.
-        Only transfers to CPU at the end for monitoring.
+        Uses JAX for GPU-accelerated flux and gradient computation.
+        Boundary conditions are applied on CPU (NumPy) for performance.
         """
         nghost = NGHOST
         cfl = self._get_cfl(self.iteration)
         k4 = self.config.jst_k4
         beta = self.config.beta
         nu = self.mu_laminar
-        
-        # Smoothing params
-        epsilon = getattr(self.config, 'smoothing_epsilon', 0.2)
-        n_passes = getattr(self.config, 'smoothing_passes', 2)
         
         # Compute timestep on GPU
         dt = compute_local_timestep_jax(
@@ -474,25 +441,23 @@ class RANSSolver:
             beta, cfl, nghost, nu=nu
         )
         
-        # RK5 coefficients
-        alphas = jnp.array([0.25, 0.166666667, 0.375, 0.5, 1.0])
+        # Smoothing params
+        epsilon = getattr(self.config, 'smoothing_epsilon', 0.2)
+        n_passes = getattr(self.config, 'smoothing_passes', 2)
         
-        # Store initial state (on GPU)
-        Q0_jax = self.Q_jax
-        Q_jax = self.Q_jax
+        # Transfer to CPU for BC, compute on GPU, transfer back for BC
+        # This hybrid approach is faster than pure JAX BCs
+        Q_np = np.array(self.Q_jax)
+        Q0_np = Q_np.copy()
         
-        # RK stages - all on GPU
-        for stage in range(5):
-            alpha = float(alphas[stage])
+        alphas = [0.25, 0.166666667, 0.375, 0.5, 1.0]
+        
+        for alpha in alphas:
+            # BC on CPU (fast NumPy)
+            Q_np = self.bc.apply(Q_np)
             
-            # Apply boundary conditions on GPU
-            Q_jax = apply_bc_jax(
-                Q_jax, 
-                (self.nx_ff_jax, self.ny_ff_jax),
-                self.freestream,
-                self.n_wake_jax,
-                nghost
-            )
+            # Transfer to GPU for heavy computation
+            Q_jax = jax.device_put(jnp.array(Q_np))
             
             # Convective flux on GPU
             R = compute_fluxes_jax(
@@ -529,26 +494,20 @@ class RANSSolver:
             if epsilon > 0 and n_passes > 0:
                 R = smooth_explicit_jax(R, epsilon, n_passes)
             
-            # Update state on GPU (RK update from Q0)
-            Q_int_new = Q0_jax[nghost:-nghost, nghost:-nghost, :] + \
-                alpha * (dt * self.volume_inv_jax)[:, :, jnp.newaxis] * R
-            Q_jax = Q0_jax.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
+            # Update state on GPU
+            R_np = np.array(R)
+            dt_np = np.array(dt)
+            
+            Q_np = Q0_np.copy()
+            Q_np[nghost:-nghost, nghost:-nghost, :] += \
+                alpha * (dt_np / self.metrics.volume)[:, :, np.newaxis] * R_np
         
-        # Final BC on GPU
-        Q_jax = apply_bc_jax(
-            Q_jax,
-            (self.nx_ff_jax, self.ny_ff_jax),
-            self.freestream,
-            self.n_wake_jax,
-            nghost
-        )
+        # Final BC on CPU
+        Q_np = self.bc.apply(Q_np)
         
-        # Store results - keep on GPU
-        self.Q_jax = Q_jax
-        
-        # Transfer to CPU only for monitoring (once per iteration)
-        Q_np = np.array(Q_jax)
+        # Store results
         self.Q = Q_np
+        self.Q_jax = jax.device_put(jnp.array(Q_np))
         
         # Compute final residual for monitoring
         final_residual = self._compute_residual(Q_np)

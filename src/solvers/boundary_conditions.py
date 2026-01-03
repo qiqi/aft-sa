@@ -339,9 +339,6 @@ if JAX_AVAILABLE:
         """
         JAX: Apply airfoil surface and wake cut boundary conditions.
         
-        Note: Not JIT-compiled due to dynamic slice indices.
-        Still runs on GPU as vectorized JAX operations.
-        
         Parameters
         ----------
         Q : jnp.ndarray
@@ -407,9 +404,6 @@ if JAX_AVAILABLE:
         """
         JAX: Apply farfield boundary conditions.
         
-        Note: Not JIT-compiled due to dynamic slice indices.
-        Still runs on GPU as vectorized JAX operations.
-        
         Parameters
         ----------
         Q : jnp.ndarray
@@ -472,27 +466,19 @@ if JAX_AVAILABLE:
         Q = Q.at[nghost:-nghost, -1, 3].set(2 * Q[nghost:-nghost, -2, 3] - nu_t_b)
         
         # I-direction farfield (downstream outlet)
-        NJ_ghost = Q.shape[1]
-        j_end = NJ_ghost - nghost
+        j_slice = slice(0, -nghost)
         
-        Q = Q.at[1, :j_end, :].set(Q[nghost, :j_end, :])
-        Q = Q.at[0, :j_end, :].set(2 * Q[nghost, :j_end, :] - Q[nghost + 1, :j_end, :])
+        Q = Q.at[1, j_slice, :].set(Q[nghost, j_slice, :])
+        Q = Q.at[0, j_slice, :].set(2 * Q[nghost, j_slice, :] - Q[nghost + 1, j_slice, :])
         
-        Q = Q.at[-2, :j_end, :].set(Q[-nghost - 1, :j_end, :])
-        Q = Q.at[-1, :j_end, :].set(2 * Q[-nghost - 1, :j_end, :] - Q[-nghost - 2, :j_end, :])
+        Q = Q.at[-2, j_slice, :].set(Q[-nghost - 1, j_slice, :])
+        Q = Q.at[-1, j_slice, :].set(2 * Q[-nghost - 1, j_slice, :] - Q[-nghost - 2, j_slice, :])
         
-        # Corner ghost cells (nghost=2)
-        corner_val_ll = Q[nghost, -nghost - 1, :]
-        Q = Q.at[0, -2, :].set(corner_val_ll)
-        Q = Q.at[0, -1, :].set(corner_val_ll)
-        Q = Q.at[1, -2, :].set(corner_val_ll)
-        Q = Q.at[1, -1, :].set(corner_val_ll)
-        
-        corner_val_lr = Q[-nghost - 1, -nghost - 1, :]
-        Q = Q.at[-2, -2, :].set(corner_val_lr)
-        Q = Q.at[-2, -1, :].set(corner_val_lr)
-        Q = Q.at[-1, -2, :].set(corner_val_lr)
-        Q = Q.at[-1, -1, :].set(corner_val_lr)
+        # Corner ghost cells
+        for i_g in range(nghost):
+            for j_g in range(-nghost, 0):
+                Q = Q.at[i_g, j_g, :].set(Q[nghost, -nghost - 1, :])
+                Q = Q.at[-nghost + i_g, j_g, :].set(Q[-nghost - 1, -nghost - 1, :])
         
         return Q
     
