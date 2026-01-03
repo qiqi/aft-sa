@@ -23,6 +23,7 @@ from .viscous_fluxes import (
     add_viscous_fluxes,
     compute_nu_tilde_diffusion,
     compute_viscous_fluxes_with_sa_jax,
+    compute_viscous_fluxes_tight_jax,
 )
 
 from .forces import (
@@ -55,6 +56,7 @@ from .sa_sources import (
     compute_cb2_term_jax,
     compute_turbulent_viscosity_jax,
     compute_effective_viscosity_jax,
+    compute_sa_cb2_advection_jax,
 )
 
 __all__ = [
@@ -72,6 +74,7 @@ __all__ = [
     'add_viscous_fluxes',
     'compute_nu_tilde_diffusion',
     'compute_viscous_fluxes_with_sa_jax',
+    'compute_viscous_fluxes_tight_jax',
     'compute_aerodynamic_forces',
     'compute_surface_distributions',
     'create_surface_vtk_fields',
@@ -91,4 +94,5 @@ __all__ = [
     'compute_cb2_term_jax',
     'compute_turbulent_viscosity_jax',
     'compute_effective_viscosity_jax',
+    'compute_sa_cb2_advection_jax',
 ]

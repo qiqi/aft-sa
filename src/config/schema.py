@@ -30,15 +30,6 @@ class CFLConfig:
     ramp_iter: int = 300       # Iterations to ramp from initial to final
 
 
-@dataclass
-class SmoothingConfig:
-    """Residual smoothing configuration."""
-    
-    type: str = "explicit"     # "explicit", "implicit", or "none"
-    epsilon: float = 0.2       # Smoothing coefficient
-    passes: int = 2            # Number of smoothing passes (explicit only)
-
-
 @dataclass 
 class FlowConfig:
     """Flow conditions configuration."""
@@ -51,6 +42,10 @@ class FlowConfig:
     # - Sweep spec: alpha: {sweep: [-5, 15, 21]}  (start, end, count)
     # - Explicit list: alpha: {values: [0, 2, 4, 6, 8]}
     alpha: Union[float, Dict[str, Any]] = 0.0
+    
+    # Initial/farfield turbulent viscosity ratio: χ = ν̃/ν
+    # Typical values: 3-5 for external aerodynamics
+    chi_inf: float = 3.0
     
     def is_batch(self) -> bool:
         """Check if this is a batch configuration."""
@@ -86,7 +81,6 @@ class NumericsConfig:
     beta: float = 10.0         # Artificial compressibility parameter
     wall_damping_length: float = 0.1  # Wall damping length scale
     sponge_thickness: int = 15  # Sponge layer thickness in cells for farfield stabilization
-    smoothing: SmoothingConfig = field(default_factory=SmoothingConfig)
 
 
 @dataclass
@@ -126,6 +120,7 @@ class SimulationConfig:
             mach=self.flow.mach,
             alpha=self.flow.alpha,
             reynolds=self.flow.reynolds,
+            chi_inf=self.flow.chi_inf,
             beta=self.numerics.beta,
             cfl_start=self.solver.cfl.initial,
             cfl_target=self.solver.cfl.final,
@@ -139,10 +134,6 @@ class SimulationConfig:
             wall_damping_length=self.numerics.wall_damping_length,
             jst_k4=self.numerics.jst_k4,
             sponge_thickness=self.numerics.sponge_thickness,
-            irs_epsilon=self.numerics.smoothing.epsilon if self.numerics.smoothing.type == "implicit" else 0.0,
-            smoothing_type=self.numerics.smoothing.type,
-            smoothing_epsilon=self.numerics.smoothing.epsilon,
-            smoothing_passes=self.numerics.smoothing.passes,
             n_wake=self.grid.n_wake,
             html_animation=self.output.html_animation,
             divergence_history=self.output.divergence_history,

@@ -72,6 +72,8 @@ Examples:
                         help="Angle of attack in degrees")
     parser.add_argument("--reynolds", "-Re", type=float,
                         help="Reynolds number")
+    parser.add_argument("--chi-inf", type=float,
+                        help="Initial/farfield turbulent viscosity ratio χ = ν̃/ν (default: 3.0)")
     
     # Solver settings
     parser.add_argument("--max-iter", "-n", type=int,
@@ -86,8 +88,6 @@ Examples:
                         help="Convergence tolerance")
     parser.add_argument("--beta", type=float,
                         help="Artificial compressibility parameter")
-    parser.add_argument("--irs", type=float,
-                        help="Implicit Residual Smoothing epsilon (legacy)")
     
     # Grid generation options
     parser.add_argument("--n-surface", type=int,

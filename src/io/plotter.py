@@ -40,6 +40,33 @@ def _sanitize_array(arr: np.ndarray, fill_value: float = 0.0) -> np.ndarray:
     return result
 
 
+def _to_json_safe_list(arr: np.ndarray) -> list:
+    """Convert numpy array to a list that's safe for JSON serialization.
+    
+    Converts NaN and Inf values to None (which becomes null in JSON).
+    This is needed because Plotly's HTML serialization doesn't always
+    handle numpy NaN values correctly.
+    
+    Parameters
+    ----------
+    arr : np.ndarray
+        Input array that may contain NaN/Inf values.
+        
+    Returns
+    -------
+    list
+        List with NaN/Inf values replaced by None.
+    """
+    flat = arr.flatten()
+    result = []
+    for val in flat:
+        if np.isfinite(val):
+            result.append(float(val))
+        else:
+            result.append(None)
+    return result
+
+
 def _safe_minmax(arr: np.ndarray, default_min: float = -1.0, default_max: float = 1.0) -> tuple:
     """Get min/max of array, handling NaN/Inf gracefully.
     
@@ -173,12 +200,17 @@ class PlotlyDashboard:
         v_rel = _sanitize_array(Q_int[:, :, 2] - self.v_inf, fill_value=0.0)
         nu = _sanitize_array(Q_int[:, :, 3], fill_value=0.0)
         
+        # Clip to reasonable range to prevent overflow in calculations
+        max_safe_vel = 1e10  # Prevents overflow when squared
         u_abs = _sanitize_array(Q_int[:, :, 1], fill_value=self.u_inf)
         v_abs = _sanitize_array(Q_int[:, :, 2], fill_value=self.v_inf)
+        u_abs = np.clip(u_abs, -max_safe_vel, max_safe_vel)
+        v_abs = np.clip(v_abs, -max_safe_vel, max_safe_vel)
         vel_mag = np.sqrt(u_abs**2 + v_abs**2)
         
         if C_pt is None and freestream is not None:
             p = _sanitize_array(Q_int[:, :, 0], fill_value=self.p_inf)
+            p = np.clip(p, -max_safe_vel, max_safe_vel)
             V_inf_sq = self.u_inf**2 + self.v_inf**2
             p_total = p + 0.5 * (u_abs**2 + v_abs**2)
             p_total_inf = self.p_inf + 0.5 * V_inf_sq
@@ -189,8 +221,10 @@ class PlotlyDashboard:
         
         res_field = None
         if residual_field is not None:
+            # Clip to prevent overflow in squaring
+            res_clipped = np.clip(residual_field, -max_safe_vel, max_safe_vel)
             res_field = _sanitize_array(
-                np.sqrt(np.mean(residual_field**2, axis=2)), 
+                np.sqrt(np.mean(res_clipped**2, axis=2)), 
                 fill_value=1e-12
             )
         
@@ -301,13 +335,13 @@ class PlotlyDashboard:
             'U-velocity (u - u∞)', 'V-velocity (v - v∞)',
             'Residual Field (log₁₀)' if has_res_field else 'Velocity Magnitude',
             'χ = ν̃/ν (Turbulent/Laminar Viscosity Ratio)',
-            'Convergence History', ''  # Second column empty
+            'Convergence History',  # colspan=2, so None cell in row 4 col 2 is skipped
         ]
         
         if has_wall_dist:
-            subplot_titles.append('Wall Distance (d/c)')  # Left column only (right is None)
+            subplot_titles.append('Wall Distance (d/c)')
         if has_surface_data:
-            subplot_titles.extend(['', ''])  # No subplot titles - use axis labels instead
+            subplot_titles.extend(['', ''])  # Cp and Cf use axis labels instead
         
         specs = [
             [{"type": "xy"}, {"type": "xy"}],
@@ -336,7 +370,12 @@ class PlotlyDashboard:
             field5_data = np.zeros_like(snapN.p)
         
         # Chi = nu_hat / nu_laminar (turbulent/laminar viscosity ratio)
-        chi_data = np.maximum(_sanitize_array(snapN.nu, fill_value=1e-12), 1e-12) / self.nu_laminar
+        # Use NaN for negative/zero nuHat values (will appear white/transparent in plot)
+        nu_sanitized = _sanitize_array(snapN.nu, fill_value=0.0)
+        # Compute chi only for positive values, use NaN otherwise
+        chi_data = np.full_like(nu_sanitized, np.nan)
+        pos_mask = nu_sanitized > 0
+        chi_data[pos_mask] = nu_sanitized[pos_mask] / self.nu_laminar
         
         # Compute GLOBAL symmetric ranges for consistent scaling
         # Use safe functions to handle any NaN/Inf values
@@ -378,15 +417,17 @@ class PlotlyDashboard:
             res_min, res_max = -3, 0
         
         # Chi range (log scale for display)
+        # Only consider positive nuHat values for range calculation
         chi_max_vals = []
         chi_min_vals = []
         for s in self.snapshots:
-            chi = _sanitize_array(s.nu, fill_value=1e-12) / self.nu_laminar
-            chi = np.maximum(chi, 1e-12)  # Ensure positive for log
-            chi_log = np.log10(chi)
-            min_val, max_val = _safe_minmax(chi_log, default_min=-6, default_max=6)
-            chi_max_vals.append(max_val)
-            chi_min_vals.append(min_val)
+            nu_pos = s.nu[s.nu > 0]  # Only positive values
+            if len(nu_pos) > 0:
+                chi_pos = nu_pos / self.nu_laminar
+                chi_log = np.log10(chi_pos)
+                min_val, max_val = _safe_minmax(chi_log, default_min=-6, default_max=6)
+                chi_max_vals.append(max_val)
+                chi_min_vals.append(min_val)
         
         chi_max = max(chi_max_vals) if chi_max_vals else 6.0
         chi_min = min(chi_min_vals) if chi_min_vals else -6.0
@@ -401,13 +442,22 @@ class PlotlyDashboard:
         snapN_u = _sanitize_array(snapN.u, fill_value=0.0)
         snapN_v = _sanitize_array(snapN.v, fill_value=0.0)
         
+        # Chi log scale: NaN values (negative nuHat) will appear white/transparent
+        # Avoid log10(0) by only computing log for positive finite values
+        chi_log_data = np.full_like(chi_data, np.nan)
+        valid_mask = np.isfinite(chi_data) & (chi_data > 0)
+        chi_log_data[valid_mask] = np.log10(chi_data[valid_mask])
+        
+        # Convert to JSON-safe list (NaN -> None) for proper serialization
+        chi_log_safe = _to_json_safe_list(chi_log_data)
+
         contour_configs = [
-            (snapN_p, 1, 1, 'pressure', True),
-            (field2_data, 1, 2, 'pressure', False),
-            (snapN_u, 2, 1, 'velocity', True),
-            (snapN_v, 2, 2, 'velocity', False),
-            (field5_data, 3, 1, 'residual', True),
-            (np.log10(chi_data + 1e-12), 3, 2, 'chi', True),  # Chi plot (log scale)
+            (snapN_p.flatten(), 1, 1, 'pressure', True),
+            (field2_data.flatten(), 1, 2, 'pressure', False),
+            (snapN_u.flatten(), 2, 1, 'velocity', True),
+            (snapN_v.flatten(), 2, 2, 'velocity', False),
+            (field5_data.flatten(), 3, 1, 'residual', True),
+            (chi_log_safe, 3, 2, 'chi', True),  # Chi plot (log scale), None=white for ν̃<0
         ]
         
         # Colorbar positions - 4 colorbars, properly spaced
@@ -445,9 +495,10 @@ class PlotlyDashboard:
             )
             
             colorbar_cfg = caxis_cfg['colorbar'] if show_colorbar else None
+            # data is already flattened (or a list for chi with None for NaN)
             fig.add_trace(
                 go.Contourcarpet(
-                    a=A.flatten(), b=B.flatten(), z=data.flatten(),
+                    a=A.flatten(), b=B.flatten(), z=data,
                     carpet=carpet_id,
                     colorscale=caxis_cfg['colorscale'],
                     zmin=caxis_cfg['cmin'], zmax=caxis_cfg['cmax'],
@@ -465,9 +516,11 @@ class PlotlyDashboard:
                 all_iters = self.iteration_history
             else:
                 all_iters = list(range(len(self.residual_history)))
+            # Sanitize residual history for JSON (NaN -> None)
+            res_hist_safe = [r if np.isfinite(r) else None for r in self.residual_history]
             fig.add_trace(
                 go.Scatter(
-                    x=all_iters, y=self.residual_history,
+                    x=all_iters, y=res_hist_safe,
                     mode='lines', line=dict(color='blue', width=1.5),
                     showlegend=False, name='Full History',
                 ),
@@ -476,7 +529,8 @@ class PlotlyDashboard:
         
         # Regular snapshots (red dots)
         snapshot_iters = [s.iteration for s in self.snapshots]
-        snapshot_res = [s.residual for s in self.snapshots]
+        # Sanitize residuals for JSON
+        snapshot_res = [s.residual if np.isfinite(s.residual) else None for s in self.snapshots]
         fig.add_trace(
             go.Scatter(
                 x=snapshot_iters, y=snapshot_res,
@@ -490,7 +544,8 @@ class PlotlyDashboard:
         # Divergence snapshots (orange triangles) - show if any divergence was captured
         if self.divergence_snapshots:
             div_iters = [s.iteration for s in self.divergence_snapshots]
-            div_res = [s.residual for s in self.divergence_snapshots]
+            # Sanitize residuals for JSON
+            div_res = [s.residual if np.isfinite(s.residual) else None for s in self.divergence_snapshots]
             fig.add_trace(
                 go.Scatter(
                     x=div_iters, y=div_res,
@@ -572,11 +627,13 @@ class PlotlyDashboard:
             dy = vol / (Sj_mag + 1e-14)  # Distance from wall to first cell center
             
             # Velocity at first interior (relative + freestream)
-            u_wall = snapN.u[:, 0] + self.u_inf
-            v_wall = snapN.v[:, 0] + self.v_inf
+            # Clip to prevent overflow in squaring
+            max_safe = 1e10
+            u_wall = np.clip(snapN.u[:, 0] + self.u_inf, -max_safe, max_safe)
+            v_wall = np.clip(snapN.v[:, 0] + self.v_inf, -max_safe, max_safe)
             
             # Effective viscosity (laminar + turbulent)
-            nu_wall = snapN.nu[:, 0]
+            nu_wall = np.clip(snapN.nu[:, 0], 0.0, max_safe)
             mu_eff = mu_laminar + np.maximum(0.0, nu_wall)
             
             # Wall shear stress magnitude (using 2*u/dy since u=0 at wall)
@@ -590,15 +647,15 @@ class PlotlyDashboard:
             cp_min_global, cp_max_global = -2.0, 1.0
             cf_max_global = 0.05
             for snap in all_snapshots:
-                Cp_snap = snap.p[:, 0] / q_inf
+                Cp_snap = np.clip(snap.p[:, 0], -max_safe, max_safe) / q_inf
                 Cp_snap_airfoil = Cp_snap[i_start:i_end]
                 cp_min_snap, cp_max_snap = _safe_minmax(Cp_snap_airfoil, -2.0, 1.0)
                 cp_min_global = min(cp_min_global, cp_min_snap)
                 cp_max_global = max(cp_max_global, cp_max_snap)
                 
-                u_snap = snap.u[:, 0] + self.u_inf
-                v_snap = snap.v[:, 0] + self.v_inf
-                nu_snap = snap.nu[:, 0]
+                u_snap = np.clip(snap.u[:, 0] + self.u_inf, -max_safe, max_safe)
+                v_snap = np.clip(snap.v[:, 0] + self.v_inf, -max_safe, max_safe)
+                nu_snap = np.clip(snap.nu[:, 0], 0.0, max_safe)
                 mu_eff_snap = mu_laminar + np.maximum(0.0, nu_snap)
                 dudn_snap = 2.0 * u_snap / dy
                 dvdn_snap = 2.0 * v_snap / dy
@@ -667,11 +724,18 @@ class PlotlyDashboard:
             else:
                 field5 = np.sqrt(snap_u**2 + snap_v**2)
             
-            # Chi for this snapshot (log scale)
-            snap_chi = np.log10(np.maximum(snap_nu, 1e-12) / self.nu_laminar + 1e-12)
+            # Chi for this snapshot (log scale), NaN for negative/zero nuHat
+            # Avoid log10(0) by only computing log for positive values
+            snap_chi = np.full_like(snap_nu, np.nan)
+            pos_mask = snap_nu > 0
+            if np.any(pos_mask):
+                snap_chi[pos_mask] = np.log10(snap_nu[pos_mask] / self.nu_laminar)
             
             p_cfg = coloraxis_config['pressure']
             r_cfg = coloraxis_config['residual']
+            
+            # Use JSON-safe conversion for chi (which can have NaN for negative nuHat)
+            snap_chi_safe = _to_json_safe_list(snap_chi)
             
             frame_data = [
                 go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap_p.flatten(), 
@@ -694,7 +758,7 @@ class PlotlyDashboard:
                                  carpet='carpet_3_1', colorscale=r_cfg['colorscale'],
                                  zmin=r_cfg['cmin'], zmax=r_cfg['cmax'],
                                  contours=dict(coloring='fill', showlines=False), ncontours=50),
-                go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap_chi.flatten(),
+                go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap_chi_safe,
                                  carpet='carpet_3_2', colorscale=chi_cfg['colorscale'],
                                  zmin=chi_cfg['cmin'], zmax=chi_cfg['cmax'],
                                  contours=dict(coloring='fill', showlines=False), ncontours=50),
@@ -703,7 +767,8 @@ class PlotlyDashboard:
             # Show all snapshots up to this point (including divergence)
             snapshots_so_far = [s for s in all_snapshots[:i+1]]
             snapshot_iters = [s.iteration for s in snapshots_so_far]
-            snapshot_res = [s.residual for s in snapshots_so_far]
+            # Sanitize residuals for JSON (NaN -> None)
+            snapshot_res = [s.residual if np.isfinite(s.residual) else None for s in snapshots_so_far]
             
             # Color divergence snapshots differently (use iteration set for comparison)
             colors = []
@@ -728,8 +793,9 @@ class PlotlyDashboard:
                 V_inf_sq = self.u_inf**2 + self.v_inf**2
                 q_inf = max(0.5 * V_inf_sq, 1e-14)
                 
-                # Cp from this snapshot
-                Cp_snap = snap.p[:, 0] / q_inf
+                # Cp from this snapshot (clip to prevent overflow)
+                max_safe = 1e10
+                Cp_snap = np.clip(snap.p[:, 0], -max_safe, max_safe) / q_inf
                 Cp_snap_airfoil = _sanitize_array(Cp_snap[i_start:i_end], fill_value=0.0)
                 
                 # Cf from this snapshot
@@ -737,9 +803,10 @@ class PlotlyDashboard:
                 Sj_mag = np.sqrt(grid_metrics.Sj_x[:, 0]**2 + grid_metrics.Sj_y[:, 0]**2)
                 dy = vol / (Sj_mag + 1e-14)
                 
-                u_snap_wall = snap.u[:, 0] + self.u_inf
-                v_snap_wall = snap.v[:, 0] + self.v_inf
-                nu_snap_wall = snap.nu[:, 0]
+                # Clip to prevent overflow in squaring
+                u_snap_wall = np.clip(snap.u[:, 0] + self.u_inf, -max_safe, max_safe)
+                v_snap_wall = np.clip(snap.v[:, 0] + self.v_inf, -max_safe, max_safe)
+                nu_snap_wall = np.clip(snap.nu[:, 0], 0.0, max_safe)
                 mu_eff_snap = mu_laminar + np.maximum(0.0, nu_snap_wall)
                 
                 dudn = 2.0 * u_snap_wall / dy

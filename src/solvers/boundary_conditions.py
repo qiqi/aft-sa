@@ -34,11 +34,21 @@ class FreestreamConditions:
     
     @classmethod
     def from_mach_alpha(cls, mach: float, alpha_deg: float,
-                        reynolds: float = 6e6) -> 'FreestreamConditions':
+                        reynolds: float = 6e6,
+                        chi_inf: float = 3.0) -> 'FreestreamConditions':
         """Create from angle of attack (degrees) and Reynolds number.
 
-        Sets nu_t_inf to 3 * nu_laminar (chi=3) for proper SA model seeding.
-        This is the recommended freestream value for external aerodynamics.
+        Parameters
+        ----------
+        mach : float
+            Mach number (unused for incompressible, kept for API compatibility).
+        alpha_deg : float
+            Angle of attack in degrees.
+        reynolds : float
+            Reynolds number.
+        chi_inf : float
+            Initial/farfield turbulent viscosity ratio χ = ν̃/ν.
+            Typical values: 3-5 for external aerodynamics.
         """
         alpha: float = float(np.radians(alpha_deg))
         nu_laminar = 1.0 / reynolds if reynolds > 0 else 0.0
@@ -46,7 +56,7 @@ class FreestreamConditions:
             p_inf=0.0,
             u_inf=float(np.cos(alpha)),
             v_inf=float(np.sin(alpha)),
-            nu_t_inf=3.0 * nu_laminar  # chi = 3 (recommended for SA model)
+            nu_t_inf=chi_inf * nu_laminar
         )
 
 

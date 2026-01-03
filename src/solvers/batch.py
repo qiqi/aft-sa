@@ -22,6 +22,7 @@ class BatchFlowConditions:
     alpha_deg: np.ndarray      # Angle of attack in degrees
     reynolds: np.ndarray       # Reynolds number
     mach: np.ndarray           # Mach number (0 = incompressible)
+    chi_inf: float = 3.0       # Initial/farfield turbulent viscosity ratio (ν̃/ν)
     
     # Derived quantities (computed from above)
     p_inf: np.ndarray = field(init=False)
@@ -41,8 +42,8 @@ class BatchFlowConditions:
         # Laminar viscosity from Reynolds
         self.nu_laminar = np.where(self.reynolds > 0, 1.0 / self.reynolds, 0.0)
         
-        # Turbulent viscosity at freestream (0.1% of laminar)
-        self.nu_t_inf = 0.001 * self.nu_laminar
+        # Turbulent viscosity at freestream: nu_t = chi_inf * nu_laminar
+        self.nu_t_inf = self.chi_inf * self.nu_laminar
     
     @classmethod
     def from_single(cls, alpha_deg: float = 0.0, reynolds: float = 6e6,
@@ -57,25 +58,28 @@ class BatchFlowConditions:
     
     @classmethod
     def from_sweep(cls, alpha_spec: Union[float, Dict[str, Any]],
-                   reynolds: float = 6e6, mach: float = 0.0) -> 'BatchFlowConditions':
+                   reynolds: float = 6e6, mach: float = 0.0,
+                   chi_inf: float = 3.0) -> 'BatchFlowConditions':
         """
         Create batch from sweep specification.
-        
+
         Args:
             alpha_spec: Either a single value, or a dict with:
                 - {"sweep": [start, end, count]} for linear sweep
                 - {"values": [v1, v2, ...]} for explicit list
             reynolds: Reynolds number (same for all cases)
             mach: Mach number (same for all cases)
+            chi_inf: Initial/farfield turbulent viscosity ratio (ν̃/ν)
         """
         alphas = expand_parameter(alpha_spec)
         n_batch = len(alphas)
-        
+
         return cls(
             n_batch=n_batch,
             alpha_deg=np.array(alphas),
             reynolds=np.full(n_batch, reynolds),
             mach=np.full(n_batch, mach),
+            chi_inf=chi_inf,
         )
     
     def to_jax(self) -> 'BatchFlowConditionsJax':
@@ -1123,8 +1127,9 @@ class BatchRANSSolver:
         from src.solvers.boundary_conditions import initialize_state, FreestreamConditions
         avg_alpha = float(np.mean(self.flow_conditions.alpha_deg))
         avg_re = float(np.mean(self.flow_conditions.reynolds))
+        chi_inf = self.flow_conditions.chi_inf
         
-        freestream = FreestreamConditions.from_mach_alpha(0.0, avg_alpha, avg_re)
+        freestream = FreestreamConditions.from_mach_alpha(0.0, avg_alpha, avg_re, chi_inf)
         Q_single = initialize_state(self.NI, self.NJ, freestream)
         
         # Replicate for batch

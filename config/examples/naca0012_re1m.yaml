@@ -1,0 +1,35 @@
+# NACA 0012 at Re = 1M test configuration
+# Usage: python scripts/solver/run_airfoil.py --config config/examples/naca0012_re1m.yaml
+
+grid:
+  airfoil: data/naca0012.dat
+  n_surface: 193      # Surface nodes
+  n_normal: 49        # Normal nodes
+  n_wake: 48          # Wake region nodes
+  y_plus: 1.0         # Target y+ for first cell
+
+flow:
+  reynolds: 1.0e+6    # Re = 1 million
+  mach: 0.0           # Incompressible
+  alpha: 4.0          # 4 degrees angle of attack
+  chi_inf: 3.0        # Initial/farfield turbulent viscosity ratio (ν̃/ν)
+
+solver:
+  max_iter: 20000
+  tol: 1.0e-8
+  print_freq: 500
+  diagnostic_freq: 2000
+  
+  cfl:
+    initial: 0.1
+    final: 1.0        # Conservative CFL
+    ramp_iter: 500
+
+numerics:
+  jst_k4: 0.04        # 4th-order dissipation
+  beta: 10.0          # Artificial compressibility
+
+output:
+  directory: output/naca0012_re1m
+  case_name: naca0012_re1m_a4
+  html_animation: true

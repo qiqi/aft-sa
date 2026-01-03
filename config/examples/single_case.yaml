@@ -27,11 +27,6 @@ solver:
 numerics:
   jst_k4: 0.04        # 4th-order dissipation
   beta: 10.0          # Artificial compressibility
-  
-  smoothing:
-    type: explicit
-    epsilon: 0.2
-    passes: 2
 
 output:
   directory: output/single_case

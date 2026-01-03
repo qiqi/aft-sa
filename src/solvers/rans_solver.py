@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass
 
-from ..grid.metrics import MetricComputer, FVMMetrics
+from ..grid.metrics import MetricComputer, FVMMetrics, FaceGeometry, LSWeights
 from ..grid.mesher import Construct2DWrapper, GridOptions
 from ..grid.plot3d import read_plot3d
 from ..numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxGridMetrics
@@ -31,7 +31,7 @@ from ..io.plotter import PlotlyDashboard
 from ..numerics.forces import compute_surface_distributions
 from ..constants import NGHOST
 from ..numerics.diagnostics import (
-    compute_total_pressure_loss, 
+    compute_total_pressure_loss,
     compute_solution_bounds,
     compute_residual_statistics
 )
@@ -40,7 +40,11 @@ from ..numerics.diagnostics import (
 from ..physics.jax_config import jax, jnp
 from ..numerics.fluxes import compute_fluxes_jax
 from ..numerics.gradients import compute_gradients_jax
-from ..numerics.viscous_fluxes import compute_viscous_fluxes_jax, compute_viscous_fluxes_with_sa_jax
+from ..numerics.viscous_fluxes import (
+    compute_viscous_fluxes_jax, 
+    compute_viscous_fluxes_with_sa_jax,
+    compute_viscous_fluxes_tight_jax,
+)
 from ..numerics.explicit_smoothing import smooth_explicit_jax
 from ..numerics.sa_sources import compute_sa_source_jax
 from .time_stepping import compute_local_timestep_jax
@@ -54,6 +58,7 @@ class SolverConfig:
     mach: float = 0.15
     alpha: float = 0.0
     reynolds: float = 6e6
+    chi_inf: float = 3.0  # Initial/farfield turbulent viscosity ratio (ν̃/ν)
     beta: float = 10.0
     cfl_start: float = 0.1
     cfl_target: float = 5.0
@@ -67,11 +72,6 @@ class SolverConfig:
     wall_damping_length: float = 0.1
     jst_k4: float = 0.04
     sponge_thickness: int = 15  # Sponge layer thickness for farfield stabilization
-    irs_epsilon: float = 0.0
-    # Explicit smoothing (preferred over IRS for GPU)
-    smoothing_type: str = "explicit"  # "explicit", "implicit", or "none"
-    smoothing_epsilon: float = 0.2
-    smoothing_passes: int = 2
     n_wake: int = 30
     html_animation: bool = True
     divergence_history: int = 0
@@ -192,6 +192,11 @@ class RANSSolver:
             volume=self.metrics.volume
         )
         
+        # Compute face geometry and LS weights for tight-stencil viscous fluxes
+        print("  Computing face geometry for tight-stencil viscous fluxes...")
+        self.face_geometry = computer.compute_face_geometry()
+        self.ls_weights = computer.compute_ls_weights(self.face_geometry)
+        
         gcl = computer.validate_gcl()
         print(f"  {gcl}")
         
@@ -205,7 +210,8 @@ class RANSSolver:
         self.freestream = FreestreamConditions.from_mach_alpha(
             mach=self.config.mach,
             alpha_deg=self.config.alpha,
-            reynolds=self.config.reynolds
+            reynolds=self.config.reynolds,
+            chi_inf=getattr(self.config, 'chi_inf', 3.0)
         )
         
         self.Q = initialize_state(self.NI, self.NJ, self.freestream)
@@ -239,7 +245,7 @@ class RANSSolver:
     def _initialize_jax(self):
         """Initialize JAX arrays for computation."""
         print(f"  JAX backend initialized on: {jax.devices()[0]}")
-        
+
         # Transfer arrays to GPU
         self.Q_jax = jax.device_put(jnp.array(self.Q))
         self.Si_x_jax = jax.device_put(jnp.array(self.metrics.Si_x))
@@ -248,14 +254,31 @@ class RANSSolver:
         self.Sj_y_jax = jax.device_put(jnp.array(self.metrics.Sj_y))
         self.volume_jax = jax.device_put(jnp.array(self.metrics.volume))
         self.wall_dist_jax = jax.device_put(jnp.array(self.metrics.wall_distance))
+
+        # Face geometry for tight-stencil viscous fluxes
+        fg = self.face_geometry
+        self.d_coord_i_jax = jax.device_put(jnp.array(fg.d_coord_i))
+        self.e_coord_i_x_jax = jax.device_put(jnp.array(fg.e_coord_i_x))
+        self.e_coord_i_y_jax = jax.device_put(jnp.array(fg.e_coord_i_y))
+        self.e_ortho_i_x_jax = jax.device_put(jnp.array(fg.e_ortho_i_x))
+        self.e_ortho_i_y_jax = jax.device_put(jnp.array(fg.e_ortho_i_y))
+        self.d_coord_j_jax = jax.device_put(jnp.array(fg.d_coord_j))
+        self.e_coord_j_x_jax = jax.device_put(jnp.array(fg.e_coord_j_x))
+        self.e_coord_j_y_jax = jax.device_put(jnp.array(fg.e_coord_j_y))
+        self.e_ortho_j_x_jax = jax.device_put(jnp.array(fg.e_ortho_j_x))
+        self.e_ortho_j_y_jax = jax.device_put(jnp.array(fg.e_ortho_j_y))
         
+        # LS weights for tight-stencil viscous fluxes
+        self.ls_weights_i_jax = jax.device_put(jnp.array(self.ls_weights.weights_i))
+        self.ls_weights_j_jax = jax.device_put(jnp.array(self.ls_weights.weights_j))
+
         # Farfield normals for BC
         Sj_x_ff = self.metrics.Sj_x[:, -1]
         Sj_y_ff = self.metrics.Sj_y[:, -1]
         Sj_mag = np.sqrt(Sj_x_ff**2 + Sj_y_ff**2) + 1e-12
         self.nx_ff_jax = jax.device_put(jnp.array(Sj_x_ff / Sj_mag))
         self.ny_ff_jax = jax.device_put(jnp.array(Sj_y_ff / Sj_mag))
-        
+
         # Create JIT-compiled BC function with indices baked in
         self.apply_bc_jit = make_apply_bc_jit(
             NI=self.NI, NJ=self.NJ,
@@ -264,7 +287,7 @@ class RANSSolver:
             freestream=self.freestream,
             nghost=NGHOST
         )
-        
+
         # Pre-compute inverse volume for RK update on GPU
         self.volume_inv_jax = jax.device_put(jnp.array(1.0 / self.metrics.volume))
         
@@ -286,6 +309,9 @@ class RANSSolver:
         This is the KEY performance optimization: instead of calling many 
         separate JIT functions from Python, we compile a single function
         that does all the work for one RK stage.
+        
+        Uses tight-stencil viscous flux computation for improved diagonal dominance
+        and stability on non-orthogonal grids.
         """
         # Capture these in closure (they're constants for this solver instance)
         Si_x = self.Si_x_jax
@@ -303,12 +329,28 @@ class RANSSolver:
         smoothing_passes = getattr(self.config, 'smoothing_passes', 2)
         apply_bc = self.apply_bc_jit
         
+        # Face geometry for tight-stencil viscous fluxes
+        d_coord_i = self.d_coord_i_jax
+        e_coord_i_x = self.e_coord_i_x_jax
+        e_coord_i_y = self.e_coord_i_y_jax
+        e_ortho_i_x = self.e_ortho_i_x_jax
+        e_ortho_i_y = self.e_ortho_i_y_jax
+        d_coord_j = self.d_coord_j_jax
+        e_coord_j_x = self.e_coord_j_x_jax
+        e_coord_j_y = self.e_coord_j_y_jax
+        e_ortho_j_x = self.e_ortho_j_x_jax
+        e_ortho_j_y = self.e_ortho_j_y_jax
+        ls_weights_i = self.ls_weights_i_jax
+        ls_weights_j = self.ls_weights_j_jax
+        
         @jax.jit
         def jit_rk_stage(Q, Q0, dt, alpha_rk):
             """Single RK stage - fully JIT compiled with SA turbulence.
             
-            Uses point-implicit treatment for SA destruction term:
-            nuHat_new = nuHat^2 / (nuHat + D * dt)
+            Uses:
+            - Tight-stencil viscous flux for improved diagonal dominance
+            - Point-implicit treatment for SA destruction term
+            - cb2 term implemented as advection with JST dissipation
             """
             # Apply boundary conditions
             Q = apply_bc(Q)
@@ -316,7 +358,7 @@ class RANSSolver:
             # Convective fluxes
             R = compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost)
             
-            # Gradients
+            # Gradients (needed for SA sources and cb2 advection)
             grad = compute_gradients_jax(Q, Si_x, Si_y, Sj_x, Sj_y, volume, nghost)
             
             # Compute turbulent viscosity from SA variable
@@ -331,39 +373,48 @@ class RANSSolver:
             mu_t = nu_tilde * f_v1
             mu_eff = nu + mu_t
             
-            # Viscous fluxes (momentum only - SA diffusion disabled for stability)
-            R_visc = compute_viscous_fluxes_jax(grad, Si_x, Si_y, Sj_x, Sj_y, mu_eff)
-            R = R.at[:, :, 1:3].add(R_visc[:, :, 1:3])
+            # Tight-stencil viscous fluxes (momentum + SA diffusion)
+            # Uses 2-point difference along coordinate line + LS correction for non-orthogonality
+            R_visc = compute_viscous_fluxes_tight_jax(
+                Q_int, Si_x, Si_y, Sj_x, Sj_y,
+                d_coord_i, e_coord_i_x, e_coord_i_y, e_ortho_i_x, e_ortho_i_y,
+                d_coord_j, e_coord_j_x, e_coord_j_y, e_ortho_j_x, e_ortho_j_y,
+                ls_weights_i, ls_weights_j,
+                mu_eff, nu, nu_tilde
+            )
+            R = R.at[:, :, 1:4].add(R_visc[:, :, 1:4])
             
-            # SA source terms: Get P, D, cb2_term separately for point-implicit treatment
+            # SA source terms: Production (P), Destruction (D), and cb2 term |∇ν̃|²
             P, D, cb2_term = compute_sa_source_jax(nu_tilde, grad, wall_dist, nu)
-            # Add only production to explicit residual
-            # Note: cb2_term omitted for stability - can cause issues with steep nuHat gradients
-            # Destruction handled point-implicitly below
-            R = R.at[:, :, 3].add(P * volume)
+            # Add production, subtract destruction, and cb2 source term to residual
+            # cb2_term = (cb2/sigma) * |∇ν̃|² is a "anti-diffusion" source that
+            # accounts for the conservative form of the diffusion term
+            R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
             
             # Explicit smoothing
             if smoothing_epsilon > 0 and smoothing_passes > 0:
                 R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
             
-            # RK update from Q0 (explicit part)
-            Q_int_new = Q0[nghost:-nghost, nghost:-nghost, :] + \
-                alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * R
+            # Compute the update increment dQ = alpha * dt/V * R
+            Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
+            dQ = alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * R
             
-            # Point-implicit destruction for SA equation
-            # User's formula: nuHat_new = 1 / (1/nuHat + D/nuHat^2 * dt)
-            # This is exactly: nuHat_new = nuHat^2 / (nuHat + D/nuHat * dt)
-            # With nuHat_star as the explicitly updated value
-            nuHat_star = jnp.maximum(Q_int_new[:, :, 3], 1e-20)  # After explicit update
-            dt_eff = alpha_rk * dt  # Effective timestep for this RK stage
-            # Compute D/nuHat^2 = cw1*fw/d^2 (independent of nuHat!)
-            # D was computed as cw1*fw*(nu_tilde/d)^2, so D/nu_tilde^2 = cw1*fw/d^2
-            nu_tilde_safe = jnp.maximum(nu_tilde, 1e-20)
-            D_over_nuHat_sq = D / (nu_tilde_safe ** 2 + 1e-30)  # = cw1*fw/d^2
-            # Apply point-implicit: 1/nuHat_new = 1/nuHat_star + D_over_nuHat_sq * dt
-            inv_nuHat_new = 1.0 / nuHat_star + D_over_nuHat_sq * dt_eff
-            nuHat_implicit = 1.0 / (inv_nuHat_new + 1e-30)
-            Q_int_new = Q_int_new.at[:, :, 3].set(nuHat_implicit)
+            # Start with normal explicit update for all variables
+            Q_int_new = Q0_int + dQ
+            
+            # Patankar-Euler scheme for nuHat (index 3) only
+            # Note: Pressure can be negative in artificial compressibility, so don't apply Patankar
+            # For positive dNuHat: nuHat_new = nuHat_old + dNuHat (normal explicit update)
+            # For negative dNuHat: update reciprocal: nuHat_new = nuHat_old / (1 - dNuHat/nuHat_old)
+            #   This ensures nuHat_new stays positive if nuHat_old > 0
+            nuHat_old = Q0_int[:, :, 3]
+            dNuHat = dQ[:, :, 3]
+            nuHat_old_safe = jnp.maximum(nuHat_old, 1e-20)
+            nuHat_patankar = nuHat_old_safe / (1.0 - dNuHat / nuHat_old_safe)
+            nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, Q_int_new[:, :, 3])
+            # Ensure nuHat stays positive
+            nuHat_new = jnp.maximum(nuHat_new, 1e-20)
+            Q_int_new = Q_int_new.at[:, :, 3].set(nuHat_new)
             
             Q_new = Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
             
@@ -371,10 +422,25 @@ class RANSSolver:
         
         @jax.jit
         def jit_compute_dt(Q, cfl):
-            """Compute local timestep - JIT compiled."""
+            """Compute local timestep - JIT compiled with turbulent viscosity correction."""
+            # Compute effective viscosity at each cell for proper viscous stability
+            Q_int = Q[nghost:-nghost, nghost:-nghost, :]
+            nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
+            
+            # SA turbulent viscosity: mu_t = nu_tilde * fv1
+            chi = nu_tilde / (nu + 1e-30)
+            cv1 = 7.1
+            chi3 = chi ** 3
+            f_v1 = chi3 / (chi3 + cv1 ** 3)
+            mu_t = nu_tilde * f_v1
+            
+            # Use MAX effective viscosity for conservative time step estimate
+            # This is conservative but ensures stability in high-mu_t regions
+            nu_eff_max = nu + jnp.max(mu_t)
+            
             return compute_local_timestep_jax(
                 Q, Si_x, Si_y, Sj_x, Sj_y, volume,
-                beta, cfl, nghost, nu=nu
+                beta, cfl, nghost, nu=nu_eff_max
             )
         
         self._jit_rk_stage = jit_rk_stage
@@ -626,10 +692,18 @@ class RANSSolver:
                 print(f"{'='*60}")
                 break
             
-            if self.residual_history and res_rms > 1000 * initial_residual:
+            # Check for divergence: either residual > 1000x initial, or NaN/Inf
+            is_diverged = (
+                self.residual_history and 
+                (res_rms > 1000 * initial_residual or not np.isfinite(res_rms))
+            )
+            if is_diverged:
                 print(f"\n{'='*60}")
                 print(f"DIVERGED at iteration {self.iteration}")
-                print(f"Residual: {res_rms:.6e} (initial: {initial_residual:.6e})")
+                if np.isfinite(res_rms):
+                    print(f"Residual: {res_rms:.6e} (initial: {initial_residual:.6e})")
+                else:
+                    print(f"Residual: {res_rms} (NaN/Inf detected!)")
                 print(f"{'='*60}")
                 
                 # Capture divergence dump(s) for HTML visualization

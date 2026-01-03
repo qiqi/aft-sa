@@ -28,6 +28,8 @@ from .plot3d import (
 from .metrics import (
     MetricComputer,
     FVMMetrics,
+    FaceGeometry,
+    LSWeights,
     GCLValidation,
     compute_metrics
 )
@@ -57,6 +59,8 @@ __all__ = [
     'StructuredGrid',
     'MetricComputer',
     'FVMMetrics',
+    'FaceGeometry',
+    'LSWeights',
     'GCLValidation',
     'compute_metrics',
     'load_or_generate_grid',

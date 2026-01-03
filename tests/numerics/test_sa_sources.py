@@ -60,15 +60,18 @@ class TestSASourceTerms:
         }
     
     def test_sa_source_shape(self, simple_fields):
-        """Test that SA source has correct shape."""
-        source = compute_sa_source_jax(
+        """Test that SA source terms have correct shapes."""
+        P, D, cb2_term = compute_sa_source_jax(
             simple_fields['nuHat'],
             simple_fields['grad'],
             simple_fields['wall_dist'],
             simple_fields['nu_laminar'],
         )
         
-        assert source.shape == (simple_fields['NI'], simple_fields['NJ'])
+        expected_shape = (simple_fields['NI'], simple_fields['NJ'])
+        assert P.shape == expected_shape
+        assert D.shape == expected_shape
+        assert cb2_term.shape == expected_shape
     
     def test_production_positive(self, simple_fields):
         """Test that production is positive for positive nuHat."""

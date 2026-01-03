@@ -9,7 +9,7 @@ from dataclasses import fields, is_dataclass
 
 from .schema import (
     SimulationConfig, GridConfig, FlowConfig, SolverSettings,
-    NumericsConfig, OutputConfig, CFLConfig, SmoothingConfig,
+    NumericsConfig, OutputConfig, CFLConfig,
     super_coarse_preset, coarse_preset, production_preset,
 )
 
@@ -142,11 +142,11 @@ def from_dict(data: Dict[str, Any]) -> SimulationConfig:
             solver_data['cfl'] = _dict_to_dataclass(CFLConfig, solver_data['cfl'])
         config_dict['solver'] = _dict_to_dataclass(SolverSettings, solver_data)
     
-    # Numerics config (with nested smoothing)
+    # Numerics config
     if 'numerics' in data:
         numerics_data = data['numerics'].copy()
-        if 'smoothing' in numerics_data and isinstance(numerics_data['smoothing'], dict):
-            numerics_data['smoothing'] = _dict_to_dataclass(SmoothingConfig, numerics_data['smoothing'])
+        # Remove legacy smoothing config if present
+        numerics_data.pop('smoothing', None)
         config_dict['numerics'] = _dict_to_dataclass(NumericsConfig, numerics_data)
     
     # Output config
@@ -178,6 +178,7 @@ def apply_cli_overrides(config: SimulationConfig, args) -> SimulationConfig:
         'alpha': ('flow', 'alpha'),
         'reynolds': ('flow', 'reynolds'),
         'mach': ('flow', 'mach'),
+        'chi_inf': ('flow', 'chi_inf'),
         
         # Grid
         'n_surface': ('grid', 'n_surface'),
@@ -197,7 +198,6 @@ def apply_cli_overrides(config: SimulationConfig, args) -> SimulationConfig:
         # Numerics
         'beta': ('numerics', 'beta'),
         'jst_k4': ('numerics', 'jst_k4'),
-        'irs': ('numerics', 'smoothing', 'epsilon'),  # Legacy IRS flag
         
         # Output
         'output_dir': ('output', 'directory'),
