@@ -277,13 +277,13 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     
     # 2nd-order dissipation: ε₂ * λ * (Q_R - Q_L)
     diss2_i = eps2_face_i[:, :, None] * lambda_face_i[:, :, None] * (Q_R_i - Q_L_i)
-    
+
     # 4th-order dissipation with Martinelli: ε₄ * λ * f * (Q_{+2} - 3Q_{+1} + 3Q_0 - Q_{-1})
     diss4_i = eps4_face_i[:, :, None] * lambda_face_i[:, :, None] * f_i[:, :, None] * \
               (Q_Rp1_i - 3.0 * Q_R_i + 3.0 * Q_L_i - Q_Lm1_i)
-    
-    # Combined dissipation: add 2nd-order, subtract 4th-order (negative sign for 4th-order stencil)
-    F_i = F_conv_i + diss2_i - diss4_i
+
+    # Combined dissipation: d = d^(2) - d^(4), F = F_conv - d = F_conv - diss2 + diss4
+    F_i = F_conv_i - diss2_i + diss4_i
     
     # =================================================================
     # J-direction fluxes
@@ -328,13 +328,13 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     
     # 2nd-order dissipation: ε₂ * λ * (Q_R - Q_L)
     diss2_j = eps2_face_j[:, :, None] * lambda_face_j[:, :, None] * (Q_R_j - Q_L_j)
-    
+
     # 4th-order dissipation with Martinelli: ε₄ * λ * f * (Q_{+2} - 3Q_{+1} + 3Q_0 - Q_{-1})
     diss4_j = eps4_face_j[:, :, None] * lambda_face_j[:, :, None] * f_j[:, :, None] * \
               (Q_Rp1_j - 3.0 * Q_R_j + 3.0 * Q_L_j - Q_Lm1_j)
-    
-    # Combined dissipation
-    F_j = F_conv_j + diss2_j - diss4_j
+
+    # Combined dissipation: d = d^(2) - d^(4), F = F_conv - d = F_conv - diss2 + diss4
+    F_j = F_conv_j - diss2_j + diss4_j
     
     # =================================================================
     # Residual
