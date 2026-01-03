@@ -6,6 +6,7 @@ import numpy as np
 from dataclasses import dataclass, field
 from typing import List, Optional, TYPE_CHECKING, Dict, Any
 from pathlib import Path
+import warnings
 
 try:
     import plotly.graph_objects as go
@@ -15,6 +16,70 @@ except ImportError:
     HAS_PLOTLY = False
 
 from ..constants import NGHOST
+
+
+def _sanitize_array(arr: np.ndarray, fill_value: float = 0.0) -> np.ndarray:
+    """Replace NaN and Inf values with a finite fill value.
+    
+    Parameters
+    ----------
+    arr : np.ndarray
+        Input array that may contain NaN/Inf values.
+    fill_value : float
+        Value to replace NaN/Inf with (default: 0.0).
+        
+    Returns
+    -------
+    np.ndarray
+        Array with all NaN/Inf values replaced.
+    """
+    result = np.array(arr, dtype=np.float64)
+    mask = ~np.isfinite(result)
+    if np.any(mask):
+        result[mask] = fill_value
+    return result
+
+
+def _safe_minmax(arr: np.ndarray, default_min: float = -1.0, default_max: float = 1.0) -> tuple:
+    """Get min/max of array, handling NaN/Inf gracefully.
+    
+    Parameters
+    ----------
+    arr : np.ndarray
+        Input array.
+    default_min, default_max : float
+        Default values if array is all NaN/Inf.
+        
+    Returns
+    -------
+    tuple
+        (min_val, max_val) with finite values.
+    """
+    finite_vals = arr[np.isfinite(arr)]
+    if len(finite_vals) == 0:
+        return default_min, default_max
+    return float(finite_vals.min()), float(finite_vals.max())
+
+
+def _safe_absmax(arr: np.ndarray, default: float = 1.0) -> float:
+    """Get max absolute value from array, handling NaN/Inf gracefully.
+    
+    Parameters
+    ----------
+    arr : np.ndarray
+        Input array.
+    default : float
+        Default value if array is all NaN/Inf.
+        
+    Returns
+    -------
+    float
+        Maximum absolute finite value in array.
+    """
+    finite_vals = arr[np.isfinite(arr)]
+    if len(finite_vals) == 0:
+        return default
+    return float(np.abs(finite_vals).max())
 
 if TYPE_CHECKING:
     from ..grid.metrics import FVMMetrics
@@ -58,9 +123,16 @@ class PlotlyDashboard:
         residual_field: Optional[np.ndarray] = None,
         freestream: Any = None,
     ) -> None:
-        """Store current solution state with diagnostic data."""
+        """Store current solution state with diagnostic data.
+        
+        NaN/Inf values are automatically sanitized to prevent HTML rendering issues.
+        """
         Q_int = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
         residual = residual_history[-1] if residual_history else 0.0
+        
+        # Sanitize residual (replace NaN with large value for visibility)
+        if not np.isfinite(residual):
+            residual = 1e10
         
         # Extract freestream values
         if freestream is not None:
@@ -69,24 +141,36 @@ class PlotlyDashboard:
             self.v_inf = freestream.v_inf
         
         # Store RELATIVE values (p - p_inf, u - u_inf, v - v_inf)
-        p_rel = Q_int[:, :, 0] - self.p_inf
-        u_rel = Q_int[:, :, 1] - self.u_inf
-        v_rel = Q_int[:, :, 2] - self.v_inf
+        # Sanitize to replace NaN/Inf with 0
+        p_rel = _sanitize_array(Q_int[:, :, 0] - self.p_inf, fill_value=0.0)
+        u_rel = _sanitize_array(Q_int[:, :, 1] - self.u_inf, fill_value=0.0)
+        v_rel = _sanitize_array(Q_int[:, :, 2] - self.v_inf, fill_value=0.0)
+        nu = _sanitize_array(Q_int[:, :, 3], fill_value=0.0)
         
-        u_abs = Q_int[:, :, 1]
-        v_abs = Q_int[:, :, 2]
+        u_abs = _sanitize_array(Q_int[:, :, 1], fill_value=self.u_inf)
+        v_abs = _sanitize_array(Q_int[:, :, 2], fill_value=self.v_inf)
         vel_mag = np.sqrt(u_abs**2 + v_abs**2)
         
         if C_pt is None and freestream is not None:
-            p = Q_int[:, :, 0]
+            p = _sanitize_array(Q_int[:, :, 0], fill_value=self.p_inf)
             V_inf_sq = self.u_inf**2 + self.v_inf**2
             p_total = p + 0.5 * (u_abs**2 + v_abs**2)
             p_total_inf = self.p_inf + 0.5 * V_inf_sq
             C_pt = (p_total_inf - p_total) / (0.5 * V_inf_sq + 1e-12)
+            C_pt = _sanitize_array(C_pt, fill_value=0.0)
+        elif C_pt is not None:
+            C_pt = _sanitize_array(C_pt, fill_value=0.0)
         
         res_field = None
         if residual_field is not None:
-            res_field = np.sqrt(np.mean(residual_field**2, axis=2))
+            res_field = _sanitize_array(
+                np.sqrt(np.mean(residual_field**2, axis=2)), 
+                fill_value=1e-12
+            )
+        
+        # Use safe min/max to handle any remaining edge cases
+        vel_max = _safe_absmax(vel_mag, default=1.0)
+        p_min, p_max = _safe_minmax(p_rel, default_min=-1.0, default_max=1.0)
         
         snapshot = Snapshot(
             iteration=iteration,
@@ -95,16 +179,17 @@ class PlotlyDashboard:
             p=p_rel.copy(),
             u=u_rel.copy(),
             v=v_rel.copy(),
-            nu=Q_int[:, :, 3].copy(),
+            nu=nu.copy(),
             C_pt=C_pt.copy() if C_pt is not None else None,
             residual_field=res_field,
-            vel_max=float(vel_mag.max()),
-            p_min=float(p_rel.min()),
-            p_max=float(p_rel.max()),
+            vel_max=float(vel_max),
+            p_min=float(p_min),
+            p_max=float(p_max),
         )
         
         self.snapshots.append(snapshot)
-        self.residual_history = list(residual_history)
+        # Sanitize residual history as well
+        self.residual_history = [r if np.isfinite(r) else 1e10 for r in residual_history]
     
     def save_html(self, filename: str, grid_metrics: 'FVMMetrics', 
                   wall_distance: Optional[np.ndarray] = None) -> str:
@@ -178,57 +263,84 @@ class PlotlyDashboard:
             vertical_spacing=0.06,
         )
         
-        field2_data = snapN.C_pt if has_cpt else snapN.nu
+        field2_data = _sanitize_array(snapN.C_pt if has_cpt else snapN.nu, fill_value=0.0)
         
         if has_res_field and snapN.residual_field is not None:
-            field5_data = np.log10(snapN.residual_field + 1e-12)
+            field5_data = np.log10(_sanitize_array(snapN.residual_field, fill_value=1e-12) + 1e-12)
         else:
             field5_data = np.zeros_like(snapN.p)
         
         # Chi = nu_hat / nu_laminar (turbulent/laminar viscosity ratio)
-        chi_data = snapN.nu / self.nu_laminar
+        chi_data = np.maximum(_sanitize_array(snapN.nu, fill_value=1e-12), 1e-12) / self.nu_laminar
         
         # Compute GLOBAL symmetric ranges for consistent scaling
+        # Use safe functions to handle any NaN/Inf values
+        
         # Pressure: symmetric around 0
         p_abs_max = max(
-            max(abs(s.p.min()), abs(s.p.max())) for s in self.snapshots
+            _safe_absmax(s.p, default=1.0) for s in self.snapshots
         )
         if has_cpt:
             cpt_abs_max = max(
-                max(abs(s.C_pt.min()), abs(s.C_pt.max())) 
+                _safe_absmax(s.C_pt, default=1.0)
                 for s in self.snapshots if s.C_pt is not None
             )
             p_abs_max = max(p_abs_max, cpt_abs_max)
         
+        # Ensure minimum range to avoid zero-width colorscale
+        p_abs_max = max(p_abs_max, 1e-6)
+        
         # Velocity: symmetric around 0
         vel_abs_max = max(
-            max(abs(s.u.min()), abs(s.u.max()), abs(s.v.min()), abs(s.v.max()))
+            max(_safe_absmax(s.u, default=1.0), _safe_absmax(s.v, default=1.0))
             for s in self.snapshots
         )
+        vel_abs_max = max(vel_abs_max, 1e-6)
         
         # Residual: 3 orders of magnitude from max
         if has_res_field:
-            res_vals = [np.log10(s.residual_field + 1e-12) for s in self.snapshots if s.residual_field is not None]
-            res_max = max(v.max() for v in res_vals) if res_vals else 0
+            res_vals = []
+            for s in self.snapshots:
+                if s.residual_field is not None:
+                    sanitized = _sanitize_array(s.residual_field, fill_value=1e-12)
+                    res_vals.append(np.log10(sanitized + 1e-12))
+            if res_vals:
+                res_max = max(_safe_minmax(v, default_min=-12, default_max=0)[1] for v in res_vals)
+            else:
+                res_max = 0
             res_min = res_max - 3  # 3 orders of magnitude
         else:
             res_min, res_max = -3, 0
         
         # Chi range (log scale for display)
-        chi_vals = [s.nu / self.nu_laminar for s in self.snapshots]
-        chi_max = max(np.log10(v.max() + 1e-12) for v in chi_vals)
-        chi_min = min(np.log10(np.maximum(v, 1e-12).min()) for v in chi_vals)
+        chi_max_vals = []
+        chi_min_vals = []
+        for s in self.snapshots:
+            chi = _sanitize_array(s.nu, fill_value=1e-12) / self.nu_laminar
+            chi = np.maximum(chi, 1e-12)  # Ensure positive for log
+            chi_log = np.log10(chi)
+            min_val, max_val = _safe_minmax(chi_log, default_min=-6, default_max=6)
+            chi_max_vals.append(max_val)
+            chi_min_vals.append(min_val)
+        
+        chi_max = max(chi_max_vals) if chi_max_vals else 6.0
+        chi_min = min(chi_min_vals) if chi_min_vals else -6.0
         
         # Store ranges for sliders (will be used in layout)
         p_range = p_abs_max
         vel_range = vel_abs_max
         res_range_max = res_max
         
+        # Sanitize initial display data
+        snapN_p = _sanitize_array(snapN.p, fill_value=0.0)
+        snapN_u = _sanitize_array(snapN.u, fill_value=0.0)
+        snapN_v = _sanitize_array(snapN.v, fill_value=0.0)
+        
         contour_configs = [
-            (snapN.p, 1, 1, 'pressure', True),
+            (snapN_p, 1, 1, 'pressure', True),
             (field2_data, 1, 2, 'pressure', False),
-            (snapN.u, 2, 1, 'velocity', True),
-            (snapN.v, 2, 2, 'velocity', False),
+            (snapN_u, 2, 1, 'velocity', True),
+            (snapN_v, 2, 2, 'velocity', False),
             (field5_data, 3, 1, 'residual', True),
             (np.log10(chi_data + 1e-12), 3, 2, 'chi', True),  # Chi plot (log scale)
         ]
@@ -312,6 +424,9 @@ class PlotlyDashboard:
             carpet_id = 'carpet_wall_dist'
             wd_cfg = coloraxis_config['wall_dist']
             
+            # Sanitize wall distance data
+            wall_distance_sanitized = _sanitize_array(wall_distance, fill_value=0.0)
+            
             fig.add_trace(
                 go.Carpet(
                     a=A.flatten(), b=B.flatten(),
@@ -325,7 +440,7 @@ class PlotlyDashboard:
             
             fig.add_trace(
                 go.Contourcarpet(
-                    a=A.flatten(), b=B.flatten(), z=wall_distance.flatten(),
+                    a=A.flatten(), b=B.flatten(), z=wall_distance_sanitized.flatten(),
                     carpet=carpet_id,
                     colorscale=wd_cfg['colorscale'],
                     zmin=wd_cfg['cmin'], zmax=wd_cfg['cmax'],
@@ -350,20 +465,26 @@ class PlotlyDashboard:
         
         frames = []
         for i, snap in enumerate(self.snapshots):
-            field2 = snap.C_pt if has_cpt and snap.C_pt is not None else snap.nu
+            # Sanitize all data for this frame
+            snap_p = _sanitize_array(snap.p, fill_value=0.0)
+            snap_u = _sanitize_array(snap.u, fill_value=0.0)
+            snap_v = _sanitize_array(snap.v, fill_value=0.0)
+            snap_nu = _sanitize_array(snap.nu, fill_value=1e-12)
+            
+            field2 = _sanitize_array(snap.C_pt if has_cpt and snap.C_pt is not None else snap.nu, fill_value=0.0)
             if has_res_field and snap.residual_field is not None:
-                field5 = np.log10(snap.residual_field + 1e-12)
+                field5 = np.log10(_sanitize_array(snap.residual_field, fill_value=1e-12) + 1e-12)
             else:
-                field5 = np.sqrt(snap.u**2 + snap.v**2)
+                field5 = np.sqrt(snap_u**2 + snap_v**2)
             
             # Chi for this snapshot (log scale)
-            snap_chi = np.log10(snap.nu / self.nu_laminar + 1e-12)
+            snap_chi = np.log10(np.maximum(snap_nu, 1e-12) / self.nu_laminar + 1e-12)
             
             p_cfg = coloraxis_config['pressure']
             r_cfg = coloraxis_config['residual']
             
             frame_data = [
-                go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap.p.flatten(), 
+                go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap_p.flatten(), 
                                  carpet='carpet_1_1', colorscale=p_cfg['colorscale'],
                                  zmin=p_cfg['cmin'], zmax=p_cfg['cmax'],
                                  contours=dict(coloring='fill', showlines=False), ncontours=50),
@@ -371,11 +492,11 @@ class PlotlyDashboard:
                                  carpet='carpet_1_2', colorscale=p_cfg['colorscale'],
                                  zmin=p_cfg['cmin'], zmax=p_cfg['cmax'],
                                  contours=dict(coloring='fill', showlines=False), ncontours=50),
-                go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap.u.flatten(),
+                go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap_u.flatten(),
                                  carpet='carpet_2_1', colorscale=coloraxis_config['velocity']['colorscale'],
                                  zmin=coloraxis_config['velocity']['cmin'], zmax=coloraxis_config['velocity']['cmax'],
                                  contours=dict(coloring='fill', showlines=False), ncontours=50),
-                go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap.v.flatten(),
+                go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap_v.flatten(),
                                  carpet='carpet_2_2', colorscale=coloraxis_config['velocity']['colorscale'],
                                  zmin=coloraxis_config['velocity']['cmin'], zmax=coloraxis_config['velocity']['cmax'],
                                  contours=dict(coloring='fill', showlines=False), ncontours=50),
