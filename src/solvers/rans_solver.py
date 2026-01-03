@@ -40,15 +40,11 @@ from ..numerics.diagnostics import (
 from ..physics.jax_config import jax, jnp
 from ..numerics.fluxes import compute_fluxes_jax
 from ..numerics.gradients import compute_gradients_jax
-from ..numerics.viscous_fluxes import (
-    compute_viscous_fluxes_jax, 
-    compute_viscous_fluxes_with_sa_jax,
-    compute_viscous_fluxes_tight_jax,
-)
+from ..numerics.viscous_fluxes import compute_viscous_fluxes_tight_jax
 from ..numerics.explicit_smoothing import smooth_explicit_jax
 from ..numerics.sa_sources import compute_sa_source_jax
 from .time_stepping import compute_local_timestep_jax
-from .boundary_conditions import apply_bc_jax, make_apply_bc_jit
+from .boundary_conditions import make_apply_bc_jit
 
 
 @dataclass
@@ -596,13 +592,20 @@ class RANSSolver:
         
         self.iteration += 1
     
-    def get_residual_rms(self) -> float:
-        """Compute RMS of residual on final state (GPU computation, transfers scalar only)."""
-        # Use the last computed residual from step() for efficiency
-        # This is the residual from the final RK stage
-        R_rho = self.R_jax[:, :, 0]
-        rms = jnp.sqrt(jnp.mean(R_rho**2))
-        return float(rms)
+    def get_residual_rms(self) -> Tuple[float, float, float, float]:
+        """Compute RMS of residual for all 4 equations.
+        
+        Returns
+        -------
+        Tuple[float, float, float, float]
+            RMS residuals for (pressure, u, v, nuHat) equations.
+        """
+        # Compute RMS for each equation separately
+        rms_p = float(jnp.sqrt(jnp.mean(self.R_jax[:, :, 0]**2)))
+        rms_u = float(jnp.sqrt(jnp.mean(self.R_jax[:, :, 1]**2)))
+        rms_v = float(jnp.sqrt(jnp.mean(self.R_jax[:, :, 2]**2)))
+        rms_nu = float(jnp.sqrt(jnp.mean(self.R_jax[:, :, 3]**2)))
+        return (rms_p, rms_u, rms_v, rms_nu)
     
     def sync_to_cpu(self) -> None:
         """Transfer Q from GPU to CPU (for visualization/output)."""
@@ -631,15 +634,17 @@ class RANSSolver:
             
             # Only transfer residual when needed
             if need_residual:
-                res_rms = self.get_residual_rms()
-                self.residual_history.append(res_rms)
+                res_all = self.get_residual_rms()  # (p, u, v, nu) tuple
+                self.residual_history.append(res_all)
                 self.iteration_history.append(self.iteration)
                 
+                # Use pressure residual for convergence check
+                res_rms = res_all[0]
                 if initial_residual is None:
                     initial_residual = res_rms
             else:
-                # Use previous value for convergence check (approximate)
-                res_rms = self.residual_history[-1] if self.residual_history else 1.0
+                # Use previous pressure residual for convergence check
+                res_rms = self.residual_history[-1][0] if self.residual_history else 1.0
             
             cfl = self._get_cfl(self.iteration)
             
@@ -746,7 +751,9 @@ class RANSSolver:
         else:
             print(f"\n{'='*60}")
             print(f"Maximum iterations ({self.config.max_iter}) reached")
-            print(f"Final residual: {self.residual_history[-1] if self.residual_history else 'N/A':.6e}")
+            if self.residual_history:
+                res_final = self.residual_history[-1]
+                print(f"Final residual: p={res_final[0]:.2e} u={res_final[1]:.2e} v={res_final[2]:.2e} ν̃={res_final[3]:.2e}")
             print(f"{'='*60}")
         
         # Final sync to CPU
@@ -898,9 +905,13 @@ class RANSSolver:
             filename = Path(self.config.output_dir) / "residual_history.dat"
         
         with open(filename, 'w') as f:
-            f.write("# Iteration  Residual\n")
+            f.write("# Iteration  Res_p  Res_u  Res_v  Res_nuHat\n")
             for i, res in enumerate(self.residual_history):
-                f.write(f"{i+1:8d}  {res:.10e}\n")
+                if isinstance(res, (tuple, list)):
+                    f.write(f"{i+1:8d}  {res[0]:.10e}  {res[1]:.10e}  {res[2]:.10e}  {res[3]:.10e}\n")
+                else:
+                    # Legacy: single residual
+                    f.write(f"{i+1:8d}  {res:.10e}\n")
         
         print(f"Residual history saved to: {filename}")
 

@@ -116,7 +116,7 @@ if TYPE_CHECKING:
 class Snapshot:
     """Stores a single timestep's solution data (interior cells only)."""
     iteration: int
-    residual: float
+    residual: np.ndarray  # 4-component: (p, u, v, nuHat) RMS residuals
     cfl: float
     p: np.ndarray  # Relative pressure (p - p_inf)
     u: np.ndarray  # Relative u-velocity (u - u_inf)
@@ -134,7 +134,8 @@ class PlotlyDashboard:
     
     def __init__(self, reynolds: float = 6e6):
         self.snapshots: List[Snapshot] = []
-        self.residual_history: List[float] = []
+        # residual_history: List of 4-tuples (p, u, v, nuHat) or legacy single floats
+        self.residual_history: List = []
         self.iteration_history: List[int] = []  # Track iteration numbers for each residual
         self.divergence_snapshots: List[Snapshot] = []  # Snapshots captured during divergence
         self.p_inf: float = 0.0
@@ -146,7 +147,7 @@ class PlotlyDashboard:
         self, 
         Q: np.ndarray, 
         iteration: int, 
-        residual_history: List[float],
+        residual_history: List,
         cfl: float = 0.0,
         C_pt: Optional[np.ndarray] = None,
         residual_field: Optional[np.ndarray] = None,
@@ -164,8 +165,10 @@ class PlotlyDashboard:
             State array.
         iteration : int
             Current iteration number.
-        residual_history : List[float]
-            List of residual values.
+        residual_history : List
+            List of residual values. Each entry can be:
+            - A tuple/array of 4 values (p, u, v, nuHat) [preferred]
+            - A single float [legacy]
         cfl : float
             Current CFL number.
         C_pt : np.ndarray, optional
@@ -181,11 +184,17 @@ class PlotlyDashboard:
             If True, stores in divergence_snapshots instead of regular snapshots.
         """
         Q_int = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
-        residual = residual_history[-1] if residual_history else 0.0
         
-        # Sanitize residual (replace NaN with large value for visibility)
-        if not np.isfinite(residual):
-            residual = 1e10
+        # Get residual - handle both 4-component and legacy single-value formats
+        if residual_history:
+            last_res = residual_history[-1]
+            if isinstance(last_res, (tuple, list, np.ndarray)):
+                residual = np.array([r if np.isfinite(r) else 1e10 for r in last_res])
+            else:
+                # Legacy: single float - expand to 4-component
+                residual = np.array([last_res if np.isfinite(last_res) else 1e10] * 4)
+        else:
+            residual = np.zeros(4)
         
         # Extract freestream values
         if freestream is not None:
@@ -253,7 +262,19 @@ class PlotlyDashboard:
             self.snapshots.append(snapshot)
         
         # Store residual history with iteration numbers
-        self.residual_history = [r if np.isfinite(r) else 1e10 for r in residual_history]
+        # Handle both 4-component and legacy single-value formats
+        self.residual_history = []
+        for r in residual_history:
+            if isinstance(r, (tuple, list, np.ndarray)):
+                # 4-component format
+                self.residual_history.append(
+                    np.array([v if np.isfinite(v) else 1e10 for v in r])
+                )
+            else:
+                # Legacy single float - expand to 4-component
+                val = r if np.isfinite(r) else 1e10
+                self.residual_history.append(np.array([val, val, val, val]))
+        
         if iteration_history is not None:
             self.iteration_history = list(iteration_history)
         elif len(self.iteration_history) != len(self.residual_history):
@@ -510,33 +531,57 @@ class PlotlyDashboard:
                 row=row, col=col
             )
         
+        # Convergence history: 4 lines for each equation
+        eq_names = ['Pressure', 'U-velocity', 'V-velocity', 'ν̃ (nuHat)']
+        eq_colors = ['blue', 'red', 'green', 'purple']
+        
         if self.residual_history:
             # Use actual iteration numbers if available, otherwise use indices
             if self.iteration_history and len(self.iteration_history) == len(self.residual_history):
                 all_iters = self.iteration_history
             else:
                 all_iters = list(range(len(self.residual_history)))
-            # Sanitize residual history for JSON (NaN -> None)
-            res_hist_safe = [r if np.isfinite(r) else None for r in self.residual_history]
-            fig.add_trace(
-                go.Scatter(
-                    x=all_iters, y=res_hist_safe,
-                    mode='lines', line=dict(color='blue', width=1.5),
-                    showlegend=False, name='Full History',
-                ),
-                row=4, col=1  # Convergence plot at row 4, spanning both columns
-            )
+            
+            # Plot line for each equation
+            for eq_idx in range(4):
+                # Extract residual for this equation from history
+                res_eq = []
+                for r in self.residual_history:
+                    if isinstance(r, np.ndarray) and len(r) > eq_idx:
+                        val = r[eq_idx]
+                    elif isinstance(r, (tuple, list)) and len(r) > eq_idx:
+                        val = r[eq_idx]
+                    else:
+                        val = r  # Legacy: single value
+                    res_eq.append(val if np.isfinite(val) else None)
+                
+                fig.add_trace(
+                    go.Scatter(
+                        x=all_iters, y=res_eq,
+                        mode='lines', line=dict(color=eq_colors[eq_idx], width=1.5),
+                        showlegend=True, name=eq_names[eq_idx],
+                        legendgroup='convergence',
+                    ),
+                    row=4, col=1  # Convergence plot at row 4, spanning both columns
+                )
         
-        # Regular snapshots (red dots)
+        # Snapshot markers (pressure residual only, to avoid clutter)
         snapshot_iters = [s.iteration for s in self.snapshots]
-        # Sanitize residuals for JSON
-        snapshot_res = [s.residual if np.isfinite(s.residual) else None for s in self.snapshots]
+        snapshot_res = []
+        for s in self.snapshots:
+            if isinstance(s.residual, np.ndarray) and len(s.residual) > 0:
+                val = s.residual[0]  # Pressure
+            else:
+                val = s.residual
+            snapshot_res.append(val if np.isfinite(val) else None)
+        
         fig.add_trace(
             go.Scatter(
                 x=snapshot_iters, y=snapshot_res,
                 mode='markers',
-                marker=dict(color='red', size=10, symbol='circle'),
-                showlegend=False, name='Snapshots',
+                marker=dict(color='black', size=8, symbol='circle'),
+                showlegend=True, name='Snapshots',
+                legendgroup='convergence',
             ),
             row=4, col=1  # Convergence plot at row 4
         )
@@ -544,14 +589,21 @@ class PlotlyDashboard:
         # Divergence snapshots (orange triangles) - show if any divergence was captured
         if self.divergence_snapshots:
             div_iters = [s.iteration for s in self.divergence_snapshots]
-            # Sanitize residuals for JSON
-            div_res = [s.residual if np.isfinite(s.residual) else None for s in self.divergence_snapshots]
+            div_res = []
+            for s in self.divergence_snapshots:
+                if isinstance(s.residual, np.ndarray) and len(s.residual) > 0:
+                    val = s.residual[0]  # Pressure
+                else:
+                    val = s.residual
+                div_res.append(val if np.isfinite(val) else None)
+            
             fig.add_trace(
                 go.Scatter(
                     x=div_iters, y=div_res,
                     mode='markers',
                     marker=dict(color='orange', size=12, symbol='triangle-up'),
-                    showlegend=False, name='Divergence Dumps',
+                    showlegend=True, name='Divergence',
+                    legendgroup='convergence',
                 ),
                 row=4, col=1
             )
@@ -692,12 +744,13 @@ class PlotlyDashboard:
         # So contour indices are: 1, 3, 5, 7, 9, 11
         base_contour_indices = [1, 3, 5, 7, 9, 11]
         # After 6 contour plots (12 traces), we have:
-        # - 1 blue line (full history)
-        # - 1 red dots (snapshots)
+        # - 4 lines (one per equation: p, u, v, nuHat)
+        # - 1 black dots (snapshots)
         # - 1 orange triangles (divergence) if present
         # Then optionally wall distance traces (NOT animated)
         # Then optionally Cp and Cf traces (animated)
-        residual_marker_idx = 12 + 1  # 12 contour traces + 1 scatter line
+        # Snapshot marker is trace index: 12 + 4 (4 convergence lines) = 16
+        residual_marker_idx = 12 + 4  # 12 contour traces + 4 convergence lines
         animated_indices = base_contour_indices + [residual_marker_idx]
         
         # Add Cp and Cf to animated indices if present
@@ -767,8 +820,14 @@ class PlotlyDashboard:
             # Show all snapshots up to this point (including divergence)
             snapshots_so_far = [s for s in all_snapshots[:i+1]]
             snapshot_iters = [s.iteration for s in snapshots_so_far]
-            # Sanitize residuals for JSON (NaN -> None)
-            snapshot_res = [s.residual if np.isfinite(s.residual) else None for s in snapshots_so_far]
+            # Sanitize residuals for JSON (NaN -> None) - use pressure (index 0)
+            snapshot_res = []
+            for s in snapshots_so_far:
+                if isinstance(s.residual, np.ndarray) and len(s.residual) > 0:
+                    val = s.residual[0]  # Pressure residual
+                else:
+                    val = s.residual
+                snapshot_res.append(val if np.isfinite(val) else None)
             
             # Color divergence snapshots differently (use iteration set for comparison)
             colors = []
@@ -776,7 +835,7 @@ class PlotlyDashboard:
                 if s.iteration in divergence_iters:
                     colors.append('orange')
                 else:
-                    colors.append('red')
+                    colors.append('black')
             
             frame_data.append(go.Scatter(
                 x=snapshot_iters, y=snapshot_res,
@@ -1021,7 +1080,7 @@ class PlotlyDashboard:
         
         # Convergence history plot (row 4, col 1, spanning both columns) - keep independent, NOT zoomable
         fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, fixedrange=True, row=4, col=1)
-        fig.update_yaxes(title_text='Residual', matches=None, type='log', autorange=True, fixedrange=True, row=4, col=1)
+        fig.update_yaxes(title_text='RMS Residual', matches=None, type='log', autorange=True, fixedrange=True, row=4, col=1)
         
         # Note: Wall distance row col 2 is None in specs, so no axes to hide
         
