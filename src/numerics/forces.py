@@ -266,6 +266,89 @@ def compute_aerodynamic_forces_jax(
                       CL_p=CL_p, CL_f=CL_f, Fx=float(Fx), Fy=float(Fy))
 
 
+def compute_aerodynamic_forces_jax_pure(
+    Q, Sj_x, Sj_y, volume, mu_eff,
+    sin_alpha: float, cos_alpha: float, q_inf_ref_area: float,
+    n_wake: int, nghost: int
+):
+    """
+    Pure JAX force computation - no NumPy/JAX array conversions.
+    
+    This function can be called standalone or from within a JIT context.
+    It does NOT have @jax.jit decorator because n_wake and nghost are used
+    for Python-level indexing; if called from within a JIT function, it will
+    be traced and compiled as part of the outer function.
+    
+    Parameters
+    ----------
+    Q : jnp.ndarray
+        State array (NI+2*nghost, NJ+2*nghost, 4).
+    Sj_x, Sj_y : jnp.ndarray
+        J-face normal vectors (NI, NJ+1).
+    volume : jnp.ndarray
+        Cell volumes (NI, NJ).
+    mu_eff : jnp.ndarray
+        Effective viscosity (NI, NJ).
+    sin_alpha, cos_alpha : float
+        Sine and cosine of angle of attack.
+    q_inf_ref_area : float
+        Dynamic pressure times reference area (for normalization).
+    n_wake : int
+        Number of wake points to exclude (must be Python int, not traced).
+    nghost : int
+        Number of ghost cells (must be Python int, not traced).
+    
+    Returns
+    -------
+    CL, CD, CD_p, CD_f : jnp.ndarray (scalars)
+        Force coefficients as JAX arrays.
+    """
+    NI = Q.shape[0] - 2 * nghost
+    
+    # Extract wall/interior values
+    p_wall = Q[nghost:-nghost, nghost, 0]
+    u_int = Q[nghost:-nghost, nghost, 1]
+    v_int = Q[nghost:-nghost, nghost, 2]
+    
+    # Create mask for airfoil cells (excluding wake)
+    mask = jnp.ones(NI, dtype=bool)
+    if n_wake > 0:
+        mask = mask.at[:n_wake].set(False)
+        mask = mask.at[-n_wake:].set(False)
+    
+    # Compute surface forces using the JIT-compiled kernel
+    Fx_p, Fy_p, Fx_v, Fy_v = _compute_surface_forces_jax_kernel(
+        p_wall, u_int, v_int,
+        Sj_x[:, 0], Sj_y[:, 0],
+        volume[:, 0],
+        mu_eff[:, 0],
+        mask
+    )
+    
+    # Transform to lift/drag coordinates
+    D_total = Fx_p * cos_alpha + Fy_p * sin_alpha + Fx_v * cos_alpha + Fy_v * sin_alpha
+    L_total = Fy_p * cos_alpha - Fx_p * sin_alpha + Fy_v * cos_alpha - Fx_v * sin_alpha
+    D_p = Fx_p * cos_alpha + Fy_p * sin_alpha
+    D_f = Fx_v * cos_alpha + Fy_v * sin_alpha
+    
+    # Normalize
+    CL = L_total / q_inf_ref_area
+    CD = D_total / q_inf_ref_area
+    CD_p = D_p / q_inf_ref_area
+    CD_f = D_f / q_inf_ref_area
+    
+    return CL, CD, CD_p, CD_f
+
+
+def _make_airfoil_mask(NI: int, n_wake: int) -> jnp.ndarray:
+    """Create mask for airfoil cells (excluding wake)."""
+    mask = jnp.ones(NI, dtype=bool)
+    if n_wake > 0:
+        mask = mask.at[:n_wake].set(False)
+        mask = mask.at[-n_wake:].set(False)
+    return mask
+
+
 @jax.jit
 def compute_surface_cp_cf_jax(Q, Sj_x, Sj_y, volume, mu_eff, p_inf, q_inf, nghost):
     """

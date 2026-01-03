@@ -15,7 +15,7 @@ from ..grid.metrics import MetricComputer, FVMMetrics, FaceGeometry, LSWeights
 from ..grid.mesher import Construct2DWrapper, GridOptions
 from ..grid.plot3d import read_plot3d
 from ..numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxGridMetrics
-from ..numerics.forces import compute_aerodynamic_forces, AeroForces
+from ..numerics.forces import compute_aerodynamic_forces, AeroForces, compute_aerodynamic_forces_jax_pure
 from ..numerics.gradients import compute_gradients, GradientMetrics
 from ..numerics.viscous_fluxes import add_viscous_fluxes
 from ..numerics.smoothing import apply_residual_smoothing
@@ -789,11 +789,68 @@ class RANSSolver:
             'cf': cf
         }
     
-    def compute_forces(self) -> AeroForces:
-        """Compute aerodynamic force coefficients."""
+    def compute_forces(self, use_jax: bool = True) -> AeroForces:
+        """Compute aerodynamic force coefficients.
+        
+        Parameters
+        ----------
+        use_jax : bool
+            If True (default), compute directly on GPU using JAX arrays.
+            If False, use the legacy NumPy-based computation.
+        """
         V_inf = np.sqrt(self.freestream.u_inf**2 + self.freestream.v_inf**2)
         mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
         
+        n_wake = getattr(self.config, 'n_wake', 0)
+        if n_wake == 0 and hasattr(self, 'bc'):
+            n_wake = getattr(self.bc, 'n_wake_points', 0)
+        
+        if use_jax and hasattr(self, 'Q_jax'):
+            # Fast path: compute directly on GPU with JAX arrays
+            return self._compute_forces_jax(mu_laminar, V_inf, n_wake)
+        else:
+            # Legacy path: uses NumPy arrays
+            return self._compute_forces_numpy(mu_laminar, V_inf, n_wake)
+    
+    def _compute_forces_jax(self, mu_laminar: float, V_inf: float, n_wake: int) -> AeroForces:
+        """Compute forces using JAX arrays directly (no GPU↔CPU transfers)."""
+        nghost = NGHOST
+        
+        # Compute turbulent viscosity on GPU
+        nuHat = jnp.maximum(self.Q_jax[nghost:-nghost, nghost:-nghost, 3], 0.0)
+        chi = nuHat / (mu_laminar + 1e-30)
+        cv1 = 7.1
+        chi3 = chi ** 3
+        fv1 = chi3 / (chi3 + cv1 ** 3)
+        mu_turb = nuHat * fv1
+        mu_eff = mu_laminar + mu_turb
+        
+        # Pre-compute constants
+        alpha_rad = np.deg2rad(self.config.alpha)
+        sin_alpha = np.sin(alpha_rad)
+        cos_alpha = np.cos(alpha_rad)
+        q_inf = 0.5 * V_inf**2  # rho=1
+        ref_area = 1.0  # chord * span (2D: span=1)
+        q_inf_ref_area = q_inf * ref_area
+        
+        # Call pure JAX computation
+        CL, CD, CD_p, CD_f = compute_aerodynamic_forces_jax_pure(
+            self.Q_jax, self.Sj_x_jax, self.Sj_y_jax, self.volume_jax, mu_eff,
+            sin_alpha, cos_alpha, q_inf_ref_area,
+            n_wake, nghost
+        )
+        
+        # Transfer only scalars to CPU
+        return AeroForces(
+            CL=float(CL), CD=float(CD), 
+            CD_p=float(CD_p), CD_f=float(CD_f),
+            CL_p=float(CL) - 0.0,  # Placeholder (full breakdown needs more work)
+            CL_f=0.0,
+            Fx=0.0, Fy=0.0  # Not computed in fast path
+        )
+    
+    def _compute_forces_numpy(self, mu_laminar: float, V_inf: float, n_wake: int) -> AeroForces:
+        """Compute forces using NumPy arrays (legacy, full breakdown)."""
         # Compute turbulent viscosity from SA variable
         Q = np.array(self.Q_jax) if hasattr(self, 'Q_jax') else self.Q
         nghost = NGHOST
@@ -803,10 +860,6 @@ class RANSSolver:
         chi3 = chi ** 3
         fv1 = chi3 / (chi3 + cv1 ** 3)
         mu_turb = nuHat * fv1
-        
-        n_wake = getattr(self.config, 'n_wake', 0)
-        if n_wake == 0 and hasattr(self, 'bc'):
-            n_wake = getattr(self.bc, 'n_wake_points', 0)
         
         forces = compute_aerodynamic_forces(
             Q=self.Q,

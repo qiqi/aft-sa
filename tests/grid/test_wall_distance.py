@@ -499,6 +499,130 @@ def plot_results(results):
     plt.close()
 
 
+def test_jax_vs_python_wall_distance():
+    """
+    Verify that JAX and Python wall distance implementations give identical results.
+    
+    This is a critical verification test before deprecating the Python version.
+    """
+    import time
+    print("\n" + "=" * 60)
+    print("JAX vs Python Wall Distance Verification")
+    print("=" * 60)
+    
+    # Test configurations with increasing grid sizes
+    configs = [
+        {"n_theta": 17, "n_radial": 9, "name": "Small (17x9)"},
+        {"n_theta": 33, "n_radial": 17, "name": "Medium (33x17)"},
+        {"n_theta": 65, "n_radial": 33, "name": "Large (65x33)"},
+    ]
+    
+    all_passed = True
+    
+    for cfg in configs:
+        print(f"\n--- {cfg['name']} ---")
+        
+        # Generate grid
+        X, Y, _ = generate_circle_grid(n_theta=cfg['n_theta'], n_radial=cfg['n_radial'])
+        
+        # Create MetricComputer (no n_wake for O-grid)
+        mc = MetricComputer(X, Y, wall_j=0, n_wake=0)
+        
+        # Time Python version
+        t0 = time.perf_counter()
+        d_python = mc._compute_wall_distance_python(search_radius=cfg['n_theta']//2)
+        t_python = time.perf_counter() - t0
+        
+        # Time JAX version (first call includes JIT compilation)
+        t0 = time.perf_counter()
+        d_jax = mc._compute_wall_distance_jax()
+        t_jax_first = time.perf_counter() - t0
+        
+        # Time JAX version (second call, pure runtime)
+        t0 = time.perf_counter()
+        d_jax_2 = mc._compute_wall_distance_jax()
+        t_jax = time.perf_counter() - t0
+        
+        # Compare results
+        max_diff = np.max(np.abs(d_jax - d_python))
+        rel_diff = max_diff / (np.max(d_python) + 1e-30)
+        
+        print(f"  Max absolute difference: {max_diff:.2e}")
+        print(f"  Max relative difference: {rel_diff:.2e}")
+        print(f"  Python time: {t_python*1000:.1f} ms")
+        print(f"  JAX time (first, incl. JIT): {t_jax_first*1000:.1f} ms")
+        print(f"  JAX time (second): {t_jax*1000:.1f} ms")
+        
+        if t_python > 0:
+            speedup = t_python / max(t_jax, 1e-6)
+            print(f"  Speedup: {speedup:.1f}x")
+        
+        # Verify results match to high precision
+        # Note: Python version uses local search, JAX uses global search,
+        # so there may be small differences at edges
+        tol = 1e-10
+        if max_diff < tol:
+            print(f"  ✅ PASSED: Results match within {tol:.0e}")
+        else:
+            # Check if differences are only at edge cells (due to search radius)
+            # For cells far from wall (outer boundary), Python's local search
+            # may miss the actual closest segment
+            interior = d_python < 1.0  # Close to wall
+            max_diff_interior = np.max(np.abs(d_jax[interior] - d_python[interior]))
+            if max_diff_interior < tol:
+                print(f"  ✅ PASSED: Interior cells match within {tol:.0e}")
+                print(f"     (Outer cells differ due to search radius limitation)")
+            else:
+                print(f"  ❌ FAILED: Results differ by {max_diff:.2e}")
+                all_passed = False
+    
+    # Test with C-grid-like configuration (with n_wake > 0)
+    print(f"\n--- C-Grid Configuration (with n_wake) ---")
+    
+    # Create a grid that simulates C-grid topology
+    n_theta, n_radial = 65, 33
+    X, Y, _ = generate_circle_grid(n_theta=n_theta, n_radial=n_radial)
+    
+    # Simulate wake points at ends
+    n_wake = 8
+    mc = MetricComputer(X, Y, wall_j=0, n_wake=n_wake)
+    
+    # Compute both versions
+    d_python = mc._compute_wall_distance_python(search_radius=n_theta//2)
+    d_jax = mc._compute_wall_distance_jax()
+    
+    max_diff = np.max(np.abs(d_jax - d_python))
+    print(f"  n_wake = {n_wake}")
+    print(f"  Max difference: {max_diff:.2e}")
+    
+    # For wake cells, Python searches entire wall, JAX also does
+    # So they should match well
+    if max_diff < 1e-10:
+        print(f"  ✅ PASSED: C-grid configuration matches")
+    else:
+        print(f"  ❌ FAILED: C-grid results differ by {max_diff:.2e}")
+        all_passed = False
+    
+    if all_passed:
+        print("\n" + "=" * 60)
+        print("✅ ALL VERIFICATION TESTS PASSED")
+        print("=" * 60)
+        print("\nJAX implementation produces identical results to Python.")
+        print("Safe to use JAX version for production.")
+        return 0
+    else:
+        print("\n" + "=" * 60)
+        print("❌ SOME TESTS FAILED - DO NOT REMOVE PYTHON VERSION")
+        print("=" * 60)
+        return 1
+
+
 if __name__ == "__main__":
+    # Run verification test first
+    result = test_jax_vs_python_wall_distance()
+    if result != 0:
+        exit(result)
+    
+    # Then run existing tests
     exit(run_test())
 

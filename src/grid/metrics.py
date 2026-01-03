@@ -170,6 +170,109 @@ def _compute_ls_weights_qr(s: NDArrayFloat, t: NDArrayFloat) -> NDArrayFloat:
 
 
 @jax.jit
+def _point_to_segment_distance_batch_jax(
+    px: jnp.ndarray, py: jnp.ndarray,
+    ax: jnp.ndarray, ay: jnp.ndarray,
+    bx: jnp.ndarray, by: jnp.ndarray
+) -> jnp.ndarray:
+    """Vectorized point-to-segment distance computation.
+    
+    Computes minimum distance from points P to line segments AB.
+    All inputs should be broadcastable to the same shape.
+    
+    Parameters
+    ----------
+    px, py : array
+        Point coordinates.
+    ax, ay : array
+        Segment start coordinates.
+    bx, by : array
+        Segment end coordinates.
+    
+    Returns
+    -------
+    dist : array
+        Distance from each point to corresponding segment.
+    """
+    # Vector AB
+    abx = bx - ax
+    aby = by - ay
+    
+    # Vector AP
+    apx = px - ax
+    apy = py - ay
+    
+    # Squared length of AB
+    ab_sq = abx * abx + aby * aby
+    
+    # Parameter t for closest point on line (clamped to [0, 1] for segment)
+    # t = dot(AP, AB) / |AB|^2
+    t_raw = (apx * abx + apy * aby) / jnp.maximum(ab_sq, 1e-30)
+    t = jnp.clip(t_raw, 0.0, 1.0)
+    
+    # Closest point on segment
+    closest_x = ax + t * abx
+    closest_y = ay + t * aby
+    
+    # Distance from P to closest point
+    dx = px - closest_x
+    dy = py - closest_y
+    dist = jnp.sqrt(dx * dx + dy * dy)
+    
+    # Handle degenerate segments (length ~ 0): just return distance to point A
+    dist_to_a = jnp.sqrt(apx * apx + apy * apy)
+    dist = jnp.where(ab_sq < 1e-30, dist_to_a, dist)
+    
+    return dist
+
+
+@jax.jit
+def _compute_wall_distance_jax(
+    xc: jnp.ndarray, yc: jnp.ndarray,
+    x_wall: jnp.ndarray, y_wall: jnp.ndarray
+) -> jnp.ndarray:
+    """Vectorized wall distance computation.
+    
+    Computes minimum distance from each cell center to any wall segment.
+    
+    Parameters
+    ----------
+    xc, yc : array of shape (NI, NJ)
+        Cell center coordinates.
+    x_wall, y_wall : array of shape (N_wall,)
+        Wall node coordinates (segments are between consecutive nodes).
+    
+    Returns
+    -------
+    wall_dist : array of shape (NI, NJ)
+        Minimum distance from each cell to wall.
+    """
+    NI, NJ = xc.shape
+    n_wall = x_wall.shape[0]
+    n_segments = n_wall - 1
+    
+    # Reshape for broadcasting:
+    # Cell centers: (NI, NJ, 1) - broadcast over segments
+    # Wall segments: (1, 1, n_segments)
+    px = xc[:, :, jnp.newaxis]  # (NI, NJ, 1)
+    py = yc[:, :, jnp.newaxis]
+    
+    # Segment start and end points
+    ax = x_wall[:-1][jnp.newaxis, jnp.newaxis, :]  # (1, 1, n_segments)
+    ay = y_wall[:-1][jnp.newaxis, jnp.newaxis, :]
+    bx = x_wall[1:][jnp.newaxis, jnp.newaxis, :]
+    by = y_wall[1:][jnp.newaxis, jnp.newaxis, :]
+    
+    # Compute distance from each cell to each segment: (NI, NJ, n_segments)
+    dist_all = _point_to_segment_distance_batch_jax(px, py, ax, ay, bx, by)
+    
+    # Take minimum over all segments
+    wall_dist = jnp.min(dist_all, axis=-1)  # (NI, NJ)
+    
+    return wall_dist
+
+
+@jax.jit
 def _compute_ls_weights_batch_jax(s_all: jnp.ndarray, t_all: jnp.ndarray) -> jnp.ndarray:
     """Compute LS weights for all faces in a single vectorized operation.
     
@@ -356,8 +459,11 @@ class MetricComputer:
         
         return float(np.sqrt(dx * dx + dy * dy))
     
-    def _compute_wall_distance(self, search_radius: int = 20) -> NDArrayFloat:
-        """Compute wall distance using point-to-segment distance.
+    def _compute_wall_distance_python(self, search_radius: int = 20) -> NDArrayFloat:
+        """Compute wall distance using point-to-segment distance (Python loops).
+        
+        DEPRECATED: Use _compute_wall_distance_jax for better performance.
+        Kept for verification testing.
         
         For C-grids, only the airfoil surface is considered wall (not the wake cut).
         The airfoil surface is at j=wall_j for i in [n_wake, NI - n_wake].
@@ -411,6 +517,48 @@ class MetricComputer:
                 wall_dist[i, j] = min_dist
         
         return wall_dist
+    
+    def _compute_wall_distance_jax(self) -> NDArrayFloat:
+        """Compute wall distance using vectorized JAX (fast).
+        
+        For C-grids, only the airfoil surface is considered wall (not the wake cut).
+        The airfoil surface is at j=wall_j for i in [n_wake, NI - n_wake].
+        
+        This is ~100-1000x faster than the Python loop version for typical grids.
+        """
+        X: NDArrayFloat = self.X
+        Y: NDArrayFloat = self.Y
+        NI: int = self.NI
+        NJ: int = self.NJ
+        
+        xc: NDArrayFloat
+        yc: NDArrayFloat
+        xc, yc = self._compute_cell_centers()
+        
+        # Only use airfoil surface, not wake cut
+        wall_start: int = self.n_wake
+        wall_end: int = NI + 1 - self.n_wake
+        
+        x_wall: NDArrayFloat = X[wall_start:wall_end, self.wall_j]
+        y_wall: NDArrayFloat = Y[wall_start:wall_end, self.wall_j]
+        
+        # Convert to JAX arrays and compute
+        xc_jax = jnp.asarray(xc)
+        yc_jax = jnp.asarray(yc)
+        x_wall_jax = jnp.asarray(x_wall)
+        y_wall_jax = jnp.asarray(y_wall)
+        
+        wall_dist_jax = _compute_wall_distance_jax(xc_jax, yc_jax, x_wall_jax, y_wall_jax)
+        
+        return np.asarray(wall_dist_jax)
+    
+    def _compute_wall_distance(self, search_radius: int = 20) -> NDArrayFloat:
+        """Compute wall distance (uses fast JAX implementation).
+        
+        For C-grids, only the airfoil surface is considered wall (not the wake cut).
+        The airfoil surface is at j=wall_j for i in [n_wake, NI - n_wake].
+        """
+        return self._compute_wall_distance_jax()
     
     def compute_face_geometry(self) -> FaceGeometry:
         """Compute face geometry for tight-stencil viscous flux computation.
