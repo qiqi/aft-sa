@@ -21,11 +21,13 @@ CW1 = CB1 / (KAPPA ** 2) + (1.0 + CB2) / SIGMA
 
 
 @jax.jit
-def compute_sa_source_jax(nuHat, grad, wall_dist, nu_laminar):
+def compute_sa_source_jax(nuHat, grad, wall_dist, nu_laminar, max_source_factor=10.0):
     """
     Compute SA turbulence model source terms for 2D FVM.
     
     Source = Production - Destruction + cb2_term
+    
+    Includes limiting to prevent stiff destruction from destabilizing.
     
     Parameters
     ----------
@@ -38,11 +40,14 @@ def compute_sa_source_jax(nuHat, grad, wall_dist, nu_laminar):
         Distance to nearest wall.
     nu_laminar : float
         Kinematic viscosity (1/Re).
+    max_source_factor : float
+        Maximum allowed |source| relative to nuHat/tau_turb, where
+        tau_turb = d^2 / nu_laminar is a characteristic turbulent time.
     
     Returns
     -------
     source : jnp.ndarray (NI, NJ)
-        Net source term: P - D + cb2_term.
+        Net source term: P - D + cb2_term (limited for stability).
     """
     # Vorticity magnitude from velocity gradients
     omega = compute_vorticity_jax(grad)
@@ -56,7 +61,23 @@ def compute_sa_source_jax(nuHat, grad, wall_dist, nu_laminar):
     grad_nuHat_sq = jnp.sum(grad_nuHat**2, axis=-1)  # (NI, NJ)
     cb2_term = (CB2 / SIGMA) * grad_nuHat_sq
     
-    return P - D + cb2_term
+    # Raw source
+    source = P - D + cb2_term
+    
+    # Limit destruction to prevent instability near wall
+    # Only limit negative (destruction-dominated) source
+    # Limit: |D_eff| <= max_source_factor * nuHat * omega (using vorticity as reference)
+    omega_safe = jnp.maximum(omega, 1e-10)
+    max_destruction = max_source_factor * jnp.maximum(nuHat, 1e-20) * omega_safe
+    
+    # Only limit negative source (destruction), allow positive (production)
+    source_limited = jnp.where(
+        source < 0,
+        jnp.maximum(source, -max_destruction),  # Limit destruction
+        source  # Don't limit production
+    )
+    
+    return source_limited
 
 
 @jax.jit

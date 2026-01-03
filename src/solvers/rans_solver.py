@@ -504,6 +504,15 @@ class RANSSolver:
         # Final BC on GPU
         Q = self.apply_bc_jit(Q)
         
+        # Clip nuHat to physical bounds (SA stability fix)
+        # Lower bound: 0 (nuHat cannot be negative)
+        # Upper bound: ~1000 * nu_laminar (reasonable turbulent viscosity ratio)
+        nghost = NGHOST
+        nuHat_int = Q[nghost:-nghost, nghost:-nghost, 3]
+        nuHat_max = 1000.0 * self.mu_laminar  # Max turbulent viscosity ratio ~ 1000
+        nuHat_clipped = jnp.clip(nuHat_int, 0.0, nuHat_max)
+        Q = Q.at[nghost:-nghost, nghost:-nghost, 3].set(nuHat_clipped)
+        
         # Store results on GPU (no CPU transfer!)
         self.Q_jax = Q
         self.R_jax = R  # Last RK residual (for visualization)
@@ -699,7 +708,16 @@ class RANSSolver:
         """Compute aerodynamic force coefficients."""
         V_inf = np.sqrt(self.freestream.u_inf**2 + self.freestream.v_inf**2)
         mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
-        mu_turb = None
+        
+        # Compute turbulent viscosity from SA variable
+        Q = np.array(self.Q_jax) if hasattr(self, 'Q_jax') else self.Q
+        nghost = NGHOST
+        nuHat = np.maximum(Q[nghost:-nghost, nghost:-nghost, 3], 0.0)
+        chi = nuHat / (mu_laminar + 1e-30)
+        cv1 = 7.1
+        chi3 = chi ** 3
+        fv1 = chi3 / (chi3 + cv1 ** 3)
+        mu_turb = nuHat * fv1
         
         n_wake = getattr(self.config, 'n_wake', 0)
         if n_wake == 0 and hasattr(self, 'bc'):
