@@ -1,50 +1,116 @@
-# AFT-SA Transition Model
+# AFT-SA: GPU-Accelerated RANS Solver
 
-This project implements a transition model based on Amplification Factor Transport (AFT) coupled with the Spalart-Allmaras (SA) turbulence model. It explores the evolution of a transition variable $\hat{\nu}$ (nuHat) in Blasius and Falkner-Skan boundary layers.
+A 2D structured-grid RANS solver for incompressible airfoil flow using the Artificial Compressibility Method. Fully GPU-accelerated with JAX.
+
+## Features
+
+- **Artificial Compressibility Method** for incompressible flow
+- **JST Scheme** (Jameson-Schmidt-Turkel) with 4th-order artificial dissipation
+- **Spalart-Allmaras** one-equation turbulence model
+- **5-stage Runge-Kutta** time integration with explicit smoothing
+- **GPU acceleration** via JAX (runs on CPU if no GPU available)
+- **C-grid topology** with proper wake cut handling
+
+## Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/qiqi/aft-sa.git
+cd aft-sa
+
+# Install dependencies
+pip install -r requirements.txt
+
+# For GPU support (optional, but recommended)
+pip install jax[cuda12]
+```
+
+## Quick Start
+
+Run a NACA 0012 simulation:
+
+```bash
+python scripts/solver/run_airfoil.py data/naca0012.dat \
+    --alpha 5.0 --reynolds 6e6 --max-iter 500
+```
 
 ## Project Structure
 
-*   **`src/`**: Source code for physics models and solvers.
-    *   `physics/`:
-        *   `boundary_layer.py`: Blasius and Falkner-Skan similarity solutions.
-        *   `spalart_allmaras.py`: Spalart-Allmaras turbulence model terms and gradients.
-        *   `correlations.py`: Drela-Giles $e^N$ correlations.
-    *   `solvers/`:
-        *   `boundary_layer_solvers.py`: PyTorch-based parabolic solvers for $\hat{\nu}$ transport.
-
-*   **`scripts/`**: Executable scripts to generate plots and run simulations.
-    *   `plot_blasius_growth.py`: Plots amplification rates on Blasius profiles.
-    *   `plot_falkner_skan.py`: Plots Falkner-Skan velocity and shear profiles.
-    *   `plot_falkner_skan_gamma.py`: Visualizes the transition phase space ($\Gamma$ vs $Re_\Omega$).
-    *   `plot_drela_correlation.py`: Plots Drela-Giles growth rates.
-    *   `check_inner_layer.py`: Verifies that the transition model doesn't contaminate the turbulent inner layer.
-    *   `test_gradients.py`: Validates analytical gradients for the SA model against PyTorch autograd.
-    *   `run_blasius_transport.py`: Solves for $\hat{\nu}$ evolution on a Blasius boundary layer.
-    *   `run_falkner_skan_transport.py`: Solves for $\hat{\nu}$ evolution on a Falkner-Skan wedge.
-    *   `run_flat_plate.py`: Full simulation of a flat plate boundary layer with coupled u-momentum and $\hat{\nu}$ transport.
-
-*   **`docs/`**: Documentation and theory.
-    *   `blasius_transition.md`: Theory regarding Blasius transition and the AFT model.
-    *   `turbulent_inner_layer.md`: Analysis of the model's behavior in the turbulent wall layer.
-
-## Setup
-
-Ensure you have the required dependencies installed:
-
-```bash
-pip install numpy scipy matplotlib torch
+```
+aft-sa/
+├── src/
+│   ├── constants.py              # Global constants (NGHOST=2, N_VARS=4)
+│   ├── grid/                     # Grid generation and metrics
+│   │   ├── loader.py             # Load/generate C-grids
+│   │   ├── metrics.py            # Face normals, volumes
+│   │   └── plot3d.py             # Plot3D format I/O
+│   ├── numerics/                 # Numerical methods (all JAX)
+│   │   ├── fluxes.py             # JST convective flux
+│   │   ├── gradients.py          # Green-Gauss gradients
+│   │   ├── viscous_fluxes.py     # Viscous stress tensor
+│   │   ├── forces.py             # Lift, drag, Cp, Cf
+│   │   ├── smoothing.py          # Implicit residual smoothing
+│   │   └── explicit_smoothing.py # Explicit residual smoothing
+│   ├── solvers/
+│   │   ├── rans_solver.py        # Main RANSSolver class
+│   │   ├── boundary_conditions.py # Wall, farfield, wake BCs
+│   │   └── time_stepping.py      # Local time-stepping
+│   └── io/
+│       ├── output.py             # VTK output
+│       └── plotting.py           # Visualization
+├── scripts/
+│   ├── solver/
+│   │   └── run_airfoil.py        # Main simulation script
+│   └── models/                   # Physics model scripts
+├── tests/                        # Pytest test suite
+├── data/                         # Airfoil geometry files
+└── external/
+    └── construct2d/              # Grid generator
 ```
 
-## Running Scripts
+## State Vector
 
-You can run any script from the root directory using python module execution or direct script execution (ensuring `src` is in PYTHONPATH).
+The solution array `Q` has shape `(NI + 4, NJ + 4, 4)` with 2 ghost layers:
 
-Example:
+| Index | Variable | Description |
+|-------|----------|-------------|
+| 0 | p | Pseudo-pressure (artificial compressibility) |
+| 1 | u | x-velocity |
+| 2 | v | y-velocity |
+| 3 | ν̃ | Spalart-Allmaras turbulent viscosity |
+
+## Command Line Options
 
 ```bash
-# Run the flat plate simulation
-python -m scripts.run_flat_plate
+python scripts/solver/run_airfoil.py <airfoil.dat> [options]
 
-# Plot Blasius growth rates
-python -m scripts.plot_blasius_growth
+Options:
+  --alpha ANGLE       Angle of attack in degrees (default: 0)
+  --reynolds RE       Reynolds number (default: 6e6)
+  --mach MACH         Mach number for compressibility (default: 0.15)
+  --cfl CFL           Target CFL number (default: 5.0)
+  --max-iter N        Maximum iterations (default: 500)
+  --n-surface N       Surface grid points (default: 129)
+  --n-normal N        Normal direction points (default: 65)
+  --n-wake N          Wake cut points (default: 32)
 ```
+
+## Running Tests
+
+```bash
+# Run all tests (excluding slow ones)
+pytest tests/ -m "not slow"
+
+# Run with verbose output
+pytest tests/ -v
+```
+
+## References
+
+- Jameson, Schmidt & Turkel (1981). "Numerical Solutions of the Euler Equations by Finite Volume Methods Using Runge-Kutta Time-Stepping Schemes". AIAA Paper 81-1259.
+- Spalart & Allmaras (1992). "A One-Equation Turbulence Model for Aerodynamic Flows". AIAA Paper 92-0439.
+- Turkel (1987). "Preconditioned Methods for Solving the Incompressible and Low Speed Compressible Equations". JCP 72.
+
+## License
+
+MIT License
