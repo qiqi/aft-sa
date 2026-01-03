@@ -651,12 +651,13 @@ class RANSSolver:
         if self.config.html_animation and self.plotter.num_snapshots > 0:
             html_path = Path(self.config.output_dir) / f"{self.config.case_name}_animation.html"
             n_wake = getattr(self.config, 'n_wake', 0)
+            mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
             self.plotter.save_html(
                 str(html_path), self.metrics,
                 wall_distance=self.metrics.wall_distance,
                 X=self.X, Y=self.Y,
                 n_wake=n_wake,
-                mu_laminar=self.freestream.nu
+                mu_laminar=mu_laminar
             )
         
         return self.converged
