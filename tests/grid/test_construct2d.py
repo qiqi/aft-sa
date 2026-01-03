@@ -345,9 +345,15 @@ def main():
         return 1
 
 
+@pytest.mark.slow
 @SKIP_NO_BINARY
 def test_construct2d_grids():
-    """Pytest wrapper for construct2d grid generation tests."""
+    """
+    Pytest wrapper for construct2d grid generation tests.
+    
+    Marked as slow because it generates 3 airfoil grids (~5s total).
+    Run with: pytest -m "not slow" to skip.
+    """
     result = main()
     assert result == 0, "Some grid generation tests failed"
 

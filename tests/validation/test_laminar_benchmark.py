@@ -17,16 +17,27 @@ from tests.conftest import requires_construct2d
 from src.validation.mfoil_runner import run_laminar as run_mfoil_laminar
 
 
+@pytest.fixture(scope="class")
+def mfoil_re10k():
+    """
+    Class-scoped fixture for mfoil results at Re=10,000.
+    
+    Computed once per test class, shared across all test methods.
+    This avoids redundant ~9s mfoil solves for the same parameters.
+    """
+    return run_mfoil_laminar(reynolds=10000, alpha=0.0)
+
+
 class TestMfoilLaminar:
     """Tests for mfoil laminar flow baseline."""
     
-    def test_symmetry_zero_lift(self):
+    def test_symmetry_zero_lift(self, mfoil_re10k):
         """
         NACA 0012 at α=0° should have exactly zero lift.
         
         This is a fundamental symmetry check for the panel code.
         """
-        result = run_mfoil_laminar(reynolds=10000, alpha=0.0)
+        result = mfoil_re10k
         
         assert result['converged'], "mfoil failed to converge"
         
@@ -34,13 +45,13 @@ class TestMfoilLaminar:
         assert abs(result['cl']) < 1e-10, \
             f"Cl = {result['cl']:.2e} (expected 0 for symmetric airfoil at α=0)"
     
-    def test_reasonable_drag(self):
+    def test_reasonable_drag(self, mfoil_re10k):
         """
         Drag coefficient should be positive and reasonable.
         
         For laminar flow at Re=10,000, expect Cd ~ O(0.01-0.1).
         """
-        result = run_mfoil_laminar(reynolds=10000, alpha=0.0)
+        result = mfoil_re10k
         
         assert result['converged'], "mfoil failed to converge"
         
@@ -58,11 +69,11 @@ class TestMfoilLaminar:
         print(f"  Cdf (friction) = {result['cdf']:.6f}")
         print(f"  Cdp (pressure) = {result['cdp']:.6f}")
     
-    def test_drag_components(self):
+    def test_drag_components(self, mfoil_re10k):
         """
         Verify drag decomposition: Cd = Cdf + Cdp.
         """
-        result = run_mfoil_laminar(reynolds=10000, alpha=0.0)
+        result = mfoil_re10k
         
         assert result['converged'], "mfoil failed to converge"
         
@@ -71,11 +82,15 @@ class TestMfoilLaminar:
         assert abs(result['cd'] - cd_sum) < 1e-10, \
             f"Cd = {result['cd']}, but Cdf + Cdp = {cd_sum}"
     
+    @pytest.mark.slow
     def test_reynolds_scaling(self):
         """
         Higher Reynolds number should give lower friction drag.
         
         For laminar flow, Cf ~ 1/sqrt(Re), so Cd should decrease with Re.
+        
+        Note: Marked as slow because it runs two separate mfoil solves
+        at Re=5000 and Re=20000 (~20s total).
         """
         result_low = run_mfoil_laminar(reynolds=5000, alpha=0.0)
         result_high = run_mfoil_laminar(reynolds=20000, alpha=0.0)
