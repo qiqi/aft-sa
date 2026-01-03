@@ -3,7 +3,7 @@ Solver Factory Module for standardized RANSSolver creation.
 """
 
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 import numpy as np
 import numpy.typing as npt
 
@@ -112,75 +112,6 @@ def create_solver(
         print(f"Reynolds: {reynolds:.2e}")
         smooth_info: str = f"{smoothing_type} (ε={smoothing_epsilon}, {smoothing_passes} passes)" if smoothing_type != "none" else "none"
         print(f"CFL: {cfl_start} → {cfl_target} (ramp {cfl_ramp_iters} iters), Smoothing: {smooth_info}")
-    
-    return solver
-
-
-def create_solver_quiet(
-    X: NDArrayFloat,
-    Y: NDArrayFloat,
-    n_wake: int,
-    alpha: float = 0.0,
-    reynolds: float = 6e6,
-    mach: float = 0.15,
-    beta: float = 10.0,
-    cfl_start: float = 0.1,
-    cfl_target: float = 3.0,
-    cfl_ramp_iters: int = 300,
-    max_iter: int = 10000,
-    tol: float = 1e-10,
-    jst_k4: float = 0.04,
-    irs_epsilon: float = 0.0,
-    smoothing_type: str = "explicit",
-    smoothing_epsilon: float = 0.2,
-    smoothing_passes: int = 2,
-    wall_damping_length: float = 0.1,
-    print_freq: int = 200,
-) -> RANSSolver:
-    """Create a solver with pre-loaded grid and minimal output."""
-    config: SolverConfig = SolverConfig(
-        mach=mach,
-        alpha=alpha,
-        reynolds=reynolds,
-        beta=beta,
-        cfl_start=cfl_start,
-        cfl_target=cfl_target,
-        cfl_ramp_iters=cfl_ramp_iters,
-        max_iter=max_iter,
-        tol=tol,
-        output_freq=max_iter + 1,
-        print_freq=print_freq,
-        output_dir="output/validation",
-        case_name="validation",
-        wall_damping_length=wall_damping_length,
-        jst_k4=jst_k4,
-        irs_epsilon=irs_epsilon,
-        smoothing_type=smoothing_type,
-        smoothing_epsilon=smoothing_epsilon,
-        smoothing_passes=smoothing_passes,
-        n_wake=n_wake,
-    )
-    solver: RANSSolver = RANSSolver.__new__(RANSSolver)
-    solver.config = config
-    solver.X = X
-    solver.Y = Y
-    solver.NI = X.shape[0] - 1
-    solver.NJ = X.shape[1] - 1
-    solver.iteration = 0
-    solver.residual_history = []
-    solver.iteration_history = []  # Track which iteration each residual corresponds to
-    solver.converged = False
-    
-    # Rolling buffer for divergence history (disabled for quiet mode)
-    solver._divergence_buffer = None
-    
-    solver._compute_metrics()
-    solver._initialize_state()
-    
-    class DummyVTKWriter:
-        def write(self, *args: object, **kwargs: object) -> None: pass
-        def finalize(self) -> str: return ""
-    solver.vtk_writer = DummyVTKWriter()
     
     return solver
 
