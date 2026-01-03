@@ -25,7 +25,8 @@ import numpy as np
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.solvers.batch import BatchRANSSolver, BatchFlowConditions
+# Import device selection BEFORE JAX
+from src.physics.jax_config import select_device
 
 
 def parse_args():
@@ -73,10 +74,14 @@ def parse_args():
     parser.add_argument('--print-freq', type=int, default=50,
                         help="Print frequency (default: 50)")
     
+    # Device selection
+    parser.add_argument('--device', '-d', type=str, default=None,
+                        help="GPU device: 'auto' (default), 'cpu', or GPU index ('0', '1', 'cuda:0')")
+    
     return parser.parse_args()
 
 
-def create_flow_conditions(args):
+def create_flow_conditions(args, BatchFlowConditions):
     """Create BatchFlowConditions from arguments."""
     if args.alpha_sweep:
         start, end, count = args.alpha_sweep
@@ -95,6 +100,22 @@ def create_flow_conditions(args):
 
 def main():
     args = parse_args()
+    
+    # Select device BEFORE importing JAX-dependent modules
+    device_spec = args.device
+    if args.config:
+        # Peek at config for device setting if not specified on CLI
+        import yaml
+        with open(args.config) as f:
+            raw_config = yaml.safe_load(f)
+        if device_spec is None and 'device' in raw_config:
+            device_spec = raw_config['device'].get('device', 'auto')
+    
+    print("Device selection:")
+    select_device(device_spec, verbose=True)
+    
+    # Now import JAX-dependent modules
+    from src.solvers.batch import BatchRANSSolver, BatchFlowConditions
     
     # Handle config file
     if args.config:
@@ -132,7 +153,7 @@ def main():
             sys.exit(1)
         
         grid_file = args.grid
-        flow_conditions = create_flow_conditions(args)
+        flow_conditions = create_flow_conditions(args, BatchFlowConditions)
         max_iter = args.max_iter
         tol = args.tol
         cfl = args.cfl

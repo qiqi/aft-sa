@@ -1,20 +1,23 @@
 # Angle of attack sweep configuration
-# NOTE: Batch mode not yet implemented - this is a template for Phase 2
-# For now, use single values and run multiple simulations
-
-preset: coarse         # Uses 256x32 cell grid
+# Use with: python scripts/solver/run_batch.py --config config/examples/aoa_sweep.yaml
 
 grid:
   airfoil: data/naca0012.dat
+  n_surface: 129
+  n_normal: 65
 
 flow:
   reynolds: 6.0e+6
   mach: 0.0
   
-  # Future batch mode: sweep specification
+  # Batch mode: sweep specification
+  alpha:
+    sweep: [-5, 15, 21]    # start, end, count → 21 cases
+  # Or explicit list:
   # alpha:
-  #   sweep: [-5, 15, 21]    # start, end, count → 21 cases
-  alpha: 0.0               # Single case for now
+  #   values: [0, 2, 4, 6, 8, 10]
+  # Or single case:
+  # alpha: 4.0
 
 solver:
   max_iter: 5000
@@ -39,4 +42,8 @@ numerics:
 output:
   directory: output/aoa_sweep
   case_name: naca0012_sweep
-  html_animation: true
+  html_animation: false
+
+# Device selection: "auto", "cpu", or GPU index ("0", "1", "cuda:0")
+device:
+  device: auto

@@ -99,6 +99,14 @@ class OutputConfig:
 
 
 @dataclass
+class DeviceConfig:
+    """Device/GPU configuration."""
+    
+    # Device selection: "auto", "cpu", or GPU index ("0", "1", "cuda:0", etc.)
+    device: Optional[str] = "auto"
+
+
+@dataclass
 class SimulationConfig:
     """Complete simulation configuration."""
     
@@ -107,6 +115,7 @@ class SimulationConfig:
     solver: SolverSettings = field(default_factory=SolverSettings)
     numerics: NumericsConfig = field(default_factory=NumericsConfig)
     output: OutputConfig = field(default_factory=OutputConfig)
+    device: DeviceConfig = field(default_factory=DeviceConfig)
     
     def to_solver_config(self):
         """Convert to legacy SolverConfig for backward compatibility."""

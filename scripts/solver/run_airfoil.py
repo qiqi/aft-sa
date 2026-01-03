@@ -31,10 +31,8 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.solvers.rans_solver import RANSSolver, SolverConfig
-from src.grid.loader import load_or_generate_grid
-from src.physics.jax_config import jax
-from src.config import load_yaml, from_dict, apply_cli_overrides, SimulationConfig
+# Import device selection BEFORE JAX
+from src.physics.jax_config import select_device
 
 
 def main():
@@ -115,7 +113,30 @@ Examples:
     parser.add_argument("--div-history", type=int,
                         help="Solutions to keep for divergence visualization")
     
+    # Device selection
+    parser.add_argument("--device", "-d", type=str, default=None,
+                        help="GPU device: 'auto' (default), 'cpu', or GPU index ('0', '1', 'cuda:0')")
+    
     args = parser.parse_args()
+    
+    # Select device BEFORE importing JAX-dependent modules
+    device_spec = args.device
+    if args.config:
+        # Peek at config for device setting if not specified on CLI
+        import yaml
+        with open(args.config) as f:
+            raw_config = yaml.safe_load(f)
+        if device_spec is None and 'device' in raw_config:
+            device_spec = raw_config['device'].get('device', 'auto')
+    
+    print("Device selection:")
+    select_device(device_spec, verbose=True)
+    
+    # Now import JAX-dependent modules (after device selection)
+    from src.solvers.rans_solver import RANSSolver, SolverConfig
+    from src.grid.loader import load_or_generate_grid
+    from src.physics.jax_config import jax
+    from src.config import load_yaml, from_dict, apply_cli_overrides, SimulationConfig
     
     # Load configuration
     if args.config:
