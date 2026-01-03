@@ -305,9 +305,9 @@ class PlotlyDashboard:
         ]
         
         if has_wall_dist:
-            subplot_titles.extend(['Wall Distance (d/c)', ''])
+            subplot_titles.append('Wall Distance (d/c)')  # Left column only (right is None)
         if has_surface_data:
-            subplot_titles.extend(['Pressure Coefficient Cp (airfoil)', 'Skin Friction Cf (airfoil)'])
+            subplot_titles.extend(['', ''])  # No subplot titles - use axis labels instead
         
         specs = [
             [{"type": "xy"}, {"type": "xy"}],
@@ -316,7 +316,7 @@ class PlotlyDashboard:
             [{"type": "scatter", "colspan": 2}, None],  # Convergence spans both columns
         ]
         if has_wall_dist:
-            specs.append([{"type": "xy"}, {"type": "xy"}])
+            specs.append([{"type": "xy"}, None])  # Wall distance in left column only
         if has_surface_data:
             specs.append([{"type": "scatter"}, {"type": "scatter"}])  # Cp and Cf line plots
         
@@ -956,10 +956,7 @@ class PlotlyDashboard:
         fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, fixedrange=True, row=4, col=1)
         fig.update_yaxes(title_text='Residual', matches=None, type='log', autorange=True, fixedrange=True, row=4, col=1)
         
-        # Hide the empty right column in row 5 (wall distance)
-        if has_wall_dist:
-            fig.update_xaxes(visible=False, row=wall_dist_row, col=2)
-            fig.update_yaxes(visible=False, row=wall_dist_row, col=2)
+        # Note: Wall distance row col 2 is None in specs, so no axes to hide
         
         # Cp and Cf plots configuration
         if has_surface_data:
