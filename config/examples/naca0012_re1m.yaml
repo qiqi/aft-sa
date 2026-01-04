@@ -15,7 +15,7 @@ flow:
   chi_inf: 8.0        # Initial/farfield turbulent viscosity ratio (ν̃/ν)
 
 solver:
-  max_iter: 30000
+  max_iter: 40000
   tol: 1.0e-8
   print_freq: 500
   diagnostic_freq: 2000
