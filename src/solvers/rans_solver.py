@@ -17,7 +17,7 @@ from ..grid.plot3d import read_plot3d
 from ..numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxGridMetrics
 from ..numerics.forces import compute_aerodynamic_forces, AeroForces, compute_aerodynamic_forces_jax_pure
 from ..numerics.gradients import compute_gradients, GradientMetrics
-from ..numerics.viscous_fluxes import add_viscous_fluxes
+from ..numerics.viscous_fluxes import add_viscous_fluxes, compute_viscous_fluxes_tight_with_ghosts_jax
 from ..numerics.smoothing import apply_residual_smoothing
 from ..numerics.explicit_smoothing import apply_explicit_smoothing
 from .boundary_conditions import (
@@ -372,8 +372,11 @@ class RANSSolver:
             
             # Tight-stencil viscous fluxes (momentum + SA diffusion)
             # Uses 2-point difference along coordinate line + LS correction for non-orthogonality
-            R_visc = compute_viscous_fluxes_tight_jax(
-                Q_int, Si_x, Si_y, Sj_x, Sj_y,
+            # CRITICAL: Use Q with ghost cells (after BC applied) for correct wall gradient!
+            # Extract Q with one layer of ghost cells on each side
+            Q_with_ghosts = Q[nghost-1:-(nghost-1), nghost-1:-(nghost-1), :]  # (NI+2, NJ+2, 4)
+            R_visc = compute_viscous_fluxes_tight_with_ghosts_jax(
+                Q_with_ghosts, Si_x, Si_y, Sj_x, Sj_y,
                 d_coord_i, e_coord_i_x, e_coord_i_y, e_ortho_i_x, e_ortho_i_y,
                 d_coord_j, e_coord_j_x, e_coord_j_y, e_ortho_j_x, e_ortho_j_y,
                 ls_weights_i, ls_weights_j,
