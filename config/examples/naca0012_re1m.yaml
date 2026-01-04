@@ -12,7 +12,7 @@ flow:
   reynolds: 1.0e+6    # Re = 1 million
   mach: 0.0           # Incompressible
   alpha: 4.0          # 4 degrees angle of attack
-  chi_inf: 8.0        # Initial/farfield turbulent viscosity ratio (ν̃/ν)
+  chi_inf: 0.0001     # Low initial turbulence for AFT transition model
 
 solver:
   max_iter: 40000
