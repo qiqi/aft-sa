@@ -1,6 +1,6 @@
 ## Python Environment
-Always use the virtual environment at /home/qiqi/venv
-Python interpreter: /home/qiqi/venv/bin/python
+Always use the virtual environment at ~/venv
+Python interpreter: ~/venv/bin/python
 
 ---
 
@@ -27,7 +27,7 @@ If the path is clear and you're about to make changes:
    ```
 2. Then proceed with your work
 
-### Rule 4: Clean Up When Done
+### Rule 4: Clean Up When Done (must do before finish or when stopping to ask the user)
 When your task is complete:
 1. Remove your entry from the "Active Agents" table
 2. If the file needs review, add it to "Ready for Cleanup" section

@@ -6,10 +6,9 @@ import numpy as np
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional, TYPE_CHECKING
 
-from ._array_utils import sanitize_array, safe_minmax, safe_absmax, to_json_safe_list
+from ._array_utils import sanitize_array, safe_minmax, safe_absmax
 
 if TYPE_CHECKING:
-    import plotly.graph_objects as go
     from .plotter import Snapshot
 
 

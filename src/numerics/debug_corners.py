@@ -9,9 +9,7 @@ import numpy as np
 import csv
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-from dataclasses import dataclass, field
-
-from ..physics.jax_config import jax, jnp
+from dataclasses import dataclass
 from ..constants import NGHOST
 
 
@@ -114,7 +112,7 @@ class CornerDebugger:
         
         self.history: List[CornerDebugData] = []
         
-        print(f"Corner Debugger initialized:")
+        print("Corner Debugger initialized:")
         print(f"  Grid size: {NI} x {NJ} cells")
         print(f"  Corner 1 (I=0, J=Jmax): cell ({self.c1_i}, {self.c1_j}), "
               f"array idx ({self.c1_ig}, {self.c1_jg})")
@@ -260,11 +258,11 @@ class CornerDebugger:
         }
         
         print("\n=== Corner Analysis ===")
-        print(f"Corner 1 (I=0, J=Jmax):")
+        print("Corner 1 (I=0, J=Jmax):")
         print(f"  Pressure range: [{analysis['c1_min_p']:.6e}, {analysis['c1_max_p']:.6e}]")
         print(f"  Max |R_p|: {analysis['c1_max_R_p']:.6e}")
         print(f"  First large residual at iter: {analysis['c1_first_large_residual']}")
-        print(f"Corner 2 (I=Imax, J=Jmax):")
+        print("Corner 2 (I=Imax, J=Jmax):")
         print(f"  Pressure range: [{analysis['c2_min_p']:.6e}, {analysis['c2_max_p']:.6e}]")
         print(f"  Max |R_p|: {analysis['c2_max_R_p']:.6e}")
         print(f"  First large residual at iter: {analysis['c2_first_large_residual']}")

@@ -174,8 +174,8 @@ class TestWakeConservationBaseline:
         
         X, Y = load_or_generate_grid(
             str(project_root / 'data' / 'naca0012.dat'),
-            n_surface=65, n_normal=33, n_wake=16,
-            y_plus=1.0, reynolds=6e6, farfield_radius=15.0,
+            n_surface=65, n_wake=16,
+            y_plus=1.0, gradation=1.2, reynolds=6e6, farfield_radius=15.0,
             project_root=project_root, verbose=False
         )
         

@@ -79,6 +79,7 @@ class TestSASourceTerms:
             simple_fields['nuHat'],
             simple_fields['grad'],
             simple_fields['wall_dist'],
+            simple_fields['nu_laminar'],
         )
         
         # Production should be positive where nuHat > 0
@@ -90,6 +91,7 @@ class TestSASourceTerms:
             simple_fields['nuHat'],
             simple_fields['grad'],
             simple_fields['wall_dist'],
+            simple_fields['nu_laminar'],
         )
         
         # Destruction should be positive
@@ -124,8 +126,8 @@ class TestSASourceTerms:
         wall_dist = simple_fields['wall_dist']
         nu = simple_fields['nu_laminar']
         
-        P = compute_sa_production_only_jax(nuHat, grad, wall_dist)
-        D = compute_sa_destruction_only_jax(nuHat, grad, wall_dist)
+        P = compute_sa_production_only_jax(nuHat, grad, wall_dist, nu)
+        D = compute_sa_destruction_only_jax(nuHat, grad, wall_dist, nu)
         
         # Near wall (j=0), destruction should be larger due to (nuHat/d)^2 term
         P_np = np.array(P)
@@ -154,6 +156,7 @@ class TestSASourceTerms:
         nuHat = simple_fields['nuHat']
         grad = simple_fields['grad']
         wall_dist = simple_fields['wall_dist']
+        nu = simple_fields['nu_laminar']
         
         # Compute vorticity from grad
         dudy = grad[:, :, 1, 1]
@@ -161,7 +164,7 @@ class TestSASourceTerms:
         omega = jnp.abs(dvdx - dudy)
         
         # Production from numerics module
-        P_numerics = compute_sa_production_only_jax(nuHat, grad, wall_dist)
+        P_numerics = compute_sa_production_only_jax(nuHat, grad, wall_dist, nu)
         
         # Production from physics module
         P_physics = compute_sa_production(omega, nuHat, wall_dist)
@@ -173,6 +176,7 @@ class TestSASourceTerms:
         nuHat = simple_fields['nuHat']
         grad = simple_fields['grad']
         wall_dist = simple_fields['wall_dist']
+        nu = simple_fields['nu_laminar']
         
         # Compute vorticity from grad
         dudy = grad[:, :, 1, 1]
@@ -180,7 +184,7 @@ class TestSASourceTerms:
         omega = jnp.abs(dvdx - dudy)
         
         # Destruction from numerics module
-        D_numerics = compute_sa_destruction_only_jax(nuHat, grad, wall_dist)
+        D_numerics = compute_sa_destruction_only_jax(nuHat, grad, wall_dist, nu)
         
         # Destruction from physics module
         D_physics = compute_sa_destruction(omega, nuHat, wall_dist)
@@ -272,8 +276,8 @@ class TestSASourceIntegration:
         wall_dist_jax = jnp.array(wall_dist)
         
         source = compute_sa_source_jax(nuHat_jax, grad_jax, wall_dist_jax, nu)
-        P = compute_sa_production_only_jax(nuHat_jax, grad_jax, wall_dist_jax)
-        D = compute_sa_destruction_only_jax(nuHat_jax, grad_jax, wall_dist_jax)
+        P = compute_sa_production_only_jax(nuHat_jax, grad_jax, wall_dist_jax, nu)
+        D = compute_sa_destruction_only_jax(nuHat_jax, grad_jax, wall_dist_jax, nu)
         
         # Source should be finite
         assert np.all(np.isfinite(np.array(source)))

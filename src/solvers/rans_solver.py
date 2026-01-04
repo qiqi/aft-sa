@@ -8,10 +8,10 @@ JAX-based implementation with GPU acceleration.
 
 import numpy as np
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 from dataclasses import dataclass
 
-from ..grid.metrics import MetricComputer, FVMMetrics, FaceGeometry, LSWeights
+from ..grid.metrics import MetricComputer
 from ..grid.mesher import Construct2DWrapper, GridOptions
 from ..grid.plot3d import read_plot3d
 from ..numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxGridMetrics
@@ -26,21 +26,16 @@ from .boundary_conditions import (
     initialize_state,
     apply_initial_wall_damping,
 )
-from .time_stepping import compute_local_timestep, TimeStepConfig
 from ..io.plotter import PlotlyDashboard
 from ..numerics.forces import compute_surface_distributions
 from ..constants import NGHOST
-from ..numerics.diagnostics import (
-    compute_total_pressure_loss,
-    compute_solution_bounds,
-    compute_residual_statistics
-)
+from ..numerics.diagnostics import compute_total_pressure_loss
 
 # JAX imports (required)
 from ..physics.jax_config import jax, jnp
 from ..numerics.fluxes import compute_fluxes_jax
 from ..numerics.gradients import compute_gradients_jax
-from ..numerics.viscous_fluxes import compute_viscous_fluxes_tight_jax
+# viscous_fluxes: tight_with_ghosts version used
 from ..numerics.explicit_smoothing import smooth_explicit_jax
 from ..numerics.sa_sources import compute_sa_source_jax
 from .time_stepping import compute_local_timestep_jax
@@ -108,7 +103,7 @@ class RANSSolver:
         self._initialize_output()
         
         print(f"\n{'='*60}")
-        print(f"RANS Solver Initialized")
+        print("RANS Solver Initialized")
         print(f"{'='*60}")
         print(f"Grid size: {self.NI} x {self.NJ} cells")
         print(f"Mach: {self.config.mach}, Alpha: {self.config.alpha}°")
@@ -238,7 +233,7 @@ class RANSSolver:
         
         print(f"  Freestream: u={self.freestream.u_inf:.4f}, "
               f"v={self.freestream.v_inf:.4f}")
-        print(f"  Far-field BC: Characteristic (non-reflecting)")
+        print("  Far-field BC: Characteristic (non-reflecting)")
         print(f"  Wall damping applied (L={self.config.wall_damping_length})")
     
     def _initialize_jax(self):

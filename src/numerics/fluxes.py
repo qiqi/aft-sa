@@ -245,7 +245,7 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     p_avg_i = Q_avg_i[:, :, 0]
     u_avg_i = Q_avg_i[:, :, 1]
     v_avg_i = Q_avg_i[:, :, 2]
-    nu_avg_i = Q_avg_i[:, :, 3]
+    # Note: Q[:,:,3] (nuHat) uses upwind scheme below, not average
     
     U_n_i = u_avg_i * Si_x + v_avg_i * Si_y
     
@@ -310,7 +310,7 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     p_avg_j = Q_avg_j[:, :, 0]
     u_avg_j = Q_avg_j[:, :, 1]
     v_avg_j = Q_avg_j[:, :, 2]
-    nu_avg_j = Q_avg_j[:, :, 3]
+    # Note: Q[:,:,3] (nuHat) uses upwind scheme below, not average
     
     U_n_j = u_avg_j * Sj_x + v_avg_j * Sj_y
     

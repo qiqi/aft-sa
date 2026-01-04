@@ -4,7 +4,7 @@ YAML configuration loader with validation.
 
 import yaml
 from pathlib import Path
-from typing import Optional, Dict, Any, Union
+from typing import Dict, Any, Union
 from dataclasses import fields, is_dataclass
 
 from .schema import (

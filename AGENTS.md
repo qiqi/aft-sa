@@ -38,6 +38,7 @@ Archive of recently completed work (for reference):
 
 | Date | Agent | Files | Summary |
 |------|-------|-------|---------|
+| 2026-01-03 | Janitor | `src/` (multiple), `tests/` | Removed 20+ unused imports, fixed f-strings, fixed test API calls |
 | 2026-01-03 | Claude | `src/io/plotter.py` | Added gzip compression, y+ visualization |
 | 2026-01-03 | Claude | `README.md`, `LICENSE.md` | Architecture docs, GPL-3.0 license |
 | 2026-01-03 | Claude | `src/solvers/factory.py` | Removed unused `create_solver_quiet()` |

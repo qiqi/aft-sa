@@ -24,7 +24,6 @@ from ._html_components import (
     compute_yplus_distribution,
     make_log_range_slider_steps,
     extract_residual_value,
-    ColorAxisConfig,
 )
 
 if TYPE_CHECKING:
@@ -257,7 +256,7 @@ class PlotlyDashboard:
             # Warn if max y+ exceeds 2x target
             if yplus_params and yplus_params.get('yplus_max', 0) > 2 * target_yplus:
                 print(f"  WARNING: Max y+ = {yplus_params['yplus_max']:.1f} exceeds 2x target ({target_yplus:.1f})")
-                print(f"           Grid may be too coarse near the wall")
+                print("           Grid may be too coarse near the wall")
         
         surface_params = None
         if has_surface_data:
@@ -296,8 +295,8 @@ class PlotlyDashboard:
             print(f"Saved HTML animation to: {output_path}")
         
         if self.use_cdn:
-            print(f"  Note: Requires internet connection (using plotly.js CDN)")
-        print(f"  Use sliders at top-right to adjust color ranges")
+            print("  Note: Requires internet connection (using plotly.js CDN)")
+        print("  Use sliders at top-right to adjust color ranges")
         
         # Also save VTK file
         vtk_path = output_path.with_suffix('.vtk')

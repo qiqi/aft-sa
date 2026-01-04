@@ -727,10 +727,9 @@ def check_log_layer_equilibrium(y_plus: np.ndarray, P: np.ndarray, D: np.ndarray
     
     # Check chi linearity: chi should be κ·y⁺
     if len(y_plus_log) > 2:
-        slope, intercept = np.polyfit(y_plus_log, chi_log, 1)
+        slope, _ = np.polyfit(y_plus_log, chi_log, 1)
     else:
         slope = chi_log[-1] / y_plus_log[-1] if len(y_plus_log) > 0 else 0
-        intercept = 0
     
     # Expected slope is κ = 0.41
     expected_slope = KAPPA
@@ -791,7 +790,7 @@ def check_log_layer_equilibrium(y_plus: np.ndarray, P: np.ndarray, D: np.ndarray
         print("LOG LAYER BALANCE CHECK (P + Diff = D)")
         print("="*60)
         print(result['message'])
-        print(f"\nDetailed metrics:")
+        print("\nDetailed metrics:")
         print(f"  P/D in log layer:      {mean_ratio:.3f} (expected: {expected_P_over_D:.2f})")
         if mean_full_balance is not None:
             print(f"  (P+Diff)/D:            {mean_full_balance:.3f} (expected: 1.0)")
@@ -980,7 +979,7 @@ def diagnose_sa_physics(y_plus: np.ndarray, nuHat: np.ndarray,
         print("\n--- KEY METRICS ---")
         log_mask = (y_plus > 30) & (y_plus < 100)
         if np.any(log_mask):
-            print(f"Log layer (30 < y⁺ < 100):")
+            print("Log layer (30 < y⁺ < 100):")
             print(f"  Mean r:  {r_val[log_mask].mean():.3f} (equilibrium: r = 1)")
             print(f"  Mean fw: {fw_val[log_mask].mean():.3f} (equilibrium: fw ≈ 1)")
             print(f"  Mean χ:  {chi[log_mask].mean():.1f} (expected: κ·ȳ⁺ = {KAPPA * y_plus[log_mask].mean():.1f})")

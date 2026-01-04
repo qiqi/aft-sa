@@ -6,7 +6,6 @@ Dataclass-based configuration that can be loaded from YAML or constructed progra
 
 from dataclasses import dataclass, field, asdict
 from typing import Optional, List, Union, Dict, Any
-import numpy as np
 
 
 @dataclass

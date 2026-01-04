@@ -5,7 +5,7 @@ Enables running multiple simulations (e.g., AoA sweep) in parallel on GPU.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Union, Tuple, Dict, Any
+from typing import List, Optional, Union, Dict, Any
 import numpy as np
 
 from src.physics.jax_config import jax, jnp
@@ -1036,7 +1036,7 @@ class BatchRANSSolver:
         self._create_batch_functions(smoothing_epsilon, smoothing_passes)
         
         print(f"\n{'='*60}")
-        print(f"Batch RANS Solver Initialized")
+        print("Batch RANS Solver Initialized")
         print(f"{'='*60}")
         print(f"Grid size: {self.NI} x {self.NJ} cells")
         print(f"Batch size: {self.n_batch} cases")
