@@ -54,8 +54,8 @@ def compute_sa_source_jax(nuHat, grad, wall_dist, nu_laminar):
     omega = compute_vorticity_jax(grad)
     
     # SA production & destruction (with safe handling of negative nuHat)
-    P = compute_sa_production(omega, nuHat, wall_dist)
-    D = compute_sa_destruction(omega, nuHat, wall_dist)
+    P = compute_sa_production(omega, nuHat, wall_dist, nu_laminar)
+    D = compute_sa_destruction(omega, nuHat, wall_dist, nu_laminar)
     
     # cb2 gradient term: (cb2/σ)(∇ν̃)·(∇ν̃)
     grad_nuHat = grad[:, :, 3, :]  # (NI, NJ, 2) - gradients of nuHat
@@ -66,7 +66,7 @@ def compute_sa_source_jax(nuHat, grad, wall_dist, nu_laminar):
 
 
 @jax.jit
-def compute_sa_production_only_jax(nuHat, grad, wall_dist):
+def compute_sa_production_only_jax(nuHat, grad, wall_dist, nu_laminar):
     """
     Compute SA production term only.
     
@@ -80,6 +80,8 @@ def compute_sa_production_only_jax(nuHat, grad, wall_dist):
         Cell-centered gradients.
     wall_dist : jnp.ndarray (NI, NJ)
         Distance to nearest wall.
+    nu_laminar : float
+        Laminar kinematic viscosity (1/Re).
     
     Returns
     -------
@@ -87,11 +89,11 @@ def compute_sa_production_only_jax(nuHat, grad, wall_dist):
         Production term.
     """
     omega = compute_vorticity_jax(grad)
-    return compute_sa_production(omega, nuHat, wall_dist)
+    return compute_sa_production(omega, nuHat, wall_dist, nu_laminar)
 
 
 @jax.jit
-def compute_sa_destruction_only_jax(nuHat, grad, wall_dist):
+def compute_sa_destruction_only_jax(nuHat, grad, wall_dist, nu_laminar):
     """
     Compute SA destruction term only.
     
@@ -105,6 +107,8 @@ def compute_sa_destruction_only_jax(nuHat, grad, wall_dist):
         Cell-centered gradients.
     wall_dist : jnp.ndarray (NI, NJ)
         Distance to nearest wall.
+    nu_laminar : float
+        Laminar kinematic viscosity (1/Re).
     
     Returns
     -------
@@ -112,7 +116,7 @@ def compute_sa_destruction_only_jax(nuHat, grad, wall_dist):
         Destruction term.
     """
     omega = compute_vorticity_jax(grad)
-    return compute_sa_destruction(omega, nuHat, wall_dist)
+    return compute_sa_destruction(omega, nuHat, wall_dist, nu_laminar)
 
 
 @jax.jit

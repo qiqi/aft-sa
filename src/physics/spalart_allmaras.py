@@ -280,7 +280,7 @@ def sa_source_mask(nuHat):
 
 
 @jax.jit
-def compute_sa_production(omega, nuHat, d):
+def compute_sa_production(omega, nuHat, d, nu_laminar=1e-6):
     """
     Compute SA production term with non-negative safety.
     
@@ -294,6 +294,8 @@ def compute_sa_production(omega, nuHat, d):
         SA working variable (may contain negatives).
     d : jnp.ndarray
         Wall distance.
+    nu_laminar : float
+        Laminar kinematic viscosity (1/Re).
         
     Returns
     -------
@@ -307,9 +309,11 @@ def compute_sa_production(omega, nuHat, d):
     mask = sa_source_mask(nuHat)
     nuHat_safe = jnp.clip(nuHat, min=1e-10)
     
-    chi3 = nuHat_safe ** 3
+    # CRITICAL: chi = nuHat / nu_laminar, NOT chi = nuHat!
+    chi = nuHat_safe / nu_laminar
+    chi3 = chi ** 3
     fv1_val = chi3 / (chi3 + cv1 ** 3)
-    fv2_val = 1.0 - nuHat_safe / (1.0 + nuHat_safe * fv1_val)
+    fv2_val = 1.0 - chi / (1.0 + chi * fv1_val)
     
     inv_k2d2 = 1.0 / (kappa ** 2 * d ** 2 + 1e-20)
     S_tilde = omega + nuHat_safe * inv_k2d2 * fv2_val
@@ -320,7 +324,7 @@ def compute_sa_production(omega, nuHat, d):
 
 
 @jax.jit
-def compute_sa_destruction(omega, nuHat, d):
+def compute_sa_destruction(omega, nuHat, d, nu_laminar=1e-6):
     """
     Compute SA destruction term with non-negative safety.
     
@@ -334,6 +338,8 @@ def compute_sa_destruction(omega, nuHat, d):
         SA working variable (may contain negatives).
     d : jnp.ndarray
         Wall distance.
+    nu_laminar : float
+        Laminar kinematic viscosity (1/Re).
         
     Returns
     -------
@@ -352,9 +358,11 @@ def compute_sa_destruction(omega, nuHat, d):
     mask = sa_source_mask(nuHat)
     nuHat_safe = jnp.clip(nuHat, min=1e-10)
     
-    chi3 = nuHat_safe ** 3
+    # CRITICAL: chi = nuHat / nu_laminar, NOT chi = nuHat!
+    chi = nuHat_safe / nu_laminar
+    chi3 = chi ** 3
     fv1_val = chi3 / (chi3 + cv1 ** 3)
-    fv2_val = 1.0 - nuHat_safe / (1.0 + nuHat_safe * fv1_val)
+    fv2_val = 1.0 - chi / (1.0 + chi * fv1_val)
     
     inv_k2d2 = 1.0 / (kappa ** 2 * d ** 2 + 1e-20)
     S_tilde = omega + nuHat_safe * inv_k2d2 * fv2_val
