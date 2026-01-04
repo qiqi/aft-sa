@@ -12,7 +12,6 @@ from .schema import (
     NumericsConfig,
     OutputConfig,
     CFLConfig,
-    SmoothingConfig,
     super_coarse_preset,
     coarse_preset,
     production_preset,
@@ -34,7 +33,6 @@ __all__ = [
     'NumericsConfig',
     'OutputConfig',
     'CFLConfig',
-    'SmoothingConfig',
     # Presets
     'super_coarse_preset',
     'coarse_preset',

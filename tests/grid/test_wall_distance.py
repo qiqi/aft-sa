@@ -499,6 +499,38 @@ def plot_results(results):
     plt.close()
 
 
+def test_jax_wall_distance_accuracy():
+    """
+    Test JAX wall distance computation against analytical solution for circular wall.
+    """
+    print("\n" + "=" * 60)
+    print("JAX Wall Distance Accuracy Test")
+    print("=" * 60)
+    
+    # Generate O-grid around unit circle
+    n_theta, n_radial = 65, 33
+    X, Y, _ = generate_circle_grid(n_theta=n_theta, n_radial=n_radial)
+    
+    # Compute wall distance
+    mc = MetricComputer(X, Y, wall_j=0, n_wake=0)
+    d_computed = mc._compute_wall_distance_jax()
+    
+    # Analytical wall distance for circle: d = r - 1
+    xc, yc = mc._compute_cell_centers()
+    d_exact = np.sqrt(xc**2 + yc**2) - 1.0
+    
+    # Compare (skip j=0 which is on the wall)
+    err = np.abs(d_computed[:, 1:] - d_exact[:, 1:])
+    
+    print(f"  Grid: {n_theta} x {n_radial}")
+    print(f"  Max error: {err.max():.6e}")
+    print(f"  Mean error: {err.mean():.6e}")
+    
+    # Error should be small (discretization error from polygonal approximation)
+    assert err.max() < 0.01, f"Wall distance error too large: {err.max()}"
+    print("  ✅ PASSED")
+
+
 if __name__ == "__main__":
     exit(run_test())
 

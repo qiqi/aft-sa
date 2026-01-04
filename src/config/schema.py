@@ -15,9 +15,9 @@ class GridConfig:
     
     airfoil: str = "data/naca0012.dat"
     n_surface: int = 257       # Surface nodes (cells = nodes - 1)
-    n_normal: int = 65         # Normal direction nodes
     n_wake: int = 64           # Wake region nodes
     y_plus: float = 1.0        # Target y+ for first cell
+    gradation: float = 1.2     # Wall-normal cell growth ratio (1.1-1.3 recommended)
     farfield_radius: float = 15.0  # Farfield distance in chords
 
 
@@ -28,15 +28,6 @@ class CFLConfig:
     initial: float = 0.1       # Starting CFL
     final: float = 3.0         # Target CFL
     ramp_iter: int = 300       # Iterations to ramp from initial to final
-
-
-@dataclass
-class SmoothingConfig:
-    """Residual smoothing configuration."""
-    
-    type: str = "explicit"     # "explicit", "implicit", or "none"
-    epsilon: float = 0.2       # Smoothing coefficient
-    passes: int = 2            # Number of smoothing passes (explicit only)
 
 
 @dataclass 
@@ -51,6 +42,10 @@ class FlowConfig:
     # - Sweep spec: alpha: {sweep: [-5, 15, 21]}  (start, end, count)
     # - Explicit list: alpha: {values: [0, 2, 4, 6, 8]}
     alpha: Union[float, Dict[str, Any]] = 0.0
+    
+    # Initial/farfield turbulent viscosity ratio: χ = ν̃/ν
+    # Typical values: 3-5 for external aerodynamics
+    chi_inf: float = 3.0
     
     def is_batch(self) -> bool:
         """Check if this is a batch configuration."""
@@ -86,7 +81,6 @@ class NumericsConfig:
     beta: float = 10.0         # Artificial compressibility parameter
     wall_damping_length: float = 0.1  # Wall damping length scale
     sponge_thickness: int = 15  # Sponge layer thickness in cells for farfield stabilization
-    smoothing: SmoothingConfig = field(default_factory=SmoothingConfig)
 
 
 @dataclass
@@ -126,6 +120,7 @@ class SimulationConfig:
             mach=self.flow.mach,
             alpha=self.flow.alpha,
             reynolds=self.flow.reynolds,
+            chi_inf=self.flow.chi_inf,
             beta=self.numerics.beta,
             cfl_start=self.solver.cfl.initial,
             cfl_target=self.solver.cfl.final,
@@ -139,13 +134,10 @@ class SimulationConfig:
             wall_damping_length=self.numerics.wall_damping_length,
             jst_k4=self.numerics.jst_k4,
             sponge_thickness=self.numerics.sponge_thickness,
-            irs_epsilon=self.numerics.smoothing.epsilon if self.numerics.smoothing.type == "implicit" else 0.0,
-            smoothing_type=self.numerics.smoothing.type,
-            smoothing_epsilon=self.numerics.smoothing.epsilon,
-            smoothing_passes=self.numerics.smoothing.passes,
             n_wake=self.grid.n_wake,
             html_animation=self.output.html_animation,
             divergence_history=self.output.divergence_history,
+            target_yplus=self.grid.y_plus,
         )
     
     def to_dict(self) -> dict:
@@ -155,30 +147,30 @@ class SimulationConfig:
 
 # Preset configurations
 def super_coarse_preset() -> GridConfig:
-    """Super-coarse grid for fast testing (128x32 cells)."""
+    """Super-coarse grid for fast testing."""
     return GridConfig(
         n_surface=65,
-        n_normal=33,
         n_wake=32,
         y_plus=5.0,
+        gradation=1.5,  # Coarser stretching for speed
     )
 
 
 def coarse_preset() -> GridConfig:
-    """Coarse grid for debugging (256x32 cells)."""
+    """Coarse grid for debugging."""
     return GridConfig(
         n_surface=193,
-        n_normal=33,
         n_wake=32,
         y_plus=1.0,
+        gradation=1.3,
     )
 
 
 def production_preset() -> GridConfig:
-    """Production grid for accurate results (512x128 cells)."""
+    """Production grid for accurate results."""
     return GridConfig(
         n_surface=385,
-        n_normal=129,
         n_wake=64,
         y_plus=1.0,
+        gradation=1.15,  # Fine stretching for accuracy
     )

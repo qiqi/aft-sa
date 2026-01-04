@@ -72,6 +72,8 @@ Examples:
                         help="Angle of attack in degrees")
     parser.add_argument("--reynolds", "-Re", type=float,
                         help="Reynolds number")
+    parser.add_argument("--chi-inf", type=float,
+                        help="Initial/farfield turbulent viscosity ratio χ = ν̃/ν (default: 3.0)")
     
     # Solver settings
     parser.add_argument("--max-iter", "-n", type=int,
@@ -86,8 +88,6 @@ Examples:
                         help="Convergence tolerance")
     parser.add_argument("--beta", type=float,
                         help="Artificial compressibility parameter")
-    parser.add_argument("--irs", type=float,
-                        help="Implicit Residual Smoothing epsilon (legacy)")
     
     # Grid generation options
     parser.add_argument("--n-surface", type=int,
@@ -162,16 +162,16 @@ Examples:
         # Apply defaults for --coarse and --super-coarse
         if args.super_coarse:
             sim_config.grid.n_surface = 65
-            sim_config.grid.n_normal = 33
             sim_config.grid.n_wake = 32
             sim_config.grid.y_plus = 5.0
-            print("Using SUPER-COARSE grid mode (128x32 cells)")
+            sim_config.grid.gradation = 1.5
+            print("Using SUPER-COARSE grid mode")
         elif args.coarse:
             sim_config.grid.n_surface = 193
-            sim_config.grid.n_normal = 33
             sim_config.grid.n_wake = 32
             sim_config.grid.y_plus = 1.0
-            print("Using COARSE grid mode (256x32 cells)")
+            sim_config.grid.gradation = 1.3
+            print("Using COARSE grid mode")
         
         # Apply CLI overrides
         sim_config = apply_cli_overrides(sim_config, args)
@@ -185,16 +185,16 @@ Examples:
     if args.config:
         if args.super_coarse:
             sim_config.grid.n_surface = 65
-            sim_config.grid.n_normal = 33
             sim_config.grid.n_wake = 32
             sim_config.grid.y_plus = 5.0
-            print("Override: Using SUPER-COARSE grid (128x32 cells)")
+            sim_config.grid.gradation = 1.5
+            print("Override: Using SUPER-COARSE grid")
         elif args.coarse:
             sim_config.grid.n_surface = 193
-            sim_config.grid.n_normal = 33
             sim_config.grid.n_wake = 32
             sim_config.grid.y_plus = 1.0
-            print("Override: Using COARSE grid (256x32 cells)")
+            sim_config.grid.gradation = 1.3
+            print("Override: Using COARSE grid")
     
     # Convert to legacy SolverConfig
     config = sim_config.to_solver_config()
@@ -206,16 +206,18 @@ Examples:
     
     # Grid generation settings
     y_plus = sim_config.grid.y_plus
-    max_first_cell = 0.005 if sim_config.grid.n_normal <= 33 else 0.001
+    gradation = sim_config.grid.gradation
+    # Coarser grids (high gradation) need larger max_first_cell for safety
+    max_first_cell = 0.005 if gradation >= 1.4 else 0.001
     
     # Load or generate grid
     try:
         X, Y = load_or_generate_grid(
             sim_config.grid.airfoil,
             n_surface=sim_config.grid.n_surface,
-            n_normal=sim_config.grid.n_normal,
             n_wake=sim_config.grid.n_wake,
             y_plus=y_plus,
+            gradation=gradation,
             reynolds=sim_config.flow.reynolds,
             farfield_radius=sim_config.grid.farfield_radius,
             max_first_cell=max_first_cell,

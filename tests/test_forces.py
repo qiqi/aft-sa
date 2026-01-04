@@ -146,6 +146,145 @@ class TestDecomposition:
         assert forces.CL == pytest.approx(forces.CL_p + forces.CL_f, rel=1e-10)
 
 
+class TestJaxVsNumpyForces:
+    """Verify JAX and NumPy force implementations give identical results."""
+    
+    def test_jax_pure_matches_wrapper(self):
+        """Pure JAX force computation should match wrapper result."""
+        from src.physics.jax_config import jnp
+        from src.numerics.forces import compute_aerodynamic_forces_jax_pure
+        
+        NI, NJ = 20, 10
+        nghost = NGHOST
+        
+        # Create realistic test state
+        Q = np.zeros((NI + 2*nghost, NJ + 2*nghost, 4))
+        Q[:, :, 0] = 0.5  # Pressure
+        Q[:, :, 1] = 1.0  # u-velocity  
+        Q[:, :, 2] = 0.1  # v-velocity
+        Q[:, :, 3] = 0.001  # nuHat (SA variable)
+        
+        # Add some variation
+        np.random.seed(42)
+        Q[:, :, 0] += 0.1 * np.random.randn(*Q[:, :, 0].shape)
+        Q[:, nghost, 1] = 0.8  # Near-wall velocity
+        
+        # Create metrics
+        dx, dy = 0.1, 0.05
+        Sj_x = np.zeros((NI, NJ + 1))
+        Sj_y = np.ones((NI, NJ + 1)) * dx
+        volume = np.ones((NI, NJ)) * dx * dy
+        
+        mu_laminar = 0.001
+        mu_eff = np.full((NI, NJ), mu_laminar)
+        
+        # Parameters
+        alpha_deg = 5.0
+        alpha_rad = np.deg2rad(alpha_deg)
+        V_inf = 1.0
+        q_inf = 0.5 * V_inf**2
+        n_wake = 2
+        
+        # Compute with wrapper
+        class SimpleMetrics:
+            pass
+        metrics = SimpleMetrics()
+        metrics.Sj_x = Sj_x
+        metrics.Sj_y = Sj_y
+        metrics.volume = volume
+        
+        forces_wrapper = compute_aerodynamic_forces(
+            Q, metrics, mu_laminar=mu_laminar, mu_turb=None,
+            alpha_deg=alpha_deg, V_inf=V_inf, n_wake=n_wake
+        )
+        
+        # Compute with pure JAX
+        Q_jax = jnp.asarray(Q)
+        Sj_x_jax = jnp.asarray(Sj_x)
+        Sj_y_jax = jnp.asarray(Sj_y)
+        volume_jax = jnp.asarray(volume)
+        mu_eff_jax = jnp.asarray(mu_eff)
+        
+        CL_jax, CD_jax, CD_p_jax, CD_f_jax = compute_aerodynamic_forces_jax_pure(
+            Q_jax, Sj_x_jax, Sj_y_jax, volume_jax, mu_eff_jax,
+            np.sin(alpha_rad), np.cos(alpha_rad), q_inf,
+            n_wake, nghost
+        )
+        
+        # Compare
+        assert float(CL_jax) == pytest.approx(forces_wrapper.CL, rel=1e-10)
+        assert float(CD_jax) == pytest.approx(forces_wrapper.CD, rel=1e-10)
+        assert float(CD_p_jax) == pytest.approx(forces_wrapper.CD_p, rel=1e-10)
+        assert float(CD_f_jax) == pytest.approx(forces_wrapper.CD_f, rel=1e-10)
+    
+    def test_jax_pure_performance(self):
+        """Verify JAX version is faster for repeated calls."""
+        import time
+        from src.physics.jax_config import jnp
+        from src.numerics.forces import compute_aerodynamic_forces_jax_pure
+        
+        NI, NJ = 100, 50
+        nghost = NGHOST
+        
+        # Create test arrays
+        Q = np.random.randn(NI + 2*nghost, NJ + 2*nghost, 4)
+        Sj_x = np.random.randn(NI, NJ + 1) * 0.01
+        Sj_y = np.ones((NI, NJ + 1)) * 0.1
+        volume = np.ones((NI, NJ)) * 0.01
+        mu_eff = np.full((NI, NJ), 0.001)
+        
+        alpha_rad = np.deg2rad(5.0)
+        
+        # Convert to JAX
+        Q_jax = jnp.asarray(Q)
+        Sj_x_jax = jnp.asarray(Sj_x)
+        Sj_y_jax = jnp.asarray(Sj_y)
+        volume_jax = jnp.asarray(volume)
+        mu_eff_jax = jnp.asarray(mu_eff)
+        
+        # Warmup JIT
+        _ = compute_aerodynamic_forces_jax_pure(
+            Q_jax, Sj_x_jax, Sj_y_jax, volume_jax, mu_eff_jax,
+            np.sin(alpha_rad), np.cos(alpha_rad), 0.5, 0, nghost
+        )
+        
+        # Time JAX version
+        n_calls = 100
+        t0 = time.perf_counter()
+        for _ in range(n_calls):
+            CL, CD, _, _ = compute_aerodynamic_forces_jax_pure(
+                Q_jax, Sj_x_jax, Sj_y_jax, volume_jax, mu_eff_jax,
+                np.sin(alpha_rad), np.cos(alpha_rad), 0.5, 0, nghost
+            )
+            # Force sync to measure actual compute time
+            _ = float(CL)
+        t_jax = (time.perf_counter() - t0) / n_calls * 1000  # ms
+        
+        # Time wrapper version (includes NumPy↔JAX conversions)
+        class SimpleMetrics:
+            pass
+        metrics = SimpleMetrics()
+        metrics.Sj_x = Sj_x
+        metrics.Sj_y = Sj_y
+        metrics.volume = volume
+        
+        t0 = time.perf_counter()
+        for _ in range(n_calls):
+            _ = compute_aerodynamic_forces(
+                Q, metrics, mu_laminar=0.001, mu_turb=None,
+                alpha_deg=5.0, V_inf=1.0, n_wake=0
+            )
+        t_wrapper = (time.perf_counter() - t0) / n_calls * 1000  # ms
+        
+        print(f"\nForce computation timing ({n_calls} calls):")
+        print(f"  JAX pure: {t_jax:.3f} ms/call")
+        print(f"  Wrapper:  {t_wrapper:.3f} ms/call")
+        
+        # JAX version should be faster (no array conversions)
+        # But allow some slack since wrapper also uses JAX internally
+        assert t_jax < t_wrapper * 2, "JAX pure should not be significantly slower"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
 

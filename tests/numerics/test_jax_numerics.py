@@ -18,22 +18,22 @@ from src.constants import NGHOST
 # =============================================================================
 
 @pytest.fixture
-def small_grid():
-    """Small grid for quick tests."""
+def small_grid_dims():
+    """Small grid dimensions for quick tests."""
     NI, NJ = 32, 24
     return NI, NJ, NGHOST
 
 
 @pytest.fixture
-def medium_grid():
-    """Medium grid for validation."""
+def medium_grid_dims():
+    """Medium grid dimensions for validation."""
     NI, NJ = 64, 48
     return NI, NJ, NGHOST
 
 
 @pytest.fixture
-def large_grid():
-    """Large grid for performance tests."""
+def large_grid_dims():
+    """Large grid dimensions for performance tests."""
     NI, NJ = 256, 128
     return NI, NJ, NGHOST
 
@@ -70,9 +70,9 @@ def create_test_metrics(NI, NJ, seed=42):
 class TestFluxComparison:
     """Compare JAX and Numba flux computations."""
     
-    def test_flux_numerical_equivalence(self, medium_grid):
+    def test_flux_numerical_equivalence(self, medium_grid_dims):
         """JAX and Numba flux residuals should match."""
-        NI, NJ, nghost = medium_grid
+        NI, NJ, nghost = medium_grid_dims
         from src.numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics
         from src.numerics.fluxes import compute_fluxes_jax
         
@@ -103,9 +103,9 @@ class TestFluxComparison:
         print(f"Flux max diff: {max_diff:.2e}, rel diff: {rel_diff:.2e}")
         assert rel_diff < 1e-10, f"Flux mismatch: rel_diff = {rel_diff:.2e}"
     
-    def test_flux_performance(self, large_grid):
+    def test_flux_performance(self, large_grid_dims):
         """Benchmark flux computation."""
-        NI, NJ, nghost = large_grid
+        NI, NJ, nghost = large_grid_dims
         from src.numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics
         from src.numerics.fluxes import compute_fluxes_jax
         
@@ -155,9 +155,9 @@ class TestFluxComparison:
 class TestGradientComparison:
     """Compare JAX and Numba gradient computations."""
     
-    def test_gradient_numerical_equivalence(self, medium_grid):
+    def test_gradient_numerical_equivalence(self, medium_grid_dims):
         """JAX and Numba gradients should match."""
-        NI, NJ, nghost = medium_grid
+        NI, NJ, nghost = medium_grid_dims
         from src.numerics.gradients import compute_gradients, GradientMetrics
         from src.numerics.gradients import compute_gradients_jax
         
@@ -183,9 +183,9 @@ class TestGradientComparison:
         print(f"Gradient max diff: {max_diff:.2e}, rel diff: {rel_diff:.2e}")
         assert rel_diff < 1e-10, f"Gradient mismatch: rel_diff = {rel_diff:.2e}"
     
-    def test_gradient_performance(self, large_grid):
+    def test_gradient_performance(self, large_grid_dims):
         """Benchmark gradient computation."""
-        NI, NJ, nghost = large_grid
+        NI, NJ, nghost = large_grid_dims
         from src.numerics.gradients import compute_gradients, GradientMetrics
         from src.numerics.gradients import compute_gradients_jax
         
@@ -229,9 +229,9 @@ class TestGradientComparison:
 class TestViscousFluxComparison:
     """Compare JAX and Numba viscous flux computations."""
     
-    def test_viscous_flux_numerical_equivalence(self, medium_grid):
+    def test_viscous_flux_numerical_equivalence(self, medium_grid_dims):
         """JAX and Numba viscous fluxes should match."""
-        NI, NJ, nghost = medium_grid
+        NI, NJ, nghost = medium_grid_dims
         from src.numerics.gradients import compute_gradients, GradientMetrics
         from src.numerics.viscous_fluxes import compute_viscous_fluxes
         from src.numerics.viscous_fluxes import compute_viscous_fluxes_jax
@@ -263,9 +263,9 @@ class TestViscousFluxComparison:
         print(f"Viscous flux max diff: {max_diff:.2e}, rel diff: {rel_diff:.2e}")
         assert rel_diff < 1e-8, f"Viscous flux mismatch: rel_diff = {rel_diff:.2e}"
     
-    def test_viscous_flux_performance(self, large_grid):
+    def test_viscous_flux_performance(self, large_grid_dims):
         """Benchmark viscous flux computation."""
-        NI, NJ, nghost = large_grid
+        NI, NJ, nghost = large_grid_dims
         from src.numerics.gradients import compute_gradients, GradientMetrics
         from src.numerics.viscous_fluxes import compute_viscous_fluxes
         from src.numerics.viscous_fluxes import compute_viscous_fluxes_jax
@@ -313,9 +313,9 @@ class TestViscousFluxComparison:
 class TestIRSComparison:
     """Compare JAX and Numba Implicit Residual Smoothing."""
     
-    def test_irs_numerical_equivalence(self, medium_grid):
+    def test_irs_numerical_equivalence(self, medium_grid_dims):
         """JAX and Numba IRS should match."""
-        NI, NJ, _ = medium_grid
+        NI, NJ, _ = medium_grid_dims
         from src.numerics.smoothing import apply_residual_smoothing
         from src.numerics.smoothing import apply_residual_smoothing_jax
         
@@ -337,9 +337,9 @@ class TestIRSComparison:
         print(f"IRS max diff: {max_diff:.2e}, rel diff: {rel_diff:.2e}")
         assert rel_diff < 1e-10, f"IRS mismatch: rel_diff = {rel_diff:.2e}"
     
-    def test_irs_different_epsilon(self, small_grid):
+    def test_irs_different_epsilon(self, small_grid_dims):
         """Test IRS with different epsilon values."""
-        NI, NJ, _ = small_grid
+        NI, NJ, _ = small_grid_dims
         from src.numerics.smoothing import apply_residual_smoothing
         from src.numerics.smoothing import apply_residual_smoothing_jax
         
@@ -360,9 +360,9 @@ class TestIRSComparison:
         
         print("IRS matches for all epsilon values")
     
-    def test_irs_performance(self, large_grid):
+    def test_irs_performance(self, large_grid_dims):
         """Benchmark IRS computation."""
-        NI, NJ, _ = large_grid
+        NI, NJ, _ = large_grid_dims
         from src.numerics.smoothing import apply_residual_smoothing
         from src.numerics.smoothing import apply_residual_smoothing_jax
         
@@ -404,9 +404,9 @@ class TestIRSComparison:
 class TestPerformanceSummary:
     """Combined performance test for all kernels."""
     
-    def test_all_kernels_performance(self, large_grid):
+    def test_all_kernels_performance(self, large_grid_dims):
         """Benchmark all numerical kernels together."""
-        NI, NJ, nghost = large_grid
+        NI, NJ, nghost = large_grid_dims
         
         from src.numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics
         from src.numerics.fluxes import compute_fluxes_jax

@@ -4,9 +4,9 @@
 grid:
   airfoil: data/naca0012.dat
   n_surface: 257      # Surface nodes (256 cells)
-  n_normal: 65        # Normal nodes (64 cells)
   n_wake: 64          # Wake region nodes
   y_plus: 1.0         # Target y+ for first cell
+  gradation: 1.2      # Wall-normal cell growth ratio
 
 flow:
   reynolds: 6.0e+6
@@ -27,11 +27,6 @@ solver:
 numerics:
   jst_k4: 0.04        # 4th-order dissipation
   beta: 10.0          # Artificial compressibility
-  
-  smoothing:
-    type: explicit
-    epsilon: 0.2
-    passes: 2
 
 output:
   directory: output/single_case

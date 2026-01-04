@@ -26,11 +26,6 @@ solver:
 numerics:
   jst_k4: 0.02        # Lower dissipation for fine grid
   beta: 10.0
-  
-  smoothing:
-    type: explicit
-    epsilon: 0.15
-    passes: 3
 
 output:
   directory: output/production

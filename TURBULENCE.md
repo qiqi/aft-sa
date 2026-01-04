@@ -1,8 +1,73 @@
-# SA Turbulence Model Integration Plan
+# SA Turbulence Model Integration
 
-This document outlines the plan to integrate the Spalart-Allmaras (SA) turbulence equation into the RANS solver, including the AFT (Amplification Factor Transport) transition model.
+This document describes the Spalart-Allmaras (SA) turbulence model integration in the RANS solver, including the AFT (Amplification Factor Transport) transition model.
 
-## Current State (January 2025)
+## Implementation Status (January 2025)
+
+### ✅ SA Turbulence Model: Full Implementation with Tight-Stencil Viscous Fluxes
+
+The SA turbulence model is fully integrated with improved numerical stability:
+
+- **Production**: `P = cb1 · S̃ · ν̃` (explicit) ✅
+- **Destruction**: `D = cw1 · fw · (ν̃/d)²` (point-implicit) ✅
+- **cb2 term**: `(cb2/σ)(∇ν̃)·(∇ν̃)` ✅ (implemented as advection with JST dissipation)
+- **SA diffusion**: ✅ (tight-stencil implementation)
+
+### Tight-Stencil Viscous Flux Implementation
+
+The viscous fluxes now use a tight-stencil approach for improved diagonal dominance and stability:
+
+1. **Two-point difference** along coordinate line (cell-center to cell-center)
+2. **Least-squares correction** for non-orthogonal grids using 6-cell stencil
+3. **Unified kernel** handles all 4 variables (momentum + SA diffusion)
+
+Key components in `src/grid/metrics.py`:
+- `FaceGeometry`: stores d_coord, e_coord, e_ortho for each face
+- `LSWeights`: 6 weights per face for orthogonal derivative computation
+
+### cb2 Term as Advection
+
+The cb2 term is treated as an advection of ν̃ with velocity = ∇ν̃:
+- Uses Green-Gauss gradient of ν̃ as "advection velocity"
+- JST dissipation uses |∇ν̃| for spectral radius (NOT physical u,v)
+- Implemented in `compute_sa_cb2_advection_jax()`
+
+### Patankar-Euler Scheme for nuHat
+
+The SA equation can produce negative updates from various terms (destruction, cb2, diffusion), which would make ν̃ negative and cause instability. Instead of explicit update:
+```
+ν̃_new = ν̃_old + dν̃    (can go negative if dν̃ < -ν̃_old)
+```
+
+We use the Patankar-Euler scheme:
+- If `dν̃ ≥ 0`: normal update: `ν̃_new = ν̃_old + dν̃`
+- If `dν̃ < 0`: update reciprocal: `ν̃_new = ν̃_old / (1 - dν̃/ν̃_old)`
+
+The reciprocal update is equivalent to:
+```
+1/ν̃_new = 1/ν̃_old - dν̃/ν̃_old²
+```
+
+This ensures ν̃_new stays positive if ν̃_old > 0, providing unconditional positivity preservation regardless of the timestep or source term magnitude.
+
+### Known Limitations
+
+1. **BatchRANSSolver**: Still uses old wide-stencil viscous fluxes. Can be updated if needed.
+
+2. **Base solver stability**: The artificial compressibility method can become unstable with flow separation. Low CFL (≤1) recommended for RANS cases.
+
+3. **LS Weight Limiting**: For highly stretched grids (high aspect ratio cells near walls), the least-squares weights can become very large, causing numerical instability. Weights exceeding magnitude 1000 are zeroed, falling back to pure coordinate-line gradients (no orthogonal correction) for those faces.
+
+### Testing
+
+The tight-stencil viscous flux implementation is validated with:
+
+- **Non-Cartesian (skewed) grids**: All tests use distorted grids to verify robustness
+- **Stencil isolation tests**: Verified that inf/NaN values outside the 6-cell stencil don't pollute interior cells
+- **Linear field exactness**: LS weights correctly reproduce derivatives of linear functions on skewed grids
+- **SA diffusion tests**: Zero residual for constant ν̃, correct diffusion behavior
+
+See `tests/grid/test_face_geometry.py`, `tests/numerics/test_tight_viscous.py`, and `tests/numerics/test_sa_cb2_advection.py`.
 
 ### RANS Solver Architecture
 
@@ -12,15 +77,12 @@ The solver (`src/solvers/rans_solver.py`) is fully GPU-accelerated using JAX:
 - **Full GPU execution**: JIT-compiled RK5 stages, no CPU transfers during iteration
 - **Batch support**: `BatchRANSSolver` in `src/solvers/batch.py` for parallel AoA sweeps
 
-**Current turbulence handling:**
-- Computes `μ_t = ν̃ · fv1(ν̃)` for effective viscosity
+**Turbulence handling:**
+- Computes `μ_t = ν̃ · fv1(ν̃)` for effective viscosity in momentum equations
 - Convects `ν̃` through the JST flux scheme
-- Applies boundary conditions for `ν̃`
-
-**What is NOT yet implemented:**
-- SA production term: `P = cb1 · S̃ · ν̃`
-- SA destruction term: `D = cw1 · fw · (ν̃/d)²`
-- SA diffusion with cb2 term: `(cb2/σ)(∇ν̃)·(∇ν̃)`
+- **SA source terms** added via `compute_sa_source_jax()` - production, destruction, and cb2 gradient term
+- **SA diffusion** included in viscous fluxes via `compute_viscous_fluxes_with_sa_jax()`
+- Applies boundary conditions for `ν̃` (wall: ν̃=0, farfield: small freestream value)
 
 ### SA Model Implementation (`src/physics/spalart_allmaras.py`)
 
@@ -263,16 +325,19 @@ def compute_aft_sa_source_jax(nuHat, grad, wall_dist, nu_laminar):
 
 ---
 
-## Files to Create/Modify
+## Files Modified/Created
 
-| File | Action | Description |
+| File | Status | Description |
 |------|--------|-------------|
-| `src/numerics/sa_sources.py` | **Create** | SA source term computation (P, D, cb2) |
-| `src/numerics/viscous_fluxes.py` | **Modify** | Add SA diffusion to residual index 3 |
-| `src/solvers/rans_solver.py` | **Modify** | Add SA sources to RK stage JIT function |
-| `src/solvers/batch.py` | **Modify** | Add SA sources to batch kernels |
-| `tests/numerics/test_sa_sources.py` | **Create** | Unit tests for SA source terms |
-| `tests/solver/test_sa_rans.py` | **Create** | Integration test (flat plate transition) |
+| `src/grid/metrics.py` | ✅ Modified | Added `FaceGeometry`, `LSWeights`, face geometry + LS weight computation |
+| `src/numerics/sa_sources.py` | ✅ Modified | Added `compute_sa_cb2_advection_jax()` for cb2 as advection |
+| `src/numerics/viscous_fluxes.py` | ✅ Modified | Added `compute_viscous_fluxes_tight_jax()` unified tight-stencil flux |
+| `src/solvers/rans_solver.py` | ✅ Modified | Full tight-stencil integration, cb2 advection, face geometry |
+| `src/solvers/batch.py` | ⚠️ Pending | Still uses old wide-stencil, needs update |
+| `tests/grid/test_face_geometry.py` | ✅ Created | Tests for face geometry and LS weights (10 tests) |
+| `tests/numerics/test_tight_viscous.py` | ✅ Created | Tests for tight-stencil viscous flux (5 tests) |
+| `tests/numerics/test_sa_cb2_advection.py` | ✅ Created | Tests for cb2 advection (5 tests) |
+| `tests/numerics/test_sa_sources.py` | ✅ Existing | SA source term tests |
 
 ---
 
