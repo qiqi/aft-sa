@@ -45,6 +45,9 @@ class Snapshot:
     vel_max: float = 0.0
     p_min: float = 0.0
     p_max: float = 0.0
+    # AFT diagnostic fields (optional)
+    Re_Omega: Optional[np.ndarray] = None  # Vorticity Reynolds number
+    Gamma: Optional[np.ndarray] = None     # Shape factor for AFT
 
 
 class PlotlyDashboard:
@@ -90,6 +93,8 @@ class PlotlyDashboard:
         freestream: Any = None,
         iteration_history: Optional[List[int]] = None,
         is_divergence_dump: bool = False,
+        Re_Omega: Optional[np.ndarray] = None,
+        Gamma: Optional[np.ndarray] = None,
     ) -> None:
         """Store current solution state with diagnostic data."""
         Q_int = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
@@ -104,7 +109,8 @@ class PlotlyDashboard:
             self.v_inf = freestream.v_inf
         
         # Create snapshot
-        snapshot = self._create_snapshot(Q_int, iteration, residual, cfl, C_pt, residual_field)
+        snapshot = self._create_snapshot(Q_int, iteration, residual, cfl, C_pt, residual_field,
+                                         Re_Omega, Gamma)
         
         if is_divergence_dump:
             self.divergence_snapshots.append(snapshot)
@@ -134,6 +140,8 @@ class PlotlyDashboard:
         cfl: float,
         C_pt: Optional[np.ndarray],
         residual_field: Optional[np.ndarray],
+        Re_Omega: Optional[np.ndarray] = None,
+        Gamma: Optional[np.ndarray] = None,
     ) -> Snapshot:
         """Create a Snapshot from solution data."""
         max_safe_vel = 1e10
@@ -161,6 +169,14 @@ class PlotlyDashboard:
             res_clipped = np.clip(residual_field, -max_safe_vel, max_safe_vel)
             res_field = sanitize_array(np.sqrt(np.mean(res_clipped**2, axis=2)), fill_value=1e-12)
         
+        # AFT diagnostic fields
+        Re_Omega_arr = None
+        if Re_Omega is not None:
+            Re_Omega_arr = sanitize_array(Re_Omega, fill_value=1.0).copy()
+        Gamma_arr = None
+        if Gamma is not None:
+            Gamma_arr = sanitize_array(Gamma, fill_value=0.0).copy()
+        
         return Snapshot(
             iteration=iteration,
             residual=residual,
@@ -174,6 +190,8 @@ class PlotlyDashboard:
             vel_max=float(safe_absmax(vel_mag, default=1.0)),
             p_min=float(safe_minmax(p_rel)[0]),
             p_max=float(safe_minmax(p_rel)[1]),
+            Re_Omega=Re_Omega_arr,
+            Gamma=Gamma_arr,
         )
     
     def _compute_cpt(self, Q_int: np.ndarray, u_abs: np.ndarray, v_abs: np.ndarray) -> Optional[np.ndarray]:
@@ -235,23 +253,29 @@ class PlotlyDashboard:
         has_res_field = self.snapshots[0].residual_field is not None
         has_wall_dist = wall_distance is not None
         has_surface_data = X is not None and Y is not None
+        has_aft = self.snapshots[0].Re_Omega is not None and self.snapshots[0].Gamma is not None
         
         # Compute color ranges
         color_config = compute_color_ranges(self.snapshots, self.nu_laminar, has_cpt, has_res_field)
         
         # Create figure
-        fig = self._create_figure(has_wall_dist, has_surface_data, has_cpt, has_res_field)
+        fig = self._create_figure(has_wall_dist, has_surface_data, has_cpt, has_res_field, has_aft)
         
         # Add all traces
         xc, yc = grid_metrics.xc, grid_metrics.yc
         self._add_contour_traces(fig, xc, yc, all_snapshots[-1], color_config, has_cpt, has_res_field)
-        self._add_convergence_traces(fig)
+        
+        # Add AFT diagnostic traces (row 4 when present, just above convergence)
+        if has_aft:
+            self._add_aft_traces(fig, xc, yc, all_snapshots[-1], color_config)
+        
+        self._add_convergence_traces(fig, has_aft)
         
         yplus_params = None
         if has_wall_dist:
             yplus_params = self._add_wall_distance_trace(
                 fig, xc, yc, wall_distance, color_config,
-                grid_metrics, all_snapshots, n_wake, mu_laminar
+                grid_metrics, all_snapshots, n_wake, mu_laminar, has_aft
             )
             # Warn if max y+ exceeds 2x target
             if yplus_params and yplus_params.get('yplus_max', 0) > 2 * target_yplus:
@@ -261,17 +285,18 @@ class PlotlyDashboard:
         surface_params = None
         if has_surface_data:
             surface_params = self._add_surface_traces(
-                fig, grid_metrics, X, all_snapshots, n_wake, mu_laminar, has_wall_dist
+                fig, grid_metrics, X, all_snapshots, n_wake, mu_laminar, has_wall_dist, has_aft
             )
         
         # Create animation frames
         self._add_animation_frames(
             fig, xc, yc, all_snapshots, color_config, has_cpt, has_res_field,
-            has_surface_data, surface_params, grid_metrics, n_wake, mu_laminar
+            has_surface_data, surface_params, grid_metrics, n_wake, mu_laminar, has_aft
         )
         
         # Configure layout
-        self._configure_layout(fig, all_snapshots, color_config, has_wall_dist, has_surface_data, surface_params, yplus_params)
+        self._configure_layout(fig, all_snapshots, color_config, has_wall_dist, has_surface_data, 
+                              surface_params, yplus_params, has_aft)
         
         # Write HTML with optional CDN and gzip compression
         include_plotlyjs: Any = 'cdn' if self.use_cdn else True
@@ -319,9 +344,12 @@ class PlotlyDashboard:
         has_surface_data: bool,
         has_cpt: bool,
         has_res_field: bool,
+        has_aft: bool = False,
     ) -> 'go.Figure':
         """Create the subplot figure layout."""
         n_rows = 4
+        if has_aft:
+            n_rows += 1  # AFT row (Re_Omega, Gamma) before convergence
         if has_wall_dist:
             n_rows += 1
         if has_surface_data:
@@ -333,8 +361,10 @@ class PlotlyDashboard:
             'U-velocity (u - u∞)', 'V-velocity (v - v∞)',
             'Residual Field (log₁₀)' if has_res_field else 'Velocity Magnitude',
             'χ = ν̃/ν (Turbulent/Laminar Viscosity Ratio)',
-            'Convergence History',
         ]
+        if has_aft:
+            subplot_titles.extend(['Re_Ω (Vorticity Reynolds Number)', 'Γ (AFT Shape Factor)'])
+        subplot_titles.append('Convergence History')
         if has_wall_dist:
             subplot_titles.extend(['Wall Distance (d/c)', 'y⁺ Distribution'])
         if has_surface_data:
@@ -344,8 +374,10 @@ class PlotlyDashboard:
             [{"type": "xy"}, {"type": "xy"}],
             [{"type": "xy"}, {"type": "xy"}],
             [{"type": "xy"}, {"type": "xy"}],
-            [{"type": "scatter", "colspan": 2}, None],
         ]
+        if has_aft:
+            specs.append([{"type": "xy"}, {"type": "xy"}])  # Re_Omega and Gamma contours
+        specs.append([{"type": "scatter", "colspan": 2}, None])  # Convergence
         if has_wall_dist:
             specs.append([{"type": "xy"}, {"type": "scatter"}])  # Wall dist contour + y+ line plot
         if has_surface_data:
@@ -415,10 +447,81 @@ class PlotlyDashboard:
                 showscale=show_colorbar,
             ), row=row, col=col)
     
-    def _add_convergence_traces(self, fig: 'go.Figure') -> None:
+    def _add_aft_traces(
+        self,
+        fig: 'go.Figure',
+        xc: np.ndarray,
+        yc: np.ndarray,
+        snapshot: Snapshot,
+        color_config: dict,
+    ) -> None:
+        """Add AFT diagnostic field traces (Re_Omega and Gamma)."""
+        if snapshot.Re_Omega is None or snapshot.Gamma is None:
+            return
+        
+        ni, nj = xc.shape
+        A, B = np.meshgrid(np.arange(ni), np.arange(nj), indexing='ij')
+        
+        # Re_Omega: log scale from 10 to 10000
+        # Take log10 for display, clamp to valid range
+        Re_Omega_safe = np.maximum(sanitize_array(snapshot.Re_Omega, fill_value=10.0), 1.0)
+        Re_Omega_log = np.log10(Re_Omega_safe)
+        
+        # Gamma: linear scale from 0 to 2
+        Gamma_safe = sanitize_array(snapshot.Gamma, fill_value=0.0)
+        
+        # AFT row is row 4
+        aft_row = 4
+        
+        # Re_Omega contour (left, col 1)
+        fig.add_trace(go.Carpet(
+            a=A.flatten(), b=B.flatten(),
+            x=xc.flatten(), y=yc.flatten(),
+            carpet='carpet_re_omega',
+            aaxis=dict(showgrid=False, showticklabels='none', showline=False),
+            baxis=dict(showgrid=False, showticklabels='none', showline=False),
+        ), row=aft_row, col=1)
+        
+        fig.add_trace(go.Contourcarpet(
+            a=A.flatten(), b=B.flatten(),
+            z=to_json_safe_list(Re_Omega_log),
+            carpet='carpet_re_omega',
+            colorscale='Viridis',
+            zmin=1.0, zmax=4.0,  # log10(10) to log10(10000)
+            contours=dict(coloring='fill', showlines=False),
+            ncontours=self.N_CONTOURS,
+            colorbar=dict(title='log₁₀(Re_Ω)', x=0.45, len=0.2, y=0.42),
+            showscale=True,
+        ), row=aft_row, col=1)
+        
+        # Gamma contour (right, col 2)
+        fig.add_trace(go.Carpet(
+            a=A.flatten(), b=B.flatten(),
+            x=xc.flatten(), y=yc.flatten(),
+            carpet='carpet_gamma',
+            aaxis=dict(showgrid=False, showticklabels='none', showline=False),
+            baxis=dict(showgrid=False, showticklabels='none', showline=False),
+        ), row=aft_row, col=2)
+        
+        fig.add_trace(go.Contourcarpet(
+            a=A.flatten(), b=B.flatten(),
+            z=to_json_safe_list(Gamma_safe),
+            carpet='carpet_gamma',
+            colorscale='Reds',
+            zmin=0.0, zmax=2.0,
+            contours=dict(coloring='fill', showlines=False),
+            ncontours=self.N_CONTOURS,
+            colorbar=dict(title='Γ', x=1.0, len=0.2, y=0.42),
+            showscale=True,
+        ), row=aft_row, col=2)
+    
+    def _add_convergence_traces(self, fig: 'go.Figure', has_aft: bool = False) -> None:
         """Add convergence history traces."""
         eq_names = ['Pressure', 'U-velocity', 'V-velocity', 'ν̃ (nuHat)']
         eq_colors = ['blue', 'red', 'green', 'purple']
+        
+        # Convergence row depends on whether AFT row exists
+        conv_row = 5 if has_aft else 4
         
         if self.residual_history:
             all_iters = (self.iteration_history 
@@ -432,7 +535,7 @@ class PlotlyDashboard:
                     mode='lines', line=dict(color=eq_colors[eq_idx], width=1.5),
                     showlegend=True, name=eq_names[eq_idx],
                     legendgroup='convergence',
-                ), row=4, col=1)
+                ), row=conv_row, col=1)
         
         # Snapshot markers
         snapshot_iters = [s.iteration for s in self.snapshots]
@@ -443,7 +546,7 @@ class PlotlyDashboard:
             marker=dict(color='black', size=8, symbol='circle'),
             showlegend=True, name='Snapshots',
             legendgroup='convergence',
-        ), row=4, col=1)
+        ), row=conv_row, col=1)
         
         # Divergence markers
         if self.divergence_snapshots:
@@ -455,7 +558,7 @@ class PlotlyDashboard:
                 marker=dict(color='orange', size=12, symbol='triangle-up'),
                 showlegend=True, name='Divergence',
                 legendgroup='convergence',
-            ), row=4, col=1)
+            ), row=conv_row, col=1)
     
     def _add_wall_distance_trace(
         self,
@@ -468,11 +571,17 @@ class PlotlyDashboard:
         all_snapshots: List[Snapshot],
         n_wake: int,
         mu_laminar: float,
+        has_aft: bool = False,
     ) -> Optional[dict]:
         """Add wall distance contour trace and y+ distribution plot."""
         ni, nj = xc.shape
         A, B = np.meshgrid(np.arange(ni), np.arange(nj), indexing='ij')
         cfg = color_config['wall_dist']
+        
+        # Row depends on whether AFT row exists:
+        # Without AFT: row 5 (after convergence at row 4)
+        # With AFT: row 6 (after convergence at row 5)
+        wall_row = 6 if has_aft else 5
         
         # Left: Wall distance contour
         fig.add_trace(go.Carpet(
@@ -481,7 +590,7 @@ class PlotlyDashboard:
             carpet='carpet_wall_dist',
             aaxis=dict(showgrid=False, showticklabels='none', showline=False),
             baxis=dict(showgrid=False, showticklabels='none', showline=False),
-        ), row=5, col=1)
+        ), row=wall_row, col=1)
         
         fig.add_trace(go.Contourcarpet(
             a=A.flatten(), b=B.flatten(),
@@ -493,7 +602,7 @@ class PlotlyDashboard:
             ncontours=self.N_CONTOURS,
             colorbar=cfg.colorbar,
             showscale=True,
-        ), row=5, col=1)
+        ), row=wall_row, col=1)
         
         # Right: y+ distribution along airfoil surface
         i_start = n_wake
@@ -514,17 +623,18 @@ class PlotlyDashboard:
             x=x_surf, y=y_plus,
             mode='lines', line=dict(color='green', width=2),
             showlegend=False, name='y⁺',
-        ), row=5, col=2)
+        ), row=wall_row, col=2)
         
         # Add reference line at y+ = 1
         fig.add_trace(go.Scatter(
             x=[x_surf.min(), x_surf.max()], y=[1.0, 1.0],
             mode='lines', line=dict(color='gray', width=1, dash='dash'),
             showlegend=False, name='y⁺=1',
-        ), row=5, col=2)
+        ), row=wall_row, col=2)
         
         return {
             'yplus_trace_idx': yplus_trace_idx,
+            'wall_row': wall_row,
             'i_start': i_start,
             'i_end': i_end,
             'x_surf': x_surf,
@@ -540,10 +650,18 @@ class PlotlyDashboard:
         n_wake: int,
         mu_laminar: float,
         has_wall_dist: bool,
+        has_aft: bool = False,
     ) -> dict:
         """Add Cp and Cf surface plot traces."""
         ni = grid_metrics.xc.shape[0]
-        surface_row = 6 if has_wall_dist else 5
+        # Base row is 4 (after chi plot), +1 for AFT, +1 for convergence, +1 for wall_dist
+        base_row = 4  # After chi
+        if has_aft:
+            base_row += 1  # AFT row
+        base_row += 1  # Convergence
+        if has_wall_dist:
+            base_row += 1  # Wall distance row
+        surface_row = base_row
         
         i_start = n_wake
         i_end = ni - n_wake
@@ -606,6 +724,7 @@ class PlotlyDashboard:
         grid_metrics: 'FVMMetrics',
         n_wake: int,
         mu_laminar: float,
+        has_aft: bool = False,
     ) -> None:
         """Add animation frames for all snapshots."""
         ni, nj = xc.shape
@@ -614,8 +733,16 @@ class PlotlyDashboard:
         divergence_iters = {s.iteration for s in self.divergence_snapshots}
         
         # Trace indices for animation
+        # Base: 6 contour plots (each has carpet + contourcarpet = 2 traces), so indices 1,3,5,7,9,11
         base_contour_indices = [1, 3, 5, 7, 9, 11]
-        residual_marker_idx = 12 + 4
+        n_base_traces = 12  # 6 carpet + 6 contourcarpet
+        
+        # If AFT is present, it adds 4 more traces (2 carpet + 2 contourcarpet)
+        # AFT fields are NOT animated (static display of last frame)
+        n_aft_traces = 4 if has_aft else 0
+        
+        # Convergence: 4 line traces + 1 snapshot marker + 1 divergence marker = 6 traces
+        residual_marker_idx = n_base_traces + n_aft_traces + 4  # 4 line traces before marker
         animated_indices = base_contour_indices + [residual_marker_idx]
         
         if has_surface_data and surface_params:
@@ -747,9 +874,14 @@ class PlotlyDashboard:
         has_surface_data: bool,
         surface_params: Optional[dict],
         yplus_params: Optional[dict] = None,
+        has_aft: bool = False,
     ) -> None:
         """Configure figure layout, sliders, and axes."""
         divergence_iters = {s.iteration for s in self.divergence_snapshots}
+        
+        # Row numbers depend on has_aft
+        conv_row = 5 if has_aft else 4
+        wall_row = (conv_row + 1) if has_wall_dist else None
         
         # Iteration slider steps
         slider_steps = [
@@ -776,6 +908,15 @@ class PlotlyDashboard:
         v_steps = make_log_range_slider_steps(v_cfg.cmax, [5, 7], False, n_steps)
         r_steps = make_log_range_slider_steps(r_cfg.cmax, [9], True, n_steps)
         chi_steps = make_log_range_slider_steps(chi_cfg.cmax, [11], True, n_steps)
+        
+        # Height: base 1600 + 350 for AFT row + 350 for wall_dist + 300 for surface
+        height = 1600
+        if has_aft:
+            height += 350
+        if has_wall_dist:
+            height += 350
+        if has_surface_data:
+            height += 300
         
         fig.update_layout(
             showlegend=False,
@@ -811,18 +952,21 @@ class PlotlyDashboard:
                      currentvalue=dict(font=dict(size=9), prefix='χ: ', visible=True, xanchor='left'),
                      pad=dict(b=5, t=5), len=0.11, x=0.88, y=1.04, steps=chi_steps, ticklen=0),
             ],
-            height=1600 + (350 if has_wall_dist else 0) + (300 if has_surface_data else 0),
+            height=height,
             width=1400,
             margin=dict(t=80),
         )
         
-        # Link axes
+        # Link axes for 2D contour plots
         fig.update_xaxes(title_text='x', range=[-0.5, 1.5], scaleanchor='y', scaleratio=1, row=1, col=1)
         fig.update_yaxes(title_text='y', range=[-0.5625, 0.5625], row=1, col=1)
         
+        # Field positions for linked axes (rows 1-3 always, plus AFT row 4 if present, plus wall_dist)
         field_positions = [(1, 1), (1, 2), (2, 1), (2, 2), (3, 1), (3, 2)]
-        if has_wall_dist:
-            field_positions.append((5, 1))
+        if has_aft:
+            field_positions.extend([(4, 1), (4, 2)])  # AFT row
+        if wall_row is not None:
+            field_positions.append((wall_row, 1))  # Wall distance
         
         for row, col in field_positions:
             if row == 1 and col == 1:
@@ -830,14 +974,15 @@ class PlotlyDashboard:
             fig.update_xaxes(title_text='x', range=[-0.5, 1.5], matches='x', row=row, col=col)
             fig.update_yaxes(title_text='y', range=[-0.5625, 0.5625], matches='y', row=row, col=col)
         
-        fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, fixedrange=True, row=4, col=1)
-        fig.update_yaxes(title_text='RMS Residual', matches=None, type='log', autorange=True, fixedrange=True, row=4, col=1)
+        # Convergence plot
+        fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, fixedrange=True, row=conv_row, col=1)
+        fig.update_yaxes(title_text='RMS Residual', matches=None, type='log', autorange=True, fixedrange=True, row=conv_row, col=1)
         
-        if has_wall_dist and yplus_params:
-            # y+ plot is on row 5, col 2 - log scale with fixed range
-            fig.update_xaxes(title_text='x/c', range=[0, 1], matches=None, fixedrange=True, row=5, col=2)
+        if has_wall_dist and yplus_params and wall_row is not None:
+            # y+ plot - log scale with fixed range
+            fig.update_xaxes(title_text='x/c', range=[0, 1], matches=None, fixedrange=True, row=wall_row, col=2)
             fig.update_yaxes(title_text='y⁺', type='log', range=[np.log10(0.0005), np.log10(5)], 
-                           matches=None, fixedrange=True, row=5, col=2)
+                           matches=None, fixedrange=True, row=wall_row, col=2)
         
         if has_surface_data and surface_params:
             surface_row = surface_params['surface_row']

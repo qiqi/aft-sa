@@ -101,6 +101,17 @@ def compute_flux(Q, metrics):
 - Add type hints to function signatures where missing
 - Use `from __future__ import annotations` for forward references
 
+## Mode: CI Repair
+If the user mentions "CI failed" or "Fix the build":
+1.  **Fetch Logs**: Run the following terminal command to get the logs of the last failed run:
+    `gh run view --log-failed`
+2.  **Analyze**: Read the output. Identify if the failure is:
+    - **Linting/Style**: (e.g., Flake8, Prettier). Apply the fix directly.
+    - **Test Failure**: Identify the specific test case and line number.
+    - **Build Error**: Check for missing dependencies or syntax errors.
+3.  **Cross-Reference**: Check `AGENTS.md` to ensure you aren't fixing a file currently being written by a "Builder" agent (which might be the cause of the break).
+4.  **Fix**: Apply the minimum code change required to pass the check.
+
 ---
 
 ## Workflow

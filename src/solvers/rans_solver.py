@@ -38,6 +38,8 @@ from ..numerics.gradients import compute_gradients_jax
 # viscous_fluxes: tight_with_ghosts version used
 from ..numerics.explicit_smoothing import smooth_explicit_jax
 from ..numerics.sa_sources import compute_sa_source_jax, compute_aft_sa_source_jax
+from ..numerics.aft_sources import compute_Re_Omega, compute_gamma
+from ..numerics.gradients import compute_vorticity_jax
 from .time_stepping import compute_local_timestep_jax
 from .boundary_conditions import make_apply_bc_jit
 
@@ -570,11 +572,16 @@ class RANSSolver:
                 self.freestream.u_inf, self.freestream.v_inf
             )
             initial_R = self._compute_residual(self.Q)
+            # Compute AFT diagnostic fields if AFT is enabled
+            Re_Omega, Gamma = None, None
+            if self.config.aft_enabled:
+                Re_Omega, Gamma = self._compute_aft_fields()
             self.plotter.store_snapshot(
                 self.Q, 0, self.residual_history,
                 cfl=self._get_cfl(0), C_pt=C_pt, residual_field=initial_R,
                 freestream=self.freestream,
-                iteration_history=self.iteration_history
+                iteration_history=self.iteration_history,
+                Re_Omega=Re_Omega, Gamma=Gamma
             )
         
         print(f"  Output directory: {output_path}")
@@ -658,6 +665,51 @@ class RANSSolver:
         # else: no smoothing
         
         return R
+    
+    def _compute_aft_fields(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Compute Re_Omega and Gamma fields for visualization.
+        
+        Returns
+        -------
+        Re_Omega : np.ndarray (NI, NJ)
+            Vorticity Reynolds number = d² |ω| / ν
+        Gamma : np.ndarray (NI, NJ)
+            AFT shape factor
+        """
+        from ..physics.jax_config import jnp
+        
+        # Get interior values
+        Q_int = self.Q_jax[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
+        u = Q_int[:, :, 1]
+        v = Q_int[:, :, 2]
+        
+        # Compute velocity magnitude (absolute)
+        vel_mag = jnp.sqrt((u + self.freestream.u_inf)**2 + (v + self.freestream.v_inf)**2)
+        
+        # Compute gradients
+        grad = compute_gradients_jax(
+            self.Q_jax, 
+            self.flux_grid_metrics.Si_x, 
+            self.flux_grid_metrics.Si_y,
+            self.flux_grid_metrics.Sj_x, 
+            self.flux_grid_metrics.Sj_y,
+            self.volume, NGHOST
+        )
+        
+        # Compute vorticity magnitude
+        omega_mag = compute_vorticity_jax(grad)
+        
+        # Get wall distance
+        wall_dist = self.wall_distance
+        
+        # Compute AFT fields using existing functions
+        nu = 1.0 / self.config.reynolds
+        gamma_coeff = self.config.aft_gamma_coeff
+        
+        Re_Omega = compute_Re_Omega(omega_mag, wall_dist, nu)
+        Gamma = compute_gamma(omega_mag, vel_mag, wall_dist, gamma_coeff)
+        
+        return np.array(Re_Omega), np.array(Gamma)
     
     def step(self) -> None:
         """Perform one iteration of the solver.
@@ -844,11 +896,16 @@ class RANSSolver:
                     Q_int, self.freestream.p_inf,
                     self.freestream.u_inf, self.freestream.v_inf
                 )
+                # Compute AFT diagnostic fields if AFT is enabled
+                Re_Omega, Gamma = None, None
+                if self.config.aft_enabled:
+                    Re_Omega, Gamma = self._compute_aft_fields()
                 self.plotter.store_snapshot(
                     self.Q, self.iteration, self.residual_history,
                     cfl=cfl, C_pt=C_pt, residual_field=R_field,
                     freestream=self.freestream,
-                    iteration_history=self.iteration_history
+                    iteration_history=self.iteration_history,
+                    Re_Omega=Re_Omega, Gamma=Gamma
                 )
             
             if res_max < self.config.tol:
@@ -889,6 +946,7 @@ class RANSSolver:
                                 freestream=self.freestream,
                                 iteration_history=self.iteration_history,
                                 is_divergence_dump=True
+                                # Note: AFT fields not computed for buffered divergence snapshots
                             )
                             n_history_dumps += 1
                     
@@ -899,12 +957,17 @@ class RANSSolver:
                         Q_int, self.freestream.p_inf,
                         self.freestream.u_inf, self.freestream.v_inf
                     )
+                    # Compute AFT diagnostic fields if AFT is enabled
+                    Re_Omega, Gamma = None, None
+                    if self.config.aft_enabled:
+                        Re_Omega, Gamma = self._compute_aft_fields()
                     self.plotter.store_snapshot(
                         self.Q, self.iteration, self.residual_history,
                         cfl=cfl, C_pt=C_pt, residual_field=R_field,
                         freestream=self.freestream,
                         iteration_history=self.iteration_history,
-                        is_divergence_dump=True
+                        is_divergence_dump=True,
+                        Re_Omega=Re_Omega, Gamma=Gamma
                     )
                     
                     total_dumps = n_history_dumps + 1

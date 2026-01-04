@@ -89,6 +89,15 @@ def write_vtk(
             wd_data = sanitize_array(wall_distance, fill_value=0.0)
             _write_scalar_field(f, "wall_distance", wd_data, ni, nj)
         
+        # AFT diagnostic fields
+        if snapshot.Re_Omega is not None:
+            re_omega_data = sanitize_array(snapshot.Re_Omega, fill_value=1.0)
+            _write_scalar_field(f, "Re_Omega", re_omega_data, ni, nj)
+        
+        if snapshot.Gamma is not None:
+            gamma_data = sanitize_array(snapshot.Gamma, fill_value=0.0)
+            _write_scalar_field(f, "Gamma", gamma_data, ni, nj)
+        
         # Velocity vector field
         f.write("\nVECTORS velocity double\n")
         for j in range(nj):
