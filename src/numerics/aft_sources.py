@@ -76,17 +76,22 @@ def compute_gamma(omega_mag: ArrayLike, vel_mag: ArrayLike, d: ArrayLike,
 
 
 @jax.jit
-def compute_Re_Omega(omega_mag: ArrayLike, d: ArrayLike) -> jnp.ndarray:
+def compute_Re_Omega(omega_mag: ArrayLike, d: ArrayLike, 
+                     nu_laminar: float = 1.0) -> jnp.ndarray:
     """
     Compute vorticity Reynolds number.
     
     FORMULA:
-        Re_Ω = d² |ω|
+        Re_Ω = d² |ω| / ν
     
     PHYSICAL MEANING:
         Re_Ω characterizes the local instability potential:
         - Low Re_Ω: viscous damping dominates (stable)
         - High Re_Ω: instability growth possible
+    
+    NOTE: The division by nu_laminar makes this truly dimensionless.
+    For boundary layer solvers where ν = 1 (normalized units), this
+    reduces to the original formula Re_Ω = d² |ω|.
     
     Parameters
     ----------
@@ -94,13 +99,15 @@ def compute_Re_Omega(omega_mag: ArrayLike, d: ArrayLike) -> jnp.ndarray:
         Vorticity magnitude |ω|.
     d : array
         Wall distance.
+    nu_laminar : float
+        Laminar kinematic viscosity (default 1.0 for normalized BL solvers).
         
     Returns
     -------
     Re_Omega : array
         Vorticity Reynolds number (dimensionless).
     """
-    return d ** 2 * omega_mag
+    return d ** 2 * omega_mag / nu_laminar
 
 
 @jax.jit
@@ -154,6 +161,7 @@ def compute_aft_amplification_rate(Re_Omega: ArrayLike, Gamma: ArrayLike,
 @jax.jit
 def compute_aft_production(omega_mag: ArrayLike, vel_mag: ArrayLike,
                            d: ArrayLike, nuHat: ArrayLike,
+                           nu_laminar: float = 1.0,
                            # Tunable parameters
                            gamma_coeff: float = AFT_GAMMA_COEFF,
                            re_scale: float = AFT_RE_OMEGA_SCALE,
@@ -189,6 +197,8 @@ def compute_aft_production(omega_mag: ArrayLike, vel_mag: ArrayLike,
         Wall distance.
     nuHat : array
         SA working variable ν̃.
+    nu_laminar : float
+        Laminar kinematic viscosity (1/Re). Used to make Re_Omega dimensionless.
     gamma_coeff, re_scale, log_divisor, sigmoid_center, sigmoid_slope, rate_scale : float
         Tunable correlation parameters.
         
@@ -199,7 +209,7 @@ def compute_aft_production(omega_mag: ArrayLike, vel_mag: ArrayLike,
     """
     # Compute shape factor and vorticity Reynolds number
     Gamma = compute_gamma(omega_mag, vel_mag, d, gamma_coeff)
-    Re_Omega = compute_Re_Omega(omega_mag, d)
+    Re_Omega = compute_Re_Omega(omega_mag, d, nu_laminar)
     
     # Non-dimensional amplification rate
     rate = compute_aft_amplification_rate(
@@ -214,6 +224,7 @@ def compute_aft_production(omega_mag: ArrayLike, vel_mag: ArrayLike,
 @jax.jit
 def compute_aft_source_jax(omega_mag: ArrayLike, vel_mag: ArrayLike,
                            d: ArrayLike, nuHat: ArrayLike,
+                           nu_laminar: float = 1.0,
                            # Tunable parameters
                            gamma_coeff: float = AFT_GAMMA_COEFF,
                            re_scale: float = AFT_RE_OMEGA_SCALE,
@@ -237,6 +248,8 @@ def compute_aft_source_jax(omega_mag: ArrayLike, vel_mag: ArrayLike,
         Wall distance.
     nuHat : array (NI, NJ)
         SA working variable.
+    nu_laminar : float
+        Laminar kinematic viscosity (1/Re).
     All other parameters are tunable for ensemble studies.
         
     Returns
@@ -245,6 +258,6 @@ def compute_aft_source_jax(omega_mag: ArrayLike, vel_mag: ArrayLike,
         AFT source term (production only).
     """
     return compute_aft_production(
-        omega_mag, vel_mag, d, nuHat,
+        omega_mag, vel_mag, d, nuHat, nu_laminar,
         gamma_coeff, re_scale, log_divisor, sigmoid_center, sigmoid_slope, rate_scale
     )

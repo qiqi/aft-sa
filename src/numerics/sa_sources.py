@@ -338,55 +338,56 @@ def compute_sa_cb2_advection_jax(nuHat, grad_nuHat, Si_x, Si_y, Sj_x, Sj_y, k2, 
 # =============================================================================
 
 # Default blending parameters (tunable for ensemble studies)
-AFT_BLEND_THRESHOLD = 1.0   # nuHat value at which transition occurs
-AFT_BLEND_WIDTH = 4.0       # Smoothness of transition
+# NOTE: These are in terms of chi = nuHat/nu (dimensionless ratio)
+AFT_BLEND_THRESHOLD = 1.0   # chi value at which transition occurs
+AFT_BLEND_WIDTH = 4.0       # Smoothness of transition (in chi units)
 
 
 @jax.jit
-def compute_turbulent_fraction(nuHat,
+def compute_turbulent_fraction(chi,
                                threshold: float = AFT_BLEND_THRESHOLD,
                                width: float = AFT_BLEND_WIDTH):
     """
     Compute smooth activation function for AFT-SA blending.
     
     FORMULA:
-        is_turb = clip(1 - exp(-(nuHat - threshold) / width), 0, 1)
+        is_turb = clip(1 - exp(-(chi - threshold) / width), 0, 1)
     
     BEHAVIOR:
-        - nuHat << threshold: is_turb → 0 (laminar, AFT dominates)
-        - nuHat >> threshold: is_turb → 1 (turbulent, SA dominates)
+        - chi << threshold: is_turb → 0 (laminar, AFT dominates)
+        - chi >> threshold: is_turb → 1 (turbulent, SA dominates)
         - Transition occurs over a range of ~4*width around threshold
     
     TUNABLE PARAMETERS:
-        - threshold: nuHat value at transition center (default 1.0)
+        - threshold: chi value for transition onset (default 1.0)
         - width: Controls smoothness of transition (default 4.0)
     
     Parameters
     ----------
-    nuHat : array
-        SA working variable (any shape).
+    chi : array
+        Turbulent viscosity ratio chi = nuHat / nu_laminar (dimensionless).
     threshold : float
-        nuHat value for transition onset.
+        chi value for transition onset.
     width : float
-        Width of transition region.
+        Width of transition region (in chi units).
         
     Returns
     -------
     is_turb : array
-        Turbulent fraction in [0, 1], same shape as nuHat.
+        Turbulent fraction in [0, 1], same shape as chi.
     """
-    return jnp.clip(1.0 - jnp.exp(-(nuHat - threshold) / width), 0.0, 1.0)
+    return jnp.clip(1.0 - jnp.exp(-(chi - threshold) / width), 0.0, 1.0)
 
 
 @jax.jit
-def compute_blended_production(P_sa, P_aft, nuHat,
+def compute_blended_production(P_sa, P_aft, chi,
                                threshold: float = AFT_BLEND_THRESHOLD,
                                width: float = AFT_BLEND_WIDTH):
     """
     Compute blended production term for AFT-SA transition model.
     
     FORMULA:
-        is_turb = turbulent_fraction(nuHat)
+        is_turb = turbulent_fraction(chi)
         P = P_sa * is_turb + P_aft * (1 - is_turb)
     
     PHYSICAL MEANING:
@@ -403,19 +404,19 @@ def compute_blended_production(P_sa, P_aft, nuHat,
         SA production term.
     P_aft : array
         AFT production term (already multiplied by nuHat).
-    nuHat : array
-        SA working variable.
+    chi : array
+        Turbulent viscosity ratio chi = nuHat / nu_laminar.
     threshold : float
-        Blending threshold (tunable).
+        Blending threshold in chi units (tunable).
     width : float
-        Blending width (tunable).
+        Blending width in chi units (tunable).
         
     Returns
     -------
     P_blended : array
         Blended production term.
     """
-    is_turb = compute_turbulent_fraction(nuHat, threshold, width)
+    is_turb = compute_turbulent_fraction(chi, threshold, width)
     return P_sa * is_turb + P_aft * (1.0 - is_turb)
 
 
@@ -477,34 +478,35 @@ def compute_aft_sa_source_jax(nuHat, grad, wall_dist, vel_mag, nu_laminar,
     """
     # Import AFT functions here to avoid circular import
     from .aft_sources import compute_aft_production
-    
-    # Vorticity magnitude from velocity gradients
-    omega = compute_vorticity_jax(grad)
-    
-    # SA production (standard)
-    P_sa = compute_sa_production(omega, nuHat, wall_dist, nu_laminar)
-    
-    # AFT production
-    P_aft = compute_aft_production(
-        omega, vel_mag, wall_dist, nuHat,
-        aft_gamma_coeff, aft_re_scale, aft_log_divisor,
-        aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale
-    )
-    
-    # Blended production
-    P = compute_blended_production(P_sa, P_aft, nuHat, blend_threshold, blend_width)
-    
-    # Modified destruction: |nuHat| * nuHat to always drive toward 0
-    # Use SA destruction infrastructure but modify the nuHat² term
     from src.physics.spalart_allmaras import (
         compute_fv1, compute_fv2, compute_S_tilde, compute_r, compute_fw, CW1
     )
     
+    # Vorticity magnitude from velocity gradients
+    omega = compute_vorticity_jax(grad)
+    
+    # Compute chi = nuHat / nu_laminar (dimensionless ratio for blending)
+    chi = nuHat / (nu_laminar + 1e-30)
+    
+    # SA production (standard)
+    P_sa = compute_sa_production(omega, nuHat, wall_dist, nu_laminar)
+    
+    # AFT production (pass nu_laminar for proper Re_Omega scaling)
+    P_aft = compute_aft_production(
+        omega, vel_mag, wall_dist, nuHat, nu_laminar,
+        aft_gamma_coeff, aft_re_scale, aft_log_divisor,
+        aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale
+    )
+    
+    # Blended production (use chi for blending, not nuHat)
+    P = compute_blended_production(P_sa, P_aft, chi, blend_threshold, blend_width)
+    
+    # Modified destruction: |nuHat| * nuHat to always drive toward 0
     nuHat_safe = jnp.maximum(jnp.abs(nuHat), 1e-10)
-    chi = nuHat_safe / nu_laminar
-    fv1_val = compute_fv1(chi)
-    fv2_val = compute_fv2(chi, fv1_val)
-    S_tilde = compute_S_tilde(omega, nuHat_safe, wall_dist, chi, fv2_val)
+    chi_safe = nuHat_safe / nu_laminar
+    fv1_val = compute_fv1(chi_safe)
+    fv2_val = compute_fv2(chi_safe, fv1_val)
+    S_tilde = compute_S_tilde(omega, nuHat_safe, wall_dist, chi_safe, fv2_val)
     r_val = compute_r(nuHat_safe, S_tilde, wall_dist)
     fw_val = compute_fw(r_val)
     
