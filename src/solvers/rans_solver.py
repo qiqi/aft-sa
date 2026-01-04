@@ -71,6 +71,7 @@ class SolverConfig:
     n_wake: int = 30
     html_animation: bool = True
     html_use_cdn: bool = True  # Use CDN for plotly.js (saves ~3MB, requires internet)
+    html_compress: bool = True  # Gzip compress HTML output (typically 5-10x smaller)
     divergence_history: int = 0
     target_yplus: float = 1.0  # Target y+ for grid quality warning
 
@@ -465,9 +466,10 @@ class RANSSolver:
         output_path = Path(self.config.output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
         
-        # Use CDN by default to reduce HTML file size (~3MB savings)
+        # Use CDN and compression by default to reduce HTML file size
         use_cdn = getattr(self.config, 'html_use_cdn', True)
-        self.plotter = PlotlyDashboard(reynolds=self.config.reynolds, use_cdn=use_cdn)
+        compress = getattr(self.config, 'html_compress', True)
+        self.plotter = PlotlyDashboard(reynolds=self.config.reynolds, use_cdn=use_cdn, compress=compress)
         
         # Initialize JAX arrays
         self._initialize_jax()

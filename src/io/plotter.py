@@ -54,7 +54,7 @@ class PlotlyDashboard:
     # Number of contour levels (lower = smaller file size)
     N_CONTOURS = 20
     
-    def __init__(self, reynolds: float = 6e6, use_cdn: bool = True):
+    def __init__(self, reynolds: float = 6e6, use_cdn: bool = True, compress: bool = True):
         """
         Initialize the dashboard.
         
@@ -65,6 +65,9 @@ class PlotlyDashboard:
         use_cdn : bool
             If True, reference plotly.js from CDN (saves ~3MB per file).
             If False, embed plotly.js in HTML (works offline but larger).
+        compress : bool
+            If True, gzip compress the HTML output (typically 5-10x smaller).
+            Output file will have .html.gz extension.
         """
         self.snapshots: List[Snapshot] = []
         self.residual_history: List = []
@@ -75,6 +78,7 @@ class PlotlyDashboard:
         self.v_inf: float = 0.0
         self.nu_laminar: float = 1.0 / reynolds if reynolds > 0 else 1e-6
         self.use_cdn: bool = use_cdn
+        self.compress: bool = compress
     
     def store_snapshot(
         self, 
@@ -270,10 +274,27 @@ class PlotlyDashboard:
         # Configure layout
         self._configure_layout(fig, all_snapshots, color_config, has_wall_dist, has_surface_data, surface_params, yplus_params)
         
-        # Write HTML with optional CDN to reduce file size
+        # Write HTML with optional CDN and gzip compression
         include_plotlyjs: Any = 'cdn' if self.use_cdn else True
-        fig.write_html(str(output_path), auto_play=False, include_plotlyjs=include_plotlyjs)
-        print(f"Saved HTML animation to: {output_path}")
+        
+        if self.compress:
+            import gzip
+            # Write to string first, then compress
+            html_str = fig.to_html(auto_play=False, include_plotlyjs=include_plotlyjs)
+            gz_path = output_path.with_suffix('.html.gz')
+            with gzip.open(str(gz_path), 'wt', encoding='utf-8', compresslevel=9) as f:
+                f.write(html_str)
+            # Get file sizes for comparison
+            uncompressed_size = len(html_str.encode('utf-8'))
+            compressed_size = gz_path.stat().st_size
+            ratio = uncompressed_size / compressed_size if compressed_size > 0 else 1
+            print(f"Saved compressed HTML to: {gz_path}")
+            print(f"  Size: {compressed_size / 1e6:.1f} MB (was {uncompressed_size / 1e6:.1f} MB, {ratio:.1f}x compression)")
+            output_path = gz_path
+        else:
+            fig.write_html(str(output_path), auto_play=False, include_plotlyjs=include_plotlyjs)
+            print(f"Saved HTML animation to: {output_path}")
+        
         if self.use_cdn:
             print(f"  Note: Requires internet connection (using plotly.js CDN)")
         print(f"  Use sliders at top-right to adjust color ranges")
