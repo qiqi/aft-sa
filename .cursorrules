@@ -1,3 +1,69 @@
 ## Python Environment
 Always use the virtual environment at /home/qiqi/venv
 Python interpreter: /home/qiqi/venv/bin/python
+
+---
+
+## Multi-Agent Coordination Protocol
+
+This repository uses a multi-agent coordination system. **All agents (AI and human) must follow these rules.**
+
+### Rule 1: Read Before Writing
+Before generating or modifying any code:
+1. Read `/AGENTS.md`
+2. Check the "Active Agents" table for conflicts
+
+### Rule 2: Respect Locks
+If a file or folder is listed in the "Active Agents" table by another agent:
+- **STOP** - Do not modify that file
+- **WARN** the user: "⚠️ File `{path}` is currently locked by {agent_name} for: {task}"
+- **SUGGEST** alternatives or ask user how to proceed
+
+### Rule 3: Register Your Work
+If the path is clear and you're about to make changes:
+1. Add an entry to the "Active Agents" table in `/AGENTS.md`:
+   ```
+   | Your Role | target/path | Brief description | Current timestamp |
+   ```
+2. Then proceed with your work
+
+### Rule 4: Clean Up When Done
+When your task is complete:
+1. Remove your entry from the "Active Agents" table
+2. If the file needs review, add it to "Ready for Cleanup" section
+3. Optionally add a summary to "Recently Completed"
+
+### Rule 5: Communicate
+Use the "Communication Log" section in `/AGENTS.md` to leave notes for other agents if needed.
+
+---
+
+## Code Style
+
+- Follow PEP8 with 100-character line limit
+- Use NumPy-style docstrings
+- Type hints encouraged but not required
+- Prefer explicit imports over `from module import *`
+
+---
+
+## Testing
+
+Before committing:
+```bash
+source ~/venv/bin/activate
+pytest tests/ -x --tb=short
+```
+
+---
+
+## Key Paths
+
+| Purpose | Path |
+|---------|------|
+| Source code | `src/` |
+| Tests | `tests/` |
+| Scripts | `scripts/` |
+| Config examples | `config/examples/` |
+| External deps | `external/` (do not modify) |
+| Coordination | `AGENTS.md` |
