@@ -195,10 +195,6 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     
     Interior (σ=0): pure 4th-order dissipation
     Boundary (σ=1): pure 2nd-order dissipation for wave absorption
-    
-    NOTE: nuHat (index 3) uses PURE UPWIND instead of JST to avoid artificial damping
-    of turbulence. The upwind flux is: F = nuHat_upwind * U_n where nuHat_upwind is
-    taken from the upwind side based on sign of U_n.
     """
     NI_p1, NJ_i = Si_x.shape
     NI = NI_p1 - 1
@@ -245,21 +241,15 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     p_avg_i = Q_avg_i[:, :, 0]
     u_avg_i = Q_avg_i[:, :, 1]
     v_avg_i = Q_avg_i[:, :, 2]
-    # Note: Q[:,:,3] (nuHat) uses upwind scheme below, not average
+    nu_avg_i = Q_avg_i[:, :, 3]
     
     U_n_i = u_avg_i * Si_x + v_avg_i * Si_y
-    
-    # For nuHat: use pure upwind based on sign of U_n
-    # F_nuHat = nuHat_L * U_n if U_n >= 0, else nuHat_R * U_n
-    nuHat_L_i = Q_L_i[:, :, 3]
-    nuHat_R_i = Q_R_i[:, :, 3]
-    nuHat_upwind_i = jnp.where(U_n_i >= 0, nuHat_L_i, nuHat_R_i)
     
     F_conv_i = jnp.stack([
         beta * U_n_i,
         u_avg_i * U_n_i + p_avg_i * Si_x,
         v_avg_i * U_n_i + p_avg_i * Si_y,
-        nuHat_upwind_i * U_n_i  # Pure upwind for nuHat
+        nu_avg_i * U_n_i
     ], axis=-1)
     
     c_art_i = jnp.sqrt(u_avg_i**2 + v_avg_i**2 + beta)
@@ -286,19 +276,13 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     eps4_face_i = 0.5 * (eps4_i_padded[:-1, :] + eps4_i_padded[1:, :])  # (NI+1, NJ)
     
     # 2nd-order dissipation: ε₂ * λ * (Q_R - Q_L)
-    # Only apply to flow variables (p, u, v), NOT nuHat which uses upwind
-    diss2_i_flow = eps2_face_i[:, :, None] * lambda_face_i[:, :, None] * (Q_R_i[:, :, :3] - Q_L_i[:, :, :3])
+    diss2_i = eps2_face_i[:, :, None] * lambda_face_i[:, :, None] * (Q_R_i - Q_L_i)
 
     # 4th-order dissipation with Martinelli: ε₄ * λ * f * (Q_{+2} - 3Q_{+1} + 3Q_0 - Q_{-1})
-    # Only apply to flow variables (p, u, v), NOT nuHat
-    diss4_i_flow = eps4_face_i[:, :, None] * lambda_face_i[:, :, None] * f_i[:, :, None] * \
-              (Q_Rp1_i[:, :, :3] - 3.0 * Q_R_i[:, :, :3] + 3.0 * Q_L_i[:, :, :3] - Q_Lm1_i[:, :, :3])
+    diss4_i = eps4_face_i[:, :, None] * lambda_face_i[:, :, None] * f_i[:, :, None] * \
+              (Q_Rp1_i - 3.0 * Q_R_i + 3.0 * Q_L_i - Q_Lm1_i)
 
-    # Combined dissipation for flow: d = d^(2) - d^(4), F = F_conv - d = F_conv - diss2 + diss4
-    # nuHat dissipation is zero (pure upwind already applied in convective flux)
-    diss2_i = jnp.concatenate([diss2_i_flow, jnp.zeros_like(diss2_i_flow[:, :, :1])], axis=-1)
-    diss4_i = jnp.concatenate([diss4_i_flow, jnp.zeros_like(diss4_i_flow[:, :, :1])], axis=-1)
-    
+    # Combined dissipation: d = d^(2) - d^(4), F = F_conv - d = F_conv - diss2 + diss4
     F_i = F_conv_i - diss2_i + diss4_i
     
     # =================================================================
@@ -310,20 +294,15 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     p_avg_j = Q_avg_j[:, :, 0]
     u_avg_j = Q_avg_j[:, :, 1]
     v_avg_j = Q_avg_j[:, :, 2]
-    # Note: Q[:,:,3] (nuHat) uses upwind scheme below, not average
+    nu_avg_j = Q_avg_j[:, :, 3]
     
     U_n_j = u_avg_j * Sj_x + v_avg_j * Sj_y
-    
-    # For nuHat: use pure upwind based on sign of U_n
-    nuHat_L_j = Q_L_j[:, :, 3]
-    nuHat_R_j = Q_R_j[:, :, 3]
-    nuHat_upwind_j = jnp.where(U_n_j >= 0, nuHat_L_j, nuHat_R_j)
     
     F_conv_j = jnp.stack([
         beta * U_n_j,
         u_avg_j * U_n_j + p_avg_j * Sj_x,
         v_avg_j * U_n_j + p_avg_j * Sj_y,
-        nuHat_upwind_j * U_n_j  # Pure upwind for nuHat
+        nu_avg_j * U_n_j
     ], axis=-1)
     
     c_art_j = jnp.sqrt(u_avg_j**2 + v_avg_j**2 + beta)
@@ -348,19 +327,13 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     eps4_face_j = 0.5 * (eps4_j_padded[:, :-1] + eps4_j_padded[:, 1:])  # (NI, NJ+1)
     
     # 2nd-order dissipation: ε₂ * λ * (Q_R - Q_L)
-    # Only apply to flow variables (p, u, v), NOT nuHat which uses upwind
-    diss2_j_flow = eps2_face_j[:, :, None] * lambda_face_j[:, :, None] * (Q_R_j[:, :, :3] - Q_L_j[:, :, :3])
+    diss2_j = eps2_face_j[:, :, None] * lambda_face_j[:, :, None] * (Q_R_j - Q_L_j)
 
     # 4th-order dissipation with Martinelli: ε₄ * λ * f * (Q_{+2} - 3Q_{+1} + 3Q_0 - Q_{-1})
-    # Only apply to flow variables (p, u, v), NOT nuHat
-    diss4_j_flow = eps4_face_j[:, :, None] * lambda_face_j[:, :, None] * f_j[:, :, None] * \
-              (Q_Rp1_j[:, :, :3] - 3.0 * Q_R_j[:, :, :3] + 3.0 * Q_L_j[:, :, :3] - Q_Lm1_j[:, :, :3])
+    diss4_j = eps4_face_j[:, :, None] * lambda_face_j[:, :, None] * f_j[:, :, None] * \
+              (Q_Rp1_j - 3.0 * Q_R_j + 3.0 * Q_L_j - Q_Lm1_j)
 
-    # Combined dissipation for flow: d = d^(2) - d^(4)
-    # nuHat dissipation is zero (pure upwind already applied in convective flux)
-    diss2_j = jnp.concatenate([diss2_j_flow, jnp.zeros_like(diss2_j_flow[:, :, :1])], axis=-1)
-    diss4_j = jnp.concatenate([diss4_j_flow, jnp.zeros_like(diss4_j_flow[:, :, :1])], axis=-1)
-    
+    # Combined dissipation: d = d^(2) - d^(4)
     F_j = F_conv_j - diss2_j + diss4_j
     
     # =================================================================
