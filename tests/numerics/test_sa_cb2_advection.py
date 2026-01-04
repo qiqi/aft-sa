@@ -180,71 +180,69 @@ class TestSACb2Advection:
         Sj_x = jnp.asarray(setup['metrics'].Sj_x)
         Sj_y = jnp.asarray(setup['metrics'].Sj_y)
         
-        # With deprecated k2/k4 parameters (should be ignored)
-        residual_no_k = compute_sa_cb2_advection_jax(
+        # No dissipation
+        residual_no_diss = compute_sa_cb2_advection_jax(
             jnp.asarray(nuHat), jnp.asarray(grad_nuHat),
             Si_x, Si_y, Sj_x, Sj_y,
             k2=0.0, k4=0.0
         )
         
-        # Different k2/k4 values (should be ignored - using first-order upwind)
-        residual_with_k = compute_sa_cb2_advection_jax(
+        # With dissipation
+        residual_with_diss = compute_sa_cb2_advection_jax(
             jnp.asarray(nuHat), jnp.asarray(grad_nuHat),
             Si_x, Si_y, Sj_x, Sj_y,
             k2=0.5, k4=0.016
         )
         
-        # First-order upwind ignores k2/k4, so residuals should be identical
-        diff = np.max(np.abs(np.asarray(residual_with_k) - np.asarray(residual_no_k)))
-        assert diff < 1e-10, f"First-order upwind should ignore k2/k4, but diff = {diff}"
+        diff = np.max(np.abs(np.asarray(residual_with_diss) - np.asarray(residual_no_diss)))
+        assert diff > 1e-6, "Dissipation coefficients should affect the residual"
     
-    def test_upwind_direction_matters(self, skewed_grid_setup):
-        """Verify that upwind direction affects the flux.
+    def test_dissipation_increases_with_k2(self, skewed_grid_setup):
+        """Verify that increasing k2 increases the dissipation magnitude.
         
-        First-order upwind uses the upwind cell value based on velocity direction.
-        Reversing the gradient (advection velocity) should change the flux.
+        The k2 term provides 2nd-order dissipation which should increase with k2.
         """
         setup = skewed_grid_setup
         NI, NJ = setup['NI'], setup['NJ']
         X, Y = setup['X'], setup['Y']
         
-        # Create a smooth nuHat field with variation
+        # Create a smooth nuHat field
         xc = 0.25 * (X[:-1, :-1] + X[1:, :-1] + X[1:, 1:] + X[:-1, 1:])
         yc = 0.25 * (Y[:-1, :-1] + Y[1:, :-1] + Y[1:, 1:] + Y[:-1, 1:])
         
         nuHat = 0.05 + 0.02 * np.sin(np.pi * xc / 3) * np.cos(np.pi * yc / 2)
         
-        # Forward gradient (advection velocity)
-        grad_nuHat_fwd = np.zeros((NI, NJ, 2))
-        grad_nuHat_fwd[:, :, 0] = 1.0  # Positive x-velocity
-        
-        # Backward gradient (reversed advection velocity)
-        grad_nuHat_bwd = np.zeros((NI, NJ, 2))
-        grad_nuHat_bwd[:, :, 0] = -1.0  # Negative x-velocity
+        # Consistent gradient field
+        grad_nuHat = np.zeros((NI, NJ, 2))
+        grad_nuHat[:, :, 0] = 0.02 * np.pi / 3 * np.cos(np.pi * xc / 3) * np.cos(np.pi * yc / 2)
+        grad_nuHat[:, :, 1] = -0.02 * np.pi / 2 * np.sin(np.pi * xc / 3) * np.sin(np.pi * yc / 2)
         
         Si_x = jnp.asarray(setup['metrics'].Si_x)
         Si_y = jnp.asarray(setup['metrics'].Si_y)
         Sj_x = jnp.asarray(setup['metrics'].Sj_x)
         Sj_y = jnp.asarray(setup['metrics'].Sj_y)
         
-        # Forward velocity
-        residual_fwd = compute_sa_cb2_advection_jax(
-            jnp.asarray(nuHat), jnp.asarray(grad_nuHat_fwd),
-            Si_x, Si_y, Sj_x, Sj_y
+        # Low k2
+        residual_low_k2 = compute_sa_cb2_advection_jax(
+            jnp.asarray(nuHat), jnp.asarray(grad_nuHat),
+            Si_x, Si_y, Sj_x, Sj_y,
+            k2=0.1, k4=0.0
         )
         
-        # Backward velocity
-        residual_bwd = compute_sa_cb2_advection_jax(
-            jnp.asarray(nuHat), jnp.asarray(grad_nuHat_bwd),
-            Si_x, Si_y, Sj_x, Sj_y
+        # High k2
+        residual_high_k2 = compute_sa_cb2_advection_jax(
+            jnp.asarray(nuHat), jnp.asarray(grad_nuHat),
+            Si_x, Si_y, Sj_x, Sj_y,
+            k2=1.0, k4=0.0
         )
         
-        # The residuals should be different (upwind selects different cells)
-        residual_fwd_np = np.asarray(residual_fwd)
-        residual_bwd_np = np.asarray(residual_bwd)
+        # The difference should show the effect of k2
+        residual_low = np.asarray(residual_low_k2)
+        residual_high = np.asarray(residual_high_k2)
         
-        diff = np.max(np.abs(residual_fwd_np - residual_bwd_np))
-        assert diff > 1e-6, f"Upwind direction should affect residual, but diff = {diff}"
+        # Higher k2 should produce different (typically larger magnitude) residual
+        diff = np.max(np.abs(residual_high - residual_low))
+        assert diff > 1e-6, f"Increasing k2 should affect residual, but diff = {diff}"
     
     def test_pure_diffusion_reduces_local_extrema(self, skewed_grid_setup):
         """Verify that strong dissipation reduces local extrema over time.

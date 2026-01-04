@@ -195,9 +195,6 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     
     Interior (σ=0): pure 4th-order dissipation
     Boundary (σ=1): pure 2nd-order dissipation for wave absorption
-    
-    NOTE: SA variable (index 3) uses FIRST-ORDER UPWIND to avoid dispersive oscillations.
-    JST is only applied to indices 0, 1, 2 (pressure, u, v).
     """
     NI_p1, NJ_i = Si_x.shape
     NI = NI_p1 - 1
@@ -244,20 +241,15 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     p_avg_i = Q_avg_i[:, :, 0]
     u_avg_i = Q_avg_i[:, :, 1]
     v_avg_i = Q_avg_i[:, :, 2]
+    nu_avg_i = Q_avg_i[:, :, 3]
     
     U_n_i = u_avg_i * Si_x + v_avg_i * Si_y
-    
-    # SA variable (index 3): FIRST-ORDER UPWIND
-    # nuHat_upwind = nuHat_L if U_n > 0 else nuHat_R
-    nuHat_L_i = Q_L_i[:, :, 3]
-    nuHat_R_i = Q_R_i[:, :, 3]
-    nuHat_upwind_i = jnp.where(U_n_i >= 0, nuHat_L_i, nuHat_R_i)
     
     F_conv_i = jnp.stack([
         beta * U_n_i,
         u_avg_i * U_n_i + p_avg_i * Si_x,
         v_avg_i * U_n_i + p_avg_i * Si_y,
-        nuHat_upwind_i * U_n_i  # First-order upwind for SA
+        nu_avg_i * U_n_i
     ], axis=-1)
     
     c_art_i = jnp.sqrt(u_avg_i**2 + v_avg_i**2 + beta)
@@ -291,9 +283,6 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
               (Q_Rp1_i - 3.0 * Q_R_i + 3.0 * Q_L_i - Q_Lm1_i)
 
     # Combined dissipation: d = d^(2) - d^(4), F = F_conv - d = F_conv - diss2 + diss4
-    # NOTE: Zero out dissipation for SA (index 3) - already using first-order upwind
-    diss2_i = diss2_i.at[:, :, 3].set(0.0)
-    diss4_i = diss4_i.at[:, :, 3].set(0.0)
     F_i = F_conv_i - diss2_i + diss4_i
     
     # =================================================================
@@ -305,19 +294,15 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     p_avg_j = Q_avg_j[:, :, 0]
     u_avg_j = Q_avg_j[:, :, 1]
     v_avg_j = Q_avg_j[:, :, 2]
+    nu_avg_j = Q_avg_j[:, :, 3]
     
     U_n_j = u_avg_j * Sj_x + v_avg_j * Sj_y
-    
-    # SA variable (index 3): FIRST-ORDER UPWIND
-    nuHat_L_j = Q_L_j[:, :, 3]
-    nuHat_R_j = Q_R_j[:, :, 3]
-    nuHat_upwind_j = jnp.where(U_n_j >= 0, nuHat_L_j, nuHat_R_j)
     
     F_conv_j = jnp.stack([
         beta * U_n_j,
         u_avg_j * U_n_j + p_avg_j * Sj_x,
         v_avg_j * U_n_j + p_avg_j * Sj_y,
-        nuHat_upwind_j * U_n_j  # First-order upwind for SA
+        nu_avg_j * U_n_j
     ], axis=-1)
     
     c_art_j = jnp.sqrt(u_avg_j**2 + v_avg_j**2 + beta)
@@ -349,9 +334,6 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
               (Q_Rp1_j - 3.0 * Q_R_j + 3.0 * Q_L_j - Q_Lm1_j)
 
     # Combined dissipation: d = d^(2) - d^(4), F = F_conv - d = F_conv - diss2 + diss4
-    # NOTE: Zero out dissipation for SA (index 3) - already using first-order upwind
-    diss2_j = diss2_j.at[:, :, 3].set(0.0)
-    diss4_j = diss4_j.at[:, :, 3].set(0.0)
     F_j = F_conv_j - diss2_j + diss4_j
     
     # =================================================================
