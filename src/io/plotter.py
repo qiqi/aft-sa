@@ -21,6 +21,7 @@ from ._html_components import (
     compute_color_ranges,
     compute_chi_log,
     compute_cf_distribution,
+    compute_yplus_distribution,
     make_log_range_slider_steps,
     extract_residual_value,
     ColorAxisConfig,
@@ -209,6 +210,7 @@ class PlotlyDashboard:
         Y: Optional[np.ndarray] = None,
         n_wake: int = 0,
         mu_laminar: float = 1e-6,
+        target_yplus: float = 1.0,
     ) -> str:
         """Export all snapshots as interactive HTML animation."""
         if not HAS_PLOTLY:
@@ -242,8 +244,16 @@ class PlotlyDashboard:
         self._add_contour_traces(fig, xc, yc, all_snapshots[-1], color_config, has_cpt, has_res_field)
         self._add_convergence_traces(fig)
         
+        yplus_params = None
         if has_wall_dist:
-            self._add_wall_distance_trace(fig, xc, yc, wall_distance, color_config)
+            yplus_params = self._add_wall_distance_trace(
+                fig, xc, yc, wall_distance, color_config,
+                grid_metrics, all_snapshots, n_wake, mu_laminar
+            )
+            # Warn if max y+ exceeds 2x target
+            if yplus_params and yplus_params.get('yplus_max', 0) > 2 * target_yplus:
+                print(f"  WARNING: Max y+ = {yplus_params['yplus_max']:.1f} exceeds 2x target ({target_yplus:.1f})")
+                print(f"           Grid may be too coarse near the wall")
         
         surface_params = None
         if has_surface_data:
@@ -258,7 +268,7 @@ class PlotlyDashboard:
         )
         
         # Configure layout
-        self._configure_layout(fig, all_snapshots, color_config, has_wall_dist, has_surface_data, surface_params)
+        self._configure_layout(fig, all_snapshots, color_config, has_wall_dist, has_surface_data, surface_params, yplus_params)
         
         # Write HTML with optional CDN to reduce file size
         include_plotlyjs: Any = 'cdn' if self.use_cdn else True
@@ -306,7 +316,7 @@ class PlotlyDashboard:
             'Convergence History',
         ]
         if has_wall_dist:
-            subplot_titles.append('Wall Distance (d/c)')
+            subplot_titles.extend(['Wall Distance (d/c)', 'y⁺ Distribution'])
         if has_surface_data:
             subplot_titles.extend(['', ''])
         
@@ -317,7 +327,7 @@ class PlotlyDashboard:
             [{"type": "scatter", "colspan": 2}, None],
         ]
         if has_wall_dist:
-            specs.append([{"type": "xy"}, None])
+            specs.append([{"type": "xy"}, {"type": "scatter"}])  # Wall dist contour + y+ line plot
         if has_surface_data:
             specs.append([{"type": "scatter"}, {"type": "scatter"}])
         
@@ -434,12 +444,17 @@ class PlotlyDashboard:
         yc: np.ndarray,
         wall_distance: np.ndarray,
         color_config: dict,
-    ) -> None:
-        """Add wall distance contour trace."""
+        grid_metrics: 'FVMMetrics',
+        all_snapshots: List[Snapshot],
+        n_wake: int,
+        mu_laminar: float,
+    ) -> Optional[dict]:
+        """Add wall distance contour trace and y+ distribution plot."""
         ni, nj = xc.shape
         A, B = np.meshgrid(np.arange(ni), np.arange(nj), indexing='ij')
         cfg = color_config['wall_dist']
         
+        # Left: Wall distance contour
         fig.add_trace(go.Carpet(
             a=A.flatten(), b=B.flatten(),
             x=xc.flatten(), y=yc.flatten(),
@@ -459,6 +474,42 @@ class PlotlyDashboard:
             colorbar=cfg.colorbar,
             showscale=True,
         ), row=5, col=1)
+        
+        # Right: y+ distribution along airfoil surface
+        i_start = n_wake
+        i_end = ni - n_wake
+        x_surf = xc[i_start:i_end, 0]  # x-coordinate at wall
+        
+        # Compute y+ for final snapshot
+        snap = all_snapshots[-1]
+        y_plus = compute_yplus_distribution(
+            snap, wall_distance,
+            grid_metrics.volume[:, 0],
+            grid_metrics.Sj_x[:, 0], grid_metrics.Sj_y[:, 0],
+            self.nu_laminar, self.u_inf, self.v_inf, i_start, i_end
+        )
+        
+        yplus_trace_idx = len(fig.data)
+        fig.add_trace(go.Scatter(
+            x=x_surf, y=y_plus,
+            mode='lines', line=dict(color='green', width=2),
+            showlegend=False, name='y⁺',
+        ), row=5, col=2)
+        
+        # Add reference line at y+ = 1
+        fig.add_trace(go.Scatter(
+            x=[x_surf.min(), x_surf.max()], y=[1.0, 1.0],
+            mode='lines', line=dict(color='gray', width=1, dash='dash'),
+            showlegend=False, name='y⁺=1',
+        ), row=5, col=2)
+        
+        return {
+            'yplus_trace_idx': yplus_trace_idx,
+            'i_start': i_start,
+            'i_end': i_end,
+            'x_surf': x_surf,
+            'yplus_max': float(np.max(y_plus)) if len(y_plus) > 0 else 1.0,
+        }
     
     def _add_surface_traces(
         self,
@@ -683,6 +734,7 @@ class PlotlyDashboard:
         has_wall_dist: bool,
         has_surface_data: bool,
         surface_params: Optional[dict],
+        yplus_params: Optional[dict] = None,
     ) -> None:
         """Configure figure layout, sliders, and axes."""
         divergence_iters = {s.iteration for s in self.divergence_snapshots}
@@ -767,6 +819,12 @@ class PlotlyDashboard:
         
         fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, fixedrange=True, row=4, col=1)
         fig.update_yaxes(title_text='RMS Residual', matches=None, type='log', autorange=True, fixedrange=True, row=4, col=1)
+        
+        if has_wall_dist and yplus_params:
+            # y+ plot is on row 5, col 2
+            yplus_max = yplus_params.get('yplus_max', 5.0)
+            fig.update_xaxes(title_text='x/c', range=[0, 1], matches=None, fixedrange=False, row=5, col=2)
+            fig.update_yaxes(title_text='y⁺', range=[0, max(5.0, yplus_max * 1.2)], matches=None, fixedrange=False, row=5, col=2)
         
         if has_surface_data and surface_params:
             surface_row = surface_params['surface_row']

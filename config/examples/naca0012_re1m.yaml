@@ -4,9 +4,9 @@
 grid:
   airfoil: data/naca0012.dat
   n_surface: 193      # Surface nodes
-  n_normal: 49        # Normal nodes
   n_wake: 48          # Wake region nodes
   y_plus: 1.0         # Target y+ for first cell
+  gradation: 1.2      # Wall-normal cell growth ratio (1.1-1.3 recommended)
 
 flow:
   reynolds: 1.0e+6    # Re = 1 million

@@ -72,6 +72,7 @@ class SolverConfig:
     html_animation: bool = True
     html_use_cdn: bool = True  # Use CDN for plotly.js (saves ~3MB, requires internet)
     divergence_history: int = 0
+    target_yplus: float = 1.0  # Target y+ for grid quality warning
 
 
 class RANSSolver:
@@ -834,12 +835,14 @@ class RANSSolver:
             html_path = Path(self.config.output_dir) / f"{self.config.case_name}_animation.html"
             n_wake = getattr(self.config, 'n_wake', 0)
             mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
+            target_yplus = getattr(self.config, 'target_yplus', 1.0)
             self.plotter.save_html(
                 str(html_path), self.metrics,
                 wall_distance=self.metrics.wall_distance,
                 X=self.X, Y=self.Y,
                 n_wake=n_wake,
-                mu_laminar=mu_laminar
+                mu_laminar=mu_laminar,
+                target_yplus=target_yplus
             )
         
         return self.converged

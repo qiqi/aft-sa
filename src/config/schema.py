@@ -15,9 +15,9 @@ class GridConfig:
     
     airfoil: str = "data/naca0012.dat"
     n_surface: int = 257       # Surface nodes (cells = nodes - 1)
-    n_normal: int = 65         # Normal direction nodes
     n_wake: int = 64           # Wake region nodes
     y_plus: float = 1.0        # Target y+ for first cell
+    gradation: float = 1.2     # Wall-normal cell growth ratio (1.1-1.3 recommended)
     farfield_radius: float = 15.0  # Farfield distance in chords
 
 
@@ -137,6 +137,7 @@ class SimulationConfig:
             n_wake=self.grid.n_wake,
             html_animation=self.output.html_animation,
             divergence_history=self.output.divergence_history,
+            target_yplus=self.grid.y_plus,
         )
     
     def to_dict(self) -> dict:
@@ -146,30 +147,30 @@ class SimulationConfig:
 
 # Preset configurations
 def super_coarse_preset() -> GridConfig:
-    """Super-coarse grid for fast testing (128x32 cells)."""
+    """Super-coarse grid for fast testing."""
     return GridConfig(
         n_surface=65,
-        n_normal=33,
         n_wake=32,
         y_plus=5.0,
+        gradation=1.5,  # Coarser stretching for speed
     )
 
 
 def coarse_preset() -> GridConfig:
-    """Coarse grid for debugging (256x32 cells)."""
+    """Coarse grid for debugging."""
     return GridConfig(
         n_surface=193,
-        n_normal=33,
         n_wake=32,
         y_plus=1.0,
+        gradation=1.3,
     )
 
 
 def production_preset() -> GridConfig:
-    """Production grid for accurate results (512x128 cells)."""
+    """Production grid for accurate results."""
     return GridConfig(
         n_surface=385,
-        n_normal=129,
         n_wake=64,
         y_plus=1.0,
+        gradation=1.15,  # Fine stretching for accuracy
     )

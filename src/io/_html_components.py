@@ -183,6 +183,70 @@ def compute_cf_distribution(
     return sanitize_array(Cf_full[i_start:i_end], fill_value=0.0)
 
 
+def compute_yplus_distribution(
+    snapshot: 'Snapshot',
+    wall_distance: np.ndarray,
+    volume: np.ndarray,
+    Sj_x: np.ndarray,
+    Sj_y: np.ndarray,
+    nu_laminar: float,
+    u_inf: float,
+    v_inf: float,
+    i_start: int,
+    i_end: int,
+) -> np.ndarray:
+    """Compute actual y+ distribution on airfoil surface.
+    
+    y+ = d_wall * u_tau / nu, where u_tau = sqrt(tau_wall / rho)
+    
+    Parameters
+    ----------
+    snapshot : Snapshot
+        Solution snapshot.
+    wall_distance : np.ndarray
+        Wall distance at first cell (NI,).
+    volume : np.ndarray
+        Cell volumes at wall (NI,).
+    Sj_x, Sj_y : np.ndarray
+        J-face normal components at wall (NI,).
+    nu_laminar : float
+        Laminar kinematic viscosity.
+    u_inf, v_inf : float
+        Freestream velocity.
+    i_start, i_end : int
+        Airfoil surface indices (excluding wake).
+        
+    Returns
+    -------
+    np.ndarray
+        y+ distribution on airfoil surface.
+    """
+    max_safe = 1e10
+    
+    Sj_mag = np.sqrt(Sj_x**2 + Sj_y**2)
+    dy = volume / (Sj_mag + 1e-14)
+    
+    # Velocity at first cell
+    u_wall = np.clip(snapshot.u[:, 0] + u_inf, -max_safe, max_safe)
+    v_wall = np.clip(snapshot.v[:, 0] + v_inf, -max_safe, max_safe)
+    nu_wall = np.clip(snapshot.nu[:, 0], 0.0, max_safe)
+    mu_eff = nu_laminar + np.maximum(0.0, nu_wall)  # nu_t already in snapshot.nu
+    
+    # Wall shear stress: tau_wall = mu_eff * du/dy
+    dudn = 2.0 * u_wall / dy  # du/dy at wall (using linear profile to first cell)
+    dvdn = 2.0 * v_wall / dy
+    tau_wall = mu_eff * np.sqrt(dudn**2 + dvdn**2)  # tau/rho (kinematic)
+    
+    # Friction velocity u_tau = sqrt(tau_wall / rho) = sqrt(tau_wall) for rho=1
+    u_tau = np.sqrt(np.maximum(tau_wall, 0.0))
+    
+    # y+ = d_wall * u_tau / nu
+    d_wall = wall_distance[:, 0] if wall_distance.ndim > 1 else wall_distance
+    y_plus = d_wall * u_tau / nu_laminar
+    
+    return sanitize_array(y_plus[i_start:i_end], fill_value=0.0)
+
+
 def make_log_range_slider_steps(
     base_val: float,
     trace_indices: List[int],

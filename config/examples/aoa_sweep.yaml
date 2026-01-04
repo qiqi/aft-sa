@@ -4,7 +4,7 @@
 grid:
   airfoil: data/naca0012.dat
   n_surface: 129
-  n_normal: 65
+  gradation: 1.2
 
 flow:
   reynolds: 6.0e+6

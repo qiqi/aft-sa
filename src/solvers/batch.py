@@ -1079,12 +1079,21 @@ class BatchRANSSolver:
                     "or install Construct2D."
                 )
             
+            from src.grid.loader import compute_n_normal_from_gradation
+            
+            reynolds = float(self.flow_conditions.reynolds[0])
+            y_plus = 1.0
+            gradation = 1.2
+            farfield_radius = 15.0
+            n_normal = compute_n_normal_from_gradation(y_plus, reynolds, farfield_radius, gradation)
+            
             wrapper = Construct2DWrapper(str(binary_path))
             grid_opts = GridOptions(
                 n_surface=129,
-                n_normal=65,
-                y_plus=1.0,
-                reynolds=float(self.flow_conditions.reynolds[0])
+                n_normal=n_normal,
+                y_plus=y_plus,
+                reynolds=reynolds,
+                farfield_radius=farfield_radius,
             )
             self.X, self.Y = wrapper.generate(str(grid_path), grid_opts)
         else:
