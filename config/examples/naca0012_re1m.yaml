@@ -12,17 +12,17 @@ flow:
   reynolds: 1.0e+6    # Re = 1 million
   mach: 0.0           # Incompressible
   alpha: 4.0          # 4 degrees angle of attack
-  chi_inf: 3.0        # Initial/farfield turbulent viscosity ratio (ν̃/ν)
+  chi_inf: 8.0        # Initial/farfield turbulent viscosity ratio (ν̃/ν)
 
 solver:
-  max_iter: 20000
+  max_iter: 10000
   tol: 1.0e-8
   print_freq: 500
   diagnostic_freq: 2000
   
   cfl:
     initial: 0.1
-    final: 1.0        # Conservative CFL
+    final: 2.5        # Conservative CFL
     ramp_iter: 500
 
 numerics:

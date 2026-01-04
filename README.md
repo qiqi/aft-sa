@@ -400,4 +400,13 @@ pytest tests/numerics/test_sa_sources.py -v
 
 ## License
 
-MIT License
+This project is licensed under the **GNU General Public License v3.0** (GPL-3.0).
+
+See [LICENSE.md](LICENSE.md) for the full license text.
+
+This license ensures that:
+- You can use, modify, and distribute this software freely
+- Any derivative works must also be open source under GPL-3.0
+- The source code must be made available when distributing
+
+Note: This project includes [Construct2D](external/construct2d/) which is also GPL-3.0 licensed.
