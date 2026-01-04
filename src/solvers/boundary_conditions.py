@@ -278,22 +278,28 @@ class InletOutletBC:
         """Apply inlet/outlet/wall boundary conditions."""
         Q = Q.copy()
         
+        # Inlet (i=0)
         Q[0, :, 0] = Q[1, :, 0]
         Q[0, :, 1] = 2 * self.u_inlet - Q[1, :, 1]
         Q[0, :, 2] = 2 * self.v_inlet - Q[1, :, 2]
         Q[0, :, 3] = Q[1, :, 3]
         
+        # Outlet (i=-1)
         Q[-1, :, :] = Q[-2, :, :]
         
+        # Bottom wall (j=0): antisymmetric velocity, nuHat with clamping
         Q[:, 0, 0] = Q[:, 1, 0]
         Q[:, 0, 1] = -Q[:, 1, 1]
         Q[:, 0, 2] = -Q[:, 1, 2]
-        Q[:, 0, 3] = -Q[:, 1, 3]
+        # nuHat: clamp interior to non-negative before antisymmetric BC
+        Q[:, 0, 3] = -np.maximum(Q[:, 1, 3], 0.0)
         
+        # Top wall (j=-1): antisymmetric velocity, nuHat with clamping
         Q[:, -1, 0] = Q[:, -2, 0]
         Q[:, -1, 1] = -Q[:, -2, 1]
         Q[:, -1, 2] = -Q[:, -2, 2]
-        Q[:, -1, 3] = -Q[:, -2, 3]
+        # nuHat: clamp interior to non-negative before antisymmetric BC
+        Q[:, -1, 3] = -np.maximum(Q[:, -2, 3], 0.0)
         
         return Q
 
@@ -333,33 +339,53 @@ if JAX_AVAILABLE:
         j_int_first = nghost
         
         # Airfoil surface (no-slip wall)
-        # Ghost layer 1 (j=1): reflect velocity, copy pressure, reflect nu_t
+        # Ghost layer 1 (j=1): reflect velocity, copy pressure
+        # For nuHat: use antisymmetric BC (nuHat=0 at wall)
         Q = Q.at[i_start:i_end, 1, 0].set(Q[i_start:i_end, j_int_first, 0])
         Q = Q.at[i_start:i_end, 1, 1].set(-Q[i_start:i_end, j_int_first, 1])
         Q = Q.at[i_start:i_end, 1, 2].set(-Q[i_start:i_end, j_int_first, 2])
-        Q = Q.at[i_start:i_end, 1, 3].set(-Q[i_start:i_end, j_int_first, 3])
+        # nuHat: antisymmetric BC gives nuHat=0 at wall (correct physics)
+        # Ghost = -interior, but clamp to prevent extreme negative values in JST stencil
+        nuHat_interior = jnp.maximum(Q[i_start:i_end, j_int_first, 3], 0.0)
+        Q = Q.at[i_start:i_end, 1, 3].set(-nuHat_interior)
         
-        # Ghost layer 0 (j=0): extrapolate
+        # Ghost layer 0 (j=0): extrapolate from j=1
         Q = Q.at[i_start:i_end, 0, 0].set(Q[i_start:i_end, 1, 0])
         Q = Q.at[i_start:i_end, 0, 1].set(2*Q[i_start:i_end, 1, 1] - Q[i_start:i_end, j_int_first, 1])
         Q = Q.at[i_start:i_end, 0, 2].set(2*Q[i_start:i_end, 1, 2] - Q[i_start:i_end, j_int_first, 2])
-        Q = Q.at[i_start:i_end, 0, 3].set(Q[i_start:i_end, 1, 3])
+        # nuHat: extrapolate (more negative, but interior was clamped so bounded)
+        Q = Q.at[i_start:i_end, 0, 3].set(2*Q[i_start:i_end, 1, 3] - nuHat_interior)
         
         # Wake cut (periodic)
-        # Average interior j=0 rows for periodicity
+        # The wake cut connects lower wake (low I) to upper wake (high I)
+        # Interior cells at j_int_first need to be averaged for continuity
         lower_wake_int_j0 = Q[nghost:i_start, j_int_first, :]
         upper_wake_int_j0 = Q[i_end:NI + nghost, j_int_first, :]
         
-        avg_j0 = 0.5 * (lower_wake_int_j0 + upper_wake_int_j0[::-1, :])
+        # Average flow variables (p, u, v) - these can be positive or negative
+        avg_j0_flow = 0.5 * (lower_wake_int_j0[:, :3] + upper_wake_int_j0[::-1, :3])
+        
+        # For nuHat: ensure non-negative BEFORE averaging, then average
+        # This prevents negative values from propagating across the wake cut
+        nuHat_lower = jnp.maximum(lower_wake_int_j0[:, 3], 1e-20)
+        nuHat_upper = jnp.maximum(upper_wake_int_j0[::-1, 3], 1e-20)
+        avg_nuHat = 0.5 * (nuHat_lower + nuHat_upper)
+        
+        avg_j0 = jnp.concatenate([avg_j0_flow, avg_nuHat[:, None]], axis=-1)
+        
+        # Set averaged values to INTERIOR cells at wake cut
         Q = Q.at[nghost:i_start, j_int_first, :].set(avg_j0)
         Q = Q.at[i_end:NI + nghost, j_int_first, :].set(avg_j0[::-1, :])
         
-        # Now set ghost cells from the averaged interior
+        # Re-read the (now averaged) interior values
         lower_wake_int_j0 = Q[nghost:i_start, j_int_first, :]
         lower_wake_int_j1 = Q[nghost:i_start, j_int_first + 1, :]
         upper_wake_int_j0 = Q[i_end:NI + nghost, j_int_first, :]
         upper_wake_int_j1 = Q[i_end:NI + nghost, j_int_first + 1, :]
         
+        # Set ghost cells from the opposite side's interior (periodic BC)
+        # Ghost j=1 gets interior j=j_int_first from opposite side
+        # Ghost j=0 gets interior j=j_int_first+1 from opposite side
         Q = Q.at[nghost:i_start, 1, :].set(upper_wake_int_j0[::-1, :])
         Q = Q.at[nghost:i_start, 0, :].set(upper_wake_int_j1[::-1, :])
         
