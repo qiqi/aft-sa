@@ -689,10 +689,10 @@ class RANSSolver:
         # Compute gradients
         grad = compute_gradients_jax(
             self.Q_jax, 
-            self.flux_grid_metrics.Si_x, 
-            self.flux_grid_metrics.Si_y,
-            self.flux_grid_metrics.Sj_x, 
-            self.flux_grid_metrics.Sj_y,
+            self.flux_metrics.Si_x, 
+            self.flux_metrics.Si_y,
+            self.flux_metrics.Sj_x, 
+            self.flux_metrics.Sj_y,
             self.volume, NGHOST
         )
         
