@@ -73,7 +73,7 @@ Examples:
     parser.add_argument("--reynolds", "-Re", type=float,
                         help="Reynolds number")
     parser.add_argument("--chi-inf", type=float,
-                        help="Initial/farfield turbulent viscosity ratio χ = ν̃/ν (default: 3.0)")
+                        help="Initial/farfield turbulent viscosity ratio χ = ν̃/ν (default: 0.0001 for AFT)")
     
     # Solver settings
     parser.add_argument("--max-iter", "-n", type=int,
@@ -255,6 +255,8 @@ Examples:
     print(f"Alpha: {sim_config.flow.alpha}°")
     print(f"Backend: JAX ({jax.devices()[0].device_kind})")
     print(f"Target CFL: {config.cfl_target} (ramp from {config.cfl_start} over {config.cfl_ramp_iters} iters)")
+    aft_status = "AFT-SA (transition)" if config.aft_enabled else "SA (fully turbulent)"
+    print(f"Turbulence model: {aft_status}, χ_inf={config.chi_inf:.4g}")
     print(f"Output: HTML animation every {config.diagnostic_freq} iterations")
     
     # Run

@@ -287,7 +287,7 @@ from src.numerics.fluxes import _compute_fluxes_jax_impl
 from src.numerics.gradients import _compute_gradients_jax_impl
 from src.numerics.viscous_fluxes import compute_viscous_fluxes_jax, compute_viscous_fluxes_with_sa_jax
 from src.numerics.explicit_smoothing import smooth_explicit_jax
-from src.numerics.sa_sources import compute_sa_source_jax
+from src.numerics.sa_sources import compute_sa_source_jax, compute_aft_sa_source_jax
 from src.solvers.time_stepping import _compute_spectral_radii_jax_kernel, _compute_local_timestep_jax_kernel
 from src.constants import NGHOST
 
@@ -410,6 +410,14 @@ _smooth_explicit_batch_vmap = jax.vmap(
 _compute_sa_source_batch_vmap = jax.vmap(
     compute_sa_source_jax,
     in_axes=(0, 0, None, None)  # nuHat batched, grad batched, wall_dist shared, nu shared
+)
+
+# AFT-SA source terms batched - wall_dist is shared, AFT params are shared scalars
+_compute_aft_sa_source_batch_vmap = jax.vmap(
+    compute_aft_sa_source_jax,
+    # nuHat batched, grad batched, wall_dist shared, vel_mag batched, nu shared
+    # All AFT params are shared scalars (None)
+    in_axes=(0, 0, None, 0, None, None, None, None, None, None, None, None, None)
 )
 
 # Viscous fluxes with SA diffusion - batched
@@ -587,6 +595,45 @@ def compute_sa_source_batch(nuHat_batch, grad_batch, wall_dist, nu):
         cb2 gradient term (n_batch, NI, NJ).
     """
     return _compute_sa_source_batch_vmap(nuHat_batch, grad_batch, wall_dist, nu)
+
+
+def compute_aft_sa_source_batch(nuHat_batch, grad_batch, wall_dist, vel_mag_batch, nu,
+                                aft_gamma_coeff, aft_re_omega_scale, aft_log_divisor,
+                                aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale,
+                                aft_blend_threshold, aft_blend_width):
+    """
+    Compute AFT-SA blended source terms for a batch of cases.
+
+    Parameters
+    ----------
+    nuHat_batch : jnp.ndarray
+        SA working variable (n_batch, NI, NJ).
+    grad_batch : jnp.ndarray
+        Batched gradients (n_batch, NI, NJ, 4, 2).
+    wall_dist : jnp.ndarray
+        Wall distance - shared across batch (NI, NJ).
+    vel_mag_batch : jnp.ndarray
+        Velocity magnitude (n_batch, NI, NJ).
+    nu : float
+        Laminar viscosity.
+    aft_* : float
+        AFT model tunable parameters.
+
+    Returns
+    -------
+    P_batch : jnp.ndarray
+        Blended production term (n_batch, NI, NJ).
+    D_batch : jnp.ndarray
+        Modified destruction term (n_batch, NI, NJ).
+    cb2_term_batch : jnp.ndarray
+        cb2 gradient term (n_batch, NI, NJ).
+    """
+    return _compute_aft_sa_source_batch_vmap(
+        nuHat_batch, grad_batch, wall_dist, vel_mag_batch, nu,
+        aft_gamma_coeff, aft_re_omega_scale, aft_log_divisor,
+        aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale,
+        aft_blend_threshold, aft_blend_width
+    )
 
 
 def smooth_residual_batch(R_batch, epsilon, n_passes):

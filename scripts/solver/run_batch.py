@@ -45,8 +45,8 @@ def parse_args():
                         help="Reynolds number (default: 6e6)")
     parser.add_argument('--mach', '-M', type=float, default=0.0,
                         help="Mach number (default: 0.0, incompressible)")
-    parser.add_argument('--chi-inf', type=float, default=3.0,
-                        help="Initial/farfield turbulent viscosity ratio χ = ν̃/ν (default: 3.0)")
+    parser.add_argument('--chi-inf', type=float, default=0.0001,
+                        help="Initial/farfield turbulent viscosity ratio χ = ν̃/ν (default: 0.0001)")
     
     # Alpha specification (mutually exclusive)
     alpha_group = parser.add_mutually_exclusive_group()
@@ -135,7 +135,7 @@ def main():
         alpha_spec = config.flow.get('alpha', 0.0)
         reynolds = config.flow.get('reynolds', 6e6)
         mach = config.flow.get('mach', 0.0)
-        chi_inf = config.flow.get('chi_inf', 3.0)
+        chi_inf = config.flow.get('chi_inf', 0.0001)
         
         flow_conditions = BatchFlowConditions.from_sweep(
             alpha_spec=alpha_spec,
@@ -181,6 +181,8 @@ def main():
     print(f"Cases: {flow_conditions.n_batch}")
     print(f"Alpha range: {flow_conditions.alpha_deg.min():.1f}° to {flow_conditions.alpha_deg.max():.1f}°")
     print(f"Reynolds: {flow_conditions.reynolds[0]:.2e}")
+    print(f"Turbulence model: SA (fully turbulent)")
+    print(f"  Note: AFT transition model available in run_airfoil.py")
     print(f"{'='*60}\n")
     
     solver = BatchRANSSolver(

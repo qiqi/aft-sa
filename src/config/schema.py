@@ -43,8 +43,8 @@ class FlowConfig:
     alpha: Union[float, Dict[str, Any]] = 0.0
     
     # Initial/farfield turbulent viscosity ratio: χ = ν̃/ν
-    # Typical values: 3-5 for external aerodynamics
-    chi_inf: float = 3.0
+    # Low value (0.0001) for transition prediction with AFT model
+    chi_inf: float = 0.0001
     
     def is_batch(self) -> bool:
         """Check if this is a batch configuration."""
@@ -100,7 +100,7 @@ class AFTConfig:
     Set enabled=False to use pure SA (fully turbulent).
     """
     
-    enabled: bool = False  # Enable AFT transition model
+    enabled: bool = True  # Enable AFT transition model (default on)
     
     # Gamma calculation: Γ = gamma_coeff * (ω·d)² / (|V|² + (ω·d)²)
     gamma_coeff: float = 2.0

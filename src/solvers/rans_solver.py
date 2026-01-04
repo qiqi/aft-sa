@@ -37,7 +37,7 @@ from ..numerics.fluxes import compute_fluxes_jax
 from ..numerics.gradients import compute_gradients_jax
 # viscous_fluxes: tight_with_ghosts version used
 from ..numerics.explicit_smoothing import smooth_explicit_jax
-from ..numerics.sa_sources import compute_sa_source_jax
+from ..numerics.sa_sources import compute_sa_source_jax, compute_aft_sa_source_jax
 from .time_stepping import compute_local_timestep_jax
 from .boundary_conditions import make_apply_bc_jit
 
@@ -49,7 +49,7 @@ class SolverConfig:
     mach: float = 0.15
     alpha: float = 0.0
     reynolds: float = 6e6
-    chi_inf: float = 3.0  # Initial/farfield turbulent viscosity ratio (ν̃/ν)
+    chi_inf: float = 0.0001  # Initial/farfield turbulent viscosity ratio (ν̃/ν) - low for transition
     beta: float = 10.0
     cfl_start: float = 0.1
     cfl_target: float = 5.0
@@ -71,7 +71,7 @@ class SolverConfig:
     target_yplus: float = 1.0  # Target y+ for grid quality warning
     
     # AFT Transition Model Configuration
-    aft_enabled: bool = False         # Enable AFT transition model (False = pure SA)
+    aft_enabled: bool = True          # Enable AFT transition model (False = pure SA)
     aft_gamma_coeff: float = 2.0      # Gamma formula coefficient
     aft_re_omega_scale: float = 1000.0  # Re_Ω normalization
     aft_log_divisor: float = 50.0     # Log term divisor
@@ -348,85 +348,168 @@ class RANSSolver:
         ls_weights_i = self.ls_weights_i_jax
         ls_weights_j = self.ls_weights_j_jax
         
-        @jax.jit
-        def jit_rk_stage(Q, Q0, dt, alpha_rk):
-            """Single RK stage - fully JIT compiled with SA turbulence.
-            
-            Uses:
-            - Tight-stencil viscous flux for improved diagonal dominance
-            - Point-implicit treatment for SA destruction term
-            - cb2 term implemented as advection with JST dissipation
-            """
-            # Apply boundary conditions
-            Q = apply_bc(Q)
-            
-            # Convective fluxes
-            R = compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost)
-            
-            # Gradients (needed for SA sources and cb2 advection)
-            grad = compute_gradients_jax(Q, Si_x, Si_y, Sj_x, Sj_y, volume, nghost)
-            
-            # Compute turbulent viscosity from SA variable
-            Q_int = Q[nghost:-nghost, nghost:-nghost, :]
-            nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
-            
-            # Turbulent viscosity (SA model)
-            chi = nu_tilde / (nu + 1e-30)
-            cv1 = 7.1
-            chi3 = chi ** 3
-            f_v1 = chi3 / (chi3 + cv1 ** 3)
-            mu_t = nu_tilde * f_v1
-            mu_eff = nu + mu_t
-            
-            # Tight-stencil viscous fluxes (momentum + SA diffusion)
-            # Uses 2-point difference along coordinate line + LS correction for non-orthogonality
-            # CRITICAL: Use Q with ghost cells (after BC applied) for correct wall gradient!
-            # Extract Q with one layer of ghost cells on each side
-            Q_with_ghosts = Q[nghost-1:-(nghost-1), nghost-1:-(nghost-1), :]  # (NI+2, NJ+2, 4)
-            R_visc = compute_viscous_fluxes_tight_with_ghosts_jax(
-                Q_with_ghosts, Si_x, Si_y, Sj_x, Sj_y,
-                d_coord_i, e_coord_i_x, e_coord_i_y, e_ortho_i_x, e_ortho_i_y,
-                d_coord_j, e_coord_j_x, e_coord_j_y, e_ortho_j_x, e_ortho_j_y,
-                ls_weights_i, ls_weights_j,
-                mu_eff, nu, nu_tilde
-            )
-            R = R.at[:, :, 1:4].add(R_visc[:, :, 1:4])
-            
-            # SA source terms: Production (P), Destruction (D), and cb2 term |∇ν̃|²
-            P, D, cb2_term = compute_sa_source_jax(nu_tilde, grad, wall_dist, nu)
-            # Add production, subtract destruction, and cb2 source term to residual
-            # cb2_term = (cb2/sigma) * |∇ν̃|² is a "anti-diffusion" source that
-            # accounts for the conservative form of the diffusion term
-            R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
-            
-            # Explicit smoothing
-            if smoothing_epsilon > 0 and smoothing_passes > 0:
-                R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
-            
-            # Compute the update increment dQ = alpha * dt/V * R
-            Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
-            dQ = alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * R
-            
-            # Start with normal explicit update for all variables
-            Q_int_new = Q0_int + dQ
-            
-            # Patankar-Euler scheme for nuHat (index 3) only
-            # Note: Pressure can be negative in artificial compressibility, so don't apply Patankar
-            # For positive dNuHat: nuHat_new = nuHat_old + dNuHat (normal explicit update)
-            # For negative dNuHat: update reciprocal: nuHat_new = nuHat_old / (1 - dNuHat/nuHat_old)
-            #   This ensures nuHat_new stays positive if nuHat_old > 0
-            nuHat_old = Q0_int[:, :, 3]
-            dNuHat = dQ[:, :, 3]
-            nuHat_old_safe = jnp.maximum(nuHat_old, 1e-20)
-            nuHat_patankar = nuHat_old_safe / (1.0 - dNuHat / nuHat_old_safe)
-            nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, Q_int_new[:, :, 3])
-            # Ensure nuHat stays positive
-            nuHat_new = jnp.maximum(nuHat_new, 1e-20)
-            Q_int_new = Q_int_new.at[:, :, 3].set(nuHat_new)
-            
-            Q_new = Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
-            
-            return Q_new, R
+        # AFT transition model parameters
+        aft_enabled = self.config.aft_enabled
+        aft_gamma_coeff = self.config.aft_gamma_coeff
+        aft_re_omega_scale = self.config.aft_re_omega_scale
+        aft_log_divisor = self.config.aft_log_divisor
+        aft_sigmoid_center = self.config.aft_sigmoid_center
+        aft_sigmoid_slope = self.config.aft_sigmoid_slope
+        aft_rate_scale = self.config.aft_rate_scale
+        aft_blend_threshold = self.config.aft_blend_threshold
+        aft_blend_width = self.config.aft_blend_width
+        
+        if aft_enabled:
+            @jax.jit
+            def jit_rk_stage(Q, Q0, dt, alpha_rk):
+                """Single RK stage with AFT-SA transition model."""
+                # Apply boundary conditions
+                Q = apply_bc(Q)
+                
+                # Convective fluxes
+                R = compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost)
+                
+                # Gradients (needed for SA sources and cb2 advection)
+                grad = compute_gradients_jax(Q, Si_x, Si_y, Sj_x, Sj_y, volume, nghost)
+                
+                # Compute turbulent viscosity from SA variable
+                Q_int = Q[nghost:-nghost, nghost:-nghost, :]
+                nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
+                
+                # Velocity magnitude for AFT
+                vel_mag = jnp.sqrt(Q_int[:, :, 1]**2 + Q_int[:, :, 2]**2)
+                
+                # Turbulent viscosity (SA model)
+                chi = nu_tilde / (nu + 1e-30)
+                cv1 = 7.1
+                chi3 = chi ** 3
+                f_v1 = chi3 / (chi3 + cv1 ** 3)
+                mu_t = nu_tilde * f_v1
+                mu_eff = nu + mu_t
+                
+                # Tight-stencil viscous fluxes (momentum + SA diffusion)
+                Q_with_ghosts = Q[nghost-1:-(nghost-1), nghost-1:-(nghost-1), :]
+                R_visc = compute_viscous_fluxes_tight_with_ghosts_jax(
+                    Q_with_ghosts, Si_x, Si_y, Sj_x, Sj_y,
+                    d_coord_i, e_coord_i_x, e_coord_i_y, e_ortho_i_x, e_ortho_i_y,
+                    d_coord_j, e_coord_j_x, e_coord_j_y, e_ortho_j_x, e_ortho_j_y,
+                    ls_weights_i, ls_weights_j,
+                    mu_eff, nu, nu_tilde
+                )
+                R = R.at[:, :, 1:4].add(R_visc[:, :, 1:4])
+                
+                # AFT-SA source terms with blending
+                P, D, cb2_term = compute_aft_sa_source_jax(
+                    nu_tilde, grad, wall_dist, vel_mag, nu,
+                    aft_gamma_coeff, aft_re_omega_scale, aft_log_divisor,
+                    aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale,
+                    aft_blend_threshold, aft_blend_width
+                )
+                R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
+                
+                # Explicit smoothing
+                if smoothing_epsilon > 0 and smoothing_passes > 0:
+                    R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
+                
+                # Compute the update increment dQ = alpha * dt/V * R
+                Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
+                dQ = alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * R
+                
+                # Start with normal explicit update for all variables
+                Q_int_new = Q0_int + dQ
+                
+                # Patankar-Euler scheme for nuHat (index 3) only
+                nuHat_old = Q0_int[:, :, 3]
+                dNuHat = dQ[:, :, 3]
+                nuHat_old_safe = jnp.maximum(nuHat_old, 1e-20)
+                nuHat_patankar = nuHat_old_safe / (1.0 - dNuHat / nuHat_old_safe)
+                nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, Q_int_new[:, :, 3])
+                nuHat_new = jnp.maximum(nuHat_new, 1e-20)
+                Q_int_new = Q_int_new.at[:, :, 3].set(nuHat_new)
+                
+                Q_new = Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
+                
+                return Q_new, R
+        else:
+            @jax.jit
+            def jit_rk_stage(Q, Q0, dt, alpha_rk):
+                """Single RK stage - fully JIT compiled with SA turbulence (no AFT).
+                
+                Uses:
+                - Tight-stencil viscous flux for improved diagonal dominance
+                - Point-implicit treatment for SA destruction term
+                - cb2 term implemented as advection with JST dissipation
+                """
+                # Apply boundary conditions
+                Q = apply_bc(Q)
+                
+                # Convective fluxes
+                R = compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost)
+                
+                # Gradients (needed for SA sources and cb2 advection)
+                grad = compute_gradients_jax(Q, Si_x, Si_y, Sj_x, Sj_y, volume, nghost)
+                
+                # Compute turbulent viscosity from SA variable
+                Q_int = Q[nghost:-nghost, nghost:-nghost, :]
+                nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
+                
+                # Turbulent viscosity (SA model)
+                chi = nu_tilde / (nu + 1e-30)
+                cv1 = 7.1
+                chi3 = chi ** 3
+                f_v1 = chi3 / (chi3 + cv1 ** 3)
+                mu_t = nu_tilde * f_v1
+                mu_eff = nu + mu_t
+                
+                # Tight-stencil viscous fluxes (momentum + SA diffusion)
+                # Uses 2-point difference along coordinate line + LS correction for non-orthogonality
+                # CRITICAL: Use Q with ghost cells (after BC applied) for correct wall gradient!
+                # Extract Q with one layer of ghost cells on each side
+                Q_with_ghosts = Q[nghost-1:-(nghost-1), nghost-1:-(nghost-1), :]  # (NI+2, NJ+2, 4)
+                R_visc = compute_viscous_fluxes_tight_with_ghosts_jax(
+                    Q_with_ghosts, Si_x, Si_y, Sj_x, Sj_y,
+                    d_coord_i, e_coord_i_x, e_coord_i_y, e_ortho_i_x, e_ortho_i_y,
+                    d_coord_j, e_coord_j_x, e_coord_j_y, e_ortho_j_x, e_ortho_j_y,
+                    ls_weights_i, ls_weights_j,
+                    mu_eff, nu, nu_tilde
+                )
+                R = R.at[:, :, 1:4].add(R_visc[:, :, 1:4])
+                
+                # SA source terms: Production (P), Destruction (D), and cb2 term |∇ν̃|²
+                P, D, cb2_term = compute_sa_source_jax(nu_tilde, grad, wall_dist, nu)
+                # Add production, subtract destruction, and cb2 source term to residual
+                # cb2_term = (cb2/sigma) * |∇ν̃|² is a "anti-diffusion" source that
+                # accounts for the conservative form of the diffusion term
+                R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
+                
+                # Explicit smoothing
+                if smoothing_epsilon > 0 and smoothing_passes > 0:
+                    R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
+                
+                # Compute the update increment dQ = alpha * dt/V * R
+                Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
+                dQ = alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * R
+                
+                # Start with normal explicit update for all variables
+                Q_int_new = Q0_int + dQ
+                
+                # Patankar-Euler scheme for nuHat (index 3) only
+                # Note: Pressure can be negative in artificial compressibility, so don't apply Patankar
+                # For positive dNuHat: nuHat_new = nuHat_old + dNuHat (normal explicit update)
+                # For negative dNuHat: update reciprocal: nuHat_new = nuHat_old / (1 - dNuHat/nuHat_old)
+                #   This ensures nuHat_new stays positive if nuHat_old > 0
+                nuHat_old = Q0_int[:, :, 3]
+                dNuHat = dQ[:, :, 3]
+                nuHat_old_safe = jnp.maximum(nuHat_old, 1e-20)
+                nuHat_patankar = nuHat_old_safe / (1.0 - dNuHat / nuHat_old_safe)
+                nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, Q_int_new[:, :, 3])
+                # Ensure nuHat stays positive
+                nuHat_new = jnp.maximum(nuHat_new, 1e-20)
+                Q_int_new = Q_int_new.at[:, :, 3].set(nuHat_new)
+                
+                Q_new = Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
+                
+                return Q_new, R
         
         @jax.jit
         def jit_compute_dt(Q, cfl):
