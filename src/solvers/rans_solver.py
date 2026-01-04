@@ -599,6 +599,9 @@ class RANSSolver:
         -------
         Tuple[float, float, float, float]
             RMS residuals for (pressure, u, v, nuHat) equations.
+            
+        Note: This is NOT mesh-refinement invariant. Use get_residual_l1_scaled()
+        for a metric that is invariant to mesh refinement and domain size.
         """
         # Compute RMS for each equation separately
         rms_p = float(jnp.sqrt(jnp.mean(self.R_jax[:, :, 0]**2)))
@@ -606,6 +609,66 @@ class RANSSolver:
         rms_v = float(jnp.sqrt(jnp.mean(self.R_jax[:, :, 2]**2)))
         rms_nu = float(jnp.sqrt(jnp.mean(self.R_jax[:, :, 3]**2)))
         return (rms_p, rms_u, rms_v, rms_nu)
+    
+    def get_residual_l1_scaled(self) -> Tuple[float, float, float, float]:
+        """Compute mesh-refinement-invariant scaled L1 norm of residuals.
+        
+        This metric is invariant to:
+        - Mesh refinement (splitting cells preserves the sum)
+        - Domain expansion (adding zero-residual cells doesn't change the sum)
+        - Physical unit scaling (each equation is normalized by its characteristic scale)
+        
+        Formula: R_reported = (1/F_scale) * Σ |r_i / scale_i|
+        
+        Per-cell scaling (scale_i):
+        - Pressure: β (artificial compressibility parameter)
+        - u, v: V_inf (freestream velocity magnitude)
+        - ν̃: (ν_laminar + ν̃_i) at each cell (local scaling to prevent far-wake dominance)
+        
+        Global normalization (F_scale):
+        - V_inf * chord (freestream volume flux through unit chord, which equals V_inf for chord=1)
+        
+        Returns
+        -------
+        Tuple[float, float, float, float]
+            Scaled L1 residuals for (pressure, u, v, nuHat) equations.
+        """
+        # Characteristic scales
+        beta = self.config.beta
+        V_inf = np.sqrt(self.freestream.u_inf**2 + self.freestream.v_inf**2)
+        V_inf = max(V_inf, 1e-30)  # Avoid division by zero
+        nu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 1e-6
+        
+        # Get interior Q for local nuHat scaling
+        nghost = NGHOST
+        Q_int = self.Q_jax[nghost:-nghost, nghost:-nghost, :]
+        nuHat = jnp.maximum(Q_int[:, :, 3], 0.0)
+        
+        # Local effective viscosity for nuHat scaling (prevents far-wake dominance)
+        nu_eff = nu_laminar + nuHat
+        nu_eff = jnp.maximum(nu_eff, 1e-30)  # Safety
+        
+        # Residual (this is the integral flux imbalance, NOT divided by volume)
+        R = self.R_jax
+        
+        # Scaled absolute residuals (per-cell normalization)
+        R_p_scaled = jnp.abs(R[:, :, 0]) / beta
+        R_u_scaled = jnp.abs(R[:, :, 1]) / V_inf
+        R_v_scaled = jnp.abs(R[:, :, 2]) / V_inf
+        R_nu_scaled = jnp.abs(R[:, :, 3]) / nu_eff
+        
+        # L1 sums (mesh-refinement invariant: splitting cells preserves the sum)
+        L1_p = float(jnp.sum(R_p_scaled))
+        L1_u = float(jnp.sum(R_u_scaled))
+        L1_v = float(jnp.sum(R_v_scaled))
+        L1_nu = float(jnp.sum(R_nu_scaled))
+        
+        # Global flux scale normalization
+        # For 2D airfoil with unit chord: F_scale = V_inf * chord = V_inf
+        # This makes the result O(1) for a converged solution
+        F_scale = V_inf
+        
+        return (L1_p / F_scale, L1_u / F_scale, L1_v / F_scale, L1_nu / F_scale)
     
     def sync_to_cpu(self) -> None:
         """Transfer Q from GPU to CPU (for visualization/output)."""
@@ -616,7 +679,7 @@ class RANSSolver:
         print(f"\n{'='*60}")
         print("Starting Steady-State Iteration")
         print(f"{'='*60}")
-        print(f"{'Iter':>8} {'Residual':>14} {'CFL':>8}  "
+        print(f"{'Iter':>8} {'Residual(L1)':>14} {'CFL':>8}  "
               f"{'CL':>8} {'CD':>8} {'(p:':>7} {'f:)':>7}")
         print(f"{'-'*72}")
         
@@ -634,17 +697,17 @@ class RANSSolver:
             
             # Only transfer residual when needed
             if need_residual:
-                res_all = self.get_residual_rms()  # (p, u, v, nu) tuple
+                res_all = self.get_residual_l1_scaled()  # (p, u, v, nu) tuple - mesh-invariant L1
                 self.residual_history.append(res_all)
                 self.iteration_history.append(self.iteration)
                 
-                # Use pressure residual for convergence check
-                res_rms = res_all[0]
+                # Use max of all residuals for convergence check
+                res_max = max(res_all)
                 if initial_residual is None:
-                    initial_residual = res_rms
+                    initial_residual = res_max
             else:
-                # Use previous pressure residual for convergence check
-                res_rms = self.residual_history[-1][0] if self.residual_history else 1.0
+                # Use previous max residual for convergence check
+                res_max = max(self.residual_history[-1]) if self.residual_history else 1.0
             
             cfl = self._get_cfl(self.iteration)
             
@@ -652,7 +715,8 @@ class RANSSolver:
                 # Transfer Q to CPU for force computation
                 self.sync_to_cpu()
                 forces = self.compute_forces()
-                print(f"{self.iteration:>8d} {res_rms:>14.6e} {cfl:>8.2f}  "
+                # Print max residual and individual components
+                print(f"{self.iteration:>8d} {res_max:>14.6e} {cfl:>8.2f}  "
                       f"CL={forces.CL:>8.4f} CD={forces.CD:>8.5f} "
                       f"(p:{forces.CD_p:>7.5f} f:{forces.CD_f:>7.5f})")
                 
@@ -667,7 +731,7 @@ class RANSSolver:
                     self._divergence_buffer.append({
                         'Q': self.Q.copy(),
                         'iteration': self.iteration,
-                        'residual': res_rms,
+                        'residual': res_max,
                         'cfl': cfl,
                         'C_pt': C_pt,
                         'residual_field': R_field_copy,
@@ -689,26 +753,27 @@ class RANSSolver:
                     iteration_history=self.iteration_history
                 )
             
-            if res_rms < self.config.tol:
+            if res_max < self.config.tol:
                 self.converged = True
                 print(f"\n{'='*60}")
                 print(f"CONVERGED at iteration {self.iteration}")
-                print(f"Final residual: {res_rms:.6e}")
+                res_final = self.residual_history[-1]
+                print(f"Final residual (L1): p={res_final[0]:.2e} u={res_final[1]:.2e} v={res_final[2]:.2e} ν̃={res_final[3]:.2e}")
                 print(f"{'='*60}")
                 break
             
             # Check for divergence: either residual > 1000x initial, or NaN/Inf
             is_diverged = (
                 self.residual_history and 
-                (res_rms > 1000 * initial_residual or not np.isfinite(res_rms))
+                (res_max > 1000 * initial_residual or not np.isfinite(res_max))
             )
             if is_diverged:
                 print(f"\n{'='*60}")
                 print(f"DIVERGED at iteration {self.iteration}")
-                if np.isfinite(res_rms):
-                    print(f"Residual: {res_rms:.6e} (initial: {initial_residual:.6e})")
+                if np.isfinite(res_max):
+                    print(f"Max residual: {res_max:.6e} (initial: {initial_residual:.6e})")
                 else:
-                    print(f"Residual: {res_rms} (NaN/Inf detected!)")
+                    print(f"Max residual: {res_max} (NaN/Inf detected!)")
                 print(f"{'='*60}")
                 
                 # Capture divergence dump(s) for HTML visualization
@@ -905,9 +970,12 @@ class RANSSolver:
             filename = Path(self.config.output_dir) / "residual_history.dat"
         
         with open(filename, 'w') as f:
+            f.write("# Scaled L1 residuals (mesh-refinement invariant)\n")
+            f.write("# Scaling: p/β, u/V_inf, v/V_inf, nuHat/(nu_lam+nuHat_local)\n")
+            f.write("# Normalization: 1/(V_inf * chord)\n")
             f.write("# Iteration  Res_p  Res_u  Res_v  Res_nuHat\n")
             for i, res in enumerate(self.residual_history):
-                if isinstance(res, (tuple, list)):
+                if isinstance(res, (tuple, list, np.ndarray)):
                     f.write(f"{i+1:8d}  {res[0]:.10e}  {res[1]:.10e}  {res[2]:.10e}  {res[3]:.10e}\n")
                 else:
                     # Legacy: single residual
