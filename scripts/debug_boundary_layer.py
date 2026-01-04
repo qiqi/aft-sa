@@ -232,7 +232,7 @@ def main():
     parser = argparse.ArgumentParser(description='Debug boundary layer profiles')
     parser.add_argument('--config', default='config/examples/naca0012_re1m.yaml',
                        help='Config file')
-    parser.add_argument('--max-iter', type=int, default=1000,
+    parser.add_argument('--max-iter', type=int, default=10000,
                        help='Max iterations before extracting profiles')
     parser.add_argument('--output', default='bl_debug.json',
                        help='Output JSON file')
