@@ -1098,7 +1098,138 @@ class PlotlyDashboard:
         
         print(f"Saved HTML animation to: {output_path}")
         print(f"  Use sliders at top-right to adjust color ranges")
+        
+        # Also save VTK file with same base name
+        vtk_path = output_path.with_suffix('.vtk')
+        self._save_vtk(vtk_path, grid_metrics, wall_distance, all_snapshots[-1])
+        
         return str(output_path)
+    
+    def _save_vtk(
+        self,
+        filename: Path,
+        grid_metrics: 'FVMMetrics',
+        wall_distance: Optional[np.ndarray],
+        snapshot: Snapshot,
+    ) -> None:
+        """Save snapshot data to VTK legacy format (structured grid).
+        
+        Parameters
+        ----------
+        filename : Path
+            Output VTK file path.
+        grid_metrics : FVMMetrics
+            Grid metrics containing cell centers.
+        wall_distance : np.ndarray, optional
+            Wall distance field.
+        snapshot : Snapshot
+            Snapshot data to save.
+        """
+        xc = grid_metrics.xc
+        yc = grid_metrics.yc
+        ni, nj = xc.shape
+        
+        with open(filename, 'w') as f:
+            # VTK header
+            f.write("# vtk DataFile Version 3.0\n")
+            f.write(f"CFD Solution - Iteration {snapshot.iteration}\n")
+            f.write("ASCII\n")
+            f.write("DATASET STRUCTURED_GRID\n")
+            f.write(f"DIMENSIONS {ni} {nj} 1\n")
+            
+            # Grid points (cell centers)
+            f.write(f"POINTS {ni * nj} double\n")
+            for j in range(nj):
+                for i in range(ni):
+                    f.write(f"{xc[i, j]:.10e} {yc[i, j]:.10e} 0.0\n")
+            
+            # Cell data (scalar fields)
+            f.write(f"\nPOINT_DATA {ni * nj}\n")
+            
+            # Pressure (relative to freestream)
+            f.write("SCALARS pressure double 1\n")
+            f.write("LOOKUP_TABLE default\n")
+            p_data = _sanitize_array(snapshot.p, fill_value=0.0)
+            for j in range(nj):
+                for i in range(ni):
+                    f.write(f"{p_data[i, j]:.10e}\n")
+            
+            # U-velocity (relative to freestream)
+            f.write("\nSCALARS u_velocity double 1\n")
+            f.write("LOOKUP_TABLE default\n")
+            u_data = _sanitize_array(snapshot.u, fill_value=0.0)
+            for j in range(nj):
+                for i in range(ni):
+                    f.write(f"{u_data[i, j]:.10e}\n")
+            
+            # V-velocity (relative to freestream)
+            f.write("\nSCALARS v_velocity double 1\n")
+            f.write("LOOKUP_TABLE default\n")
+            v_data = _sanitize_array(snapshot.v, fill_value=0.0)
+            for j in range(nj):
+                for i in range(ni):
+                    f.write(f"{v_data[i, j]:.10e}\n")
+            
+            # nuHat (SA working variable)
+            f.write("\nSCALARS nuHat double 1\n")
+            f.write("LOOKUP_TABLE default\n")
+            nu_data = _sanitize_array(snapshot.nu, fill_value=0.0)
+            for j in range(nj):
+                for i in range(ni):
+                    f.write(f"{nu_data[i, j]:.10e}\n")
+            
+            # Chi = nuHat / nu_laminar (turbulent viscosity ratio)
+            f.write("\nSCALARS chi double 1\n")
+            f.write("LOOKUP_TABLE default\n")
+            chi_data = np.maximum(nu_data, 0.0) / self.nu_laminar
+            for j in range(nj):
+                for i in range(ni):
+                    f.write(f"{chi_data[i, j]:.10e}\n")
+            
+            # Velocity magnitude
+            f.write("\nSCALARS velocity_magnitude double 1\n")
+            f.write("LOOKUP_TABLE default\n")
+            vel_mag = np.sqrt((u_data + self.u_inf)**2 + (v_data + self.v_inf)**2)
+            for j in range(nj):
+                for i in range(ni):
+                    f.write(f"{vel_mag[i, j]:.10e}\n")
+            
+            # Total pressure loss coefficient
+            if snapshot.C_pt is not None:
+                f.write("\nSCALARS C_pt double 1\n")
+                f.write("LOOKUP_TABLE default\n")
+                cpt_data = _sanitize_array(snapshot.C_pt, fill_value=0.0)
+                for j in range(nj):
+                    for i in range(ni):
+                        f.write(f"{cpt_data[i, j]:.10e}\n")
+            
+            # Residual field (RMS over equations)
+            if snapshot.residual_field is not None:
+                f.write("\nSCALARS residual double 1\n")
+                f.write("LOOKUP_TABLE default\n")
+                res_data = _sanitize_array(snapshot.residual_field, fill_value=1e-12)
+                for j in range(nj):
+                    for i in range(ni):
+                        f.write(f"{res_data[i, j]:.10e}\n")
+            
+            # Wall distance
+            if wall_distance is not None:
+                f.write("\nSCALARS wall_distance double 1\n")
+                f.write("LOOKUP_TABLE default\n")
+                wd_data = _sanitize_array(wall_distance, fill_value=0.0)
+                for j in range(nj):
+                    for i in range(ni):
+                        f.write(f"{wd_data[i, j]:.10e}\n")
+            
+            # Velocity vector field
+            f.write("\nVECTORS velocity double\n")
+            for j in range(nj):
+                for i in range(ni):
+                    u_abs = u_data[i, j] + self.u_inf
+                    v_abs = v_data[i, j] + self.v_inf
+                    f.write(f"{u_abs:.10e} {v_abs:.10e} 0.0\n")
+        
+        print(f"Saved VTK file to: {filename}")
     
     def clear(self) -> None:
         """Clear all stored snapshots."""
