@@ -69,6 +69,17 @@ class SolverConfig:
     html_compress: bool = True  # Gzip compress HTML output (typically 5-10x smaller)
     divergence_history: int = 0
     target_yplus: float = 1.0  # Target y+ for grid quality warning
+    
+    # AFT Transition Model Configuration
+    aft_enabled: bool = False         # Enable AFT transition model (False = pure SA)
+    aft_gamma_coeff: float = 2.0      # Gamma formula coefficient
+    aft_re_omega_scale: float = 1000.0  # Re_Ω normalization
+    aft_log_divisor: float = 50.0     # Log term divisor
+    aft_sigmoid_center: float = 1.04  # Sigmoid activation center
+    aft_sigmoid_slope: float = 35.0   # Sigmoid steepness
+    aft_rate_scale: float = 0.2       # Maximum growth rate
+    aft_blend_threshold: float = 1.0  # nuHat threshold for transition
+    aft_blend_width: float = 4.0      # Blending smoothness
 
 
 class RANSSolver:

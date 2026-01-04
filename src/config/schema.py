@@ -93,6 +93,32 @@ class OutputConfig:
 
 
 @dataclass
+class AFTConfig:
+    """AFT (Amplification Factor Transport) transition model configuration.
+    
+    All parameters are tunable for ensemble studies and parameter optimization.
+    Set enabled=False to use pure SA (fully turbulent).
+    """
+    
+    enabled: bool = False  # Enable AFT transition model
+    
+    # Gamma calculation: Γ = gamma_coeff * (ω·d)² / (|V|² + (ω·d)²)
+    gamma_coeff: float = 2.0
+    
+    # Amplification rate: rate = rate_scale / (1 + exp(-slope * (a - center)))
+    # where a = log10(Re_Ω / re_scale) / log_divisor + Γ
+    re_omega_scale: float = 1000.0    # Re_Ω normalization
+    log_divisor: float = 50.0         # Log term divisor
+    sigmoid_center: float = 1.04      # Sigmoid activation center
+    sigmoid_slope: float = 35.0       # Sigmoid steepness
+    rate_scale: float = 0.2           # Maximum growth rate
+    
+    # Blending: is_turb = clip(1 - exp(-(nuHat - threshold) / width), 0, 1)
+    blend_threshold: float = 1.0      # nuHat value at transition
+    blend_width: float = 4.0          # Smoothness of transition
+
+
+@dataclass
 class DeviceConfig:
     """Device/GPU configuration."""
     
@@ -110,6 +136,7 @@ class SimulationConfig:
     numerics: NumericsConfig = field(default_factory=NumericsConfig)
     output: OutputConfig = field(default_factory=OutputConfig)
     device: DeviceConfig = field(default_factory=DeviceConfig)
+    aft: AFTConfig = field(default_factory=AFTConfig)  # Transition model
     
     def to_solver_config(self):
         """Convert to legacy SolverConfig for backward compatibility."""
@@ -137,6 +164,16 @@ class SimulationConfig:
             html_animation=self.output.html_animation,
             divergence_history=self.output.divergence_history,
             target_yplus=self.grid.y_plus,
+            # AFT transition model configuration
+            aft_enabled=self.aft.enabled,
+            aft_gamma_coeff=self.aft.gamma_coeff,
+            aft_re_omega_scale=self.aft.re_omega_scale,
+            aft_log_divisor=self.aft.log_divisor,
+            aft_sigmoid_center=self.aft.sigmoid_center,
+            aft_sigmoid_slope=self.aft.sigmoid_slope,
+            aft_rate_scale=self.aft.rate_scale,
+            aft_blend_threshold=self.aft.blend_threshold,
+            aft_blend_width=self.aft.blend_width,
         )
     
     def to_dict(self) -> dict:

@@ -331,3 +331,190 @@ def compute_sa_cb2_advection_jax(nuHat, grad_nuHat, Si_x, Si_y, Sj_x, Sj_y, k2, 
     res_j = F_j[:, :-1] - F_j[:, 1:]  # (NI, NJ)
     
     return res_i + res_j
+
+
+# =============================================================================
+# AFT-SA BLENDING FUNCTIONS
+# =============================================================================
+
+# Default blending parameters (tunable for ensemble studies)
+AFT_BLEND_THRESHOLD = 1.0   # nuHat value at which transition occurs
+AFT_BLEND_WIDTH = 4.0       # Smoothness of transition
+
+
+@jax.jit
+def compute_turbulent_fraction(nuHat,
+                               threshold: float = AFT_BLEND_THRESHOLD,
+                               width: float = AFT_BLEND_WIDTH):
+    """
+    Compute smooth activation function for AFT-SA blending.
+    
+    FORMULA:
+        is_turb = clip(1 - exp(-(nuHat - threshold) / width), 0, 1)
+    
+    BEHAVIOR:
+        - nuHat << threshold: is_turb → 0 (laminar, AFT dominates)
+        - nuHat >> threshold: is_turb → 1 (turbulent, SA dominates)
+        - Transition occurs over a range of ~4*width around threshold
+    
+    TUNABLE PARAMETERS:
+        - threshold: nuHat value at transition center (default 1.0)
+        - width: Controls smoothness of transition (default 4.0)
+    
+    Parameters
+    ----------
+    nuHat : array
+        SA working variable (any shape).
+    threshold : float
+        nuHat value for transition onset.
+    width : float
+        Width of transition region.
+        
+    Returns
+    -------
+    is_turb : array
+        Turbulent fraction in [0, 1], same shape as nuHat.
+    """
+    return jnp.clip(1.0 - jnp.exp(-(nuHat - threshold) / width), 0.0, 1.0)
+
+
+@jax.jit
+def compute_blended_production(P_sa, P_aft, nuHat,
+                               threshold: float = AFT_BLEND_THRESHOLD,
+                               width: float = AFT_BLEND_WIDTH):
+    """
+    Compute blended production term for AFT-SA transition model.
+    
+    FORMULA:
+        is_turb = turbulent_fraction(nuHat)
+        P = P_sa * is_turb + P_aft * (1 - is_turb)
+    
+    PHYSICAL MEANING:
+        - Laminar regime (is_turb → 0): AFT amplification drives growth
+        - Turbulent regime (is_turb → 1): SA production maintains turbulence
+        - Transition: Smooth blending between the two
+    
+    NOTE: P_aft should already include the nuHat factor from compute_aft_production,
+    so dimensions match P_sa = cb1 * S̃ * nuHat.
+    
+    Parameters
+    ----------
+    P_sa : array
+        SA production term.
+    P_aft : array
+        AFT production term (already multiplied by nuHat).
+    nuHat : array
+        SA working variable.
+    threshold : float
+        Blending threshold (tunable).
+    width : float
+        Blending width (tunable).
+        
+    Returns
+    -------
+    P_blended : array
+        Blended production term.
+    """
+    is_turb = compute_turbulent_fraction(nuHat, threshold, width)
+    return P_sa * is_turb + P_aft * (1.0 - is_turb)
+
+
+@jax.jit
+def compute_aft_sa_source_jax(nuHat, grad, wall_dist, vel_mag, nu_laminar,
+                              # AFT parameters
+                              aft_gamma_coeff: float = 2.0,
+                              aft_re_scale: float = 1000.0,
+                              aft_log_divisor: float = 50.0,
+                              aft_sigmoid_center: float = 1.04,
+                              aft_sigmoid_slope: float = 35.0,
+                              aft_rate_scale: float = 0.2,
+                              # Blending parameters
+                              blend_threshold: float = AFT_BLEND_THRESHOLD,
+                              blend_width: float = AFT_BLEND_WIDTH):
+    """
+    Compute combined AFT-SA source terms for transition prediction.
+    
+    This is the main entry point for the AFT-SA transition model.
+    
+    SOURCE TERMS:
+        P_blended = blend(P_sa, P_aft)  - Blended production
+        D = cw1 * fw * |nuHat| * nuHat / d²  - Modified destruction
+        cb2_term = (cb2/σ)|∇nuHat|²  - Gradient enhancement
+    
+    DESTRUCTION MODIFICATION:
+        Standard SA: D = cw1 * fw * nuHat² / d²
+        Modified:    D = cw1 * fw * |nuHat| * nuHat / d²
+        
+        This ensures destruction always drives nuHat toward zero:
+        - nuHat > 0: D > 0, so -D reduces nuHat
+        - nuHat < 0: D < 0, so -D increases nuHat (toward 0)
+    
+    Parameters
+    ----------
+    nuHat : array (NI, NJ)
+        SA working variable.
+    grad : array (NI, NJ, 4, 2)
+        Cell-centered gradients of [p, u, v, nuHat].
+    wall_dist : array (NI, NJ)
+        Wall distance.
+    vel_mag : array (NI, NJ)
+        Velocity magnitude sqrt(u² + v²).
+    nu_laminar : float
+        Laminar kinematic viscosity (1/Re).
+    aft_* : float
+        Tunable AFT correlation parameters.
+    blend_* : float
+        Tunable blending parameters.
+        
+    Returns
+    -------
+    P : array (NI, NJ)
+        Blended production term.
+    D : array (NI, NJ)
+        Modified destruction term.
+    cb2_term : array (NI, NJ)
+        cb2 gradient term.
+    """
+    # Import AFT functions here to avoid circular import
+    from .aft_sources import compute_aft_production
+    
+    # Vorticity magnitude from velocity gradients
+    omega = compute_vorticity_jax(grad)
+    
+    # SA production (standard)
+    P_sa = compute_sa_production(omega, nuHat, wall_dist, nu_laminar)
+    
+    # AFT production
+    P_aft = compute_aft_production(
+        omega, vel_mag, wall_dist, nuHat,
+        aft_gamma_coeff, aft_re_scale, aft_log_divisor,
+        aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale
+    )
+    
+    # Blended production
+    P = compute_blended_production(P_sa, P_aft, nuHat, blend_threshold, blend_width)
+    
+    # Modified destruction: |nuHat| * nuHat to always drive toward 0
+    # Use SA destruction infrastructure but modify the nuHat² term
+    from src.physics.spalart_allmaras import (
+        compute_fv1, compute_fv2, compute_S_tilde, compute_r, compute_fw, CW1
+    )
+    
+    nuHat_safe = jnp.maximum(jnp.abs(nuHat), 1e-10)
+    chi = nuHat_safe / nu_laminar
+    fv1_val = compute_fv1(chi)
+    fv2_val = compute_fv2(chi, fv1_val)
+    S_tilde = compute_S_tilde(omega, nuHat_safe, wall_dist, chi, fv2_val)
+    r_val = compute_r(nuHat_safe, S_tilde, wall_dist)
+    fw_val = compute_fw(r_val)
+    
+    # D = cw1 * fw * |nuHat| * nuHat / d²
+    # Sign: positive when nuHat > 0, negative when nuHat < 0
+    D = CW1 * fw_val * jnp.abs(nuHat) * nuHat / (wall_dist ** 2)
+    
+    # cb2 term (unchanged)
+    grad_nuHat = grad[:, :, 3, :]
+    grad_nuHat_sq = jnp.sum(grad_nuHat**2, axis=-1)
+    cb2_term = (CB2 / SIGMA) * grad_nuHat_sq
+    
+    return P, D, cb2_term

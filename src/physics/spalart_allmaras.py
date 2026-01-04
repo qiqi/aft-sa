@@ -1027,6 +1027,89 @@ def diagnose_sa_physics(y_plus: np.ndarray, nuHat: np.ndarray,
 
 
 # =============================================================================
+# AFT-SA INTERFACE - Production/Destruction with gradients for transition model
+# =============================================================================
+
+@jax.jit
+def spalart_allmaras_amplification(omega: ArrayLike, nuHat: ArrayLike, d: ArrayLike,
+                                   nu_laminar: float = 1.0
+                                   ) -> Tuple[Tuple[jnp.ndarray, jnp.ndarray],
+                                              Tuple[jnp.ndarray, jnp.ndarray]]:
+    """
+    Compute SA production & destruction with gradients w.r.t. nuHat.
+    
+    INTERFACE FOR AFT-SA BLENDING:
+    -----------------------------
+    This function provides production and destruction terms along with their
+    gradients for use in the boundary layer transition model. The gradients
+    are computed using JAX autodiff on the existing SA functions.
+    
+    MODIFIED DESTRUCTION:
+    ---------------------
+    To handle negative nuHat and ensure stability, destruction uses:
+        D = cw1 · fw · |nuHat| · nuHat / d²
+    
+    This ensures destruction always drives nuHat toward zero:
+        - If nuHat > 0: D > 0, so -D pulls nuHat down
+        - If nuHat < 0: D < 0, so -D pulls nuHat up
+    
+    Parameters
+    ----------
+    omega : array
+        Vorticity magnitude |ω|.
+    nuHat : array
+        SA working variable ν̃ (can be negative).
+    d : array
+        Wall distance.
+    nu_laminar : float
+        Laminar kinematic viscosity ν (default 1.0 for normalized eqns).
+        
+    Returns
+    -------
+    ((P, dP/d_nuHat), (D, dD/d_nuHat)) : tuple of tuples
+        Production and destruction values with their gradients w.r.t. nuHat.
+    """
+    # Production: use existing function, returns 0 for nuHat <= 0 (via mask)
+    P = compute_sa_production(omega, nuHat, d, nu_laminar)
+    
+    # Destruction: modified to |nuHat| * nuHat for stability
+    # This ensures destruction always drives nuHat toward zero
+    nuHat_safe = jnp.maximum(jnp.abs(nuHat), 1e-10)
+    chi = nuHat_safe / nu_laminar
+    fv1_val = compute_fv1(chi)
+    fv2_val = compute_fv2(chi, fv1_val)
+    S_tilde = compute_S_tilde(omega, nuHat_safe, d, chi, fv2_val)
+    r_val = compute_r(nuHat_safe, S_tilde, d)
+    fw_val = compute_fw(r_val)
+    
+    # D = cw1 * fw * |nuHat| * nuHat / d^2
+    # Sign: D > 0 when nuHat > 0, D < 0 when nuHat < 0
+    D = CW1 * fw_val * jnp.abs(nuHat) * nuHat / (d ** 2)
+    
+    # Compute gradients using JAX autodiff
+    def prod_fn(nu):
+        return compute_sa_production(omega, nu, d, nu_laminar)
+    
+    def dest_fn(nu):
+        # Modified destruction: |nu| * nu / d^2
+        nu_safe = jnp.maximum(jnp.abs(nu), 1e-10)
+        chi_ = nu_safe / nu_laminar
+        fv1_ = compute_fv1(chi_)
+        fv2_ = compute_fv2(chi_, fv1_)
+        S_tilde_ = compute_S_tilde(omega, nu_safe, d, chi_, fv2_)
+        r_ = compute_r(nu_safe, S_tilde_, d)
+        fw_ = compute_fw(r_)
+        return CW1 * fw_ * jnp.abs(nu) * nu / (d ** 2)
+    
+    # Element-wise gradients via vmap of grad
+    # For array inputs, compute gradient at each point
+    dP_dnuHat = jax.grad(lambda nu: jnp.sum(prod_fn(nu)))(nuHat)
+    dD_dnuHat = jax.grad(lambda nu: jnp.sum(dest_fn(nu)))(nuHat)
+    
+    return (P, dP_dnuHat), (D, dD_dnuHat)
+
+
+# =============================================================================
 # LEGACY COMPATIBILITY - Old function signatures
 # =============================================================================
 

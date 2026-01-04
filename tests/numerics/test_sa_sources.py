@@ -166,8 +166,8 @@ class TestSASourceTerms:
         # Production from numerics module
         P_numerics = compute_sa_production_only_jax(nuHat, grad, wall_dist, nu)
         
-        # Production from physics module
-        P_physics = compute_sa_production(omega, nuHat, wall_dist)
+        # Production from physics module (pass nu_laminar to match)
+        P_physics = compute_sa_production(omega, nuHat, wall_dist, nu)
         
         assert_allclose(np.array(P_numerics), np.array(P_physics), rtol=1e-10)
     
@@ -186,8 +186,8 @@ class TestSASourceTerms:
         # Destruction from numerics module
         D_numerics = compute_sa_destruction_only_jax(nuHat, grad, wall_dist, nu)
         
-        # Destruction from physics module
-        D_physics = compute_sa_destruction(omega, nuHat, wall_dist)
+        # Destruction from physics module (pass nu_laminar to match)
+        D_physics = compute_sa_destruction(omega, nuHat, wall_dist, nu)
         
         assert_allclose(np.array(D_numerics), np.array(D_physics), rtol=1e-10)
 
