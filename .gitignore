@@ -64,3 +64,10 @@ grid_options.in
 # Test output directory
 output/
 .cursor/
+
+# Debug files
+*.bl
+bl_debug*.json
+sa_*.json
+scripts/debug_*.py
+scripts/test_*.py
