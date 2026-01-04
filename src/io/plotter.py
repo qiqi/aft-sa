@@ -50,7 +50,21 @@ class Snapshot:
 class PlotlyDashboard:
     """Accumulates CFD solution snapshots and exports as interactive HTML."""
     
-    def __init__(self, reynolds: float = 6e6):
+    # Number of contour levels (lower = smaller file size)
+    N_CONTOURS = 20
+    
+    def __init__(self, reynolds: float = 6e6, use_cdn: bool = True):
+        """
+        Initialize the dashboard.
+        
+        Parameters
+        ----------
+        reynolds : float
+            Reynolds number for viscosity calculation.
+        use_cdn : bool
+            If True, reference plotly.js from CDN (saves ~3MB per file).
+            If False, embed plotly.js in HTML (works offline but larger).
+        """
         self.snapshots: List[Snapshot] = []
         self.residual_history: List = []
         self.iteration_history: List[int] = []
@@ -59,6 +73,7 @@ class PlotlyDashboard:
         self.u_inf: float = 1.0
         self.v_inf: float = 0.0
         self.nu_laminar: float = 1.0 / reynolds if reynolds > 0 else 1e-6
+        self.use_cdn: bool = use_cdn
     
     def store_snapshot(
         self, 
@@ -245,9 +260,12 @@ class PlotlyDashboard:
         # Configure layout
         self._configure_layout(fig, all_snapshots, color_config, has_wall_dist, has_surface_data, surface_params)
         
-        # Write HTML
-        fig.write_html(str(output_path), auto_play=False)
+        # Write HTML with optional CDN to reduce file size
+        include_plotlyjs: Any = 'cdn' if self.use_cdn else True
+        fig.write_html(str(output_path), auto_play=False, include_plotlyjs=include_plotlyjs)
         print(f"Saved HTML animation to: {output_path}")
+        if self.use_cdn:
+            print(f"  Note: Requires internet connection (using plotly.js CDN)")
         print(f"  Use sliders at top-right to adjust color ranges")
         
         # Also save VTK file
@@ -362,7 +380,7 @@ class PlotlyDashboard:
                 colorscale=cfg.colorscale,
                 zmin=cfg.cmin, zmax=cfg.cmax,
                 contours=dict(coloring='fill', showlines=False),
-                ncontours=50,
+                ncontours=self.N_CONTOURS,
                 colorbar=cfg.colorbar if show_colorbar else None,
                 showscale=show_colorbar,
             ), row=row, col=col)
@@ -437,7 +455,7 @@ class PlotlyDashboard:
             colorscale=cfg.colorscale,
             zmin=cfg.cmin, zmax=cfg.cmax,
             contours=dict(coloring='fill', showlines=False),
-            ncontours=50,
+            ncontours=self.N_CONTOURS,
             colorbar=cfg.colorbar,
             showscale=True,
         ), row=5, col=1)
@@ -594,27 +612,27 @@ class PlotlyDashboard:
             go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap_p.flatten(),
                             carpet='carpet_1_1', colorscale=p_cfg.colorscale,
                             zmin=p_cfg.cmin, zmax=p_cfg.cmax,
-                            contours=dict(coloring='fill', showlines=False), ncontours=50),
+                            contours=dict(coloring='fill', showlines=False), ncontours=self.N_CONTOURS),
             go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=field2.flatten(),
                             carpet='carpet_1_2', colorscale=p_cfg.colorscale,
                             zmin=p_cfg.cmin, zmax=p_cfg.cmax,
-                            contours=dict(coloring='fill', showlines=False), ncontours=50),
+                            contours=dict(coloring='fill', showlines=False), ncontours=self.N_CONTOURS),
             go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap_u.flatten(),
                             carpet='carpet_2_1', colorscale=v_cfg.colorscale,
                             zmin=v_cfg.cmin, zmax=v_cfg.cmax,
-                            contours=dict(coloring='fill', showlines=False), ncontours=50),
+                            contours=dict(coloring='fill', showlines=False), ncontours=self.N_CONTOURS),
             go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap_v.flatten(),
                             carpet='carpet_2_2', colorscale=v_cfg.colorscale,
                             zmin=v_cfg.cmin, zmax=v_cfg.cmax,
-                            contours=dict(coloring='fill', showlines=False), ncontours=50),
+                            contours=dict(coloring='fill', showlines=False), ncontours=self.N_CONTOURS),
             go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=field5.flatten(),
                             carpet='carpet_3_1', colorscale=r_cfg.colorscale,
                             zmin=r_cfg.cmin, zmax=r_cfg.cmax,
-                            contours=dict(coloring='fill', showlines=False), ncontours=50),
+                            contours=dict(coloring='fill', showlines=False), ncontours=self.N_CONTOURS),
             go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=to_json_safe_list(chi_log),
                             carpet='carpet_3_2', colorscale=chi_cfg.colorscale,
                             zmin=chi_cfg.cmin, zmax=chi_cfg.cmax,
-                            contours=dict(coloring='fill', showlines=False), ncontours=50),
+                            contours=dict(coloring='fill', showlines=False), ncontours=self.N_CONTOURS),
         ]
         
         # Snapshot markers

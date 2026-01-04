@@ -70,6 +70,7 @@ class SolverConfig:
     sponge_thickness: int = 15  # Sponge layer thickness for farfield stabilization
     n_wake: int = 30
     html_animation: bool = True
+    html_use_cdn: bool = True  # Use CDN for plotly.js (saves ~3MB, requires internet)
     divergence_history: int = 0
 
 
@@ -460,7 +461,9 @@ class RANSSolver:
         output_path = Path(self.config.output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
         
-        self.plotter = PlotlyDashboard(reynolds=self.config.reynolds)
+        # Use CDN by default to reduce HTML file size (~3MB savings)
+        use_cdn = getattr(self.config, 'html_use_cdn', True)
+        self.plotter = PlotlyDashboard(reynolds=self.config.reynolds, use_cdn=use_cdn)
         
         # Initialize JAX arrays
         self._initialize_jax()
