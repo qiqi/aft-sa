@@ -563,19 +563,11 @@ class PlotlyDashboard:
             mu_laminar, self.u_inf, self.v_inf, i_start, i_end
         )
         
-        # Compute global ranges
-        cp_min, cp_max = -2.0, 1.0
-        cf_max = 0.05
-        for snap in all_snapshots:
-            Cp_snap = np.clip(snap.p[:, 0], -1e10, 1e10) / q_inf
-            cp_min = min(cp_min, safe_minmax(Cp_snap[i_start:i_end], -2, 1)[0])
-            cp_max = max(cp_max, safe_minmax(Cp_snap[i_start:i_end], -2, 1)[1])
-            Cf_snap = compute_cf_distribution(
-                snap, grid_metrics.volume[:, 0],
-                grid_metrics.Sj_x[:, 0], grid_metrics.Sj_y[:, 0],
-                mu_laminar, self.u_inf, self.v_inf, i_start, i_end
-            )
-            cf_max = max(cf_max, safe_absmax(Cf_snap, 0.01))
+        # Compute ranges based on LAST snapshot (converged solution)
+        # Using last snapshot prevents early unconverged data from dominating the scale
+        Cp_last = np.clip(snap.p[:, 0], -1e10, 1e10) / q_inf
+        cp_min, cp_max = safe_minmax(Cp_last[i_start:i_end], -2, 1)
+        cf_max = max(0.01, safe_absmax(Cf, 0.01))
         
         cp_trace_idx = len(fig.data)
         fig.add_trace(go.Scatter(
@@ -842,17 +834,18 @@ class PlotlyDashboard:
         fig.update_yaxes(title_text='RMS Residual', matches=None, type='log', autorange=True, fixedrange=True, row=4, col=1)
         
         if has_wall_dist and yplus_params:
-            # y+ plot is on row 5, col 2
-            yplus_max = yplus_params.get('yplus_max', 5.0)
-            fig.update_xaxes(title_text='x/c', range=[0, 1], matches=None, fixedrange=False, row=5, col=2)
-            fig.update_yaxes(title_text='y⁺', range=[0, max(5.0, yplus_max * 1.2)], matches=None, fixedrange=False, row=5, col=2)
+            # y+ plot is on row 5, col 2 - log scale with fixed range
+            fig.update_xaxes(title_text='x/c', range=[0, 1], matches=None, fixedrange=True, row=5, col=2)
+            fig.update_yaxes(title_text='y⁺', type='log', range=[np.log10(0.0005), np.log10(5)], 
+                           matches=None, fixedrange=True, row=5, col=2)
         
         if has_surface_data and surface_params:
             surface_row = surface_params['surface_row']
-            fig.update_xaxes(title_text='x/c', range=[0, 1], fixedrange=False, row=surface_row, col=1)
-            fig.update_yaxes(title_text='Cp', autorange='reversed', fixedrange=False, row=surface_row, col=1)
-            fig.update_xaxes(title_text='x/c', range=[0, 1], fixedrange=False, row=surface_row, col=2)
-            fig.update_yaxes(title_text='Cf', range=[0, surface_params['cf_max'] * 1.1], fixedrange=False, row=surface_row, col=2)
+            # Cp and Cf plots have independent axes (don't scale with 2D contours)
+            fig.update_xaxes(title_text='x/c', range=[0, 1], matches=None, fixedrange=True, row=surface_row, col=1)
+            fig.update_yaxes(title_text='Cp', autorange='reversed', matches=None, fixedrange=True, row=surface_row, col=1)
+            fig.update_xaxes(title_text='x/c', range=[0, 1], matches=None, fixedrange=True, row=surface_row, col=2)
+            fig.update_yaxes(title_text='Cf', range=[0, surface_params['cf_max'] * 1.1], matches=None, fixedrange=True, row=surface_row, col=2)
     
     def clear(self) -> None:
         """Clear all stored snapshots."""
