@@ -779,6 +779,7 @@ class PlotlyDashboard:
         
         fig.update_layout(
             showlegend=False,
+            dragmode='pan',  # Default to pan instead of box zoom
             updatemenus=[dict(
                 type='buttons',
                 showactive=False,
