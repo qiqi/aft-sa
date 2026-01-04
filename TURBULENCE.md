@@ -10,8 +10,9 @@ The SA turbulence model is fully integrated with improved numerical stability:
 
 - **Production**: `P = cb1 · S̃ · ν̃` (explicit) ✅
 - **Destruction**: `D = cw1 · fw · (ν̃/d)²` (point-implicit) ✅
-- **cb2 term**: `(cb2/σ)(∇ν̃)·(∇ν̃)` ✅ (implemented as advection with JST dissipation)
-- **SA diffusion**: ✅ (tight-stencil implementation)
+- **SA convection**: First-order upwind (non-dispersive) ✅
+- **cb2 term**: `(cb2/σ)(∇ν̃)·(∇ν̃)` ✅ (first-order upwind with ∇ν̃ as advection velocity)
+- **SA diffusion**: ✅ (tight-stencil, second-order)
 
 ### Tight-Stencil Viscous Flux Implementation
 
@@ -25,12 +26,17 @@ Key components in `src/grid/metrics.py`:
 - `FaceGeometry`: stores d_coord, e_coord, e_ortho for each face
 - `LSWeights`: 6 weights per face for orthogonal derivative computation
 
-### cb2 Term as Advection
+### First-Order Upwind for SA Convection
 
-The cb2 term is treated as an advection of ν̃ with velocity = ∇ν̃:
-- Uses Green-Gauss gradient of ν̃ as "advection velocity"
-- JST dissipation uses |∇ν̃| for spectral radius (NOT physical u,v)
-- Implemented in `compute_sa_cb2_advection_jax()`
+To avoid dispersive oscillations ("rolls") in the ν̃ field caused by central differencing on sharp gradients, the SA equation uses **first-order upwind** for convection:
+
+1. **SA transport** (`u·∇ν̃`): Uses physical velocity (u, v) with upwind selection
+2. **cb2 term** (`(cb2/σ)(∇ν̃)·(∇ν̃)`): Treated as advection with ∇ν̃ as the "advection velocity"
+
+Both use the same upwind scheme:
+- `F = vel_n * φ_upwind` where `φ_upwind = φ_L if vel_n > 0 else φ_R`
+
+The momentum equations (p, u, v) continue to use JST central difference with artificial dissipation.
 
 ### Patankar-Euler Scheme for nuHat
 

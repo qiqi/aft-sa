@@ -42,7 +42,7 @@ from ..numerics.fluxes import compute_fluxes_jax
 from ..numerics.gradients import compute_gradients_jax
 from ..numerics.viscous_fluxes import compute_viscous_fluxes_tight_jax
 from ..numerics.explicit_smoothing import smooth_explicit_jax
-from ..numerics.sa_sources import compute_sa_source_jax
+from ..numerics.sa_sources import compute_sa_source_jax, compute_sa_cb2_advection_jax
 from .time_stepping import compute_local_timestep_jax
 from .boundary_conditions import make_apply_bc_jit
 
@@ -346,7 +346,7 @@ class RANSSolver:
             Uses:
             - Tight-stencil viscous flux for improved diagonal dominance
             - Point-implicit treatment for SA destruction term
-            - cb2 term implemented as advection with JST dissipation
+            - SA convection and cb2 term use first-order upwind (no dispersive oscillations)
             """
             # Apply boundary conditions
             Q = apply_bc(Q)
@@ -380,12 +380,19 @@ class RANSSolver:
             )
             R = R.at[:, :, 1:4].add(R_visc[:, :, 1:4])
             
-            # SA source terms: Production (P), Destruction (D), and cb2 term |∇ν̃|²
-            P, D, cb2_term = compute_sa_source_jax(nu_tilde, grad, wall_dist, nu)
-            # Add production, subtract destruction, and cb2 source term to residual
-            # cb2_term = (cb2/sigma) * |∇ν̃|² is a "anti-diffusion" source that
-            # accounts for the conservative form of the diffusion term
-            R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
+            # SA source terms: Production (P), Destruction (D)
+            # Note: cb2 term is now handled as advection flux below
+            P, D, _cb2_source = compute_sa_source_jax(nu_tilde, grad, wall_dist, nu)
+            # Add production, subtract destruction (cb2 handled as flux)
+            R = R.at[:, :, 3].add((P - D) * volume)
+            
+            # SA cb2 term as advection with first-order upwind
+            # ∇ν̃ acts as "advection velocity", nuHat is advected
+            grad_nuHat = grad[:, :, 3, :]  # (NI, NJ, 2)
+            cb2_flux = compute_sa_cb2_advection_jax(
+                nu_tilde, grad_nuHat, Si_x, Si_y, Sj_x, Sj_y
+            )
+            R = R.at[:, :, 3].add(cb2_flux)
             
             # Explicit smoothing
             if smoothing_epsilon > 0 and smoothing_passes > 0:
