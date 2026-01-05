@@ -43,6 +43,7 @@ from ..numerics.gradients import compute_vorticity_jax
 from .time_stepping import compute_local_timestep_jax
 from .boundary_conditions import make_apply_bc_jit
 from ..numerics.preconditioner import BlockJacobiPreconditioner
+from ..numerics.gmres import gmres, make_jfnk_matvec, make_newton_rhs
 
 
 @dataclass
@@ -795,20 +796,18 @@ class RANSSolver:
     def step(self) -> None:
         """Perform one iteration of the solver.
         
-        Fully GPU-accelerated using JIT-compiled RK stages.
+        Fully GPU-accelerated using JIT-compiled stages.
         No CPU transfers - state stays on GPU.
         
         Supports three modes:
         - rk5: Standard explicit RK5 (default)
         - rk5_precond: RK5 with block-Jacobi preconditioned residual
-        - newton: Newton-GMRES with block-Jacobi (not yet implemented)
+        - newton: Newton-GMRES with block-Jacobi preconditioning
         """
         solver_mode = getattr(self.config, 'solver_mode', 'rk5')
         
         if solver_mode == 'newton':
-            raise NotImplementedError(
-                "Newton-GMRES mode not yet implemented. Use 'rk5' or 'rk5_precond'."
-            )
+            self._step_newton()
         elif solver_mode == 'rk5_precond':
             self._step_rk5_preconditioned()
         else:  # rk5
@@ -939,6 +938,131 @@ class RANSSolver:
         nghost = NGHOST
         Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
         return self._apply_rk_update_static(Q0_int, R, dt, self.volume_inv_jax, alpha)
+    
+    def _step_newton(self) -> None:
+        """Newton-GMRES step with block-Jacobi preconditioning.
+        
+        Solves the nonlinear system R(Q) = 0 using Newton's method where
+        each Newton iteration uses preconditioned GMRES to solve:
+            (V/dt · I + J) · ΔQ = -R(Q)
+        
+        The Jacobian-vector product J @ v is computed via automatic
+        differentiation (JVP), making this a Jacobian-free Newton-Krylov method.
+        
+        CFL is used for pseudo-transient continuation: the V/dt diagonal
+        acts as regularization that decreases as CFL → ∞.
+        """
+        nghost = NGHOST
+        
+        # Get CFL and compute timestep
+        cfl = self._get_cfl_newton(self.iteration)
+        dt = self._jit_compute_dt(self.Q_jax, cfl)
+        
+        # Compute block-Jacobi preconditioner at current state
+        self.compute_preconditioner()
+        
+        # Create Jacobian-free matvec for this Newton iteration
+        # A @ v = (V/dt · I + J) @ v
+        matvec = make_jfnk_matvec(
+            residual_fn=self._jit_residual,
+            Q=self.Q_jax,
+            dt=dt,
+            volume=self.volume_jax,
+            nghost=nghost,
+        )
+        
+        # Compute RHS: -R(Q)
+        rhs = make_newton_rhs(self._jit_residual, self.Q_jax, nghost)
+        
+        # Get GMRES parameters from config
+        gmres_restart = getattr(self.config, 'gmres_restart', 20)
+        gmres_tol = getattr(self.config, 'gmres_tol', 1e-3)
+        
+        # Solve with preconditioned GMRES
+        result = gmres(
+            matvec=matvec,
+            b=rhs,
+            x0=None,  # Start from zero (conservative for Newton)
+            tol=gmres_tol,
+            restart=gmres_restart,
+            maxiter=gmres_restart * 5,  # Allow 5 restart cycles
+            preconditioner=self._precond_apply,
+        )
+        
+        # Extract solution ΔQ and reshape
+        dQ = result.x.reshape(self.NI, self.NJ, 4)
+        
+        # Apply update with Patankar scheme for nuHat
+        Q_int = self.Q_jax[nghost:-nghost, nghost:-nghost, :]
+        Q_int_new = self._apply_newton_update(Q_int, dQ)
+        
+        # Update full state
+        Q_new = self.Q_jax.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
+        Q_new = self.apply_bc_jit(Q_new)
+        
+        self.Q_jax = Q_new
+        self.R_jax = self._jit_residual(Q_new)
+    
+    def _get_cfl_newton(self, iteration: int) -> float:
+        """Get CFL number for Newton mode with exponential ramping.
+        
+        Newton mode uses exponential CFL ramping for pseudo-transient
+        continuation. CFL starts low and grows exponentially, driving
+        the implicit system toward steady state.
+        
+        As CFL → ∞, the V/dt diagonal → 0, recovering pure Newton iteration.
+        """
+        cfl_start = self.config.cfl_start
+        cfl_target = self.config.cfl_target  # Used as intermediate target
+        ramp_iters = self.config.cfl_ramp_iters
+        
+        if iteration >= ramp_iters:
+            # After ramp, continue exponential growth
+            # Double CFL every ramp_iters/4 iterations
+            extra_iters = iteration - ramp_iters
+            growth_factor = 2.0 ** (extra_iters / max(ramp_iters / 4, 10))
+            return min(cfl_target * growth_factor, 1e6)  # Cap at 1e6
+        
+        # Exponential ramp from cfl_start to cfl_target
+        t = iteration / max(ramp_iters, 1)
+        return cfl_start * (cfl_target / cfl_start) ** t
+    
+    @staticmethod
+    @jax.jit
+    def _apply_newton_update_static(
+        Q_int: jnp.ndarray,
+        dQ: jnp.ndarray,
+    ) -> jnp.ndarray:
+        """Apply Newton update with Patankar scheme for nuHat.
+        
+        Q_new = Q + ΔQ, with special handling for nuHat.
+        """
+        # Simple addition for p, u, v
+        Q_new = Q_int + dQ
+        
+        # Patankar for nuHat when update is negative
+        nuHat_old = Q_int[:, :, 3]
+        dNuHat = dQ[:, :, 3]
+        nuHat_explicit = Q_new[:, :, 3]
+        
+        # Patankar: nuHat_new = nuHat_old / (1 - dNuHat/nuHat_old)
+        # Only apply when nuHat_old > 0 and dNuHat < 0
+        nuHat_patankar = jnp.where(
+            nuHat_old > 0,
+            nuHat_old / (1.0 - dNuHat / nuHat_old),
+            nuHat_explicit
+        )
+        
+        nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, nuHat_explicit)
+        nuHat_new = jnp.maximum(nuHat_new, 0.0)  # Physical floor
+        
+        return Q_new.at[:, :, 3].set(nuHat_new)
+    
+    def _apply_newton_update(
+        self, Q_int: jnp.ndarray, dQ: jnp.ndarray
+    ) -> jnp.ndarray:
+        """Apply Newton update - wrapper for static JIT function."""
+        return self._apply_newton_update_static(Q_int, dQ)
     
     def get_residual_rms(self) -> Tuple[float, float, float, float]:
         """Compute RMS of residual for all 4 equations.

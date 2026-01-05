@@ -186,16 +186,24 @@ class TestModeComparison:
         assert rk5_finite > 0.99, f"rk5 mode: {rk5_finite:.1%} finite"
         assert precond_finite > 0.99, f"rk5_precond mode: {precond_finite:.1%} finite"
     
-    def test_newton_mode_raises(self, valid_grid_path):
-        """Test that newton mode raises NotImplementedError."""
+    def test_newton_mode_runs(self, valid_grid_path):
+        """Test that newton mode runs without crashing."""
         config = SolverConfig(
             alpha=2.0,
             reynolds=1e6,
+            cfl_start=0.1,
+            cfl_target=1.0,
             solver_mode='newton',
+            gmres_restart=10,
+            gmres_tol=1e-2,
             html_animation=False,
         )
         
         solver = RANSSolver(valid_grid_path, config)
         
-        with pytest.raises(NotImplementedError):
-            solver.step()
+        # Newton mode should now work
+        solver.step()
+        
+        # State should be mostly finite
+        finite_frac = float(jnp.mean(jnp.isfinite(solver.Q_jax)))
+        assert finite_frac > 0.95
