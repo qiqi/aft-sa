@@ -26,6 +26,9 @@ def compute_color_ranges(
     nu_laminar: float,
     has_cpt: bool,
     has_res_field: bool,
+    has_aft: bool = False,
+    has_wall_dist: bool = False,
+    has_surface: bool = False,
 ) -> Dict[str, ColorAxisConfig]:
     """Compute global color ranges for consistent scaling across snapshots.
     
@@ -39,6 +42,12 @@ def compute_color_ranges(
         Whether C_pt field is available.
     has_res_field : bool
         Whether residual field is available.
+    has_aft : bool
+        Whether AFT fields (Re_Omega, Gamma) are available.
+    has_wall_dist : bool
+        Whether wall distance field is available.
+    has_surface : bool
+        Whether surface data (Cp, Cf) is available.
         
     Returns
     -------
@@ -91,26 +100,56 @@ def compute_color_ranges(
     # Display 5 decades: chi_min = chi_max - 5
     chi_min = chi_max - 5.0
     
+    # Compute row count and colorbar positions
+    # Base rows: pressure, velocity, residual/chi, convergence = 4
+    n_rows = 4
+    if has_aft:
+        n_rows += 1  # Re_Ω, Γ row
+    if has_wall_dist:
+        n_rows += 1  # Wall distance row
+    if has_surface:
+        n_rows += 1  # Cp, Cf row
+    
+    # Row height as fraction of figure (approximate, accounting for margins)
+    row_height = 0.85 / n_rows
+    
+    # Colorbar length should match one row height
+    cb_len = row_height * 0.9
+    
+    # Y positions: rows are numbered 1 to n_rows from top to bottom
+    # But plotly y=1 is top, y=0 is bottom
+    def row_y(row_num):
+        """Get y-center position for a row (1=top)."""
+        return 1.0 - (row_num - 0.5) * row_height - 0.05
+    
+    # Row assignments
+    pressure_row = 1
+    velocity_row = 2
+    res_chi_row = 3
+    
     return {
         'pressure': ColorAxisConfig(
             colorscale='RdBu_r', cmin=-p_abs_max, cmax=p_abs_max,
-            colorbar=dict(title='Δp', len=0.18, y=0.90, x=1.02, tickformat='.2f')
+            colorbar=dict(title='Δp', len=cb_len, y=row_y(pressure_row), x=1.02, tickformat='.2f')
         ),
         'velocity': ColorAxisConfig(
             colorscale='RdBu', cmin=-vel_abs_max, cmax=vel_abs_max,
-            colorbar=dict(title='Δvel', len=0.18, y=0.68, x=1.02, tickformat='.2f')
+            colorbar=dict(title='Δvel', len=cb_len, y=row_y(velocity_row), x=1.02, tickformat='.2f')
         ),
         'residual': ColorAxisConfig(
             colorscale='Hot', cmin=res_min, cmax=res_max,
-            colorbar=dict(title='log₁₀(R)', len=0.18, y=0.46, x=1.02, tickformat='.1f')
+            # Residual colorbar at x=0.90, chi at x=1.02 (side by side)
+            colorbar=dict(title='log₁₀(R)', len=cb_len, y=row_y(res_chi_row), x=0.90, tickformat='.1f')
         ),
         'chi': ColorAxisConfig(
             colorscale='Viridis', cmin=chi_min, cmax=chi_max,
-            colorbar=dict(title='log₁₀(χ)', len=0.18, y=0.24, x=1.02, tickformat='.1f')
+            colorbar=dict(title='log₁₀(χ)', len=cb_len, y=row_y(res_chi_row), x=1.02, tickformat='.1f')
         ),
         'wall_dist': ColorAxisConfig(
             colorscale='Viridis', cmin=0, cmax=1,
-            colorbar=dict(title='d/c', len=0.12, y=0.06, x=1.02, tickformat='.2f')
+            # Wall distance row depends on whether AFT is present
+            colorbar=dict(title='d/c', len=cb_len, 
+                         y=row_y(5 if has_aft else 4), x=1.02, tickformat='.2f')
         ),
     }
 

@@ -571,7 +571,11 @@ class RANSSolver:
                 Q_int, self.freestream.p_inf,
                 self.freestream.u_inf, self.freestream.v_inf
             )
-            initial_R = self._compute_residual(self.Q)
+            # Compute initial residual using the JIT function to populate R_jax
+            # This is needed for get_scaled_residual_field() to work
+            initial_R_raw = self._compute_residual(self.Q)
+            self.R_jax = jax.device_put(jnp.array(initial_R_raw))
+            initial_R = self.get_scaled_residual_field()
             # Compute AFT diagnostic fields if AFT is enabled
             Re_Omega, Gamma = None, None
             if self.config.aft_enabled:
@@ -820,6 +824,61 @@ class RANSSolver:
         
         return (L1_p / F_scale, L1_u / F_scale, L1_v / F_scale, L1_nu / F_scale)
     
+    def get_scaled_residual_field(self) -> np.ndarray:
+        """Compute scaled residual field for visualization.
+        
+        Uses the same scaling as get_residual_l1_scaled():
+        - p scaled by β
+        - u, v scaled by V_inf  
+        - nuHat scaled by local (ν_laminar + ν̃)
+        
+        Then divides by cell volume to get residual density,
+        and takes RMS across the 4 equations.
+        
+        Returns
+        -------
+        np.ndarray (NI, NJ)
+            Scaled RMS residual density at each cell.
+        """
+        # Characteristic scales (same as get_residual_l1_scaled)
+        beta = self.config.beta
+        V_inf = np.sqrt(self.freestream.u_inf**2 + self.freestream.v_inf**2)
+        V_inf = max(V_inf, 1e-30)
+        nu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 1e-6
+        
+        # Get interior Q for local nuHat scaling
+        nghost = NGHOST
+        Q_int = self.Q_jax[nghost:-nghost, nghost:-nghost, :]
+        nuHat = jnp.maximum(Q_int[:, :, 3], 0.0)
+        
+        # Local effective viscosity for nuHat scaling
+        nu_eff = nu_laminar + nuHat
+        nu_eff = jnp.maximum(nu_eff, 1e-30)
+        
+        # Residual and volume
+        R = self.R_jax
+        volume = self.volume_jax
+        
+        # Scaled residuals (same scaling as L1 metric)
+        R_p_scaled = jnp.abs(R[:, :, 0]) / beta
+        R_u_scaled = jnp.abs(R[:, :, 1]) / V_inf
+        R_v_scaled = jnp.abs(R[:, :, 2]) / V_inf
+        R_nu_scaled = jnp.abs(R[:, :, 3]) / nu_eff
+        
+        # Divide by cell volume to get residual density
+        inv_vol = 1.0 / jnp.maximum(volume, 1e-30)
+        R_p_density = R_p_scaled * inv_vol
+        R_u_density = R_u_scaled * inv_vol
+        R_v_density = R_v_scaled * inv_vol
+        R_nu_density = R_nu_scaled * inv_vol
+        
+        # RMS across 4 equations
+        rms_residual = jnp.sqrt(
+            (R_p_density**2 + R_u_density**2 + R_v_density**2 + R_nu_density**2) / 4.0
+        )
+        
+        return np.array(rms_residual)
+    
     def sync_to_cpu(self) -> None:
         """Transfer Q from GPU to CPU (for visualization/output)."""
         self.Q = np.array(self.Q_jax)
@@ -890,7 +949,8 @@ class RANSSolver:
             if need_snapshot:
                 if not need_print:  # Only sync if not already done
                     self.sync_to_cpu()
-                R_field = np.array(self.R_jax)
+                # Use scaled residual field (same scaling as L1 metric)
+                R_field = self.get_scaled_residual_field()
                 Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
                 C_pt = compute_total_pressure_loss(
                     Q_int, self.freestream.p_inf,
@@ -951,7 +1011,8 @@ class RANSSolver:
                             n_history_dumps += 1
                     
                     # Also capture current state at divergence detection
-                    R_field = np.array(self.R_jax)
+                    # Use scaled residual field (same scaling as L1 metric)
+                    R_field = self.get_scaled_residual_field()
                     Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
                     C_pt = compute_total_pressure_loss(
                         Q_int, self.freestream.p_inf,

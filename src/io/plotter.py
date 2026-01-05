@@ -163,11 +163,18 @@ class PlotlyDashboard:
         else:
             C_pt = sanitize_array(C_pt, fill_value=0.0)
         
-        # Residual field
+        # Residual field (already scaled RMS if from get_scaled_residual_field)
         res_field = None
         if residual_field is not None:
-            res_clipped = np.clip(residual_field, -max_safe_vel, max_safe_vel)
-            res_field = sanitize_array(np.sqrt(np.mean(res_clipped**2, axis=2)), fill_value=1e-12)
+            # Handle both old-style 4-component arrays and new-style 2D scalar arrays
+            if residual_field.ndim == 3:
+                # Legacy: 4-component array, compute RMS across equations
+                res_clipped = np.clip(residual_field, -max_safe_vel, max_safe_vel)
+                res_field = sanitize_array(np.sqrt(np.mean(res_clipped**2, axis=2)), fill_value=1e-12)
+            else:
+                # New: already a 2D scalar field (scaled RMS)
+                res_clipped = np.clip(residual_field, 0, max_safe_vel)
+                res_field = sanitize_array(res_clipped, fill_value=1e-12)
         
         # AFT diagnostic fields
         Re_Omega_arr = None
@@ -255,8 +262,11 @@ class PlotlyDashboard:
         has_surface_data = X is not None and Y is not None
         has_aft = self.snapshots[0].Re_Omega is not None and self.snapshots[0].Gamma is not None
         
-        # Compute color ranges
-        color_config = compute_color_ranges(self.snapshots, self.nu_laminar, has_cpt, has_res_field)
+        # Compute color ranges with layout info for colorbar positioning
+        color_config = compute_color_ranges(
+            self.snapshots, self.nu_laminar, has_cpt, has_res_field,
+            has_aft=has_aft, has_wall_dist=has_wall_dist, has_surface=has_surface_data
+        )
         
         # Create figure
         fig = self._create_figure(has_wall_dist, has_surface_data, has_cpt, has_res_field, has_aft)
@@ -267,7 +277,8 @@ class PlotlyDashboard:
         
         # Add AFT diagnostic traces (row 4 when present, just above convergence)
         if has_aft:
-            self._add_aft_traces(fig, xc, yc, all_snapshots[-1], color_config)
+            self._add_aft_traces(fig, xc, yc, all_snapshots[-1], color_config,
+                                has_wall_dist, has_surface_data)
         
         self._add_convergence_traces(fig, has_aft)
         
@@ -454,6 +465,8 @@ class PlotlyDashboard:
         yc: np.ndarray,
         snapshot: Snapshot,
         color_config: dict,
+        has_wall_dist: bool = False,
+        has_surface: bool = False,
     ) -> None:
         """Add AFT diagnostic field traces (Re_Omega and Gamma)."""
         if snapshot.Re_Omega is None or snapshot.Gamma is None:
@@ -473,6 +486,16 @@ class PlotlyDashboard:
         # AFT row is row 4
         aft_row = 4
         
+        # Compute colorbar length and position (same as compute_color_ranges)
+        n_rows = 5  # 4 base + 1 AFT
+        if has_wall_dist:
+            n_rows += 1
+        if has_surface:
+            n_rows += 1
+        row_height = 0.85 / n_rows
+        cb_len = row_height * 0.9
+        cb_y = 1.0 - (aft_row - 0.5) * row_height - 0.05
+        
         # Re_Omega contour (left, col 1)
         fig.add_trace(go.Carpet(
             a=A.flatten(), b=B.flatten(),
@@ -490,7 +513,7 @@ class PlotlyDashboard:
             zmin=1.0, zmax=4.0,  # log10(10) to log10(10000)
             contours=dict(coloring='fill', showlines=False),
             ncontours=self.N_CONTOURS,
-            colorbar=dict(title='log₁₀(Re_Ω)', x=0.45, len=0.2, y=0.42),
+            colorbar=dict(title='log₁₀(Re_Ω)', x=0.90, len=cb_len, y=cb_y),
             showscale=True,
         ), row=aft_row, col=1)
         
@@ -511,7 +534,7 @@ class PlotlyDashboard:
             zmin=0.0, zmax=2.0,
             contours=dict(coloring='fill', showlines=False),
             ncontours=self.N_CONTOURS,
-            colorbar=dict(title='Γ', x=1.0, len=0.2, y=0.42),
+            colorbar=dict(title='Γ', x=1.02, len=cb_len, y=cb_y),
             showscale=True,
         ), row=aft_row, col=2)
     
