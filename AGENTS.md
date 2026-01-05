@@ -38,6 +38,14 @@ Archive of recently completed work (for reference):
 
 | Date | Agent | Files | Summary |
 |------|-------|-------|---------|
+| 2026-01-05 | Claude | `src/solvers/boundary_conditions.py`, `src/solvers/batch.py`, `tests/` | Investigated wall BC - confirmed u_ghost=-u_int is CORRECT (Q stores physical velocity, not perturbation). Fixed test file to use from_alpha(). |
+| 2026-01-05 | Claude | `src/io/_layout.py`, `src/io/plotter.py`, `scripts/` | Fixed HTML layout: subplot titles, colorbar y-alignment from actual subplot domains, fixed scaleanchor yaxis references |
+| 2026-01-05 | Claude | `scripts/` | Created debug_layout.py - Visual Layout Validator using Playwright |
+| 2026-01-05 | Claude | `src/io/` | Fixed animation: all contour/line plots now update per iteration (AFT, y+, Cp, Cf) |
+| 2026-01-05 | Claude | `scripts/analysis/` | Created BL profile extraction & Blasius comparison tools for Cf deviation analysis |
+| 2026-01-05 | Claude | `src/io/` | Fixed HTML plotter: isotropic contour axes, colorbar positioning, is_turb single-column |
+| 2026-01-05 | Janitor | `src/`, `tests/`, `config/` | Removed `mach` and `aft_enabled` configs, changed `divergence_history` default to 1 |
+| 2026-01-05 | Janitor | `src/io/`, `src/solvers/`, `src/numerics/`, `src/grid/`, `src/physics/` | Removed 4 unused imports, prefixed 18 intentionally-unused local variables with `_` |
 | 2026-01-05 | Claude | `src/io/_layout.py`, `src/io/_plot_registry.py`, `src/io/plotter.py` | Refactored HTML plotter with declarative DashboardLayout system |
 | 2026-01-05 | Claude | `src/solvers/boundary_conditions.py`, `src/solvers/batch.py` | Removed wake cut interior averaging - pure periodic BC now |
 | 2026-01-04 | Janitor | `src/solvers/boundary_conditions.py`, `src/solvers/time_stepping.py` | Removed JAX_AVAILABLE flags - always assume JAX available |

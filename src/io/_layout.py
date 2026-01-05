@@ -7,7 +7,7 @@ This module provides a declarative way to define subplot layouts:
 - Automatic colorbar positioning
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional, Tuple, Dict, Any
 
 try:
@@ -24,11 +24,17 @@ from ._plot_registry import PlotSpec, PlotType
 class LayoutRow:
     """A single row in the dashboard layout."""
     left: PlotSpec
-    right: Optional[PlotSpec] = None  # None if left spans full width
+    right: Optional[PlotSpec] = None  # None if left spans full width or single column
     
     @property
     def is_full_width(self) -> bool:
-        return self.left.col_span == 2 or self.right is None
+        """True only if explicitly set to span 2 columns."""
+        return self.left.col_span == 2
+    
+    @property
+    def is_single_column(self) -> bool:
+        """True if row has only left plot but not full-width."""
+        return self.right is None and self.left.col_span == 1
 
 
 class DashboardLayout:
@@ -43,11 +49,18 @@ class DashboardLayout:
     """
     
     # Layout constants
-    HORIZONTAL_SPACING = 0.08
+    # Increased horizontal spacing to leave room for colorbars between columns
+    HORIZONTAL_SPACING = 0.12
     VERTICAL_SPACING = 0.06
     COLORBAR_WIDTH = 0.04
     TOP_MARGIN = 0.05
     BOTTOM_MARGIN = 0.10
+    
+    # Colorbar x-positions for each column
+    # Col 1 colorbar: just to the right of left plot (before the gap)
+    COL1_COLORBAR_X = 0.44
+    # Col 2 colorbar: at right edge of figure
+    COL2_COLORBAR_X = 1.00
     
     def __init__(self):
         self.rows: List[LayoutRow] = []
@@ -163,25 +176,27 @@ class DashboardLayout:
         Returns
         -------
         float
-            X-position for the colorbar
+            X-position for the colorbar (just to the right of the plot)
         """
         if col == 1:
-            return 0.46  # Right edge of left column
+            return self.COL1_COLORBAR_X
         else:
-            return 1.02  # Right edge of right column
+            return self.COL2_COLORBAR_X
     
     def _get_subplot_titles(self) -> List[str]:
-        """Build the list of subplot titles."""
+        """Build the list of subplot titles.
+        
+        Plotly expects one title per subplot cell. For full-width (colspan=2)
+        and single-column rows, the right cell is None in specs, so no title.
+        """
         titles = []
         for row in self.rows:
             titles.append(row.left.title)
             if row.right is not None:
+                # Two-column row: add right title
                 titles.append(row.right.title)
-            elif row.left.col_span == 2:
-                # Full width - no second title needed (handled by colspan)
-                pass
-            else:
-                titles.append('')  # Empty right cell
+            # For full-width and single-column: right cell is None in specs,
+            # so no title needed (plotly matches titles to existing subplots)
         return titles
     
     def _get_specs(self) -> List[List[Optional[Dict[str, Any]]]]:
@@ -190,6 +205,10 @@ class DashboardLayout:
         for row in self.rows:
             if row.is_full_width:
                 specs.append([{"type": row.left.get_subplot_type(), "colspan": 2}, None])
+            elif row.is_single_column:
+                # Single left column only - right cell is empty
+                left_type = row.left.get_subplot_type()
+                specs.append([{"type": left_type}, None])
             else:
                 left_type = row.left.get_subplot_type()
                 right_type = row.right.get_subplot_type() if row.right else "xy"
@@ -209,14 +228,59 @@ class DashboardLayout:
         
         self._build_position_cache()
         
-        return make_subplots(
+        fig = make_subplots(
             rows=self.n_rows,
             cols=2,
             subplot_titles=self._get_subplot_titles(),
             specs=self._get_specs(),
             horizontal_spacing=self.HORIZONTAL_SPACING,
             vertical_spacing=self.VERTICAL_SPACING,
+            column_widths=[0.5, 0.5],  # Equal column widths
         )
+        
+        # Store reference to figure for domain-based colorbar positioning
+        self._figure = fig
+        
+        return fig
+    
+    def get_subplot_y_domain(self, row: int, col: int) -> Tuple[float, float]:
+        """Get the y-domain for a subplot from the actual figure.
+        
+        Parameters
+        ----------
+        row : int
+            Row number (1-indexed)
+        col : int  
+            Column number (1 or 2)
+            
+        Returns
+        -------
+        Tuple[float, float]
+            (y_min, y_max) domain values
+        """
+        if not hasattr(self, '_figure') or self._figure is None:
+            # Fallback to manual calculation if figure not built yet
+            row_height = self.get_row_height()
+            y_max = 1.0 - self.TOP_MARGIN - (row - 1) * (row_height + self.VERTICAL_SPACING)
+            y_min = y_max - row_height
+            return (y_min, y_max)
+        
+        # Calculate yaxis index: row 1 col 1 = yaxis, row 1 col 2 = yaxis2, etc.
+        subplot_idx = (row - 1) * 2 + col
+        if subplot_idx == 1:
+            yaxis_key = 'yaxis'
+        else:
+            yaxis_key = f'yaxis{subplot_idx}'
+        
+        layout_dict = self._figure.layout.to_plotly_json()
+        if yaxis_key in layout_dict and 'domain' in layout_dict[yaxis_key]:
+            return tuple(layout_dict[yaxis_key]['domain'])
+        
+        # Fallback
+        row_height = self.get_row_height()
+        y_max = 1.0 - self.TOP_MARGIN - (row - 1) * (row_height + self.VERTICAL_SPACING)
+        y_min = y_max - row_height
+        return (y_min, y_max)
     
     def get_all_plots(self) -> List[Tuple[PlotSpec, int, int]]:
         """Get all plots with their positions.
@@ -242,6 +306,54 @@ class DashboardLayout:
         if not self._built:
             self._build_position_cache()
         return name in self._position_cache
+    
+    def get_plot_spec(self, name: str) -> Optional[PlotSpec]:
+        """Get the PlotSpec for a named plot."""
+        for row in self.rows:
+            if row.left.name == name:
+                return row.left
+            if row.right is not None and row.right.name == name:
+                return row.right
+        return None
+    
+    def should_show_colorbar(self, name: str) -> bool:
+        """Check if a plot should show its own colorbar.
+        
+        Returns False if the plot has sharecontour set to another plot.
+        """
+        spec = self.get_plot_spec(name)
+        if spec is None:
+            return True
+        return spec.sharecontour is None
+    
+    def get_colorbar_config(self, name: str) -> Dict[str, Any]:
+        """Get colorbar configuration for a named plot.
+        
+        Uses actual subplot domains from the figure for accurate positioning.
+        
+        Parameters
+        ----------
+        name : str
+            The plot name
+            
+        Returns
+        -------
+        Dict[str, Any]
+            Colorbar configuration dict with x, y, len keys
+        """
+        row, col = self.get_position(name)
+        y_min, y_max = self.get_subplot_y_domain(row, col)
+        
+        # Colorbar y is the center of the subplot domain
+        y_center = (y_min + y_max) / 2
+        # Colorbar length is 90% of the subplot height
+        cb_len = (y_max - y_min) * 0.9
+        
+        return {
+            'x': self.get_colorbar_x(col),
+            'y': y_center,
+            'len': cb_len,
+        }
 
 
 def create_standard_layout(

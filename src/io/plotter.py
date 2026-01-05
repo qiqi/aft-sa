@@ -9,7 +9,6 @@ from pathlib import Path
 
 try:
     import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
     HAS_PLOTLY = True
 except ImportError:
     HAS_PLOTLY = False
@@ -25,7 +24,7 @@ from ._html_components import (
     make_log_range_slider_steps,
     extract_residual_value,
 )
-from ._layout import DashboardLayout, create_standard_layout
+from ._layout import create_standard_layout
 
 if TYPE_CHECKING:
     from ..grid.metrics import FVMMetrics
@@ -50,6 +49,40 @@ class Snapshot:
     Re_Omega: Optional[np.ndarray] = None  # Vorticity Reynolds number
     Gamma: Optional[np.ndarray] = None     # Shape factor for AFT
     is_turb: Optional[np.ndarray] = None   # Turbulent fraction (0=laminar, 1=turbulent)
+
+
+class AnimatedTraceTracker:
+    """Tracks which traces should be animated and their indices."""
+    
+    def __init__(self):
+        self._trace_count = 0
+        self._animated_indices: List[int] = []
+        self._static_traces: List[str] = []  # Names of static traces (e.g., 'carpet_1_1')
+    
+    def add_static(self, name: str = "") -> int:
+        """Add a static (non-animated) trace, returns its index."""
+        idx = self._trace_count
+        self._trace_count += 1
+        if name:
+            self._static_traces.append(name)
+        return idx
+    
+    def add_animated(self, name: str = "") -> int:
+        """Add an animated trace, returns its index."""
+        idx = self._trace_count
+        self._animated_indices.append(idx)
+        self._trace_count += 1
+        return idx
+    
+    @property
+    def animated_indices(self) -> List[int]:
+        """Get list of all animated trace indices."""
+        return self._animated_indices.copy()
+    
+    @property
+    def count(self) -> int:
+        """Total number of traces."""
+        return self._trace_count
 
 
 class PlotlyDashboard:
@@ -270,24 +303,28 @@ class PlotlyDashboard:
         has_surface_data = X is not None and Y is not None
         has_aft = self.snapshots[0].Re_Omega is not None and self.snapshots[0].Gamma is not None
         
-        # Compute color ranges with layout info for colorbar positioning
+        # Create figure (and layout) first - needed for colorbar positioning
+        fig = self._create_figure(has_wall_dist, has_surface_data, has_cpt, has_res_field, has_aft)
+        
+        # Compute color ranges (without colorbar positions - those come from layout)
         color_config = compute_color_ranges(
             self.snapshots, self.nu_laminar, has_cpt, has_res_field,
             has_aft=has_aft, has_wall_dist=has_wall_dist, has_surface=has_surface_data
         )
         
-        # Create figure
-        fig = self._create_figure(has_wall_dist, has_surface_data, has_cpt, has_res_field, has_aft)
+        # Initialize trace tracker for animation
+        self.tracker = AnimatedTraceTracker()
         
-        # Add all traces
+        # Add all traces (tracker records which are animated)
         xc, yc = grid_metrics.xc, grid_metrics.yc
         self._add_contour_traces(fig, xc, yc, all_snapshots[-1], color_config, has_cpt, has_res_field)
         
-        # Add AFT diagnostic traces (row 4 when present, just above convergence)
+        # Add AFT diagnostic traces (animated)
         if has_aft:
             self._add_aft_traces(fig, xc, yc, all_snapshots[-1], color_config,
                                 has_wall_dist, has_surface_data)
         
+        # Convergence traces are NOT animated (static line plot that shows full history)
         self._add_convergence_traces(fig, has_aft)
         
         yplus_params = None
@@ -307,15 +344,16 @@ class PlotlyDashboard:
                 fig, grid_metrics, X, all_snapshots, n_wake, mu_laminar, has_wall_dist, has_aft
             )
         
-        # Create animation frames
+        # Create animation frames using tracker's animated indices
         self._add_animation_frames(
             fig, xc, yc, all_snapshots, color_config, has_cpt, has_res_field,
-            has_surface_data, surface_params, grid_metrics, n_wake, mu_laminar, has_aft
+            has_surface_data, surface_params, grid_metrics, n_wake, mu_laminar, 
+            has_aft, wall_distance, yplus_params
         )
         
         # Configure layout
         self._configure_layout(fig, all_snapshots, color_config, has_wall_dist, has_surface_data, 
-                              surface_params, yplus_params, has_aft)
+                              surface_params, yplus_params, has_aft, has_cpt, has_res_field)
         
         # Write HTML with optional CDN and gzip compression
         include_plotlyjs: Any = 'cdn' if self.use_cdn else True
@@ -400,19 +438,57 @@ class PlotlyDashboard:
         chi_log = compute_chi_log(snapshot.nu, self.nu_laminar)
         chi_log_safe = to_json_safe_list(chi_log)
         
+        # Plot name mapping: (row, col) -> plot_name for colorbar positioning
+        plot_names = {
+            (1, 1): 'pressure',
+            (1, 2): 'cpt' if has_cpt else 'nu',
+            (2, 1): 'u_vel',
+            (2, 2): 'v_vel',
+            (3, 1): 'residual' if has_res_field else 'vel_mag',
+            (3, 2): 'chi',
+        }
+        
+        # Colorbar title mapping
+        colorbar_titles = {
+            'pressure': 'Δp',
+            'cpt': 'C_pt',
+            'nu': 'ν̃',
+            'u_vel': 'Δu',
+            'v_vel': 'Δv',
+            'residual': 'log₁₀(R)',
+            'vel_mag': '|V|',
+            'chi': 'log₁₀(χ)',
+        }
+        
         contour_configs = [
-            (sanitize_array(snapshot.p).flatten(), 1, 1, 'pressure', True),
-            (field2.flatten(), 1, 2, 'pressure', False),
-            (sanitize_array(snapshot.u).flatten(), 2, 1, 'velocity', True),
-            (sanitize_array(snapshot.v).flatten(), 2, 2, 'velocity', False),
-            (field5.flatten(), 3, 1, 'residual', True),
-            (chi_log_safe, 3, 2, 'chi', True),
+            (sanitize_array(snapshot.p).flatten(), 1, 1, 'pressure'),
+            (field2.flatten(), 1, 2, 'pressure'),
+            (sanitize_array(snapshot.u).flatten(), 2, 1, 'velocity'),
+            (sanitize_array(snapshot.v).flatten(), 2, 2, 'velocity'),
+            (field5.flatten(), 3, 1, 'residual'),
+            (chi_log_safe, 3, 2, 'chi'),
         ]
         
-        for data, row, col, caxis_key, show_colorbar in contour_configs:
+        for data, row, col, caxis_key in contour_configs:
             carpet_id = f'carpet_{row}_{col}'
             cfg = color_config[caxis_key]
+            plot_name = plot_names[(row, col)]
             
+            # Get colorbar position from layout
+            show_colorbar = self.layout.should_show_colorbar(plot_name)
+            colorbar_dict = None
+            if show_colorbar:
+                cb_config = self.layout.get_colorbar_config(plot_name)
+                colorbar_dict = dict(
+                    title=colorbar_titles.get(plot_name, ''),
+                    x=cb_config['x'],
+                    y=cb_config['y'],
+                    len=cb_config['len'],
+                    tickformat='.2f' if caxis_key in ['pressure', 'velocity'] else '.1f',
+                )
+            
+            # Carpet is static (grid doesn't change)
+            self.tracker.add_static(carpet_id)
             fig.add_trace(go.Carpet(
                 a=A.flatten(), b=B.flatten(),
                 x=xc.flatten(), y=yc.flatten(),
@@ -421,6 +497,8 @@ class PlotlyDashboard:
                 baxis=dict(showgrid=False, showticklabels='none', showline=False),
             ), row=row, col=col)
             
+            # Contourcarpet is animated (z data changes per frame)
+            self.tracker.add_animated(f'contour_{row}_{col}')
             fig.add_trace(go.Contourcarpet(
                 a=A.flatten(), b=B.flatten(), z=data,
                 carpet=carpet_id,
@@ -428,7 +506,7 @@ class PlotlyDashboard:
                 zmin=cfg.cmin, zmax=cfg.cmax,
                 contours=dict(coloring='fill', showlines=False),
                 ncontours=self.N_CONTOURS,
-                colorbar=cfg.colorbar if show_colorbar else None,
+                colorbar=colorbar_dict,
                 showscale=show_colorbar,
             ), row=row, col=col)
     
@@ -464,12 +542,13 @@ class PlotlyDashboard:
         aft_row1, _ = self.layout.get_position("re_omega")
         aft_row2, _ = self.layout.get_position("is_turb")
         
-        # Compute colorbar positioning from layout
-        cb_len = self.layout.compute_colorbar_len()
-        cb_y_row1 = self.layout.compute_colorbar_y("re_omega")
-        cb_y_row2 = self.layout.compute_colorbar_y("is_turb")
+        # Get colorbar configs from layout
+        re_omega_cb = self.layout.get_colorbar_config("re_omega")
+        gamma_cb = self.layout.get_colorbar_config("gamma")
+        is_turb_cb = self.layout.get_colorbar_config("is_turb")
         
-        # Re_Omega contour (row 4, col 1)
+        # Re_Omega contour (col 1)
+        self.tracker.add_static('carpet_re_omega')
         fig.add_trace(go.Carpet(
             a=A.flatten(), b=B.flatten(),
             x=xc.flatten(), y=yc.flatten(),
@@ -478,6 +557,7 @@ class PlotlyDashboard:
             baxis=dict(showgrid=False, showticklabels='none', showline=False),
         ), row=aft_row1, col=1)
         
+        self.tracker.add_animated('contour_re_omega')
         fig.add_trace(go.Contourcarpet(
             a=A.flatten(), b=B.flatten(),
             z=to_json_safe_list(Re_Omega_log),
@@ -486,11 +566,12 @@ class PlotlyDashboard:
             zmin=1.0, zmax=4.0,  # log10(10) to log10(10000)
             contours=dict(coloring='fill', showlines=False),
             ncontours=self.N_CONTOURS,
-            colorbar=dict(title='log₁₀(Re_Ω)', x=0.90, len=cb_len, y=cb_y_row1),
+            colorbar=dict(title='log₁₀(Re_Ω)', **re_omega_cb),
             showscale=True,
         ), row=aft_row1, col=1)
         
-        # Gamma contour (row 4, col 2)
+        # Gamma contour (col 2)
+        self.tracker.add_static('carpet_gamma')
         fig.add_trace(go.Carpet(
             a=A.flatten(), b=B.flatten(),
             x=xc.flatten(), y=yc.flatten(),
@@ -499,6 +580,7 @@ class PlotlyDashboard:
             baxis=dict(showgrid=False, showticklabels='none', showline=False),
         ), row=aft_row1, col=2)
         
+        self.tracker.add_animated('contour_gamma')
         fig.add_trace(go.Contourcarpet(
             a=A.flatten(), b=B.flatten(),
             z=to_json_safe_list(Gamma_safe),
@@ -507,11 +589,12 @@ class PlotlyDashboard:
             zmin=0.0, zmax=2.0,
             contours=dict(coloring='fill', showlines=False),
             ncontours=self.N_CONTOURS,
-            colorbar=dict(title='Γ', x=1.02, len=cb_len, y=cb_y_row1),
+            colorbar=dict(title='Γ', **gamma_cb),
             showscale=True,
         ), row=aft_row1, col=2)
         
-        # is_turb contour (row 5, col 1) - turbulent fraction indicator
+        # is_turb contour (col 1, single column) - turbulent fraction indicator
+        self.tracker.add_static('carpet_is_turb')
         fig.add_trace(go.Carpet(
             a=A.flatten(), b=B.flatten(),
             x=xc.flatten(), y=yc.flatten(),
@@ -520,6 +603,7 @@ class PlotlyDashboard:
             baxis=dict(showgrid=False, showticklabels='none', showline=False),
         ), row=aft_row2, col=1)
         
+        self.tracker.add_animated('contour_is_turb')
         fig.add_trace(go.Contourcarpet(
             a=A.flatten(), b=B.flatten(),
             z=to_json_safe_list(is_turb_safe),
@@ -528,12 +612,12 @@ class PlotlyDashboard:
             zmin=0.0, zmax=1.0,
             contours=dict(coloring='fill', showlines=False),
             ncontours=self.N_CONTOURS,
-            colorbar=dict(title='is_turb', x=0.46, len=cb_len, y=cb_y_row2),
+            colorbar=dict(title='is_turb', **is_turb_cb),
             showscale=True,
         ), row=aft_row2, col=1)
     
     def _add_convergence_traces(self, fig: 'go.Figure', has_aft: bool = False) -> None:
-        """Add convergence history traces."""
+        """Add convergence history traces (static - not animated)."""
         eq_names = ['Pressure', 'U-velocity', 'V-velocity', 'ν̃ (nuHat)']
         eq_colors = ['blue', 'red', 'green', 'purple']
         
@@ -547,6 +631,7 @@ class PlotlyDashboard:
             
             for eq_idx in range(4):
                 res_eq = [extract_residual_value(r, eq_idx) for r in self.residual_history]
+                self.tracker.add_static(f'convergence_line_{eq_idx}')
                 fig.add_trace(go.Scatter(
                     x=all_iters, y=res_eq,
                     mode='lines', line=dict(color=eq_colors[eq_idx], width=1.5),
@@ -554,9 +639,10 @@ class PlotlyDashboard:
                     legendgroup='convergence',
                 ), row=conv_row, col=1)
         
-        # Snapshot markers
+        # Snapshot markers - animated to show progress through iterations
         snapshot_iters = [s.iteration for s in self.snapshots]
         snapshot_res = [extract_residual_value(s.residual, 0) for s in self.snapshots]
+        self.tracker.add_animated('snapshot_markers')
         fig.add_trace(go.Scatter(
             x=snapshot_iters, y=snapshot_res,
             mode='markers',
@@ -565,10 +651,11 @@ class PlotlyDashboard:
             legendgroup='convergence',
         ), row=conv_row, col=1)
         
-        # Divergence markers
+        # Divergence markers (static)
         if self.divergence_snapshots:
             div_iters = [s.iteration for s in self.divergence_snapshots]
             div_res = [extract_residual_value(s.residual, 0) for s in self.divergence_snapshots]
+            self.tracker.add_static('divergence_markers')
             fig.add_trace(go.Scatter(
                 x=div_iters, y=div_res,
                 mode='markers',
@@ -598,7 +685,11 @@ class PlotlyDashboard:
         # Get row from layout
         wall_row, _ = self.layout.get_position("wall_dist")
         
-        # Left: Wall distance contour
+        # Get colorbar config from layout
+        wall_cb = self.layout.get_colorbar_config("wall_dist")
+        
+        # Left: Wall distance contour (static - wall distance doesn't change)
+        self.tracker.add_static('carpet_wall_dist')
         fig.add_trace(go.Carpet(
             a=A.flatten(), b=B.flatten(),
             x=xc.flatten(), y=yc.flatten(),
@@ -607,6 +698,7 @@ class PlotlyDashboard:
             baxis=dict(showgrid=False, showticklabels='none', showline=False),
         ), row=wall_row, col=1)
         
+        self.tracker.add_static('contour_wall_dist')
         fig.add_trace(go.Contourcarpet(
             a=A.flatten(), b=B.flatten(),
             z=sanitize_array(wall_distance).flatten(),
@@ -615,11 +707,11 @@ class PlotlyDashboard:
             zmin=cfg.cmin, zmax=cfg.cmax,
             contours=dict(coloring='fill', showlines=False),
             ncontours=self.N_CONTOURS,
-            colorbar=cfg.colorbar,
+            colorbar=dict(title='d/c', **wall_cb),
             showscale=True,
         ), row=wall_row, col=1)
         
-        # Right: y+ distribution along airfoil surface
+        # Right: y+ distribution along airfoil surface (animated - depends on solution)
         i_start = n_wake
         i_end = ni - n_wake
         x_surf = xc[i_start:i_end, 0]  # x-coordinate at wall
@@ -633,14 +725,15 @@ class PlotlyDashboard:
             self.nu_laminar, self.u_inf, self.v_inf, i_start, i_end
         )
         
-        yplus_trace_idx = len(fig.data)
+        self.tracker.add_animated('yplus_line')
         fig.add_trace(go.Scatter(
             x=x_surf, y=y_plus,
             mode='lines', line=dict(color='green', width=2),
             showlegend=False, name='y⁺',
         ), row=wall_row, col=2)
         
-        # Add reference line at y+ = 1
+        # Add reference line at y+ = 1 (static)
+        self.tracker.add_static('yplus_ref_line')
         fig.add_trace(go.Scatter(
             x=[x_surf.min(), x_surf.max()], y=[1.0, 1.0],
             mode='lines', line=dict(color='gray', width=1, dash='dash'),
@@ -648,7 +741,6 @@ class PlotlyDashboard:
         ), row=wall_row, col=2)
         
         return {
-            'yplus_trace_idx': yplus_trace_idx,
             'wall_row': wall_row,
             'i_start': i_start,
             'i_end': i_end,
@@ -667,7 +759,7 @@ class PlotlyDashboard:
         has_wall_dist: bool,
         has_aft: bool = False,
     ) -> dict:
-        """Add Cp and Cf surface plot traces."""
+        """Add Cp and Cf surface plot traces (animated)."""
         ni = grid_metrics.xc.shape[0]
         # Get row from layout
         surface_row, _ = self.layout.get_position("cp")
@@ -692,17 +784,18 @@ class PlotlyDashboard:
         # Compute ranges based on LAST snapshot (converged solution)
         # Using last snapshot prevents early unconverged data from dominating the scale
         Cp_last = np.clip(snap.p[:, 0], -1e10, 1e10) / q_inf
-        cp_min, cp_max = safe_minmax(Cp_last[i_start:i_end], -2, 1)
+        _cp_min, _cp_max = safe_minmax(Cp_last[i_start:i_end], -2, 1)
         cf_max = max(0.01, safe_absmax(Cf, 0.01))
         
-        cp_trace_idx = len(fig.data)
+        # Cp and Cf are animated (change per snapshot)
+        self.tracker.add_animated('cp_line')
         fig.add_trace(go.Scatter(
             x=x_surf_airfoil, y=Cp,
             mode='lines', line=dict(color='blue', width=2),
             showlegend=False, name='Cp',
         ), row=surface_row, col=1)
         
-        cf_trace_idx = len(fig.data)
+        self.tracker.add_animated('cf_line')
         fig.add_trace(go.Scatter(
             x=x_surf_airfoil, y=Cf,
             mode='lines', line=dict(color='red', width=2),
@@ -714,8 +807,6 @@ class PlotlyDashboard:
             'x_surf_airfoil': x_surf_airfoil,
             'i_start': i_start,
             'i_end': i_end,
-            'cp_trace_idx': cp_trace_idx,
-            'cf_trace_idx': cf_trace_idx,
             'cf_max': cf_max,
         }
     
@@ -734,40 +825,28 @@ class PlotlyDashboard:
         n_wake: int,
         mu_laminar: float,
         has_aft: bool = False,
+        wall_distance: Optional[np.ndarray] = None,
+        yplus_params: Optional[dict] = None,
     ) -> None:
-        """Add animation frames for all snapshots."""
+        """Add animation frames for all snapshots.
+        
+        Uses self.tracker.animated_indices to determine which traces to update.
+        Frame data order must match the order traces were added with add_animated().
+        """
         ni, nj = xc.shape
         A, B = np.meshgrid(np.arange(ni), np.arange(nj), indexing='ij')
         
         divergence_iters = {s.iteration for s in self.divergence_snapshots}
-        
-        # Trace indices for animation
-        # Base: 6 contour plots (each has carpet + contourcarpet = 2 traces), so indices 1,3,5,7,9,11
-        base_contour_indices = [1, 3, 5, 7, 9, 11]
-        n_base_traces = 12  # 6 carpet + 6 contourcarpet
-        
-        # If AFT is present, it adds 4 more traces (2 carpet + 2 contourcarpet)
-        # AFT fields are NOT animated (static display of last frame)
-        n_aft_traces = 4 if has_aft else 0
-        
-        # Convergence: 4 line traces + 1 snapshot marker + 1 divergence marker = 6 traces
-        residual_marker_idx = n_base_traces + n_aft_traces + 4  # 4 line traces before marker
-        animated_indices = base_contour_indices + [residual_marker_idx]
-        
-        if has_surface_data and surface_params:
-            animated_indices.extend([surface_params['cp_trace_idx'], surface_params['cf_trace_idx']])
+        animated_indices = self.tracker.animated_indices
         
         frames = []
         for i, snap in enumerate(all_snapshots):
             frame_data = self._create_frame_data(
                 snap, A, B, color_config, has_cpt, has_res_field,
-                all_snapshots[:i+1], divergence_iters
+                all_snapshots[:i+1], divergence_iters, has_aft,
+                has_surface_data, surface_params, grid_metrics, mu_laminar,
+                wall_distance, yplus_params,
             )
-            
-            if has_surface_data and surface_params:
-                frame_data.extend(self._create_surface_frame_data(
-                    snap, surface_params, grid_metrics, mu_laminar
-                ))
             
             frames.append(go.Frame(
                 data=frame_data,
@@ -787,8 +866,19 @@ class PlotlyDashboard:
         has_res_field: bool,
         snapshots_so_far: List[Snapshot],
         divergence_iters: set,
+        has_aft: bool = False,
+        has_surface_data: bool = False,
+        surface_params: Optional[dict] = None,
+        grid_metrics: Optional['FVMMetrics'] = None,
+        mu_laminar: float = 1e-6,
+        wall_distance: Optional[np.ndarray] = None,
+        yplus_params: Optional[dict] = None,
     ) -> list:
-        """Create frame data for a single snapshot."""
+        """Create frame data for a single snapshot.
+        
+        IMPORTANT: The order of items in frame_data must exactly match
+        the order that animated traces were added via tracker.add_animated().
+        """
         snap_p = sanitize_array(snap.p)
         snap_u = sanitize_array(snap.u)
         snap_v = sanitize_array(snap.v)
@@ -807,6 +897,7 @@ class PlotlyDashboard:
         r_cfg = color_config['residual']
         chi_cfg = color_config['chi']
         
+        # ORDER MUST MATCH: contour_1_1, contour_1_2, contour_2_1, contour_2_2, contour_3_1, contour_3_2
         frame_data = [
             go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap_p.flatten(),
                             carpet='carpet_1_1', colorscale=p_cfg.colorscale,
@@ -834,7 +925,11 @@ class PlotlyDashboard:
                             contours=dict(coloring='fill', showlines=False), ncontours=self.N_CONTOURS),
         ]
         
-        # Snapshot markers
+        # AFT fields: contour_re_omega, contour_gamma, contour_is_turb
+        if has_aft:
+            frame_data.extend(self._create_aft_frame_data(snap, A, B))
+        
+        # Snapshot markers (convergence plot)
         snapshot_iters = [s.iteration for s in snapshots_so_far]
         snapshot_res = [extract_residual_value(s.residual, 0) for s in snapshots_so_far]
         colors = ['orange' if s.iteration in divergence_iters else 'black' for s in snapshots_so_far]
@@ -845,7 +940,86 @@ class PlotlyDashboard:
             marker=dict(color=colors, size=10, symbol='circle'),
         ))
         
+        # y+ line (if wall distance available)
+        if yplus_params is not None and wall_distance is not None and grid_metrics is not None:
+            frame_data.extend(self._create_yplus_frame_data(snap, wall_distance, grid_metrics, yplus_params))
+        
+        # Cp and Cf lines (if surface data available)
+        if has_surface_data and surface_params is not None and grid_metrics is not None:
+            frame_data.extend(self._create_surface_frame_data(snap, surface_params, grid_metrics, mu_laminar))
+        
         return frame_data
+    
+    def _create_aft_frame_data(
+        self,
+        snap: Snapshot,
+        A: np.ndarray,
+        B: np.ndarray,
+    ) -> list:
+        """Create AFT field frame data (Re_Omega, Gamma, is_turb)."""
+        frame_data = []
+        
+        # Re_Omega
+        Re_Omega_safe = np.maximum(sanitize_array(snap.Re_Omega, fill_value=10.0), 1.0)
+        Re_Omega_log = np.log10(Re_Omega_safe)
+        frame_data.append(go.Contourcarpet(
+            a=A.flatten(), b=B.flatten(),
+            z=to_json_safe_list(Re_Omega_log),
+            carpet='carpet_re_omega',
+            colorscale='Viridis',
+            zmin=1.0, zmax=4.0,
+            contours=dict(coloring='fill', showlines=False),
+            ncontours=self.N_CONTOURS,
+        ))
+        
+        # Gamma
+        Gamma_safe = sanitize_array(snap.Gamma, fill_value=0.0)
+        frame_data.append(go.Contourcarpet(
+            a=A.flatten(), b=B.flatten(),
+            z=to_json_safe_list(Gamma_safe),
+            carpet='carpet_gamma',
+            colorscale='Reds',
+            zmin=0.0, zmax=2.0,
+            contours=dict(coloring='fill', showlines=False),
+            ncontours=self.N_CONTOURS,
+        ))
+        
+        # is_turb
+        is_turb_safe = sanitize_array(snap.is_turb, fill_value=0.0) if snap.is_turb is not None else np.zeros_like(Gamma_safe)
+        frame_data.append(go.Contourcarpet(
+            a=A.flatten(), b=B.flatten(),
+            z=to_json_safe_list(is_turb_safe),
+            carpet='carpet_is_turb',
+            colorscale='RdYlBu_r',
+            zmin=0.0, zmax=1.0,
+            contours=dict(coloring='fill', showlines=False),
+            ncontours=self.N_CONTOURS,
+        ))
+        
+        return frame_data
+    
+    def _create_yplus_frame_data(
+        self,
+        snap: Snapshot,
+        wall_distance: np.ndarray,
+        grid_metrics: 'FVMMetrics',
+        yplus_params: dict,
+    ) -> list:
+        """Create y+ distribution frame data."""
+        i_start = yplus_params['i_start']
+        i_end = yplus_params['i_end']
+        x_surf = yplus_params['x_surf']
+        
+        y_plus = compute_yplus_distribution(
+            snap, wall_distance,
+            grid_metrics.volume[:, 0],
+            grid_metrics.Sj_x[:, 0], grid_metrics.Sj_y[:, 0],
+            self.nu_laminar, self.u_inf, self.v_inf, i_start, i_end
+        )
+        
+        return [
+            go.Scatter(x=x_surf, y=y_plus, mode='lines', line=dict(color='green', width=2)),
+        ]
     
     def _create_surface_frame_data(
         self,
@@ -884,6 +1058,8 @@ class PlotlyDashboard:
         surface_params: Optional[dict],
         yplus_params: Optional[dict] = None,
         has_aft: bool = False,
+        has_cpt: bool = True,
+        has_res_field: bool = True,
     ) -> None:
         """Configure figure layout, sliders, and axes."""
         divergence_iters = {s.iteration for s in self.divergence_snapshots}
@@ -964,13 +1140,9 @@ class PlotlyDashboard:
             margin=dict(t=80),
         )
         
-        # Link axes for 2D contour plots
-        fig.update_xaxes(title_text='x', range=[-0.5, 1.5], scaleanchor='y', scaleratio=1, row=1, col=1)
-        fig.update_yaxes(title_text='y', range=[-0.5625, 0.5625], row=1, col=1)
-        
-        # Get all contour plot positions from layout for linked axes
-        contour_plot_names = ["pressure", "cpt" if color_config.get("cpt") else "nu",
-                              "u_vel", "v_vel", "residual" if has_surface_data else "vel_mag", "chi"]
+        # Get all contour plot positions from layout for isotropic axes
+        contour_plot_names = ["pressure", "cpt" if has_cpt else "nu",
+                              "u_vel", "v_vel", "residual" if has_res_field else "vel_mag", "chi"]
         if has_aft:
             contour_plot_names.extend(["re_omega", "gamma", "is_turb"])
         if has_wall_dist:
@@ -981,11 +1153,26 @@ class PlotlyDashboard:
             if self.layout.has_plot(name):
                 field_positions.append(self.layout.get_position(name))
         
+        # Apply isotropic scaling to ALL 2D contour plots
+        # Use scaleanchor and scaleratio=1 on each to force equal axis scaling
         for row, col in field_positions:
-            if row == 1 and col == 1:
-                continue
-            fig.update_xaxes(title_text='x', range=[-0.5, 1.5], matches='x', row=row, col=col)
-            fig.update_yaxes(title_text='y', range=[-0.5625, 0.5625], matches='y', row=row, col=col)
+            # Get the actual xaxis/yaxis keys for this subplot from the figure
+            # This handles the complexity of skipped indices due to colspan/None cells
+            xaxis_key = self._get_subplot_xaxis_key(fig, row, col)
+            yaxis_key = self._get_subplot_yaxis_key(fig, row, col)
+            
+            # yaxis_name for scaleanchor is just the number part, e.g., 'y' -> 'y', 'yaxis3' -> 'y3'
+            yaxis_name = yaxis_key.replace('axis', '')
+            
+            fig.update_xaxes(
+                title_text='x', range=[-0.5, 1.5],
+                scaleanchor=yaxis_name, scaleratio=1,
+                row=row, col=col
+            )
+            fig.update_yaxes(
+                title_text='y', range=[-0.5625, 0.5625],
+                row=row, col=col
+            )
         
         # Convergence plot
         fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, fixedrange=True, row=conv_row, col=1)
@@ -1004,6 +1191,36 @@ class PlotlyDashboard:
             fig.update_yaxes(title_text='Cp', autorange='reversed', matches=None, fixedrange=True, row=surface_row, col=1)
             fig.update_xaxes(title_text='x/c', range=[0, 1], matches=None, fixedrange=True, row=surface_row, col=2)
             fig.update_yaxes(title_text='Cf', range=[0, surface_params['cf_max'] * 1.1], matches=None, fixedrange=True, row=surface_row, col=2)
+    
+    def _get_subplot_xaxis_key(self, fig: 'go.Figure', row: int, col: int) -> str:
+        """Get the xaxis key for a subplot, handling complex layouts.
+        
+        Plotly's subplot indices can be non-sequential when rows have
+        colspan or single-column configurations.
+        """
+        # Get grid reference from figure - this handles the complexity
+        refs = fig._grid_ref
+        if refs is not None and row <= len(refs):
+            row_refs = refs[row - 1]  # 0-indexed
+            if col <= len(row_refs) and row_refs[col - 1] is not None:
+                subplot_ref = row_refs[col - 1]
+                # subplot_ref is a tuple with SubplotRef objects
+                if subplot_ref and len(subplot_ref) > 0:
+                    return subplot_ref[0].layout_keys[0]
+        # Fallback
+        return 'xaxis'
+    
+    def _get_subplot_yaxis_key(self, fig: 'go.Figure', row: int, col: int) -> str:
+        """Get the yaxis key for a subplot, handling complex layouts."""
+        refs = fig._grid_ref
+        if refs is not None and row <= len(refs):
+            row_refs = refs[row - 1]  # 0-indexed
+            if col <= len(row_refs) and row_refs[col - 1] is not None:
+                subplot_ref = row_refs[col - 1]
+                if subplot_ref and len(subplot_ref) > 0:
+                    return subplot_ref[0].layout_keys[1]
+        # Fallback
+        return 'yaxis'
     
     def clear(self) -> None:
         """Clear all stored snapshots."""

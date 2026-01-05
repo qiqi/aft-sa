@@ -48,7 +48,6 @@ from .boundary_conditions import make_apply_bc_jit
 class SolverConfig:
     """Configuration for RANS solver."""
     
-    mach: float = 0.15
     alpha: float = 0.0
     reynolds: float = 6e6
     chi_inf: float = 0.0001  # Initial/farfield turbulent viscosity ratio (ν̃/ν) - low for transition
@@ -68,12 +67,11 @@ class SolverConfig:
     n_wake: int = 30
     html_animation: bool = True
     html_use_cdn: bool = True  # Use CDN for plotly.js (saves ~3MB, requires internet)
-    html_compress: bool = True  # Gzip compress HTML output (typically 5-10x smaller)
-    divergence_history: int = 0
+    html_compress: bool = False  # Gzip compress HTML output (typically 5-10x smaller)
+    divergence_history: int = 1
     target_yplus: float = 1.0  # Target y+ for grid quality warning
     
     # AFT Transition Model Configuration
-    aft_enabled: bool = True          # Enable AFT transition model (False = pure SA)
     aft_gamma_coeff: float = 2.0      # Gamma formula coefficient
     aft_re_omega_scale: float = 1000.0  # Re_Ω normalization
     aft_log_divisor: float = 50.0     # Log term divisor
@@ -119,7 +117,7 @@ class RANSSolver:
         print("RANS Solver Initialized")
         print(f"{'='*60}")
         print(f"Grid size: {self.NI} x {self.NJ} cells")
-        print(f"Mach: {self.config.mach}, Alpha: {self.config.alpha}°")
+        print(f"Alpha: {self.config.alpha}°")
         print(f"Reynolds: {self.config.reynolds:.2e}")
         print(f"Target CFL: {self.config.cfl_target}")
         print(f"Max iterations: {self.config.max_iter}")
@@ -214,8 +212,7 @@ class RANSSolver:
         """Initialize state vector with freestream and wall damping."""
         print("Initializing flow state...")
         
-        self.freestream = FreestreamConditions.from_mach_alpha(
-            mach=self.config.mach,
+        self.freestream = FreestreamConditions.from_alpha(
             alpha_deg=self.config.alpha,
             reynolds=self.config.reynolds,
             chi_inf=getattr(self.config, 'chi_inf', 3.0)
@@ -351,7 +348,6 @@ class RANSSolver:
         ls_weights_j = self.ls_weights_j_jax
         
         # AFT transition model parameters
-        aft_enabled = self.config.aft_enabled
         aft_gamma_coeff = self.config.aft_gamma_coeff
         aft_re_omega_scale = self.config.aft_re_omega_scale
         aft_log_divisor = self.config.aft_log_divisor
@@ -361,179 +357,90 @@ class RANSSolver:
         aft_blend_threshold = self.config.aft_blend_threshold
         aft_blend_width = self.config.aft_blend_width
         
-        if aft_enabled:
-            @jax.jit
-            def jit_rk_stage(Q, Q0, dt, alpha_rk):
-                """Single RK stage with AFT-SA transition model."""
-                # Apply boundary conditions
-                Q = apply_bc(Q)
-                
-                # Convective fluxes
-                R = compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost)
-                
-                # Gradients (needed for SA sources and cb2 advection)
-                grad = compute_gradients_jax(Q, Si_x, Si_y, Sj_x, Sj_y, volume, nghost)
-                
-                # Compute turbulent viscosity from SA variable
-                Q_int = Q[nghost:-nghost, nghost:-nghost, :]
-                nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
-                
-                # Velocity magnitude for AFT
-                vel_mag = jnp.sqrt(Q_int[:, :, 1]**2 + Q_int[:, :, 2]**2)
-                
-                # Turbulent viscosity (SA model)
-                chi = nu_tilde / (nu + 1e-30)
-                cv1 = 7.1
-                chi3 = chi ** 3
-                f_v1 = chi3 / (chi3 + cv1 ** 3)
-                mu_t = nu_tilde * f_v1
-                mu_eff = nu + mu_t
-                
-                # Tight-stencil viscous fluxes (momentum + SA diffusion)
-                Q_with_ghosts = Q[nghost-1:-(nghost-1), nghost-1:-(nghost-1), :]
-                R_visc = compute_viscous_fluxes_tight_with_ghosts_jax(
-                    Q_with_ghosts, Si_x, Si_y, Sj_x, Sj_y,
-                    d_coord_i, e_coord_i_x, e_coord_i_y, e_ortho_i_x, e_ortho_i_y,
-                    d_coord_j, e_coord_j_x, e_coord_j_y, e_ortho_j_x, e_ortho_j_y,
-                    ls_weights_i, ls_weights_j,
-                    mu_eff, nu, nu_tilde
-                )
-                R = R.at[:, :, 1:4].add(R_visc[:, :, 1:4])
-                
-                # AFT-SA source terms with blending
-                P, D, cb2_term = compute_aft_sa_source_jax(
-                    nu_tilde, grad, wall_dist, vel_mag, nu,
-                    aft_gamma_coeff, aft_re_omega_scale, aft_log_divisor,
-                    aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale,
-                    aft_blend_threshold, aft_blend_width
-                )
-                R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
-                
-                # Explicit smoothing (nuHat excluded - it corrupts SA residual near walls)
-                if smoothing_epsilon > 0 and smoothing_passes > 0:
-                    R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
-                
-                # Compute the update increment dQ = alpha * dt/V * R
-                # Use reduced CFL for nuHat (index 3) since smoothing is disabled for stability
-                Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
-                dt_factors = jnp.array([1.0, 1.0, 1.0, 0.5])  # Half CFL for nuHat
-                dQ = alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * dt_factors * R
-                
-                # Start with normal explicit update for all variables
-                Q_int_new = Q0_int + dQ
-                
-                # Patankar-Euler scheme for nuHat (index 3) only
-                # Only apply Patankar when nuHat_old > 0 AND dNuHat < 0 (destruction dominated)
-                # Otherwise use normal explicit update
-                nuHat_old = Q0_int[:, :, 3]
-                dNuHat = dQ[:, :, 3]
-                nuHat_explicit = Q_int_new[:, :, 3]  # = nuHat_old + dNuHat
-                
-                # Patankar: nuHat_new = nuHat_old / (1 - dNuHat/nuHat_old)
-                # Safe when nuHat_old > 0 since denominator = (nuHat_old - dNuHat)/nuHat_old > 0
-                # Use jnp.where to avoid NaN from division when nuHat_old <= 0
-                nuHat_patankar = jnp.where(
-                    nuHat_old > 0,
-                    nuHat_old / (1.0 - dNuHat / nuHat_old),
-                    nuHat_explicit  # Fallback for nuHat_old <= 0
-                )
-                
-                # Apply Patankar only when destruction is dominant (dNuHat < 0)
-                nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, nuHat_explicit)
-                nuHat_new = jnp.maximum(nuHat_new, 0.0)  # Physical floor: nuHat >= 0
-                Q_int_new = Q_int_new.at[:, :, 3].set(nuHat_new)
-                
-                Q_new = Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
-                
-                return Q_new, R
-        else:
-            @jax.jit
-            def jit_rk_stage(Q, Q0, dt, alpha_rk):
-                """Single RK stage - fully JIT compiled with SA turbulence (no AFT).
-                
-                Uses:
-                - Tight-stencil viscous flux for improved diagonal dominance
-                - Point-implicit treatment for SA destruction term
-                - cb2 term implemented as advection with JST dissipation
-                """
-                # Apply boundary conditions
-                Q = apply_bc(Q)
-                
-                # Convective fluxes
-                R = compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost)
-                
-                # Gradients (needed for SA sources and cb2 advection)
-                grad = compute_gradients_jax(Q, Si_x, Si_y, Sj_x, Sj_y, volume, nghost)
-                
-                # Compute turbulent viscosity from SA variable
-                Q_int = Q[nghost:-nghost, nghost:-nghost, :]
-                nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
-                
-                # Turbulent viscosity (SA model)
-                chi = nu_tilde / (nu + 1e-30)
-                cv1 = 7.1
-                chi3 = chi ** 3
-                f_v1 = chi3 / (chi3 + cv1 ** 3)
-                mu_t = nu_tilde * f_v1
-                mu_eff = nu + mu_t
-                
-                # Tight-stencil viscous fluxes (momentum + SA diffusion)
-                # Uses 2-point difference along coordinate line + LS correction for non-orthogonality
-                # CRITICAL: Use Q with ghost cells (after BC applied) for correct wall gradient!
-                # Extract Q with one layer of ghost cells on each side
-                Q_with_ghosts = Q[nghost-1:-(nghost-1), nghost-1:-(nghost-1), :]  # (NI+2, NJ+2, 4)
-                R_visc = compute_viscous_fluxes_tight_with_ghosts_jax(
-                    Q_with_ghosts, Si_x, Si_y, Sj_x, Sj_y,
-                    d_coord_i, e_coord_i_x, e_coord_i_y, e_ortho_i_x, e_ortho_i_y,
-                    d_coord_j, e_coord_j_x, e_coord_j_y, e_ortho_j_x, e_ortho_j_y,
-                    ls_weights_i, ls_weights_j,
-                    mu_eff, nu, nu_tilde
-                )
-                R = R.at[:, :, 1:4].add(R_visc[:, :, 1:4])
-                
-                # SA source terms: Production (P), Destruction (D), and cb2 term |∇ν̃|²
-                P, D, cb2_term = compute_sa_source_jax(nu_tilde, grad, wall_dist, nu)
-                # Add production, subtract destruction, and cb2 source term to residual
-                # cb2_term = (cb2/sigma) * |∇ν̃|² is a "anti-diffusion" source that
-                # accounts for the conservative form of the diffusion term
-                R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
-                
-                # Explicit smoothing (nuHat excluded - it corrupts SA residual near walls)
-                if smoothing_epsilon > 0 and smoothing_passes > 0:
-                    R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
-                
-                # Compute the update increment dQ = alpha * dt/V * R
-                # Use reduced CFL for nuHat (index 3) since smoothing is disabled for stability
-                Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
-                dt_factors = jnp.array([1.0, 1.0, 1.0, 0.5])  # Half CFL for nuHat
-                dQ = alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * dt_factors * R
-                
-                # Start with normal explicit update for all variables
-                Q_int_new = Q0_int + dQ
-                
-                # Patankar-Euler scheme for nuHat (index 3) only
-                # Note: Pressure can be negative in artificial compressibility, so don't apply Patankar
-                # Only apply Patankar when nuHat_old > 0 AND dNuHat < 0 (destruction dominated)
-                nuHat_old = Q0_int[:, :, 3]
-                dNuHat = dQ[:, :, 3]
-                nuHat_explicit = Q_int_new[:, :, 3]  # = nuHat_old + dNuHat
-                
-                # Patankar: nuHat_new = nuHat_old / (1 - dNuHat/nuHat_old)
-                # Safe when nuHat_old > 0 since denominator = (nuHat_old - dNuHat)/nuHat_old > 0
-                nuHat_patankar = jnp.where(
-                    nuHat_old > 0,
-                    nuHat_old / (1.0 - dNuHat / nuHat_old),
-                    nuHat_explicit  # Fallback for nuHat_old <= 0
-                )
-                
-                # Apply Patankar only when destruction is dominant (dNuHat < 0)
-                nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, nuHat_explicit)
-                nuHat_new = jnp.maximum(nuHat_new, 0.0)  # Physical floor: nuHat >= 0
-                Q_int_new = Q_int_new.at[:, :, 3].set(nuHat_new)
-                
-                Q_new = Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
-                
-                return Q_new, R
+        @jax.jit
+        def jit_rk_stage(Q, Q0, dt, alpha_rk):
+            """Single RK stage with AFT-SA transition model."""
+            # Apply boundary conditions
+            Q = apply_bc(Q)
+            
+            # Convective fluxes
+            R = compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost)
+            
+            # Gradients (needed for SA sources and cb2 advection)
+            grad = compute_gradients_jax(Q, Si_x, Si_y, Sj_x, Sj_y, volume, nghost)
+            
+            # Compute turbulent viscosity from SA variable
+            Q_int = Q[nghost:-nghost, nghost:-nghost, :]
+            nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
+            
+            # Velocity magnitude for AFT
+            vel_mag = jnp.sqrt(Q_int[:, :, 1]**2 + Q_int[:, :, 2]**2)
+            
+            # Turbulent viscosity (SA model)
+            chi = nu_tilde / (nu + 1e-30)
+            cv1 = 7.1
+            chi3 = chi ** 3
+            f_v1 = chi3 / (chi3 + cv1 ** 3)
+            mu_t = nu_tilde * f_v1
+            mu_eff = nu + mu_t
+            
+            # Tight-stencil viscous fluxes (momentum + SA diffusion)
+            Q_with_ghosts = Q[nghost-1:-(nghost-1), nghost-1:-(nghost-1), :]
+            R_visc = compute_viscous_fluxes_tight_with_ghosts_jax(
+                Q_with_ghosts, Si_x, Si_y, Sj_x, Sj_y,
+                d_coord_i, e_coord_i_x, e_coord_i_y, e_ortho_i_x, e_ortho_i_y,
+                d_coord_j, e_coord_j_x, e_coord_j_y, e_ortho_j_x, e_ortho_j_y,
+                ls_weights_i, ls_weights_j,
+                mu_eff, nu, nu_tilde
+            )
+            R = R.at[:, :, 1:4].add(R_visc[:, :, 1:4])
+            
+            # AFT-SA source terms with blending
+            P, D, cb2_term = compute_aft_sa_source_jax(
+                nu_tilde, grad, wall_dist, vel_mag, nu,
+                aft_gamma_coeff, aft_re_omega_scale, aft_log_divisor,
+                aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale,
+                aft_blend_threshold, aft_blend_width
+            )
+            R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
+            
+            # Explicit smoothing (nuHat excluded - it corrupts SA residual near walls)
+            if smoothing_epsilon > 0 and smoothing_passes > 0:
+                R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
+            
+            # Compute the update increment dQ = alpha * dt/V * R
+            # Use reduced CFL for nuHat (index 3) since smoothing is disabled for stability
+            Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
+            dt_factors = jnp.array([1.0, 1.0, 1.0, 0.5])  # Half CFL for nuHat
+            dQ = alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * dt_factors * R
+            
+            # Start with normal explicit update for all variables
+            Q_int_new = Q0_int + dQ
+            
+            # Patankar-Euler scheme for nuHat (index 3) only
+            # Only apply Patankar when nuHat_old > 0 AND dNuHat < 0 (destruction dominated)
+            # Otherwise use normal explicit update
+            nuHat_old = Q0_int[:, :, 3]
+            dNuHat = dQ[:, :, 3]
+            nuHat_explicit = Q_int_new[:, :, 3]  # = nuHat_old + dNuHat
+            
+            # Patankar: nuHat_new = nuHat_old / (1 - dNuHat/nuHat_old)
+            # Safe when nuHat_old > 0 since denominator = (nuHat_old - dNuHat)/nuHat_old > 0
+            # Use jnp.where to avoid NaN from division when nuHat_old <= 0
+            nuHat_patankar = jnp.where(
+                nuHat_old > 0,
+                nuHat_old / (1.0 - dNuHat / nuHat_old),
+                nuHat_explicit  # Fallback for nuHat_old <= 0
+            )
+            
+            # Apply Patankar only when destruction is dominant (dNuHat < 0)
+            nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, nuHat_explicit)
+            nuHat_new = jnp.maximum(nuHat_new, 0.0)  # Physical floor: nuHat >= 0
+            Q_int_new = Q_int_new.at[:, :, 3].set(nuHat_new)
+            
+            Q_new = Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
+            
+            return Q_new, R
         
         @jax.jit
         def jit_compute_dt(Q, cfl):
@@ -579,9 +486,9 @@ class RANSSolver:
         output_path = Path(self.config.output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
         
-        # Use CDN and compression by default to reduce HTML file size
+        # Use CDN by default to reduce HTML file size, no compression for easier debugging
         use_cdn = getattr(self.config, 'html_use_cdn', True)
-        compress = getattr(self.config, 'html_compress', True)
+        compress = getattr(self.config, 'html_compress', False)
         self.plotter = PlotlyDashboard(reynolds=self.config.reynolds, use_cdn=use_cdn, compress=compress)
         
         # Initialize JAX arrays
@@ -598,10 +505,8 @@ class RANSSolver:
             initial_R_raw = self._compute_residual(self.Q)
             self.R_jax = jax.device_put(jnp.array(initial_R_raw))
             initial_R = self.get_scaled_residual_field()
-            # Compute AFT diagnostic fields if AFT is enabled
-            Re_Omega, Gamma, is_turb = None, None, None
-            if self.config.aft_enabled:
-                Re_Omega, Gamma, is_turb = self._compute_aft_fields()
+            # Compute AFT diagnostic fields
+            Re_Omega, Gamma, is_turb = self._compute_aft_fields()
             self.plotter.store_snapshot(
                 self.Q, 0, self.residual_history,
                 cfl=self._get_cfl(0), C_pt=C_pt, residual_field=initial_R,
@@ -992,10 +897,8 @@ class RANSSolver:
                     Q_int, self.freestream.p_inf,
                     self.freestream.u_inf, self.freestream.v_inf
                 )
-                # Compute AFT diagnostic fields if AFT is enabled
-                Re_Omega, Gamma, is_turb = None, None, None
-                if self.config.aft_enabled:
-                    Re_Omega, Gamma, is_turb = self._compute_aft_fields()
+                # Compute AFT diagnostic fields
+                Re_Omega, Gamma, is_turb = self._compute_aft_fields()
                 self.plotter.store_snapshot(
                     self.Q, self.iteration, self.residual_history,
                     cfl=cfl, C_pt=C_pt, residual_field=R_field,
@@ -1054,10 +957,8 @@ class RANSSolver:
                         Q_int, self.freestream.p_inf,
                         self.freestream.u_inf, self.freestream.v_inf
                     )
-                    # Compute AFT diagnostic fields if AFT is enabled
-                    Re_Omega, Gamma, is_turb = None, None, None
-                    if self.config.aft_enabled:
-                        Re_Omega, Gamma, is_turb = self._compute_aft_fields()
+                    # Compute AFT diagnostic fields
+                    Re_Omega, Gamma, is_turb = self._compute_aft_fields()
                     self.plotter.store_snapshot(
                         self.Q, self.iteration, self.residual_history,
                         cfl=cfl, C_pt=C_pt, residual_field=R_field,
