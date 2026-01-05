@@ -31,13 +31,16 @@ class TestNewtonCFLRamping:
     """Test CFL ramping behavior for Newton mode."""
     
     def test_exponential_cfl_ramping(self, valid_grid_path):
-        """Test that Newton mode uses exponential CFL ramping."""
+        """Test that Newton mode uses exponential CFL ramping.
+        
+        CFL grows by a factor of 10 every ramp_iter iterations.
+        """
         config = SolverConfig(
             alpha=0.0,
             reynolds=1e6,
             cfl_start=0.1,
-            cfl_target=10.0,
-            cfl_ramp_iters=100,
+            cfl_target=1e12,  # Effectively infinity
+            cfl_ramp_iters=100,  # Iterations per decade
             solver_mode='newton',
             html_animation=False,
         )
@@ -50,19 +53,17 @@ class TestNewtonCFLRamping:
         cfl_100 = solver._get_cfl_newton(100)
         cfl_200 = solver._get_cfl_newton(200)
         
-        # Should start near cfl_start
+        # Should start at cfl_start
         assert abs(cfl_0 - 0.1) < 0.01
         
-        # Should be exponentially increasing
-        assert cfl_50 > cfl_0
-        assert cfl_100 > cfl_50
-        assert cfl_200 > cfl_100
+        # At 50 iters (half decade): CFL = 0.1 * 10^0.5 ≈ 0.316
+        assert abs(cfl_50 - 0.1 * 10**0.5) < 0.05
         
-        # At iteration 100, should reach cfl_target
-        assert abs(cfl_100 - 10.0) < 1.0
+        # At 100 iters (1 decade): CFL = 0.1 * 10^1 = 1.0
+        assert abs(cfl_100 - 1.0) < 0.1
         
-        # After ramp, should continue growing
-        assert cfl_200 > cfl_100
+        # At 200 iters (2 decades): CFL = 0.1 * 10^2 = 10.0
+        assert abs(cfl_200 - 10.0) < 1.0
 
 
 class TestNewtonUpdate:

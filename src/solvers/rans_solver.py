@@ -1016,25 +1016,22 @@ class RANSSolver:
         """Get CFL number for Newton mode with exponential ramping.
         
         Newton mode uses exponential CFL ramping for pseudo-transient
-        continuation. CFL starts low and grows exponentially, driving
-        the implicit system toward steady state.
+        continuation. CFL starts at cfl_start and grows by a factor of 10
+        every cfl_ramp_iters iterations, capped at cfl_target.
+        
+        Formula: CFL(n) = cfl_start * 10^(n / ramp_iters)
         
         As CFL → ∞, the V/dt diagonal → 0, recovering pure Newton iteration.
         """
         cfl_start = self.config.cfl_start
-        cfl_target = self.config.cfl_target  # Used as intermediate target
-        ramp_iters = self.config.cfl_ramp_iters
+        cfl_final = self.config.cfl_target  # Final/maximum CFL
+        ramp_iters_per_decade = self.config.cfl_ramp_iters
         
-        if iteration >= ramp_iters:
-            # After ramp, continue exponential growth
-            # Double CFL every ramp_iters/4 iterations
-            extra_iters = iteration - ramp_iters
-            growth_factor = 2.0 ** (extra_iters / max(ramp_iters / 4, 10))
-            return min(cfl_target * growth_factor, 1e6)  # Cap at 1e6
+        # Exponential growth: multiply by 10 every ramp_iters iterations
+        decades = iteration / max(ramp_iters_per_decade, 1)
+        cfl = cfl_start * (10.0 ** decades)
         
-        # Exponential ramp from cfl_start to cfl_target
-        t = iteration / max(ramp_iters, 1)
-        return cfl_start * (cfl_target / cfl_start) ** t
+        return min(cfl, cfl_final)
     
     @staticmethod
     @jax.jit
