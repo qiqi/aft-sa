@@ -14,8 +14,13 @@ Algorithm for Solving Nonsymmetric Linear Systems"
 
 from dataclasses import dataclass
 from typing import Callable, Tuple, Optional
+from functools import lru_cache
 
 from src.physics.jax_config import jax, jnp
+
+
+# Cache for JIT-compiled GMRES cycles to avoid retracing
+_gmres_cycle_cache = {}
 
 
 @dataclass
@@ -111,8 +116,15 @@ def gmres(
     
     tol_abs = tol * float(b_norm)
     
-    # Create JIT-compiled GMRES cycle
-    gmres_cycle_jit = _make_gmres_cycle_jit(matvec, preconditioner, n, restart)
+    # Create JIT-compiled GMRES cycle (with caching to avoid retracing)
+    # Use underlying cache keys if available (from make_jfnk_matvec)
+    matvec_key = getattr(matvec, '_cache_key', id(matvec))
+    precond_key = getattr(preconditioner, '_cache_key', id(preconditioner)) if preconditioner else None
+    cache_key = (matvec_key, precond_key, n, restart)
+    
+    if cache_key not in _gmres_cycle_cache:
+        _gmres_cycle_cache[cache_key] = _make_gmres_cycle_jit(matvec, preconditioner, n, restart)
+    gmres_cycle_jit = _gmres_cycle_cache[cache_key]
     
     # Run GMRES with restarts
     residual_history = []
@@ -314,6 +326,10 @@ def _make_gmres_cycle_jit(
 # Jacobian-free Newton-Krylov matvec
 # =============================================================================
 
+# Cache for JVP-based matvec functions (keyed by residual_fn identity)
+_jfnk_matvec_cache = {}
+
+
 def make_jfnk_matvec(
     residual_fn: Callable[[jnp.ndarray], jnp.ndarray],
     Q: jnp.ndarray,
@@ -330,6 +346,9 @@ def make_jfnk_matvec(
         matvec(v) = V/dt · v + J @ v
     
     where J @ v is computed via automatic differentiation (JVP).
+    
+    Uses caching to avoid JAX retracing when called multiple times with the
+    same residual function.
     
     Parameters
     ----------
@@ -351,38 +370,45 @@ def make_jfnk_matvec(
     """
     NI = volume.shape[0]
     NJ = volume.shape[1]
+    n = NI * NJ * 4
     
-    # Precompute V/dt diagonal
-    diag = (volume / dt).flatten()  # (NI*NJ,)
+    # Get or create cached matvec implementation for this residual function
+    cache_key = (id(residual_fn), NI, NJ, nghost)
     
-    # We need to extend diag to handle all 4 variables
-    diag_full = jnp.repeat(diag, 4)  # (NI*NJ*4,)
+    if cache_key not in _jfnk_matvec_cache:
+        # Create JIT-compiled matvec that takes Q, dt, volume as arguments
+        @jax.jit
+        def _matvec_impl(Q_state, dt_state, volume_state, v):
+            """JIT-compiled matvec implementation."""
+            # Precompute V/dt diagonal
+            diag = (volume_state / dt_state).flatten()
+            diag_full = jnp.repeat(diag, 4)
+            
+            # Get interior Q
+            Q_int_flat = Q_state[nghost:-nghost, nghost:-nghost, :].flatten()
+            
+            # Create residual function for JVP
+            def R_flat(Q_int):
+                Q_int_reshaped = Q_int.reshape(NI, NJ, 4)
+                Q_full = Q_state.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_reshaped)
+                return residual_fn(Q_full).flatten()
+            
+            # Diagonal term + Jacobian term via JVP
+            diag_term = diag_full * v
+            _, Jv = jax.jvp(R_flat, (Q_int_flat,), (v,))
+            
+            return diag_term + Jv
+        
+        _jfnk_matvec_cache[cache_key] = _matvec_impl
     
-    # Create the residual function that works on interior only
-    def R_full(Q_flat):
-        """Residual as a function of flat interior Q."""
-        # Reshape to (NI, NJ, 4)
-        Q_int = Q_flat.reshape(NI, NJ, 4)
-        # Insert into full Q array
-        Q_full = Q.at[nghost:-nghost, nghost:-nghost, :].set(Q_int)
-        # Compute residual
-        R = residual_fn(Q_full)
-        return R.flatten()
+    _matvec_impl = _jfnk_matvec_cache[cache_key]
     
-    # Get current interior Q
-    Q_int_flat = Q[nghost:-nghost, nghost:-nghost, :].flatten()
-    
-    @jax.jit
+    # Create wrapper that captures current Q, dt, volume
     def matvec(v):
-        """Compute (V/dt · I + J) @ v."""
-        # Diagonal term: V/dt * v
-        diag_term = diag_full * v
-        
-        # Jacobian term: J @ v via JVP
-        # jax.jvp(f, (x,), (v,)) returns (f(x), df/dx @ v)
-        _, Jv = jax.jvp(R_full, (Q_int_flat,), (v,))
-        
-        return diag_term + Jv
+        return _matvec_impl(Q, dt, volume, v)
+    
+    # Store reference to the cached impl for cache key matching
+    matvec._cache_key = cache_key
     
     return matvec
 

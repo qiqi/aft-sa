@@ -16,6 +16,9 @@ from typing import Callable, Tuple
 from src.physics.jax_config import jax, jnp
 from src.constants import NGHOST
 
+# Cache for JIT-compiled preconditioner apply functions
+_precond_apply_cache = {}
+
 
 @dataclass
 class BlockJacobiPreconditioner:
@@ -113,20 +116,36 @@ class BlockJacobiPreconditioner:
     def apply_jit(self) -> Callable[[jnp.ndarray], jnp.ndarray]:
         """Return a JIT-compiled apply function.
         
+        Uses caching to avoid JAX retracing when called multiple times with
+        the same grid dimensions.
+        
         Useful for GMRES where apply is called many times.
         """
         P_inv = self.P_inv
         NI, NJ = self.NI, self.NJ
         
-        @jax.jit
+        # Get or create cached apply implementation
+        cache_key = (NI, NJ)
+        if cache_key not in _precond_apply_cache:
+            @jax.jit
+            def _apply_impl(P_inv_data, v):
+                was_flat = v.ndim == 1
+                if was_flat:
+                    v = v.reshape(NI, NJ, 4)
+                result = jnp.einsum('ijkl,ijl->ijk', P_inv_data, v)
+                if was_flat:
+                    result = result.flatten()
+                return result
+            _precond_apply_cache[cache_key] = _apply_impl
+        
+        _apply_impl = _precond_apply_cache[cache_key]
+        
+        # Create wrapper that captures current P_inv
         def _apply(v):
-            was_flat = v.ndim == 1
-            if was_flat:
-                v = v.reshape(NI, NJ, 4)
-            result = jnp.einsum('ijkl,ijl->ijk', P_inv, v)
-            if was_flat:
-                result = result.flatten()
-            return result
+            return _apply_impl(P_inv, v)
+        
+        # Store cache key for GMRES caching
+        _apply._cache_key = cache_key
         
         return _apply
 
@@ -151,6 +170,9 @@ def _compute_block_jacobians(
     this gives an approximation. The approximation is still effective for
     preconditioning purposes.
     
+    This implementation is fully vectorized using vmap to compute all 16
+    perturbations (4 colors × 4 variables) in parallel on GPU.
+    
     Parameters
     ----------
     residual_fn : callable
@@ -173,33 +195,62 @@ def _compute_block_jacobians(
     # Base residual
     R0 = residual_fn(Q)  # (NI, NJ, 4)
     
-    # Initialize Jacobian storage
-    J_diag = jnp.zeros((NI, NJ, 4, 4))
+    # Create all 16 masks (4 colors × 4 variables)
+    # masks[k] has shape (NI, NJ) for k = 4*color + var
+    I, J = jnp.meshgrid(jnp.arange(NI), jnp.arange(NJ), indexing='ij')
     
-    # 2×2 coloring pattern: (i%2, j%2) gives 4 colors
-    # For each color, perturb all cells of that color for each variable
-    for color_i in range(2):
-        for color_j in range(2):
-            # Create mask for this color
-            I, J = jnp.meshgrid(jnp.arange(NI), jnp.arange(NJ), indexing='ij')
-            mask = ((I % 2 == color_i) & (J % 2 == color_j))  # (NI, NJ)
-            
-            for var in range(4):
-                # Perturb Q at all cells of this color for variable 'var'
-                Q_pert = Q.at[
-                    nghost:-nghost, nghost:-nghost, var
-                ].add(eps * mask)
-                
-                R_pert = residual_fn(Q_pert)  # (NI, NJ, 4)
-                
-                # Finite difference: dR/dQ[var] at cells of this color
-                dR = (R_pert - R0) / eps  # (NI, NJ, 4)
-                
-                # Store in Jacobian (only for cells of this color)
-                # J_diag[i,j,:,var] = dR[i,j,:] where mask[i,j] is True
-                J_diag = J_diag.at[:, :, :, var].add(
-                    dR * mask[:, :, None]
-                )
+    # Pre-compute color masks: (4, NI, NJ)
+    color_masks = jnp.stack([
+        ((I % 2 == ci) & (J % 2 == cj)).astype(jnp.float64)
+        for ci in range(2) for cj in range(2)
+    ])  # (4, NI, NJ)
+    
+    # Create all 16 perturbation vectors: (16, NI+2*nghost, NJ+2*nghost, 4)
+    # For perturbation k = 4*color + var, we perturb variable 'var' at cells of 'color'
+    def make_perturbation(k):
+        color = k // 4
+        var = k % 4
+        mask = color_masks[color]  # (NI, NJ)
+        pert = jnp.zeros_like(Q)
+        pert = pert.at[nghost:-nghost, nghost:-nghost, var].set(eps * mask)
+        return pert
+    
+    # Stack all perturbation vectors
+    perturbations = jax.vmap(make_perturbation)(jnp.arange(16))  # (16, NI+2*ng, NJ+2*ng, 4)
+    
+    # Compute all 16 perturbed Q values
+    Q_perturbed = Q[None, :, :, :] + perturbations  # (16, NI+2*ng, NJ+2*ng, 4)
+    
+    # Evaluate residual for all 16 perturbations in parallel
+    R_perturbed = jax.vmap(residual_fn)(Q_perturbed)  # (16, NI, NJ, 4)
+    
+    # Compute finite differences
+    dR = (R_perturbed - R0[None, :, :, :]) / eps  # (16, NI, NJ, 4)
+    
+    # Assemble Jacobian blocks - fully vectorized
+    # J_diag[i,j,r,c] = dR/dQ[c] at cell (i,j), component r
+    # For each perturbation k = 4*color + var, we have dR[k] which gives column 'var' of J
+    # but only at cells of 'color'
+    
+    # Reshape dR to (4 colors, 4 vars, NI, NJ, 4)
+    dR_reshaped = dR.reshape(4, 4, NI, NJ, 4)  # (color, var, NI, NJ, 4 residual components)
+    
+    # color_masks: (4, NI, NJ)
+    # For each cell, exactly one color mask is 1, the rest are 0
+    # We need to select the right dR for each cell based on its color
+    
+    # Expand masks for broadcasting: (4 colors, 1 var, NI, NJ, 1 residual)
+    masks_expanded = color_masks[:, None, :, :, None]  # (4, 1, NI, NJ, 1)
+    
+    # Weight dR by masks and sum over colors
+    # dR_reshaped * masks_expanded: (4, 4, NI, NJ, 4) - only one color contributes per cell
+    # Sum over colors gives (4 vars, NI, NJ, 4 residual components)
+    dR_weighted = (dR_reshaped * masks_expanded).sum(axis=0)  # (4, NI, NJ, 4)
+    
+    # Now dR_weighted[var, i, j, :] = dR/dQ[var] at cell (i,j)
+    # We want J_diag[i, j, :, var] = dR/dQ[var]
+    # So transpose: (4, NI, NJ, 4) -> (NI, NJ, 4, 4)
+    J_diag = dR_weighted.transpose(1, 2, 3, 0)  # (NI, NJ, 4 residual, 4 vars)
     
     return J_diag
 
@@ -248,6 +299,9 @@ def _compute_block_jacobians_jvp(
     This is more expensive than finite difference but gives exact derivatives.
     Uses the same graph coloring approach but with JVP instead of FD.
     
+    This implementation is fully vectorized using vmap to compute all 16
+    JVPs (4 colors × 4 variables) in parallel on GPU.
+    
     Parameters
     ----------
     residual_fn : callable
@@ -265,26 +319,43 @@ def _compute_block_jacobians_jvp(
     NI = Q.shape[0] - 2 * nghost
     NJ = Q.shape[1] - 2 * nghost
     
-    J_diag = jnp.zeros((NI, NJ, 4, 4))
+    # Create color masks: (4, NI, NJ)
+    I, J = jnp.meshgrid(jnp.arange(NI), jnp.arange(NJ), indexing='ij')
+    color_masks = jnp.stack([
+        ((I % 2 == ci) & (J % 2 == cj)).astype(jnp.float64)
+        for ci in range(2) for cj in range(2)
+    ])  # (4, NI, NJ)
     
-    # 2×2 coloring pattern
-    for color_i in range(2):
-        for color_j in range(2):
-            I, J = jnp.meshgrid(jnp.arange(NI), jnp.arange(NJ), indexing='ij')
-            mask = ((I % 2 == color_i) & (J % 2 == color_j)).astype(jnp.float64)
-            
-            for var in range(4):
-                # Tangent vector: 1 at variable 'var' for cells of this color
-                tangent = jnp.zeros_like(Q)
-                tangent = tangent.at[nghost:-nghost, nghost:-nghost, var].set(mask)
-                
-                # JVP gives J @ tangent
-                _, jvp_result = jax.jvp(residual_fn, (Q,), (tangent,))
-                
-                # Store in Jacobian
-                J_diag = J_diag.at[:, :, :, var].add(
-                    jvp_result * mask[:, :, None]
-                )
+    # Create all 16 tangent vectors: (16, NI+2*nghost, NJ+2*nghost, 4)
+    def make_tangent(k):
+        color = k // 4
+        var = k % 4
+        mask = color_masks[color]  # (NI, NJ)
+        tangent = jnp.zeros_like(Q)
+        tangent = tangent.at[nghost:-nghost, nghost:-nghost, var].set(mask)
+        return tangent
+    
+    tangents = jax.vmap(make_tangent)(jnp.arange(16))  # (16, NI+2*ng, NJ+2*ng, 4)
+    
+    # Compute all 16 JVPs in parallel using vmap
+    def single_jvp(tangent):
+        _, jvp_result = jax.jvp(residual_fn, (Q,), (tangent,))
+        return jvp_result
+    
+    jvp_results = jax.vmap(single_jvp)(tangents)  # (16, NI, NJ, 4)
+    
+    # Assemble Jacobian blocks - fully vectorized
+    # Reshape to (4 colors, 4 vars, NI, NJ, 4)
+    jvp_reshaped = jvp_results.reshape(4, 4, NI, NJ, 4)
+    
+    # Expand masks for broadcasting: (4 colors, 1 var, NI, NJ, 1 residual)
+    masks_expanded = color_masks[:, None, :, :, None]
+    
+    # Weight by masks and sum over colors
+    jvp_weighted = (jvp_reshaped * masks_expanded).sum(axis=0)  # (4, NI, NJ, 4)
+    
+    # Transpose: (4 vars, NI, NJ, 4 residual) -> (NI, NJ, 4 residual, 4 vars)
+    J_diag = jvp_weighted.transpose(1, 2, 3, 0)
     
     return J_diag
 
