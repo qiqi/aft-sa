@@ -38,6 +38,7 @@ Archive of recently completed work (for reference):
 
 | Date | Agent | Files | Summary |
 |------|-------|-------|---------|
+| 2026-01-05 | Claude | `src/io/_layout.py`, `src/io/_plot_registry.py`, `src/io/plotter.py` | Refactored HTML plotter with declarative DashboardLayout system |
 | 2026-01-05 | Claude | `src/solvers/boundary_conditions.py`, `src/solvers/batch.py` | Removed wake cut interior averaging - pure periodic BC now |
 | 2026-01-04 | Janitor | `src/solvers/boundary_conditions.py`, `src/solvers/time_stepping.py` | Removed JAX_AVAILABLE flags - always assume JAX available |
 | 2026-01-04 | Janitor | `src/physics/laminar.py` | Consolidated AFT functions: laminar.py now imports from aft_sources.py |

@@ -25,6 +25,7 @@ from ._html_components import (
     make_log_range_slider_steps,
     extract_residual_value,
 )
+from ._layout import DashboardLayout, create_standard_layout
 
 if TYPE_CHECKING:
     from ..grid.metrics import FVMMetrics
@@ -364,54 +365,16 @@ class PlotlyDashboard:
         has_res_field: bool,
         has_aft: bool = False,
     ) -> 'go.Figure':
-        """Create the subplot figure layout."""
-        n_rows = 4
-        if has_aft:
-            n_rows += 2  # AFT rows: Re_Omega/Gamma + is_turb
-        if has_wall_dist:
-            n_rows += 1
-        if has_surface_data:
-            n_rows += 1
-        
-        subplot_titles = [
-            'Pressure (p - p∞)', 
-            'Total Pressure Loss (C_pt)' if has_cpt else 'Turbulent Viscosity (ν)',
-            'U-velocity (u - u∞)', 'V-velocity (v - v∞)',
-            'Residual Field (log₁₀)' if has_res_field else 'Velocity Magnitude',
-            'χ = ν̃/ν (Turbulent/Laminar Viscosity Ratio)',
-        ]
-        if has_aft:
-            subplot_titles.extend([
-                'Re_Ω (Vorticity Reynolds Number)', 'Γ (AFT Shape Factor)',
-                'is_turb (Turbulent Fraction)', ''  # is_turb row
-            ])
-        subplot_titles.append('Convergence History')
-        if has_wall_dist:
-            subplot_titles.extend(['Wall Distance (d/c)', 'y⁺ Distribution'])
-        if has_surface_data:
-            subplot_titles.extend(['', ''])
-        
-        specs = [
-            [{"type": "xy"}, {"type": "xy"}],
-            [{"type": "xy"}, {"type": "xy"}],
-            [{"type": "xy"}, {"type": "xy"}],
-        ]
-        if has_aft:
-            specs.append([{"type": "xy"}, {"type": "xy"}])  # Re_Omega and Gamma contours
-            specs.append([{"type": "xy"}, None])  # is_turb (half row)
-        specs.append([{"type": "scatter", "colspan": 2}, None])  # Convergence
-        if has_wall_dist:
-            specs.append([{"type": "xy"}, {"type": "scatter"}])  # Wall dist contour + y+ line plot
-        if has_surface_data:
-            specs.append([{"type": "scatter"}, {"type": "scatter"}])
-        
-        return make_subplots(
-            rows=n_rows, cols=2,
-            subplot_titles=subplot_titles,
-            specs=specs,
-            horizontal_spacing=0.08,
-            vertical_spacing=0.06,
+        """Create the subplot figure layout using DashboardLayout."""
+        # Create layout using the standard factory
+        self.layout = create_standard_layout(
+            has_cpt=has_cpt,
+            has_res_field=has_res_field,
+            has_aft=has_aft,
+            has_wall_dist=has_wall_dist,
+            has_surface=has_surface_data,
         )
+        return self.layout.build_figure()
     
     def _add_contour_traces(
         self,
@@ -497,20 +460,14 @@ class PlotlyDashboard:
         # is_turb: linear scale from 0 to 1
         is_turb_safe = sanitize_array(snapshot.is_turb, fill_value=0.0) if snapshot.is_turb is not None else np.zeros_like(Gamma_safe)
         
-        # AFT row 1 is row 4 (Re_Omega, Gamma), AFT row 2 is row 5 (is_turb)
-        aft_row1 = 4
-        aft_row2 = 5
+        # Get row positions from layout
+        aft_row1, _ = self.layout.get_position("re_omega")
+        aft_row2, _ = self.layout.get_position("is_turb")
         
-        # Compute colorbar length and position
-        n_rows = 6  # 4 base + 2 AFT
-        if has_wall_dist:
-            n_rows += 1
-        if has_surface:
-            n_rows += 1
-        row_height = 0.85 / n_rows
-        cb_len = row_height * 0.9
-        cb_y_row1 = 1.0 - (aft_row1 - 0.5) * row_height - 0.05
-        cb_y_row2 = 1.0 - (aft_row2 - 0.5) * row_height - 0.05
+        # Compute colorbar positioning from layout
+        cb_len = self.layout.compute_colorbar_len()
+        cb_y_row1 = self.layout.compute_colorbar_y("re_omega")
+        cb_y_row2 = self.layout.compute_colorbar_y("is_turb")
         
         # Re_Omega contour (row 4, col 1)
         fig.add_trace(go.Carpet(
@@ -580,8 +537,8 @@ class PlotlyDashboard:
         eq_names = ['Pressure', 'U-velocity', 'V-velocity', 'ν̃ (nuHat)']
         eq_colors = ['blue', 'red', 'green', 'purple']
         
-        # Convergence row depends on whether AFT rows exist (2 rows for AFT)
-        conv_row = 6 if has_aft else 4
+        # Get row from layout
+        conv_row, _ = self.layout.get_position("convergence")
         
         if self.residual_history:
             all_iters = (self.iteration_history 
@@ -638,10 +595,8 @@ class PlotlyDashboard:
         A, B = np.meshgrid(np.arange(ni), np.arange(nj), indexing='ij')
         cfg = color_config['wall_dist']
         
-        # Row depends on whether AFT rows exist:
-        # Without AFT: row 5 (after convergence at row 4)
-        # With AFT: row 7 (after convergence at row 6, since AFT has 2 rows: Re_Omega/Gamma and is_turb)
-        wall_row = 7 if has_aft else 5
+        # Get row from layout
+        wall_row, _ = self.layout.get_position("wall_dist")
         
         # Left: Wall distance contour
         fig.add_trace(go.Carpet(
@@ -714,14 +669,8 @@ class PlotlyDashboard:
     ) -> dict:
         """Add Cp and Cf surface plot traces."""
         ni = grid_metrics.xc.shape[0]
-        # Base row is 4 (after chi plot), +1 for AFT, +1 for convergence, +1 for wall_dist
-        base_row = 4  # After chi
-        if has_aft:
-            base_row += 1  # AFT row
-        base_row += 1  # Convergence
-        if has_wall_dist:
-            base_row += 1  # Wall distance row
-        surface_row = base_row
+        # Get row from layout
+        surface_row, _ = self.layout.get_position("cp")
         
         i_start = n_wake
         i_end = ni - n_wake
@@ -939,9 +888,9 @@ class PlotlyDashboard:
         """Configure figure layout, sliders, and axes."""
         divergence_iters = {s.iteration for s in self.divergence_snapshots}
         
-        # Row numbers depend on has_aft (2 rows for AFT fields)
-        conv_row = 6 if has_aft else 4
-        wall_row = (conv_row + 1) if has_wall_dist else None
+        # Get row numbers from layout
+        conv_row, _ = self.layout.get_position("convergence")
+        wall_row = self.layout.get_position("wall_dist")[0] if has_wall_dist else None
         
         # Iteration slider steps
         slider_steps = [
@@ -973,14 +922,8 @@ class PlotlyDashboard:
         chi_steps = make_log_range_slider_steps(chi_cfg.cmax, [11], True, n_steps,
                                                 slider_decades=4.0, display_decades=5.0)
         
-        # Height: base 1600 + 350 for AFT row + 350 for wall_dist + 300 for surface
-        height = 1600
-        if has_aft:
-            height += 350
-        if has_wall_dist:
-            height += 350
-        if has_surface_data:
-            height += 300
+        # Height: ~350px per row, with some base margin
+        height = 350 * self.layout.n_rows + 100
         
         fig.update_layout(
             showlegend=False,
@@ -1025,12 +968,18 @@ class PlotlyDashboard:
         fig.update_xaxes(title_text='x', range=[-0.5, 1.5], scaleanchor='y', scaleratio=1, row=1, col=1)
         fig.update_yaxes(title_text='y', range=[-0.5625, 0.5625], row=1, col=1)
         
-        # Field positions for linked axes (rows 1-3 always, plus AFT rows 4-5 if present, plus wall_dist)
-        field_positions = [(1, 1), (1, 2), (2, 1), (2, 2), (3, 1), (3, 2)]
+        # Get all contour plot positions from layout for linked axes
+        contour_plot_names = ["pressure", "cpt" if color_config.get("cpt") else "nu",
+                              "u_vel", "v_vel", "residual" if has_surface_data else "vel_mag", "chi"]
         if has_aft:
-            field_positions.extend([(4, 1), (4, 2), (5, 1)])  # AFT rows: Re_Omega/Gamma (row 4) and is_turb (row 5)
-        if wall_row is not None:
-            field_positions.append((wall_row, 1))  # Wall distance
+            contour_plot_names.extend(["re_omega", "gamma", "is_turb"])
+        if has_wall_dist:
+            contour_plot_names.append("wall_dist")
+        
+        field_positions = []
+        for name in contour_plot_names:
+            if self.layout.has_plot(name):
+                field_positions.append(self.layout.get_position(name))
         
         for row, col in field_positions:
             if row == 1 and col == 1:
