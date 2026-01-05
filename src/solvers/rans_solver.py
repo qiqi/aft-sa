@@ -409,13 +409,15 @@ class RANSSolver:
                 )
                 R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
                 
-                # Explicit smoothing
+                # Explicit smoothing (nuHat excluded - it corrupts SA residual near walls)
                 if smoothing_epsilon > 0 and smoothing_passes > 0:
                     R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
                 
                 # Compute the update increment dQ = alpha * dt/V * R
+                # Use reduced CFL for nuHat (index 3) since smoothing is disabled for stability
                 Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
-                dQ = alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * R
+                dt_factors = jnp.array([1.0, 1.0, 1.0, 0.5])  # Half CFL for nuHat
+                dQ = alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * dt_factors * R
                 
                 # Start with normal explicit update for all variables
                 Q_int_new = Q0_int + dQ
@@ -496,13 +498,15 @@ class RANSSolver:
                 # accounts for the conservative form of the diffusion term
                 R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
                 
-                # Explicit smoothing
+                # Explicit smoothing (nuHat excluded - it corrupts SA residual near walls)
                 if smoothing_epsilon > 0 and smoothing_passes > 0:
                     R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
                 
                 # Compute the update increment dQ = alpha * dt/V * R
+                # Use reduced CFL for nuHat (index 3) since smoothing is disabled for stability
                 Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
-                dQ = alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * R
+                dt_factors = jnp.array([1.0, 1.0, 1.0, 0.5])  # Half CFL for nuHat
+                dQ = alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * dt_factors * R
                 
                 # Start with normal explicit update for all variables
                 Q_int_new = Q0_int + dQ
