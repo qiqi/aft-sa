@@ -502,16 +502,15 @@ def compute_aft_sa_source_jax(nuHat, grad, wall_dist, vel_mag, nu_laminar,
     P = compute_blended_production(P_sa, P_aft, chi, blend_threshold, blend_width)
     
     # Modified destruction: |nuHat| * nuHat to always drive toward 0
-    # Chi is dimensionless - use jnp.where to avoid NaN when nuHat ≈ 0
+    # Note: All downstream functions handle nuHat=0 safely, and D is multiplied
+    # by nuHat_abs anyway, so no guards needed.
     nuHat_abs = jnp.abs(nuHat)
-    chi_safe = jnp.where(nuHat_abs > 0, nuHat_abs / nu_laminar, 0.0)
-    fv1_val = compute_fv1(chi_safe)
-    fv2_val = compute_fv2(chi_safe, fv1_val)
+    chi_abs = nuHat_abs / nu_laminar
+    fv1_val = compute_fv1(chi_abs)
+    fv2_val = compute_fv2(chi_abs, fv1_val)
     
-    # For intermediate calculations, use nu_laminar as placeholder when nuHat ≈ 0
-    nuHat_for_calc = jnp.where(nuHat_abs > 0, nuHat_abs, nu_laminar)
-    S_tilde = compute_S_tilde(omega, nuHat_for_calc, wall_dist, chi_safe, fv2_val)
-    r_val = compute_r(nuHat_for_calc, S_tilde, wall_dist)
+    S_tilde = compute_S_tilde(omega, nuHat_abs, wall_dist, chi_abs, fv2_val)
+    r_val = compute_r(nuHat_abs, S_tilde, wall_dist)
     fw_val = compute_fw(r_val)
     
     # D = cw1 * fw * |nuHat| * nuHat / d²
