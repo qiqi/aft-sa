@@ -152,10 +152,10 @@ def get_cfl(iteration, cfl_start=0.1, cfl_final=0.5, ramp_iters=200):
     return cfl_start + (cfl_final - cfl_start) * iteration / ramp_iters
 
 
-@pytest.mark.xfail(reason="Numerical stability issues with JAX implementation on flat plate geometry")
 class TestBlasiusFlatPlate:
     """Validate viscous solver against Blasius solution."""
     
+    @pytest.mark.xfail(reason="Skin friction accuracy not yet achieved on coarse grid")
     def test_skin_friction(self):
         """
         Test that Cf*sqrt(Re_x) ≈ 0.664 (Blasius).
