@@ -98,6 +98,10 @@ def write_vtk(
             gamma_data = sanitize_array(snapshot.Gamma, fill_value=0.0)
             _write_scalar_field(f, "Gamma", gamma_data, ni, nj)
         
+        if snapshot.is_turb is not None:
+            is_turb_data = sanitize_array(snapshot.is_turb, fill_value=0.0)
+            _write_scalar_field(f, "is_turb", is_turb_data, ni, nj)
+        
         # Velocity vector field
         f.write("\nVECTORS velocity double\n")
         for j in range(nj):

@@ -37,7 +37,7 @@ from ..numerics.fluxes import compute_fluxes_jax
 from ..numerics.gradients import compute_gradients_jax
 # viscous_fluxes: tight_with_ghosts version used
 from ..numerics.explicit_smoothing import smooth_explicit_jax
-from ..numerics.sa_sources import compute_sa_source_jax, compute_aft_sa_source_jax
+from ..numerics.sa_sources import compute_sa_source_jax, compute_aft_sa_source_jax, compute_turbulent_fraction
 from ..numerics.aft_sources import compute_Re_Omega, compute_gamma
 from ..numerics.gradients import compute_vorticity_jax
 from .time_stepping import compute_local_timestep_jax
@@ -599,15 +599,15 @@ class RANSSolver:
             self.R_jax = jax.device_put(jnp.array(initial_R_raw))
             initial_R = self.get_scaled_residual_field()
             # Compute AFT diagnostic fields if AFT is enabled
-            Re_Omega, Gamma = None, None
+            Re_Omega, Gamma, is_turb = None, None, None
             if self.config.aft_enabled:
-                Re_Omega, Gamma = self._compute_aft_fields()
+                Re_Omega, Gamma, is_turb = self._compute_aft_fields()
             self.plotter.store_snapshot(
                 self.Q, 0, self.residual_history,
                 cfl=self._get_cfl(0), C_pt=C_pt, residual_field=initial_R,
                 freestream=self.freestream,
                 iteration_history=self.iteration_history,
-                Re_Omega=Re_Omega, Gamma=Gamma
+                Re_Omega=Re_Omega, Gamma=Gamma, is_turb=is_turb
             )
         
         print(f"  Output directory: {output_path}")
@@ -692,8 +692,8 @@ class RANSSolver:
         
         return R
     
-    def _compute_aft_fields(self) -> Tuple[np.ndarray, np.ndarray]:
-        """Compute Re_Omega and Gamma fields for visualization.
+    def _compute_aft_fields(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Compute Re_Omega, Gamma, and is_turb fields for visualization.
         
         Returns
         -------
@@ -701,6 +701,8 @@ class RANSSolver:
             Vorticity Reynolds number = d² |ω| / ν
         Gamma : np.ndarray (NI, NJ)
             AFT shape factor
+        is_turb : np.ndarray (NI, NJ)
+            Turbulent fraction indicator (0=laminar/AFT, 1=turbulent/SA)
         """
         from ..physics.jax_config import jnp
         
@@ -709,6 +711,7 @@ class RANSSolver:
         Q_int = self.Q_jax[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
         u = Q_int[:, :, 1]  # Total u velocity
         v = Q_int[:, :, 2]  # Total v velocity
+        nuHat = Q_int[:, :, 3]  # SA working variable
         
         # Compute velocity magnitude (already total velocity, no freestream addition needed)
         vel_mag = jnp.sqrt(u**2 + v**2)
@@ -736,7 +739,16 @@ class RANSSolver:
         Re_Omega = compute_Re_Omega(omega_mag, wall_dist, nu)
         Gamma = compute_gamma(omega_mag, vel_mag, wall_dist, gamma_coeff)
         
-        return np.array(Re_Omega), np.array(Gamma)
+        # Compute turbulent fraction (blending indicator)
+        # chi = nuHat / nu is the dimensionless turbulent viscosity ratio
+        chi = jnp.maximum(nuHat, 0.0) / nu
+        is_turb = compute_turbulent_fraction(
+            chi,
+            threshold=self.config.aft_blend_threshold,
+            width=self.config.aft_blend_width
+        )
+        
+        return np.array(Re_Omega), np.array(Gamma), np.array(is_turb)
     
     def step(self) -> None:
         """Perform one iteration of the solver.
@@ -981,15 +993,15 @@ class RANSSolver:
                     self.freestream.u_inf, self.freestream.v_inf
                 )
                 # Compute AFT diagnostic fields if AFT is enabled
-                Re_Omega, Gamma = None, None
+                Re_Omega, Gamma, is_turb = None, None, None
                 if self.config.aft_enabled:
-                    Re_Omega, Gamma = self._compute_aft_fields()
+                    Re_Omega, Gamma, is_turb = self._compute_aft_fields()
                 self.plotter.store_snapshot(
                     self.Q, self.iteration, self.residual_history,
                     cfl=cfl, C_pt=C_pt, residual_field=R_field,
                     freestream=self.freestream,
                     iteration_history=self.iteration_history,
-                    Re_Omega=Re_Omega, Gamma=Gamma
+                    Re_Omega=Re_Omega, Gamma=Gamma, is_turb=is_turb
                 )
             
             if res_max < self.config.tol:
@@ -1043,16 +1055,16 @@ class RANSSolver:
                         self.freestream.u_inf, self.freestream.v_inf
                     )
                     # Compute AFT diagnostic fields if AFT is enabled
-                    Re_Omega, Gamma = None, None
+                    Re_Omega, Gamma, is_turb = None, None, None
                     if self.config.aft_enabled:
-                        Re_Omega, Gamma = self._compute_aft_fields()
+                        Re_Omega, Gamma, is_turb = self._compute_aft_fields()
                     self.plotter.store_snapshot(
                         self.Q, self.iteration, self.residual_history,
                         cfl=cfl, C_pt=C_pt, residual_field=R_field,
                         freestream=self.freestream,
                         iteration_history=self.iteration_history,
                         is_divergence_dump=True,
-                        Re_Omega=Re_Omega, Gamma=Gamma
+                        Re_Omega=Re_Omega, Gamma=Gamma, is_turb=is_turb
                     )
                     
                     total_dumps = n_history_dumps + 1

@@ -48,6 +48,7 @@ class Snapshot:
     # AFT diagnostic fields (optional)
     Re_Omega: Optional[np.ndarray] = None  # Vorticity Reynolds number
     Gamma: Optional[np.ndarray] = None     # Shape factor for AFT
+    is_turb: Optional[np.ndarray] = None   # Turbulent fraction (0=laminar, 1=turbulent)
 
 
 class PlotlyDashboard:
@@ -95,6 +96,7 @@ class PlotlyDashboard:
         is_divergence_dump: bool = False,
         Re_Omega: Optional[np.ndarray] = None,
         Gamma: Optional[np.ndarray] = None,
+        is_turb: Optional[np.ndarray] = None,
     ) -> None:
         """Store current solution state with diagnostic data."""
         Q_int = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
@@ -110,7 +112,7 @@ class PlotlyDashboard:
         
         # Create snapshot
         snapshot = self._create_snapshot(Q_int, iteration, residual, cfl, C_pt, residual_field,
-                                         Re_Omega, Gamma)
+                                         Re_Omega, Gamma, is_turb)
         
         if is_divergence_dump:
             self.divergence_snapshots.append(snapshot)
@@ -142,6 +144,7 @@ class PlotlyDashboard:
         residual_field: Optional[np.ndarray],
         Re_Omega: Optional[np.ndarray] = None,
         Gamma: Optional[np.ndarray] = None,
+        is_turb: Optional[np.ndarray] = None,
     ) -> Snapshot:
         """Create a Snapshot from solution data."""
         max_safe_vel = 1e10
@@ -183,6 +186,9 @@ class PlotlyDashboard:
         Gamma_arr = None
         if Gamma is not None:
             Gamma_arr = sanitize_array(Gamma, fill_value=0.0).copy()
+        is_turb_arr = None
+        if is_turb is not None:
+            is_turb_arr = sanitize_array(is_turb, fill_value=0.0).copy()
         
         return Snapshot(
             iteration=iteration,
@@ -199,6 +205,7 @@ class PlotlyDashboard:
             p_max=float(safe_minmax(p_rel)[1]),
             Re_Omega=Re_Omega_arr,
             Gamma=Gamma_arr,
+            is_turb=is_turb_arr,
         )
     
     def _compute_cpt(self, Q_int: np.ndarray, u_abs: np.ndarray, v_abs: np.ndarray) -> Optional[np.ndarray]:
@@ -360,7 +367,7 @@ class PlotlyDashboard:
         """Create the subplot figure layout."""
         n_rows = 4
         if has_aft:
-            n_rows += 1  # AFT row (Re_Omega, Gamma) before convergence
+            n_rows += 2  # AFT rows: Re_Omega/Gamma + is_turb
         if has_wall_dist:
             n_rows += 1
         if has_surface_data:
@@ -374,7 +381,10 @@ class PlotlyDashboard:
             'χ = ν̃/ν (Turbulent/Laminar Viscosity Ratio)',
         ]
         if has_aft:
-            subplot_titles.extend(['Re_Ω (Vorticity Reynolds Number)', 'Γ (AFT Shape Factor)'])
+            subplot_titles.extend([
+                'Re_Ω (Vorticity Reynolds Number)', 'Γ (AFT Shape Factor)',
+                'is_turb (Turbulent Fraction)', ''  # is_turb row
+            ])
         subplot_titles.append('Convergence History')
         if has_wall_dist:
             subplot_titles.extend(['Wall Distance (d/c)', 'y⁺ Distribution'])
@@ -388,6 +398,7 @@ class PlotlyDashboard:
         ]
         if has_aft:
             specs.append([{"type": "xy"}, {"type": "xy"}])  # Re_Omega and Gamma contours
+            specs.append([{"type": "xy"}, None])  # is_turb (half row)
         specs.append([{"type": "scatter", "colspan": 2}, None])  # Convergence
         if has_wall_dist:
             specs.append([{"type": "xy"}, {"type": "scatter"}])  # Wall dist contour + y+ line plot
@@ -468,7 +479,7 @@ class PlotlyDashboard:
         has_wall_dist: bool = False,
         has_surface: bool = False,
     ) -> None:
-        """Add AFT diagnostic field traces (Re_Omega and Gamma)."""
+        """Add AFT diagnostic field traces (Re_Omega, Gamma, and is_turb)."""
         if snapshot.Re_Omega is None or snapshot.Gamma is None:
             return
         
@@ -483,27 +494,32 @@ class PlotlyDashboard:
         # Gamma: linear scale from 0 to 2
         Gamma_safe = sanitize_array(snapshot.Gamma, fill_value=0.0)
         
-        # AFT row is row 4
-        aft_row = 4
+        # is_turb: linear scale from 0 to 1
+        is_turb_safe = sanitize_array(snapshot.is_turb, fill_value=0.0) if snapshot.is_turb is not None else np.zeros_like(Gamma_safe)
         
-        # Compute colorbar length and position (same as compute_color_ranges)
-        n_rows = 5  # 4 base + 1 AFT
+        # AFT row 1 is row 4 (Re_Omega, Gamma), AFT row 2 is row 5 (is_turb)
+        aft_row1 = 4
+        aft_row2 = 5
+        
+        # Compute colorbar length and position
+        n_rows = 6  # 4 base + 2 AFT
         if has_wall_dist:
             n_rows += 1
         if has_surface:
             n_rows += 1
         row_height = 0.85 / n_rows
         cb_len = row_height * 0.9
-        cb_y = 1.0 - (aft_row - 0.5) * row_height - 0.05
+        cb_y_row1 = 1.0 - (aft_row1 - 0.5) * row_height - 0.05
+        cb_y_row2 = 1.0 - (aft_row2 - 0.5) * row_height - 0.05
         
-        # Re_Omega contour (left, col 1)
+        # Re_Omega contour (row 4, col 1)
         fig.add_trace(go.Carpet(
             a=A.flatten(), b=B.flatten(),
             x=xc.flatten(), y=yc.flatten(),
             carpet='carpet_re_omega',
             aaxis=dict(showgrid=False, showticklabels='none', showline=False),
             baxis=dict(showgrid=False, showticklabels='none', showline=False),
-        ), row=aft_row, col=1)
+        ), row=aft_row1, col=1)
         
         fig.add_trace(go.Contourcarpet(
             a=A.flatten(), b=B.flatten(),
@@ -513,18 +529,18 @@ class PlotlyDashboard:
             zmin=1.0, zmax=4.0,  # log10(10) to log10(10000)
             contours=dict(coloring='fill', showlines=False),
             ncontours=self.N_CONTOURS,
-            colorbar=dict(title='log₁₀(Re_Ω)', x=0.90, len=cb_len, y=cb_y),
+            colorbar=dict(title='log₁₀(Re_Ω)', x=0.90, len=cb_len, y=cb_y_row1),
             showscale=True,
-        ), row=aft_row, col=1)
+        ), row=aft_row1, col=1)
         
-        # Gamma contour (right, col 2)
+        # Gamma contour (row 4, col 2)
         fig.add_trace(go.Carpet(
             a=A.flatten(), b=B.flatten(),
             x=xc.flatten(), y=yc.flatten(),
             carpet='carpet_gamma',
             aaxis=dict(showgrid=False, showticklabels='none', showline=False),
             baxis=dict(showgrid=False, showticklabels='none', showline=False),
-        ), row=aft_row, col=2)
+        ), row=aft_row1, col=2)
         
         fig.add_trace(go.Contourcarpet(
             a=A.flatten(), b=B.flatten(),
@@ -534,17 +550,38 @@ class PlotlyDashboard:
             zmin=0.0, zmax=2.0,
             contours=dict(coloring='fill', showlines=False),
             ncontours=self.N_CONTOURS,
-            colorbar=dict(title='Γ', x=1.02, len=cb_len, y=cb_y),
+            colorbar=dict(title='Γ', x=1.02, len=cb_len, y=cb_y_row1),
             showscale=True,
-        ), row=aft_row, col=2)
+        ), row=aft_row1, col=2)
+        
+        # is_turb contour (row 5, col 1) - turbulent fraction indicator
+        fig.add_trace(go.Carpet(
+            a=A.flatten(), b=B.flatten(),
+            x=xc.flatten(), y=yc.flatten(),
+            carpet='carpet_is_turb',
+            aaxis=dict(showgrid=False, showticklabels='none', showline=False),
+            baxis=dict(showgrid=False, showticklabels='none', showline=False),
+        ), row=aft_row2, col=1)
+        
+        fig.add_trace(go.Contourcarpet(
+            a=A.flatten(), b=B.flatten(),
+            z=to_json_safe_list(is_turb_safe),
+            carpet='carpet_is_turb',
+            colorscale='RdYlBu_r',  # Red=turbulent, Blue=laminar
+            zmin=0.0, zmax=1.0,
+            contours=dict(coloring='fill', showlines=False),
+            ncontours=self.N_CONTOURS,
+            colorbar=dict(title='is_turb', x=0.46, len=cb_len, y=cb_y_row2),
+            showscale=True,
+        ), row=aft_row2, col=1)
     
     def _add_convergence_traces(self, fig: 'go.Figure', has_aft: bool = False) -> None:
         """Add convergence history traces."""
         eq_names = ['Pressure', 'U-velocity', 'V-velocity', 'ν̃ (nuHat)']
         eq_colors = ['blue', 'red', 'green', 'purple']
         
-        # Convergence row depends on whether AFT row exists
-        conv_row = 5 if has_aft else 4
+        # Convergence row depends on whether AFT rows exist (2 rows for AFT)
+        conv_row = 6 if has_aft else 4
         
         if self.residual_history:
             all_iters = (self.iteration_history 
@@ -902,8 +939,8 @@ class PlotlyDashboard:
         """Configure figure layout, sliders, and axes."""
         divergence_iters = {s.iteration for s in self.divergence_snapshots}
         
-        # Row numbers depend on has_aft
-        conv_row = 5 if has_aft else 4
+        # Row numbers depend on has_aft (2 rows for AFT fields)
+        conv_row = 6 if has_aft else 4
         wall_row = (conv_row + 1) if has_wall_dist else None
         
         # Iteration slider steps
