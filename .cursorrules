@@ -47,12 +47,32 @@ Use the "Communication Log" section in `/AGENTS.md` to leave notes for other age
 
 ---
 
-## Testing
+## Testing (MANDATORY before commit)
 
-Before committing:
+### Rule 6: Test Before Commit
+**ALWAYS run tests before committing changes.** This is not optional.
+
 ```bash
 source ~/venv/bin/activate
-pytest tests/ -x --tb=short
+PYTHONPATH=$(pwd) pytest tests/ -x --tb=short -q
+```
+
+- If tests **FAIL**: Fix the issue before committing
+- If tests **TIMEOUT**: Run a targeted subset of tests for the modified modules
+- **NEVER** commit code that breaks existing tests
+
+### Quick Test Commands
+```bash
+# Full test suite (preferred)
+PYTHONPATH=$(pwd) pytest tests/ -x --tb=short -q
+
+# Fast subset for specific modules
+PYTHONPATH=$(pwd) pytest tests/numerics/ tests/physics/ -x -q  # Numerics/physics changes
+PYTHONPATH=$(pwd) pytest tests/grid/ -x -q                      # Grid changes
+PYTHONPATH=$(pwd) pytest tests/solvers/ -x -q                   # Solver changes
+
+# Verify imports work (minimum check)
+python -c "from src.solvers.rans_solver import RANSSolver; print('OK')"
 ```
 
 ---
