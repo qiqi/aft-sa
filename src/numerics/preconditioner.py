@@ -19,6 +19,9 @@ from src.constants import NGHOST
 # Cache for JIT-compiled preconditioner apply functions
 _precond_apply_cache = {}
 
+# Cache for JIT-compiled block Jacobian computation
+_block_jacobian_cache = {}
+
 
 @dataclass
 class BlockJacobiPreconditioner:
@@ -74,8 +77,15 @@ class BlockJacobiPreconditioner:
         """
         NI, NJ = volume.shape
         
-        # Compute block Jacobians via finite difference
-        J_diag = _compute_block_jacobians(residual_fn, Q, nghost, eps)
+        # Compute block Jacobians using JVP (exact automatic differentiation)
+        # Use cached JIT function to avoid retracing
+        cache_key = (id(residual_fn), NI, NJ, nghost)
+        if cache_key not in _block_jacobian_cache:
+            _block_jacobian_cache[cache_key] = _make_block_jacobian_jit(
+                residual_fn, NI, NJ, nghost
+            )
+        compute_jacobians_jit = _block_jacobian_cache[cache_key]
+        J_diag = compute_jacobians_jit(Q)
         
         # Form preconditioner: P = V/dt · I + J_diag
         # Diagonal scaling: V/dt for each cell, broadcast to 4×4 identity
@@ -148,6 +158,74 @@ class BlockJacobiPreconditioner:
         _apply._cache_key = cache_key
         
         return _apply
+
+
+def _make_block_jacobian_jit(
+    residual_fn: Callable[[jnp.ndarray], jnp.ndarray],
+    NI: int,
+    NJ: int,
+    nghost: int,
+) -> Callable[[jnp.ndarray], jnp.ndarray]:
+    """Create a JIT-compiled block Jacobian computation function.
+    
+    Uses JVP (forward-mode AD) with graph coloring to compute diagonal
+    blocks ∂R[i,j]/∂Q[i,j] efficiently.
+    
+    The function is JIT-compiled and cached to avoid retracing on
+    subsequent calls with the same residual function and grid dimensions.
+    
+    Parameters
+    ----------
+    residual_fn : callable
+        R(Q) -> (NI, NJ, 4) residual function.
+    NI, NJ : int
+        Interior grid dimensions.
+    nghost : int
+        Number of ghost cells.
+        
+    Returns
+    -------
+    compute_jacobians : callable
+        JIT-compiled function Q -> J_diag (NI, NJ, 4, 4).
+    """
+    # Pre-compute color masks (static, computed once)
+    I, J = jnp.meshgrid(jnp.arange(NI), jnp.arange(NJ), indexing='ij')
+    color_masks = jnp.stack([
+        ((I % 2 == ci) & (J % 2 == cj)).astype(jnp.float64)
+        for ci in range(2) for cj in range(2)
+    ])  # (4, NI, NJ)
+    
+    @jax.jit
+    def compute_jacobians(Q: jnp.ndarray) -> jnp.ndarray:
+        """Compute block Jacobians ∂R[i,j]/∂Q[i,j] using JVP."""
+        
+        # Create all 16 tangent vectors in parallel
+        def make_tangent(k):
+            color = k // 4
+            var = k % 4
+            mask = color_masks[color]
+            tangent = jnp.zeros_like(Q)
+            tangent = tangent.at[nghost:-nghost, nghost:-nghost, var].set(mask)
+            return tangent
+        
+        tangents = jax.vmap(make_tangent)(jnp.arange(16))  # (16, NI+2*ng, NJ+2*ng, 4)
+        
+        # Compute all 16 JVPs in parallel
+        def single_jvp(tangent):
+            _, jvp_result = jax.jvp(residual_fn, (Q,), (tangent,))
+            return jvp_result
+        
+        jvp_results = jax.vmap(single_jvp)(tangents)  # (16, NI, NJ, 4)
+        
+        # Assemble Jacobian blocks
+        jvp_reshaped = jvp_results.reshape(4, 4, NI, NJ, 4)
+        masks_expanded = color_masks[:, None, :, :, None]
+        jvp_weighted = (jvp_reshaped * masks_expanded).sum(axis=0)
+        J_diag = jvp_weighted.transpose(1, 2, 3, 0)
+        
+        return J_diag
+    
+    return compute_jacobians
 
 
 def _compute_block_jacobians(
