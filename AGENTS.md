@@ -38,7 +38,7 @@ Archive of recently completed work (for reference):
 
 | Date | Agent | Files | Summary |
 |------|-------|-------|---------|
-| 2026-01-05 | Claude | `src/numerics/gmres.py`, `src/numerics/preconditioner.py` | **JFNK Performance Fix**: Added JIT function caching for GMRES, matvec, preconditioner. Vectorized block Jacobian computation. Newton step: 1200ms → 21ms (60x speedup). |
+| 2026-01-05 | Claude | `src/numerics/gmres.py`, `src/numerics/preconditioner.py` | **JFNK Performance Fix**: JIT caching for GMRES/matvec/preconditioner, JVP for block Jacobians. Newton step: 1200ms → 3.3ms (360x speedup). Added `scripts/profile_jfnk.py`. |
 | 2026-01-05 | Claude | `src/numerics/`, `src/solvers/`, `tests/`, `config/`, `docs/` | **JFNK Implementation (5 phases)**: Block-Jacobi preconditioner, preconditioned RK, GMRES(m) solver, Newton-GMRES mode, example configs. 27 new tests, 216 total tests pass. |
 | 2026-01-05 | Claude | `src/numerics/sa_sources.py` | Removed unnecessary `jnp.where` guards in `compute_aft_sa_source_jax` - cleaner code, better AD compatibility |
 | 2026-01-05 | Janitor | `src/io/plotter.py`, `src/solvers/rans_solver.py` | Removed unused import `compute_sa_source_jax`, removed unused var `xaxis_key` |
