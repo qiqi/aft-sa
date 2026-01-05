@@ -716,13 +716,7 @@ def make_apply_bc_batch_jit(NI: int, NJ: int, n_wake_points: int,
         Q = Q.at[i_start:i_end, 0, 3].set(Q[i_start:i_end, 1, 3])
         
         # === Surface BC: Wake cut (periodic) ===
-        lower_wake_int_j0 = Q[nghost:i_start, j_int_first, :]
-        upper_wake_int_j0 = Q[i_end:i_upper_end, j_int_first, :]
-        
-        avg_j0 = 0.5 * (lower_wake_int_j0 + upper_wake_int_j0[::-1, :])
-        Q = Q.at[nghost:i_start, j_int_first, :].set(avg_j0)
-        Q = Q.at[i_end:i_upper_end, j_int_first, :].set(avg_j0[::-1, :])
-        
+        # Ghost cells from interior of opposite side
         lower_wake_int_j0 = Q[nghost:i_start, j_int_first, :]
         lower_wake_int_j1 = Q[nghost:i_start, j_int_first + 1, :]
         upper_wake_int_j0 = Q[i_end:i_upper_end, j_int_first, :]

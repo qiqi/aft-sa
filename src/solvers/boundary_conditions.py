@@ -120,28 +120,10 @@ class BoundaryConditions:
         Q[i_start:i_end, 0, 3] = 2*Q[i_start:i_end, 1, 3] - nuHat_interior
         
         # Wake cut (periodic)
-        # First, average j=0 interior rows to enforce exact periodicity
-        # This fixes flux imbalance at wake cut where flux leaves but doesn't return
-        lower_wake_int_j0: NDArrayFloat = Q[NGHOST:i_start, j_int_first, :].copy()
-        upper_wake_int_j0: NDArrayFloat = Q[i_end:NI + NGHOST, j_int_first, :].copy()
-        
-        # Average flow variables (p, u, v) - these can be positive or negative
-        avg_j0_flow: NDArrayFloat = 0.5 * (lower_wake_int_j0[:, :3] + upper_wake_int_j0[::-1, :3])
-        
-        # For nuHat: ensure non-negative BEFORE averaging
-        # Clip to 0.0 (physical minimum), not a hard-coded small value
-        nuHat_lower = np.maximum(lower_wake_int_j0[:, 3], 0.0)
-        nuHat_upper = np.maximum(upper_wake_int_j0[::-1, 3], 0.0)
-        avg_nuHat: NDArrayFloat = 0.5 * (nuHat_lower + nuHat_upper)
-        
-        avg_j0: NDArrayFloat = np.concatenate([avg_j0_flow, avg_nuHat[:, None]], axis=-1)
-        Q[NGHOST:i_start, j_int_first, :] = avg_j0
-        Q[i_end:NI + NGHOST, j_int_first, :] = avg_j0[::-1, :]
-        
-        # Now set ghost cells from the averaged interior
-        lower_wake_int_j0 = Q[NGHOST:i_start, j_int_first, :]
+        # Ghost cells from interior of opposite side
+        lower_wake_int_j0: NDArrayFloat = Q[NGHOST:i_start, j_int_first, :]
         lower_wake_int_j1: NDArrayFloat = Q[NGHOST:i_start, j_int_first + 1, :]
-        upper_wake_int_j0 = Q[i_end:NI + NGHOST, j_int_first, :]
+        upper_wake_int_j0: NDArrayFloat = Q[i_end:NI + NGHOST, j_int_first, :]
         upper_wake_int_j1: NDArrayFloat = Q[i_end:NI + NGHOST, j_int_first + 1, :]
         
         Q[NGHOST:i_start, 1, :] = upper_wake_int_j0[::-1, :]
@@ -360,28 +342,7 @@ def apply_surface_bc_jax(Q, n_wake_points, nghost=NGHOST):
     Q = Q.at[i_start:i_end, 0, 3].set(2*Q[i_start:i_end, 1, 3] - nuHat_interior)
     
     # Wake cut (periodic)
-    # The wake cut connects lower wake (low I) to upper wake (high I)
-    # Interior cells at j_int_first need to be averaged for continuity
-    lower_wake_int_j0 = Q[nghost:i_start, j_int_first, :]
-    upper_wake_int_j0 = Q[i_end:NI + nghost, j_int_first, :]
-    
-    # Average flow variables (p, u, v) - these can be positive or negative
-    avg_j0_flow = 0.5 * (lower_wake_int_j0[:, :3] + upper_wake_int_j0[::-1, :3])
-    
-    # For nuHat: ensure non-negative BEFORE averaging, then average
-    # This prevents negative values from propagating across the wake cut
-    # Clip to 0.0 (physical minimum), not a hard-coded small value
-    nuHat_lower = jnp.maximum(lower_wake_int_j0[:, 3], 0.0)
-    nuHat_upper = jnp.maximum(upper_wake_int_j0[::-1, 3], 0.0)
-    avg_nuHat = 0.5 * (nuHat_lower + nuHat_upper)
-    
-    avg_j0 = jnp.concatenate([avg_j0_flow, avg_nuHat[:, None]], axis=-1)
-    
-    # Set averaged values to INTERIOR cells at wake cut
-    Q = Q.at[nghost:i_start, j_int_first, :].set(avg_j0)
-    Q = Q.at[i_end:NI + nghost, j_int_first, :].set(avg_j0[::-1, :])
-    
-    # Re-read the (now averaged) interior values
+    # Ghost cells from interior of opposite side
     lower_wake_int_j0 = Q[nghost:i_start, j_int_first, :]
     lower_wake_int_j1 = Q[nghost:i_start, j_int_first + 1, :]
     upper_wake_int_j0 = Q[i_end:NI + nghost, j_int_first, :]
@@ -580,14 +541,7 @@ def make_apply_bc_jit(NI: int, NJ: int, n_wake_points: int,
         Q = Q.at[i_start:i_end, 0, 3].set(Q[i_start:i_end, 1, 3])
         
         # === Surface BC: Wake cut (periodic) ===
-        lower_wake_int_j0 = Q[nghost:i_start, j_int_first, :]
-        upper_wake_int_j0 = Q[i_end:i_upper_end, j_int_first, :]
-        
-        avg_j0 = 0.5 * (lower_wake_int_j0 + upper_wake_int_j0[::-1, :])
-        Q = Q.at[nghost:i_start, j_int_first, :].set(avg_j0)
-        Q = Q.at[i_end:i_upper_end, j_int_first, :].set(avg_j0[::-1, :])
-        
-        # Ghost cells from averaged interior
+        # Ghost cells from interior of opposite side
         lower_wake_int_j0 = Q[nghost:i_start, j_int_first, :]
         lower_wake_int_j1 = Q[nghost:i_start, j_int_first + 1, :]
         upper_wake_int_j0 = Q[i_end:i_upper_end, j_int_first, :]
