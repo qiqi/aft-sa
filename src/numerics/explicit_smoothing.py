@@ -102,7 +102,7 @@ def _smooth_4_passes_jax(R, epsilon):
     return R
 
 
-def smooth_explicit_jax(R, epsilon: float = 0.2, n_passes: int = 2):
+def smooth_explicit_jax(R, epsilon: float = 0.2, n_passes: int = 2, skip_nuhat: bool = True):
     """
     Apply multi-pass explicit residual smoothing (JAX).
     
@@ -114,6 +114,10 @@ def smooth_explicit_jax(R, epsilon: float = 0.2, n_passes: int = 2):
         Smoothing coefficient (typically 0.1-0.3).
     n_passes : int
         Number of smoothing passes.
+    skip_nuhat : bool
+        If True, do NOT smooth the nuHat variable (index 3).
+        This prevents smoothing from corrupting the SA turbulence residual
+        near walls where sharp gradients exist.
         
     Returns
     -------
@@ -123,27 +127,39 @@ def smooth_explicit_jax(R, epsilon: float = 0.2, n_passes: int = 2):
     if epsilon <= 0.0 or n_passes <= 0:
         return R
     
+    # Save nuHat residual if we need to skip it
+    # Smoothing can corrupt the SA residual near walls by mixing with
+    # neighboring cells that have very different physics
+    if skip_nuhat and R.shape[-1] > 3:
+        R_nuhat_original = R[:, :, 3]
+    
     # Use pre-compiled versions for common cases
     if n_passes == 1:
-        return _smooth_1_pass_jax(R, epsilon)
+        R_smooth = _smooth_1_pass_jax(R, epsilon)
     elif n_passes == 2:
-        return _smooth_2_passes_jax(R, epsilon)
+        R_smooth = _smooth_2_passes_jax(R, epsilon)
     elif n_passes == 3:
-        return _smooth_3_passes_jax(R, epsilon)
+        R_smooth = _smooth_3_passes_jax(R, epsilon)
     elif n_passes == 4:
-        return _smooth_4_passes_jax(R, epsilon)
+        R_smooth = _smooth_4_passes_jax(R, epsilon)
     else:
         # Fallback: manually unroll (less efficient for large n_passes)
+        R_smooth = R
         for _ in range(n_passes):
-            R = _smooth_1_pass_jax(R, epsilon)
-        return R
+            R_smooth = _smooth_1_pass_jax(R_smooth, epsilon)
+    
+    # Restore unsmoothed nuHat residual
+    if skip_nuhat and R.shape[-1] > 3:
+        R_smooth = R_smooth.at[:, :, 3].set(R_nuhat_original)
+    
+    return R_smooth
 
 
 # =============================================================================
 # Dispatch Interface
 # =============================================================================
 
-def apply_explicit_smoothing(R, epsilon: float = 0.2, n_passes: int = 2):
+def apply_explicit_smoothing(R, epsilon: float = 0.2, n_passes: int = 2, skip_nuhat: bool = True):
     """
     Apply explicit residual smoothing.
     
@@ -155,6 +171,8 @@ def apply_explicit_smoothing(R, epsilon: float = 0.2, n_passes: int = 2):
         Smoothing coefficient (typically 0.1-0.3).
     n_passes : int
         Number of smoothing passes.
+    skip_nuhat : bool
+        If True, do NOT smooth the nuHat variable (index 3).
         
     Returns
     -------
@@ -164,7 +182,7 @@ def apply_explicit_smoothing(R, epsilon: float = 0.2, n_passes: int = 2):
     # Convert to JAX if numpy
     if isinstance(R, np.ndarray):
         R = jnp.asarray(R)
-        result = smooth_explicit_jax(R, epsilon, n_passes)
+        result = smooth_explicit_jax(R, epsilon, n_passes, skip_nuhat)
         return np.asarray(result)
     else:
-        return smooth_explicit_jax(R, epsilon, n_passes)
+        return smooth_explicit_jax(R, epsilon, n_passes, skip_nuhat)
