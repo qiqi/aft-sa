@@ -6,7 +6,7 @@ Implements restarted GMRES with:
 - Left preconditioning support
 - Modified Gram-Schmidt orthogonalization
 - Givens rotations for least-squares
-- All operations on GPU via JAX
+- All operations on GPU via JAX (using lax control flow)
 
 Reference: Saad & Schultz (1986), "GMRES: A Generalized Minimal Residual
 Algorithm for Solving Nonsymmetric Linear Systems"
@@ -83,7 +83,7 @@ def gmres(
     -----
     The algorithm uses modified Gram-Schmidt for orthogonalization and
     Givens rotations to solve the least-squares problem. All operations
-    are performed on GPU using JAX.
+    are performed on GPU using JAX lax control flow.
     """
     n = b.size
     
@@ -109,240 +109,205 @@ def gmres(
             residual_history=[0.0]
         )
     
-    tol_abs = tol * b_norm
+    tol_abs = tol * float(b_norm)
+    
+    # Create JIT-compiled GMRES cycle
+    gmres_cycle_jit = _make_gmres_cycle_jit(matvec, preconditioner, n, restart)
+    
+    # Run GMRES with restarts
     residual_history = []
     total_iters = 0
+    r_norm = float(b_norm)
     
-    while total_iters < maxiter:
-        # Compute initial residual r = b - A @ x
+    max_restarts = (maxiter + restart - 1) // restart
+    
+    for _ in range(max_restarts):
+        if total_iters >= maxiter:
+            break
+            
+        # Compute initial residual r = P^{-1}(b - A @ x)
+        r = b - matvec(x)
         if preconditioner is not None:
-            r = preconditioner(b - matvec(x))
-        else:
-            r = b - matvec(x)
+            r = preconditioner(r)
         
-        r_norm = jnp.linalg.norm(r)
-        residual_history.append(float(r_norm))
+        r_norm_jax = jnp.linalg.norm(r)
+        r_norm = float(r_norm_jax)
+        residual_history.append(r_norm)
         
         if r_norm < tol_abs:
             return GMRESResult(
                 x=x.reshape(b.shape),
-                residual_norm=float(r_norm),
+                residual_norm=r_norm,
                 converged=True,
                 iterations=total_iters,
                 residual_history=residual_history
             )
         
-        # Run one GMRES cycle (up to 'restart' iterations)
-        x, r_norm, iters = _gmres_cycle(
-            matvec, b, x, r, r_norm, tol_abs, restart, preconditioner
-        )
+        # Run one GMRES cycle (JIT-compiled)
+        x_new, final_res, iters = gmres_cycle_jit(x, r, r_norm_jax, tol_abs)
         
-        total_iters += iters
-        residual_history.append(float(r_norm))
+        x = x_new
+        total_iters += int(iters)
+        r_norm = float(final_res)
         
         if r_norm < tol_abs:
+            residual_history.append(r_norm)
             return GMRESResult(
                 x=x.reshape(b.shape),
-                residual_norm=float(r_norm),
+                residual_norm=r_norm,
                 converged=True,
                 iterations=total_iters,
                 residual_history=residual_history
             )
     
-    # Max iterations reached
+    # Final residual
+    r = b - matvec(x)
+    if preconditioner is not None:
+        r = preconditioner(r)
+    r_norm = float(jnp.linalg.norm(r))
+    residual_history.append(r_norm)
+    
     return GMRESResult(
         x=x.reshape(b.shape),
-        residual_norm=float(r_norm),
-        converged=False,
+        residual_norm=r_norm,
+        converged=r_norm < tol_abs,
         iterations=total_iters,
         residual_history=residual_history
     )
 
 
-def _gmres_cycle(
+def _make_gmres_cycle_jit(
     matvec: Callable,
-    b: jnp.ndarray,
-    x: jnp.ndarray,
-    r: jnp.ndarray,
-    r_norm: float,
-    tol_abs: float,
+    preconditioner: Optional[Callable],
+    n: int,
     m: int,
-    preconditioner: Optional[Callable] = None,
-) -> Tuple[jnp.ndarray, float, int]:
-    """Run one GMRES cycle (Arnoldi + solve).
+) -> Callable:
+    """Create a JIT-compiled GMRES cycle function.
     
-    Parameters
-    ----------
-    matvec : callable
-        A @ v function.
-    b : jnp.ndarray
-        RHS vector.
-    x : jnp.ndarray
-        Current solution estimate.
-    r : jnp.ndarray
-        Current residual.
-    r_norm : float
-        Norm of current residual.
-    tol_abs : float
-        Absolute tolerance.
-    m : int
-        Maximum iterations in this cycle (restart parameter).
-    preconditioner : callable, optional
-        Left preconditioner.
-        
-    Returns
-    -------
-    x_new : jnp.ndarray
-        Updated solution.
-    r_norm_new : float
-        New residual norm.
-    iterations : int
-        Iterations performed in this cycle.
+    This function creates a closure that captures matvec and preconditioner,
+    then JIT-compiles the GMRES cycle using JAX lax control flow.
     """
-    n = r.size
     
-    # Arnoldi basis vectors (m+1 vectors of length n)
-    V = jnp.zeros((m + 1, n))
-    V = V.at[0, :].set(r / r_norm)
-    
-    # Upper Hessenberg matrix (m+1 x m)
-    H = jnp.zeros((m + 1, m))
-    
-    # Givens rotation coefficients
-    cs = jnp.zeros(m)  # cosines
-    sn = jnp.zeros(m)  # sines
-    
-    # RHS for least-squares (m+1)
-    g = jnp.zeros(m + 1)
-    g = g.at[0].set(r_norm)
-    
-    iterations = 0
-    
-    for j in range(m):
-        # Arnoldi step: compute A @ v_j
-        v_j = V[j, :]
-        if preconditioner is not None:
-            w = preconditioner(matvec(v_j))
-        else:
-            w = matvec(v_j)
-        
-        # Modified Gram-Schmidt orthogonalization
-        H, w = _modified_gram_schmidt(H, V, w, j)
-        
-        h_jp1_j = jnp.linalg.norm(w)
-        H = H.at[j + 1, j].set(h_jp1_j)
-        
-        # Check for breakdown
-        if h_jp1_j > 1e-14:
-            V = V.at[j + 1, :].set(w / h_jp1_j)
-        else:
-            # Lucky breakdown - solution found
-            iterations = j + 1
-            break
-        
-        # Apply previous Givens rotations to new column of H
-        H, g = _apply_givens_rotations(H, g, cs, sn, j)
-        
-        # Compute new Givens rotation
-        cs, sn, H, g = _compute_givens_rotation(H, g, cs, sn, j)
-        
-        iterations = j + 1
-        
-        # Check convergence using |g[j+1]| as residual estimate
-        residual_estimate = jnp.abs(g[j + 1])
-        if residual_estimate < tol_abs:
-            break
-    
-    # Solve upper triangular system H[:j, :j] @ y = g[:j]
-    # Using back-substitution
-    y = _back_substitute(H[:iterations, :iterations], g[:iterations])
-    
-    # Update solution: x_new = x + V[:iterations, :].T @ y
-    x_new = x + V[:iterations, :].T @ y
-    
-    # Compute actual residual norm
+    # Define the preconditioned matvec
     if preconditioner is not None:
-        r_new = preconditioner(b - matvec(x_new))
+        def prec_matvec(v):
+            return preconditioner(matvec(v))
     else:
-        r_new = b - matvec(x_new)
-    r_norm_new = float(jnp.linalg.norm(r_new))
+        def prec_matvec(v):
+            return matvec(v)
     
-    return x_new, r_norm_new, iterations
-
-
-def _modified_gram_schmidt(
-    H: jnp.ndarray,
-    V: jnp.ndarray,
-    w: jnp.ndarray,
-    j: int,
-) -> Tuple[jnp.ndarray, jnp.ndarray]:
-    """Modified Gram-Schmidt orthogonalization.
+    @jax.jit
+    def gmres_cycle(x, r, r_norm, tol_abs):
+        """Run one GMRES cycle using JAX lax control flow."""
+        
+        # Initialize Arnoldi basis V (m+1 x n)
+        V = jnp.zeros((m + 1, n))
+        V = V.at[0, :].set(r / r_norm)
+        
+        # Upper Hessenberg matrix H (m+1 x m)
+        H = jnp.zeros((m + 1, m))
+        
+        # Givens rotation coefficients
+        cs = jnp.zeros(m)
+        sn = jnp.zeros(m)
+        
+        # RHS for least-squares
+        g = jnp.zeros(m + 1)
+        g = g.at[0].set(r_norm)
+        
+        # State for the loop: (j, V, H, cs, sn, g, converged)
+        init_state = (0, V, H, cs, sn, g, False, r_norm)
+        
+        def cond_fn(state):
+            j, V, H, cs, sn, g, converged, res_est = state
+            return (j < m) & (~converged)
+        
+        def body_fn(state):
+            j, V, H, cs, sn, g, converged, res_est = state
+            
+            # Arnoldi step: w = P^{-1} A v_j
+            v_j = V[j, :]
+            w = prec_matvec(v_j)
+            
+            # Modified Gram-Schmidt using fori_loop
+            def mgs_body(i, carry):
+                H_cur, w_cur = carry
+                h_ij = jnp.dot(w_cur, V[i, :])
+                H_new = H_cur.at[i, j].set(h_ij)
+                w_new = w_cur - h_ij * V[i, :]
+                return (H_new, w_new)
+            
+            H, w = jax.lax.fori_loop(0, j + 1, mgs_body, (H, w))
+            
+            # Normalize
+            h_jp1_j = jnp.linalg.norm(w)
+            H = H.at[j + 1, j].set(h_jp1_j)
+            
+            # Update V (handle near-zero case)
+            v_new = jnp.where(h_jp1_j > 1e-14, w / h_jp1_j, jnp.zeros(n))
+            V = V.at[j + 1, :].set(v_new)
+            
+            # Apply previous Givens rotations using fori_loop
+            def apply_givens_body(i, carry):
+                H_cur, = carry
+                temp = cs[i] * H_cur[i, j] + sn[i] * H_cur[i + 1, j]
+                H_new = H_cur.at[i + 1, j].set(-sn[i] * H_cur[i, j] + cs[i] * H_cur[i + 1, j])
+                H_new = H_new.at[i, j].set(temp)
+                return (H_new,)
+            
+            (H,) = jax.lax.fori_loop(0, j, apply_givens_body, (H,))
+            
+            # Compute new Givens rotation
+            a = H[j, j]
+            b = H[j + 1, j]
+            r_givens = jnp.sqrt(a**2 + b**2)
+            c = a / (r_givens + 1e-30)
+            s = b / (r_givens + 1e-30)
+            
+            cs = cs.at[j].set(c)
+            sn = sn.at[j].set(s)
+            
+            # Apply to H
+            H = H.at[j, j].set(r_givens)
+            H = H.at[j + 1, j].set(0.0)
+            
+            # Apply to g
+            temp = c * g[j] + s * g[j + 1]
+            g = g.at[j + 1].set(-s * g[j] + c * g[j + 1])
+            g = g.at[j].set(temp)
+            
+            # Check convergence
+            res_est_new = jnp.abs(g[j + 1])
+            converged_new = res_est_new < tol_abs
+            
+            return (j + 1, V, H, cs, sn, g, converged_new, res_est_new)
+        
+        # Run the Arnoldi process
+        final_state = jax.lax.while_loop(cond_fn, body_fn, init_state)
+        iters, V, H, cs, sn, g, converged, res_est = final_state
+        
+        # Solve upper triangular system using fori_loop (back substitution)
+        # y = solve(H[:iters, :iters], g[:iters])
+        y = jnp.zeros(m)
+        
+        def back_sub_body(i_rev, y_cur):
+            # i goes from iters-1 down to 0
+            i = iters - 1 - i_rev
+            # s = g[i] - sum(H[i, i+1:iters] * y[i+1:iters])
+            s = g[i] - jnp.dot(H[i, :], y_cur)  # H[i, i+1:] * y[i+1:]
+            y_new = y_cur.at[i].set(s / (H[i, i] + 1e-30))
+            return y_new
+        
+        y = jax.lax.fori_loop(0, iters, back_sub_body, y)
+        
+        # Update solution: x_new = x + V[:iters, :].T @ y[:iters]
+        # Only use first 'iters' components
+        y_masked = jnp.where(jnp.arange(m) < iters, y, 0.0)
+        x_new = x + V[:m, :].T @ y_masked
+        
+        return x_new, res_est, iters
     
-    Orthogonalizes w against V[0:j+1, :] and stores coefficients in H[:j+1, j].
-    """
-    for i in range(j + 1):
-        h_ij = jnp.dot(w, V[i, :])
-        H = H.at[i, j].set(h_ij)
-        w = w - h_ij * V[i, :]
-    return H, w
-
-
-def _apply_givens_rotations(
-    H: jnp.ndarray,
-    g: jnp.ndarray,
-    cs: jnp.ndarray,
-    sn: jnp.ndarray,
-    j: int,
-) -> Tuple[jnp.ndarray, jnp.ndarray]:
-    """Apply previous Givens rotations to column j of H."""
-    for i in range(j):
-        temp = cs[i] * H[i, j] + sn[i] * H[i + 1, j]
-        H = H.at[i + 1, j].set(-sn[i] * H[i, j] + cs[i] * H[i + 1, j])
-        H = H.at[i, j].set(temp)
-    return H, g
-
-
-def _compute_givens_rotation(
-    H: jnp.ndarray,
-    g: jnp.ndarray,
-    cs: jnp.ndarray,
-    sn: jnp.ndarray,
-    j: int,
-) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
-    """Compute and apply j-th Givens rotation."""
-    a = H[j, j]
-    b = H[j + 1, j]
-    
-    # Compute rotation to eliminate b
-    r = jnp.sqrt(a**2 + b**2)
-    c = a / (r + 1e-30)
-    s = b / (r + 1e-30)
-    
-    cs = cs.at[j].set(c)
-    sn = sn.at[j].set(s)
-    
-    # Apply to H
-    H = H.at[j, j].set(r)
-    H = H.at[j + 1, j].set(0.0)
-    
-    # Apply to g
-    temp = c * g[j] + s * g[j + 1]
-    g = g.at[j + 1].set(-s * g[j] + c * g[j + 1])
-    g = g.at[j].set(temp)
-    
-    return cs, sn, H, g
-
-
-def _back_substitute(R: jnp.ndarray, b: jnp.ndarray) -> jnp.ndarray:
-    """Solve upper triangular system Rx = b via back substitution."""
-    n = b.size
-    x = jnp.zeros(n)
-    
-    for i in range(n - 1, -1, -1):
-        s = b[i] - jnp.dot(R[i, i + 1:], x[i + 1:])
-        x = x.at[i].set(s / (R[i, i] + 1e-30))
-    
-    return x
+    return gmres_cycle
 
 
 # =============================================================================
@@ -407,6 +372,7 @@ def make_jfnk_matvec(
     # Get current interior Q
     Q_int_flat = Q[nghost:-nghost, nghost:-nghost, :].flatten()
     
+    @jax.jit
     def matvec(v):
         """Compute (V/dt · I + J) @ v."""
         # Diagonal term: V/dt * v
@@ -418,7 +384,7 @@ def make_jfnk_matvec(
         
         return diag_term + Jv
     
-    return jax.jit(matvec)
+    return matvec
 
 
 def make_newton_rhs(
@@ -445,3 +411,32 @@ def make_newton_rhs(
     R = residual_fn(Q)
     return -R.flatten()
 
+
+# =============================================================================
+# Legacy helper functions (for testing)
+# =============================================================================
+
+def _modified_gram_schmidt(
+    H: jnp.ndarray,
+    V: jnp.ndarray,
+    w: jnp.ndarray,
+    j: int,
+) -> Tuple[jnp.ndarray, jnp.ndarray]:
+    """Modified Gram-Schmidt orthogonalization (legacy, for testing)."""
+    for i in range(j + 1):
+        h_ij = jnp.dot(w, V[i, :])
+        H = H.at[i, j].set(h_ij)
+        w = w - h_ij * V[i, :]
+    return H, w
+
+
+def _back_substitute(R: jnp.ndarray, b: jnp.ndarray) -> jnp.ndarray:
+    """Solve upper triangular system Rx = b (legacy, for testing)."""
+    n = b.size
+    x = jnp.zeros(n)
+    
+    for i in range(n - 1, -1, -1):
+        s = b[i] - jnp.dot(R[i, i + 1:], x[i + 1:])
+        x = x.at[i].set(s / (R[i, i] + 1e-30))
+    
+    return x
