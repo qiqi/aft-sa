@@ -610,16 +610,40 @@ class RANSSolver:
     
     def _warmup_jax(self):
         """Warm up JAX JIT compilation with dummy iterations."""
-        cfl = self.config.cfl_start
+        solver_mode = getattr(self.config, 'solver_mode', 'rk5')
         
-        # Warm up the new JIT-compiled functions
+        print("Compiling JAX functions...", end=" ", flush=True)
+        
+        cfl = self.config.cfl_start
         Q_test = self.Q_jax
         dt = self._jit_compute_dt(Q_test, cfl)
         
-        for alpha in [0.25, 0.5]:
-            Q_test, _ = self._jit_rk_stage(Q_test, Q_test, dt, alpha)
+        if solver_mode == 'newton':
+            # Newton mode: warm up preconditioner, matvec, and GMRES
+            self.compute_preconditioner()
+            
+            # Warm up matvec
+            matvec = make_jfnk_matvec(
+                self._jit_residual, Q_test, dt, self.volume_jax, NGHOST
+            )
+            rhs = make_newton_rhs(self._jit_residual, Q_test, NGHOST)
+            _ = matvec(rhs)
+            
+            # Warm up GMRES (just 1 iteration to compile)
+            gmres_restart = getattr(self.config, 'gmres_restart', 20)
+            _ = gmres(
+                matvec=matvec, b=rhs, x0=None,
+                tol=1e-1, restart=min(gmres_restart, 5), maxiter=1,
+                preconditioner=self._precond_apply,
+            )
+            jax.block_until_ready(rhs)
+        else:
+            # RK mode: warm up RK stages
+            for alpha in [0.25, 0.5]:
+                Q_test, _ = self._jit_rk_stage(Q_test, Q_test, dt, alpha)
+            jax.block_until_ready(Q_test)
         
-        jax.block_until_ready(Q_test)
+        print("done")
     
     def _initialize_output(self):
         """Initialize HTML animation for output."""
