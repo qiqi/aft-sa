@@ -18,9 +18,9 @@ flow:
   chi_inf: 0.0001       # Initial/farfield turbulent viscosity ratio
 
 solver:
-  max_iter: 10000       # Fewer iterations needed with Newton
+  max_iter: 1000       # Fewer iterations needed with Newton
   tol: 1.0e-8
-  print_freq: 100
+  print_freq: 10
   diagnostic_freq: 500
   
   # Solver mode: "rk5" (default), "rk5_precond", or "newton"
@@ -28,6 +28,7 @@ solver:
   
   # GMRES settings (only used for newton mode)
   gmres_restart: 20     # GMRES(m) restart parameter (typical: 10-50)
+  gmres_maxiter: 100    # Maximum GMRES iterations (across restarts)
   gmres_tol: 1.0e-3     # Relative tolerance for GMRES linear solve
   
   cfl:

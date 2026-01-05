@@ -76,6 +76,7 @@ class SolverSettings:
     
     # GMRES settings (only used for newton mode)
     gmres_restart: int = 20     # GMRES(m) restart parameter
+    gmres_maxiter: int = 100    # Maximum GMRES iterations (across restarts)
     gmres_tol: float = 1e-3     # Relative tolerance for GMRES
 
 
@@ -170,6 +171,7 @@ class SimulationConfig:
             # Solver mode and GMRES settings
             solver_mode=self.solver.mode,
             gmres_restart=self.solver.gmres_restart,
+            gmres_maxiter=self.solver.gmres_maxiter,
             gmres_tol=self.solver.gmres_tol,
             # AFT transition model configuration
             aft_gamma_coeff=self.aft.gamma_coeff,

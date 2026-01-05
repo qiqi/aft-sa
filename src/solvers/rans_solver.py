@@ -79,6 +79,7 @@ class SolverConfig:
     
     # GMRES settings (only used for newton mode)
     gmres_restart: int = 20     # GMRES(m) restart parameter
+    gmres_maxiter: int = 100    # Maximum GMRES iterations (across restarts)
     gmres_tol: float = 1e-3     # Relative tolerance for GMRES
     
     # AFT Transition Model Configuration
@@ -973,9 +974,11 @@ class RANSSolver:
         
         # Compute RHS: -R(Q)
         rhs = make_newton_rhs(self._jit_residual, self.Q_jax, nghost)
+        rhs_norm = float(jnp.linalg.norm(rhs))
         
         # Get GMRES parameters from config
         gmres_restart = getattr(self.config, 'gmres_restart', 20)
+        gmres_maxiter = getattr(self.config, 'gmres_maxiter', 100)
         gmres_tol = getattr(self.config, 'gmres_tol', 1e-3)
         
         # Solve with preconditioned GMRES
@@ -985,9 +988,15 @@ class RANSSolver:
             x0=None,  # Start from zero (conservative for Newton)
             tol=gmres_tol,
             restart=gmres_restart,
-            maxiter=gmres_restart * 5,  # Allow 5 restart cycles
+            maxiter=gmres_maxiter,
             preconditioner=self._precond_apply,
         )
+        
+        # Print linear residual info
+        converged_str = "converged" if result.converged else "NOT converged"
+        print(f"  GMRES: {result.iterations} iters, "
+              f"||r||: {rhs_norm:.3e} → {result.residual_norm:.3e} "
+              f"({converged_str})")
         
         # Extract solution ΔQ and reshape
         dQ = result.x.reshape(self.NI, self.NJ, 4)
