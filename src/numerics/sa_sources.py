@@ -502,17 +502,22 @@ def compute_aft_sa_source_jax(nuHat, grad, wall_dist, vel_mag, nu_laminar,
     P = compute_blended_production(P_sa, P_aft, chi, blend_threshold, blend_width)
     
     # Modified destruction: |nuHat| * nuHat to always drive toward 0
-    nuHat_safe = jnp.maximum(jnp.abs(nuHat), 1e-10)
-    chi_safe = nuHat_safe / nu_laminar
+    # Chi is dimensionless - use jnp.where to avoid NaN when nuHat ≈ 0
+    nuHat_abs = jnp.abs(nuHat)
+    chi_safe = jnp.where(nuHat_abs > 0, nuHat_abs / nu_laminar, 0.0)
     fv1_val = compute_fv1(chi_safe)
     fv2_val = compute_fv2(chi_safe, fv1_val)
-    S_tilde = compute_S_tilde(omega, nuHat_safe, wall_dist, chi_safe, fv2_val)
-    r_val = compute_r(nuHat_safe, S_tilde, wall_dist)
+    
+    # For intermediate calculations, use nu_laminar as placeholder when nuHat ≈ 0
+    nuHat_for_calc = jnp.where(nuHat_abs > 0, nuHat_abs, nu_laminar)
+    S_tilde = compute_S_tilde(omega, nuHat_for_calc, wall_dist, chi_safe, fv2_val)
+    r_val = compute_r(nuHat_for_calc, S_tilde, wall_dist)
     fw_val = compute_fw(r_val)
     
     # D = cw1 * fw * |nuHat| * nuHat / d²
     # Sign: positive when nuHat > 0, negative when nuHat < 0
-    D = CW1 * fw_val * jnp.abs(nuHat) * nuHat / (wall_dist ** 2)
+    # Goes to 0 smoothly as nuHat -> 0
+    D = CW1 * fw_val * nuHat_abs * nuHat / (wall_dist ** 2)
     
     # cb2 term (unchanged)
     grad_nuHat = grad[:, :, 3, :]

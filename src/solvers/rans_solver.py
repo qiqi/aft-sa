@@ -421,12 +421,24 @@ class RANSSolver:
                 Q_int_new = Q0_int + dQ
                 
                 # Patankar-Euler scheme for nuHat (index 3) only
+                # Only apply Patankar when nuHat_old > 0 AND dNuHat < 0 (destruction dominated)
+                # Otherwise use normal explicit update
                 nuHat_old = Q0_int[:, :, 3]
                 dNuHat = dQ[:, :, 3]
-                nuHat_old_safe = jnp.maximum(nuHat_old, 1e-20)
-                nuHat_patankar = nuHat_old_safe / (1.0 - dNuHat / nuHat_old_safe)
-                nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, Q_int_new[:, :, 3])
-                nuHat_new = jnp.maximum(nuHat_new, 1e-20)
+                nuHat_explicit = Q_int_new[:, :, 3]  # = nuHat_old + dNuHat
+                
+                # Patankar: nuHat_new = nuHat_old / (1 - dNuHat/nuHat_old)
+                # Safe when nuHat_old > 0 since denominator = (nuHat_old - dNuHat)/nuHat_old > 0
+                # Use jnp.where to avoid NaN from division when nuHat_old <= 0
+                nuHat_patankar = jnp.where(
+                    nuHat_old > 0,
+                    nuHat_old / (1.0 - dNuHat / nuHat_old),
+                    nuHat_explicit  # Fallback for nuHat_old <= 0
+                )
+                
+                # Apply Patankar only when destruction is dominant (dNuHat < 0)
+                nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, nuHat_explicit)
+                nuHat_new = jnp.maximum(nuHat_new, 0.0)  # Physical floor: nuHat >= 0
                 Q_int_new = Q_int_new.at[:, :, 3].set(nuHat_new)
                 
                 Q_new = Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
@@ -497,16 +509,22 @@ class RANSSolver:
                 
                 # Patankar-Euler scheme for nuHat (index 3) only
                 # Note: Pressure can be negative in artificial compressibility, so don't apply Patankar
-                # For positive dNuHat: nuHat_new = nuHat_old + dNuHat (normal explicit update)
-                # For negative dNuHat: update reciprocal: nuHat_new = nuHat_old / (1 - dNuHat/nuHat_old)
-                #   This ensures nuHat_new stays positive if nuHat_old > 0
+                # Only apply Patankar when nuHat_old > 0 AND dNuHat < 0 (destruction dominated)
                 nuHat_old = Q0_int[:, :, 3]
                 dNuHat = dQ[:, :, 3]
-                nuHat_old_safe = jnp.maximum(nuHat_old, 1e-20)
-                nuHat_patankar = nuHat_old_safe / (1.0 - dNuHat / nuHat_old_safe)
-                nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, Q_int_new[:, :, 3])
-                # Ensure nuHat stays positive
-                nuHat_new = jnp.maximum(nuHat_new, 1e-20)
+                nuHat_explicit = Q_int_new[:, :, 3]  # = nuHat_old + dNuHat
+                
+                # Patankar: nuHat_new = nuHat_old / (1 - dNuHat/nuHat_old)
+                # Safe when nuHat_old > 0 since denominator = (nuHat_old - dNuHat)/nuHat_old > 0
+                nuHat_patankar = jnp.where(
+                    nuHat_old > 0,
+                    nuHat_old / (1.0 - dNuHat / nuHat_old),
+                    nuHat_explicit  # Fallback for nuHat_old <= 0
+                )
+                
+                # Apply Patankar only when destruction is dominant (dNuHat < 0)
+                nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, nuHat_explicit)
+                nuHat_new = jnp.maximum(nuHat_new, 0.0)  # Physical floor: nuHat >= 0
                 Q_int_new = Q_int_new.at[:, :, 3].set(nuHat_new)
                 
                 Q_new = Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
@@ -801,7 +819,7 @@ class RANSSolver:
         
         # Local effective viscosity for nuHat scaling (prevents far-wake dominance)
         nu_eff = nu_laminar + nuHat
-        nu_eff = jnp.maximum(nu_eff, 1e-30)  # Safety
+        # nu_eff >= nu_laminar by construction since nuHat >= 0, no clipping needed
         
         # Residual (this is the integral flux imbalance, NOT divided by volume)
         R = self.R_jax
@@ -853,8 +871,8 @@ class RANSSolver:
         nuHat = jnp.maximum(Q_int[:, :, 3], 0.0)
         
         # Local effective viscosity for nuHat scaling
+        # nu_eff >= nu_laminar by construction since nuHat >= 0
         nu_eff = nu_laminar + nuHat
-        nu_eff = jnp.maximum(nu_eff, 1e-30)
         
         # Residual and volume
         R = self.R_jax
@@ -867,7 +885,8 @@ class RANSSolver:
         R_nu_scaled = jnp.abs(R[:, :, 3]) / nu_eff
         
         # Divide by cell volume to get residual density
-        inv_vol = 1.0 / jnp.maximum(volume, 1e-30)
+        # Volume is always positive for valid grids
+        inv_vol = 1.0 / volume
         R_p_density = R_p_scaled * inv_vol
         R_u_density = R_u_scaled * inv_vol
         R_v_density = R_v_scaled * inv_vol

@@ -959,13 +959,25 @@ def make_batch_step_jit(NI: int, NJ: int, n_wake_points: int,
         
         # Point-implicit destruction for SA equation
         # D/nuHat^2 = cw1*fw/d^2 (independent of nuHat)
-        nuHat_star = jnp.maximum(Q_int_new[:, :, :, 3], 1e-20)  # After explicit update
+        nuHat_star = Q_int_new[:, :, :, 3]  # After explicit update
         dt_eff = alpha_rk * dt_batch  # (n_batch, NI, NJ)
-        nu_tilde_safe = jnp.maximum(nu_tilde, 1e-20)
-        D_over_nuHat_sq = D / (nu_tilde_safe ** 2 + 1e-30)  # = cw1*fw/d^2
+        
+        # Only apply point-implicit when nuHat > 0 and nu_tilde > 0
+        # Use jnp.where to avoid division by zero
+        D_over_nuHat_sq = jnp.where(
+            nu_tilde > 0,
+            D / (nu_tilde ** 2),
+            0.0  # No implicit correction if nu_tilde <= 0
+        )
+        
         # Apply point-implicit: 1/nuHat_new = 1/nuHat_star + D_over_nuHat_sq * dt
-        inv_nuHat_new = 1.0 / nuHat_star + D_over_nuHat_sq * dt_eff
-        nuHat_implicit = 1.0 / (inv_nuHat_new + 1e-30)
+        # Only when nuHat_star > 0
+        nuHat_implicit = jnp.where(
+            nuHat_star > 0,
+            nuHat_star / (1.0 + D_over_nuHat_sq * dt_eff * nuHat_star),
+            nuHat_star  # Keep explicit result if nuHat_star <= 0
+        )
+        nuHat_implicit = jnp.maximum(nuHat_implicit, 0.0)  # Physical floor
         Q_int_new = Q_int_new.at[:, :, :, 3].set(nuHat_implicit)
         
         Q_new = Q0_batch.at[:, nghost:-nghost, nghost:-nghost, :].set(Q_int_new)

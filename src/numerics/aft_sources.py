@@ -86,7 +86,9 @@ def compute_gamma(omega_mag: ArrayLike, vel_mag: ArrayLike, d: ArrayLike,
     omega_d = omega_mag * d
     omega_d_sq = omega_d ** 2
     vel_sq = vel_mag ** 2
-    return gamma_coeff * omega_d_sq / (vel_sq + omega_d_sq + 1e-20)
+    # Avoid 0/0: when both vel and omega_d are zero, Gamma is undefined but set to 0
+    denom = vel_sq + omega_d_sq
+    return jnp.where(denom > 0, gamma_coeff * omega_d_sq / denom, 0.0)
 
 
 @jax.jit

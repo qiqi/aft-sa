@@ -305,9 +305,14 @@ def compute_S_tilde(omega: ArrayLike, nuHat: ArrayLike, d: ArrayLike,
     S_tilde : array
         Modified vorticity (clipped to be positive).
     """
-    inv_k2d2 = 1.0 / (KAPPA**2 * d**2 + 1e-20)
+    # Division safety: d² is dimensional, use jnp.where to avoid 0/0
+    inv_k2d2 = jnp.where(d > 0, 1.0 / (KAPPA**2 * d**2), 0.0)
     S_tilde_raw = omega + nuHat * inv_k2d2 * fv2
-    return jnp.maximum(S_tilde_raw, 1e-16)
+    # S_tilde must be positive for SA model
+    # Floor: 0.3 * omega (Spalart's limiter) - dimensionally consistent
+    # This prevents S_tilde from going negative in adverse pressure gradients
+    S_tilde_floor = 0.3 * omega
+    return jnp.maximum(S_tilde_raw, S_tilde_floor)
 
 
 @jax.jit
@@ -446,20 +451,21 @@ def compute_sa_production(omega: ArrayLike, nuHat: ArrayLike, d: ArrayLike,
     P : array
         Production term P = cb1·S̃·ν̃ (per unit mass).
     """
-    # Safety: ensure positive nuHat
-    mask = 1.0 / (1.0 + jnp.exp(-100.0 * nuHat))  # Smooth mask for nuHat > 0
-    nuHat_safe = jnp.maximum(nuHat, 1e-10)
+    # Smooth mask for nuHat > 0 (production is zero for negative nuHat)
+    mask = 1.0 / (1.0 + jnp.exp(-100.0 * nuHat / nu_laminar))  # Scale by nu_laminar for dimensionless arg
     
-    # Chi and damping functions
-    chi = nuHat_safe / nu_laminar
+    # Use jnp.where to avoid NaN from division when nuHat <= 0
+    # Chi is dimensionless, so clipping chi is acceptable
+    chi = jnp.where(nuHat > 0, nuHat / nu_laminar, 0.0)
     fv1_val = compute_fv1(chi)
     fv2_val = compute_fv2(chi, fv1_val)
     
-    # Modified vorticity
-    S_tilde = compute_S_tilde(omega, nuHat_safe, d, chi, fv2_val)
+    # Modified vorticity (use nuHat directly, protected by mask)
+    nuHat_for_calc = jnp.where(nuHat > 0, nuHat, nu_laminar)  # Placeholder for calc, masked out
+    S_tilde = compute_S_tilde(omega, nuHat_for_calc, d, chi, fv2_val)
     
-    # Production
-    return CB1 * S_tilde * nuHat_safe * mask
+    # Production (masked to zero for nuHat <= 0)
+    return CB1 * S_tilde * nuHat * mask
 
 
 # =============================================================================
@@ -521,26 +527,28 @@ def compute_sa_destruction(omega: ArrayLike, nuHat: ArrayLike, d: ArrayLike,
     D : array
         Destruction term D = cw1·fw·(ν̃/d)² (per unit mass).
     """
-    # Safety
-    mask = 1.0 / (1.0 + jnp.exp(-100.0 * nuHat))
-    nuHat_safe = jnp.maximum(nuHat, 1e-10)
+    # Smooth mask for nuHat > 0 (destruction is zero for negative nuHat)
+    mask = 1.0 / (1.0 + jnp.exp(-100.0 * nuHat / nu_laminar))
     
-    # Chi and damping functions
-    chi = nuHat_safe / nu_laminar
+    # Chi is dimensionless - use jnp.where to avoid NaN
+    chi = jnp.where(nuHat > 0, nuHat / nu_laminar, 0.0)
     fv1_val = compute_fv1(chi)
     fv2_val = compute_fv2(chi, fv1_val)
     
+    # For calculations, use placeholder when nuHat <= 0 (will be masked out)
+    nuHat_for_calc = jnp.where(nuHat > 0, nuHat, nu_laminar)
+    
     # Modified vorticity
-    S_tilde = compute_S_tilde(omega, nuHat_safe, d, chi, fv2_val)
+    S_tilde = compute_S_tilde(omega, nuHat_for_calc, d, chi, fv2_val)
     
     # Equilibrium parameter r (indicates P/D balance)
-    r_val = compute_r(nuHat_safe, S_tilde, d)
+    r_val = compute_r(nuHat_for_calc, S_tilde, d)
     
     # Destruction modifier
     fw_val = compute_fw(r_val)
     
-    # Destruction
-    return CW1 * fw_val * (nuHat_safe / d) ** 2 * mask
+    # Destruction (masked to zero for nuHat <= 0)
+    return CW1 * fw_val * (nuHat / d) ** 2 * mask
 
 
 # =============================================================================
@@ -1074,17 +1082,22 @@ def spalart_allmaras_amplification(omega: ArrayLike, nuHat: ArrayLike, d: ArrayL
     
     # Destruction: modified to |nuHat| * nuHat for stability
     # This ensures destruction always drives nuHat toward zero
-    nuHat_safe = jnp.maximum(jnp.abs(nuHat), 1e-10)
-    chi = nuHat_safe / nu_laminar
+    # Chi is dimensionless - use |nuHat|/nu_laminar, protected by jnp.where
+    nuHat_abs = jnp.abs(nuHat)
+    chi = jnp.where(nuHat_abs > 0, nuHat_abs / nu_laminar, 0.0)
     fv1_val = compute_fv1(chi)
     fv2_val = compute_fv2(chi, fv1_val)
-    S_tilde = compute_S_tilde(omega, nuHat_safe, d, chi, fv2_val)
-    r_val = compute_r(nuHat_safe, S_tilde, d)
+    
+    # For intermediate calculations, use nu_laminar as placeholder when nuHat ≈ 0
+    nuHat_for_calc = jnp.where(nuHat_abs > 0, nuHat_abs, nu_laminar)
+    S_tilde = compute_S_tilde(omega, nuHat_for_calc, d, chi, fv2_val)
+    r_val = compute_r(nuHat_for_calc, S_tilde, d)
     fw_val = compute_fw(r_val)
     
     # D = cw1 * fw * |nuHat| * nuHat / d^2
     # Sign: D > 0 when nuHat > 0, D < 0 when nuHat < 0
-    D = CW1 * fw_val * jnp.abs(nuHat) * nuHat / (d ** 2)
+    # Goes to 0 smoothly as nuHat -> 0
+    D = CW1 * fw_val * nuHat_abs * nuHat / (d ** 2)
     
     # Compute gradients using JAX autodiff
     def prod_fn(nu):
@@ -1092,14 +1105,15 @@ def spalart_allmaras_amplification(omega: ArrayLike, nuHat: ArrayLike, d: ArrayL
     
     def dest_fn(nu):
         # Modified destruction: |nu| * nu / d^2
-        nu_safe = jnp.maximum(jnp.abs(nu), 1e-10)
-        chi_ = nu_safe / nu_laminar
+        nu_abs = jnp.abs(nu)
+        chi_ = jnp.where(nu_abs > 0, nu_abs / nu_laminar, 0.0)
         fv1_ = compute_fv1(chi_)
         fv2_ = compute_fv2(chi_, fv1_)
-        S_tilde_ = compute_S_tilde(omega, nu_safe, d, chi_, fv2_)
-        r_ = compute_r(nu_safe, S_tilde_, d)
+        nu_for_calc = jnp.where(nu_abs > 0, nu_abs, nu_laminar)
+        S_tilde_ = compute_S_tilde(omega, nu_for_calc, d, chi_, fv2_)
+        r_ = compute_r(nu_for_calc, S_tilde_, d)
         fw_ = compute_fw(r_)
-        return CW1 * fw_ * jnp.abs(nu) * nu / (d ** 2)
+        return CW1 * fw_ * nu_abs * nu / (d ** 2)
     
     # Element-wise gradients via vmap of grad
     # For array inputs, compute gradient at each point

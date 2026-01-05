@@ -116,12 +116,16 @@ class BoundaryConditions:
         Q[i_start:i_end, 1, 0] = Q[i_start:i_end, j_int_first, 0]
         Q[i_start:i_end, 1, 1] = -Q[i_start:i_end, j_int_first, 1]
         Q[i_start:i_end, 1, 2] = -Q[i_start:i_end, j_int_first, 2]
-        Q[i_start:i_end, 1, 3] = -Q[i_start:i_end, j_int_first, 3]
+        # nuHat: antisymmetric BC gives nuHat=0 at wall (correct physics)
+        # Ghost = -interior, but clamp to prevent extreme negative values
+        nuHat_interior: NDArrayFloat = np.maximum(Q[i_start:i_end, j_int_first, 3], 0.0)
+        Q[i_start:i_end, 1, 3] = -nuHat_interior
         
         Q[i_start:i_end, 0, 0] = Q[i_start:i_end, 1, 0]
         Q[i_start:i_end, 0, 1] = 2*Q[i_start:i_end, 1, 1] - Q[i_start:i_end, j_int_first, 1]
         Q[i_start:i_end, 0, 2] = 2*Q[i_start:i_end, 1, 2] - Q[i_start:i_end, j_int_first, 2]
-        Q[i_start:i_end, 0, 3] = Q[i_start:i_end, 1, 3]
+        # nuHat: extrapolate (more negative, but interior was clamped so bounded)
+        Q[i_start:i_end, 0, 3] = 2*Q[i_start:i_end, 1, 3] - nuHat_interior
         
         # Wake cut (periodic)
         # First, average j=0 interior rows to enforce exact periodicity
@@ -129,8 +133,16 @@ class BoundaryConditions:
         lower_wake_int_j0: NDArrayFloat = Q[NGHOST:i_start, j_int_first, :].copy()
         upper_wake_int_j0: NDArrayFloat = Q[i_end:NI + NGHOST, j_int_first, :].copy()
         
-        # Average corresponding cells (lower[i] matches upper[n_wake-1-i])
-        avg_j0: NDArrayFloat = 0.5 * (lower_wake_int_j0 + upper_wake_int_j0[::-1, :])
+        # Average flow variables (p, u, v) - these can be positive or negative
+        avg_j0_flow: NDArrayFloat = 0.5 * (lower_wake_int_j0[:, :3] + upper_wake_int_j0[::-1, :3])
+        
+        # For nuHat: ensure non-negative BEFORE averaging
+        # Clip to 0.0 (physical minimum), not a hard-coded small value
+        nuHat_lower = np.maximum(lower_wake_int_j0[:, 3], 0.0)
+        nuHat_upper = np.maximum(upper_wake_int_j0[::-1, 3], 0.0)
+        avg_nuHat: NDArrayFloat = 0.5 * (nuHat_lower + nuHat_upper)
+        
+        avg_j0: NDArrayFloat = np.concatenate([avg_j0_flow, avg_nuHat[:, None]], axis=-1)
         Q[NGHOST:i_start, j_int_first, :] = avg_j0
         Q[i_end:NI + NGHOST, j_int_first, :] = avg_j0[::-1, :]
         
@@ -367,8 +379,9 @@ if JAX_AVAILABLE:
         
         # For nuHat: ensure non-negative BEFORE averaging, then average
         # This prevents negative values from propagating across the wake cut
-        nuHat_lower = jnp.maximum(lower_wake_int_j0[:, 3], 1e-20)
-        nuHat_upper = jnp.maximum(upper_wake_int_j0[::-1, 3], 1e-20)
+        # Clip to 0.0 (physical minimum), not a hard-coded small value
+        nuHat_lower = jnp.maximum(lower_wake_int_j0[:, 3], 0.0)
+        nuHat_upper = jnp.maximum(upper_wake_int_j0[::-1, 3], 0.0)
         avg_nuHat = 0.5 * (nuHat_lower + nuHat_upper)
         
         avg_j0 = jnp.concatenate([avg_j0_flow, avg_nuHat[:, None]], axis=-1)
