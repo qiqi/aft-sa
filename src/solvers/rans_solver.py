@@ -113,6 +113,7 @@ class RANSSolver:
         self.residual_history = []
         self.iteration_history = []  # Track which iteration each residual corresponds to
         self.converged = False
+        self._last_gmres_info = None  # GMRES stats for Newton mode printing
         
         # Rolling buffer for divergence history (recent snapshots before divergence)
         from collections import deque
@@ -992,11 +993,13 @@ class RANSSolver:
             preconditioner=self._precond_apply,
         )
         
-        # Print linear residual info
-        converged_str = "converged" if result.converged else "NOT converged"
-        print(f"  GMRES: {result.iterations} iters, "
-              f"||r||: {rhs_norm:.3e} → {result.residual_norm:.3e} "
-              f"({converged_str})")
+        # Store GMRES info for conditional printing in run_steady_state
+        self._last_gmres_info = {
+            'iterations': result.iterations,
+            'rhs_norm': rhs_norm,
+            'residual_norm': float(result.residual_norm),
+            'converged': result.converged,
+        }
         
         # Extract solution ΔQ and reshape
         dQ = result.x.reshape(self.NI, self.NJ, 4)
@@ -1251,6 +1254,14 @@ class RANSSolver:
                 cfl = self._get_cfl(self.iteration)
             
             if need_print:
+                # Print GMRES info for Newton mode (if available)
+                if hasattr(self, '_last_gmres_info') and self._last_gmres_info is not None:
+                    info = self._last_gmres_info
+                    converged_str = "converged" if info['converged'] else "NOT converged"
+                    print(f"  GMRES: {info['iterations']} iters, "
+                          f"||r||: {info['rhs_norm']:.3e} → {info['residual_norm']:.3e} "
+                          f"({converged_str})")
+                
                 # Transfer Q to CPU for force computation
                 self.sync_to_cpu()
                 forces = self.compute_forces()
