@@ -167,6 +167,10 @@ class SimulationConfig:
             html_animation=self.output.html_animation,
             divergence_history=self.output.divergence_history,
             target_yplus=self.grid.y_plus,
+            # Solver mode and GMRES settings
+            solver_mode=self.solver.mode,
+            gmres_restart=self.solver.gmres_restart,
+            gmres_tol=self.solver.gmres_tol,
             # AFT transition model configuration
             aft_gamma_coeff=self.aft.gamma_coeff,
             aft_re_omega_scale=self.aft.re_omega_scale,

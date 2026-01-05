@@ -18,7 +18,7 @@ This file coordinates work between multiple AI agents and human contributors on 
 
 | Agent Name/Role | Target File/Folder | Task Description | Start Time |
 |-----------------|-------------------|------------------|------------|
-| Claude | `src/numerics/preconditioner.py` | Phase 1: Block-Jacobi Preconditioner | 2026-01-05 |
+| *None currently* | — | — | — |
 
 ---
 
@@ -38,6 +38,7 @@ Archive of recently completed work (for reference):
 
 | Date | Agent | Files | Summary |
 |------|-------|-------|---------|
+| 2026-01-05 | Claude | `src/numerics/`, `src/solvers/`, `tests/`, `config/`, `docs/` | **JFNK Implementation (5 phases)**: Block-Jacobi preconditioner, preconditioned RK, GMRES(m) solver, Newton-GMRES mode, example configs. 27 new tests, 216 total tests pass. |
 | 2026-01-05 | Claude | `src/numerics/sa_sources.py` | Removed unnecessary `jnp.where` guards in `compute_aft_sa_source_jax` - cleaner code, better AD compatibility |
 | 2026-01-05 | Janitor | `src/io/plotter.py`, `src/solvers/rans_solver.py` | Removed unused import `compute_sa_source_jax`, removed unused var `xaxis_key` |
 | 2026-01-05 | Claude | `scripts/analysis/` | Cleanup: removed debug scripts for BL analysis, momentum balance diagnostics |

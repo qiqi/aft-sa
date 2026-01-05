@@ -1,5 +1,14 @@
 # Jacobian-Free Newton-Krylov (JFNK) Implementation Plan
 
+> **Status: ✅ IMPLEMENTED** (2026-01-05)
+>
+> All five phases have been completed. The solver now supports three modes:
+> - `rk5`: Standard explicit RK5 (default)
+> - `rk5_precond`: RK5 with block-Jacobi preconditioned residual
+> - `newton`: Newton-GMRES with block-Jacobi preconditioning
+>
+> See `config/examples/naca0012_newton.yaml` for example usage.
+
 ## Overview
 
 This document outlines the implementation plan for adding a Jacobian-Free Newton-Krylov solver with GMRES(m) and block-Jacobi preconditioning to the AFT-SA RANS solver.

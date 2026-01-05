@@ -1,0 +1,64 @@
+# NACA 0012 with Newton-GMRES solver
+# Usage: python scripts/solver/run_airfoil.py --config config/examples/naca0012_newton.yaml
+#
+# This config uses the Newton-GMRES solver mode for potentially faster convergence
+# compared to the standard RK5 explicit time stepping.
+
+grid:
+  airfoil: data/naca0012.dat
+  n_surface: 193        # Surface nodes
+  n_wake: 48            # Wake region nodes
+  y_plus: 1.0           # Target y+ for first cell
+  gradation: 1.2        # Wall-normal cell growth ratio
+  farfield_radius: 15.0 # Farfield distance in chords
+
+flow:
+  reynolds: 1.0e+6      # Re = 1 million
+  alpha: 4.0            # Angle of attack in degrees
+  chi_inf: 0.0001       # Initial/farfield turbulent viscosity ratio
+
+solver:
+  max_iter: 10000       # Fewer iterations needed with Newton
+  tol: 1.0e-8
+  print_freq: 100
+  diagnostic_freq: 500
+  
+  # Solver mode: "rk5" (default), "rk5_precond", or "newton"
+  mode: newton
+  
+  # GMRES settings (only used for newton mode)
+  gmres_restart: 20     # GMRES(m) restart parameter (typical: 10-50)
+  gmres_tol: 1.0e-3     # Relative tolerance for GMRES linear solve
+  
+  cfl:
+    initial: 0.1        # Starting CFL (pseudo-transient continuation)
+    final: 10.0         # Intermediate target CFL
+    ramp_iter: 200      # Iterations to ramp (exponential growth for Newton)
+                        # After ramp, CFL continues growing toward 1e6
+
+numerics:
+  jst_k4: 0.04              # 4th-order dissipation coefficient
+  beta: 10.0                # Artificial compressibility parameter
+  wall_damping_length: 0.1  # Wall damping length scale
+  sponge_thickness: 15      # Sponge layer thickness
+
+output:
+  directory: output/naca0012_newton
+  case_name: naca0012_newton_a4
+  html_animation: true
+  divergence_history: 3     # Keep more history for Newton debugging
+
+device:
+  device: auto
+
+# AFT transition model configuration
+aft:
+  gamma_coeff: 2.0
+  re_omega_scale: 1000.0
+  log_divisor: 50.0
+  sigmoid_center: 1.04
+  sigmoid_slope: 35.0
+  rate_scale: 0.2
+  blend_threshold: 1.0
+  blend_width: 1.0
+
