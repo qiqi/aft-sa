@@ -41,17 +41,31 @@ AFT_RATE_SCALE = 0.2           # Overall rate magnitude
 
 @jax.jit
 def compute_gamma(omega_mag: ArrayLike, vel_mag: ArrayLike, d: ArrayLike,
-                  gamma_coeff: float = AFT_GAMMA_COEFF) -> jnp.ndarray:
+                  gamma_coeff: float = 2.0) -> jnp.ndarray:
     """
     Compute shape factor Γ characterizing the velocity profile.
     
     FORMULA:
-        Γ = gamma_coeff * (|ω|·d)² / (|V|² + (|ω|·d)²)
+        Γ = 2 * (|ω|·d)² / (|V|² + (|ω|·d)²)
     
     PHYSICAL MEANING:
         Γ measures the "fullness" of the velocity profile:
         - Γ → 0: Velocity-dominated (flat profile, stable)
-        - Γ → gamma_coeff: Shear-dominated (inflectional profile, unstable)
+        - Γ → 2: Shear-dominated (inflectional profile, unstable)
+    
+    BOUNDARY LAYER CALIBRATION (gamma_coeff = 2.0):
+        In a boundary layer near the wall, velocity varies linearly:
+            |V| ≈ (∂u/∂y)|_wall × y
+        And vorticity is approximately constant:
+            |ω| ≈ (∂u/∂y)|_wall
+        Therefore:
+            |ω| × d ≈ (∂u/∂y)|_wall × y ≈ |V|
+        
+        This means (|ω|·d)² ≈ |V|², so:
+            Γ = 2 × 0.5 = 1.0 at the wall
+        
+        The coefficient 2.0 is thus chosen so that Γ = 1 in the viscous
+        sublayer of a canonical boundary layer profile.
     
     Parameters
     ----------
@@ -62,7 +76,7 @@ def compute_gamma(omega_mag: ArrayLike, vel_mag: ArrayLike, d: ArrayLike,
     d : array
         Wall distance.
     gamma_coeff : float
-        Coefficient in numerator (tunable, default 2.0).
+        Coefficient (default 2.0, calibrated for Γ=1 at wall).
         
     Returns
     -------

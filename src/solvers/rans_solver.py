@@ -683,12 +683,13 @@ class RANSSolver:
         from ..physics.jax_config import jnp
         
         # Get interior values
+        # Note: Q stores TOTAL velocity (not perturbation from freestream)
         Q_int = self.Q_jax[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
-        u = Q_int[:, :, 1]
-        v = Q_int[:, :, 2]
+        u = Q_int[:, :, 1]  # Total u velocity
+        v = Q_int[:, :, 2]  # Total v velocity
         
-        # Compute velocity magnitude (absolute)
-        vel_mag = jnp.sqrt((u + self.freestream.u_inf)**2 + (v + self.freestream.v_inf)**2)
+        # Compute velocity magnitude (already total velocity, no freestream addition needed)
+        vel_mag = jnp.sqrt(u**2 + v**2)
         
         # Compute gradients
         grad = compute_gradients_jax(
