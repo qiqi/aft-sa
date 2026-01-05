@@ -638,10 +638,10 @@ class PlotlyDashboard:
         A, B = np.meshgrid(np.arange(ni), np.arange(nj), indexing='ij')
         cfg = color_config['wall_dist']
         
-        # Row depends on whether AFT row exists:
+        # Row depends on whether AFT rows exist:
         # Without AFT: row 5 (after convergence at row 4)
-        # With AFT: row 6 (after convergence at row 5)
-        wall_row = 6 if has_aft else 5
+        # With AFT: row 7 (after convergence at row 6, since AFT has 2 rows: Re_Omega/Gamma and is_turb)
+        wall_row = 7 if has_aft else 5
         
         # Left: Wall distance contour
         fig.add_trace(go.Carpet(
@@ -1025,10 +1025,10 @@ class PlotlyDashboard:
         fig.update_xaxes(title_text='x', range=[-0.5, 1.5], scaleanchor='y', scaleratio=1, row=1, col=1)
         fig.update_yaxes(title_text='y', range=[-0.5625, 0.5625], row=1, col=1)
         
-        # Field positions for linked axes (rows 1-3 always, plus AFT row 4 if present, plus wall_dist)
+        # Field positions for linked axes (rows 1-3 always, plus AFT rows 4-5 if present, plus wall_dist)
         field_positions = [(1, 1), (1, 2), (2, 1), (2, 2), (3, 1), (3, 2)]
         if has_aft:
-            field_positions.extend([(4, 1), (4, 2)])  # AFT row
+            field_positions.extend([(4, 1), (4, 2), (5, 1)])  # AFT rows: Re_Omega/Gamma (row 4) and is_turb (row 5)
         if wall_row is not None:
             field_positions.append((wall_row, 1))  # Wall distance
         

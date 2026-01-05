@@ -4,8 +4,6 @@ Local time stepping for 2D incompressible RANS solver.
 Δt_{i,j} = CFL * Ω_{i,j} / (Λ^I_{i,j} + Λ^J_{i,j})
 
 Reference: Jameson, Schmidt, Turkel (1981), AIAA 81-1259.
-
-Both NumPy and JAX implementations provided.
 """
 
 import numpy as np
@@ -14,13 +12,7 @@ from typing import NamedTuple, Optional, Callable
 from dataclasses import dataclass
 
 from src.constants import NGHOST
-
-# JAX imports
-try:
-    from src.physics.jax_config import jax, jnp
-    JAX_AVAILABLE = True
-except ImportError:
-    JAX_AVAILABLE = False
+from src.physics.jax_config import jax, jnp
 
 NDArrayFloat = npt.NDArray[np.floating]
 
@@ -262,188 +254,187 @@ RungeKutta4 = RungeKutta5
 # JAX Implementations
 # =============================================================================
 
-if JAX_AVAILABLE:
+
+@jax.jit
+def _compute_spectral_radii_jax_kernel(u, v, Si_x, Si_y, Sj_x, Sj_y, beta):
+    """JIT-compiled kernel for spectral radii."""
+    c_art = jnp.sqrt(u**2 + v**2 + beta)
     
-    @jax.jit
-    def _compute_spectral_radii_jax_kernel(u, v, Si_x, Si_y, Sj_x, Sj_y, beta):
-        """JIT-compiled kernel for spectral radii."""
-        c_art = jnp.sqrt(u**2 + v**2 + beta)
-        
-        # I-direction
-        Si_mag = jnp.sqrt(Si_x**2 + Si_y**2)
-        Si_L = Si_mag[:-1, :]
-        Si_R = Si_mag[1:, :]
-        Si_avg = 0.5 * (Si_L + Si_R)
-        
-        Si_nx_avg = 0.5 * (Si_x[:-1, :] + Si_x[1:, :]) / (Si_avg + 1e-12)
-        Si_ny_avg = 0.5 * (Si_y[:-1, :] + Si_y[1:, :]) / (Si_avg + 1e-12)
-        
-        U_I = jnp.abs(u * Si_nx_avg + v * Si_ny_avg) * Si_avg
-        lambda_i = U_I + c_art * Si_avg
-        
-        # J-direction
-        Sj_mag = jnp.sqrt(Sj_x**2 + Sj_y**2)
-        Sj_B = Sj_mag[:, :-1]
-        Sj_T = Sj_mag[:, 1:]
-        Sj_avg = 0.5 * (Sj_B + Sj_T)
-        
-        Sj_nx_avg = 0.5 * (Sj_x[:, :-1] + Sj_x[:, 1:]) / (Sj_avg + 1e-12)
-        Sj_ny_avg = 0.5 * (Sj_y[:, :-1] + Sj_y[:, 1:]) / (Sj_avg + 1e-12)
-        
-        U_J = jnp.abs(u * Sj_nx_avg + v * Sj_ny_avg) * Sj_avg
-        lambda_j = U_J + c_art * Sj_avg
-        
-        return lambda_i, lambda_j
+    # I-direction
+    Si_mag = jnp.sqrt(Si_x**2 + Si_y**2)
+    Si_L = Si_mag[:-1, :]
+    Si_R = Si_mag[1:, :]
+    Si_avg = 0.5 * (Si_L + Si_R)
     
-    def compute_spectral_radii_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, nghost):
-        """
-        JAX: Compute spectral radii Λ = |U_n| + c * |S| in I and J directions.
-        
-        Parameters
-        ----------
-        Q : jnp.ndarray
-            State array (NI+2*nghost, NJ+2*nghost, 4).
-        Si_x, Si_y : jnp.ndarray
-            I-face normal vectors (NI+1, NJ).
-        Sj_x, Sj_y : jnp.ndarray
-            J-face normal vectors (NI, NJ+1).
-        beta : float
-            Artificial compressibility parameter.
-        nghost : int
-            Number of ghost cells.
-            
-        Returns
-        -------
-        lambda_i, lambda_j : jnp.ndarray
-            Spectral radii in I and J directions (NI, NJ).
-        """
-        NI = Si_x.shape[0] - 1
-        NJ = Si_x.shape[1]
-        
-        # Extract interior velocities with concrete indices
-        u = Q[nghost:nghost+NI, nghost:nghost+NJ, 1]
-        v = Q[nghost:nghost+NI, nghost:nghost+NJ, 2]
-        
-        return _compute_spectral_radii_jax_kernel(u, v, Si_x, Si_y, Sj_x, Sj_y, beta)
+    Si_nx_avg = 0.5 * (Si_x[:-1, :] + Si_x[1:, :]) / (Si_avg + 1e-12)
+    Si_ny_avg = 0.5 * (Si_y[:-1, :] + Si_y[1:, :]) / (Si_avg + 1e-12)
     
-    @jax.jit
-    def _compute_local_timestep_jax_kernel(lambda_i, lambda_j, volume, 
-                                            Si_x, Si_y, Sj_x, Sj_y,
-                                            cfl, nu, min_dt, max_dt,
-                                            k4, martinelli_alpha, martinelli_max, c_safety):
-        """JIT-compiled kernel for local timestep with dissipative stability."""
-        # Compute Martinelli scaling factors
-        ratio_ji = lambda_j / (lambda_i + 1e-12)
-        ratio_ij = lambda_i / (lambda_j + 1e-12)
-        
-        f_i = 1.0 + jnp.power(ratio_ji, martinelli_alpha)
-        f_j = 1.0 + jnp.power(ratio_ij, martinelli_alpha)
-        
-        f_i = jnp.minimum(f_i, martinelli_max)
-        f_j = jnp.minimum(f_j, martinelli_max)
-        
-        # Effective spectral radii with dissipative stability
-        diss_factor_i = 1.0 + c_safety * k4 * f_i
-        diss_factor_j = 1.0 + c_safety * k4 * f_j
-        
-        lambda_eff_i = lambda_i * diss_factor_i
-        lambda_eff_j = lambda_j * diss_factor_j
-        
-        lambda_sum = jnp.maximum(lambda_eff_i + lambda_eff_j, 1e-12)
-        dt_conv = cfl * volume / lambda_sum
-        
-        # Viscous time step limit
-        def compute_with_viscous():
-            Si_mag_L = jnp.sqrt(Si_x[:-1, :]**2 + Si_y[:-1, :]**2)
-            Si_mag_R = jnp.sqrt(Si_x[1:, :]**2 + Si_y[1:, :]**2)
-            Si_avg = 0.5 * (Si_mag_L + Si_mag_R)
-            
-            Sj_mag_B = jnp.sqrt(Sj_x[:, :-1]**2 + Sj_y[:, :-1]**2)
-            Sj_mag_T = jnp.sqrt(Sj_x[:, 1:]**2 + Sj_y[:, 1:]**2)
-            Sj_avg = 0.5 * (Sj_mag_B + Sj_mag_T)
-            
-            dx = volume / (Sj_avg + 1e-12)
-            dy = volume / (Si_avg + 1e-12)
-            
-            dx_min = jnp.minimum(dx, dy)
-            dt_visc = 0.25 * dx_min**2 / nu * cfl
-            
-            return jnp.minimum(dt_conv, dt_visc)
-        
-        dt = jax.lax.cond(
-            nu > 1e-12,
-            compute_with_viscous,
-            lambda: dt_conv
-        )
-        
-        dt = jnp.clip(dt, min_dt, max_dt)
-        
-        return dt
+    U_I = jnp.abs(u * Si_nx_avg + v * Si_ny_avg) * Si_avg
+    lambda_i = U_I + c_art * Si_avg
     
-    def compute_local_timestep_jax(Q, Si_x, Si_y, Sj_x, Sj_y, volume, beta, cfl, 
-                                    nghost, nu=0.0, min_dt=0.0, max_dt=1e10,
-                                    k4=0.016, martinelli_alpha=0.667, 
-                                    martinelli_max=3.0, c_safety=8.0):
-        """
-        JAX: Compute local time step for each cell with dissipative stability.
-        
-        Parameters
-        ----------
-        Q : jnp.ndarray
-            State array (NI+2*nghost, NJ+2*nghost, 4).
-        Si_x, Si_y : jnp.ndarray
-            I-face normal vectors (NI+1, NJ).
-        Sj_x, Sj_y : jnp.ndarray
-            J-face normal vectors (NI, NJ+1).
-        volume : jnp.ndarray
-            Cell volumes (NI, NJ).
-        beta : float
-            Artificial compressibility parameter.
-        cfl : float
-            CFL number.
-        nghost : int
-            Number of ghost cells.
-        nu : float
-            Kinematic viscosity (for viscous time step limit).
-        min_dt, max_dt : float
-            Time step limits.
-        k4 : float
-            JST 4th-order dissipation coefficient.
-        martinelli_alpha, martinelli_max : float
-            Martinelli scaling parameters.
-        c_safety : float
-            Safety factor for 4th-order stencil width.
-            
-        Returns
-        -------
-        dt : jnp.ndarray
-            Local time step (NI, NJ).
-        """
-        lambda_i, lambda_j = compute_spectral_radii_jax(
-            Q, Si_x, Si_y, Sj_x, Sj_y, beta, nghost
-        )
-        
-        return _compute_local_timestep_jax_kernel(
-            lambda_i, lambda_j, volume, Si_x, Si_y, Sj_x, Sj_y,
-            cfl, nu, min_dt, max_dt, k4, martinelli_alpha, martinelli_max, c_safety
-        )
+    # J-direction
+    Sj_mag = jnp.sqrt(Sj_x**2 + Sj_y**2)
+    Sj_B = Sj_mag[:, :-1]
+    Sj_T = Sj_mag[:, 1:]
+    Sj_avg = 0.5 * (Sj_B + Sj_T)
     
-    def compute_local_timestep_jax_wrapper(Q, Si_x, Si_y, Sj_x, Sj_y, volume, 
-                                            beta, cfg=None, nu=0.0):
-        """Wrapper for JAX local timestep with config object."""
-        if cfg is None:
-            cfg = TimeStepConfig()
+    Sj_nx_avg = 0.5 * (Sj_x[:, :-1] + Sj_x[:, 1:]) / (Sj_avg + 1e-12)
+    Sj_ny_avg = 0.5 * (Sj_y[:, :-1] + Sj_y[:, 1:]) / (Sj_avg + 1e-12)
+    
+    U_J = jnp.abs(u * Sj_nx_avg + v * Sj_ny_avg) * Sj_avg
+    lambda_j = U_J + c_art * Sj_avg
+    
+    return lambda_i, lambda_j
+
+def compute_spectral_radii_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, nghost):
+    """
+    JAX: Compute spectral radii Λ = |U_n| + c * |S| in I and J directions.
+    
+    Parameters
+    ----------
+    Q : jnp.ndarray
+        State array (NI+2*nghost, NJ+2*nghost, 4).
+    Si_x, Si_y : jnp.ndarray
+        I-face normal vectors (NI+1, NJ).
+    Sj_x, Sj_y : jnp.ndarray
+        J-face normal vectors (NI, NJ+1).
+    beta : float
+        Artificial compressibility parameter.
+    nghost : int
+        Number of ghost cells.
         
-        nghost = NGHOST
+    Returns
+    -------
+    lambda_i, lambda_j : jnp.ndarray
+        Spectral radii in I and J directions (NI, NJ).
+    """
+    NI = Si_x.shape[0] - 1
+    NJ = Si_x.shape[1]
+    
+    # Extract interior velocities with concrete indices
+    u = Q[nghost:nghost+NI, nghost:nghost+NJ, 1]
+    v = Q[nghost:nghost+NI, nghost:nghost+NJ, 2]
+    
+    return _compute_spectral_radii_jax_kernel(u, v, Si_x, Si_y, Sj_x, Sj_y, beta)
+
+@jax.jit
+def _compute_local_timestep_jax_kernel(lambda_i, lambda_j, volume, 
+                                        Si_x, Si_y, Sj_x, Sj_y,
+                                        cfl, nu, min_dt, max_dt,
+                                        k4, martinelli_alpha, martinelli_max, c_safety):
+    """JIT-compiled kernel for local timestep with dissipative stability."""
+    # Compute Martinelli scaling factors
+    ratio_ji = lambda_j / (lambda_i + 1e-12)
+    ratio_ij = lambda_i / (lambda_j + 1e-12)
+    
+    f_i = 1.0 + jnp.power(ratio_ji, martinelli_alpha)
+    f_j = 1.0 + jnp.power(ratio_ij, martinelli_alpha)
+    
+    f_i = jnp.minimum(f_i, martinelli_max)
+    f_j = jnp.minimum(f_j, martinelli_max)
+    
+    # Effective spectral radii with dissipative stability
+    diss_factor_i = 1.0 + c_safety * k4 * f_i
+    diss_factor_j = 1.0 + c_safety * k4 * f_j
+    
+    lambda_eff_i = lambda_i * diss_factor_i
+    lambda_eff_j = lambda_j * diss_factor_j
+    
+    lambda_sum = jnp.maximum(lambda_eff_i + lambda_eff_j, 1e-12)
+    dt_conv = cfl * volume / lambda_sum
+    
+    # Viscous time step limit
+    def compute_with_viscous():
+        Si_mag_L = jnp.sqrt(Si_x[:-1, :]**2 + Si_y[:-1, :]**2)
+        Si_mag_R = jnp.sqrt(Si_x[1:, :]**2 + Si_y[1:, :]**2)
+        Si_avg = 0.5 * (Si_mag_L + Si_mag_R)
         
-        dt = compute_local_timestep_jax(
-            Q, Si_x, Si_y, Sj_x, Sj_y, volume, beta, cfg.cfl,
-            nghost, nu, cfg.min_dt, cfg.max_dt,
-            cfg.k4, cfg.martinelli_alpha, cfg.martinelli_max, cfg.c_safety
-        )
+        Sj_mag_B = jnp.sqrt(Sj_x[:, :-1]**2 + Sj_y[:, :-1]**2)
+        Sj_mag_T = jnp.sqrt(Sj_x[:, 1:]**2 + Sj_y[:, 1:]**2)
+        Sj_avg = 0.5 * (Sj_mag_B + Sj_mag_T)
         
-        if cfg.use_global_dt:
-            dt_global = jnp.min(dt)
-            dt = jnp.full_like(dt, dt_global)
+        dx = volume / (Sj_avg + 1e-12)
+        dy = volume / (Si_avg + 1e-12)
         
-        return dt
+        dx_min = jnp.minimum(dx, dy)
+        dt_visc = 0.25 * dx_min**2 / nu * cfl
+        
+        return jnp.minimum(dt_conv, dt_visc)
+    
+    dt = jax.lax.cond(
+        nu > 1e-12,
+        compute_with_viscous,
+        lambda: dt_conv
+    )
+    
+    dt = jnp.clip(dt, min_dt, max_dt)
+    
+    return dt
+
+def compute_local_timestep_jax(Q, Si_x, Si_y, Sj_x, Sj_y, volume, beta, cfl, 
+                                nghost, nu=0.0, min_dt=0.0, max_dt=1e10,
+                                k4=0.016, martinelli_alpha=0.667, 
+                                martinelli_max=3.0, c_safety=8.0):
+    """
+    JAX: Compute local time step for each cell with dissipative stability.
+    
+    Parameters
+    ----------
+    Q : jnp.ndarray
+        State array (NI+2*nghost, NJ+2*nghost, 4).
+    Si_x, Si_y : jnp.ndarray
+        I-face normal vectors (NI+1, NJ).
+    Sj_x, Sj_y : jnp.ndarray
+        J-face normal vectors (NI, NJ+1).
+    volume : jnp.ndarray
+        Cell volumes (NI, NJ).
+    beta : float
+        Artificial compressibility parameter.
+    cfl : float
+        CFL number.
+    nghost : int
+        Number of ghost cells.
+    nu : float
+        Kinematic viscosity (for viscous time step limit).
+    min_dt, max_dt : float
+        Time step limits.
+    k4 : float
+        JST 4th-order dissipation coefficient.
+    martinelli_alpha, martinelli_max : float
+        Martinelli scaling parameters.
+    c_safety : float
+        Safety factor for 4th-order stencil width.
+        
+    Returns
+    -------
+    dt : jnp.ndarray
+        Local time step (NI, NJ).
+    """
+    lambda_i, lambda_j = compute_spectral_radii_jax(
+        Q, Si_x, Si_y, Sj_x, Sj_y, beta, nghost
+    )
+    
+    return _compute_local_timestep_jax_kernel(
+        lambda_i, lambda_j, volume, Si_x, Si_y, Sj_x, Sj_y,
+        cfl, nu, min_dt, max_dt, k4, martinelli_alpha, martinelli_max, c_safety
+    )
+
+def compute_local_timestep_jax_wrapper(Q, Si_x, Si_y, Sj_x, Sj_y, volume, 
+                                        beta, cfg=None, nu=0.0):
+    """Wrapper for JAX local timestep with config object."""
+    if cfg is None:
+        cfg = TimeStepConfig()
+    
+    nghost = NGHOST
+    
+    dt = compute_local_timestep_jax(
+        Q, Si_x, Si_y, Sj_x, Sj_y, volume, beta, cfg.cfl,
+        nghost, nu, cfg.min_dt, cfg.max_dt,
+        cfg.k4, cfg.martinelli_alpha, cfg.martinelli_max, cfg.c_safety
+    )
+    
+    if cfg.use_global_dt:
+        dt_global = jnp.min(dt)
+        dt = jnp.full_like(dt, dt_global)
+    
+    return dt
