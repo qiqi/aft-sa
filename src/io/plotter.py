@@ -906,8 +906,12 @@ class PlotlyDashboard:
         
         p_steps = make_log_range_slider_steps(p_cfg.cmax, [1, 3], False, n_steps)
         v_steps = make_log_range_slider_steps(v_cfg.cmax, [5, 7], False, n_steps)
-        r_steps = make_log_range_slider_steps(r_cfg.cmax, [9], True, n_steps)
-        chi_steps = make_log_range_slider_steps(chi_cfg.cmax, [11], True, n_steps)
+        # Residual: 8 decades slider range, 8 decades display
+        r_steps = make_log_range_slider_steps(r_cfg.cmax, [9], True, n_steps, 
+                                              slider_decades=8.0, display_decades=8.0)
+        # Chi: 4 decades slider range, 5 decades display
+        chi_steps = make_log_range_slider_steps(chi_cfg.cmax, [11], True, n_steps,
+                                                slider_decades=4.0, display_decades=5.0)
         
         # Height: base 1600 + 350 for AFT row + 350 for wall_dist + 300 for surface
         height = 1600

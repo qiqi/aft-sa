@@ -62,7 +62,7 @@ def compute_color_ranges(
     )
     vel_abs_max = max(vel_abs_max, 1e-6)
     
-    # Residual: 3 orders of magnitude from max
+    # Residual: 8 orders of magnitude from max
     if has_res_field:
         res_vals = []
         for s in snapshots:
@@ -73,24 +73,23 @@ def compute_color_ranges(
             res_max = max(safe_minmax(v, default_min=-12, default_max=0)[1] for v in res_vals)
         else:
             res_max = 0
-        res_min = res_max - 3
+        res_min = res_max - 8  # 8 decades display range
     else:
-        res_min, res_max = -3, 0
+        res_min, res_max = -8, 0
     
-    # Chi range (log scale)
+    # Chi range (log scale) - always display 5 decades centered on data
     chi_max_vals = []
-    chi_min_vals = []
     for s in snapshots:
         nu_pos = s.nu[s.nu > 0]
         if len(nu_pos) > 0:
             chi_pos = nu_pos / nu_laminar
             chi_log = np.log10(chi_pos)
-            min_val, max_val = safe_minmax(chi_log, default_min=-6, default_max=6)
+            _, max_val = safe_minmax(chi_log, default_min=-6, default_max=6)
             chi_max_vals.append(max_val)
-            chi_min_vals.append(min_val)
     
     chi_max = max(chi_max_vals) if chi_max_vals else 6.0
-    chi_min = min(chi_min_vals) if chi_min_vals else -6.0
+    # Display 5 decades: chi_min = chi_max - 5
+    chi_min = chi_max - 5.0
     
     return {
         'pressure': ColorAxisConfig(
@@ -251,8 +250,10 @@ def make_log_range_slider_steps(
     trace_indices: List[int],
     is_residual: bool = False,
     n_steps: int = 50,
+    slider_decades: float = 3.0,
+    display_decades: float = 3.0,
 ) -> List[Dict[str, Any]]:
-    """Create continuous logarithmic slider steps (3 orders of magnitude).
+    """Create continuous logarithmic slider steps.
     
     Parameters
     ----------
@@ -264,6 +265,10 @@ def make_log_range_slider_steps(
         If True, treat as log-scale residual field.
     n_steps : int
         Number of slider steps.
+    slider_decades : float
+        Total range of slider in decades (half on each side of center).
+    display_decades : float
+        Number of decades to display (for log fields, zmin = zmax - display_decades).
         
     Returns
     -------
@@ -271,12 +276,13 @@ def make_log_range_slider_steps(
         Slider step configurations.
     """
     steps = []
-    log_factors = np.linspace(-1.5, 1.5, n_steps)
+    half_range = slider_decades / 2.0
+    log_factors = np.linspace(-half_range, half_range, n_steps)
     
     for log_f in log_factors:
         if is_residual:
             new_max = base_val + log_f
-            new_min = new_max - 3.0
+            new_min = new_max - display_decades
             label = f'{new_max:.1f}'
             steps.append(dict(
                 method='restyle',
