@@ -18,7 +18,7 @@ This file coordinates work between multiple AI agents and human contributors on 
 
 | Agent Name/Role | Target File/Folder | Task Description | Start Time |
 |-----------------|-------------------|------------------|------------|
-| *None currently* | — | — | — |
+| Claude | `src/numerics/preconditioner.py` | Phase 1: Block-Jacobi Preconditioner | 2026-01-05 |
 
 ---
 

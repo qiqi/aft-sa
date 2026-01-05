@@ -37,11 +37,12 @@ from ..numerics.fluxes import compute_fluxes_jax
 from ..numerics.gradients import compute_gradients_jax
 # viscous_fluxes: tight_with_ghosts version used
 from ..numerics.explicit_smoothing import smooth_explicit_jax
-from ..numerics.sa_sources import compute_sa_source_jax, compute_aft_sa_source_jax, compute_turbulent_fraction
+from ..numerics.sa_sources import compute_aft_sa_source_jax, compute_turbulent_fraction
 from ..numerics.aft_sources import compute_Re_Omega, compute_gamma
 from ..numerics.gradients import compute_vorticity_jax
 from .time_stepping import compute_local_timestep_jax
 from .boundary_conditions import make_apply_bc_jit
+from ..numerics.preconditioner import BlockJacobiPreconditioner
 
 
 @dataclass
@@ -70,6 +71,14 @@ class SolverConfig:
     html_compress: bool = False  # Gzip compress HTML output (typically 5-10x smaller)
     divergence_history: int = 1
     target_yplus: float = 1.0  # Target y+ for grid quality warning
+    
+    # Solver mode: "rk5" (explicit RK5), "rk5_precond" (RK5 with block-Jacobi),
+    #              "newton" (Newton-GMRES with block-Jacobi)
+    solver_mode: str = "rk5"
+    
+    # GMRES settings (only used for newton mode)
+    gmres_restart: int = 20     # GMRES(m) restart parameter
+    gmres_tol: float = 1e-3     # Relative tolerance for GMRES
     
     # AFT Transition Model Configuration
     aft_gamma_coeff: float = 2.0      # Gamma formula coefficient
@@ -467,6 +476,134 @@ class RANSSolver:
         
         self._jit_rk_stage = jit_rk_stage
         self._jit_compute_dt = jit_compute_dt
+        
+        # Create residual-only function (for preconditioner and Newton)
+        self._create_residual_function()
+    
+    def _create_residual_function(self):
+        """Create JIT-compiled residual function R(Q) for preconditioner and Newton solver.
+        
+        This function computes the full residual (convective + viscous + source terms)
+        without performing any updates. Used for:
+        - Block-Jacobi preconditioner computation
+        - Newton-GMRES Jacobian-vector products
+        """
+        # Capture in closure
+        Si_x = self.Si_x_jax
+        Si_y = self.Si_y_jax
+        Sj_x = self.Sj_x_jax
+        Sj_y = self.Sj_y_jax
+        volume = self.volume_jax
+        wall_dist = self.wall_dist_jax
+        beta = self.config.beta
+        k4 = self.config.jst_k4
+        nu = self.mu_laminar
+        nghost = NGHOST
+        smoothing_epsilon = getattr(self.config, 'smoothing_epsilon', 0.2)
+        smoothing_passes = getattr(self.config, 'smoothing_passes', 2)
+        apply_bc = self.apply_bc_jit
+        
+        # Face geometry
+        d_coord_i = self.d_coord_i_jax
+        e_coord_i_x = self.e_coord_i_x_jax
+        e_coord_i_y = self.e_coord_i_y_jax
+        e_ortho_i_x = self.e_ortho_i_x_jax
+        e_ortho_i_y = self.e_ortho_i_y_jax
+        d_coord_j = self.d_coord_j_jax
+        e_coord_j_x = self.e_coord_j_x_jax
+        e_coord_j_y = self.e_coord_j_y_jax
+        e_ortho_j_x = self.e_ortho_j_x_jax
+        e_ortho_j_y = self.e_ortho_j_y_jax
+        ls_weights_i = self.ls_weights_i_jax
+        ls_weights_j = self.ls_weights_j_jax
+        
+        # AFT parameters
+        aft_gamma_coeff = self.config.aft_gamma_coeff
+        aft_re_omega_scale = self.config.aft_re_omega_scale
+        aft_log_divisor = self.config.aft_log_divisor
+        aft_sigmoid_center = self.config.aft_sigmoid_center
+        aft_sigmoid_slope = self.config.aft_sigmoid_slope
+        aft_rate_scale = self.config.aft_rate_scale
+        aft_blend_threshold = self.config.aft_blend_threshold
+        aft_blend_width = self.config.aft_blend_width
+        
+        @jax.jit
+        def jit_residual(Q):
+            """Compute residual R(Q) = sum of all flux/source contributions.
+            
+            Returns R such that dQ/dt = -R/V (the negative sign is implicit).
+            For Newton: we solve R(Q) = 0.
+            
+            Note: This function does NOT include residual smoothing. Smoothing
+            is applied separately in RK modes, or should be wrapped for Newton.
+            """
+            # Apply boundary conditions
+            Q = apply_bc(Q)
+            
+            # Convective fluxes
+            R = compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost)
+            
+            # Gradients
+            grad = compute_gradients_jax(Q, Si_x, Si_y, Sj_x, Sj_y, volume, nghost)
+            
+            # Turbulent viscosity
+            Q_int = Q[nghost:-nghost, nghost:-nghost, :]
+            nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
+            vel_mag = jnp.sqrt(Q_int[:, :, 1]**2 + Q_int[:, :, 2]**2)
+            
+            chi = nu_tilde / (nu + 1e-30)
+            cv1 = 7.1
+            chi3 = chi ** 3
+            f_v1 = chi3 / (chi3 + cv1 ** 3)
+            mu_t = nu_tilde * f_v1
+            mu_eff = nu + mu_t
+            
+            # Viscous fluxes
+            Q_with_ghosts = Q[nghost-1:-(nghost-1), nghost-1:-(nghost-1), :]
+            R_visc = compute_viscous_fluxes_tight_with_ghosts_jax(
+                Q_with_ghosts, Si_x, Si_y, Sj_x, Sj_y,
+                d_coord_i, e_coord_i_x, e_coord_i_y, e_ortho_i_x, e_ortho_i_y,
+                d_coord_j, e_coord_j_x, e_coord_j_y, e_ortho_j_x, e_ortho_j_y,
+                ls_weights_i, ls_weights_j,
+                mu_eff, nu, nu_tilde
+            )
+            R = R.at[:, :, 1:4].add(R_visc[:, :, 1:4])
+            
+            # SA source terms
+            P, D, cb2_term = compute_aft_sa_source_jax(
+                nu_tilde, grad, wall_dist, vel_mag, nu,
+                aft_gamma_coeff, aft_re_omega_scale, aft_log_divisor,
+                aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale,
+                aft_blend_threshold, aft_blend_width
+            )
+            R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
+            
+            return R
+        
+        self._jit_residual = jit_residual
+    
+    def compute_preconditioner(self):
+        """Compute block-Jacobi preconditioner at current state.
+        
+        Stores the preconditioner for use in step() and Newton iterations.
+        Should be called:
+        - Every iteration for rk5_precond mode
+        - Every Newton iteration for newton mode
+        """
+        # Get current timestep for implicit diagonal
+        cfl = self._get_cfl(self.iteration)
+        dt = self._jit_compute_dt(self.Q_jax, cfl)
+        
+        self._preconditioner = BlockJacobiPreconditioner.compute(
+            residual_fn=self._jit_residual,
+            Q=self.Q_jax,
+            dt=dt,
+            volume=self.volume_jax,
+            nghost=NGHOST,
+        )
+        
+        # Store JIT-compiled apply function
+        self._precond_apply = self._preconditioner.apply_jit()
     
     def _warmup_jax(self):
         """Warm up JAX JIT compilation with dummy iterations."""
@@ -660,31 +797,148 @@ class RANSSolver:
         
         Fully GPU-accelerated using JIT-compiled RK stages.
         No CPU transfers - state stays on GPU.
-        """
-        cfl = self._get_cfl(self.iteration)
         
-        # Compute timestep using JIT function
+        Supports three modes:
+        - rk5: Standard explicit RK5 (default)
+        - rk5_precond: RK5 with block-Jacobi preconditioned residual
+        - newton: Newton-GMRES with block-Jacobi (not yet implemented)
+        """
+        solver_mode = getattr(self.config, 'solver_mode', 'rk5')
+        
+        if solver_mode == 'newton':
+            raise NotImplementedError(
+                "Newton-GMRES mode not yet implemented. Use 'rk5' or 'rk5_precond'."
+            )
+        elif solver_mode == 'rk5_precond':
+            self._step_rk5_preconditioned()
+        else:  # rk5
+            self._step_rk5()
+        
+        self.iteration += 1
+    
+    def _step_rk5(self) -> None:
+        """Standard explicit RK5 step."""
+        cfl = self._get_cfl(self.iteration)
         dt = self._jit_compute_dt(self.Q_jax, cfl)
         
-        # RK5 coefficients
         alphas = [0.25, 0.166666667, 0.375, 0.5, 1.0]
         
-        # Store initial state (on GPU)
         Q0 = self.Q_jax
         Q = self.Q_jax
         
-        # RK stages - all using single JIT-compiled function per stage
         for alpha in alphas:
             Q, R = self._jit_rk_stage(Q, Q0, dt, alpha)
         
-        # Final BC on GPU
         Q = self.apply_bc_jit(Q)
         
-        # Store results on GPU (no CPU transfer!)
         self.Q_jax = Q
-        self.R_jax = R  # Last RK residual (for visualization)
+        self.R_jax = R
+    
+    def _step_rk5_preconditioned(self) -> None:
+        """RK5 step with block-Jacobi preconditioned residual.
         
-        self.iteration += 1
+        The preconditioner P^{-1} is applied to the residual before the RK update:
+            dQ = alpha * dt/V * P^{-1} @ R
+        
+        This accelerates convergence by accounting for local stiffness from
+        turbulent viscosity and artificial compressibility.
+        """
+        cfl = self._get_cfl(self.iteration)
+        dt = self._jit_compute_dt(self.Q_jax, cfl)
+        
+        # Compute preconditioner at current state
+        # This is done every iteration for maximum accuracy
+        self.compute_preconditioner()
+        
+        alphas = [0.25, 0.166666667, 0.375, 0.5, 1.0]
+        
+        Q0 = self.Q_jax
+        Q = self.Q_jax
+        
+        for alpha in alphas:
+            Q, R = self._rk_stage_preconditioned(Q, Q0, dt, alpha)
+        
+        Q = self.apply_bc_jit(Q)
+        
+        self.Q_jax = Q
+        self.R_jax = R
+    
+    def _rk_stage_preconditioned(
+        self, Q: jnp.ndarray, Q0: jnp.ndarray, dt: jnp.ndarray, alpha: float
+    ) -> Tuple[jnp.ndarray, jnp.ndarray]:
+        """Single RK stage with preconditioned residual.
+        
+        Computes: Q_new = Q0 + alpha * dt/V * P^{-1} @ R
+        
+        Note: This is not fully JIT-compiled because the preconditioner
+        changes every iteration. The residual and update are JIT-compiled
+        separately.
+        """
+        nghost = NGHOST
+        smoothing_epsilon = getattr(self.config, 'smoothing_epsilon', 0.2)
+        smoothing_passes = getattr(self.config, 'smoothing_passes', 2)
+        
+        # Apply BC and compute residual
+        Q = self.apply_bc_jit(Q)
+        R = self._jit_residual(Q)  # (NI, NJ, 4)
+        
+        # Apply preconditioner: R_precond = P^{-1} @ R
+        R_precond = self._precond_apply(R)  # (NI, NJ, 4)
+        
+        # Apply residual smoothing AFTER preconditioning (for RK modes)
+        if smoothing_epsilon > 0 and smoothing_passes > 0:
+            R_precond = smooth_explicit_jax(R_precond, smoothing_epsilon, smoothing_passes)
+        
+        # Compute update with Patankar for nuHat
+        Q_int_new = self._apply_rk_update(Q0, R_precond, dt, alpha)
+        
+        Q_new = Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
+        
+        return Q_new, R
+    
+    @staticmethod
+    @jax.jit
+    def _apply_rk_update_static(
+        Q0_int: jnp.ndarray, 
+        R: jnp.ndarray, 
+        dt: jnp.ndarray,
+        volume_inv: jnp.ndarray,
+        alpha: float
+    ) -> jnp.ndarray:
+        """Apply RK update with Patankar scheme for nuHat.
+        
+        Static method for JIT compilation.
+        """
+        # Reduced CFL for nuHat
+        dt_factors = jnp.array([1.0, 1.0, 1.0, 0.5])
+        dQ = alpha * (dt * volume_inv)[:, :, jnp.newaxis] * dt_factors * R
+        
+        # Explicit update
+        Q_int_new = Q0_int + dQ
+        
+        # Patankar for nuHat when destruction dominated
+        nuHat_old = Q0_int[:, :, 3]
+        dNuHat = dQ[:, :, 3]
+        nuHat_explicit = Q_int_new[:, :, 3]
+        
+        nuHat_patankar = jnp.where(
+            nuHat_old > 0,
+            nuHat_old / (1.0 - dNuHat / nuHat_old),
+            nuHat_explicit
+        )
+        
+        nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, nuHat_explicit)
+        nuHat_new = jnp.maximum(nuHat_new, 0.0)
+        
+        return Q_int_new.at[:, :, 3].set(nuHat_new)
+    
+    def _apply_rk_update(
+        self, Q0: jnp.ndarray, R: jnp.ndarray, dt: jnp.ndarray, alpha: float
+    ) -> jnp.ndarray:
+        """Apply RK update - wrapper for static JIT function."""
+        nghost = NGHOST
+        Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
+        return self._apply_rk_update_static(Q0_int, R, dt, self.volume_inv_jax, alpha)
     
     def get_residual_rms(self) -> Tuple[float, float, float, float]:
         """Compute RMS of residual for all 4 equations.

@@ -3,15 +3,20 @@
 
 grid:
   airfoil: data/naca0012.dat
-  n_surface: 193      # Surface nodes
-  n_wake: 48          # Wake region nodes
-  y_plus: 1.0         # Target y+ for first cell
-  gradation: 1.2      # Wall-normal cell growth ratio (1.1-1.3 recommended)
+  n_surface: 193        # Surface nodes (cells = nodes - 1)
+  n_wake: 48            # Wake region nodes
+  y_plus: 1.0           # Target y+ for first cell
+  gradation: 1.2        # Wall-normal cell growth ratio (1.1-1.3 recommended)
+  farfield_radius: 15.0 # Farfield distance in chords
 
 flow:
-  reynolds: 1.0e+6    # Re = 1 million
-  alpha: 4.0          # 4 degrees angle of attack
-  chi_inf: 0.0001     # Low initial turbulence for AFT transition model
+  reynolds: 1.0e+6      # Re = 1 million
+  alpha: 4.0            # Angle of attack in degrees
+  # Alpha can also be:
+  #   sweep: [-5, 15, 21]           # start, end, count
+  #   values: [0, 2, 4, 6, 8]       # explicit list
+  chi_inf: 0.0001       # Initial/farfield turbulent viscosity ratio (ν̃/ν)
+                        # Low value for transition prediction with AFT model
 
 solver:
   max_iter: 40000
@@ -20,15 +25,39 @@ solver:
   diagnostic_freq: 2000
   
   cfl:
-    initial: 0.1
-    final: 2.5        # Conservative CFL
-    ramp_iter: 500
+    initial: 0.1        # Starting CFL
+    final: 2.5          # Target CFL (conservative)
+    ramp_iter: 500      # Iterations to ramp from initial to final
 
 numerics:
-  jst_k4: 0.04        # 4th-order dissipation
-  beta: 10.0          # Artificial compressibility
+  jst_k4: 0.04              # 4th-order dissipation coefficient
+  beta: 10.0                # Artificial compressibility parameter
+  wall_damping_length: 0.1  # Wall damping length scale
+  sponge_thickness: 15      # Sponge layer thickness in cells for farfield stabilization
 
 output:
   directory: output/naca0012_re1m
   case_name: naca0012_re1m_a4
   html_animation: true
+  divergence_history: 1     # Solutions to keep for divergence visualization
+
+device:
+  device: auto              # "auto", "cpu", or GPU index ("0", "1", "cuda:0")
+
+# AFT (Amplification Factor Transport) transition model configuration
+# All parameters are tunable for ensemble studies and parameter optimization
+aft:
+  # Gamma calculation: Γ = gamma_coeff * (ω·d)² / (|V|² + (ω·d)²)
+  gamma_coeff: 2.0
+  
+  # Amplification rate: rate = rate_scale / (1 + exp(-slope * (a - center)))
+  # where a = log10(Re_Ω / re_scale) / log_divisor + Γ
+  re_omega_scale: 1000.0    # Re_Ω normalization
+  log_divisor: 50.0         # Log term divisor
+  sigmoid_center: 1.04      # Sigmoid activation center
+  sigmoid_slope: 35.0       # Sigmoid steepness
+  rate_scale: 0.2           # Maximum growth rate
+  
+  # Blending: is_turb = clip(1 - exp(-(nuHat - threshold) / width), 0, 1)
+  blend_threshold: 1.0      # nuHat value at transition
+  blend_width: 1.0          # Smoothness of transition

@@ -69,6 +69,14 @@ class SolverSettings:
     print_freq: int = 10
     diagnostic_freq: int = 100
     cfl: CFLConfig = field(default_factory=CFLConfig)
+    
+    # Solver mode: "rk5" (explicit RK5), "rk5_precond" (RK5 with block-Jacobi),
+    #              "newton" (Newton-GMRES with block-Jacobi)
+    mode: str = "rk5"
+    
+    # GMRES settings (only used for newton mode)
+    gmres_restart: int = 20     # GMRES(m) restart parameter
+    gmres_tol: float = 1e-3     # Relative tolerance for GMRES
 
 
 @dataclass
