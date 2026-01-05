@@ -689,18 +689,18 @@ class RANSSolver:
         # Compute gradients
         grad = compute_gradients_jax(
             self.Q_jax, 
-            self.flux_metrics.Si_x, 
-            self.flux_metrics.Si_y,
-            self.flux_metrics.Sj_x, 
-            self.flux_metrics.Sj_y,
-            self.volume, NGHOST
+            self.Si_x_jax, 
+            self.Si_y_jax,
+            self.Sj_x_jax, 
+            self.Sj_y_jax,
+            self.volume_jax, NGHOST
         )
         
         # Compute vorticity magnitude
         omega_mag = compute_vorticity_jax(grad)
         
-        # Get wall distance
-        wall_dist = self.wall_distance
+        # Get wall distance (already interior cells, no ghost padding)
+        wall_dist = self.wall_dist_jax
         
         # Compute AFT fields using existing functions
         nu = 1.0 / self.config.reynolds
