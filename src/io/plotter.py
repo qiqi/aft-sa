@@ -1154,25 +1154,29 @@ class PlotlyDashboard:
                 field_positions.append(self.layout.get_position(name))
         
         # Apply isotropic scaling to ALL 2D contour plots
-        # Use scaleanchor and scaleratio=1 on each to force equal axis scaling
-        for row, col in field_positions:
-            # Get the actual xaxis/yaxis keys for this subplot from the figure
-            # This handles the complexity of skipped indices due to colspan/None cells
-            xaxis_key = self._get_subplot_xaxis_key(fig, row, col)
+        # Use scaleanchor for isotropic aspect, matches for linked pan/zoom
+        # IMPORTANT: all contour plots share the same x and y ranges for consistent behavior
+        for i, (row, col) in enumerate(field_positions):
+            # Get the yaxis key for scaleanchor reference
             yaxis_key = self._get_subplot_yaxis_key(fig, row, col)
-            
-            # yaxis_name for scaleanchor is just the number part, e.g., 'y' -> 'y', 'yaxis3' -> 'y3'
             yaxis_name = yaxis_key.replace('axis', '')
             
-            fig.update_xaxes(
+            # Common settings for all contour plots
+            x_settings = dict(
                 title_text='x', range=[-0.5, 1.5],
                 scaleanchor=yaxis_name, scaleratio=1,
-                row=row, col=col
             )
-            fig.update_yaxes(
+            y_settings = dict(
                 title_text='y', range=[-0.5625, 0.5625],
-                row=row, col=col
             )
+            
+            # Add matches for all plots except the first
+            if i > 0:
+                x_settings['matches'] = 'x'
+                y_settings['matches'] = 'y'
+            
+            fig.update_xaxes(**x_settings, row=row, col=col)
+            fig.update_yaxes(**y_settings, row=row, col=col)
         
         # Convergence plot
         fig.update_xaxes(title_text='Iteration', matches=None, autorange=True, fixedrange=True, row=conv_row, col=1)
