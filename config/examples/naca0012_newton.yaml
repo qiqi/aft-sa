@@ -18,9 +18,9 @@ flow:
   chi_inf: 0.0001       # Initial/farfield turbulent viscosity ratio
 
 solver:
-  max_iter: 1000       # Fewer iterations needed with Newton
+  max_iter: 10       # Fewer iterations needed with Newton
   tol: 1.0e-8
-  print_freq: 10
+  print_freq: 1
   diagnostic_freq: 500
   
   # Solver mode: "rk5" (default), "rk5_precond", or "newton"
