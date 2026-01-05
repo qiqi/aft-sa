@@ -64,6 +64,47 @@ class TestNewtonCFLRamping:
         
         # At 200 iters (2 decades): CFL = 0.1 * 10^2 = 10.0
         assert abs(cfl_200 - 10.0) < 1.0
+    
+    def test_cfl_capped_at_final(self, valid_grid_path):
+        """Test that CFL is capped at the final value."""
+        config = SolverConfig(
+            alpha=0.0,
+            reynolds=1e6,
+            cfl_start=0.1,
+            cfl_target=100.0,  # Set a reasonable cap
+            cfl_ramp_iters=50,  # Fast ramping
+            solver_mode='newton',
+            html_animation=False,
+        )
+        
+        solver = RANSSolver(valid_grid_path, config)
+        
+        # After many iterations, CFL should be capped at final
+        cfl_1000 = solver._get_cfl_newton(1000)
+        assert cfl_1000 == 100.0, f"CFL should be capped at 100, got {cfl_1000}"
+    
+    def test_rk_cfl_uses_linear_ramp(self, valid_grid_path):
+        """Test that RK mode uses linear ramping."""
+        config = SolverConfig(
+            alpha=0.0,
+            reynolds=1e6,
+            cfl_start=0.5,
+            cfl_target=5.0,
+            cfl_ramp_iters=100,  # Linear ramp over 100 iterations
+            solver_mode='rk5',
+            html_animation=False,
+        )
+        
+        solver = RANSSolver(valid_grid_path, config)
+        
+        # At iteration 50 (halfway): should be 0.5 + 0.5*(5.0-0.5) = 2.75
+        cfl_50 = solver._get_cfl(50)
+        expected = 0.5 + 0.5 * (5.0 - 0.5)
+        assert abs(cfl_50 - expected) < 0.01, f"Expected {expected}, got {cfl_50}"
+        
+        # At iteration 100+: should be at target
+        cfl_100 = solver._get_cfl(100)
+        assert cfl_100 == 5.0, f"Expected 5.0, got {cfl_100}"
 
 
 class TestNewtonUpdate:

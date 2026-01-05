@@ -1243,7 +1243,12 @@ class RANSSolver:
                 # Use previous max residual for convergence check
                 res_max = max(self.residual_history[-1]) if self.residual_history else 1.0
             
-            cfl = self._get_cfl(self.iteration)
+            # Get CFL using the appropriate method for the solver mode
+            solver_mode = getattr(self.config, 'solver_mode', 'rk5')
+            if solver_mode == 'newton':
+                cfl = self._get_cfl_newton(self.iteration)
+            else:
+                cfl = self._get_cfl(self.iteration)
             
             if need_print:
                 # Transfer Q to CPU for force computation
