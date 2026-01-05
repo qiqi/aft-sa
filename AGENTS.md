@@ -38,6 +38,7 @@ Archive of recently completed work (for reference):
 
 | Date | Agent | Files | Summary |
 |------|-------|-------|---------|
+| 2026-01-05 | Claude | `scripts/analysis/` | Cleanup: removed debug scripts for BL analysis, momentum balance diagnostics |
 | 2026-01-05 | Claude | `src/solvers/boundary_conditions.py`, `src/solvers/batch.py`, `tests/` | Investigated wall BC - confirmed u_ghost=-u_int is CORRECT (Q stores physical velocity, not perturbation). Fixed test file to use from_alpha(). |
 | 2026-01-05 | Claude | `src/io/_layout.py`, `src/io/plotter.py`, `scripts/` | Fixed HTML layout: subplot titles, colorbar y-alignment from actual subplot domains, fixed scaleanchor yaxis references |
 | 2026-01-05 | Claude | `scripts/` | Created debug_layout.py - Visual Layout Validator using Playwright |

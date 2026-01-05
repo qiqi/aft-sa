@@ -67,9 +67,9 @@ class BoundaryConditionTests:
     
     # ===== FreestreamConditions Tests =====
     
-    def test_freestream_from_mach_alpha(self):
-        """Test freestream creation from Mach/alpha."""
-        fs = FreestreamConditions.from_mach_alpha(mach=0.2, alpha_deg=5.0)
+    def test_freestream_from_alpha(self):
+        """Test freestream creation from alpha."""
+        fs = FreestreamConditions.from_alpha(alpha_deg=5.0)
         
         # Check velocity magnitude is 1
         vel_mag = np.sqrt(fs.u_inf**2 + fs.v_inf**2)
@@ -85,7 +85,7 @@ class BoundaryConditionTests:
     
     def test_freestream_zero_alpha(self):
         """Test freestream at zero angle of attack."""
-        fs = FreestreamConditions.from_mach_alpha(mach=0.3, alpha_deg=0.0)
+        fs = FreestreamConditions.from_alpha(alpha_deg=0.0)
         
         if not np.isclose(fs.u_inf, 1.0, rtol=0.01):
             return False, f"u_inf {fs.u_inf:.4f} != 1.0"
@@ -561,7 +561,7 @@ class BoundaryConditionTests:
     def run_all(self):
         """Run all tests."""
         # Freestream tests
-        self.run_test("freestream_from_mach_alpha", self.test_freestream_from_mach_alpha)
+        self.run_test("freestream_from_alpha", self.test_freestream_from_alpha)
         self.run_test("freestream_zero_alpha", self.test_freestream_zero_alpha)
         
         # Initialization tests

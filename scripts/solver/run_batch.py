@@ -43,8 +43,6 @@ def parse_args():
     # Flow conditions
     parser.add_argument('--reynolds', '-Re', type=float, default=6e6,
                         help="Reynolds number (default: 6e6)")
-    parser.add_argument('--mach', '-M', type=float, default=0.0,
-                        help="Mach number (default: 0.0, incompressible)")
     parser.add_argument('--chi-inf', type=float, default=0.0001,
                         help="Initial/farfield turbulent viscosity ratio χ = ν̃/ν (default: 0.0001)")
     
@@ -96,7 +94,6 @@ def create_flow_conditions(args, BatchFlowConditions):
     return BatchFlowConditions.from_sweep(
         alpha_spec=alpha_spec,
         reynolds=args.reynolds,
-        mach=args.mach,
         chi_inf=args.chi_inf
     )
 
@@ -134,13 +131,11 @@ def main():
         # Create flow conditions from config
         alpha_spec = config.flow.get('alpha', 0.0)
         reynolds = config.flow.get('reynolds', 6e6)
-        mach = config.flow.get('mach', 0.0)
         chi_inf = config.flow.get('chi_inf', 0.0001)
         
         flow_conditions = BatchFlowConditions.from_sweep(
             alpha_spec=alpha_spec,
             reynolds=reynolds,
-            mach=mach,
             chi_inf=chi_inf
         )
         

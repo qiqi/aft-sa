@@ -249,7 +249,7 @@ def _compute_wall_distance_jax(
     """
     NI, NJ = xc.shape
     n_wall = x_wall.shape[0]
-    n_segments = n_wall - 1
+    _n_segments = n_wall - 1
     
     # Reshape for broadcasting:
     # Cell centers: (NI, NJ, 1) - broadcast over segments
@@ -448,7 +448,7 @@ class MetricComputer:
         X: NDArrayFloat = self.X
         Y: NDArrayFloat = self.Y
         NI: int = self.NI
-        NJ: int = self.NJ
+        _NJ: int = self.NJ
         
         xc: NDArrayFloat
         yc: NDArrayFloat
@@ -497,8 +497,8 @@ class MetricComputer:
         # Ensure cell centers are computed
         xc, yc = self._compute_cell_centers()
         
-        NI = self.NI
-        NJ = self.NJ
+        _NI = self.NI
+        _NJ = self.NJ
         
         # === I-faces: between cells (i,j) and (i+1,j) ===
         # Shape: (NI+1, NJ) - includes boundary faces

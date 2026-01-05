@@ -353,7 +353,7 @@ class TestBatchBoundaryConditions:
         nghost = small_grid['nghost']
         
         alpha = 5.0
-        freestream = FreestreamConditions.from_mach_alpha(0.0, alpha, reynolds=1e6)
+        freestream = FreestreamConditions.from_alpha(alpha, reynolds=1e6)
         
         # Single case BC
         apply_bc_single = make_apply_bc_jit(
@@ -503,8 +503,7 @@ class TestBatchStateIntegration:
         """Test BatchFlowConditions from sweep."""
         conditions = BatchFlowConditions.from_sweep(
             alpha_spec={'sweep': [-5, 10, 6]},  # 6 values: -5, -2, 1, 4, 7, 10
-            reynolds=6e6,
-            mach=0.0
+            reynolds=6e6
         )
         
         assert conditions.n_batch == 6

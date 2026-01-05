@@ -7,7 +7,7 @@ This module defines the building blocks for declarative dashboard layouts:
 - PlotSpec: Specification for a single subplot
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Dict, Any, Tuple
 
@@ -60,6 +60,8 @@ class PlotSpec:
         Colorbar configuration for contour plots
     data_key : str
         Key to extract data from Snapshot (e.g., "p", "u", "is_turb")
+    sharecontour : Optional[str]
+        Name of another plot whose colorbar to share (no colorbar shown for this plot)
     """
     name: str
     plot_type: PlotType
@@ -67,6 +69,7 @@ class PlotSpec:
     col_span: int = 1
     colorbar: Optional[ColorbarConfig] = None
     data_key: str = ""
+    sharecontour: Optional[str] = None
     
     def get_subplot_type(self) -> str:
         """Return Plotly subplot type string."""

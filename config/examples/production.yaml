@@ -9,7 +9,6 @@ grid:
 
 flow:
   reynolds: 6.0e+6
-  mach: 0.0
   alpha: 4.0
 
 solver:

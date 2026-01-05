@@ -15,7 +15,7 @@ def compute_mesh_quality(X, Y):
     x_j = X[1:-1, 2:] - X[1:-1, :-2]
     y_j = Y[1:-1, 2:] - Y[1:-1, :-2]
     
-    dot = x_i * x_j + y_i * y_j
+    _dot = x_i * x_j + y_i * y_j
     mag_i = np.sqrt(x_i**2 + y_i**2)
     mag_j = np.sqrt(x_j**2 + y_j**2)
     

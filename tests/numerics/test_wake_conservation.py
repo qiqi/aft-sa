@@ -180,7 +180,7 @@ class TestWakeConservationBaseline:
         )
         
         config = SolverConfig(
-            mach=0.15, alpha=5.0, reynolds=6e6, beta=10.0,
+            alpha=5.0, reynolds=6e6, beta=10.0,
             cfl_start=0.5, cfl_target=1.0, cfl_ramp_iters=50,
             max_iter=100, tol=1e-10, jst_k4=0.04,
             n_wake=16, print_freq=1000

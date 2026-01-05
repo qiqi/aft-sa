@@ -15,7 +15,6 @@ NDArrayFloat = npt.NDArray[np.floating]
 
 def create_solver(
     grid_file: str,
-    mach: float = 0.15,
     alpha: float = 0.0,
     reynolds: float = 6e6,
     n_surface: int = 129,
@@ -40,7 +39,7 @@ def create_solver(
     output_dir: str = "output/solver",
     case_name: str = "airfoil",
     diagnostic_freq: int = 100,
-    divergence_history: int = 0,
+    divergence_history: int = 1,
     project_root: Optional[Path] = None,
     verbose: bool = True,
 ) -> RANSSolver:
@@ -63,7 +62,6 @@ def create_solver(
     )
     
     config: SolverConfig = SolverConfig(
-        mach=mach,
         alpha=alpha,
         reynolds=reynolds,
         beta=beta,

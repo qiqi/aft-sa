@@ -177,7 +177,6 @@ def apply_cli_overrides(config: SimulationConfig, args) -> SimulationConfig:
         # Flow conditions
         'alpha': ('flow', 'alpha'),
         'reynolds': ('flow', 'reynolds'),
-        'mach': ('flow', 'mach'),
         'chi_inf': ('flow', 'chi_inf'),
         
         # Grid

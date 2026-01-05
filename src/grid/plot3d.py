@@ -75,7 +75,7 @@ def read_plot3d_binary(filename: str, single_precision: bool = True) -> Tuple[ND
         rec1_start: int = struct.unpack('i', f.read(int_size))[0]
         
         if rec1_start == 4:
-            nblocks: int = struct.unpack('i', f.read(int_size))[0]
+            _nblocks: int = struct.unpack('i', f.read(int_size))[0]
             f.read(int_size)
             f.read(int_size)
             ni = struct.unpack('i', f.read(int_size))[0]
@@ -86,7 +86,7 @@ def read_plot3d_binary(filename: str, single_precision: bool = True) -> Tuple[ND
             nj = struct.unpack('i', f.read(int_size))[0]
             remaining: int = rec1_start - 2 * int_size
             if remaining >= int_size:
-                nk: int = struct.unpack('i', f.read(int_size))[0]
+                _nk: int = struct.unpack('i', f.read(int_size))[0]
             f.read(int_size)
         
         n_points: int = ni * nj

@@ -861,7 +861,7 @@ def verify_wall_scaling(y_plus: np.ndarray, chi: np.ndarray,
     # Compute fv1 and nu_t
     chi3 = chi_wall ** 3
     fv1_wall = chi3 / (chi3 + CV1**3)
-    nu_t_wall = nuHat_wall * fv1_wall
+    _nu_t_wall = nuHat_wall * fv1_wall
     
     message = []
     

@@ -41,8 +41,8 @@ def compute_spectral_radii(Q: NDArrayFloat,
                            Sj_x: NDArrayFloat, Sj_y: NDArrayFloat,
                            beta: float) -> SpectralRadius:
     """Compute spectral radii Λ = |U_n| + c * |S| in I and J directions."""
-    NI: int = Q.shape[0] - 2
-    NJ: int = Q.shape[1] - 3
+    _NI: int = Q.shape[0] - 2
+    _NJ: int = Q.shape[1] - 3
     
     int_slice: slice = slice(NGHOST, -NGHOST)
     u: NDArrayFloat = Q[int_slice, int_slice, 1]

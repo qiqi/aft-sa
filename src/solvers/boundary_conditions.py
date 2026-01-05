@@ -25,15 +25,13 @@ class FreestreamConditions:
     nu_t_inf: float = 1e-9  # Default to negligible value
     
     @classmethod
-    def from_mach_alpha(cls, mach: float, alpha_deg: float,
-                        reynolds: float = 6e6,
-                        chi_inf: float = 3.0) -> 'FreestreamConditions':
+    def from_alpha(cls, alpha_deg: float,
+                   reynolds: float = 6e6,
+                   chi_inf: float = 3.0) -> 'FreestreamConditions':
         """Create from angle of attack (degrees) and Reynolds number.
 
         Parameters
         ----------
-        mach : float
-            Mach number (unused for incompressible, kept for API compatibility).
         alpha_deg : float
             Angle of attack in degrees.
         reynolds : float
@@ -104,7 +102,9 @@ class BoundaryConditions:
         
         j_int_first: int = NGHOST
         
-        # Airfoil surface (no-slip)
+        # Airfoil surface (no-slip wall)
+        # Q stores physical velocity. No-slip requires u_phys = 0 at wall.
+        # Ghost cell: (u_ghost + u_interior) / 2 = 0, so u_ghost = -u_interior
         Q[i_start:i_end, 1, 0] = Q[i_start:i_end, j_int_first, 0]
         Q[i_start:i_end, 1, 1] = -Q[i_start:i_end, j_int_first, 1]
         Q[i_start:i_end, 1, 2] = -Q[i_start:i_end, j_int_first, 2]
@@ -233,7 +233,7 @@ def apply_initial_wall_damping(Q: NDArrayFloat,
     else:
         raise ValueError("grid_metrics must have a 'wall_distance' attribute")
     
-    NI: int = Q.shape[0] - 2 * NGHOST
+    _NI: int = Q.shape[0] - 2 * NGHOST
     
     damping_factor: NDArrayFloat = 1.0 - np.exp(-wall_dist / decay_length)
     
@@ -324,8 +324,9 @@ def apply_surface_bc_jax(Q, n_wake_points, nghost=NGHOST):
     j_int_first = nghost
     
     # Airfoil surface (no-slip wall)
-    # Ghost layer 1 (j=1): reflect velocity, copy pressure
-    # For nuHat: use antisymmetric BC (nuHat=0 at wall)
+    # Q stores physical velocity. No-slip requires u_phys = 0 at wall.
+    # Ghost cell: (u_ghost + u_interior) / 2 = 0, so u_ghost = -u_interior
+    # Ghost layer 1 (j=1)
     Q = Q.at[i_start:i_end, 1, 0].set(Q[i_start:i_end, j_int_first, 0])
     Q = Q.at[i_start:i_end, 1, 1].set(-Q[i_start:i_end, j_int_first, 1])
     Q = Q.at[i_start:i_end, 1, 2].set(-Q[i_start:i_end, j_int_first, 2])
@@ -509,7 +510,7 @@ def make_apply_bc_jit(NI: int, NJ: int, n_wake_points: int,
     i_start = i_wake_end_lower + nghost  # airfoil start
     i_end = i_wake_start_upper + nghost  # airfoil end
     j_int_first = nghost
-    j_int_last = NJ + nghost - 1  # last interior J
+    _j_int_last = NJ + nghost - 1  # last interior J
     
     # Farfield values
     p_inf = freestream.p_inf
@@ -528,6 +529,8 @@ def make_apply_bc_jit(NI: int, NJ: int, n_wake_points: int,
         """Apply all boundary conditions (JIT-compiled) with Dirichlet farfield."""
         
         # === Surface BC: Airfoil wall (no-slip) ===
+        # Q stores physical velocity. No-slip requires u_phys = 0 at wall.
+        # Ghost cell: (u_ghost + u_interior) / 2 = 0, so u_ghost = -u_interior
         # Ghost layer 1 (j=1)
         Q = Q.at[i_start:i_end, 1, 0].set(Q[i_start:i_end, j_int_first, 0])
         Q = Q.at[i_start:i_end, 1, 1].set(-Q[i_start:i_end, j_int_first, 1])

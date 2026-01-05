@@ -8,7 +8,6 @@ grid:
 
 flow:
   reynolds: 6.0e+6
-  mach: 0.0
   
   # Batch mode: sweep specification
   alpha:

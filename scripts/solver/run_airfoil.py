@@ -255,8 +255,7 @@ Examples:
     print(f"Alpha: {sim_config.flow.alpha}°")
     print(f"Backend: JAX ({jax.devices()[0].device_kind})")
     print(f"Target CFL: {config.cfl_target} (ramp from {config.cfl_start} over {config.cfl_ramp_iters} iters)")
-    aft_status = "AFT-SA (transition)" if config.aft_enabled else "SA (fully turbulent)"
-    print(f"Turbulence model: {aft_status}, χ_inf={config.chi_inf:.4g}")
+    print(f"Turbulence model: AFT-SA (transition), χ_inf={config.chi_inf:.4g}")
     print(f"Output: HTML animation every {config.diagnostic_freq} iterations")
     
     # Run

@@ -96,8 +96,8 @@ def compute_fluxes(Q: NDArrayFloat, metrics: GridMetrics, beta: float,
 def compute_time_step(Q: NDArrayFloat, metrics: GridMetrics, beta: float,
                       cfl: float = 0.8) -> NDArrayFloat:
     """Compute local time step based on CFL condition."""
-    NI: int = Q.shape[0] - 2 * NGHOST
-    NJ: int = Q.shape[1] - 2 * NGHOST
+    _NI: int = Q.shape[0] - 2 * NGHOST
+    _NJ: int = Q.shape[1] - 2 * NGHOST
     
     int_slice: slice = slice(NGHOST, -NGHOST)
     Q_int: NDArrayFloat = Q[int_slice, int_slice, :]
@@ -199,10 +199,10 @@ def _compute_fluxes_jax_impl(Q_L_i, Q_R_i, Q_Lm1_i, Q_Rp1_i, Si_x, Si_y,
     NOTE: nuHat (index 3) uses FIRST-ORDER UPWIND for stability instead of JST.
     This prevents oscillations near sharp gradients (wall, wake cut).
     """
-    NI_p1, NJ_i = Si_x.shape
-    NI = NI_p1 - 1
+    NI_p1, _NJ_i = Si_x.shape
+    _NI = NI_p1 - 1
     NJ_j_p1 = Sj_y.shape[1]
-    NJ = NJ_j_p1 - 1
+    _NJ = NJ_j_p1 - 1
     
     # Extract interior velocities (NI, NJ)
     u_int = Q_int[:, :, 1]

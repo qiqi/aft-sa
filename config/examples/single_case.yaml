@@ -10,7 +10,6 @@ grid:
 
 flow:
   reynolds: 6.0e+6
-  mach: 0.0           # Incompressible
   alpha: 4.0          # 4 degrees angle of attack
 
 solver:

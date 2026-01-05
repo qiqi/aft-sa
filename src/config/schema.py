@@ -34,7 +34,6 @@ class FlowConfig:
     """Flow conditions configuration."""
     
     reynolds: float = 6.0e6
-    mach: float = 0.0          # 0 = incompressible
     
     # Alpha can be:
     # - Single value: alpha: 4.0
@@ -89,7 +88,7 @@ class OutputConfig:
     directory: str = "output/solver"
     case_name: str = "solution"
     html_animation: bool = True
-    divergence_history: int = 0  # Solutions to keep for divergence viz
+    divergence_history: int = 1  # Solutions to keep for divergence viz
 
 
 @dataclass
@@ -97,10 +96,7 @@ class AFTConfig:
     """AFT (Amplification Factor Transport) transition model configuration.
     
     All parameters are tunable for ensemble studies and parameter optimization.
-    Set enabled=False to use pure SA (fully turbulent).
     """
-    
-    enabled: bool = True  # Enable AFT transition model (default on)
     
     # Gamma calculation: Γ = gamma_coeff * (ω·d)² / (|V|² + (ω·d)²)
     gamma_coeff: float = 2.0
@@ -143,7 +139,6 @@ class SimulationConfig:
         from src.solvers.rans_solver import SolverConfig
         
         return SolverConfig(
-            mach=self.flow.mach,
             alpha=self.flow.alpha,
             reynolds=self.flow.reynolds,
             chi_inf=self.flow.chi_inf,
@@ -165,7 +160,6 @@ class SimulationConfig:
             divergence_history=self.output.divergence_history,
             target_yplus=self.grid.y_plus,
             # AFT transition model configuration
-            aft_enabled=self.aft.enabled,
             aft_gamma_coeff=self.aft.gamma_coeff,
             aft_re_omega_scale=self.aft.re_omega_scale,
             aft_log_divisor=self.aft.log_divisor,

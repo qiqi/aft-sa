@@ -29,7 +29,7 @@ def generate_stretched_grid(n, total_length, ratio):
 def _build_M_A(u_cell, v_grid, nu_grid, dy_vol, dy_dual):
     """Build M, A matrices for equation M df/dx + A f = 0. Batched (B, ny)."""
     B = u_cell.shape[0]
-    ny = u_cell.shape[1]
+    _ny = u_cell.shape[1]
     
     M = jax.vmap(jnp.diag)(u_cell)
     coeff = v_grid / dy_dual[1:]
@@ -222,7 +222,7 @@ class NuHatFlatPlateSolver:
     
     def step_u(self, u0, v0, nuHat, dx):
         """Step the velocity equation."""
-        B = u0.shape[0]
+        _B = u0.shape[0]
         M, A = self.build_u_system(u0, v0, nuHat)
         L = M / dx + A
         rhs_vec = (M / dx) @ u0[:, :, None]
@@ -234,7 +234,7 @@ class NuHatFlatPlateSolver:
     
     def step_nuhat(self, u, v, nuHat0, dx):
         """Step the nuHat equation with Newton iteration."""
-        B = u.shape[0]
+        _B = u.shape[0]
         dudy_wall = u[:, :1] / self.y_cell[0]
         dudy_interior = (u[:, 1:] - u[:, :-1]) / self.dy_dual[1:]
         dudy = jnp.concatenate([dudy_wall, dudy_interior], axis=1)

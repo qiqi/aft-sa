@@ -135,7 +135,7 @@ class TestBoundaryConditionsJAX:
         Q, Si_x, Si_y, Sj_x, Sj_y, volume, NI, NJ = sample_state
         n_wake = 8
         
-        freestream = FreestreamConditions.from_mach_alpha(0.15, 0.0)
+        freestream = FreestreamConditions.from_alpha(0.0)
         bc = BoundaryConditions(freestream=freestream, n_wake_points=n_wake)
         
         # NumPy
@@ -163,7 +163,7 @@ class TestBoundaryConditionsJAX:
         nx = nx / mag
         ny = ny / mag
         
-        freestream = FreestreamConditions.from_mach_alpha(0.15, 0.0)
+        freestream = FreestreamConditions.from_alpha(0.0)
         bc = BoundaryConditions(
             freestream=freestream, 
             n_wake_points=n_wake,

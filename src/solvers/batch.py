@@ -21,7 +21,6 @@ class BatchFlowConditions:
     n_batch: int
     alpha_deg: np.ndarray      # Angle of attack in degrees
     reynolds: np.ndarray       # Reynolds number
-    mach: np.ndarray           # Mach number (0 = incompressible)
     chi_inf: float = 3.0       # Initial/farfield turbulent viscosity ratio (ν̃/ν)
     
     # Derived quantities (computed from above)
@@ -46,19 +45,17 @@ class BatchFlowConditions:
         self.nu_t_inf = self.chi_inf * self.nu_laminar
     
     @classmethod
-    def from_single(cls, alpha_deg: float = 0.0, reynolds: float = 6e6,
-                    mach: float = 0.0) -> 'BatchFlowConditions':
+    def from_single(cls, alpha_deg: float = 0.0, reynolds: float = 6e6) -> 'BatchFlowConditions':
         """Create batch of 1 from single values."""
         return cls(
             n_batch=1,
             alpha_deg=np.array([alpha_deg]),
             reynolds=np.array([reynolds]),
-            mach=np.array([mach]),
         )
     
     @classmethod
     def from_sweep(cls, alpha_spec: Union[float, Dict[str, Any]],
-                   reynolds: float = 6e6, mach: float = 0.0,
+                   reynolds: float = 6e6,
                    chi_inf: float = 3.0) -> 'BatchFlowConditions':
         """
         Create batch from sweep specification.
@@ -68,7 +65,6 @@ class BatchFlowConditions:
                 - {"sweep": [start, end, count]} for linear sweep
                 - {"values": [v1, v2, ...]} for explicit list
             reynolds: Reynolds number (same for all cases)
-            mach: Mach number (same for all cases)
             chi_inf: Initial/farfield turbulent viscosity ratio (ν̃/ν)
         """
         alphas = expand_parameter(alpha_spec)
@@ -78,7 +74,6 @@ class BatchFlowConditions:
             n_batch=n_batch,
             alpha_deg=np.array(alphas),
             reynolds=np.full(n_batch, reynolds),
-            mach=np.full(n_batch, mach),
             chi_inf=chi_inf,
         )
     
@@ -100,7 +95,6 @@ class BatchFlowConditions:
         return {
             'alpha_deg': float(self.alpha_deg[i]),
             'reynolds': float(self.reynolds[i]),
-            'mach': float(self.mach[i]),
             'u_inf': float(self.u_inf[i]),
             'v_inf': float(self.v_inf[i]),
         }
@@ -697,7 +691,7 @@ def make_apply_bc_batch_jit(NI: int, NJ: int, n_wake_points: int,
     i_start = i_wake_end_lower + nghost  # airfoil start
     i_end = i_wake_start_upper + nghost  # airfoil end
     j_int_first = nghost
-    j_int_last = NJ + nghost - 1
+    _j_int_last = NJ + nghost - 1
     i_upper_end = NI + nghost
     j_end = NJ + nghost
     
@@ -705,6 +699,8 @@ def make_apply_bc_batch_jit(NI: int, NJ: int, n_wake_points: int,
         """Apply BCs to a single case with Dirichlet farfield."""
         
         # === Surface BC: Airfoil wall (no-slip) ===
+        # Q stores physical velocity. No-slip requires u_phys = 0 at wall.
+        # Ghost cell: (u_ghost + u_interior) / 2 = 0, so u_ghost = -u_interior
         Q = Q.at[i_start:i_end, 1, 0].set(Q[i_start:i_end, j_int_first, 0])
         Q = Q.at[i_start:i_end, 1, 1].set(-Q[i_start:i_end, j_int_first, 1])
         Q = Q.at[i_start:i_end, 1, 2].set(-Q[i_start:i_end, j_int_first, 2])
@@ -1191,7 +1187,7 @@ class BatchRANSSolver:
         avg_re = float(np.mean(self.flow_conditions.reynolds))
         chi_inf = self.flow_conditions.chi_inf
         
-        freestream = FreestreamConditions.from_mach_alpha(0.0, avg_alpha, avg_re, chi_inf)
+        freestream = FreestreamConditions.from_alpha(avg_alpha, avg_re, chi_inf)
         Q_single = initialize_state(self.NI, self.NJ, freestream)
         
         # Replicate for batch
