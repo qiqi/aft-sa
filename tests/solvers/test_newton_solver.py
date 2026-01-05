@@ -105,6 +105,44 @@ class TestNewtonCFLRamping:
         # At iteration 100+: should be at target
         cfl_100 = solver._get_cfl(100)
         assert cfl_100 == 5.0, f"Expected 5.0, got {cfl_100}"
+    
+    def test_newton_cfl_exact_decade_values(self, valid_grid_path):
+        """Test exact CFL values at decade boundaries.
+        
+        With cfl_start=0.1 and ramp_iters=100 (iterations per decade):
+        - Iteration 0: CFL = 0.1
+        - Iteration 100: CFL = 1.0 (first decade)
+        - Iteration 200: CFL = 10.0 (second decade)
+        - Iteration 300: CFL = 100.0 (third decade)
+        """
+        config = SolverConfig(
+            alpha=0.0,
+            reynolds=1e6,
+            cfl_start=0.1,
+            cfl_target=1e12,
+            cfl_ramp_iters=100,  # 100 iterations per decade
+            solver_mode='newton',
+            html_animation=False,
+        )
+        
+        solver = RANSSolver(valid_grid_path, config)
+        
+        # Test exact decade boundaries
+        cfl_0 = solver._get_cfl_newton(0)
+        cfl_100 = solver._get_cfl_newton(100)
+        cfl_200 = solver._get_cfl_newton(200)
+        cfl_300 = solver._get_cfl_newton(300)
+        
+        assert abs(cfl_0 - 0.1) < 1e-10, f"At iter 0: expected 0.1, got {cfl_0}"
+        assert abs(cfl_100 - 1.0) < 1e-10, f"At iter 100: expected 1.0, got {cfl_100}"
+        assert abs(cfl_200 - 10.0) < 1e-9, f"At iter 200: expected 10.0, got {cfl_200}"
+        assert abs(cfl_300 - 100.0) < 1e-8, f"At iter 300: expected 100.0, got {cfl_300}"
+        
+        # Also verify intermediate values are smooth exponential
+        # At iteration 10: CFL = 0.1 * 10^(10/100) ≈ 0.126
+        cfl_10 = solver._get_cfl_newton(10)
+        expected_10 = 0.1 * (10.0 ** 0.1)
+        assert abs(cfl_10 - expected_10) < 1e-10, f"At iter 10: expected {expected_10}, got {cfl_10}"
 
 
 class TestNewtonUpdate:
