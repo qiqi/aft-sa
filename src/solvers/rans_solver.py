@@ -1068,25 +1068,29 @@ class RANSSolver:
     ) -> jnp.ndarray:
         """Apply Newton update with Patankar scheme for nuHat.
         
-        Q_new = Q + ΔQ, with special handling for nuHat.
+        Q_new = Q - ΔQ, with special handling for nuHat.
+        
+        The sign convention: GMRES solves (V/dt·I + J)·ΔQ = -R(Q), so
+        the update is Q_new = Q - ΔQ to reduce the residual.
         """
-        # Simple addition for p, u, v
-        Q_new = Q_int + dQ
+        # Subtraction for p, u, v (note: Q - dQ, not Q + dQ)
+        Q_new = Q_int - dQ
         
-        # Patankar for nuHat when update is negative
+        # Patankar for nuHat when update would make it negative
         nuHat_old = Q_int[:, :, 3]
-        dNuHat = dQ[:, :, 3]
-        nuHat_explicit = Q_new[:, :, 3]
+        dNuHat = dQ[:, :, 3]  # The GMRES solution
+        nuHat_explicit = Q_new[:, :, 3]  # = nuHat_old - dNuHat
         
-        # Patankar: nuHat_new = nuHat_old / (1 - dNuHat/nuHat_old)
-        # Only apply when nuHat_old > 0 and dNuHat < 0
+        # Patankar: when dNuHat > 0 (i.e., reducing nuHat), use implicit form
+        # nuHat_new = nuHat_old / (1 + dNuHat/nuHat_old)
+        # This ensures nuHat_new > 0 as long as nuHat_old > 0
         nuHat_patankar = jnp.where(
             nuHat_old > 0,
-            nuHat_old / (1.0 - dNuHat / nuHat_old),
+            nuHat_old / (1.0 + dNuHat / nuHat_old),
             nuHat_explicit
         )
         
-        nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, nuHat_explicit)
+        nuHat_new = jnp.where(dNuHat > 0, nuHat_patankar, nuHat_explicit)
         nuHat_new = jnp.maximum(nuHat_new, 0.0)  # Physical floor
         
         return Q_new.at[:, :, 3].set(nuHat_new)
