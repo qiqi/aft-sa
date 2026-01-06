@@ -81,6 +81,7 @@ class SolverConfig:
     gmres_restart: int = 20     # GMRES(m) restart parameter
     gmres_maxiter: int = 100    # Maximum GMRES iterations (across restarts)
     gmres_tol: float = 1e-3     # Relative tolerance for GMRES
+    newton_relaxation: float = 1.0  # Under-relaxation factor (0 < omega <= 1)
     
     # AFT Transition Model Configuration
     aft_gamma_coeff: float = 2.0      # Gamma formula coefficient
@@ -594,7 +595,12 @@ class RANSSolver:
         - Every Newton iteration for newton mode
         """
         # Get current timestep for implicit diagonal
-        cfl = self._get_cfl(self.iteration)
+        # Use appropriate CFL function based on solver mode
+        solver_mode = getattr(self.config, 'solver_mode', 'rk5')
+        if solver_mode == 'newton':
+            cfl = self._get_cfl_newton(self.iteration)
+        else:
+            cfl = self._get_cfl(self.iteration)
         dt = self._jit_compute_dt(self.Q_jax, cfl)
         
         self._preconditioner = BlockJacobiPreconditioner.compute(
@@ -1027,6 +1033,16 @@ class RANSSolver:
         
         # Extract solution ΔQ and reshape
         dQ = result.x.reshape(self.NI, self.NJ, 4)
+        
+        # Apply under-relaxation if configured
+        relaxation = getattr(self.config, 'newton_relaxation', 1.0)
+        if relaxation < 1.0:
+            dQ = dQ * relaxation
+        
+        # Zero out nuHat update - the SA Jacobian is ill-conditioned near walls
+        # where nuHat is very small. Let the Patankar scheme in RHS handle it.
+        # TODO: Implement proper segregated Newton for nuHat
+        dQ = dQ.at[:, :, 3].set(0.0)
         
         # Apply update with Patankar scheme for nuHat
         Q_int = self.Q_jax[nghost:-nghost, nghost:-nghost, :]

@@ -78,6 +78,7 @@ class SolverSettings:
     gmres_restart: int = 20     # GMRES(m) restart parameter
     gmres_maxiter: int = 100    # Maximum GMRES iterations (across restarts)
     gmres_tol: float = 1e-3     # Relative tolerance for GMRES
+    newton_relaxation: float = 1.0  # Under-relaxation factor for Newton updates (0 < omega <= 1)
 
 
 @dataclass

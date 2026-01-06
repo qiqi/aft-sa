@@ -93,6 +93,18 @@ class BlockJacobiPreconditioner:
         eye4 = jnp.eye(4)  # (4, 4)
         P = diag_scale * eye4 + J_diag  # (NI, NJ, 4, 4)
         
+        # Stabilize: ensure diagonal elements stay positive
+        # The SA destruction term can create very negative Jacobian diagonals
+        # that overwhelm V/dt. We clip the diagonal to maintain stability.
+        P_diag = jnp.diagonal(P, axis1=-2, axis2=-1)  # (NI, NJ, 4)
+        min_diag = 0.1 * diag_scale[:, :, 0, 0, None]  # 10% of V/dt as floor
+        # Only fix diagonals that are too negative
+        P_diag_safe = jnp.maximum(P_diag, min_diag)  # (NI, NJ, 4)
+        # Reconstruct P with stabilized diagonal
+        # Create index tensors for diagonal update
+        idx = jnp.arange(4)
+        P = P.at[:, :, idx, idx].set(P_diag_safe)
+        
         # Invert each 4×4 block
         P_inv = _batch_invert_4x4(P)
         
