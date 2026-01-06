@@ -335,7 +335,11 @@ class TestJFNKMatvec:
         assert jnp.all(jnp.isfinite(result))
     
     def test_make_newton_rhs(self):
-        """Test Newton RHS computation."""
+        """Test Newton RHS computation.
+        
+        The RHS is R(Q), not -R(Q), because the Newton system is:
+            (V/dt - J) · ΔQ = R
+        """
         nghost = 1
         NI, NJ = 4, 4
         
@@ -348,7 +352,7 @@ class TestJFNKMatvec:
         rhs = make_newton_rhs(residual_fn, Q, nghost)
         
         assert rhs.shape == (NI * NJ * 4,)
-        assert_allclose(rhs, -jnp.ones(NI * NJ * 4) * 2.0)
+        assert_allclose(rhs, jnp.ones(NI * NJ * 4) * 2.0)  # Positive R
 
 
 # =============================================================================

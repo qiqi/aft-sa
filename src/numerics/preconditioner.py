@@ -87,23 +87,12 @@ class BlockJacobiPreconditioner:
         compute_jacobians_jit = _block_jacobian_cache[cache_key]
         J_diag = compute_jacobians_jit(Q)
         
-        # Form preconditioner: P = V/dt · I + J_diag
-        # Diagonal scaling: V/dt for each cell, broadcast to 4×4 identity
+        # Form preconditioner: P = V/dt · I - J_diag
+        # The minus sign ensures stability: for sink terms like SA destruction
+        # where dR/d(nuHat) < 0, we get P = V/dt + |J| which is always positive.
         diag_scale = (volume / dt)[:, :, None, None]  # (NI, NJ, 1, 1)
         eye4 = jnp.eye(4)  # (4, 4)
-        P = diag_scale * eye4 + J_diag  # (NI, NJ, 4, 4)
-        
-        # Stabilize: ensure diagonal elements stay positive
-        # The SA destruction term can create very negative Jacobian diagonals
-        # that overwhelm V/dt. We clip the diagonal to maintain stability.
-        P_diag = jnp.diagonal(P, axis1=-2, axis2=-1)  # (NI, NJ, 4)
-        min_diag = 0.1 * diag_scale[:, :, 0, 0, None]  # 10% of V/dt as floor
-        # Only fix diagonals that are too negative
-        P_diag_safe = jnp.maximum(P_diag, min_diag)  # (NI, NJ, 4)
-        # Reconstruct P with stabilized diagonal
-        # Create index tensors for diagonal update
-        idx = jnp.arange(4)
-        P = P.at[:, :, idx, idx].set(P_diag_safe)
+        P = diag_scale * eye4 - J_diag  # (NI, NJ, 4, 4)
         
         # Invert each 4×4 block
         P_inv = _batch_invert_4x4(P)
@@ -483,10 +472,10 @@ def verify_preconditioner(
     # Recompute J_diag
     J_diag = _compute_block_jacobians(residual_fn, Q, nghost)
     
-    # Form P again
+    # Form P again (note: V/dt - J for implicit Euler stability)
     diag_scale = (volume / dt)[:, :, None, None]
     eye4 = jnp.eye(4)
-    P_matrix = diag_scale * eye4 + J_diag
+    P_matrix = diag_scale * eye4 - J_diag
     
     # Compute P^{-1} @ P for each cell
     product = jnp.einsum('ijkl,ijlm->ijkm', P.P_inv, P_matrix)

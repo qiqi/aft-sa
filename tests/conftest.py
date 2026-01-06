@@ -7,6 +7,20 @@ like grid generation, JAX kernel JIT compilation, and mfoil baseline computation
 Multi-GPU Support:
     Run tests across multiple GPUs with: pytest -n 8 --dist=loadgroup
     Tests in the same @pytest.mark.xdist_group will run on the same worker/GPU.
+
+Timing Instrumentation:
+    All tests are automatically timed. Run with --timing-report to generate JSON:
+        pytest tests/ --timing-report
+    
+    Output: tests/timing_report.json with structure:
+        {
+            "timestamp": "2026-01-05T12:00:00",
+            "total_duration": 132.5,
+            "tests": [...],
+            "fixtures": {...},
+            "modules": {...},
+            "classes": {...}
+        }
 """
 
 import pytest
@@ -15,6 +29,11 @@ from pathlib import Path
 import tempfile
 import shutil
 import os
+import time
+import json
+from datetime import datetime
+from collections import defaultdict
+from typing import Dict, List, Any
 
 
 # Project root directory
@@ -24,11 +43,164 @@ DATA_DIR = PROJECT_ROOT / "data"
 
 
 # =============================================================================
+# Timing Instrumentation
+# =============================================================================
+
+class TimingCollector:
+    """Collects timing data for tests, fixtures, modules, and classes."""
+    
+    def __init__(self):
+        self.enabled = False
+        self.session_start: float = 0.0
+        self.tests: List[Dict[str, Any]] = []
+        self.fixtures: Dict[str, List[float]] = defaultdict(list)
+        self.modules: Dict[str, Dict[str, Any]] = defaultdict(
+            lambda: {"duration": 0.0, "count": 0, "passed": 0, "failed": 0}
+        )
+        self.classes: Dict[str, Dict[str, Any]] = defaultdict(
+            lambda: {"duration": 0.0, "count": 0, "passed": 0, "failed": 0}
+        )
+        self._test_start_times: Dict[str, float] = {}
+        self._fixture_start_times: Dict[str, float] = {}
+    
+    def start_session(self):
+        self.session_start = time.perf_counter()
+    
+    def start_test(self, nodeid: str):
+        self._test_start_times[nodeid] = time.perf_counter()
+    
+    def finish_test(self, nodeid: str, outcome: str):
+        if nodeid not in self._test_start_times:
+            return
+        
+        duration = time.perf_counter() - self._test_start_times.pop(nodeid)
+        
+        # Parse nodeid: tests/solver/test_bc.py::TestClass::test_method
+        parts = nodeid.split("::")
+        module = parts[0] if parts else "unknown"
+        test_class = parts[1] if len(parts) > 2 else None
+        test_name = parts[-1] if parts else nodeid
+        
+        self.tests.append({
+            "nodeid": nodeid,
+            "module": module,
+            "class": test_class,
+            "name": test_name,
+            "duration": round(duration, 6),
+            "outcome": outcome
+        })
+        
+        # Aggregate by module
+        self.modules[module]["duration"] += duration
+        self.modules[module]["count"] += 1
+        if outcome == "passed":
+            self.modules[module]["passed"] += 1
+        elif outcome == "failed":
+            self.modules[module]["failed"] += 1
+        
+        # Aggregate by class
+        if test_class:
+            class_key = f"{module}::{test_class}"
+            self.classes[class_key]["duration"] += duration
+            self.classes[class_key]["count"] += 1
+            if outcome == "passed":
+                self.classes[class_key]["passed"] += 1
+            elif outcome == "failed":
+                self.classes[class_key]["failed"] += 1
+    
+    def start_fixture(self, name: str):
+        self._fixture_start_times[name] = time.perf_counter()
+    
+    def finish_fixture(self, name: str):
+        if name not in self._fixture_start_times:
+            return
+        duration = time.perf_counter() - self._fixture_start_times.pop(name)
+        self.fixtures[name].append(duration)
+    
+    def get_report(self) -> Dict[str, Any]:
+        total_duration = time.perf_counter() - self.session_start
+        
+        # Sort tests by duration (slowest first)
+        tests_sorted = sorted(self.tests, key=lambda x: x["duration"], reverse=True)
+        
+        # Format modules
+        modules_report = {}
+        for mod, data in self.modules.items():
+            modules_report[mod] = {
+                "total_duration": round(data["duration"], 3),
+                "avg_duration": round(data["duration"] / data["count"], 3) if data["count"] > 0 else 0,
+                "test_count": data["count"],
+                "passed": data["passed"],
+                "failed": data["failed"]
+            }
+        modules_sorted = dict(sorted(modules_report.items(), 
+                                      key=lambda x: x[1]["total_duration"], reverse=True))
+        
+        # Format classes
+        classes_report = {}
+        for cls, data in self.classes.items():
+            classes_report[cls] = {
+                "total_duration": round(data["duration"], 3),
+                "avg_duration": round(data["duration"] / data["count"], 3) if data["count"] > 0 else 0,
+                "test_count": data["count"],
+                "passed": data["passed"],
+                "failed": data["failed"]
+            }
+        classes_sorted = dict(sorted(classes_report.items(), 
+                                      key=lambda x: x[1]["total_duration"], reverse=True))
+        
+        # Format fixtures
+        fixtures_report = {}
+        for name, durations in self.fixtures.items():
+            fixtures_report[name] = {
+                "total_duration": round(sum(durations), 3),
+                "call_count": len(durations),
+                "avg_duration": round(sum(durations) / len(durations), 6) if durations else 0,
+                "max_duration": round(max(durations), 6) if durations else 0
+            }
+        fixtures_sorted = dict(sorted(fixtures_report.items(),
+                                       key=lambda x: x[1]["total_duration"], reverse=True))
+        
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "total_duration": round(total_duration, 3),
+            "test_count": len(self.tests),
+            "passed": sum(1 for t in self.tests if t["outcome"] == "passed"),
+            "failed": sum(1 for t in self.tests if t["outcome"] == "failed"),
+            "skipped": sum(1 for t in self.tests if t["outcome"] == "skipped"),
+            "tests": tests_sorted,
+            "fixtures": fixtures_sorted,
+            "modules": modules_sorted,
+            "classes": classes_sorted
+        }
+
+
+# Global timing collector instance
+_timing_collector = TimingCollector()
+
+
+def pytest_addoption(parser):
+    """Add --timing-report option."""
+    parser.addoption(
+        "--timing-report",
+        action="store_true",
+        default=False,
+        help="Generate timing report (tests/timing_report.json)"
+    )
+    parser.addoption(
+        "--timing-output",
+        type=str,
+        default=None,
+        help="Custom path for timing report JSON"
+    )
+
+
+# =============================================================================
 # Multi-GPU Support
 # =============================================================================
 
 def pytest_configure(config):
-    """Configure pytest with multi-GPU support."""
+    """Configure pytest with multi-GPU support and timing instrumentation."""
     # Register custom markers
     config.addinivalue_line(
         "markers", "gpu: mark test as requiring GPU"
@@ -36,6 +208,94 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "slow: mark test as slow running"
     )
+    
+    # Enable timing if requested
+    if config.getoption("--timing-report", default=False):
+        _timing_collector.enabled = True
+
+
+def pytest_sessionstart(session):
+    """Start timing session."""
+    if _timing_collector.enabled:
+        _timing_collector.start_session()
+
+
+def pytest_runtest_setup(item):
+    """Called before test setup."""
+    if _timing_collector.enabled:
+        _timing_collector.start_test(item.nodeid)
+
+
+def pytest_runtest_makereport(item, call):
+    """Called after each test phase (setup/call/teardown)."""
+    if not _timing_collector.enabled:
+        return
+    
+    # Only record on the "call" phase (actual test execution)
+    if call.when == "call":
+        outcome = "passed" if call.excinfo is None else "failed"
+        _timing_collector.finish_test(item.nodeid, outcome)
+    elif call.when == "setup" and call.excinfo is not None:
+        # Test failed during setup
+        _timing_collector.finish_test(item.nodeid, "error")
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_fixture_setup(fixturedef, request):
+    """Wrap fixture setup to measure duration."""
+    if _timing_collector.enabled:
+        fixture_name = fixturedef.argname
+        _timing_collector.start_fixture(fixture_name)
+    
+    yield
+    
+    if _timing_collector.enabled:
+        _timing_collector.finish_fixture(fixturedef.argname)
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Generate timing report at end of session."""
+    if not _timing_collector.enabled:
+        return
+    
+    report = _timing_collector.get_report()
+    
+    # Determine output path
+    output_path = session.config.getoption("--timing-output", default=None)
+    if output_path is None:
+        output_path = PROJECT_ROOT / "tests" / "timing_report.json"
+    else:
+        output_path = Path(output_path)
+    
+    # Write JSON report
+    with open(output_path, "w") as f:
+        json.dump(report, f, indent=2)
+    
+    # Print summary
+    print(f"\n{'='*60}")
+    print("TIMING REPORT SUMMARY")
+    print(f"{'='*60}")
+    print(f"Total duration: {report['total_duration']:.2f}s")
+    print(f"Tests: {report['test_count']} ({report['passed']} passed, {report['failed']} failed, {report['skipped']} skipped)")
+    
+    # Top 10 slowest tests
+    print(f"\nTop 10 Slowest Tests:")
+    for i, test in enumerate(report['tests'][:10], 1):
+        print(f"  {i:2d}. {test['duration']:8.3f}s  {test['nodeid']}")
+    
+    # Module summary
+    print(f"\nModule Timings:")
+    for mod, data in list(report['modules'].items())[:10]:
+        print(f"  {data['total_duration']:8.3f}s ({data['test_count']:3d} tests)  {mod}")
+    
+    # Fixture summary (top 5 by total time)
+    if report['fixtures']:
+        print(f"\nTop 5 Fixtures by Total Time:")
+        for name, data in list(report['fixtures'].items())[:5]:
+            print(f"  {data['total_duration']:8.3f}s ({data['call_count']:3d} calls, avg {data['avg_duration']*1000:.2f}ms)  {name}")
+    
+    print(f"\nFull report: {output_path}")
+    print(f"{'='*60}")
 
 
 def pytest_collection_modifyitems(config, items):

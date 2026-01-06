@@ -309,7 +309,11 @@ def test_diagonal_dominance(small_grid):
 
 
 def test_cfl_limiting_behavior(small_grid):
-    """Test behavior at CFL extremes."""
+    """Test behavior at CFL extremes.
+    
+    With the correct implicit Euler formulation P = V/dt - J:
+    - At large CFL (small V/dt), P ≈ -J, so P^{-1} ≈ -J^{-1}
+    """
     Q, dt, volume, NI, NJ, nghost = small_grid
     residual_fn, A_block = make_simple_residual(NI, NJ, nghost)
     
@@ -319,12 +323,12 @@ def test_cfl_limiting_behavior(small_grid):
         residual_fn, Q, dt_large, volume, nghost
     )
     
-    # P should be approximately J_diag, so P^{-1} ≈ J_diag^{-1}
-    J_diag_inv = jnp.linalg.inv(A_block)
+    # P = V/dt - J ≈ -J at large CFL, so P^{-1} ≈ -J^{-1}
+    neg_J_diag_inv = -jnp.linalg.inv(A_block)
     
-    # Interior cells should have P^{-1} ≈ J^{-1}
-    assert_allclose(P_large_cfl.P_inv[2, 2], J_diag_inv, rtol=0.1,
-                   err_msg="Large CFL should give P^{-1} ≈ J^{-1}")
+    # Interior cells should have P^{-1} ≈ -J^{-1}
+    assert_allclose(P_large_cfl.P_inv[2, 2], neg_J_diag_inv, rtol=0.1,
+                   err_msg="Large CFL should give P^{-1} ≈ -J^{-1}")
 
 
 # =============================================================================

@@ -18,10 +18,10 @@ flow:
   chi_inf: 0.0001       # Initial/farfield turbulent viscosity ratio
 
 solver:
-  max_iter: 10       # Fewer iterations needed with Newton
+  max_iter: 1000       # Fewer iterations needed with Newton
   tol: 1.0e-8
-  print_freq: 1
-  diagnostic_freq: 500
+  print_freq: 10
+  diagnostic_freq: 200
   
   # Solver mode: "rk5" (default), "rk5_precond", or "newton"
   mode: newton
@@ -34,7 +34,7 @@ solver:
   cfl:
     initial: 0.1        # Starting CFL (pseudo-transient continuation)
     final: 1.0e12       # Maximum CFL (effectively infinity for steady state)
-    ramp_iter: 100      # Iterations per decade (CFL multiplied by 10 every ramp_iter)
+    ramp_iter: 200      # Iterations per decade (CFL multiplied by 10 every ramp_iter)
 
 numerics:
   jst_k4: 0.04              # 4th-order dissipation coefficient

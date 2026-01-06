@@ -340,12 +340,16 @@ def make_jfnk_matvec(
     """Create Jacobian-free matvec function for Newton-Krylov.
     
     The Newton system for implicit Euler is:
-        (V/dt · I + J) · ΔQ = -R(Q)
+        (V/dt · I - J) · ΔQ = R(Q)
     
     This function creates a matvec for the LHS:
-        matvec(v) = V/dt · v + J @ v
+        matvec(v) = V/dt · v - J @ v
     
     where J @ v is computed via automatic differentiation (JVP).
+    
+    The minus sign on J ensures stability: for source terms like SA destruction
+    where dR/d(nuHat) < 0, the matrix (V/dt - J) = V/dt + |J| is always positive
+    definite, giving a well-conditioned system.
     
     Uses caching to avoid JAX retracing when called multiple times with the
     same residual function.
@@ -366,7 +370,7 @@ def make_jfnk_matvec(
     Returns
     -------
     matvec : callable
-        Function that computes (V/dt · I + J) @ v.
+        Function that computes (V/dt · I - J) @ v.
     """
     NI = volume.shape[0]
     NJ = volume.shape[1]
@@ -393,11 +397,11 @@ def make_jfnk_matvec(
                 Q_full = Q_state.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_reshaped)
                 return residual_fn(Q_full).flatten()
             
-            # Diagonal term + Jacobian term via JVP
+            # Diagonal term - Jacobian term via JVP (note: MINUS for stability)
             diag_term = diag_full * v
             _, Jv = jax.jvp(R_flat, (Q_int_flat,), (v,))
             
-            return diag_term + Jv
+            return diag_term - Jv
         
         _jfnk_matvec_cache[cache_key] = _matvec_impl
     
@@ -418,7 +422,9 @@ def make_newton_rhs(
     Q: jnp.ndarray,
     nghost: int,
 ) -> jnp.ndarray:
-    """Compute RHS for Newton system: -R(Q).
+    """Compute RHS for Newton system: R(Q).
+    
+    The Newton system is (V/dt - J) · ΔQ = R, so the RHS is simply R(Q).
     
     Parameters
     ----------
@@ -432,10 +438,10 @@ def make_newton_rhs(
     Returns
     -------
     rhs : jnp.ndarray
-        Flattened -R(Q), shape (NI*NJ*4,).
+        Flattened R(Q), shape (NI*NJ*4,).
     """
     R = residual_fn(Q)
-    return -R.flatten()
+    return R.flatten()
 
 
 # =============================================================================
