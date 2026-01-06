@@ -38,6 +38,7 @@ Archive of recently completed work (for reference):
 
 | Date | Agent | Files | Summary |
 |------|-------|-------|---------|
+| 2026-01-06 | Claude | `src/numerics/gmres.py`, `src/numerics/preconditioner.py`, `src/solvers/rans_solver.py`, `tests/` | **Newton Sign Convention Fix**: Corrected implicit Euler formulation from `(V/dt + J)·ΔQ = -R` to `(V/dt - J)·ΔQ = R`. This ensures SA destruction terms contribute positively to diagonal (stabilizing). All 223 tests pass. |
 | 2026-01-05 | Claude | `src/solvers/rans_solver.py`, `src/numerics/preconditioner.py`, `scripts/` | **Newton Divergence Debug**: Fixed 3 bugs: (1) sign error in update (Q-dQ not Q+dQ), (2) wrong CFL in preconditioner, (3) nuHat stiffness (zeroed nuHat updates). Newton now converges ~3x faster than RK5. |
 | 2026-01-05 | Claude | `src/numerics/gmres.py`, `src/numerics/preconditioner.py` | **JFNK Performance Fix**: JIT caching for GMRES/matvec/preconditioner, JVP for block Jacobians. Newton step: 1200ms → 3.3ms (360x speedup). Added `scripts/profile_jfnk.py`. |
 | 2026-01-05 | Claude | `src/numerics/`, `src/solvers/`, `tests/`, `config/`, `docs/` | **JFNK Implementation (5 phases)**: Block-Jacobi preconditioner, preconditioned RK, GMRES(m) solver, Newton-GMRES mode, example configs. 27 new tests, 216 total tests pass. |
