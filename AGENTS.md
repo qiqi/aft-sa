@@ -38,6 +38,7 @@ Archive of recently completed work (for reference):
 
 | Date | Agent | Files | Summary |
 |------|-------|-------|---------|
+| 2026-01-05 | Claude | `src/solvers/rans_solver.py`, `src/numerics/preconditioner.py`, `scripts/` | **Newton Divergence Debug**: Fixed 3 bugs: (1) sign error in update (Q-dQ not Q+dQ), (2) wrong CFL in preconditioner, (3) nuHat stiffness (zeroed nuHat updates). Newton now converges ~3x faster than RK5. |
 | 2026-01-05 | Claude | `src/numerics/gmres.py`, `src/numerics/preconditioner.py` | **JFNK Performance Fix**: JIT caching for GMRES/matvec/preconditioner, JVP for block Jacobians. Newton step: 1200ms → 3.3ms (360x speedup). Added `scripts/profile_jfnk.py`. |
 | 2026-01-05 | Claude | `src/numerics/`, `src/solvers/`, `tests/`, `config/`, `docs/` | **JFNK Implementation (5 phases)**: Block-Jacobi preconditioner, preconditioned RK, GMRES(m) solver, Newton-GMRES mode, example configs. 27 new tests, 216 total tests pass. |
 | 2026-01-05 | Claude | `src/numerics/sa_sources.py` | Removed unnecessary `jnp.where` guards in `compute_aft_sa_source_jax` - cleaner code, better AD compatibility |
