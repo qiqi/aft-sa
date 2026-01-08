@@ -8,8 +8,9 @@ JAX-based implementation with GPU acceleration.
 
 import numpy as np
 from pathlib import Path
-from typing import Dict, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Tuple, Union
 from dataclasses import dataclass
+from loguru import logger
 
 from ..grid.metrics import MetricComputer
 from ..grid.mesher import Construct2DWrapper, GridOptions
@@ -19,7 +20,6 @@ from ..numerics.forces import compute_aerodynamic_forces, AeroForces, compute_ae
 from ..numerics.gradients import compute_gradients, GradientMetrics
 from ..numerics.viscous_fluxes import add_viscous_fluxes, compute_viscous_fluxes_tight_with_ghosts_jax
 from ..numerics.smoothing import apply_residual_smoothing
-from ..numerics.explicit_smoothing import apply_explicit_smoothing
 from .boundary_conditions import (
     FreestreamConditions, 
     BoundaryConditions,
@@ -29,13 +29,12 @@ from .boundary_conditions import (
 from ..io.plotter import PlotlyDashboard
 from ..numerics.forces import compute_surface_distributions
 from ..constants import NGHOST
-from ..numerics.diagnostics import compute_total_pressure_loss
+from ..numerics.diagnostics import compute_total_pressure_loss, compute_wake_cut_discontinuity, analyze_nuhat_residual
 
-# JAX imports (required)
+# JAX imports
 from ..physics.jax_config import jax, jnp
 from ..numerics.fluxes import compute_fluxes_jax
 from ..numerics.gradients import compute_gradients_jax
-# viscous_fluxes: tight_with_ghosts version used
 from ..numerics.explicit_smoothing import smooth_explicit_jax
 from ..numerics.sa_sources import compute_aft_sa_source_jax, compute_turbulent_fraction
 from ..numerics.aft_sources import compute_Re_Omega, compute_gamma
@@ -43,7 +42,10 @@ from ..numerics.gradients import compute_vorticity_jax
 from .time_stepping import compute_local_timestep_jax
 from .boundary_conditions import make_apply_bc_jit
 from ..numerics.preconditioner import BlockJacobiPreconditioner
-from ..numerics.gmres import gmres, make_jfnk_matvec, make_newton_rhs
+from ..numerics.gmres import gmres
+from ..numerics.dissipation import compute_sponge_sigma_jax
+from ..numerics.updates import apply_patankar_update
+
 
 
 @dataclass
@@ -92,6 +94,9 @@ class SolverConfig:
     aft_rate_scale: float = 0.2       # Maximum growth rate
     aft_blend_threshold: float = 1.0  # nuHat threshold for transition
     aft_blend_width: float = 4.0      # Blending smoothness
+    
+    # Jacobian Control
+    explicit_production: bool = True  # Treat production terms explicitly to avoid negative diagonals
 
 
 class RANSSolver:
@@ -126,16 +131,16 @@ class RANSSolver:
         self._initialize_state()
         self._initialize_output()
         
-        print(f"\n{'='*60}")
-        print("RANS Solver Initialized")
-        print(f"{'='*60}")
-        print(f"Grid size: {self.NI} x {self.NJ} cells")
-        print(f"Alpha: {self.config.alpha}°")
-        print(f"Reynolds: {self.config.reynolds:.2e}")
-        print(f"Target CFL: {self.config.cfl_target}")
-        print(f"Max iterations: {self.config.max_iter}")
-        print(f"Convergence tolerance: {self.config.tol:.2e}")
-        print(f"{'='*60}\n")
+        logger.info(f"\n{'='*60}")
+        logger.info("RANS Solver Initialized")
+        logger.info(f"{'='*60}")
+        logger.info(f"Grid size: {self.NI} x {self.NJ} cells")
+        logger.info(f"Alpha: {self.config.alpha}°")
+        logger.info(f"Reynolds: {self.config.reynolds:.2e}")
+        logger.info(f"Target CFL: {self.config.cfl_target}")
+        logger.info(f"Max iterations: {self.config.max_iter}")
+        logger.info(f"Convergence tolerance: {self.config.tol:.2e}")
+        logger.info(f"{'='*60}\n")
     
     def _load_grid(self, grid_file: str):
         """Load grid from file or generate using Construct2D."""
@@ -147,11 +152,11 @@ class RANSSolver:
         suffix = grid_path.suffix.lower()
         
         if suffix in ['.p3d', '.x', '.xyz']:
-            print(f"Loading grid from: {grid_path}")
+            logger.info(f"Loading grid from: {grid_path}")
             self.X, self.Y = read_plot3d(str(grid_path))
             
         elif suffix == '.dat':
-            print(f"Generating grid from airfoil: {grid_path}")
+            logger.info(f"Generating grid from airfoil: {grid_path}")
             construct2d_paths = [
                 Path("bin/construct2d"),
                 Path("./construct2d"),
@@ -184,12 +189,12 @@ class RANSSolver:
         self.NI = self.X.shape[0] - 1
         self.NJ = self.X.shape[1] - 1
         
-        print(f"Grid loaded: {self.X.shape[0]} x {self.X.shape[1]} nodes")
-        print(f"            {self.NI} x {self.NJ} cells")
+        logger.info(f"Grid loaded: {self.X.shape[0]} x {self.X.shape[1]} nodes")
+        logger.info(f"            {self.NI} x {self.NJ} cells")
     
     def _compute_metrics(self):
         """Compute FVM grid metrics."""
-        print("Computing grid metrics...")
+        logger.info("Computing grid metrics...")
         n_wake = getattr(self.config, 'n_wake', 0)
         computer = MetricComputer(self.X, self.Y, wall_j=0, n_wake=n_wake)
         self.metrics = computer.compute()
@@ -211,19 +216,19 @@ class RANSSolver:
         )
         
         # Compute face geometry and LS weights for tight-stencil viscous fluxes
-        print("  Computing face geometry for tight-stencil viscous fluxes...")
+        logger.info("  Computing face geometry for tight-stencil viscous fluxes...")
         self.face_geometry = computer.compute_face_geometry()
         self.ls_weights = computer.compute_ls_weights(self.face_geometry)
         
         gcl = computer.validate_gcl()
-        print(f"  {gcl}")
+        logger.info(f"  {gcl}")
         
         if not gcl.passed:
-            print("  WARNING: GCL validation failed. Results may be inaccurate.")
+            logger.warning("  WARNING: GCL validation failed. Results may be inaccurate.")
     
     def _initialize_state(self):
         """Initialize state vector with freestream and wall damping."""
-        print("Initializing flow state...")
+        logger.info("Initializing flow state...")
         
         self.freestream = FreestreamConditions.from_alpha(
             alpha_deg=self.config.alpha,
@@ -256,12 +261,12 @@ class RANSSolver:
         
         print(f"  Freestream: u={self.freestream.u_inf:.4f}, "
               f"v={self.freestream.v_inf:.4f}")
-        print("  Far-field BC: Characteristic (non-reflecting)")
-        print(f"  Wall damping applied (L={self.config.wall_damping_length})")
+        logger.info("  Far-field BC: Dirichlet (with sponge layer stabilization)")
+        logger.info(f"  Wall damping applied (L={self.config.wall_damping_length})")
     
     def _initialize_jax(self):
         """Initialize JAX arrays for computation."""
-        print(f"  JAX backend initialized on: {jax.devices()[0]}")
+        logger.info(f"  JAX backend initialized on: {jax.devices()[0]}")
 
         # Transfer arrays to GPU
         self.Q_jax = jax.device_put(jnp.array(self.Q))
@@ -312,41 +317,37 @@ class RANSSolver:
         self.mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
         self.mu_eff_jax = jax.device_put(jnp.full((self.NI, self.NJ), self.mu_laminar))
         
-        # Create JIT-compiled step function (key for performance!)
-        self._create_jit_step_function()
+        # Pre-compute sponge layer coefficient field
+        # Default thickness 15 if not specified
+        sponge_thickness = getattr(self.config, 'sponge_thickness', 15)
+        sigma = compute_sponge_sigma_jax(self.NI, self.NJ, sponge_thickness)
+        self.sigma_jax = jax.device_put(sigma)
+        
+        # Create JIT-compiled functions (key for performance!)
+        self._create_jit_functions()
         
         # Warmup JIT compilation
-        print("  Warming up JIT compilation...")
+        logger.info("  Warming up JIT compilation...")
         self._warmup_jax()
-        print("  JIT compilation complete.")
+        logger.info("  JIT compilation complete.")
     
-    def _create_jit_step_function(self):
-        """Create JIT-compiled step function with all grid data baked in.
+    def _create_jit_functions(self):
+        """Create JIT-compiled functions with all grid data baked in.
         
-        This is the KEY performance optimization: instead of calling many 
-        separate JIT functions from Python, we compile a single function
-        that does all the work for one RK stage.
-        
-        Uses tight-stencil viscous flux computation for improved diagonal dominance
-        and stability on non-orthogonal grids.
+        This captures ALL constants (metrics, physics parameters, etc.) to 
+        create optimized JAX executables for both RK stages and Newton steps.
         """
-        # Capture these in closure (they're constants for this solver instance)
-        Si_x = self.Si_x_jax
-        Si_y = self.Si_y_jax
-        Sj_x = self.Sj_x_jax
-        Sj_y = self.Sj_y_jax
-        volume = self.volume_jax
-        volume_inv = self.volume_inv_jax
-        wall_dist = self.wall_dist_jax
-        beta = self.config.beta
-        k4 = self.config.jst_k4
-        nu = self.mu_laminar
+        # --- Capture Constants (Grid & Metrics) ---
         nghost = NGHOST
-        smoothing_epsilon = getattr(self.config, 'smoothing_epsilon', 0.2)
-        smoothing_passes = getattr(self.config, 'smoothing_passes', 2)
+        NI, NJ = self.NI, self.NJ
+        Si_x, Si_y = self.Si_x_jax, self.Si_y_jax
+        Sj_x, Sj_y = self.Sj_x_jax, self.Sj_y_jax
+        volume, volume_inv = self.volume_jax, self.volume_inv_jax
+        wall_dist = self.wall_dist_jax
         apply_bc = self.apply_bc_jit
+        sigma = self.sigma_jax
         
-        # Face geometry for tight-stencil viscous fluxes
+        # Tight-stencil viscous metrics
         d_coord_i = self.d_coord_i_jax
         e_coord_i_x = self.e_coord_i_x_jax
         e_coord_i_y = self.e_coord_i_y_jax
@@ -360,7 +361,10 @@ class RANSSolver:
         ls_weights_i = self.ls_weights_i_jax
         ls_weights_j = self.ls_weights_j_jax
         
-        # AFT transition model parameters
+        # --- Capture Constants (Physics) ---
+        nu = self.mu_laminar
+        beta = self.config.beta
+        k4 = self.config.jst_k4
         aft_gamma_coeff = self.config.aft_gamma_coeff
         aft_re_omega_scale = self.config.aft_re_omega_scale
         aft_log_divisor = self.config.aft_log_divisor
@@ -370,34 +374,37 @@ class RANSSolver:
         aft_blend_threshold = self.config.aft_blend_threshold
         aft_blend_width = self.config.aft_blend_width
         
-        @jax.jit
-        def jit_rk_stage(Q, Q0, dt, alpha_rk):
-            """Single RK stage with AFT-SA transition model."""
-            # Apply boundary conditions
-            Q = apply_bc(Q)
+        # Jacobian control
+        explicit_production = self.config.explicit_production
+        
+        # Newton-GMRES specific constants
+        gmres_restart = getattr(self.config, 'gmres_restart', 20)
+        gmres_maxiter = getattr(self.config, 'gmres_maxiter', 100)
+        smoothing_epsilon = getattr(self.config, 'smoothing_epsilon', 0.2)
+        smoothing_passes = getattr(self.config, 'smoothing_passes', 2)
+
+        # Preconditioner Graph Coloring (Static)
+        I_idx, J_idx = jnp.meshgrid(jnp.arange(NI), jnp.arange(NJ), indexing='ij')
+        color_masks = jnp.stack([((I_idx % 2 == ci) & (J_idx % 2 == cj)).astype(jnp.float64)
+                                 for ci in range(2) for cj in range(2)]) # (4, NI, NJ)
+
+        # --- Common Physical Residual Logic ---
+        def compute_R_physical(Q):
+            """Core physics calculation (Convection + Diffusion + Sources)."""
+            # 1. Convective fluxes
+            R = compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost, sigma=sigma)
             
-            # Convective fluxes
-            R = compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost)
-            
-            # Gradients (needed for SA sources and cb2 advection)
+            # 2. Gradients and Effective Viscosity
             grad = compute_gradients_jax(Q, Si_x, Si_y, Sj_x, Sj_y, volume, nghost)
-            
-            # Compute turbulent viscosity from SA variable
             Q_int = Q[nghost:-nghost, nghost:-nghost, :]
             nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
             
-            # Velocity magnitude for AFT
-            vel_mag = jnp.sqrt(Q_int[:, :, 1]**2 + Q_int[:, :, 2]**2)
-            
-            # Turbulent viscosity (SA model)
             chi = nu_tilde / (nu + 1e-30)
-            cv1 = 7.1
-            chi3 = chi ** 3
-            f_v1 = chi3 / (chi3 + cv1 ** 3)
+            f_v1 = chi**3 / (chi**3 + 7.1**3)
             mu_t = nu_tilde * f_v1
             mu_eff = nu + mu_t
             
-            # Tight-stencil viscous fluxes (momentum + SA diffusion)
+            # 3. Viscous Fluxes
             Q_with_ghosts = Q[nghost-1:-(nghost-1), nghost-1:-(nghost-1), :]
             R_visc = compute_viscous_fluxes_tight_with_ghosts_jax(
                 Q_with_ghosts, Si_x, Si_y, Sj_x, Sj_y,
@@ -408,52 +415,113 @@ class RANSSolver:
             )
             R = R.at[:, :, 1:4].add(R_visc[:, :, 1:4])
             
-            # AFT-SA source terms with blending
+            # 4. AFT-SA Sources
+            vel_mag = jnp.sqrt(Q_int[:, :, 1]**2 + Q_int[:, :, 2]**2)
             P, D, cb2_term = compute_aft_sa_source_jax(
                 nu_tilde, grad, wall_dist, vel_mag, nu,
                 aft_gamma_coeff, aft_re_omega_scale, aft_log_divisor,
                 aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale,
-                aft_blend_threshold, aft_blend_width
+                aft_blend_threshold, aft_blend_width,
+                explicit_production
             )
             R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
+            return R
+
+        # --- JIT-compiles residual function (for preconditioner and diagnostics) ---
+        @jax.jit
+        def jit_residual(Q):
+            Q = apply_bc(Q)
+            return compute_R_physical(Q)
+        
+        self._jit_residual = jit_residual
+
+        # --- JIT-compiled RK Stage ---
+        @jax.jit
+        def jit_rk_stage(Q, Q0, dt, alpha_rk):
+            """Single RK stage with optional residual smoothing."""
+            Q = apply_bc(Q)
+            R = compute_R_physical(Q)
             
-            # Explicit smoothing (nuHat excluded - it corrupts SA residual near walls)
+            # Explicit smoothing (Optional)
             if smoothing_epsilon > 0 and smoothing_passes > 0:
                 R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
             
-            # Compute the update increment dQ = alpha * dt/V * R
-            # Use reduced CFL for nuHat (index 3) since smoothing is disabled for stability
+            # Update increment
             Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
             dt_factors = jnp.array([1.0, 1.0, 1.0, 0.5])  # Half CFL for nuHat
             dQ = alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * dt_factors * R
             
-            # Start with normal explicit update for all variables
-            Q_int_new = Q0_int + dQ
+            # Update with Patankar for nuHat
+            from ..numerics.updates import apply_patankar_update
+            Q_int_new = apply_patankar_update(Q0_int, dQ)
             
-            # Patankar-Euler scheme for nuHat (index 3) only
-            # Only apply Patankar when nuHat_old > 0 AND dNuHat < 0 (destruction dominated)
-            # Otherwise use normal explicit update
-            nuHat_old = Q0_int[:, :, 3]
-            dNuHat = dQ[:, :, 3]
-            nuHat_explicit = Q_int_new[:, :, 3]  # = nuHat_old + dNuHat
+            return Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new), R
+
+        self._jit_rk_stage = jit_rk_stage
+        self._physical_residual_jax = compute_R_physical
+
+        # --- JIT-compiled Newton-GMRES Step ---
+        from src.numerics.gmres import gmres_solve
+        
+        @jax.jit
+        def jit_newton_step(Q_n, dt, gmres_tol):
+            """Full Newton-GMRES step on GPU."""
+            # 1. Block-Jacobi Preconditioner: P = V/dt - J_diag
+            def compute_J_diag(Q):
+                def make_tangent(k):
+                    color, var = k // 4, k % 4
+                    mask = color_masks[color]
+                    t = jnp.zeros_like(Q)
+                    return t.at[nghost:-nghost, nghost:-nghost, var].set(mask)
+                
+                tangents = jax.vmap(make_tangent)(jnp.arange(16))
+                def single_jvp(t):
+                    _, res = jax.jvp(jit_residual, (Q,), (t,))
+                    return res
+                jvps = jax.vmap(single_jvp)(tangents)
+                return (jvps.reshape(4, 4, NI, NJ, 4) * color_masks[:, None, :, :, None]).sum(axis=0).transpose(1, 2, 3, 0)
             
-            # Patankar: nuHat_new = nuHat_old / (1 - dNuHat/nuHat_old)
-            # Safe when nuHat_old > 0 since denominator = (nuHat_old - dNuHat)/nuHat_old > 0
-            # Use jnp.where to avoid NaN from division when nuHat_old <= 0
-            nuHat_patankar = jnp.where(
-                nuHat_old > 0,
-                nuHat_old / (1.0 - dNuHat / nuHat_old),
-                nuHat_explicit  # Fallback for nuHat_old <= 0
+            J_diag = compute_J_diag(Q_n)
+            P_inv = jax.vmap(jax.vmap(jnp.linalg.inv))( (volume / dt)[:, :, None, None] * jnp.eye(4) - J_diag )
+            
+            def precond_apply(v):
+                v_reshaped = v.reshape(NI, NJ, 4)
+                return jnp.einsum('ijkl,ijl->ijk', P_inv, v_reshaped).flatten()
+
+            # 2. Unified Residual F(Q) = (V/dt)(Q-Q_n) - R(Q)
+            def F_fn(q_flat):
+                q_int = q_flat.reshape(NI, NJ, 4)
+                q_full = Q_n.at[nghost:-nghost, nghost:-nghost, :].set(q_int)
+                R = jit_residual(q_full)
+                if smoothing_epsilon > 0 and smoothing_passes > 0:
+                    R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
+                ptc = (volume / dt)[:, :, jnp.newaxis] * (q_int - Q_n[nghost:-nghost, nghost:-nghost, :])
+                return (ptc - R).flatten()
+
+            # 3. Solve J @ dQ = -F(Q_n)
+            q_n_flat = Q_n[nghost:-nghost, nghost:-nghost, :].flatten()
+            f0 = F_fn(q_n_flat)
+            rhs = -f0 # Note: f0 is -R(Q_n), so rhs is R(Q_n)
+            
+            def matvec(v):
+                _, jv = jax.jvp(F_fn, (q_n_flat,), (v,))
+                return jv
+            
+            x_sol, r_norm, iters, converged = gmres_solve(
+                matvec, rhs, jnp.zeros_like(rhs), gmres_tol * jnp.linalg.norm(precond_apply(rhs)),
+                gmres_restart, gmres_maxiter, precond_apply
             )
             
-            # Apply Patankar only when destruction is dominant (dNuHat < 0)
-            nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, nuHat_explicit)
-            nuHat_new = jnp.maximum(nuHat_new, 0.0)  # Physical floor: nuHat >= 0
-            Q_int_new = Q_int_new.at[:, :, 3].set(nuHat_new)
+            # 4. Apply Update (Patankar)
+            dQ = x_sol.reshape(NI, NJ, 4)
+            Q0_int = Q_n[nghost:-nghost, nghost:-nghost, :]
+            Q_int_new = apply_patankar_update(Q0_int, dQ)
             
-            Q_new = Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
+            Q_final = apply_bc(Q_n.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new))
             
-            return Q_new, R
+            return Q_final, iters, r_norm, converged
+
+        self._jit_newton_step = jit_newton_step
         
         @jax.jit
         def jit_compute_dt(Q, cfl):
@@ -478,113 +546,56 @@ class RANSSolver:
                 beta, cfl, nghost, nu=nu_eff_max
             )
         
-        self._jit_rk_stage = jit_rk_stage
         self._jit_compute_dt = jit_compute_dt
         
-        # Create residual-only function (for preconditioner and Newton)
-        self._create_residual_function()
-    
-    def _create_residual_function(self):
-        """Create JIT-compiled residual function R(Q) for preconditioner and Newton solver.
         
-        This function computes the full residual (convective + viscous + source terms)
-        without performing any updates. Used for:
-        - Block-Jacobi preconditioner computation
-        - Newton-GMRES Jacobian-vector products
+        # Warmup (optional, already called in _initialize_jax)
+        # self._warmup_jax()
+    
+
+    def _get_unified_residual_fn(self, Q0: jnp.ndarray, dt: jnp.ndarray) -> Callable:
+        """Create a unified residual function F(Q) for Newton-Krylov.
+        
+        F(Q) = (V/dt) * (Q - Q0) - R(Q)
+        
+        where:
+        - Q is the flattened interior state
+        - R(Q) includes fluxes, source terms, BCs, and residual smoothing
+        - V/dt * (Q - Q0) is the pseudo-transient continuation term
         """
-        # Capture in closure
-        Si_x = self.Si_x_jax
-        Si_y = self.Si_y_jax
-        Sj_x = self.Sj_x_jax
-        Sj_y = self.Sj_y_jax
-        volume = self.volume_jax
-        wall_dist = self.wall_dist_jax
-        beta = self.config.beta
-        k4 = self.config.jst_k4
-        nu = self.mu_laminar
         nghost = NGHOST
+        NI, NJ = self.NI, self.NJ
+        volume = self.volume_jax
+        apply_bc = self.apply_bc_jit
         smoothing_epsilon = getattr(self.config, 'smoothing_epsilon', 0.2)
         smoothing_passes = getattr(self.config, 'smoothing_passes', 2)
-        apply_bc = self.apply_bc_jit
         
-        # Face geometry
-        d_coord_i = self.d_coord_i_jax
-        e_coord_i_x = self.e_coord_i_x_jax
-        e_coord_i_y = self.e_coord_i_y_jax
-        e_ortho_i_x = self.e_ortho_i_x_jax
-        e_ortho_i_y = self.e_ortho_i_y_jax
-        d_coord_j = self.d_coord_j_jax
-        e_coord_j_x = self.e_coord_j_x_jax
-        e_coord_j_y = self.e_coord_j_y_jax
-        e_ortho_j_x = self.e_ortho_j_x_jax
-        e_ortho_j_y = self.e_ortho_j_y_jax
-        ls_weights_i = self.ls_weights_i_jax
-        ls_weights_j = self.ls_weights_j_jax
-        
-        # AFT parameters
-        aft_gamma_coeff = self.config.aft_gamma_coeff
-        aft_re_omega_scale = self.config.aft_re_omega_scale
-        aft_log_divisor = self.config.aft_log_divisor
-        aft_sigmoid_center = self.config.aft_sigmoid_center
-        aft_sigmoid_slope = self.config.aft_sigmoid_slope
-        aft_rate_scale = self.config.aft_rate_scale
-        aft_blend_threshold = self.config.aft_blend_threshold
-        aft_blend_width = self.config.aft_blend_width
-        
-        @jax.jit
-        def jit_residual(Q):
-            """Compute residual R(Q) = sum of all flux/source contributions.
+        def unified_residual(Q_flat):
+            # 1. Reshape to interior state
+            Q_int = Q_flat.reshape(NI, NJ, 4)
             
-            Returns R such that dQ/dt = -R/V (the negative sign is implicit).
-            For Newton: we solve R(Q) = 0.
+            # 2. Insert into full state with ghosts
+            Q_full = Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int)
             
-            Note: This function does NOT include residual smoothing. Smoothing
-            is applied separately in RK modes, or should be wrapped for Newton.
-            """
-            # Apply boundary conditions
-            Q = apply_bc(Q)
+            # 3. Apply BCs (sensitivities will be captured by AD!)
+            Q_full = apply_bc(Q_full)
             
-            # Convective fluxes
-            R = compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost)
+            # 4. Compute physical residual
+            R = self._physical_residual_jax(Q_full)
             
-            # Gradients
-            grad = compute_gradients_jax(Q, Si_x, Si_y, Sj_x, Sj_y, volume, nghost)
+            # 5. Apply residual smoothing if configured
+            if smoothing_epsilon > 0 and smoothing_passes > 0:
+                R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
             
-            # Turbulent viscosity
-            Q_int = Q[nghost:-nghost, nghost:-nghost, :]
-            nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
-            vel_mag = jnp.sqrt(Q_int[:, :, 1]**2 + Q_int[:, :, 2]**2)
+            # 6. PTC term: (V/dt) * (Q - Q0)
+            Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
+            ptc = (volume / dt)[:, :, jnp.newaxis] * (Q_int - Q0_int)
             
-            chi = nu_tilde / (nu + 1e-30)
-            cv1 = 7.1
-            chi3 = chi ** 3
-            f_v1 = chi3 / (chi3 + cv1 ** 3)
-            mu_t = nu_tilde * f_v1
-            mu_eff = nu + mu_t
+            # F(Q) = PTC - R
+            return (ptc - R).flatten()
             
-            # Viscous fluxes
-            Q_with_ghosts = Q[nghost-1:-(nghost-1), nghost-1:-(nghost-1), :]
-            R_visc = compute_viscous_fluxes_tight_with_ghosts_jax(
-                Q_with_ghosts, Si_x, Si_y, Sj_x, Sj_y,
-                d_coord_i, e_coord_i_x, e_coord_i_y, e_ortho_i_x, e_ortho_i_y,
-                d_coord_j, e_coord_j_x, e_coord_j_y, e_ortho_j_x, e_ortho_j_y,
-                ls_weights_i, ls_weights_j,
-                mu_eff, nu, nu_tilde
-            )
-            R = R.at[:, :, 1:4].add(R_visc[:, :, 1:4])
-            
-            # SA source terms
-            P, D, cb2_term = compute_aft_sa_source_jax(
-                nu_tilde, grad, wall_dist, vel_mag, nu,
-                aft_gamma_coeff, aft_re_omega_scale, aft_log_divisor,
-                aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale,
-                aft_blend_threshold, aft_blend_width
-            )
-            R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
-            
-            return R
-        
-        self._jit_residual = jit_residual
+        return unified_residual
+
     
     def compute_preconditioner(self):
         """Compute block-Jacobi preconditioner at current state.
@@ -618,38 +629,29 @@ class RANSSolver:
         """Warm up JAX JIT compilation with dummy iterations."""
         solver_mode = getattr(self.config, 'solver_mode', 'rk5')
         
-        print("Compiling JAX functions...", end=" ", flush=True)
+        logger.info("Compiling JAX functions...")
         
         cfl = self.config.cfl_start
         Q_test = self.Q_jax
         dt = self._jit_compute_dt(Q_test, cfl)
         
         if solver_mode == 'newton':
-            # Newton mode: warm up preconditioner, matvec, and GMRES
-            self.compute_preconditioner()
+            # Newton mode: warm up with EXACT production settings
+            # This forces compilation of the main solver graph.
+            logger.info(f"  Compiling Newton-GMRES step (restart={self.config.gmres_restart}, maxiter={self.config.gmres_maxiter})...")
             
-            # Warm up matvec
-            matvec = make_jfnk_matvec(
-                self._jit_residual, Q_test, dt, self.volume_jax, NGHOST
-            )
-            rhs = make_newton_rhs(self._jit_residual, Q_test, NGHOST)
-            _ = matvec(rhs)
+            # Use actual JIT function
+            # Note: We must block until ready to ensure compilation finishes
+            _ = self._jit_newton_step(Q_test, dt, self.config.gmres_tol)
+            jax.block_until_ready(_)
             
-            # Warm up GMRES (just 1 iteration to compile)
-            gmres_restart = getattr(self.config, 'gmres_restart', 20)
-            _ = gmres(
-                matvec=matvec, b=rhs, x0=None,
-                tol=1e-1, restart=min(gmres_restart, 5), maxiter=1,
-                preconditioner=self._precond_apply,
-            )
-            jax.block_until_ready(rhs)
         else:
             # RK mode: warm up RK stages
             for alpha in [0.25, 0.5]:
                 Q_test, _ = self._jit_rk_stage(Q_test, Q_test, dt, alpha)
             jax.block_until_ready(Q_test)
         
-        print("done")
+        logger.info("JIT Warmup done")
     
     def _initialize_output(self):
         """Initialize HTML animation for output."""
@@ -685,7 +687,7 @@ class RANSSolver:
                 Re_Omega=Re_Omega, Gamma=Gamma, is_turb=is_turb
             )
         
-        print(f"  Output directory: {output_path}")
+        logger.info(f"  Output directory: {output_path}")
     
     def _get_cfl(self, iteration: int) -> float:
         """Get CFL number with linear ramping."""
@@ -927,128 +929,25 @@ class RANSSolver:
         
         return Q_new, R
     
-    @staticmethod
-    @jax.jit
-    def _apply_rk_update_static(
-        Q0_int: jnp.ndarray, 
-        R: jnp.ndarray, 
-        dt: jnp.ndarray,
-        volume_inv: jnp.ndarray,
-        alpha: float
-    ) -> jnp.ndarray:
-        """Apply RK update with Patankar scheme for nuHat.
-        
-        Static method for JIT compilation.
-        """
-        # Reduced CFL for nuHat
-        dt_factors = jnp.array([1.0, 1.0, 1.0, 0.5])
-        dQ = alpha * (dt * volume_inv)[:, :, jnp.newaxis] * dt_factors * R
-        
-        # Explicit update
-        Q_int_new = Q0_int + dQ
-        
-        # Patankar for nuHat when destruction dominated
-        nuHat_old = Q0_int[:, :, 3]
-        dNuHat = dQ[:, :, 3]
-        nuHat_explicit = Q_int_new[:, :, 3]
-        
-        nuHat_patankar = jnp.where(
-            nuHat_old > 0,
-            nuHat_old / (1.0 - dNuHat / nuHat_old),
-            nuHat_explicit
-        )
-        
-        nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, nuHat_explicit)
-        nuHat_new = jnp.maximum(nuHat_new, 0.0)
-        
-        return Q_int_new.at[:, :, 3].set(nuHat_new)
-    
-    def _apply_rk_update(
-        self, Q0: jnp.ndarray, R: jnp.ndarray, dt: jnp.ndarray, alpha: float
-    ) -> jnp.ndarray:
-        """Apply RK update - wrapper for static JIT function."""
-        nghost = NGHOST
-        Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
-        return self._apply_rk_update_static(Q0_int, R, dt, self.volume_inv_jax, alpha)
     
     def _step_newton(self) -> None:
-        """Newton-GMRES step with block-Jacobi preconditioning.
-        
-        Solves the nonlinear system R(Q) = 0 using Newton's method where
-        each Newton iteration uses preconditioned GMRES to solve:
-            (V/dt · I + J) · ΔQ = -R(Q)
-        
-        The Jacobian-vector product J @ v is computed via automatic
-        differentiation (JVP), making this a Jacobian-free Newton-Krylov method.
-        
-        CFL is used for pseudo-transient continuation: the V/dt diagonal
-        acts as regularization that decreases as CFL → ∞.
-        """
-        nghost = NGHOST
-        
-        # Get CFL and compute timestep
+        """Newton-GMRES step with consolidated residual and JAX AD."""
+        Q_n = self.Q_jax
         cfl = self._get_cfl_newton(self.iteration)
-        dt = self._jit_compute_dt(self.Q_jax, cfl)
+        dt = self._jit_compute_dt(Q_n, cfl)
+        gmres_tol = float(getattr(self.config, 'gmres_tol', 1e-3))
         
-        # Compute block-Jacobi preconditioner at current state
-        self.compute_preconditioner()
+        # Execute unified JIT Newton step (includes preconditioner + linear solve + update)
+        self.Q_jax, iters, r_norm, converged = self._jit_newton_step(Q_n, dt, gmres_tol)
         
-        # Create Jacobian-free matvec for this Newton iteration
-        # A @ v = (V/dt · I + J) @ v
-        matvec = make_jfnk_matvec(
-            residual_fn=self._jit_residual,
-            Q=self.Q_jax,
-            dt=dt,
-            volume=self.volume_jax,
-            nghost=nghost,
-        )
-        
-        # Compute RHS: -R(Q)
-        rhs = make_newton_rhs(self._jit_residual, self.Q_jax, nghost)
-        rhs_norm = float(jnp.linalg.norm(rhs))
-        
-        # Get GMRES parameters from config
-        gmres_restart = getattr(self.config, 'gmres_restart', 20)
-        gmres_maxiter = getattr(self.config, 'gmres_maxiter', 100)
-        gmres_tol = getattr(self.config, 'gmres_tol', 1e-3)
-        
-        # Solve with preconditioned GMRES
-        result = gmres(
-            matvec=matvec,
-            b=rhs,
-            x0=None,  # Start from zero (conservative for Newton)
-            tol=gmres_tol,
-            restart=gmres_restart,
-            maxiter=gmres_maxiter,
-            preconditioner=self._precond_apply,
-        )
-        
-        # Store GMRES info for conditional printing in run_steady_state
+        self.R_jax = self._jit_residual(self.Q_jax)
         self._last_gmres_info = {
-            'iterations': result.iterations,
-            'rhs_norm': rhs_norm,
-            'residual_norm': float(result.residual_norm),
-            'converged': result.converged,
+            'iterations': int(iters),
+            'rhs_norm': float(jnp.linalg.norm(self.R_jax)), # Approximation
+            'residual_norm': float(r_norm),
+            'converged': bool(converged),
         }
-        
-        # Extract solution ΔQ and reshape
-        dQ = result.x.reshape(self.NI, self.NJ, 4)
-        
-        # Apply under-relaxation if configured
-        relaxation = getattr(self.config, 'newton_relaxation', 1.0)
-        if relaxation < 1.0:
-            dQ = dQ * relaxation
-        
-        # Apply update with Patankar scheme for nuHat
-        Q_int = self.Q_jax[nghost:-nghost, nghost:-nghost, :]
-        Q_int_new = self._apply_newton_update(Q_int, dQ)
-        
-        # Update full state
-        Q_new = self.Q_jax.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new)
-        Q_new = self.apply_bc_jit(Q_new)
-        
-        self.Q_jax = Q_new
-        self.R_jax = self._jit_residual(Q_new)
+
     
     def _get_cfl_newton(self, iteration: int) -> float:
         """Get CFL number for Newton mode with exponential ramping.
@@ -1070,47 +969,37 @@ class RANSSolver:
         cfl = cfl_start * (10.0 ** decades)
         
         return min(cfl, cfl_final)
-    
+
+    def _apply_rk_update(
+        self, Q0: jnp.ndarray, R: jnp.ndarray, dt: jnp.ndarray, alpha: float
+    ) -> jnp.ndarray:
+        """Apply RK update - uses static JIT function."""
+        nghost = NGHOST
+        Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
+        return self._apply_rk_update_static(Q0_int, R, dt, self.volume_inv_jax, alpha)
+
     @staticmethod
     @jax.jit
-    def _apply_newton_update_static(
-        Q_int: jnp.ndarray,
-        dQ: jnp.ndarray,
+    def _apply_rk_update_static(
+        Q0_int: jnp.ndarray, 
+        R: jnp.ndarray, 
+        dt: jnp.ndarray,
+        volume_inv: jnp.ndarray,
+        alpha: float
     ) -> jnp.ndarray:
-        """Apply Newton update with Patankar scheme for nuHat.
-        
-        Q_new = Q + ΔQ, with special handling for nuHat.
-        
-        The sign convention: GMRES solves (V/dt·I - J)·ΔQ = R(Q), so
-        the update is Q_new = Q + ΔQ to reduce the residual.
-        """
-        # Addition for p, u, v
-        Q_new = Q_int + dQ
-        
-        # Patankar for nuHat when update would make it negative
-        nuHat_old = Q_int[:, :, 3]
-        dNuHat = dQ[:, :, 3]  # The GMRES solution
-        nuHat_explicit = Q_new[:, :, 3]  # = nuHat_old + dNuHat
-        
-        # Patankar: when dNuHat < 0 (i.e., reducing nuHat), use implicit form
-        # nuHat_new = nuHat_old / (1 - dNuHat/nuHat_old)
-        # This ensures nuHat_new > 0 as long as nuHat_old > 0
-        nuHat_patankar = jnp.where(
-            nuHat_old > 0,
-            nuHat_old / (1.0 - dNuHat / nuHat_old),
-            nuHat_explicit
-        )
-        
-        nuHat_new = jnp.where(dNuHat < 0, nuHat_patankar, nuHat_explicit)
-        nuHat_new = jnp.maximum(nuHat_new, 0.0)  # Physical floor
-        
-        return Q_new.at[:, :, 3].set(nuHat_new)
+        """Apply RK update with Patankar scheme (uses utility)."""
+        from ..numerics.updates import apply_patankar_update
+        dt_factors = jnp.array([1.0, 1.0, 1.0, 0.5])  # Half CFL for nuHat
+        dQ = alpha * (dt * volume_inv)[:, :, jnp.newaxis] * dt_factors * R
+        return apply_patankar_update(Q0_int, dQ)
+
+    @staticmethod
+    def _apply_newton_update_static(Q_int: jnp.ndarray, dQ: jnp.ndarray) -> jnp.ndarray:
+        """Apply Newton update with Patankar scheme (for tests)."""
+        from ..numerics.updates import apply_patankar_update
+        return apply_patankar_update(Q_int, dQ)
     
-    def _apply_newton_update(
-        self, Q_int: jnp.ndarray, dQ: jnp.ndarray
-    ) -> jnp.ndarray:
-        """Apply Newton update - wrapper for static JIT function."""
-        return self._apply_newton_update_static(Q_int, dQ)
+    
     
     def get_residual_rms(self) -> Tuple[float, float, float, float]:
         """Compute RMS of residual for all 4 equations.
@@ -1252,143 +1141,91 @@ class RANSSolver:
     
     def run_steady_state(self) -> bool:
         """Run steady-state simulation to convergence."""
-        print(f"\n{'='*60}")
-        print("Starting Steady-State Iteration")
-        print(f"{'='*60}")
-        print(f"{'Iter':>8} {'Residual(L1)':>14} {'CFL':>8}  "
-              f"{'CL':>8} {'CD':>8} {'(p:':>7} {'f:)':>7}")
-        print(f"{'-'*72}")
+        logger.info(f"\n{'='*60}")
+        logger.info("Starting Steady-State Iteration")
+        logger.info(f"{'='*60}")
+        logger.info(f"{'Iter':>8} {'Residual(L1)':>14} {'CFL':>8}  "
+                    f"{'CL':>8} {'CD':>8} {'(p:':>8} {'f:)':>8}")
+        logger.info(f"{'-'*72}")
         
         # Initial residual for normalization
         initial_residual = None
         
-        for n in range(self.config.max_iter):
-            # Step stays entirely on GPU
-            self.step()
-            
-            # Check if we need CPU data this iteration
-            need_print = (self.iteration % self.config.print_freq == 0) or (self.iteration == 1)
-            need_snapshot = self.config.html_animation and (self.iteration % self.config.diagnostic_freq == 0)
-            need_residual = need_print or need_snapshot or (initial_residual is None)
-            
-            # Only transfer residual when needed
-            if need_residual:
-                res_all = self.get_residual_l1_scaled()  # (p, u, v, nu) tuple - mesh-invariant L1
-                self.residual_history.append(res_all)
-                self.iteration_history.append(self.iteration)
+        try:
+            for n in range(self.config.max_iter):
+                # Step stays entirely on GPU
+                self.step()
                 
-                # Use max of all residuals for convergence check
-                res_max = max(res_all)
-                if initial_residual is None:
-                    initial_residual = res_max
-            else:
-                # Use previous max residual for convergence check
-                res_max = max(self.residual_history[-1]) if self.residual_history else 1.0
-            
-            # Get CFL using the appropriate method for the solver mode
-            solver_mode = getattr(self.config, 'solver_mode', 'rk5')
-            if solver_mode == 'newton':
-                cfl = self._get_cfl_newton(self.iteration)
-            else:
-                cfl = self._get_cfl(self.iteration)
-            
-            if need_print:
-                # Print GMRES info for Newton mode (if available)
-                if hasattr(self, '_last_gmres_info') and self._last_gmres_info is not None:
-                    info = self._last_gmres_info
-                    converged_str = "converged" if info['converged'] else "NOT converged"
-                    print(f"  GMRES: {info['iterations']} iters, "
-                          f"||r||: {info['rhs_norm']:.3e} → {info['residual_norm']:.3e} "
-                          f"({converged_str})")
+                # Check if we need CPU data this iteration
+                need_print = (self.iteration % self.config.print_freq == 0) or (self.iteration == 1)
+                need_snapshot = self.config.html_animation and (self.iteration % self.config.diagnostic_freq == 0)
+                need_residual = need_print or need_snapshot or (initial_residual is None)
                 
-                # Transfer Q to CPU for force computation
-                self.sync_to_cpu()
-                forces = self.compute_forces()
-                # Print max residual and individual components
-                print(f"{self.iteration:>8d} {res_max:>14.6e} {cfl:>8.2f}  "
-                      f"CL={forces.CL:>8.4f} CD={forces.CD:>8.5f} "
-                      f"(p:{forces.CD_p:>7.5f} f:{forces.CD_f:>7.5f})")
-                
-                # Store state in divergence buffer (rolling history)
-                if self._divergence_buffer is not None:
-                    R_field_copy = np.array(self.R_jax)
-                    Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
-                    C_pt = compute_total_pressure_loss(
-                        Q_int, self.freestream.p_inf,
-                        self.freestream.u_inf, self.freestream.v_inf
-                    )
-                    self._divergence_buffer.append({
-                        'Q': self.Q.copy(),
-                        'iteration': self.iteration,
-                        'residual': res_max,
-                        'cfl': cfl,
-                        'C_pt': C_pt,
-                        'residual_field': R_field_copy,
-                    })
-            
-            if need_snapshot:
-                if not need_print:  # Only sync if not already done
-                    self.sync_to_cpu()
-                # Use scaled residual field (same scaling as L1 metric)
-                R_field = self.get_scaled_residual_field()
-                Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
-                C_pt = compute_total_pressure_loss(
-                    Q_int, self.freestream.p_inf,
-                    self.freestream.u_inf, self.freestream.v_inf
-                )
-                # Compute AFT diagnostic fields
-                Re_Omega, Gamma, is_turb = self._compute_aft_fields()
-                self.plotter.store_snapshot(
-                    self.Q, self.iteration, self.residual_history,
-                    cfl=cfl, C_pt=C_pt, residual_field=R_field,
-                    freestream=self.freestream,
-                    iteration_history=self.iteration_history,
-                    Re_Omega=Re_Omega, Gamma=Gamma, is_turb=is_turb
-                )
-            
-            if res_max < self.config.tol:
-                self.converged = True
-                print(f"\n{'='*60}")
-                print(f"CONVERGED at iteration {self.iteration}")
-                res_final = self.residual_history[-1]
-                print(f"Final residual (L1): p={res_final[0]:.2e} u={res_final[1]:.2e} v={res_final[2]:.2e} ν̃={res_final[3]:.2e}")
-                print(f"{'='*60}")
-                break
-            
-            # Check for divergence: either residual > 1000x initial, or NaN/Inf
-            is_diverged = (
-                self.residual_history and 
-                (res_max > 1000 * initial_residual or not np.isfinite(res_max))
-            )
-            if is_diverged:
-                print(f"\n{'='*60}")
-                print(f"DIVERGED at iteration {self.iteration}")
-                if np.isfinite(res_max):
-                    print(f"Max residual: {res_max:.6e} (initial: {initial_residual:.6e})")
+                # Only transfer residual when needed
+                if need_residual:
+                    res_all = self.get_residual_l1_scaled()  # (p, u, v, nu) tuple - mesh-invariant L1
+                    self.residual_history.append(res_all)
+                    self.iteration_history.append(self.iteration)
+                    
+                    # Use max of all residuals for convergence check
+                    res_max = max(res_all)
+                    if initial_residual is None:
+                        initial_residual = res_max
                 else:
-                    print(f"Max residual: {res_max} (NaN/Inf detected!)")
-                print(f"{'='*60}")
+                    # Use previous max residual for convergence check
+                    res_max = max(self.residual_history[-1]) if self.residual_history else 1.0
                 
-                # Capture divergence dump(s) for HTML visualization
-                if self.config.html_animation:
+                # Get CFL using the appropriate method for the solver mode
+                solver_mode = getattr(self.config, 'solver_mode', 'rk5')
+                if solver_mode == 'newton':
+                    cfl = self._get_cfl_newton(self.iteration)
+                else:
+                    cfl = self._get_cfl(self.iteration)
+                
+                if need_print:
+                    # Print GMRES info for Newton mode (if available)
+                    if hasattr(self, '_last_gmres_info') and self._last_gmres_info is not None:
+                        info = self._last_gmres_info
+                        converged_str = "converged" if info['converged'] else "NOT converged"
+                        logger.debug(f"  GMRES: {info['iterations']} iters, "
+                                     f"||r||: {info['rhs_norm']:.3e} → {info['residual_norm']:.3e} "
+                                     f"({converged_str})")
+                    
+                    # Transfer Q to CPU for force computation
                     self.sync_to_cpu()
+                    forces = self.compute_forces()
+                    # Print max residual and individual components
+                    logger.info(f"{self.iteration:>8d} {res_max:>14.6e} {cfl:>8.2f}  "
+                                f"CL={forces.CL:>7.4f} CD={forces.CD:>7.5f} "
+                                f"(p:{forces.CD_p:>7.5f} f:{forces.CD_f:>7.5f})")
                     
-                    # First, dump all snapshots from the divergence buffer (history before divergence)
-                    n_history_dumps = 0
-                    if self._divergence_buffer:
-                        for buf_snap in self._divergence_buffer:
-                            self.plotter.store_snapshot(
-                                buf_snap['Q'], buf_snap['iteration'], self.residual_history,
-                                cfl=buf_snap['cfl'], C_pt=buf_snap['C_pt'], 
-                                residual_field=buf_snap['residual_field'],
-                                freestream=self.freestream,
-                                iteration_history=self.iteration_history,
-                                is_divergence_dump=True
-                                # Note: AFT fields not computed for buffered divergence snapshots
-                            )
-                            n_history_dumps += 1
+
+            
+                    # NuHat Diagnostic (disabled after debugging)
+                    # nu_diag = analyze_nuhat_residual(np.array(R_full), np.array(self.Q), self.X, self.Y)
+                    # logger.info(f"  NuHat Max: Res={nu_diag.max_res:.4e} at ({nu_diag.i_max},{nu_diag.j_max}) "
+                    #             f"x={nu_diag.x_loc:.3f}, y={nu_diag.y_loc:.3f} | nuHat={nu_diag.nu_hat:.4e}")
                     
-                    # Also capture current state at divergence detection
+                    # Store state in divergence buffer (rolling history)
+                    if self._divergence_buffer is not None:
+                        R_field_copy = np.array(self.R_jax)
+                        Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
+                        C_pt = compute_total_pressure_loss(
+                            Q_int, self.freestream.p_inf,
+                            self.freestream.u_inf, self.freestream.v_inf
+                        )
+                        self._divergence_buffer.append({
+                            'Q': self.Q.copy(),
+                            'iteration': self.iteration,
+                            'residual': res_max,
+                            'cfl': cfl,
+                            'C_pt': C_pt,
+                            'residual_field': R_field_copy,
+                        })
+                
+                if need_snapshot:
+                    if not need_print:  # Only sync if not already done
+                        self.sync_to_cpu()
                     # Use scaled residual field (same scaling as L1 metric)
                     R_field = self.get_scaled_residual_field()
                     Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
@@ -1403,26 +1240,99 @@ class RANSSolver:
                         cfl=cfl, C_pt=C_pt, residual_field=R_field,
                         freestream=self.freestream,
                         iteration_history=self.iteration_history,
-                        is_divergence_dump=True,
                         Re_Omega=Re_Omega, Gamma=Gamma, is_turb=is_turb
                     )
+                
+                if res_max < self.config.tol:
+                    self.converged = True
+                    logger.info(f"\n{'='*60}")
+                    logger.info(f"CONVERGED at iteration {self.iteration}")
+                    res_final = self.residual_history[-1]
+                    logger.info(f"Final residual (L1): p={res_final[0]:.2e} u={res_final[1]:.2e} v={res_final[2]:.2e} ν̃={res_final[3]:.2e}")
+                    logger.info(f"{'='*60}")
+                    break
+                
+                # Check for divergence: either residual > 1000x initial, or NaN/Inf
+                is_diverged = (
+                    self.residual_history and 
+                    (res_max > 1000 * initial_residual or not jnp.isfinite(res_max))
+                )
+                if is_diverged:
+                    logger.warning(f"\n{'='*60}")
+                    logger.warning(f"DIVERGED at iteration {self.iteration}")
+                    if initial_residual:
+                        logger.warning(f"Max residual: {res_max:.6e} (initial: {initial_residual:.6e})")
+                    else:
+                        logger.warning(f"Max residual: {res_max} (NaN/Inf detected!)")
+                    logger.warning(f"{'='*60}")
                     
-                    total_dumps = n_history_dumps + 1
-                    print(f"  Divergence snapshots captured: {total_dumps} ({n_history_dumps} from history + 1 current)")
-                break
+                    # Capture divergence dump(s) for HTML visualization
+                    if self.config.html_animation:
+                        self.sync_to_cpu()
+                        
+                        # First, dump all snapshots from the divergence buffer (history before divergence)
+                        n_history_dumps = 0
+                        if self._divergence_buffer:
+                            for buf_snap in self._divergence_buffer:
+                                self.plotter.store_snapshot(
+                                    buf_snap['Q'], buf_snap['iteration'], self.residual_history,
+                                    cfl=buf_snap['cfl'], C_pt=buf_snap['C_pt'], 
+                                    residual_field=buf_snap['residual_field'],
+                                    freestream=self.freestream,
+                                    iteration_history=self.iteration_history,
+                                    is_divergence_dump=True
+                                    # Note: AFT fields not computed for buffered divergence snapshots
+                                )
+                                n_history_dumps += 1
+                        
+                        # Also capture current state at divergence detection
+                        # Use scaled residual field (same scaling as L1 metric)
+                        R_field = self.get_scaled_residual_field()
+                        Q_int = self.Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
+                        C_pt = compute_total_pressure_loss(
+                            Q_int, self.freestream.p_inf,
+                            self.freestream.u_inf, self.freestream.v_inf
+                        )
+                        # Compute AFT diagnostic fields
+                        Re_Omega, Gamma, is_turb = self._compute_aft_fields()
+                        self.plotter.store_snapshot(
+                            self.Q, self.iteration, self.residual_history,
+                            cfl=cfl, C_pt=C_pt, residual_field=R_field,
+                            freestream=self.freestream,
+                            iteration_history=self.iteration_history,
+                            is_divergence_dump=True,
+                            Re_Omega=Re_Omega, Gamma=Gamma, is_turb=is_turb
+                        )
+                        
+                        total_dumps = n_history_dumps + 1
+                        print(f"  Divergence snapshots captured: {total_dumps} ({n_history_dumps} from history + 1 current)")
+                    break
+            
+            else:
+                print(f"\n{'='*60}")
+                print(f"Maximum iterations ({self.config.max_iter}) reached")
+                if self.residual_history:
+                    res_final = self.residual_history[-1]
+                    print(f"Final residual: p={res_final[0]:.2e} u={res_final[1]:.2e} v={res_final[2]:.2e} ν̃={res_final[3]:.2e}")
+                print(f"{'='*60}")
         
-        else:
-            print(f"\n{'='*60}")
-            print(f"Maximum iterations ({self.config.max_iter}) reached")
-            if self.residual_history:
-                res_final = self.residual_history[-1]
-                print(f"Final residual: p={res_final[0]:.2e} u={res_final[1]:.2e} v={res_final[2]:.2e} ν̃={res_final[3]:.2e}")
-            print(f"{'='*60}")
+        except KeyboardInterrupt:
+            print("\nSimulation interrupted by user.")
+        except Exception as e:
+            print(f"\nError during simulation: {e}")
+            import traceback
+            traceback.print_exc()
+        finally:
+            self.save_diagnostics()
+            
+        return self.converged
         
-        # Final sync to CPU
+    def save_diagnostics(self) -> None:
+        """Save HTML and VTK diagnostics."""
         self.sync_to_cpu()
         
         if self.config.html_animation and self.plotter.num_snapshots > 0:
+            logger.info(f"Saving HTML animation with {self.plotter.num_snapshots} snapshots...")
             html_path = Path(self.config.output_dir) / f"{self.config.case_name}_animation.html"
             n_wake = getattr(self.config, 'n_wake', 0)
             mu_laminar = 1.0 / self.config.reynolds if self.config.reynolds > 0 else 0.0
@@ -1435,8 +1345,6 @@ class RANSSolver:
                 mu_laminar=mu_laminar,
                 target_yplus=target_yplus
             )
-        
-        return self.converged
     
     def get_surface_data(self) -> Dict[str, np.ndarray]:
         """Extract surface quantities for post-processing."""

@@ -9,8 +9,9 @@ grid:
   n_surface: 193        # Surface nodes
   n_wake: 48            # Wake region nodes
   y_plus: 1.0           # Target y+ for first cell
-  gradation: 1.2        # Wall-normal cell growth ratio
+  gradation: 1.1        # Wall-normal cell growth ratio
   farfield_radius: 15.0 # Farfield distance in chords
+
 
 flow:
   reynolds: 1.0e+6      # Re = 1 million
@@ -21,26 +22,35 @@ solver:
   max_iter: 1000       # Fewer iterations needed with Newton
   tol: 1.0e-8
   print_freq: 10
-  diagnostic_freq: 200
+  diagnostic_freq: 100
   
   # Solver mode: "rk5" (default), "rk5_precond", or "newton"
   mode: newton
   
   # GMRES settings (only used for newton mode)
-  gmres_restart: 20     # GMRES(m) restart parameter (typical: 10-50)
-  gmres_maxiter: 100    # Maximum GMRES iterations (across restarts)
+  gmres_restart: 40     # GMRES(m) restart parameter (typical: 10-50)
+  gmres_maxiter: 200    # Maximum GMRES iterations (across restarts)
   gmres_tol: 1.0e-3     # Relative tolerance for GMRES linear solve
   
   cfl:
     initial: 0.1        # Starting CFL (pseudo-transient continuation)
-    final: 1.0e12       # Maximum CFL (effectively infinity for steady state)
-    ramp_iter: 200      # Iterations per decade (CFL multiplied by 10 every ramp_iter)
+    final: inf         # Maximum CFL (infinity for steady state)
+    ramp_iter: 120      # Iterations per decade (CFL multiplied by 10 every ramp_iter)
 
 numerics:
-  jst_k4: 0.04              # 4th-order dissipation coefficient
+  jst_k4: 0.10              # 4th-order dissipation coefficient
+
+  # Implicit Production (User Experiment)
+  explicit_production: false
+
+  # Explicit Residual Smoothing (Crucial for stability with explicit sources)
+  smoothing_epsilon: 0.0
+  smoothing_passes: 0
+
   beta: 10.0                # Artificial compressibility parameter
   wall_damping_length: 0.1  # Wall damping length scale
-  sponge_thickness: 15      # Sponge layer thickness
+  sponge_thickness: 30      # Sponge layer thickness
+
 
 output:
   directory: output/naca0012_newton

@@ -88,7 +88,8 @@ def compute_gamma(omega_mag: ArrayLike, vel_mag: ArrayLike, d: ArrayLike,
     vel_sq = vel_mag ** 2
     # Avoid 0/0: when both vel and omega_d are zero, Gamma is undefined but set to 0
     denom = vel_sq + omega_d_sq
-    return jnp.where(denom > 0, gamma_coeff * omega_d_sq / denom, 0.0)
+    # Hardcoded coeff per user request
+    return jnp.where(denom > 0, 2.0 * omega_d_sq / denom, 0.0)
 
 
 @jax.jit
@@ -168,10 +169,17 @@ def compute_aft_amplification_rate(Re_Omega: ArrayLike, Gamma: ArrayLike,
         Non-dimensional amplification rate (dimensionless).
     """
     # Activation variable
-    a = jnp.log10(jnp.abs(Re_Omega) / re_scale + 1e-20) / log_divisor + Gamma
+    # User modification: replace Gamma < 1 part with log(Gamma) + 1 (for continuity at 1)
+    Gamma_mod = jnp.where(Gamma < 1.0, jnp.log(jnp.maximum(Gamma, 1e-20)) + 1.0, Gamma)
+    a = jnp.log10(jnp.abs(Re_Omega) / re_scale + 1e-20) / log_divisor + Gamma_mod
     
-    # Sigmoid activation
-    return rate_scale / (1.0 + jnp.exp(-sigmoid_slope * (a - sigmoid_center)))
+    # Sigmoid activation (using jax.nn.sigmoid for stability)
+    # x = -slope * (a - center)
+    # sigmoid(x) = 1 / (1 + exp(-x))
+    # We want rate = rate_scale / (1 + exp(-slope*(a-center)))
+    # This is equivalent to rate_scale * sigmoid(slope * (a - center))
+    x_arg = sigmoid_slope * (a - sigmoid_center)
+    return rate_scale * jax.nn.sigmoid(x_arg)
 
 
 @jax.jit

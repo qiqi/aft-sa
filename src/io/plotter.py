@@ -438,15 +438,16 @@ class PlotlyDashboard:
         chi_log = compute_chi_log(snapshot.nu, self.nu_laminar)
         chi_log_safe = to_json_safe_list(chi_log)
         
-        # Plot name mapping: (row, col) -> plot_name for colorbar positioning
-        plot_names = {
-            (1, 1): 'pressure',
-            (1, 2): 'cpt' if has_cpt else 'nu',
-            (2, 1): 'u_vel',
-            (2, 2): 'v_vel',
-            (3, 1): 'residual' if has_res_field else 'vel_mag',
-            (3, 2): 'chi',
-        }
+        # Standard plots that might be in the layout
+        standard_plots = [
+            ('pressure', 'p', color_config['pressure']),
+            ('u_vel', 'u', color_config['velocity']),
+            ('v_vel', 'v', color_config['velocity']),
+            ('cpt' if has_cpt else 'nu', 'cpt' if has_cpt else 'nu', color_config['pressure']),
+            ('residual' if has_res_field else 'vel_mag', 'res' if has_res_field else 'mag', color_config['residual']),
+            ('grid', 'grid', None),  # New grid pane
+            ('chi', 'chi', color_config['chi']),
+        ]
         
         # Colorbar title mapping
         colorbar_titles = {
@@ -460,55 +461,89 @@ class PlotlyDashboard:
             'chi': 'log₁₀(χ)',
         }
         
-        contour_configs = [
-            (sanitize_array(snapshot.p).flatten(), 1, 1, 'pressure'),
-            (field2.flatten(), 1, 2, 'pressure'),
-            (sanitize_array(snapshot.u).flatten(), 2, 1, 'velocity'),
-            (sanitize_array(snapshot.v).flatten(), 2, 2, 'velocity'),
-            (field5.flatten(), 3, 1, 'residual'),
-            (chi_log_safe, 3, 2, 'chi'),
-        ]
-        
-        for data, row, col, caxis_key in contour_configs:
-            carpet_id = f'carpet_{row}_{col}'
-            cfg = color_config[caxis_key]
-            plot_name = plot_names[(row, col)]
+        for name, data_key, cfg in standard_plots:
+            if not self.layout.has_plot(name):
+                continue
+                
+            row, col = self.layout.get_position(name)
+            carpet_id = f'carpet_{name}'
             
-            # Get colorbar position from layout
-            show_colorbar = self.layout.should_show_colorbar(plot_name)
-            colorbar_dict = None
-            if show_colorbar:
-                cb_config = self.layout.get_colorbar_config(plot_name)
-                colorbar_dict = dict(
-                    title=colorbar_titles.get(plot_name, ''),
-                    x=cb_config['x'],
-                    y=cb_config['y'],
-                    len=cb_config['len'],
-                    tickformat='.2f' if caxis_key in ['pressure', 'velocity'] else '.1f',
-                )
+            # Prepare data
+            data = None
+            if name == 'pressure':
+                data = sanitize_array(snapshot.p).flatten()
+            elif name == 'cpt':
+                data = field2.flatten()
+            elif name == 'nu': # if cpt not present
+                data = field2.flatten()
+            elif name == 'u_vel':
+                data = sanitize_array(snapshot.u).flatten()
+            elif name == 'v_vel':
+                data = sanitize_array(snapshot.v).flatten()
+            elif name == 'residual':
+                data = field5.flatten()
+            elif name == 'vel_mag':
+                data = field5.flatten()
+            elif name == 'chi':
+                data = chi_log_safe
+            elif name == 'grid':
+                # Grid only needs carpet, no data
+                pass
+
+            # Carpet trace
+            is_grid_panel = (name == 'grid')
             
-            # Carpet is static (grid doesn't change)
+            # For grid panel, show grid lines! For others, hide them.
+            axis_style = dict(
+                showgrid=is_grid_panel, 
+                gridcolor='black' if is_grid_panel else None,
+                gridwidth=0.5 if is_grid_panel else None,
+                showticklabels='none', 
+                showline=False
+            )
+            
             self.tracker.add_static(carpet_id)
             fig.add_trace(go.Carpet(
                 a=A.flatten(), b=B.flatten(),
                 x=xc.flatten(), y=yc.flatten(),
                 carpet=carpet_id,
-                aaxis=dict(showgrid=False, showticklabels='none', showline=False),
-                baxis=dict(showgrid=False, showticklabels='none', showline=False),
+                aaxis=axis_style,
+                baxis=axis_style,
             ), row=row, col=col)
             
-            # Contourcarpet is animated (z data changes per frame)
-            self.tracker.add_animated(f'contour_{row}_{col}')
-            fig.add_trace(go.Contourcarpet(
-                a=A.flatten(), b=B.flatten(), z=data,
-                carpet=carpet_id,
-                colorscale=cfg.colorscale,
-                zmin=cfg.cmin, zmax=cfg.cmax,
-                contours=dict(coloring='fill', showlines=False),
-                ncontours=self.N_CONTOURS,
-                colorbar=colorbar_dict,
-                showscale=show_colorbar,
-            ), row=row, col=col)
+            # Add ContourCarpet ONLY if it's not the grid panel
+            if not is_grid_panel and data is not None:
+                trace_name = f'contour_{name}'
+                
+                # Get colorbar config
+                show_colorbar = self.layout.should_show_colorbar(name)
+                colorbar_dict = None
+                if show_colorbar:
+                    cb_config = self.layout.get_colorbar_config(name)
+                    # Determine title key - handle cpt/nu and residual/vel_mag aliasing
+                    title_key = name
+                    if name == 'cpt' and not has_cpt: title_key = 'nu'
+                    if name == 'residual' and not has_res_field: title_key = 'vel_mag'
+                    
+                    colorbar_dict = dict(
+                        title=colorbar_titles.get(title_key, ''),
+                        x=cb_config['x'],
+                        y=cb_config['y'],
+                        len=cb_config['len'],
+                        tickformat='.2f' if name in ['pressure', 'u_vel', 'v_vel'] else '.1f',
+                    )
+
+                self.tracker.add_animated(trace_name)
+                fig.add_trace(go.Contourcarpet(
+                    a=A.flatten(), b=B.flatten(), z=data,
+                    carpet=carpet_id,
+                    colorscale=cfg.colorscale,
+                    zmin=cfg.cmin, zmax=cfg.cmax,
+                    contours=dict(coloring='fill', showlines=False),
+                    ncontours=self.N_CONTOURS,
+                    colorbar=colorbar_dict,
+                    showscale=show_colorbar,
+                ), row=row, col=col)
     
     def _add_aft_traces(
         self,
@@ -540,7 +575,8 @@ class PlotlyDashboard:
         
         # Get row positions from layout
         aft_row1, _ = self.layout.get_position("re_omega")
-        aft_row2, _ = self.layout.get_position("is_turb")
+        # is_turb is in different row now (row 5) than re_omega (row 4)
+        is_turb_row, _ = self.layout.get_position("is_turb")
         
         # Get colorbar configs from layout
         re_omega_cb = self.layout.get_colorbar_config("re_omega")
@@ -601,7 +637,7 @@ class PlotlyDashboard:
             carpet='carpet_is_turb',
             aaxis=dict(showgrid=False, showticklabels='none', showline=False),
             baxis=dict(showgrid=False, showticklabels='none', showline=False),
-        ), row=aft_row2, col=1)
+        ), row=is_turb_row, col=2) # is_turb is now in col 2 (next to chi)
         
         self.tracker.add_animated('contour_is_turb')
         fig.add_trace(go.Contourcarpet(
@@ -614,7 +650,7 @@ class PlotlyDashboard:
             ncontours=self.N_CONTOURS,
             colorbar=dict(title='is_turb', **is_turb_cb),
             showscale=True,
-        ), row=aft_row2, col=1)
+        ), row=is_turb_row, col=2)
     
     def _add_convergence_traces(self, fig: 'go.Figure', has_aft: bool = False) -> None:
         """Add convergence history traces (static - not animated)."""
@@ -892,38 +928,52 @@ class PlotlyDashboard:
         
         chi_log = compute_chi_log(snap_nu, self.nu_laminar)
         
-        p_cfg = color_config['pressure']
-        v_cfg = color_config['velocity']
-        r_cfg = color_config['residual']
-        chi_cfg = color_config['chi']
         
-        # ORDER MUST MATCH: contour_1_1, contour_1_2, contour_2_1, contour_2_2, contour_3_1, contour_3_2
-        frame_data = [
-            go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap_p.flatten(),
-                            carpet='carpet_1_1', colorscale=p_cfg.colorscale,
-                            zmin=p_cfg.cmin, zmax=p_cfg.cmax,
-                            contours=dict(coloring='fill', showlines=False), ncontours=self.N_CONTOURS),
-            go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=field2.flatten(),
-                            carpet='carpet_1_2', colorscale=p_cfg.colorscale,
-                            zmin=p_cfg.cmin, zmax=p_cfg.cmax,
-                            contours=dict(coloring='fill', showlines=False), ncontours=self.N_CONTOURS),
-            go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap_u.flatten(),
-                            carpet='carpet_2_1', colorscale=v_cfg.colorscale,
-                            zmin=v_cfg.cmin, zmax=v_cfg.cmax,
-                            contours=dict(coloring='fill', showlines=False), ncontours=self.N_CONTOURS),
-            go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=snap_v.flatten(),
-                            carpet='carpet_2_2', colorscale=v_cfg.colorscale,
-                            zmin=v_cfg.cmin, zmax=v_cfg.cmax,
-                            contours=dict(coloring='fill', showlines=False), ncontours=self.N_CONTOURS),
-            go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=field5.flatten(),
-                            carpet='carpet_3_1', colorscale=r_cfg.colorscale,
-                            zmin=r_cfg.cmin, zmax=r_cfg.cmax,
-                            contours=dict(coloring='fill', showlines=False), ncontours=self.N_CONTOURS),
-            go.Contourcarpet(a=A.flatten(), b=B.flatten(), z=to_json_safe_list(chi_log),
-                            carpet='carpet_3_2', colorscale=chi_cfg.colorscale,
-                            zmin=chi_cfg.cmin, zmax=chi_cfg.cmax,
-                            contours=dict(coloring='fill', showlines=False), ncontours=self.N_CONTOURS),
+        # Assemble frame data in the EXACT same order as traces were added to tracker
+        frame_data = []
+        
+        standard_keys = [
+            ('pressure', snap_p.flatten()),
+            ('u_vel', snap_u.flatten()),
+            ('v_vel', snap_v.flatten()),
+            ('cpt' if has_cpt else 'nu', field2.flatten()),
+            ('residual' if has_res_field else 'vel_mag', field5.flatten()),
+            ('grid', None), # No z-data for grid
+            ('chi', to_json_safe_list(chi_log)),
         ]
+        
+        # Color config mapping
+        config_map = {
+            'pressure': color_config['pressure'],
+            'u_vel': color_config['velocity'],
+            'v_vel': color_config['velocity'],
+            'cpt': color_config['pressure'], # share range
+            'nu': color_config['pressure'],  # share range
+            'residual': color_config['residual'],
+            'vel_mag': color_config['residual'], # share range
+            'chi': color_config['chi'],
+            'grid': None
+        }
+
+        for name, data in standard_keys:
+            if not self.layout.has_plot(name):
+                continue
+            
+            # Grid has no animated trace, so it contributes nothing to frame data!
+            if name == 'grid':
+                continue
+                
+            cfg = config_map[name]
+            carpet_id = f'carpet_{name}'
+            
+            frame_data.append(go.Contourcarpet(
+                a=A.flatten(), b=B.flatten(), z=data,
+                carpet=carpet_id, 
+                colorscale=cfg.colorscale,
+                zmin=cfg.cmin, zmax=cfg.cmax,
+                contours=dict(coloring='fill', showlines=False), 
+                ncontours=self.N_CONTOURS
+            ))
         
         # AFT fields: contour_re_omega, contour_gamma, contour_is_turb
         if has_aft:
@@ -1089,13 +1139,55 @@ class PlotlyDashboard:
         r_cfg = color_config['residual']
         chi_cfg = color_config['chi']
         
-        p_steps = make_log_range_slider_steps(p_cfg.cmax, [1, 3], False, n_steps)
-        v_steps = make_log_range_slider_steps(v_cfg.cmax, [5, 7], False, n_steps)
+        # Calculate dynamic trace indices
+        # Order MUST match _add_contour_traces: pressure, u, v, (cpt/nu), (res/mag), grid, chi
+        idx = 0
+        indices = {}
+        # Keys used in standard_plots loop in _add_contour_traces
+        trace_order = ['pressure', 'u_vel', 'v_vel', 
+                      'cpt' if has_cpt else 'nu', 
+                      'residual' if has_res_field else 'vel_mag', 
+                      'grid', 'chi']
+        
+        for name in trace_order:
+            if self.layout.has_plot(name):
+                # Carpet trace
+                idx += 1
+                if name != 'grid':
+                    # Contour trace (this is the one sliders affect)
+                    indices[name] = idx
+                    idx += 1
+        
+        # Get indices for each slider
+        p_idx = indices.get('pressure')
+        u_idx = indices.get('u_vel')
+        v_idx = indices.get('v_vel')
+        cpt_key = 'cpt' if has_cpt else 'nu'
+        cpt_idx = indices.get(cpt_key)
+        res_key = 'residual' if has_res_field else 'vel_mag'
+        res_idx = indices.get(res_key)
+        chi_idx = indices.get('chi')
+        
+        # Define slider targets
+        # Pressure slider -> Pressure plot AND Cpt/Nu plot (since they share P scaling often)
+        p_targets = [i for i in [p_idx, cpt_idx] if i is not None]
+        
+        # Velocity slider -> U and V plots
+        v_targets = [i for i in [u_idx, v_idx] if i is not None]
+        
+        # Residual slider
+        r_targets = [res_idx] if res_idx is not None else []
+        
+        # Chi slider
+        chi_targets = [chi_idx] if chi_idx is not None else []
+        
+        p_steps = make_log_range_slider_steps(p_cfg.cmax, p_targets, False, n_steps)
+        v_steps = make_log_range_slider_steps(v_cfg.cmax, v_targets, False, n_steps)
         # Residual: 8 decades slider range, 8 decades display
-        r_steps = make_log_range_slider_steps(r_cfg.cmax, [9], True, n_steps, 
+        r_steps = make_log_range_slider_steps(r_cfg.cmax, r_targets, True, n_steps, 
                                               slider_decades=8.0, display_decades=8.0)
         # Chi: 4 decades slider range, 5 decades display
-        chi_steps = make_log_range_slider_steps(chi_cfg.cmax, [11], True, n_steps,
+        chi_steps = make_log_range_slider_steps(chi_cfg.cmax, chi_targets, True, n_steps,
                                                 slider_decades=4.0, display_decades=5.0)
         
         # Height: ~350px per row, with some base margin
@@ -1142,7 +1234,7 @@ class PlotlyDashboard:
         
         # Get all contour plot positions from layout for isotropic axes
         contour_plot_names = ["pressure", "cpt" if has_cpt else "nu",
-                              "u_vel", "v_vel", "residual" if has_res_field else "vel_mag", "chi"]
+                              "u_vel", "v_vel", "residual" if has_res_field else "vel_mag", "grid", "chi"]
         if has_aft:
             contour_plot_names.extend(["re_omega", "gamma", "is_turb"])
         if has_wall_dist:
