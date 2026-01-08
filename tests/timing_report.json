@@ -1,89 +1,17 @@
 {
-  "timestamp": "2026-01-06T15:36:38.301844",
-  "total_duration": 837.41,
+  "timestamp": "2026-01-06T20:25:00.389462",
+  "total_duration": 347.129,
   "test_count": 223,
   "passed": 223,
   "failed": 0,
   "skipped": 0,
   "tests": [
     {
-      "nodeid": "tests/solvers/test_newton_solver.py::TestModeComparison::test_all_three_modes_run",
-      "module": "tests/solvers/test_newton_solver.py",
-      "class": "TestModeComparison",
-      "name": "test_all_three_modes_run",
-      "duration": 80.30636,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_sa_jacobian_sign.py::TestSAJacobianSign::test_jacobian_sign_consistent_with_fd",
-      "module": "tests/numerics/test_sa_jacobian_sign.py",
-      "class": "TestSAJacobianSign",
-      "name": "test_jacobian_sign_consistent_with_fd",
-      "duration": 53.052235,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_sa_jacobian_sign.py::TestSAJacobianSign::test_v_over_dt_minus_jacobian_is_positive",
-      "module": "tests/numerics/test_sa_jacobian_sign.py",
-      "class": "TestSAJacobianSign",
-      "name": "test_v_over_dt_minus_jacobian_is_positive",
-      "duration": 52.827513,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_sa_jacobian_sign.py::TestSAJacobianSign::test_destruction_jacobian_is_negative",
-      "module": "tests/numerics/test_sa_jacobian_sign.py",
-      "class": "TestSAJacobianSign",
-      "name": "test_destruction_jacobian_is_negative",
-      "duration": 52.635119,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonStep::test_newton_step_runs",
-      "module": "tests/solvers/test_newton_solver.py",
-      "class": "TestNewtonStep",
-      "name": "test_newton_step_runs",
-      "duration": 48.945343,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonStep::test_newton_residual_finite",
-      "module": "tests/solvers/test_newton_solver.py",
-      "class": "TestNewtonStep",
-      "name": "test_newton_residual_finite",
-      "duration": 48.848215,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestModeComparison::test_newton_mode_runs",
-      "module": "tests/solvers/test_preconditioned_rk.py",
-      "class": "TestModeComparison",
-      "name": "test_newton_mode_runs",
-      "duration": 48.757805,
-      "outcome": "passed"
-    },
-    {
       "nodeid": "tests/numerics/test_sa_jacobian_sign.py::TestSAJacobianSign::test_lower_cfl_increases_v_over_dt",
       "module": "tests/numerics/test_sa_jacobian_sign.py",
       "class": "TestSAJacobianSign",
       "name": "test_lower_cfl_increases_v_over_dt",
-      "duration": 42.597209,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonCFLRamping::test_newton_cfl_exact_decade_values",
-      "module": "tests/solvers/test_newton_solver.py",
-      "class": "TestNewtonCFLRamping",
-      "name": "test_newton_cfl_exact_decade_values",
-      "duration": 38.975624,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonCFLRamping::test_cfl_capped_at_final",
-      "module": "tests/solvers/test_newton_solver.py",
-      "class": "TestNewtonCFLRamping",
-      "name": "test_cfl_capped_at_final",
-      "duration": 38.800248,
+      "duration": 44.375294,
       "outcome": "passed"
     },
     {
@@ -91,39 +19,15 @@
       "module": "tests/solvers/test_newton_solver.py",
       "class": "TestNewtonCFLRamping",
       "name": "test_exponential_cfl_ramping",
-      "duration": 38.155445,
+      "duration": 40.032065,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestModeComparison::test_both_modes_run",
+      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestModeComparison::test_newton_mode_runs",
       "module": "tests/solvers/test_preconditioned_rk.py",
       "class": "TestModeComparison",
-      "name": "test_both_modes_run",
-      "duration": 32.875607,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestPreconditionedRKStep::test_step_produces_valid_state",
-      "module": "tests/solvers/test_preconditioned_rk.py",
-      "class": "TestPreconditionedRKStep",
-      "name": "test_step_produces_valid_state",
-      "duration": 26.319663,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestPreconditionedRKStep::test_residual_decreases",
-      "module": "tests/solvers/test_preconditioned_rk.py",
-      "class": "TestPreconditionedRKStep",
-      "name": "test_residual_decreases",
-      "duration": 26.14663,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestPreconditionerIntegration::test_precond_apply_function",
-      "module": "tests/solvers/test_preconditioned_rk.py",
-      "class": "TestPreconditionerIntegration",
-      "name": "test_precond_apply_function",
-      "duration": 19.918022,
+      "name": "test_newton_mode_runs",
+      "duration": 31.459158,
       "outcome": "passed"
     },
     {
@@ -131,7 +35,15 @@
       "module": "tests/solvers/test_preconditioned_rk.py",
       "class": "TestPreconditionerIntegration",
       "name": "test_compute_preconditioner",
-      "duration": 19.692028,
+      "duration": 20.355934,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonStep::test_newton_step_runs",
+      "module": "tests/solvers/test_newton_solver.py",
+      "class": "TestNewtonStep",
+      "name": "test_newton_step_runs",
+      "duration": 13.016556,
       "outcome": "passed"
     },
     {
@@ -139,7 +51,7 @@
       "module": "tests/test_blasius.py",
       "class": "TestAFTTransition",
       "name": "test_no_nan",
-      "duration": 12.436906,
+      "duration": 12.661377,
       "outcome": "passed"
     },
     {
@@ -147,7 +59,23 @@
       "module": "tests/numerics/test_wake_conservation.py",
       "class": "TestWakeConservationBaseline",
       "name": "test_baseline_conservation_error",
-      "duration": 9.610472,
+      "duration": 10.802628,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_newton_solver.py::TestModeComparison::test_all_three_modes_run",
+      "module": "tests/solvers/test_newton_solver.py",
+      "class": "TestModeComparison",
+      "name": "test_all_three_modes_run",
+      "duration": 10.03566,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestPreconditionedRKStep::test_step_produces_valid_state",
+      "module": "tests/solvers/test_preconditioned_rk.py",
+      "class": "TestPreconditionedRKStep",
+      "name": "test_step_produces_valid_state",
+      "duration": 8.253183,
       "outcome": "passed"
     },
     {
@@ -155,15 +83,7 @@
       "module": "tests/solvers/test_newton_solver.py",
       "class": "TestNewtonCFLRamping",
       "name": "test_rk_cfl_uses_linear_ramp",
-      "duration": 6.031437,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_taylor_green.py::TestTaylorGreenCartesian::test_viscous_decay",
-      "module": "tests/test_taylor_green.py",
-      "class": "TestTaylorGreenCartesian",
-      "name": "test_viscous_decay",
-      "duration": 5.813294,
+      "duration": 6.275015,
       "outcome": "passed"
     },
     {
@@ -171,31 +91,15 @@
       "module": "tests/test_blasius.py",
       "class": "TestBlasiusFlatPlate",
       "name": "test_no_divergence",
-      "duration": 5.72363,
+      "duration": 5.968076,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/solvers/test_batch_kernels.py::TestBatchStep::test_rk_stage_single_vs_batch",
-      "module": "tests/solvers/test_batch_kernels.py",
-      "class": "TestBatchStep",
-      "name": "test_rk_stage_single_vs_batch",
-      "duration": 5.610392,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/solvers/test_batch_kernels.py::TestBatchStep::test_multiple_cases_batch",
-      "module": "tests/solvers/test_batch_kernels.py",
-      "class": "TestBatchStep",
-      "name": "test_multiple_cases_batch",
-      "duration": 5.462264,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_taylor_green.py::TestTaylorGreenDistorted::test_viscous_decay",
+      "nodeid": "tests/test_taylor_green.py::TestTaylorGreenCartesian::test_viscous_decay",
       "module": "tests/test_taylor_green.py",
-      "class": "TestTaylorGreenDistorted",
+      "class": "TestTaylorGreenCartesian",
       "name": "test_viscous_decay",
-      "duration": 5.392603,
+      "duration": 5.893949,
       "outcome": "passed"
     },
     {
@@ -203,7 +107,31 @@
       "module": "tests/test_taylor_green.py",
       "class": "TestConvectedTaylorGreen",
       "name": "test_viscous_strong_convection",
-      "duration": 5.36577,
+      "duration": 5.568665,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_batch_kernels.py::TestBatchStep::test_multiple_cases_batch",
+      "module": "tests/solvers/test_batch_kernels.py",
+      "class": "TestBatchStep",
+      "name": "test_multiple_cases_batch",
+      "duration": 5.517954,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_taylor_green.py::TestTaylorGreenDistorted::test_viscous_decay",
+      "module": "tests/test_taylor_green.py",
+      "class": "TestTaylorGreenDistorted",
+      "name": "test_viscous_decay",
+      "duration": 5.42312,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_batch_kernels.py::TestBatchStep::test_rk_stage_single_vs_batch",
+      "module": "tests/solvers/test_batch_kernels.py",
+      "class": "TestBatchStep",
+      "name": "test_rk_stage_single_vs_batch",
+      "duration": 5.422553,
       "outcome": "passed"
     },
     {
@@ -211,7 +139,15 @@
       "module": "tests/grid/test_construct2d.py",
       "class": null,
       "name": "test_construct2d_grids",
-      "duration": 5.047086,
+      "duration": 5.079821,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestModeComparison::test_both_modes_run",
+      "module": "tests/solvers/test_preconditioned_rk.py",
+      "class": "TestModeComparison",
+      "name": "test_both_modes_run",
+      "duration": 4.971632,
       "outcome": "passed"
     },
     {
@@ -219,7 +155,7 @@
       "module": "tests/solver/test_jst_fluxes.py",
       "class": null,
       "name": "test_different_grid_sizes",
-      "duration": 3.077564,
+      "duration": 3.36087,
       "outcome": "passed"
     },
     {
@@ -227,15 +163,7 @@
       "module": "tests/numerics/test_preconditioner.py",
       "class": null,
       "name": "test_block_jacobians_simple_residual",
-      "duration": 2.978211,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_forces.py::TestJaxVsNumpyForces::test_jax_pure_performance",
-      "module": "tests/test_forces.py",
-      "class": "TestJaxVsNumpyForces",
-      "name": "test_jax_pure_performance",
-      "duration": 2.711544,
+      "duration": 3.020984,
       "outcome": "passed"
     },
     {
@@ -243,7 +171,7 @@
       "module": "tests/test_taylor_green.py",
       "class": "TestOrderOfAccuracy",
       "name": "test_residual_convergence_cartesian",
-      "duration": 2.576339,
+      "duration": 2.596307,
       "outcome": "passed"
     },
     {
@@ -251,7 +179,7 @@
       "module": "tests/solvers/test_batch_kernels.py",
       "class": "TestBatchFluxes",
       "name": "test_single_vs_batch_n1",
-      "duration": 2.441377,
+      "duration": 2.489531,
       "outcome": "passed"
     },
     {
@@ -259,15 +187,7 @@
       "module": "tests/physics/test_sa_gradients.py",
       "class": "TestSAGradientAccuracy",
       "name": "test_production_gradient",
-      "duration": 2.312729,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_gmres.py::TestGMRESRestart::test_restart_matches_no_restart",
-      "module": "tests/numerics/test_gmres.py",
-      "class": "TestGMRESRestart",
-      "name": "test_restart_matches_no_restart",
-      "duration": 2.195391,
+      "duration": 2.336117,
       "outcome": "passed"
     },
     {
@@ -275,7 +195,15 @@
       "module": "tests/test_taylor_green.py",
       "class": "TestOrderOfAccuracy",
       "name": "test_time_evolution_convergence_cartesian",
-      "duration": 2.166567,
+      "duration": 2.207445,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_gmres.py::TestGMRESRestart::test_restart_matches_no_restart",
+      "module": "tests/numerics/test_gmres.py",
+      "class": "TestGMRESRestart",
+      "name": "test_restart_matches_no_restart",
+      "duration": 2.185772,
       "outcome": "passed"
     },
     {
@@ -283,23 +211,15 @@
       "module": "tests/test_taylor_green.py",
       "class": "TestOrderOfAccuracy",
       "name": "test_time_evolution_convergence_distorted",
-      "duration": 2.164832,
+      "duration": 2.166654,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/test_taylor_green.py::TestOrderOfAccuracyScaledVelocity::test_scaled_velocity_time_evolution",
-      "module": "tests/test_taylor_green.py",
-      "class": "TestOrderOfAccuracyScaledVelocity",
-      "name": "test_scaled_velocity_time_evolution",
-      "duration": 2.156424,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_gmres.py::TestGMRESPreconditioner::test_preconditioner_accelerates",
-      "module": "tests/numerics/test_gmres.py",
-      "class": "TestGMRESPreconditioner",
-      "name": "test_preconditioner_accelerates",
-      "duration": 2.140118,
+      "nodeid": "tests/test_forces.py::TestJaxVsNumpyForces::test_jax_pure_performance",
+      "module": "tests/test_forces.py",
+      "class": "TestJaxVsNumpyForces",
+      "name": "test_jax_pure_performance",
+      "duration": 2.162008,
       "outcome": "passed"
     },
     {
@@ -307,7 +227,23 @@
       "module": "tests/solvers/test_batch_kernels.py",
       "class": "TestBatchBoundaryConditions",
       "name": "test_batch_bc_matches_single",
-      "duration": 2.138751,
+      "duration": 2.160423,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_taylor_green.py::TestOrderOfAccuracyScaledVelocity::test_scaled_velocity_time_evolution",
+      "module": "tests/test_taylor_green.py",
+      "class": "TestOrderOfAccuracyScaledVelocity",
+      "name": "test_scaled_velocity_time_evolution",
+      "duration": 2.159696,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_gmres.py::TestGMRESPreconditioner::test_preconditioner_accelerates",
+      "module": "tests/numerics/test_gmres.py",
+      "class": "TestGMRESPreconditioner",
+      "name": "test_preconditioner_accelerates",
+      "duration": 2.13752,
       "outcome": "passed"
     },
     {
@@ -315,47 +251,7 @@
       "module": "tests/numerics/test_gmres.py",
       "class": "TestGMRESPreconditioner",
       "name": "test_identity_preconditioner",
-      "duration": 2.04717,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_gmres.py::TestGMRESIntegration::test_2d_laplacian",
-      "module": "tests/numerics/test_gmres.py",
-      "class": "TestGMRESIntegration",
-      "name": "test_2d_laplacian",
-      "duration": 1.949318,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_taylor_green.py::TestTaylorGreenDistorted::test_inviscid_time_evolution",
-      "module": "tests/test_taylor_green.py",
-      "class": "TestTaylorGreenDistorted",
-      "name": "test_inviscid_time_evolution",
-      "duration": 1.943563,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_taylor_green.py::TestConvectedTaylorGreen::test_strong_convection_distorted",
-      "module": "tests/test_taylor_green.py",
-      "class": "TestConvectedTaylorGreen",
-      "name": "test_strong_convection_distorted",
-      "duration": 1.933088,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_taylor_green.py::TestConvectedTaylorGreen::test_strong_convection_cartesian",
-      "module": "tests/test_taylor_green.py",
-      "class": "TestConvectedTaylorGreen",
-      "name": "test_strong_convection_cartesian",
-      "duration": 1.908973,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_gmres.py::TestGMRESBasic::test_tridiagonal_system",
-      "module": "tests/numerics/test_gmres.py",
-      "class": "TestGMRESBasic",
-      "name": "test_tridiagonal_system",
-      "duration": 1.88561,
+      "duration": 2.131242,
       "outcome": "passed"
     },
     {
@@ -363,7 +259,47 @@
       "module": "tests/test_taylor_green.py",
       "class": "TestTaylorGreenCartesian",
       "name": "test_inviscid_time_evolution",
-      "duration": 1.839045,
+      "duration": 2.030075,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_taylor_green.py::TestConvectedTaylorGreen::test_strong_convection_distorted",
+      "module": "tests/test_taylor_green.py",
+      "class": "TestConvectedTaylorGreen",
+      "name": "test_strong_convection_distorted",
+      "duration": 1.966747,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_taylor_green.py::TestConvectedTaylorGreen::test_strong_convection_cartesian",
+      "module": "tests/test_taylor_green.py",
+      "class": "TestConvectedTaylorGreen",
+      "name": "test_strong_convection_cartesian",
+      "duration": 1.959916,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_gmres.py::TestGMRESIntegration::test_2d_laplacian",
+      "module": "tests/numerics/test_gmres.py",
+      "class": "TestGMRESIntegration",
+      "name": "test_2d_laplacian",
+      "duration": 1.952968,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_taylor_green.py::TestTaylorGreenDistorted::test_inviscid_time_evolution",
+      "module": "tests/test_taylor_green.py",
+      "class": "TestTaylorGreenDistorted",
+      "name": "test_inviscid_time_evolution",
+      "duration": 1.926331,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_gmres.py::TestGMRESBasic::test_tridiagonal_system",
+      "module": "tests/numerics/test_gmres.py",
+      "class": "TestGMRESBasic",
+      "name": "test_tridiagonal_system",
+      "duration": 1.901783,
       "outcome": "passed"
     },
     {
@@ -371,7 +307,7 @@
       "module": "tests/solvers/test_batch_kernels.py",
       "class": "TestBatchBoundaryConditions",
       "name": "test_different_alpha_produces_different_bc",
-      "duration": 1.665816,
+      "duration": 1.698722,
       "outcome": "passed"
     },
     {
@@ -379,15 +315,7 @@
       "module": "tests/numerics/test_gmres.py",
       "class": "TestGMRESBasic",
       "name": "test_identity_system",
-      "duration": 1.64481,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_jax_numerics.py::TestIRSComparison::test_irs_performance",
-      "module": "tests/numerics/test_jax_numerics.py",
-      "class": "TestIRSComparison",
-      "name": "test_irs_performance",
-      "duration": 1.626882,
+      "duration": 1.66533,
       "outcome": "passed"
     },
     {
@@ -395,7 +323,15 @@
       "module": "tests/numerics/test_preconditioner.py",
       "class": null,
       "name": "test_preconditioner_medium_grid",
-      "duration": 1.616156,
+      "duration": 1.664837,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_jax_numerics.py::TestIRSComparison::test_irs_performance",
+      "module": "tests/numerics/test_jax_numerics.py",
+      "class": "TestIRSComparison",
+      "name": "test_irs_performance",
+      "duration": 1.656706,
       "outcome": "passed"
     },
     {
@@ -403,7 +339,7 @@
       "module": "tests/numerics/test_tight_viscous.py",
       "class": "TestTightStencilViscousFlux",
       "name": "test_tight_stencil_zero_velocity_skewed",
-      "duration": 1.568165,
+      "duration": 1.562331,
       "outcome": "passed"
     },
     {
@@ -411,23 +347,7 @@
       "module": "tests/numerics/test_jax_numerics.py",
       "class": "TestFluxComparison",
       "name": "test_flux_performance",
-      "duration": 1.464332,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_gmres.py::TestGMRESBasic::test_diagonal_system",
-      "module": "tests/numerics/test_gmres.py",
-      "class": "TestGMRESBasic",
-      "name": "test_diagonal_system",
-      "duration": 1.428273,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_explicit_smoothing.py::TestPerformance::test_explicit_vs_implicit_performance",
-      "module": "tests/numerics/test_explicit_smoothing.py",
-      "class": "TestPerformance",
-      "name": "test_explicit_vs_implicit_performance",
-      "duration": 1.412076,
+      "duration": 1.504645,
       "outcome": "passed"
     },
     {
@@ -435,7 +355,23 @@
       "module": "tests/physics/test_sa_gradients.py",
       "class": "TestSADimensionAgnostic",
       "name": "test_2d_input",
-      "duration": 1.371273,
+      "duration": 1.406124,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_explicit_smoothing.py::TestPerformance::test_explicit_vs_implicit_performance",
+      "module": "tests/numerics/test_explicit_smoothing.py",
+      "class": "TestPerformance",
+      "name": "test_explicit_vs_implicit_performance",
+      "duration": 1.385389,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_gmres.py::TestGMRESBasic::test_diagonal_system",
+      "module": "tests/numerics/test_gmres.py",
+      "class": "TestGMRESBasic",
+      "name": "test_diagonal_system",
+      "duration": 1.328005,
       "outcome": "passed"
     },
     {
@@ -443,15 +379,7 @@
       "module": "tests/solvers/test_jax_solver.py",
       "class": "TestForcesJAX",
       "name": "test_surface_forces_equivalence",
-      "duration": 1.260148,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/grid/test_face_geometry.py::TestLSWeights::test_ls_weights_sum_zero_skewed",
-      "module": "tests/grid/test_face_geometry.py",
-      "class": "TestLSWeights",
-      "name": "test_ls_weights_sum_zero_skewed",
-      "duration": 1.175867,
+      "duration": 1.27585,
       "outcome": "passed"
     },
     {
@@ -459,15 +387,23 @@
       "module": "tests/solvers/test_batch_kernels.py",
       "class": "TestBatchFluxes",
       "name": "test_batch_independence",
-      "duration": 1.156771,
+      "duration": 1.172123,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_jax_numerics.py::TestFluxComparison::test_flux_numerical_equivalence",
-      "module": "tests/numerics/test_jax_numerics.py",
-      "class": "TestFluxComparison",
-      "name": "test_flux_numerical_equivalence",
-      "duration": 1.126772,
+      "nodeid": "tests/numerics/test_sa_jacobian_sign.py::TestSAJacobianSign::test_destruction_jacobian_is_negative",
+      "module": "tests/numerics/test_sa_jacobian_sign.py",
+      "class": "TestSAJacobianSign",
+      "name": "test_destruction_jacobian_is_negative",
+      "duration": 1.157205,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/grid/test_face_geometry.py::TestLSWeights::test_ls_weights_sum_zero_skewed",
+      "module": "tests/grid/test_face_geometry.py",
+      "class": "TestLSWeights",
+      "name": "test_ls_weights_sum_zero_skewed",
+      "duration": 1.148163,
       "outcome": "passed"
     },
     {
@@ -475,31 +411,7 @@
       "module": "tests/numerics/test_gmres.py",
       "class": "TestGMRESBasic",
       "name": "test_initial_guess",
-      "duration": 1.113093,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/solvers/test_batch_kernels.py::TestBatchTimestep::test_single_vs_batch_n1",
-      "module": "tests/solvers/test_batch_kernels.py",
-      "class": "TestBatchTimestep",
-      "name": "test_single_vs_batch_n1",
-      "duration": 1.06079,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/solver/test_jst_fluxes.py::test_jst_switch_logic",
-      "module": "tests/solver/test_jst_fluxes.py",
-      "class": null,
-      "name": "test_jst_switch_logic",
-      "duration": 1.049406,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_gmres.py::TestGMRESConvergence::test_residual_decreases",
-      "module": "tests/numerics/test_gmres.py",
-      "class": "TestGMRESConvergence",
-      "name": "test_residual_decreases",
-      "duration": 1.041031,
+      "duration": 1.105432,
       "outcome": "passed"
     },
     {
@@ -507,23 +419,39 @@
       "module": "tests/numerics/test_gmres.py",
       "class": "TestHelperFunctions",
       "name": "test_back_substitute",
-      "duration": 1.039038,
+      "duration": 1.089271,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_wake_conservation.py::TestFluxKernelWakeBehavior::test_boundary_face_treatment",
-      "module": "tests/numerics/test_wake_conservation.py",
-      "class": "TestFluxKernelWakeBehavior",
-      "name": "test_boundary_face_treatment",
-      "duration": 1.014248,
+      "nodeid": "tests/solvers/test_batch_kernels.py::TestBatchTimestep::test_single_vs_batch_n1",
+      "module": "tests/solvers/test_batch_kernels.py",
+      "class": "TestBatchTimestep",
+      "name": "test_single_vs_batch_n1",
+      "duration": 1.08632,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/solver/test_jst_fluxes.py::test_symmetry_preservation",
+      "nodeid": "tests/numerics/test_jax_numerics.py::TestFluxComparison::test_flux_numerical_equivalence",
+      "module": "tests/numerics/test_jax_numerics.py",
+      "class": "TestFluxComparison",
+      "name": "test_flux_numerical_equivalence",
+      "duration": 1.063749,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solver/test_jst_fluxes.py::test_jst_switch_logic",
       "module": "tests/solver/test_jst_fluxes.py",
       "class": null,
-      "name": "test_symmetry_preservation",
-      "duration": 1.012703,
+      "name": "test_jst_switch_logic",
+      "duration": 1.060529,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_gmres.py::TestGMRESConvergence::test_residual_decreases",
+      "module": "tests/numerics/test_gmres.py",
+      "class": "TestGMRESConvergence",
+      "name": "test_residual_decreases",
+      "duration": 1.040673,
       "outcome": "passed"
     },
     {
@@ -531,31 +459,23 @@
       "module": "tests/numerics/test_jax_numerics.py",
       "class": "TestPerformanceSummary",
       "name": "test_all_kernels_performance",
-      "duration": 1.001822,
+      "duration": 1.037597,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/physics/test_sa_gradients.py::TestSAPhysicalConstraints::test_production_destruction_positive",
-      "module": "tests/physics/test_sa_gradients.py",
-      "class": "TestSAPhysicalConstraints",
-      "name": "test_production_destruction_positive",
-      "duration": 0.981025,
+      "nodeid": "tests/solver/test_jst_fluxes.py::test_symmetry_preservation",
+      "module": "tests/solver/test_jst_fluxes.py",
+      "class": null,
+      "name": "test_symmetry_preservation",
+      "duration": 1.029998,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_gmres.py::TestGMRESRestart::test_small_restart_still_converges",
-      "module": "tests/numerics/test_gmres.py",
-      "class": "TestGMRESRestart",
-      "name": "test_small_restart_still_converges",
-      "duration": 0.978558,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_gmres.py::TestGMRESConvergence::test_maxiter_reached",
-      "module": "tests/numerics/test_gmres.py",
-      "class": "TestGMRESConvergence",
-      "name": "test_maxiter_reached",
-      "duration": 0.967627,
+      "nodeid": "tests/numerics/test_wake_conservation.py::TestFluxKernelWakeBehavior::test_boundary_face_treatment",
+      "module": "tests/numerics/test_wake_conservation.py",
+      "class": "TestFluxKernelWakeBehavior",
+      "name": "test_boundary_face_treatment",
+      "duration": 1.017278,
       "outcome": "passed"
     },
     {
@@ -563,7 +483,23 @@
       "module": "tests/solver/test_jst_fluxes.py",
       "class": null,
       "name": "test_output_shape",
-      "duration": 0.950785,
+      "duration": 0.980557,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_gmres.py::TestGMRESRestart::test_small_restart_still_converges",
+      "module": "tests/numerics/test_gmres.py",
+      "class": "TestGMRESRestart",
+      "name": "test_small_restart_still_converges",
+      "duration": 0.977213,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_gmres.py::TestGMRESConvergence::test_maxiter_reached",
+      "module": "tests/numerics/test_gmres.py",
+      "class": "TestGMRESConvergence",
+      "name": "test_maxiter_reached",
+      "duration": 0.970752,
       "outcome": "passed"
     },
     {
@@ -571,7 +507,7 @@
       "module": "tests/solvers/test_batch_kernels.py",
       "class": "TestBatchViscousFluxes",
       "name": "test_single_vs_batch_n1",
-      "duration": 0.919648,
+      "duration": 0.927309,
       "outcome": "passed"
     },
     {
@@ -579,7 +515,7 @@
       "module": "tests/solvers/test_jax_solver.py",
       "class": "TestPerformance",
       "name": "test_timestep_performance",
-      "duration": 0.908404,
+      "duration": 0.909353,
       "outcome": "passed"
     },
     {
@@ -587,7 +523,7 @@
       "module": "tests/test_taylor_green.py",
       "class": "TestTaylorGreenCartesian",
       "name": "test_inviscid_convected",
-      "duration": 0.823725,
+      "duration": 0.825286,
       "outcome": "passed"
     },
     {
@@ -595,7 +531,7 @@
       "module": "tests/test_forces.py",
       "class": "TestJaxVsNumpyForces",
       "name": "test_jax_pure_matches_wrapper",
-      "duration": 0.767272,
+      "duration": 0.773773,
       "outcome": "passed"
     },
     {
@@ -603,7 +539,7 @@
       "module": "tests/solvers/test_jax_solver.py",
       "class": "TestBoundaryConditionsJAX",
       "name": "test_surface_bc_equivalence",
-      "duration": 0.718138,
+      "duration": 0.738903,
       "outcome": "passed"
     },
     {
@@ -611,7 +547,7 @@
       "module": "tests/solvers/test_batch_kernels.py",
       "class": "TestBatchSmoothing",
       "name": "test_single_vs_batch_n1",
-      "duration": 0.705781,
+      "duration": 0.719615,
       "outcome": "passed"
     },
     {
@@ -619,63 +555,15 @@
       "module": "tests/solvers/test_jax_solver.py",
       "class": "TestBoundaryConditionsJAX",
       "name": "test_farfield_bc_equivalence",
-      "duration": 0.690277,
+      "duration": 0.702746,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/test_forces.py::TestForceComputation::test_uniform_pressure_symmetric_force",
-      "module": "tests/test_forces.py",
-      "class": "TestForceComputation",
-      "name": "test_uniform_pressure_symmetric_force",
-      "duration": 0.665289,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_sa_sources.py::TestSASourceIntegration::test_source_conservation_tendency",
-      "module": "tests/numerics/test_sa_sources.py",
-      "class": "TestSASourceIntegration",
-      "name": "test_source_conservation_tendency",
-      "duration": 0.63345,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_forces.py::TestForceComputation::test_returns_aero_forces",
-      "module": "tests/test_forces.py",
-      "class": "TestForceComputation",
-      "name": "test_returns_aero_forces",
-      "duration": 0.632169,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_preconditioner.py::test_preconditioner_inverse_quality",
-      "module": "tests/numerics/test_preconditioner.py",
-      "class": null,
-      "name": "test_preconditioner_inverse_quality",
-      "duration": 0.618276,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_preconditioner.py::test_batch_invert_single",
-      "module": "tests/numerics/test_preconditioner.py",
-      "class": null,
-      "name": "test_batch_invert_single",
-      "duration": 0.570819,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/physics/test_sa_gradients.py::TestSADimensionAgnostic::test_scalar_input",
+      "nodeid": "tests/physics/test_sa_gradients.py::TestSAPhysicalConstraints::test_production_destruction_positive",
       "module": "tests/physics/test_sa_gradients.py",
-      "class": "TestSADimensionAgnostic",
-      "name": "test_scalar_input",
-      "duration": 0.564446,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/physics/test_sa_gradients.py::TestJAXAutograd::test_fv1_autograd",
-      "module": "tests/physics/test_sa_gradients.py",
-      "class": "TestJAXAutograd",
-      "name": "test_fv1_autograd",
-      "duration": 0.561494,
+      "class": "TestSAPhysicalConstraints",
+      "name": "test_production_destruction_positive",
+      "duration": 0.697589,
       "outcome": "passed"
     },
     {
@@ -683,63 +571,23 @@
       "module": "tests/grid/test_grid_topology.py",
       "class": null,
       "name": "test_grid_topology",
-      "duration": 0.557988,
+      "duration": 0.68634,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_jax_numerics.py::TestViscousFluxComparison::test_viscous_flux_performance",
-      "module": "tests/numerics/test_jax_numerics.py",
-      "class": "TestViscousFluxComparison",
-      "name": "test_viscous_flux_performance",
-      "duration": 0.557104,
+      "nodeid": "tests/test_forces.py::TestForceComputation::test_uniform_pressure_symmetric_force",
+      "module": "tests/test_forces.py",
+      "class": "TestForceComputation",
+      "name": "test_uniform_pressure_symmetric_force",
+      "duration": 0.674599,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_gmres.py::TestJFNKMatvec::test_make_jfnk_matvec_linear",
-      "module": "tests/numerics/test_gmres.py",
-      "class": "TestJFNKMatvec",
-      "name": "test_make_jfnk_matvec_linear",
-      "duration": 0.53947,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_preconditioner.py::test_preconditioner_shapes",
-      "module": "tests/numerics/test_preconditioner.py",
-      "class": null,
-      "name": "test_preconditioner_shapes",
-      "duration": 0.537919,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_sa_cb2_advection.py::TestSACb2Advection::test_constant_nuhat_zero_residual_skewed",
-      "module": "tests/numerics/test_sa_cb2_advection.py",
-      "class": "TestSACb2Advection",
-      "name": "test_constant_nuhat_zero_residual_skewed",
-      "duration": 0.526708,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_gmres.py::TestHelperFunctions::test_modified_gram_schmidt",
-      "module": "tests/numerics/test_gmres.py",
-      "class": "TestHelperFunctions",
-      "name": "test_modified_gram_schmidt",
-      "duration": 0.522175,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_preconditioner.py::test_batch_invert_batch",
-      "module": "tests/numerics/test_preconditioner.py",
-      "class": null,
-      "name": "test_batch_invert_batch",
-      "duration": 0.517952,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/grid/test_face_geometry.py::TestLSWeights::test_ls_weights_constant_field_skewed",
-      "module": "tests/grid/test_face_geometry.py",
-      "class": "TestLSWeights",
-      "name": "test_ls_weights_constant_field_skewed",
-      "duration": 0.50367,
+      "nodeid": "tests/test_forces.py::TestForceComputation::test_returns_aero_forces",
+      "module": "tests/test_forces.py",
+      "class": "TestForceComputation",
+      "name": "test_returns_aero_forces",
+      "duration": 0.640559,
       "outcome": "passed"
     },
     {
@@ -747,71 +595,111 @@
       "module": "tests/numerics/test_preconditioner.py",
       "class": null,
       "name": "test_block_jacobians_coupled_residual",
-      "duration": 0.485177,
+      "duration": 0.636803,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_preconditioner.py::test_diagonal_dominance",
+      "nodeid": "tests/numerics/test_sa_sources.py::TestSASourceIntegration::test_source_conservation_tendency",
+      "module": "tests/numerics/test_sa_sources.py",
+      "class": "TestSASourceIntegration",
+      "name": "test_source_conservation_tendency",
+      "duration": 0.635995,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/physics/test_sa_gradients.py::TestSADimensionAgnostic::test_scalar_input",
+      "module": "tests/physics/test_sa_gradients.py",
+      "class": "TestSADimensionAgnostic",
+      "name": "test_scalar_input",
+      "duration": 0.598962,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonStep::test_newton_residual_finite",
+      "module": "tests/solvers/test_newton_solver.py",
+      "class": "TestNewtonStep",
+      "name": "test_newton_residual_finite",
+      "duration": 0.59642,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_preconditioner.py::test_batch_invert_single",
       "module": "tests/numerics/test_preconditioner.py",
       "class": null,
-      "name": "test_diagonal_dominance",
-      "duration": 0.458543,
+      "name": "test_batch_invert_single",
+      "duration": 0.592027,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonUpdate::test_patankar_preserves_positivity",
-      "module": "tests/solvers/test_newton_solver.py",
-      "class": "TestNewtonUpdate",
-      "name": "test_patankar_preserves_positivity",
-      "duration": 0.447854,
+      "nodeid": "tests/numerics/test_preconditioner.py::test_preconditioner_inverse_quality",
+      "module": "tests/numerics/test_preconditioner.py",
+      "class": null,
+      "name": "test_preconditioner_inverse_quality",
+      "duration": 0.581467,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/test_viscous_fluxes.py::TestAddViscousFluxes::test_adds_to_convective",
-      "module": "tests/test_viscous_fluxes.py",
-      "class": "TestAddViscousFluxes",
-      "name": "test_adds_to_convective",
-      "duration": 0.42057,
+      "nodeid": "tests/physics/test_sa_gradients.py::TestJAXAutograd::test_fv1_autograd",
+      "module": "tests/physics/test_sa_gradients.py",
+      "class": "TestJAXAutograd",
+      "name": "test_fv1_autograd",
+      "duration": 0.571951,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_jax_numerics.py::TestViscousFluxComparison::test_viscous_flux_numerical_equivalence",
+      "nodeid": "tests/numerics/test_jax_numerics.py::TestViscousFluxComparison::test_viscous_flux_performance",
       "module": "tests/numerics/test_jax_numerics.py",
       "class": "TestViscousFluxComparison",
-      "name": "test_viscous_flux_numerical_equivalence",
-      "duration": 0.420071,
+      "name": "test_viscous_flux_performance",
+      "duration": 0.56103,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_sa_sources.py::TestSASourceTerms::test_negative_nuHat_handled",
-      "module": "tests/numerics/test_sa_sources.py",
-      "class": "TestSASourceTerms",
-      "name": "test_negative_nuHat_handled",
-      "duration": 0.418151,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_preconditioner.py::test_preconditioner_apply_shapes",
+      "nodeid": "tests/numerics/test_preconditioner.py::test_preconditioner_shapes",
       "module": "tests/numerics/test_preconditioner.py",
       "class": null,
-      "name": "test_preconditioner_apply_shapes",
-      "duration": 0.413551,
+      "name": "test_preconditioner_shapes",
+      "duration": 0.551553,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_jax_numerics.py::TestGradientComparison::test_gradient_performance",
-      "module": "tests/numerics/test_jax_numerics.py",
-      "class": "TestGradientComparison",
-      "name": "test_gradient_performance",
-      "duration": 0.411286,
+      "nodeid": "tests/numerics/test_gmres.py::TestJFNKMatvec::test_make_jfnk_matvec_linear",
+      "module": "tests/numerics/test_gmres.py",
+      "class": "TestJFNKMatvec",
+      "name": "test_make_jfnk_matvec_linear",
+      "duration": 0.547111,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/grid/test_wall_distance.py::test_cartesian_grid",
-      "module": "tests/grid/test_wall_distance.py",
+      "nodeid": "tests/numerics/test_preconditioner.py::test_batch_invert_batch",
+      "module": "tests/numerics/test_preconditioner.py",
       "class": null,
-      "name": "test_cartesian_grid",
-      "duration": 0.398485,
+      "name": "test_batch_invert_batch",
+      "duration": 0.544912,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_gmres.py::TestHelperFunctions::test_modified_gram_schmidt",
+      "module": "tests/numerics/test_gmres.py",
+      "class": "TestHelperFunctions",
+      "name": "test_modified_gram_schmidt",
+      "duration": 0.540464,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_sa_cb2_advection.py::TestSACb2Advection::test_constant_nuhat_zero_residual_skewed",
+      "module": "tests/numerics/test_sa_cb2_advection.py",
+      "class": "TestSACb2Advection",
+      "name": "test_constant_nuhat_zero_residual_skewed",
+      "duration": 0.527781,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/grid/test_face_geometry.py::TestLSWeights::test_ls_weights_constant_field_skewed",
+      "module": "tests/grid/test_face_geometry.py",
+      "class": "TestLSWeights",
+      "name": "test_ls_weights_constant_field_skewed",
+      "duration": 0.510954,
       "outcome": "passed"
     },
     {
@@ -819,15 +707,31 @@
       "module": "tests/numerics/test_explicit_smoothing.py",
       "class": "TestExplicitSmoothingNumerics",
       "name": "test_smoothing_reduces_oscillations",
-      "duration": 0.390965,
+      "duration": 0.484226,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/physics/test_sa_gradients.py::TestSAPhysicalConstraints::test_fv1_bounds",
-      "module": "tests/physics/test_sa_gradients.py",
-      "class": "TestSAPhysicalConstraints",
-      "name": "test_fv1_bounds",
-      "duration": 0.35607,
+      "nodeid": "tests/numerics/test_preconditioner.py::test_diagonal_dominance",
+      "module": "tests/numerics/test_preconditioner.py",
+      "class": null,
+      "name": "test_diagonal_dominance",
+      "duration": 0.473906,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonUpdate::test_patankar_preserves_positivity",
+      "module": "tests/solvers/test_newton_solver.py",
+      "class": "TestNewtonUpdate",
+      "name": "test_patankar_preserves_positivity",
+      "duration": 0.448793,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_viscous_fluxes.py::TestAddViscousFluxes::test_adds_to_convective",
+      "module": "tests/test_viscous_fluxes.py",
+      "class": "TestAddViscousFluxes",
+      "name": "test_adds_to_convective",
+      "duration": 0.43184,
       "outcome": "passed"
     },
     {
@@ -835,7 +739,47 @@
       "module": "tests/numerics/test_preconditioner.py",
       "class": null,
       "name": "test_cfl_limiting_behavior",
-      "duration": 0.355409,
+      "duration": 0.430657,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_jax_numerics.py::TestViscousFluxComparison::test_viscous_flux_numerical_equivalence",
+      "module": "tests/numerics/test_jax_numerics.py",
+      "class": "TestViscousFluxComparison",
+      "name": "test_viscous_flux_numerical_equivalence",
+      "duration": 0.430512,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_sa_sources.py::TestSASourceTerms::test_negative_nuHat_handled",
+      "module": "tests/numerics/test_sa_sources.py",
+      "class": "TestSASourceTerms",
+      "name": "test_negative_nuHat_handled",
+      "duration": 0.426917,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_preconditioner.py::test_preconditioner_apply_shapes",
+      "module": "tests/numerics/test_preconditioner.py",
+      "class": null,
+      "name": "test_preconditioner_apply_shapes",
+      "duration": 0.425555,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_jax_numerics.py::TestGradientComparison::test_gradient_performance",
+      "module": "tests/numerics/test_jax_numerics.py",
+      "class": "TestGradientComparison",
+      "name": "test_gradient_performance",
+      "duration": 0.406329,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/grid/test_wall_distance.py::test_cartesian_grid",
+      "module": "tests/grid/test_wall_distance.py",
+      "class": null,
+      "name": "test_cartesian_grid",
+      "duration": 0.393087,
       "outcome": "passed"
     },
     {
@@ -843,7 +787,23 @@
       "module": "tests/numerics/test_preconditioner.py",
       "class": null,
       "name": "test_block_jacobians_fd_vs_jvp",
-      "duration": 0.344097,
+      "duration": 0.373517,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/physics/test_sa_gradients.py::TestSAPhysicalConstraints::test_fv1_bounds",
+      "module": "tests/physics/test_sa_gradients.py",
+      "class": "TestSAPhysicalConstraints",
+      "name": "test_fv1_bounds",
+      "duration": 0.366706,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestPreconditionedRKStep::test_residual_decreases",
+      "module": "tests/solvers/test_preconditioned_rk.py",
+      "class": "TestPreconditionedRKStep",
+      "name": "test_residual_decreases",
+      "duration": 0.364504,
       "outcome": "passed"
     },
     {
@@ -851,15 +811,7 @@
       "module": "tests/numerics/test_sa_sources.py",
       "class": "TestSASourceTerms",
       "name": "test_production_matches_physics_module",
-      "duration": 0.336642,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_preconditioner.py::test_preconditioner_jit_apply",
-      "module": "tests/numerics/test_preconditioner.py",
-      "class": null,
-      "name": "test_preconditioner_jit_apply",
-      "duration": 0.319654,
+      "duration": 0.346413,
       "outcome": "passed"
     },
     {
@@ -867,7 +819,15 @@
       "module": "tests/solvers/test_batch_kernels.py",
       "class": "TestBatchGradients",
       "name": "test_single_vs_batch_n1",
-      "duration": 0.319065,
+      "duration": 0.325308,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_preconditioner.py::test_preconditioner_jit_apply",
+      "module": "tests/numerics/test_preconditioner.py",
+      "class": null,
+      "name": "test_preconditioner_jit_apply",
+      "duration": 0.325194,
       "outcome": "passed"
     },
     {
@@ -875,15 +835,7 @@
       "module": "tests/solvers/test_jax_solver.py",
       "class": "TestTimeSteppingJAX",
       "name": "test_spectral_radii_equivalence",
-      "duration": 0.318423,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_gmres.py::TestJFNKMatvec::test_make_newton_rhs",
-      "module": "tests/numerics/test_gmres.py",
-      "class": "TestJFNKMatvec",
-      "name": "test_make_newton_rhs",
-      "duration": 0.31599,
+      "duration": 0.318776,
       "outcome": "passed"
     },
     {
@@ -891,39 +843,7 @@
       "module": "tests/physics/test_sa_gradients.py",
       "class": "TestSAPhysicalConstraints",
       "name": "test_fv2_decreasing_laminar",
-      "duration": 0.305594,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_sa_sources.py::TestSASourceTerms::test_sa_source_shape",
-      "module": "tests/numerics/test_sa_sources.py",
-      "class": "TestSASourceTerms",
-      "name": "test_sa_source_shape",
-      "duration": 0.302667,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_gradients.py::TestLinearExactness::test_linear_field[16-16]",
-      "module": "tests/test_gradients.py",
-      "class": "TestLinearExactness",
-      "name": "test_linear_field[16-16]",
-      "duration": 0.294955,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_gradients.py::TestLinearExactness::test_linear_field[8-8]",
-      "module": "tests/test_gradients.py",
-      "class": "TestLinearExactness",
-      "name": "test_linear_field[8-8]",
-      "duration": 0.294124,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_gradients.py::TestConvergenceOrder::test_cubic_convergence",
-      "module": "tests/test_gradients.py",
-      "class": "TestConvergenceOrder",
-      "name": "test_cubic_convergence",
-      "duration": 0.291862,
+      "duration": 0.308091,
       "outcome": "passed"
     },
     {
@@ -931,7 +851,31 @@
       "module": "tests/test_gradients.py",
       "class": "TestLinearExactness",
       "name": "test_linear_field[10-20]",
-      "duration": 0.290986,
+      "duration": 0.304581,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gradients.py::TestLinearExactness::test_linear_field[16-16]",
+      "module": "tests/test_gradients.py",
+      "class": "TestLinearExactness",
+      "name": "test_linear_field[16-16]",
+      "duration": 0.301152,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gradients.py::TestLinearExactness::test_linear_field[8-8]",
+      "module": "tests/test_gradients.py",
+      "class": "TestLinearExactness",
+      "name": "test_linear_field[8-8]",
+      "duration": 0.299362,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_sa_sources.py::TestSASourceTerms::test_sa_source_shape",
+      "module": "tests/numerics/test_sa_sources.py",
+      "class": "TestSASourceTerms",
+      "name": "test_sa_source_shape",
+      "duration": 0.293309,
       "outcome": "passed"
     },
     {
@@ -939,7 +883,15 @@
       "module": "tests/test_gradients.py",
       "class": "TestLinearExactness",
       "name": "test_linear_field[32-32]",
-      "duration": 0.287953,
+      "duration": 0.29292,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gradients.py::TestConvergenceOrder::test_cubic_convergence",
+      "module": "tests/test_gradients.py",
+      "class": "TestConvergenceOrder",
+      "name": "test_cubic_convergence",
+      "duration": 0.292536,
       "outcome": "passed"
     },
     {
@@ -947,7 +899,15 @@
       "module": "tests/solvers/test_jax_solver.py",
       "class": "TestTimeSteppingJAX",
       "name": "test_local_timestep_equivalence",
-      "duration": 0.279726,
+      "duration": 0.288124,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_gmres.py::TestJFNKMatvec::test_make_newton_rhs",
+      "module": "tests/numerics/test_gmres.py",
+      "class": "TestJFNKMatvec",
+      "name": "test_make_newton_rhs",
+      "duration": 0.264825,
       "outcome": "passed"
     },
     {
@@ -955,7 +915,15 @@
       "module": "tests/grid/test_face_geometry.py",
       "class": "TestLSWeights",
       "name": "test_ls_weights_linear_field_skewed",
-      "duration": 0.2589,
+      "duration": 0.257116,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_sa_jacobian_sign.py::TestSAJacobianSign::test_jacobian_sign_consistent_with_fd",
+      "module": "tests/numerics/test_sa_jacobian_sign.py",
+      "class": "TestSAJacobianSign",
+      "name": "test_jacobian_sign_consistent_with_fd",
+      "duration": 0.256065,
       "outcome": "passed"
     },
     {
@@ -963,7 +931,15 @@
       "module": "tests/test_viscous_fluxes.py",
       "class": "TestNuTildeDiffusion",
       "name": "test_uniform_nu_tilde",
-      "duration": 0.243966,
+      "duration": 0.245917,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestPreconditionerIntegration::test_precond_apply_function",
+      "module": "tests/solvers/test_preconditioned_rk.py",
+      "class": "TestPreconditionerIntegration",
+      "name": "test_precond_apply_function",
+      "duration": 0.240239,
       "outcome": "passed"
     },
     {
@@ -971,23 +947,7 @@
       "module": "tests/numerics/test_sa_sources.py",
       "class": "TestSASourceTerms",
       "name": "test_destruction_positive",
-      "duration": 0.195173,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/physics/test_sa_gradients.py::TestSAGradientAccuracy::test_destruction_gradient",
-      "module": "tests/physics/test_sa_gradients.py",
-      "class": "TestSAGradientAccuracy",
-      "name": "test_destruction_gradient",
-      "duration": 0.192743,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_sa_sources.py::TestSASourceTerms::test_destruction_matches_physics_module",
-      "module": "tests/numerics/test_sa_sources.py",
-      "class": "TestSASourceTerms",
-      "name": "test_destruction_matches_physics_module",
-      "duration": 0.190315,
+      "duration": 0.197853,
       "outcome": "passed"
     },
     {
@@ -995,7 +955,23 @@
       "module": "tests/numerics/test_jax_numerics.py",
       "class": "TestIRSComparison",
       "name": "test_irs_different_epsilon",
-      "duration": 0.189538,
+      "duration": 0.19744,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_sa_sources.py::TestSASourceTerms::test_destruction_matches_physics_module",
+      "module": "tests/numerics/test_sa_sources.py",
+      "class": "TestSASourceTerms",
+      "name": "test_destruction_matches_physics_module",
+      "duration": 0.19412,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/physics/test_sa_gradients.py::TestSAGradientAccuracy::test_destruction_gradient",
+      "module": "tests/physics/test_sa_gradients.py",
+      "class": "TestSAGradientAccuracy",
+      "name": "test_destruction_gradient",
+      "duration": 0.190795,
       "outcome": "passed"
     },
     {
@@ -1003,7 +979,7 @@
       "module": "tests/grid/test_wall_distance.py",
       "class": null,
       "name": "test_jax_wall_distance_accuracy",
-      "duration": 0.18284,
+      "duration": 0.181657,
       "outcome": "passed"
     },
     {
@@ -1011,15 +987,15 @@
       "module": "tests/numerics/test_sa_sources.py",
       "class": "TestTurbulentViscosity",
       "name": "test_fv1_behavior",
-      "duration": 0.174156,
+      "duration": 0.177295,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/physics/test_sa_gradients.py::TestSAPhysicalConstraints::test_fv2_bounds",
-      "module": "tests/physics/test_sa_gradients.py",
-      "class": "TestSAPhysicalConstraints",
-      "name": "test_fv2_bounds",
-      "duration": 0.167812,
+      "nodeid": "tests/numerics/test_sa_jacobian_sign.py::TestSAJacobianSign::test_v_over_dt_minus_jacobian_is_positive",
+      "module": "tests/numerics/test_sa_jacobian_sign.py",
+      "class": "TestSAJacobianSign",
+      "name": "test_v_over_dt_minus_jacobian_is_positive",
+      "duration": 0.173063,
       "outcome": "passed"
     },
     {
@@ -1027,7 +1003,7 @@
       "module": "tests/numerics/test_jax_numerics.py",
       "class": "TestIRSComparison",
       "name": "test_irs_numerical_equivalence",
-      "duration": 0.163489,
+      "duration": 0.16749,
       "outcome": "passed"
     },
     {
@@ -1035,7 +1011,7 @@
       "module": "tests/test_gradients.py",
       "class": "TestVorticityAndStrain",
       "name": "test_rigid_body_rotation",
-      "duration": 0.163211,
+      "duration": 0.167326,
       "outcome": "passed"
     },
     {
@@ -1043,7 +1019,15 @@
       "module": "tests/numerics/test_explicit_smoothing.py",
       "class": "TestDispatch",
       "name": "test_dispatch_numpy_input",
-      "duration": 0.160119,
+      "duration": 0.163487,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/physics/test_sa_gradients.py::TestSAPhysicalConstraints::test_fv2_bounds",
+      "module": "tests/physics/test_sa_gradients.py",
+      "class": "TestSAPhysicalConstraints",
+      "name": "test_fv2_bounds",
+      "duration": 0.161108,
       "outcome": "passed"
     },
     {
@@ -1051,7 +1035,7 @@
       "module": "tests/numerics/test_jax_numerics.py",
       "class": "TestGradientComparison",
       "name": "test_gradient_numerical_equivalence",
-      "duration": 0.155933,
+      "duration": 0.16062,
       "outcome": "passed"
     },
     {
@@ -1059,7 +1043,7 @@
       "module": "tests/numerics/test_sa_sources.py",
       "class": "TestSASourceTerms",
       "name": "test_production_positive",
-      "duration": 0.142376,
+      "duration": 0.141151,
       "outcome": "passed"
     },
     {
@@ -1067,15 +1051,7 @@
       "module": "tests/physics/test_sa_gradients.py",
       "class": "TestSAPhysicalConstraints",
       "name": "test_fv2_at_zero",
-      "duration": 0.096868,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/physics/test_sa_gradients.py::TestSAPhysicalConstraints::test_fv1_limits",
-      "module": "tests/physics/test_sa_gradients.py",
-      "class": "TestSAPhysicalConstraints",
-      "name": "test_fv1_limits",
-      "duration": 0.09226,
+      "duration": 0.099487,
       "outcome": "passed"
     },
     {
@@ -1083,7 +1059,7 @@
       "module": "tests/numerics/test_sa_sources.py",
       "class": "TestTurbulentViscosity",
       "name": "test_effective_viscosity",
-      "duration": 0.085001,
+      "duration": 0.0907,
       "outcome": "passed"
     },
     {
@@ -1091,7 +1067,15 @@
       "module": "tests/numerics/test_sa_sources.py",
       "class": "TestTurbulentViscosity",
       "name": "test_zero_nuHat",
-      "duration": 0.082249,
+      "duration": 0.086101,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/physics/test_sa_gradients.py::TestSAPhysicalConstraints::test_fv1_limits",
+      "module": "tests/physics/test_sa_gradients.py",
+      "class": "TestSAPhysicalConstraints",
+      "name": "test_fv1_limits",
+      "duration": 0.083205,
       "outcome": "passed"
     },
     {
@@ -1099,15 +1083,7 @@
       "module": "tests/numerics/test_sa_sources.py",
       "class": "TestSASourceTerms",
       "name": "test_cb2_term_positive",
-      "duration": 0.080629,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_wake_conservation.py::TestWakeConservationBaseline::test_symmetric_flow_conservation",
-      "module": "tests/numerics/test_wake_conservation.py",
-      "class": "TestWakeConservationBaseline",
-      "name": "test_symmetric_flow_conservation",
-      "duration": 0.074315,
+      "duration": 0.080084,
       "outcome": "passed"
     },
     {
@@ -1115,7 +1091,15 @@
       "module": "tests/grid/test_wall_distance.py",
       "class": null,
       "name": "test_skewed_ogrid",
-      "duration": 0.072791,
+      "duration": 0.071966,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_wake_conservation.py::TestWakeConservationBaseline::test_symmetric_flow_conservation",
+      "module": "tests/numerics/test_wake_conservation.py",
+      "class": "TestWakeConservationBaseline",
+      "name": "test_symmetric_flow_conservation",
+      "duration": 0.069613,
       "outcome": "passed"
     },
     {
@@ -1123,7 +1107,7 @@
       "module": "tests/grid/test_mesher.py",
       "class": "TestConstruct2DWrapper",
       "name": "test_grid_dimensions",
-      "duration": 0.070552,
+      "duration": 0.063452,
       "outcome": "passed"
     },
     {
@@ -1131,7 +1115,7 @@
       "module": "tests/test_taylor_green.py",
       "class": "TestOrderOfAccuracyScaledVelocity",
       "name": "test_fixed_vs_scaled_comparison",
-      "duration": 0.057739,
+      "duration": 0.057715,
       "outcome": "passed"
     },
     {
@@ -1139,7 +1123,7 @@
       "module": "tests/grid/test_mesher.py",
       "class": "TestConstruct2DWrapper",
       "name": "test_grid_generation_in_tmp_path",
-      "duration": 0.054616,
+      "duration": 0.04729,
       "outcome": "passed"
     },
     {
@@ -1147,15 +1131,7 @@
       "module": "tests/grid/test_mesher.py",
       "class": "TestConstruct2DWrapper",
       "name": "test_auto_cleanup_temp_dir",
-      "duration": 0.037112,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_taylor_green.py::TestOrderOfAccuracyScaledVelocity::test_scaled_velocity_residual_distorted",
-      "module": "tests/test_taylor_green.py",
-      "class": "TestOrderOfAccuracyScaledVelocity",
-      "name": "test_scaled_velocity_residual_distorted",
-      "duration": 0.031667,
+      "duration": 0.037934,
       "outcome": "passed"
     },
     {
@@ -1163,7 +1139,7 @@
       "module": "tests/test_taylor_green.py",
       "class": "TestOrderOfAccuracy",
       "name": "test_residual_convergence_distorted",
-      "duration": 0.030817,
+      "duration": 0.032358,
       "outcome": "passed"
     },
     {
@@ -1171,15 +1147,7 @@
       "module": "tests/test_taylor_green.py",
       "class": "TestOrderOfAccuracy",
       "name": "test_residual_distortion_sensitivity[0.05]",
-      "duration": 0.029762,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_taylor_green.py::TestOrderOfAccuracy::test_residual_distortion_sensitivity[0.15]",
-      "module": "tests/test_taylor_green.py",
-      "class": "TestOrderOfAccuracy",
-      "name": "test_residual_distortion_sensitivity[0.15]",
-      "duration": 0.029708,
+      "duration": 0.029551,
       "outcome": "passed"
     },
     {
@@ -1187,7 +1155,7 @@
       "module": "tests/test_taylor_green.py",
       "class": "TestOrderOfAccuracy",
       "name": "test_residual_distortion_sensitivity[0.1]",
-      "duration": 0.029601,
+      "duration": 0.029551,
       "outcome": "passed"
     },
     {
@@ -1195,7 +1163,23 @@
       "module": "tests/test_taylor_green.py",
       "class": "TestOrderOfAccuracyScaledVelocity",
       "name": "test_scaled_velocity_residual_cartesian",
-      "duration": 0.029315,
+      "duration": 0.029528,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_taylor_green.py::TestOrderOfAccuracyScaledVelocity::test_scaled_velocity_residual_distorted",
+      "module": "tests/test_taylor_green.py",
+      "class": "TestOrderOfAccuracyScaledVelocity",
+      "name": "test_scaled_velocity_residual_distorted",
+      "duration": 0.029471,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_taylor_green.py::TestOrderOfAccuracy::test_residual_distortion_sensitivity[0.15]",
+      "module": "tests/test_taylor_green.py",
+      "class": "TestOrderOfAccuracy",
+      "name": "test_residual_distortion_sensitivity[0.15]",
+      "duration": 0.029285,
       "outcome": "passed"
     },
     {
@@ -1203,7 +1187,7 @@
       "module": "tests/solvers/test_batch_kernels.py",
       "class": "TestBatchStateIntegration",
       "name": "test_jax_conversion",
-      "duration": 0.020965,
+      "duration": 0.021915,
       "outcome": "passed"
     },
     {
@@ -1211,7 +1195,7 @@
       "module": "tests/test_forces.py",
       "class": "TestForceComputation",
       "name": "test_rotation_to_wind_axes",
-      "duration": 0.015941,
+      "duration": 0.016231,
       "outcome": "passed"
     },
     {
@@ -1219,15 +1203,7 @@
       "module": "tests/test_viscous_fluxes.py",
       "class": "TestConvergenceOrder",
       "name": "test_second_order_convergence",
-      "duration": 0.014789,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_forces.py::TestForceComputation::test_friction_drag_from_velocity",
-      "module": "tests/test_forces.py",
-      "class": "TestForceComputation",
-      "name": "test_friction_drag_from_velocity",
-      "duration": 0.014668,
+      "duration": 0.015095,
       "outcome": "passed"
     },
     {
@@ -1235,7 +1211,15 @@
       "module": "tests/test_forces.py",
       "class": "TestForceComputation",
       "name": "test_coefficient_normalization",
-      "duration": 0.014154,
+      "duration": 0.014548,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_forces.py::TestForceComputation::test_friction_drag_from_velocity",
+      "module": "tests/test_forces.py",
+      "class": "TestForceComputation",
+      "name": "test_friction_drag_from_velocity",
+      "duration": 0.014432,
       "outcome": "passed"
     },
     {
@@ -1243,23 +1227,7 @@
       "module": "tests/test_gradients.py",
       "class": "TestConvergenceOrder",
       "name": "test_sinusoidal_convergence",
-      "duration": 0.013102,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_tight_viscous.py::TestTightStencilViscousFlux::test_stencil_isolation_nan_outside",
-      "module": "tests/numerics/test_tight_viscous.py",
-      "class": "TestTightStencilViscousFlux",
-      "name": "test_stencil_isolation_nan_outside",
-      "duration": 0.010136,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_tight_viscous.py::TestTightStencilViscousFlux::test_stencil_isolation_inf_outside",
-      "module": "tests/numerics/test_tight_viscous.py",
-      "class": "TestTightStencilViscousFlux",
-      "name": "test_stencil_isolation_inf_outside",
-      "duration": 0.010114,
+      "duration": 0.01253,
       "outcome": "passed"
     },
     {
@@ -1267,47 +1235,23 @@
       "module": "tests/test_gradients.py",
       "class": "TestConvergenceOrder",
       "name": "test_exponential_convergence",
-      "duration": 0.010022,
+      "duration": 0.010302,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_tight_viscous.py::TestTightStencilViscousFlux::test_tight_stencil_uniform_velocity_skewed",
+      "nodeid": "tests/numerics/test_tight_viscous.py::TestTightStencilViscousFlux::test_stencil_isolation_nan_outside",
       "module": "tests/numerics/test_tight_viscous.py",
       "class": "TestTightStencilViscousFlux",
-      "name": "test_tight_stencil_uniform_velocity_skewed",
-      "duration": 0.009761,
+      "name": "test_stencil_isolation_nan_outside",
+      "duration": 0.010105,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_tight_viscous.py::TestTightStencilViscousFlux::test_tight_stencil_linear_velocity_skewed",
+      "nodeid": "tests/numerics/test_tight_viscous.py::TestTightStencilViscousFlux::test_stencil_isolation_inf_outside",
       "module": "tests/numerics/test_tight_viscous.py",
       "class": "TestTightStencilViscousFlux",
-      "name": "test_tight_stencil_linear_velocity_skewed",
-      "duration": 0.007568,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_tight_viscous.py::TestTightStencilViscousFlux::test_tight_stencil_pressure_no_diffusion_skewed",
-      "module": "tests/numerics/test_tight_viscous.py",
-      "class": "TestTightStencilViscousFlux",
-      "name": "test_tight_stencil_pressure_no_diffusion_skewed",
-      "duration": 0.007418,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_forces.py::TestDecomposition::test_total_equals_sum",
-      "module": "tests/test_forces.py",
-      "class": "TestDecomposition",
-      "name": "test_total_equals_sum",
-      "duration": 0.007412,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_tight_viscous.py::TestTightStencilViscousFlux::test_tight_stencil_sa_diffusion_constant_skewed",
-      "module": "tests/numerics/test_tight_viscous.py",
-      "class": "TestTightStencilViscousFlux",
-      "name": "test_tight_stencil_sa_diffusion_constant_skewed",
-      "duration": 0.0074,
+      "name": "test_stencil_isolation_inf_outside",
+      "duration": 0.010047,
       "outcome": "passed"
     },
     {
@@ -1315,7 +1259,7 @@
       "module": "tests/numerics/test_explicit_smoothing.py",
       "class": "TestDispatch",
       "name": "test_dispatch_jax_input",
-      "duration": 0.007394,
+      "duration": 0.009948,
       "outcome": "passed"
     },
     {
@@ -1323,7 +1267,47 @@
       "module": "tests/test_gradients.py",
       "class": "TestVorticityAndStrain",
       "name": "test_pure_shear",
-      "duration": 0.006751,
+      "duration": 0.008683,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_tight_viscous.py::TestTightStencilViscousFlux::test_tight_stencil_uniform_velocity_skewed",
+      "module": "tests/numerics/test_tight_viscous.py",
+      "class": "TestTightStencilViscousFlux",
+      "name": "test_tight_stencil_uniform_velocity_skewed",
+      "duration": 0.008343,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_forces.py::TestDecomposition::test_total_equals_sum",
+      "module": "tests/test_forces.py",
+      "class": "TestDecomposition",
+      "name": "test_total_equals_sum",
+      "duration": 0.00768,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_tight_viscous.py::TestTightStencilViscousFlux::test_tight_stencil_linear_velocity_skewed",
+      "module": "tests/numerics/test_tight_viscous.py",
+      "class": "TestTightStencilViscousFlux",
+      "name": "test_tight_stencil_linear_velocity_skewed",
+      "duration": 0.007453,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_tight_viscous.py::TestTightStencilViscousFlux::test_tight_stencil_pressure_no_diffusion_skewed",
+      "module": "tests/numerics/test_tight_viscous.py",
+      "class": "TestTightStencilViscousFlux",
+      "name": "test_tight_stencil_pressure_no_diffusion_skewed",
+      "duration": 0.007324,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_tight_viscous.py::TestTightStencilViscousFlux::test_tight_stencil_sa_diffusion_constant_skewed",
+      "module": "tests/numerics/test_tight_viscous.py",
+      "class": "TestTightStencilViscousFlux",
+      "name": "test_tight_stencil_sa_diffusion_constant_skewed",
+      "duration": 0.007292,
       "outcome": "passed"
     },
     {
@@ -1331,7 +1315,7 @@
       "module": "tests/test_viscous_fluxes.py",
       "class": "TestNuTildeDiffusion",
       "name": "test_negative_nu_tilde_safety",
-      "duration": 0.006536,
+      "duration": 0.006586,
       "outcome": "passed"
     },
     {
@@ -1339,47 +1323,7 @@
       "module": "tests/test_viscous_fluxes.py",
       "class": "TestTurbulentViscosity",
       "name": "test_mu_turb_increases_dissipation",
-      "duration": 0.006316,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/solver/test_jst_fluxes.py::test_uniform_flow_zero_residual",
-      "module": "tests/solver/test_jst_fluxes.py",
-      "class": null,
-      "name": "test_uniform_flow_zero_residual",
-      "duration": 0.006061,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_taylor_green.py::TestTaylorGreenDistorted::test_inviscid_convected",
-      "module": "tests/test_taylor_green.py",
-      "class": "TestTaylorGreenDistorted",
-      "name": "test_inviscid_convected",
-      "duration": 0.006058,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_gradients.py::TestLinearExactness::test_quadratic_field[8-8]",
-      "module": "tests/test_gradients.py",
-      "class": "TestLinearExactness",
-      "name": "test_quadratic_field[8-8]",
-      "duration": 0.005941,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/solvers/test_batch_kernels.py::TestBatchStateIntegration::test_batch_state_creation",
-      "module": "tests/solvers/test_batch_kernels.py",
-      "class": "TestBatchStateIntegration",
-      "name": "test_batch_state_creation",
-      "duration": 0.005828,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/solver/test_jst_fluxes.py::test_pressure_spike_dissipation",
-      "module": "tests/solver/test_jst_fluxes.py",
-      "class": null,
-      "name": "test_pressure_spike_dissipation",
-      "duration": 0.005757,
+      "duration": 0.006345,
       "outcome": "passed"
     },
     {
@@ -1387,63 +1331,15 @@
       "module": "tests/test_gradients.py",
       "class": "TestVorticityAndStrain",
       "name": "test_pure_stretch",
-      "duration": 0.005654,
+      "duration": 0.006239,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/solver/test_jst_fluxes.py::test_conservation",
+      "nodeid": "tests/solver/test_jst_fluxes.py::test_uniform_flow_zero_residual",
       "module": "tests/solver/test_jst_fluxes.py",
       "class": null,
-      "name": "test_conservation",
-      "duration": 0.00563,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_viscous_fluxes.py::TestUniformFlow::test_uniform_velocity",
-      "module": "tests/test_viscous_fluxes.py",
-      "class": "TestUniformFlow",
-      "name": "test_uniform_velocity",
-      "duration": 0.005163,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_viscous_fluxes.py::TestLinearVelocity::test_simple_shear_x",
-      "module": "tests/test_viscous_fluxes.py",
-      "class": "TestLinearVelocity",
-      "name": "test_simple_shear_x",
-      "duration": 0.005106,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_viscous_fluxes.py::TestConservation::test_global_conservation",
-      "module": "tests/test_viscous_fluxes.py",
-      "class": "TestConservation",
-      "name": "test_global_conservation",
-      "duration": 0.005045,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_viscous_fluxes.py::TestLinearVelocity::test_pure_stretch",
-      "module": "tests/test_viscous_fluxes.py",
-      "class": "TestLinearVelocity",
-      "name": "test_pure_stretch",
-      "duration": 0.005036,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_viscous_fluxes.py::TestUniformFlow::test_zero_velocity",
-      "module": "tests/test_viscous_fluxes.py",
-      "class": "TestUniformFlow",
-      "name": "test_zero_velocity",
-      "duration": 0.005015,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_gradients.py::TestLinearExactness::test_quadratic_field[16-16]",
-      "module": "tests/test_gradients.py",
-      "class": "TestLinearExactness",
-      "name": "test_quadratic_field[16-16]",
-      "duration": 0.004464,
+      "name": "test_uniform_flow_zero_residual",
+      "duration": 0.006129,
       "outcome": "passed"
     },
     {
@@ -1451,47 +1347,47 @@
       "module": "tests/numerics/test_explicit_smoothing.py",
       "class": "TestExplicitSmoothingNumerics",
       "name": "test_neumann_bc",
-      "duration": 0.004368,
+      "duration": 0.005999,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_sa_cb2_advection.py::TestSACb2Advection::test_k2_k4_effect_skewed",
-      "module": "tests/numerics/test_sa_cb2_advection.py",
-      "class": "TestSACb2Advection",
-      "name": "test_k2_k4_effect_skewed",
-      "duration": 0.004323,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/grid/test_face_geometry.py::TestLSWeights::test_ls_weights_shapes_skewed",
-      "module": "tests/grid/test_face_geometry.py",
-      "class": "TestLSWeights",
-      "name": "test_ls_weights_shapes_skewed",
-      "duration": 0.004242,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_sa_cb2_advection.py::TestSACb2Advection::test_spectral_radius_scales_with_grad_nuhat_skewed",
-      "module": "tests/numerics/test_sa_cb2_advection.py",
-      "class": "TestSACb2Advection",
-      "name": "test_spectral_radius_scales_with_grad_nuhat_skewed",
-      "duration": 0.004104,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_taylor_green.py::TestGradientAccuracy::test_linear_field_cartesian",
+      "nodeid": "tests/test_taylor_green.py::TestTaylorGreenDistorted::test_inviscid_convected",
       "module": "tests/test_taylor_green.py",
-      "class": "TestGradientAccuracy",
-      "name": "test_linear_field_cartesian",
-      "duration": 0.004102,
+      "class": "TestTaylorGreenDistorted",
+      "name": "test_inviscid_convected",
+      "duration": 0.005999,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_sa_cb2_advection.py::TestSACb2Advection::test_dissipation_increases_with_k2",
-      "module": "tests/numerics/test_sa_cb2_advection.py",
-      "class": "TestSACb2Advection",
-      "name": "test_dissipation_increases_with_k2",
-      "duration": 0.003973,
+      "nodeid": "tests/solver/test_jst_fluxes.py::test_pressure_spike_dissipation",
+      "module": "tests/solver/test_jst_fluxes.py",
+      "class": null,
+      "name": "test_pressure_spike_dissipation",
+      "duration": 0.005949,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_batch_kernels.py::TestBatchStateIntegration::test_batch_state_creation",
+      "module": "tests/solvers/test_batch_kernels.py",
+      "class": "TestBatchStateIntegration",
+      "name": "test_batch_state_creation",
+      "duration": 0.005757,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solver/test_jst_fluxes.py::test_conservation",
+      "module": "tests/solver/test_jst_fluxes.py",
+      "class": null,
+      "name": "test_conservation",
+      "duration": 0.005684,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gradients.py::TestLinearExactness::test_quadratic_field[8-8]",
+      "module": "tests/test_gradients.py",
+      "class": "TestLinearExactness",
+      "name": "test_quadratic_field[8-8]",
+      "duration": 0.005668,
       "outcome": "passed"
     },
     {
@@ -1499,23 +1395,47 @@
       "module": "tests/numerics/test_gmres.py",
       "class": "TestGMRESBasic",
       "name": "test_zero_rhs",
-      "duration": 0.00382,
+      "duration": 0.005462,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_sa_cb2_advection.py::TestSACb2Advection::test_uniform_gradient_nonzero_residual_skewed",
-      "module": "tests/numerics/test_sa_cb2_advection.py",
-      "class": "TestSACb2Advection",
-      "name": "test_uniform_gradient_nonzero_residual_skewed",
-      "duration": 0.003807,
+      "nodeid": "tests/test_viscous_fluxes.py::TestUniformFlow::test_uniform_velocity",
+      "module": "tests/test_viscous_fluxes.py",
+      "class": "TestUniformFlow",
+      "name": "test_uniform_velocity",
+      "duration": 0.005151,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_sa_sources.py::TestSASourceTerms::test_cb2_term_value",
-      "module": "tests/numerics/test_sa_sources.py",
-      "class": "TestSASourceTerms",
-      "name": "test_cb2_term_value",
-      "duration": 0.003717,
+      "nodeid": "tests/test_viscous_fluxes.py::TestConservation::test_global_conservation",
+      "module": "tests/test_viscous_fluxes.py",
+      "class": "TestConservation",
+      "name": "test_global_conservation",
+      "duration": 0.005123,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_viscous_fluxes.py::TestLinearVelocity::test_simple_shear_x",
+      "module": "tests/test_viscous_fluxes.py",
+      "class": "TestLinearVelocity",
+      "name": "test_simple_shear_x",
+      "duration": 0.005122,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_viscous_fluxes.py::TestLinearVelocity::test_pure_stretch",
+      "module": "tests/test_viscous_fluxes.py",
+      "class": "TestLinearVelocity",
+      "name": "test_pure_stretch",
+      "duration": 0.005094,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_viscous_fluxes.py::TestUniformFlow::test_zero_velocity",
+      "module": "tests/test_viscous_fluxes.py",
+      "class": "TestUniformFlow",
+      "name": "test_zero_velocity",
+      "duration": 0.004962,
       "outcome": "passed"
     },
     {
@@ -1523,7 +1443,23 @@
       "module": "tests/test_gradients.py",
       "class": "TestMultipleVariables",
       "name": "test_all_variables_computed",
-      "duration": 0.003714,
+      "duration": 0.004423,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_sa_cb2_advection.py::TestSACb2Advection::test_dissipation_increases_with_k2",
+      "module": "tests/numerics/test_sa_cb2_advection.py",
+      "class": "TestSACb2Advection",
+      "name": "test_dissipation_increases_with_k2",
+      "duration": 0.00421,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_taylor_green.py::TestGradientAccuracy::test_linear_field_cartesian",
+      "module": "tests/test_taylor_green.py",
+      "class": "TestGradientAccuracy",
+      "name": "test_linear_field_cartesian",
+      "duration": 0.004095,
       "outcome": "passed"
     },
     {
@@ -1531,7 +1467,47 @@
       "module": "tests/test_gradients.py",
       "class": "TestStretchedGrid",
       "name": "test_linear_on_stretched_interior",
-      "duration": 0.00359,
+      "duration": 0.004079,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_sa_cb2_advection.py::TestSACb2Advection::test_spectral_radius_scales_with_grad_nuhat_skewed",
+      "module": "tests/numerics/test_sa_cb2_advection.py",
+      "class": "TestSACb2Advection",
+      "name": "test_spectral_radius_scales_with_grad_nuhat_skewed",
+      "duration": 0.004016,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_sa_cb2_advection.py::TestSACb2Advection::test_k2_k4_effect_skewed",
+      "module": "tests/numerics/test_sa_cb2_advection.py",
+      "class": "TestSACb2Advection",
+      "name": "test_k2_k4_effect_skewed",
+      "duration": 0.003969,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gradients.py::TestLinearExactness::test_quadratic_field[16-16]",
+      "module": "tests/test_gradients.py",
+      "class": "TestLinearExactness",
+      "name": "test_quadratic_field[16-16]",
+      "duration": 0.003938,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_sa_sources.py::TestSASourceTerms::test_cb2_term_value",
+      "module": "tests/numerics/test_sa_sources.py",
+      "class": "TestSASourceTerms",
+      "name": "test_cb2_term_value",
+      "duration": 0.003902,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_sa_cb2_advection.py::TestSACb2Advection::test_uniform_gradient_nonzero_residual_skewed",
+      "module": "tests/numerics/test_sa_cb2_advection.py",
+      "class": "TestSACb2Advection",
+      "name": "test_uniform_gradient_nonzero_residual_skewed",
+      "duration": 0.003811,
       "outcome": "passed"
     },
     {
@@ -1539,7 +1515,7 @@
       "module": "tests/test_taylor_green.py",
       "class": "TestGradientAccuracy",
       "name": "test_linear_field_distorted",
-      "duration": 0.003562,
+      "duration": 0.003789,
       "outcome": "passed"
     },
     {
@@ -1547,7 +1523,7 @@
       "module": "tests/numerics/test_sa_cb2_advection.py",
       "class": "TestSACb2Advection",
       "name": "test_pure_diffusion_reduces_local_extrema",
-      "duration": 0.003483,
+      "duration": 0.003473,
       "outcome": "passed"
     },
     {
@@ -1555,15 +1531,15 @@
       "module": "tests/numerics/test_sa_cb2_advection.py",
       "class": "TestSACb2Advection",
       "name": "test_residual_shape_skewed",
-      "duration": 0.003303,
+      "duration": 0.00328,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_sa_sources.py::TestSASourceTerms::test_source_near_wall",
-      "module": "tests/numerics/test_sa_sources.py",
-      "class": "TestSASourceTerms",
-      "name": "test_source_near_wall",
-      "duration": 0.00321,
+      "nodeid": "tests/grid/test_face_geometry.py::TestLSWeights::test_ls_weights_shapes_skewed",
+      "module": "tests/grid/test_face_geometry.py",
+      "class": "TestLSWeights",
+      "name": "test_ls_weights_shapes_skewed",
+      "duration": 0.003053,
       "outcome": "passed"
     },
     {
@@ -1571,39 +1547,15 @@
       "module": "tests/grid/test_mesher.py",
       "class": "TestConstruct2DWrapper",
       "name": "test_missing_airfoil_raises_error",
-      "duration": 0.002935,
+      "duration": 0.002847,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/physics/test_sa_gradients.py::TestSADimensionAgnostic::test_1d_input",
-      "module": "tests/physics/test_sa_gradients.py",
-      "class": "TestSADimensionAgnostic",
-      "name": "test_1d_input",
-      "duration": 0.00252,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/grid/test_face_geometry.py::TestFaceGeometry::test_skewed_grid_distances",
-      "module": "tests/grid/test_face_geometry.py",
-      "class": "TestFaceGeometry",
-      "name": "test_skewed_grid_distances",
-      "duration": 0.002418,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/grid/test_face_geometry.py::TestLSWeights::test_qr_helper_function",
-      "module": "tests/grid/test_face_geometry.py",
-      "class": "TestLSWeights",
-      "name": "test_qr_helper_function",
-      "duration": 0.00236,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_explicit_smoothing.py::TestExplicitSmoothingNumerics::test_zero_epsilon",
-      "module": "tests/numerics/test_explicit_smoothing.py",
-      "class": "TestExplicitSmoothingNumerics",
-      "name": "test_zero_epsilon",
-      "duration": 0.002247,
+      "nodeid": "tests/numerics/test_sa_sources.py::TestSASourceTerms::test_source_near_wall",
+      "module": "tests/numerics/test_sa_sources.py",
+      "class": "TestSASourceTerms",
+      "name": "test_source_near_wall",
+      "duration": 0.002719,
       "outcome": "passed"
     },
     {
@@ -1611,23 +1563,31 @@
       "module": "tests/grid/test_mesher.py",
       "class": "TestConstruct2DWrapperNoBinary",
       "name": "test_missing_binary_raises_error",
-      "duration": 0.00186,
+      "duration": 0.002559,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/numerics/test_sa_sources.py::TestTurbulentViscosity::test_negative_nuHat_clipped",
-      "module": "tests/numerics/test_sa_sources.py",
-      "class": "TestTurbulentViscosity",
-      "name": "test_negative_nuHat_clipped",
-      "duration": 0.001856,
+      "nodeid": "tests/physics/test_sa_gradients.py::TestSADimensionAgnostic::test_1d_input",
+      "module": "tests/physics/test_sa_gradients.py",
+      "class": "TestSADimensionAgnostic",
+      "name": "test_1d_input",
+      "duration": 0.002518,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/grid/test_mesher.py::TestConstruct2DWrapperNoBinary::test_non_executable_raises_error",
-      "module": "tests/grid/test_mesher.py",
-      "class": "TestConstruct2DWrapperNoBinary",
-      "name": "test_non_executable_raises_error",
-      "duration": 0.001816,
+      "nodeid": "tests/grid/test_face_geometry.py::TestFaceGeometry::test_skewed_grid_distances",
+      "module": "tests/grid/test_face_geometry.py",
+      "class": "TestFaceGeometry",
+      "name": "test_skewed_grid_distances",
+      "duration": 0.002421,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_explicit_smoothing.py::TestExplicitSmoothingNumerics::test_zero_epsilon",
+      "module": "tests/numerics/test_explicit_smoothing.py",
+      "class": "TestExplicitSmoothingNumerics",
+      "name": "test_zero_epsilon",
+      "duration": 0.002192,
       "outcome": "passed"
     },
     {
@@ -1635,7 +1595,31 @@
       "module": "tests/grid/test_face_geometry.py",
       "class": "TestFaceGeometry",
       "name": "test_cartesian_grid_i_faces",
-      "duration": 0.001457,
+      "duration": 0.001822,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_sa_sources.py::TestTurbulentViscosity::test_negative_nuHat_clipped",
+      "module": "tests/numerics/test_sa_sources.py",
+      "class": "TestTurbulentViscosity",
+      "name": "test_negative_nuHat_clipped",
+      "duration": 0.001757,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/grid/test_mesher.py::TestConstruct2DWrapperNoBinary::test_non_executable_raises_error",
+      "module": "tests/grid/test_mesher.py",
+      "class": "TestConstruct2DWrapperNoBinary",
+      "name": "test_non_executable_raises_error",
+      "duration": 0.001717,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/grid/test_face_geometry.py::TestLSWeights::test_qr_helper_function",
+      "module": "tests/grid/test_face_geometry.py",
+      "class": "TestLSWeights",
+      "name": "test_qr_helper_function",
+      "duration": 0.001454,
       "outcome": "passed"
     },
     {
@@ -1643,7 +1627,7 @@
       "module": "tests/test_taylor_green.py",
       "class": "TestTaylorGreenDistorted",
       "name": "test_grid_validity",
-      "duration": 0.00142,
+      "duration": 0.001318,
       "outcome": "passed"
     },
     {
@@ -1651,7 +1635,7 @@
       "module": "tests/grid/test_face_geometry.py",
       "class": "TestFaceGeometry",
       "name": "test_cartesian_grid_j_faces",
-      "duration": 0.00122,
+      "duration": 0.001207,
       "outcome": "passed"
     },
     {
@@ -1659,23 +1643,7 @@
       "module": "tests/grid/test_face_geometry.py",
       "class": "TestFaceGeometry",
       "name": "test_unit_vectors_skewed_grid",
-      "duration": 0.001114,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/grid/test_face_geometry.py::TestFaceGeometry::test_orthogonality_skewed_grid",
-      "module": "tests/grid/test_face_geometry.py",
-      "class": "TestFaceGeometry",
-      "name": "test_orthogonality_skewed_grid",
-      "duration": 0.001006,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/solvers/test_batch_kernels.py::TestBatchStateIntegration::test_batch_flow_conditions",
-      "module": "tests/solvers/test_batch_kernels.py",
-      "class": "TestBatchStateIntegration",
-      "name": "test_batch_flow_conditions",
-      "duration": 0.000976,
+      "duration": 0.001098,
       "outcome": "passed"
     },
     {
@@ -1683,7 +1651,23 @@
       "module": "tests/solver/test_jst_fluxes.py",
       "class": null,
       "name": "test_convective_flux",
-      "duration": 0.000961,
+      "duration": 0.001058,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/grid/test_face_geometry.py::TestFaceGeometry::test_orthogonality_skewed_grid",
+      "module": "tests/grid/test_face_geometry.py",
+      "class": "TestFaceGeometry",
+      "name": "test_orthogonality_skewed_grid",
+      "duration": 0.001034,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_batch_kernels.py::TestBatchStateIntegration::test_batch_flow_conditions",
+      "module": "tests/solvers/test_batch_kernels.py",
+      "class": "TestBatchStateIntegration",
+      "name": "test_batch_flow_conditions",
+      "duration": 0.00103,
       "outcome": "passed"
     },
     {
@@ -1691,7 +1675,7 @@
       "module": "tests/test_taylor_green.py",
       "class": "TestTaylorGreenCartesian",
       "name": "test_exact_initialization",
-      "duration": 0.000959,
+      "duration": 0.000956,
       "outcome": "passed"
     },
     {
@@ -1699,15 +1683,7 @@
       "module": "tests/solver/test_jst_fluxes.py",
       "class": null,
       "name": "test_time_step",
-      "duration": 0.000775,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/numerics/test_wake_conservation.py::TestWakeConservationBaseline::test_j_ghost_wake_symmetry",
-      "module": "tests/numerics/test_wake_conservation.py",
-      "class": "TestWakeConservationBaseline",
-      "name": "test_j_ghost_wake_symmetry",
-      "duration": 0.000743,
+      "duration": 0.000831,
       "outcome": "passed"
     },
     {
@@ -1715,7 +1691,23 @@
       "module": "tests/grid/test_mesher.py",
       "class": "TestConstruct2DWrapper",
       "name": "test_binary_path_is_absolute",
-      "duration": 0.00073,
+      "duration": 0.00077,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_wake_conservation.py::TestWakeConservationBaseline::test_j_ghost_wake_symmetry",
+      "module": "tests/numerics/test_wake_conservation.py",
+      "class": "TestWakeConservationBaseline",
+      "name": "test_j_ghost_wake_symmetry",
+      "duration": 0.000761,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonCFLRamping::test_cfl_capped_at_final",
+      "module": "tests/solvers/test_newton_solver.py",
+      "class": "TestNewtonCFLRamping",
+      "name": "test_cfl_capped_at_final",
+      "duration": 0.000684,
       "outcome": "passed"
     },
     {
@@ -1723,15 +1715,15 @@
       "module": "tests/solver/test_jst_fluxes.py",
       "class": null,
       "name": "test_spectral_radius",
-      "duration": 0.000637,
+      "duration": 0.000668,
       "outcome": "passed"
     },
     {
-      "nodeid": "tests/test_blasius.py::TestAFTTransition::test_early_region_near_laminar",
-      "module": "tests/test_blasius.py",
-      "class": "TestAFTTransition",
-      "name": "test_early_region_near_laminar",
-      "duration": 0.000596,
+      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonCFLRamping::test_newton_cfl_exact_decade_values",
+      "module": "tests/solvers/test_newton_solver.py",
+      "class": "TestNewtonCFLRamping",
+      "name": "test_newton_cfl_exact_decade_values",
+      "duration": 0.00062,
       "outcome": "passed"
     },
     {
@@ -1739,7 +1731,7 @@
       "module": "tests/test_blasius.py",
       "class": "TestAFTTransition",
       "name": "test_cf_positive",
-      "duration": 0.000592,
+      "duration": 0.000598,
       "outcome": "passed"
     },
     {
@@ -1747,7 +1739,15 @@
       "module": "tests/numerics/test_wake_conservation.py",
       "class": "TestWakeConservationBaseline",
       "name": "test_j_stencil_availability",
-      "duration": 0.000576,
+      "duration": 0.000572,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_blasius.py::TestAFTTransition::test_early_region_near_laminar",
+      "module": "tests/test_blasius.py",
+      "class": "TestAFTTransition",
+      "name": "test_early_region_near_laminar",
+      "duration": 0.000572,
       "outcome": "passed"
     },
     {
@@ -1755,23 +1755,7 @@
       "module": "tests/test_blasius.py",
       "class": "TestAFTTransition",
       "name": "test_late_region_near_turbulent",
-      "duration": 0.00056,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_blasius.py::TestAFTTransition::test_velocity_bounded",
-      "module": "tests/test_blasius.py",
-      "class": "TestAFTTransition",
-      "name": "test_velocity_bounded",
-      "duration": 0.000544,
-      "outcome": "passed"
-    },
-    {
-      "nodeid": "tests/test_blasius.py::TestAFTTransition::test_cf_bounded",
-      "module": "tests/test_blasius.py",
-      "class": "TestAFTTransition",
-      "name": "test_cf_bounded",
-      "duration": 0.000524,
+      "duration": 0.000556,
       "outcome": "passed"
     },
     {
@@ -1779,7 +1763,23 @@
       "module": "tests/test_blasius.py",
       "class": "TestAFTTransition",
       "name": "test_higher_tu_earlier_transition",
-      "duration": 0.00051,
+      "duration": 0.00053,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_blasius.py::TestAFTTransition::test_velocity_bounded",
+      "module": "tests/test_blasius.py",
+      "class": "TestAFTTransition",
+      "name": "test_velocity_bounded",
+      "duration": 0.000526,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_blasius.py::TestAFTTransition::test_cf_bounded",
+      "module": "tests/test_blasius.py",
+      "class": "TestAFTTransition",
+      "name": "test_cf_bounded",
+      "duration": 0.000518,
       "outcome": "passed"
     },
     {
@@ -1787,710 +1787,764 @@
       "module": "tests/test_blasius.py",
       "class": "TestAFTTransition",
       "name": "test_nuhat_nonnegative",
-      "duration": 0.00051,
+      "duration": 0.000502,
       "outcome": "passed"
     }
   ],
   "fixtures": {
+    "solver_newton": {
+      "total_duration": 65.403,
+      "call_count": 3,
+      "avg_duration": 21.800947,
+      "max_duration": 40.029784
+    },
     "solver_with_grid": {
-      "total_duration": 159.866,
-      "call_count": 4,
-      "avg_duration": 39.966621,
-      "max_duration": 41.766728
+      "total_duration": 43.54,
+      "call_count": 1,
+      "avg_duration": 43.539767,
+      "max_duration": 43.539767
+    },
+    "precond_solver": {
+      "total_duration": 20.16,
+      "call_count": 1,
+      "avg_duration": 20.159783,
+      "max_duration": 20.159783
     },
     "solver_results": {
-      "total_duration": 12.436,
+      "total_duration": 12.66,
       "call_count": 1,
-      "avg_duration": 12.435753,
-      "max_duration": 12.435753
+      "avg_duration": 12.660291,
+      "max_duration": 12.660291
     },
     "simple_airfoil_solver": {
-      "total_duration": 7.07,
+      "total_duration": 8.294,
       "call_count": 1,
-      "avg_duration": 7.070481,
-      "max_duration": 7.070481
+      "avg_duration": 8.293794,
+      "max_duration": 8.293794
+    },
+    "solver_rk": {
+      "total_duration": 6.274,
+      "call_count": 1,
+      "avg_duration": 6.273956,
+      "max_duration": 6.273956
+    },
+    "newton_solver": {
+      "total_duration": 3.318,
+      "call_count": 1,
+      "avg_duration": 3.317916,
+      "max_duration": 3.317916
+    },
+    "solver_rk5": {
+      "total_duration": 1.971,
+      "call_count": 2,
+      "avg_duration": 0.985252,
+      "max_duration": 0.991028
+    },
+    "solver_precond": {
+      "total_duration": 1.919,
+      "call_count": 2,
+      "avg_duration": 0.95974,
+      "max_duration": 0.973491
     },
     "small_grid": {
-      "total_duration": 1.114,
+      "total_duration": 1.153,
       "call_count": 20,
-      "avg_duration": 0.055723,
-      "max_duration": 0.552236
+      "avg_duration": 0.057662,
+      "max_duration": 0.573379
+    },
+    "step_solver": {
+      "total_duration": 1.006,
+      "call_count": 1,
+      "avg_duration": 1.00629,
+      "max_duration": 1.00629
     },
     "skewed_grid_setup": {
-      "total_duration": 0.894,
+      "total_duration": 0.9,
       "call_count": 14,
-      "avg_duration": 0.063891,
-      "max_duration": 0.69308
+      "avg_duration": 0.064266,
+      "max_duration": 0.692179
+    },
+    "jacobian_data": {
+      "total_duration": 0.859,
+      "call_count": 1,
+      "avg_duration": 0.859279,
+      "max_duration": 0.859279
     },
     "tridiagonal_system": {
-      "total_duration": 0.629,
+      "total_duration": 0.642,
       "call_count": 4,
-      "avg_duration": 0.157272,
-      "max_duration": 0.623725
+      "avg_duration": 0.160441,
+      "max_duration": 0.636566
     },
     "identity_system": {
-      "total_duration": 0.409,
+      "total_duration": 0.425,
       "call_count": 2,
-      "avg_duration": 0.204658,
-      "max_duration": 0.407873
+      "avg_duration": 0.21248,
+      "max_duration": 0.422914
     },
     "diagonal_system": {
-      "total_duration": 0.138,
+      "total_duration": 0.143,
       "call_count": 3,
-      "avg_duration": 0.046015,
-      "max_duration": 0.136406
+      "avg_duration": 0.047709,
+      "max_duration": 0.141478
     },
     "ill_conditioned_system": {
-      "total_duration": 0.071,
+      "total_duration": 0.075,
       "call_count": 2,
-      "avg_duration": 0.035707,
-      "max_duration": 0.07043
+      "avg_duration": 0.037727,
+      "max_duration": 0.074437
     },
     "simple_fields": {
-      "total_duration": 0.048,
+      "total_duration": 0.045,
       "call_count": 8,
-      "avg_duration": 0.005968,
-      "max_duration": 0.039138
+      "avg_duration": 0.005646,
+      "max_duration": 0.036197
     },
     "tmp_path": {
       "total_duration": 0.005,
       "call_count": 6,
-      "avg_duration": 0.00086,
-      "max_duration": 0.002216
+      "avg_duration": 0.00087,
+      "max_duration": 0.002173
     },
     "sample_state": {
       "total_duration": 0.004,
       "call_count": 5,
-      "avg_duration": 0.000712,
-      "max_duration": 0.000899
+      "avg_duration": 0.000742,
+      "max_duration": 0.000966
     },
     "medium_grid": {
       "total_duration": 0.001,
       "call_count": 10,
-      "avg_duration": 5.8e-05,
-      "max_duration": 7.7e-05
-    },
-    "valid_grid_path": {
-      "total_duration": 0.001,
-      "call_count": 13,
-      "avg_duration": 8.6e-05,
-      "max_duration": 0.000148
+      "avg_duration": 5.9e-05,
+      "max_duration": 8.5e-05
     },
     "NI": {
       "total_duration": 0.001,
       "call_count": 6,
-      "avg_duration": 0.000103,
-      "max_duration": 0.000127
+      "avg_duration": 9.1e-05,
+      "max_duration": 0.000106
     },
     "large_grid": {
       "total_duration": 0.0,
       "call_count": 1,
-      "avg_duration": 4.8e-05,
-      "max_duration": 4.8e-05
+      "avg_duration": 4.3e-05,
+      "max_duration": 4.3e-05
     },
     "medium_grid_dims": {
       "total_duration": 0.0,
       "call_count": 4,
-      "avg_duration": 5e-05,
-      "max_duration": 5.2e-05
+      "avg_duration": 5.2e-05,
+      "max_duration": 5.9e-05
     },
     "large_grid_dims": {
       "total_duration": 0.0,
       "call_count": 5,
-      "avg_duration": 5.8e-05,
-      "max_duration": 8e-05
+      "avg_duration": 6.3e-05,
+      "max_duration": 9.2e-05
     },
     "small_grid_dims": {
       "total_duration": 0.0,
       "call_count": 1,
-      "avg_duration": 8e-05,
-      "max_duration": 8e-05
+      "avg_duration": 6.5e-05,
+      "max_duration": 6.5e-05
     },
     "flow_params": {
       "total_duration": 0.0,
       "call_count": 6,
-      "avg_duration": 5.3e-05,
-      "max_duration": 9.4e-05
+      "avg_duration": 4.9e-05,
+      "max_duration": 8.1e-05
+    },
+    "grid_path": {
+      "total_duration": 0.0,
+      "call_count": 2,
+      "avg_duration": 6.6e-05,
+      "max_duration": 8e-05
+    },
+    "base_config": {
+      "total_duration": 0.0,
+      "call_count": 1,
+      "avg_duration": 3.6e-05,
+      "max_duration": 3.6e-05
     },
     "NJ": {
       "total_duration": 0.0,
       "call_count": 6,
-      "avg_duration": 7.1e-05,
-      "max_duration": 9.1e-05
+      "avg_duration": 6.2e-05,
+      "max_duration": 7.3e-05
     },
     "distortion_amp": {
       "total_duration": 0.0,
       "call_count": 3,
-      "avg_duration": 8.2e-05,
-      "max_duration": 0.000128
+      "avg_duration": 8.6e-05,
+      "max_duration": 0.00014
     }
   },
   "modules": {
     "tests/solvers/test_newton_solver.py": {
-      "total_duration": 300.511,
-      "avg_duration": 37.564,
+      "total_duration": 70.406,
+      "avg_duration": 8.801,
       "test_count": 8,
       "passed": 8,
       "failed": 0
     },
-    "tests/numerics/test_sa_jacobian_sign.py": {
-      "total_duration": 201.112,
-      "avg_duration": 50.278,
-      "test_count": 4,
-      "passed": 4,
-      "failed": 0
-    },
     "tests/solvers/test_preconditioned_rk.py": {
-      "total_duration": 173.71,
-      "avg_duration": 28.952,
+      "total_duration": 65.645,
+      "avg_duration": 10.941,
       "test_count": 6,
       "passed": 6,
       "failed": 0
     },
+    "tests/numerics/test_sa_jacobian_sign.py": {
+      "total_duration": 45.962,
+      "avg_duration": 11.49,
+      "test_count": 4,
+      "passed": 4,
+      "failed": 0
+    },
     "tests/test_taylor_green.py": {
-      "total_duration": 34.339,
-      "avg_duration": 1.431,
+      "total_duration": 34.978,
+      "avg_duration": 1.457,
       "test_count": 24,
       "passed": 24,
       "failed": 0
     },
     "tests/solvers/test_batch_kernels.py": {
-      "total_duration": 21.508,
-      "avg_duration": 1.654,
+      "total_duration": 21.549,
+      "avg_duration": 1.658,
       "test_count": 13,
       "passed": 13,
       "failed": 0
     },
     "tests/numerics/test_gmres.py": {
-      "total_duration": 19.811,
-      "avg_duration": 1.238,
+      "total_duration": 19.844,
+      "avg_duration": 1.24,
       "test_count": 16,
       "passed": 16,
       "failed": 0
     },
     "tests/test_blasius.py": {
-      "total_duration": 18.164,
-      "avg_duration": 2.018,
+      "total_duration": 18.633,
+      "avg_duration": 2.07,
       "test_count": 9,
       "passed": 9,
       "failed": 0
     },
     "tests/numerics/test_wake_conservation.py": {
-      "total_duration": 10.7,
-      "avg_duration": 2.14,
+      "total_duration": 11.891,
+      "avg_duration": 2.378,
       "test_count": 5,
       "passed": 5,
       "failed": 0
     },
     "tests/numerics/test_preconditioner.py": {
-      "total_duration": 9.216,
-      "avg_duration": 0.768,
+      "total_duration": 9.621,
+      "avg_duration": 0.802,
       "test_count": 12,
       "passed": 12,
       "failed": 0
     },
     "tests/numerics/test_jax_numerics.py": {
-      "total_duration": 7.117,
-      "avg_duration": 0.712,
+      "total_duration": 7.186,
+      "avg_duration": 0.719,
       "test_count": 10,
       "passed": 10,
       "failed": 0
     },
     "tests/physics/test_sa_gradients.py": {
-      "total_duration": 7.005,
-      "avg_duration": 0.584,
+      "total_duration": 6.823,
+      "avg_duration": 0.569,
       "test_count": 12,
       "passed": 12,
       "failed": 0
     },
     "tests/solver/test_jst_fluxes.py": {
-      "total_duration": 6.11,
-      "avg_duration": 0.611,
+      "total_duration": 6.452,
+      "avg_duration": 0.645,
       "test_count": 10,
       "passed": 10,
       "failed": 0
     },
     "tests/grid/test_construct2d.py": {
-      "total_duration": 5.047,
-      "avg_duration": 5.047,
+      "total_duration": 5.08,
+      "avg_duration": 5.08,
       "test_count": 1,
       "passed": 1,
       "failed": 0
     },
     "tests/test_forces.py": {
-      "total_duration": 4.828,
-      "avg_duration": 0.604,
+      "total_duration": 4.304,
+      "avg_duration": 0.538,
       "test_count": 8,
       "passed": 8,
       "failed": 0
     },
     "tests/solvers/test_jax_solver.py": {
-      "total_duration": 4.175,
-      "avg_duration": 0.696,
+      "total_duration": 4.234,
+      "avg_duration": 0.706,
       "test_count": 6,
       "passed": 6,
       "failed": 0
     },
     "tests/numerics/test_sa_sources.py": {
-      "total_duration": 2.65,
-      "avg_duration": 0.189,
+      "total_duration": 2.678,
+      "avg_duration": 0.191,
       "test_count": 14,
       "passed": 14,
       "failed": 0
     },
     "tests/numerics/test_explicit_smoothing.py": {
-      "total_duration": 1.977,
-      "avg_duration": 0.33,
+      "total_duration": 2.051,
+      "avg_duration": 0.342,
       "test_count": 6,
       "passed": 6,
       "failed": 0
     },
     "tests/grid/test_face_geometry.py": {
-      "total_duration": 1.952,
-      "avg_duration": 0.195,
+      "total_duration": 1.928,
+      "avg_duration": 0.193,
       "test_count": 10,
       "passed": 10,
       "failed": 0
     },
     "tests/test_gradients.py": {
-      "total_duration": 1.676,
-      "avg_duration": 0.12,
+      "total_duration": 1.714,
+      "avg_duration": 0.122,
       "test_count": 14,
       "passed": 14,
       "failed": 0
     },
     "tests/numerics/test_tight_viscous.py": {
-      "total_duration": 1.621,
-      "avg_duration": 0.232,
+      "total_duration": 1.613,
+      "avg_duration": 0.23,
       "test_count": 7,
       "passed": 7,
       "failed": 0
     },
     "tests/test_viscous_fluxes.py": {
-      "total_duration": 0.718,
-      "avg_duration": 0.072,
+      "total_duration": 0.731,
+      "avg_duration": 0.073,
       "test_count": 10,
       "passed": 10,
       "failed": 0
     },
-    "tests/grid/test_wall_distance.py": {
-      "total_duration": 0.654,
-      "avg_duration": 0.218,
-      "test_count": 3,
-      "passed": 3,
-      "failed": 0
-    },
     "tests/grid/test_grid_topology.py": {
-      "total_duration": 0.558,
-      "avg_duration": 0.558,
+      "total_duration": 0.686,
+      "avg_duration": 0.686,
       "test_count": 1,
       "passed": 1,
       "failed": 0
     },
+    "tests/grid/test_wall_distance.py": {
+      "total_duration": 0.647,
+      "avg_duration": 0.216,
+      "test_count": 3,
+      "passed": 3,
+      "failed": 0
+    },
     "tests/numerics/test_sa_cb2_advection.py": {
-      "total_duration": 0.55,
+      "total_duration": 0.551,
       "avg_duration": 0.079,
       "test_count": 7,
       "passed": 7,
       "failed": 0
     },
     "tests/grid/test_mesher.py": {
-      "total_duration": 0.17,
-      "avg_duration": 0.024,
+      "total_duration": 0.157,
+      "avg_duration": 0.022,
       "test_count": 7,
       "passed": 7,
       "failed": 0
     }
   },
   "classes": {
-    "tests/numerics/test_sa_jacobian_sign.py::TestSAJacobianSign": {
-      "total_duration": 201.112,
-      "avg_duration": 50.278,
-      "test_count": 4,
-      "passed": 4,
-      "failed": 0
-    },
     "tests/solvers/test_newton_solver.py::TestNewtonCFLRamping": {
-      "total_duration": 121.963,
-      "avg_duration": 30.491,
+      "total_duration": 46.308,
+      "avg_duration": 11.577,
       "test_count": 4,
       "passed": 4,
       "failed": 0
     },
-    "tests/solvers/test_newton_solver.py::TestNewtonStep": {
-      "total_duration": 97.794,
-      "avg_duration": 48.897,
-      "test_count": 2,
-      "passed": 2,
+    "tests/numerics/test_sa_jacobian_sign.py::TestSAJacobianSign": {
+      "total_duration": 45.962,
+      "avg_duration": 11.49,
+      "test_count": 4,
+      "passed": 4,
       "failed": 0
     },
     "tests/solvers/test_preconditioned_rk.py::TestModeComparison": {
-      "total_duration": 81.633,
-      "avg_duration": 40.817,
-      "test_count": 2,
-      "passed": 2,
-      "failed": 0
-    },
-    "tests/solvers/test_newton_solver.py::TestModeComparison": {
-      "total_duration": 80.306,
-      "avg_duration": 80.306,
-      "test_count": 1,
-      "passed": 1,
-      "failed": 0
-    },
-    "tests/solvers/test_preconditioned_rk.py::TestPreconditionedRKStep": {
-      "total_duration": 52.466,
-      "avg_duration": 26.233,
+      "total_duration": 36.431,
+      "avg_duration": 18.215,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
     "tests/solvers/test_preconditioned_rk.py::TestPreconditionerIntegration": {
-      "total_duration": 39.61,
-      "avg_duration": 19.805,
+      "total_duration": 20.596,
+      "avg_duration": 10.298,
+      "test_count": 2,
+      "passed": 2,
+      "failed": 0
+    },
+    "tests/solvers/test_newton_solver.py::TestNewtonStep": {
+      "total_duration": 13.613,
+      "avg_duration": 6.806,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
     "tests/test_blasius.py::TestAFTTransition": {
-      "total_duration": 12.441,
-      "avg_duration": 1.555,
+      "total_duration": 12.665,
+      "avg_duration": 1.583,
       "test_count": 8,
       "passed": 8,
       "failed": 0
     },
     "tests/solvers/test_batch_kernels.py::TestBatchStep": {
-      "total_duration": 11.073,
-      "avg_duration": 5.536,
+      "total_duration": 10.941,
+      "avg_duration": 5.47,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
     "tests/numerics/test_wake_conservation.py::TestWakeConservationBaseline": {
-      "total_duration": 9.686,
-      "avg_duration": 2.422,
+      "total_duration": 10.874,
+      "avg_duration": 2.718,
       "test_count": 4,
       "passed": 4,
       "failed": 0
     },
+    "tests/solvers/test_newton_solver.py::TestModeComparison": {
+      "total_duration": 10.036,
+      "avg_duration": 10.036,
+      "test_count": 1,
+      "passed": 1,
+      "failed": 0
+    },
     "tests/test_taylor_green.py::TestConvectedTaylorGreen": {
-      "total_duration": 9.208,
-      "avg_duration": 3.069,
+      "total_duration": 9.495,
+      "avg_duration": 3.165,
       "test_count": 3,
       "passed": 3,
       "failed": 0
     },
     "tests/test_taylor_green.py::TestTaylorGreenCartesian": {
-      "total_duration": 8.477,
-      "avg_duration": 2.119,
+      "total_duration": 8.75,
+      "avg_duration": 2.188,
       "test_count": 4,
       "passed": 4,
       "failed": 0
     },
+    "tests/solvers/test_preconditioned_rk.py::TestPreconditionedRKStep": {
+      "total_duration": 8.618,
+      "avg_duration": 4.309,
+      "test_count": 2,
+      "passed": 2,
+      "failed": 0
+    },
     "tests/test_taylor_green.py::TestTaylorGreenDistorted": {
-      "total_duration": 7.344,
-      "avg_duration": 1.836,
+      "total_duration": 7.357,
+      "avg_duration": 1.839,
       "test_count": 4,
       "passed": 4,
       "failed": 0
     },
     "tests/test_taylor_green.py::TestOrderOfAccuracy": {
-      "total_duration": 7.028,
-      "avg_duration": 1.004,
+      "total_duration": 7.091,
+      "avg_duration": 1.013,
       "test_count": 7,
       "passed": 7,
       "failed": 0
     },
     "tests/numerics/test_gmres.py::TestGMRESBasic": {
-      "total_duration": 6.076,
-      "avg_duration": 1.215,
+      "total_duration": 6.006,
+      "avg_duration": 1.201,
       "test_count": 5,
       "passed": 5,
       "failed": 0
     },
     "tests/test_blasius.py::TestBlasiusFlatPlate": {
-      "total_duration": 5.724,
-      "avg_duration": 5.724,
+      "total_duration": 5.968,
+      "avg_duration": 5.968,
       "test_count": 1,
       "passed": 1,
       "failed": 0
     },
     "tests/numerics/test_gmres.py::TestGMRESPreconditioner": {
-      "total_duration": 4.187,
-      "avg_duration": 2.094,
+      "total_duration": 4.269,
+      "avg_duration": 2.134,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
     "tests/solvers/test_batch_kernels.py::TestBatchBoundaryConditions": {
-      "total_duration": 3.805,
-      "avg_duration": 1.902,
+      "total_duration": 3.859,
+      "avg_duration": 1.93,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
     "tests/solvers/test_batch_kernels.py::TestBatchFluxes": {
-      "total_duration": 3.598,
-      "avg_duration": 1.799,
-      "test_count": 2,
-      "passed": 2,
-      "failed": 0
-    },
-    "tests/test_forces.py::TestJaxVsNumpyForces": {
-      "total_duration": 3.479,
-      "avg_duration": 1.739,
+      "total_duration": 3.662,
+      "avg_duration": 1.831,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
     "tests/numerics/test_gmres.py::TestGMRESRestart": {
-      "total_duration": 3.174,
-      "avg_duration": 1.587,
+      "total_duration": 3.163,
+      "avg_duration": 1.581,
+      "test_count": 2,
+      "passed": 2,
+      "failed": 0
+    },
+    "tests/test_forces.py::TestJaxVsNumpyForces": {
+      "total_duration": 2.936,
+      "avg_duration": 1.468,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
     "tests/numerics/test_jax_numerics.py::TestFluxComparison": {
-      "total_duration": 2.591,
-      "avg_duration": 1.296,
+      "total_duration": 2.568,
+      "avg_duration": 1.284,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
     "tests/physics/test_sa_gradients.py::TestSAGradientAccuracy": {
-      "total_duration": 2.505,
-      "avg_duration": 1.253,
+      "total_duration": 2.527,
+      "avg_duration": 1.263,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
     "tests/test_taylor_green.py::TestOrderOfAccuracyScaledVelocity": {
-      "total_duration": 2.275,
+      "total_duration": 2.276,
       "avg_duration": 0.569,
       "test_count": 4,
       "passed": 4,
       "failed": 0
     },
+    "tests/numerics/test_jax_numerics.py::TestIRSComparison": {
+      "total_duration": 2.022,
+      "avg_duration": 0.674,
+      "test_count": 3,
+      "passed": 3,
+      "failed": 0
+    },
     "tests/numerics/test_gmres.py::TestGMRESConvergence": {
-      "total_duration": 2.009,
-      "avg_duration": 1.004,
+      "total_duration": 2.011,
+      "avg_duration": 1.006,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
-    "tests/physics/test_sa_gradients.py::TestSAPhysicalConstraints": {
-      "total_duration": 2.0,
-      "avg_duration": 0.333,
-      "test_count": 6,
-      "passed": 6,
-      "failed": 0
-    },
-    "tests/numerics/test_jax_numerics.py::TestIRSComparison": {
-      "total_duration": 1.98,
-      "avg_duration": 0.66,
+    "tests/physics/test_sa_gradients.py::TestSADimensionAgnostic": {
+      "total_duration": 2.008,
+      "avg_duration": 0.669,
       "test_count": 3,
       "passed": 3,
       "failed": 0
     },
     "tests/numerics/test_gmres.py::TestGMRESIntegration": {
-      "total_duration": 1.949,
-      "avg_duration": 1.949,
+      "total_duration": 1.953,
+      "avg_duration": 1.953,
       "test_count": 1,
       "passed": 1,
       "failed": 0
     },
     "tests/grid/test_face_geometry.py::TestLSWeights": {
-      "total_duration": 1.945,
-      "avg_duration": 0.389,
+      "total_duration": 1.921,
+      "avg_duration": 0.384,
       "test_count": 5,
       "passed": 5,
       "failed": 0
     },
-    "tests/physics/test_sa_gradients.py::TestSADimensionAgnostic": {
-      "total_duration": 1.938,
-      "avg_duration": 0.646,
-      "test_count": 3,
-      "passed": 3,
+    "tests/physics/test_sa_gradients.py::TestSAPhysicalConstraints": {
+      "total_duration": 1.716,
+      "avg_duration": 0.286,
+      "test_count": 6,
+      "passed": 6,
       "failed": 0
     },
     "tests/numerics/test_sa_sources.py::TestSASourceTerms": {
-      "total_duration": 1.673,
-      "avg_duration": 0.186,
+      "total_duration": 1.686,
+      "avg_duration": 0.187,
       "test_count": 9,
       "passed": 9,
       "failed": 0
     },
+    "tests/numerics/test_gmres.py::TestHelperFunctions": {
+      "total_duration": 1.63,
+      "avg_duration": 0.815,
+      "test_count": 2,
+      "passed": 2,
+      "failed": 0
+    },
     "tests/numerics/test_tight_viscous.py::TestTightStencilViscousFlux": {
-      "total_duration": 1.621,
-      "avg_duration": 0.232,
+      "total_duration": 1.613,
+      "avg_duration": 0.23,
       "test_count": 7,
       "passed": 7,
       "failed": 0
     },
-    "tests/numerics/test_gmres.py::TestHelperFunctions": {
-      "total_duration": 1.561,
-      "avg_duration": 0.781,
+    "tests/solvers/test_jax_solver.py::TestBoundaryConditionsJAX": {
+      "total_duration": 1.442,
+      "avg_duration": 0.721,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
     "tests/numerics/test_explicit_smoothing.py::TestPerformance": {
-      "total_duration": 1.412,
-      "avg_duration": 1.412,
+      "total_duration": 1.385,
+      "avg_duration": 1.385,
       "test_count": 1,
       "passed": 1,
       "failed": 0
     },
-    "tests/solvers/test_jax_solver.py::TestBoundaryConditionsJAX": {
-      "total_duration": 1.408,
-      "avg_duration": 0.704,
-      "test_count": 2,
-      "passed": 2,
-      "failed": 0
-    },
     "tests/test_forces.py::TestForceComputation": {
-      "total_duration": 1.342,
-      "avg_duration": 0.268,
+      "total_duration": 1.36,
+      "avg_duration": 0.272,
       "test_count": 5,
       "passed": 5,
       "failed": 0
     },
     "tests/solvers/test_jax_solver.py::TestForcesJAX": {
-      "total_duration": 1.26,
-      "avg_duration": 1.26,
+      "total_duration": 1.276,
+      "avg_duration": 1.276,
       "test_count": 1,
       "passed": 1,
       "failed": 0
     },
     "tests/test_gradients.py::TestLinearExactness": {
-      "total_duration": 1.178,
-      "avg_duration": 0.196,
+      "total_duration": 1.208,
+      "avg_duration": 0.201,
       "test_count": 6,
       "passed": 6,
       "failed": 0
     },
     "tests/solvers/test_batch_kernels.py::TestBatchTimestep": {
-      "total_duration": 1.061,
-      "avg_duration": 1.061,
-      "test_count": 1,
-      "passed": 1,
-      "failed": 0
-    },
-    "tests/numerics/test_wake_conservation.py::TestFluxKernelWakeBehavior": {
-      "total_duration": 1.014,
-      "avg_duration": 1.014,
+      "total_duration": 1.086,
+      "avg_duration": 1.086,
       "test_count": 1,
       "passed": 1,
       "failed": 0
     },
     "tests/numerics/test_jax_numerics.py::TestPerformanceSummary": {
-      "total_duration": 1.002,
-      "avg_duration": 1.002,
+      "total_duration": 1.038,
+      "avg_duration": 1.038,
+      "test_count": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    "tests/numerics/test_wake_conservation.py::TestFluxKernelWakeBehavior": {
+      "total_duration": 1.017,
+      "avg_duration": 1.017,
       "test_count": 1,
       "passed": 1,
       "failed": 0
     },
     "tests/numerics/test_jax_numerics.py::TestViscousFluxComparison": {
-      "total_duration": 0.977,
-      "avg_duration": 0.489,
+      "total_duration": 0.992,
+      "avg_duration": 0.496,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
     "tests/solvers/test_batch_kernels.py::TestBatchViscousFluxes": {
-      "total_duration": 0.92,
-      "avg_duration": 0.92,
+      "total_duration": 0.927,
+      "avg_duration": 0.927,
       "test_count": 1,
       "passed": 1,
       "failed": 0
     },
     "tests/solvers/test_jax_solver.py::TestPerformance": {
-      "total_duration": 0.908,
-      "avg_duration": 0.908,
+      "total_duration": 0.909,
+      "avg_duration": 0.909,
       "test_count": 1,
       "passed": 1,
       "failed": 0
     },
     "tests/numerics/test_gmres.py::TestJFNKMatvec": {
-      "total_duration": 0.855,
-      "avg_duration": 0.428,
+      "total_duration": 0.812,
+      "avg_duration": 0.406,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
     "tests/solvers/test_batch_kernels.py::TestBatchSmoothing": {
-      "total_duration": 0.706,
-      "avg_duration": 0.706,
+      "total_duration": 0.72,
+      "avg_duration": 0.72,
       "test_count": 1,
       "passed": 1,
       "failed": 0
     },
     "tests/numerics/test_sa_sources.py::TestSASourceIntegration": {
-      "total_duration": 0.633,
-      "avg_duration": 0.633,
+      "total_duration": 0.636,
+      "avg_duration": 0.636,
       "test_count": 1,
       "passed": 1,
       "failed": 0
     },
     "tests/solvers/test_jax_solver.py::TestTimeSteppingJAX": {
-      "total_duration": 0.598,
-      "avg_duration": 0.299,
-      "test_count": 2,
-      "passed": 2,
-      "failed": 0
-    },
-    "tests/numerics/test_jax_numerics.py::TestGradientComparison": {
-      "total_duration": 0.567,
-      "avg_duration": 0.284,
+      "total_duration": 0.607,
+      "avg_duration": 0.303,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
     "tests/physics/test_sa_gradients.py::TestJAXAutograd": {
-      "total_duration": 0.561,
-      "avg_duration": 0.561,
+      "total_duration": 0.572,
+      "avg_duration": 0.572,
       "test_count": 1,
       "passed": 1,
       "failed": 0
     },
+    "tests/numerics/test_jax_numerics.py::TestGradientComparison": {
+      "total_duration": 0.567,
+      "avg_duration": 0.283,
+      "test_count": 2,
+      "passed": 2,
+      "failed": 0
+    },
     "tests/numerics/test_sa_cb2_advection.py::TestSACb2Advection": {
-      "total_duration": 0.55,
+      "total_duration": 0.551,
       "avg_duration": 0.079,
       "test_count": 7,
       "passed": 7,
       "failed": 0
     },
+    "tests/numerics/test_explicit_smoothing.py::TestExplicitSmoothingNumerics": {
+      "total_duration": 0.492,
+      "avg_duration": 0.164,
+      "test_count": 3,
+      "passed": 3,
+      "failed": 0
+    },
     "tests/solvers/test_newton_solver.py::TestNewtonUpdate": {
-      "total_duration": 0.448,
-      "avg_duration": 0.448,
+      "total_duration": 0.449,
+      "avg_duration": 0.449,
       "test_count": 1,
       "passed": 1,
       "failed": 0
     },
     "tests/test_viscous_fluxes.py::TestAddViscousFluxes": {
-      "total_duration": 0.421,
-      "avg_duration": 0.421,
+      "total_duration": 0.432,
+      "avg_duration": 0.432,
       "test_count": 1,
       "passed": 1,
       "failed": 0
     },
-    "tests/numerics/test_explicit_smoothing.py::TestExplicitSmoothingNumerics": {
-      "total_duration": 0.398,
-      "avg_duration": 0.133,
-      "test_count": 3,
-      "passed": 3,
-      "failed": 0
-    },
     "tests/numerics/test_sa_sources.py::TestTurbulentViscosity": {
-      "total_duration": 0.343,
-      "avg_duration": 0.086,
+      "total_duration": 0.356,
+      "avg_duration": 0.089,
       "test_count": 4,
       "passed": 4,
       "failed": 0
     },
     "tests/solvers/test_batch_kernels.py::TestBatchGradients": {
-      "total_duration": 0.319,
-      "avg_duration": 0.319,
+      "total_duration": 0.325,
+      "avg_duration": 0.325,
       "test_count": 1,
       "passed": 1,
       "failed": 0
@@ -2503,36 +2557,36 @@
       "failed": 0
     },
     "tests/test_viscous_fluxes.py::TestNuTildeDiffusion": {
-      "total_duration": 0.251,
-      "avg_duration": 0.125,
+      "total_duration": 0.253,
+      "avg_duration": 0.126,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
     "tests/test_gradients.py::TestVorticityAndStrain": {
-      "total_duration": 0.176,
-      "avg_duration": 0.059,
+      "total_duration": 0.182,
+      "avg_duration": 0.061,
       "test_count": 3,
       "passed": 3,
       "failed": 0
     },
     "tests/numerics/test_explicit_smoothing.py::TestDispatch": {
-      "total_duration": 0.168,
-      "avg_duration": 0.084,
+      "total_duration": 0.173,
+      "avg_duration": 0.087,
       "test_count": 2,
       "passed": 2,
       "failed": 0
     },
     "tests/grid/test_mesher.py::TestConstruct2DWrapper": {
-      "total_duration": 0.166,
-      "avg_duration": 0.033,
+      "total_duration": 0.152,
+      "avg_duration": 0.03,
       "test_count": 5,
       "passed": 5,
       "failed": 0
     },
     "tests/solvers/test_batch_kernels.py::TestBatchStateIntegration": {
-      "total_duration": 0.028,
-      "avg_duration": 0.009,
+      "total_duration": 0.029,
+      "avg_duration": 0.01,
       "test_count": 3,
       "passed": 3,
       "failed": 0
@@ -2558,25 +2612,25 @@
       "passed": 2,
       "failed": 0
     },
-    "tests/test_taylor_green.py::TestGradientAccuracy": {
-      "total_duration": 0.008,
-      "avg_duration": 0.004,
-      "test_count": 2,
-      "passed": 2,
-      "failed": 0
-    },
     "tests/grid/test_face_geometry.py::TestFaceGeometry": {
-      "total_duration": 0.007,
-      "avg_duration": 0.001,
+      "total_duration": 0.008,
+      "avg_duration": 0.002,
       "test_count": 5,
       "passed": 5,
       "failed": 0
     },
     "tests/test_forces.py::TestDecomposition": {
-      "total_duration": 0.007,
-      "avg_duration": 0.007,
+      "total_duration": 0.008,
+      "avg_duration": 0.008,
       "test_count": 1,
       "passed": 1,
+      "failed": 0
+    },
+    "tests/test_taylor_green.py::TestGradientAccuracy": {
+      "total_duration": 0.008,
+      "avg_duration": 0.004,
+      "test_count": 2,
+      "passed": 2,
       "failed": 0
     },
     "tests/test_viscous_fluxes.py::TestTurbulentViscosity": {

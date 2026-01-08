@@ -14,3 +14,5 @@ jax>=0.4.20
 # Testing
 pytest>=7.0.0
 pytest-xdist>=3.0.0  # Multi-GPU parallel testing: pytest -n 8
+# Logging
+loguru>=0.7.0

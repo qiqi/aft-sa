@@ -18,6 +18,7 @@ class GridConfig:
     y_plus: float = 1.0        # Target y+ for first cell
     gradation: float = 1.2     # Wall-normal cell growth ratio (1.1-1.3 recommended)
     farfield_radius: float = 15.0  # Farfield distance in chords
+    wake_fan_factor: float = 0.005 # Wake expansion factor (0.0=disabled)
 
 
 @dataclass

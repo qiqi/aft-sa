@@ -64,6 +64,7 @@ grid_options.in
 # Test output directory
 output/
 .cursor/
+.antigravity/
 
 # Debug files
 *.bl
@@ -71,3 +72,15 @@ bl_debug*.json
 sa_*.json
 scripts/debug_*.py
 scripts/test_*.py
+
+# JAX Cache
+.jax_cache/
+
+# Binary Data
+*.npy
+*.npz
+
+# Visualization
+*.html
+*.html.gz
+*.vtk

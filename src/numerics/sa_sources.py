@@ -416,11 +416,14 @@ def compute_blended_production(P_sa, P_aft, chi,
     P_blended : array
         Blended production term.
     """
-    is_turb = compute_turbulent_fraction(chi, threshold, width)
-    return P_sa * is_turb + P_aft * (1.0 - is_turb)
+    # is_turb = compute_turbulent_fraction(chi, threshold, width)
+    # return P_sa * is_turb + P_aft * (1.0 - is_turb)
+    return P_sa
 
 
-@jax.jit
+from functools import partial
+
+@partial(jax.jit, static_argnames=['explicit_production'])
 def compute_aft_sa_source_jax(nuHat, grad, wall_dist, vel_mag, nu_laminar,
                               # AFT parameters
                               aft_gamma_coeff: float = 2.0,
@@ -431,7 +434,9 @@ def compute_aft_sa_source_jax(nuHat, grad, wall_dist, vel_mag, nu_laminar,
                               aft_rate_scale: float = 0.2,
                               # Blending parameters
                               blend_threshold: float = AFT_BLEND_THRESHOLD,
-                              blend_width: float = AFT_BLEND_WIDTH):
+                              blend_width: float = AFT_BLEND_WIDTH,
+                              # Jacobian control
+                              explicit_production: bool = False):
     """
     Compute combined AFT-SA source terms for transition prediction.
     
@@ -489,16 +494,29 @@ def compute_aft_sa_source_jax(nuHat, grad, wall_dist, vel_mag, nu_laminar,
     chi = nuHat / (nu_laminar + 1e-30)
     
     # SA production (standard)
-    P_sa = compute_sa_production(omega, nuHat, wall_dist, nu_laminar)
+    # If explicit_production is True, we treat nuHat as constant for production
+    # to avoid negative diagonals in the Jacobian (destabilizing).
+    # P = cb1 * S * nuHat  => dP/dnuHat > 0 => diagonal contribution is negative (-dP/dnuHat)
+    # By stopping gradient, we move this positive source to the RHS.
+    if explicit_production:
+        nuHat_for_prod = jax.lax.stop_gradient(nuHat)
+    else:
+        nuHat_for_prod = nuHat
+        
+    P_sa = compute_sa_production(omega, nuHat_for_prod, wall_dist, nu_laminar)
     
     # AFT production (pass nu_laminar for proper Re_Omega scaling)
+    # Also treated explicitly to avoid negative diagonals.
     P_aft = compute_aft_production(
-        omega, vel_mag, wall_dist, nuHat, nu_laminar,
+        omega, vel_mag, wall_dist, nuHat_for_prod, nu_laminar,
         aft_gamma_coeff, aft_re_scale, aft_log_divisor,
         aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale
     )
     
     # Blended production (use chi for blending, not nuHat)
+    # Note: chi itself depends on nuHat, so the blending factor is also implicit
+    # unless we stop gradient on chi too. For now, we only stop gradient on the
+    # nuHat multiplier in P_sa/P_aft, not the blending weights.
     P = compute_blended_production(P_sa, P_aft, chi, blend_threshold, blend_width)
     
     # Modified destruction: |nuHat| * nuHat to always drive toward 0

@@ -1,0 +1,23 @@
+# Short test for diagnostic snapshots
+grid:
+  airfoil: data/naca0012.dat
+  super_coarse: true
+
+flow:
+  reynolds: 1.0e+4
+  alpha: 0.0
+
+solver:
+  max_iter: 20
+  print_freq: 5
+  diagnostic_freq: 5
+  mode: rk5
+  cfl:
+    initial: 1.0
+    final: 1.0
+    ramp_iter: 100
+
+output:
+  directory: output/test_snap
+  case_name: test_snap
+  html_animation: true

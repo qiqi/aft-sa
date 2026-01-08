@@ -106,8 +106,11 @@ subroutine specify_hyperbolic_area(area, grid, options, j)
   double precision, dimension(grid%imax) :: xoff, yoff, cdfoff, cdfj, cdfj1,   &
                                             xj1, yj1, area_smth
   double precision :: lenscale, boundlen, y0, ga, xz, yz, xn, yn,              &
-                      uniform_area, blend, area_scale, pi, smth_fact
+                      uniform_area, blend, area_scale, pi, smth_fact, &
+                      sigma, dist_frac, y0_local, ga_local, step_local, dist, &
+                      tex, tey
   integer :: i, imax, jmax, jj, pt1, nsmt
+  logical :: is_wake
 
   imax = grid%imax
   jmax = grid%jmax
@@ -141,9 +144,51 @@ subroutine specify_hyperbolic_area(area, grid, options, j)
 
 ! Compute offset surface
 
+! Compute offset surface
+
+! Pre-calculate standard y0 and boundlen for safety (needed in loop)
+  boundlen = options%radi * lenscale 
+  y0 = wall_distance(options%yplus, options%Re, options%cfrac)
+  
+  ! Trailing edge coordinates (srf1 is index of TE start/end on first surface wrap)
+  tex = grid%x(grid%surfbounds(1), 1)
+  tey = grid%y(grid%surfbounds(1), 1)
+
   do i = 1, imax
-    xoff(i) = grid%x(i,j) + normals(i,1)*cell_sizes(j)
-    yoff(i) = grid%y(i,j) + normals(i,2)*cell_sizes(j)
+    ! Wake fan-out: Modify y0 based on distance from TE
+    is_wake = .false.
+    
+    if (trim(options%topology) == 'CGRD') then
+      if (i < grid%surfbounds(1) .or. i > grid%surfbounds(2)) then
+         is_wake = .true.
+      end if
+      
+      
+      if (is_wake) then
+        ! Physical distance from TE
+        dist = sqrt( (grid%x(i,1) - tex)**2.d0 + (grid%y(i,1) - tey)**2.d0 )
+        
+        ! Modify local initial spacing
+        ! y0_local increases linearly with distance from TE
+        y0_local = y0 + options%wkfn * dist
+        
+        if (j == 1 .and. mod(i, 100) == 0) then
+             write(*,*) "DEBUG: i=", i, " dist=", dist, " y0_loc=", y0_local
+        endif
+        
+        ! Recompute geometric growth for this point
+        ga_local = get_growth(boundlen, y0_local, jmax-1)
+        
+        xoff(i) = grid%x(i,j) + normals(i,1)*step_local
+        yoff(i) = grid%y(i,j) + normals(i,2)*step_local
+      else
+        xoff(i) = grid%x(i,j) + normals(i,1)*cell_sizes(j)
+        yoff(i) = grid%y(i,j) + normals(i,2)*cell_sizes(j)
+      end if
+    else
+        xoff(i) = grid%x(i,j) + normals(i,1)*cell_sizes(j)
+        yoff(i) = grid%y(i,j) + normals(i,2)*cell_sizes(j)
+    end if
   end do
 
 ! Compute length of offset surface and current surface

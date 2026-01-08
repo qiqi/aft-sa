@@ -42,13 +42,13 @@ subroutine set_defaults(options, surf, filename)
 
   integer nsrf, tept, jmax, nwke, stp1, stp2, nrmt, nrmb, gdim, npln, asmt
   double precision lesp, tesp, radi, ypls, recd, fdst, fwkl, fwki, dpln, alfa, &
-                   epsi, epse, funi, uni, cfrc
+                   epsi, epse, funi, uni, cfrc, wkfn
   logical f3dm
   character(300) :: name
   character(4) :: topo, slvr
   namelist /SOPT/ nsrf, lesp, tesp, radi, nwke, fdst, fwkl, fwki
   namelist /VOPT/ name, jmax, slvr, topo, ypls, recd, stp1, stp2, nrmt, nrmb,  &
-                  alfa, epsi, epse, funi, asmt, cfrc
+                  alfa, epsi, epse, funi, asmt, cfrc, wkfn
   namelist /OOPT/ gdim, npln, dpln, f3dm
 
 ! Initial project and airfoil setup
@@ -83,6 +83,7 @@ subroutine set_defaults(options, surf, filename)
   epse = 0.0d0
   funi = 0.20d0
   asmt = 20
+  options%wkfn = 0.0d0
   f3dm = .false.
 
   uni = 2.d0/dble(nsrf)
@@ -171,6 +172,9 @@ subroutine set_defaults(options, surf, filename)
   end if
   if (asmt >= 0) then
     options%asmt = asmt
+  end if
+  if (wkfn >= 0.d0) then
+    options%wkfn = wkfn
   end if
   options%f3d_compat = f3dm
 

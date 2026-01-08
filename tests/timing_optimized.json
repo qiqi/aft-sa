@@ -1,0 +1,303 @@
+{
+  "timestamp": "2026-01-06T17:12:13.873575",
+  "total_duration": 359.801,
+  "test_count": 18,
+  "passed": 18,
+  "failed": 0,
+  "skipped": 0,
+  "tests": [
+    {
+      "nodeid": "tests/solvers/test_newton_solver.py::TestModeComparison::test_all_three_modes_run",
+      "module": "tests/solvers/test_newton_solver.py",
+      "class": "TestModeComparison",
+      "name": "test_all_three_modes_run",
+      "duration": 80.01721,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonStep::test_newton_step_runs",
+      "module": "tests/solvers/test_newton_solver.py",
+      "class": "TestNewtonStep",
+      "name": "test_newton_step_runs",
+      "duration": 48.416068,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestModeComparison::test_newton_mode_runs",
+      "module": "tests/solvers/test_preconditioned_rk.py",
+      "class": "TestModeComparison",
+      "name": "test_newton_mode_runs",
+      "duration": 48.409928,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_sa_jacobian_sign.py::TestSAJacobianSign::test_lower_cfl_increases_v_over_dt",
+      "module": "tests/numerics/test_sa_jacobian_sign.py",
+      "class": "TestSAJacobianSign",
+      "name": "test_lower_cfl_increases_v_over_dt",
+      "duration": 43.828269,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonCFLRamping::test_exponential_cfl_ramping",
+      "module": "tests/solvers/test_newton_solver.py",
+      "class": "TestNewtonCFLRamping",
+      "name": "test_exponential_cfl_ramping",
+      "duration": 38.493293,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestModeComparison::test_both_modes_run",
+      "module": "tests/solvers/test_preconditioned_rk.py",
+      "class": "TestModeComparison",
+      "name": "test_both_modes_run",
+      "duration": 32.729296,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestPreconditionedRKStep::test_step_produces_valid_state",
+      "module": "tests/solvers/test_preconditioned_rk.py",
+      "class": "TestPreconditionedRKStep",
+      "name": "test_step_produces_valid_state",
+      "duration": 25.939016,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestPreconditionerIntegration::test_compute_preconditioner",
+      "module": "tests/solvers/test_preconditioned_rk.py",
+      "class": "TestPreconditionerIntegration",
+      "name": "test_compute_preconditioner",
+      "duration": 19.677653,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_sa_jacobian_sign.py::TestSAJacobianSign::test_destruction_jacobian_is_negative",
+      "module": "tests/numerics/test_sa_jacobian_sign.py",
+      "class": "TestSAJacobianSign",
+      "name": "test_destruction_jacobian_is_negative",
+      "duration": 13.396817,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonCFLRamping::test_rk_cfl_uses_linear_ramp",
+      "module": "tests/solvers/test_newton_solver.py",
+      "class": "TestNewtonCFLRamping",
+      "name": "test_rk_cfl_uses_linear_ramp",
+      "duration": 6.00558,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonStep::test_newton_residual_finite",
+      "module": "tests/solvers/test_newton_solver.py",
+      "class": "TestNewtonStep",
+      "name": "test_newton_residual_finite",
+      "duration": 0.549477,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonUpdate::test_patankar_preserves_positivity",
+      "module": "tests/solvers/test_newton_solver.py",
+      "class": "TestNewtonUpdate",
+      "name": "test_patankar_preserves_positivity",
+      "duration": 0.425327,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_sa_jacobian_sign.py::TestSAJacobianSign::test_jacobian_sign_consistent_with_fd",
+      "module": "tests/numerics/test_sa_jacobian_sign.py",
+      "class": "TestSAJacobianSign",
+      "name": "test_jacobian_sign_consistent_with_fd",
+      "duration": 0.393096,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestPreconditionedRKStep::test_residual_decreases",
+      "module": "tests/solvers/test_preconditioned_rk.py",
+      "class": "TestPreconditionedRKStep",
+      "name": "test_residual_decreases",
+      "duration": 0.364333,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_preconditioned_rk.py::TestPreconditionerIntegration::test_precond_apply_function",
+      "module": "tests/solvers/test_preconditioned_rk.py",
+      "class": "TestPreconditionerIntegration",
+      "name": "test_precond_apply_function",
+      "duration": 0.230532,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/numerics/test_sa_jacobian_sign.py::TestSAJacobianSign::test_v_over_dt_minus_jacobian_is_positive",
+      "module": "tests/numerics/test_sa_jacobian_sign.py",
+      "class": "TestSAJacobianSign",
+      "name": "test_v_over_dt_minus_jacobian_is_positive",
+      "duration": 0.172648,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonCFLRamping::test_newton_cfl_exact_decade_values",
+      "module": "tests/solvers/test_newton_solver.py",
+      "class": "TestNewtonCFLRamping",
+      "name": "test_newton_cfl_exact_decade_values",
+      "duration": 0.00072,
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/solvers/test_newton_solver.py::TestNewtonCFLRamping::test_cfl_capped_at_final",
+      "module": "tests/solvers/test_newton_solver.py",
+      "class": "TestNewtonCFLRamping",
+      "name": "test_cfl_capped_at_final",
+      "duration": 0.00067,
+      "outcome": "passed"
+    }
+  ],
+  "fixtures": {
+    "solver_newton": {
+      "total_duration": 116.818,
+      "call_count": 3,
+      "avg_duration": 38.939196,
+      "max_duration": 39.521133
+    },
+    "solver_with_grid": {
+      "total_duration": 43.007,
+      "call_count": 1,
+      "avg_duration": 43.006592,
+      "max_duration": 43.006592
+    },
+    "newton_solver": {
+      "total_duration": 38.848,
+      "call_count": 1,
+      "avg_duration": 38.848423,
+      "max_duration": 38.848423
+    },
+    "precond_solver": {
+      "total_duration": 19.5,
+      "call_count": 1,
+      "avg_duration": 19.500416,
+      "max_duration": 19.500416
+    },
+    "jacobian_data": {
+      "total_duration": 13.101,
+      "call_count": 1,
+      "avg_duration": 13.101277,
+      "max_duration": 13.101277
+    },
+    "solver_precond": {
+      "total_duration": 12.081,
+      "call_count": 2,
+      "avg_duration": 6.040445,
+      "max_duration": 6.131289
+    },
+    "solver_rk5": {
+      "total_duration": 12.07,
+      "call_count": 2,
+      "avg_duration": 6.035015,
+      "max_duration": 6.160924
+    },
+    "step_solver": {
+      "total_duration": 6.343,
+      "call_count": 1,
+      "avg_duration": 6.34276,
+      "max_duration": 6.34276
+    },
+    "solver_rk": {
+      "total_duration": 6.004,
+      "call_count": 1,
+      "avg_duration": 6.0035,
+      "max_duration": 6.0035
+    },
+    "grid_path": {
+      "total_duration": 0.0,
+      "call_count": 2,
+      "avg_duration": 6.3e-05,
+      "max_duration": 7.3e-05
+    },
+    "base_config": {
+      "total_duration": 0.0,
+      "call_count": 1,
+      "avg_duration": 2.7e-05,
+      "max_duration": 2.7e-05
+    }
+  },
+  "modules": {
+    "tests/solvers/test_newton_solver.py": {
+      "total_duration": 173.908,
+      "avg_duration": 21.739,
+      "test_count": 8,
+      "passed": 8,
+      "failed": 0
+    },
+    "tests/solvers/test_preconditioned_rk.py": {
+      "total_duration": 127.351,
+      "avg_duration": 21.225,
+      "test_count": 6,
+      "passed": 6,
+      "failed": 0
+    },
+    "tests/numerics/test_sa_jacobian_sign.py": {
+      "total_duration": 57.791,
+      "avg_duration": 14.448,
+      "test_count": 4,
+      "passed": 4,
+      "failed": 0
+    }
+  },
+  "classes": {
+    "tests/solvers/test_preconditioned_rk.py::TestModeComparison": {
+      "total_duration": 81.139,
+      "avg_duration": 40.57,
+      "test_count": 2,
+      "passed": 2,
+      "failed": 0
+    },
+    "tests/solvers/test_newton_solver.py::TestModeComparison": {
+      "total_duration": 80.017,
+      "avg_duration": 80.017,
+      "test_count": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    "tests/numerics/test_sa_jacobian_sign.py::TestSAJacobianSign": {
+      "total_duration": 57.791,
+      "avg_duration": 14.448,
+      "test_count": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "tests/solvers/test_newton_solver.py::TestNewtonStep": {
+      "total_duration": 48.966,
+      "avg_duration": 24.483,
+      "test_count": 2,
+      "passed": 2,
+      "failed": 0
+    },
+    "tests/solvers/test_newton_solver.py::TestNewtonCFLRamping": {
+      "total_duration": 44.5,
+      "avg_duration": 11.125,
+      "test_count": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "tests/solvers/test_preconditioned_rk.py::TestPreconditionedRKStep": {
+      "total_duration": 26.303,
+      "avg_duration": 13.152,
+      "test_count": 2,
+      "passed": 2,
+      "failed": 0
+    },
+    "tests/solvers/test_preconditioned_rk.py::TestPreconditionerIntegration": {
+      "total_duration": 19.908,
+      "avg_duration": 9.954,
+      "test_count": 2,
+      "passed": 2,
+      "failed": 0
+    },
+    "tests/solvers/test_newton_solver.py::TestNewtonUpdate": {
+      "total_duration": 0.425,
+      "avg_duration": 0.425,
+      "test_count": 1,
+      "passed": 1,
+      "failed": 0
+    }
+  }
+}

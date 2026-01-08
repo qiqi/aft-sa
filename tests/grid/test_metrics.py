@@ -12,14 +12,7 @@ Validates:
 import os
 import sys
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
-# Add project root to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
-from src.grid.metrics import MetricComputer, FVMMetrics, GCLValidation, compute_metrics
+from src.grid.metrics import MetricComputer, FVMMetrics, compute_metrics
 
 
 class MetricsChecker:

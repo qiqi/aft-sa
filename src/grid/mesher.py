@@ -23,6 +23,7 @@ class GridOptions:
     farfield_dist: float = 2.0
     wake_length_ratio: float = 1.0
     wake_init_ratio: float = 0.1
+    wake_fan_factor: float = 0.0
     
     n_normal: int = 100
     solver: str = 'HYPR'
@@ -101,6 +102,7 @@ class Construct2DWrapper:
   epse = {opts.epse:.6f}
   funi = {funi:.6f}
   asmt = {opts.asmt}
+  wkfn = {opts.wake_fan_factor:.6f}
 /
 &OOPT
   gdim = {opts.grid_dim}

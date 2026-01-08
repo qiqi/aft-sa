@@ -66,6 +66,7 @@ module vardef
     double precision :: epsi, epse  ! Smoothing factors for hyp. grid
     double precision :: funi        ! Uniformness of areas at farfield for
                                     !  hyperbolic grid
+    double precision :: wkfn        ! Wake fan factor: scales grid spacing in wake
     integer :: asmt                 ! Number of area smoothing steps hyp.
     logical :: f3d_compat           ! FUN3D compatibility mode
 

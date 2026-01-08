@@ -100,6 +100,7 @@ def load_or_generate_grid(
     gradation: float = 1.2,
     reynolds: float = 1e6,
     farfield_radius: float = 15.0,
+    wake_fan_factor: float = 0.005,
     max_first_cell: float = 0.001,
     project_root: Optional[Path] = None,
     verbose: bool = True
@@ -181,6 +182,7 @@ def load_or_generate_grid(
             n_wake=n_wake,
             y_plus=y_plus,
             reynolds=reynolds,
+            wake_fan_factor=wake_fan_factor,
             topology='CGRD',
             farfield_radius=farfield_radius,
             max_first_cell=max_first_cell,

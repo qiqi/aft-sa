@@ -184,6 +184,7 @@ def apply_cli_overrides(config: SimulationConfig, args) -> SimulationConfig:
         'n_normal': ('grid', 'n_normal'),
         'n_wake': ('grid', 'n_wake'),
         'y_plus': ('grid', 'y_plus'),
+        'wake_fan_factor': ('grid', 'wake_fan_factor'),
         
         # Solver
         'max_iter': ('solver', 'max_iter'),

@@ -565,8 +565,8 @@ def make_apply_bc_jit(NI: int, NJ: int, n_wake_points: int,
         Q = Q.at[:, -1, 2].set(v_inf)
         Q = Q.at[:, -1, 3].set(nu_t_inf)
         
-        # === Farfield BC: I-direction (Dirichlet to freestream) ===
-        # Lower I boundary (i=0, i=1)
+        # === Farfield BC: I-direction (Downstream) ===
+        # Reverted to Dirichlet as requested
         Q = Q.at[0, :j_end, 0].set(p_inf)
         Q = Q.at[0, :j_end, 1].set(u_inf)
         Q = Q.at[0, :j_end, 2].set(v_inf)
@@ -576,7 +576,6 @@ def make_apply_bc_jit(NI: int, NJ: int, n_wake_points: int,
         Q = Q.at[1, :j_end, 2].set(v_inf)
         Q = Q.at[1, :j_end, 3].set(nu_t_inf)
         
-        # Upper I boundary (i=-2, i=-1)
         Q = Q.at[-2, :j_end, 0].set(p_inf)
         Q = Q.at[-2, :j_end, 1].set(u_inf)
         Q = Q.at[-2, :j_end, 2].set(v_inf)

@@ -7,9 +7,7 @@ Tests verify:
 3. Output files exist in correct location
 """
 
-import os
 import pytest
-import numpy as np
 from pathlib import Path
 
 # Skip all tests if construct2d binary not available

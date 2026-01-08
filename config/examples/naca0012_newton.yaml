@@ -9,14 +9,14 @@ grid:
   n_surface: 193        # Surface nodes
   n_wake: 48            # Wake region nodes
   y_plus: 1.0           # Target y+ for first cell
-  gradation: 1.1        # Wall-normal cell growth ratio
+  gradation: 1.2        # Wall-normal cell growth ratio
   farfield_radius: 15.0 # Farfield distance in chords
 
 
 flow:
   reynolds: 1.0e+6      # Re = 1 million
   alpha: 4.0            # Angle of attack in degrees
-  chi_inf: 0.0001       # Initial/farfield turbulent viscosity ratio
+  chi_inf: 10       # Initial/farfield turbulent viscosity ratio
 
 solver:
   max_iter: 1000       # Fewer iterations needed with Newton
@@ -33,7 +33,7 @@ solver:
   gmres_tol: 1.0e-3     # Relative tolerance for GMRES linear solve
   
   cfl:
-    initial: 0.1        # Starting CFL (pseudo-transient continuation)
+    initial: 1        # Starting CFL (pseudo-transient continuation)
     final: inf         # Maximum CFL (infinity for steady state)
     ramp_iter: 120      # Iterations per decade (CFL multiplied by 10 every ramp_iter)
 

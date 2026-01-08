@@ -410,20 +410,38 @@ subroutine apply_normal_spacing(grid, options)
   type(srf_grid_type), intent(inout) :: grid
   type(options_type), intent(in) :: options
 
-  double precision y0, ga, gamax
+  double precision y0, ga, gamax, dist, tex, tey, y0_local
   double precision, dimension(grid%jmax) :: x, y, cdfs, cdfj
   integer i, j, pt1 
+  logical is_wake 
 
 ! Initial spacing based on y+ value and Re_chord
 
   y0 = wall_distance(options%yplus, options%Re, options%cfrac)
-  write(*,'(A28,ES14.8)') " First layer wall distance: ", y0
   gamax = 0.d0
+
+  ! TE location
+  tex = grid%x(grid%surfbounds(1), 1)
+  tey = grid%y(grid%surfbounds(1), 1)
 
   do i = 1, grid%imax
 
     x = grid%x(i,:)
     y = grid%y(i,:)
+    
+    ! Wake check
+    is_wake = .false.
+    if (trim(options%topology) == 'CGRD') then
+      if (i < grid%surfbounds(1) .or. i > grid%surfbounds(2)) then
+         is_wake = .true.
+      end if
+    end if
+    
+    y0_local = y0
+    if (is_wake) then
+        dist = sqrt((grid%x(i,1)-tex)**2.d0 + (grid%y(i,1)-tey)**2.d0)
+        y0_local = y0 + options%wkfn * dist
+    end if
 
 !   Cumulative distance function for splines in eta-direction
 
@@ -431,14 +449,14 @@ subroutine apply_normal_spacing(grid, options)
 
 !   Growth rate to fit jmax points over the length of the spline, given y0
 
-    ga = get_growth(cdfs(grid%jmax), y0, grid%jmax-1)
+    ga = get_growth(cdfs(grid%jmax), y0_local, grid%jmax-1)
     if (ga > gamax) gamax = ga
 
 !   Cumulative distance for actual points
 
     cdfj(1) = 0.d0
     do j = 1, grid%jmax - 2
-      cdfj(j+1) = xi_length(y0, ga, j)
+      cdfj(j+1) = xi_length(y0_local, ga, j)
     end do
     cdfj(grid%jmax) = cdfs(grid%jmax)
 

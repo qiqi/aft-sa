@@ -3,6 +3,7 @@
 import os
 import subprocess
 from typing import Optional, List, Tuple
+from pathlib import Path
 
 # Set device BEFORE importing JAX if CUDA_VISIBLE_DEVICES not already set
 _device_configured = False
@@ -151,6 +152,13 @@ def select_device(device: Optional[str] = None, verbose: bool = True) -> Optiona
 # Now import JAX (will use CUDA_VISIBLE_DEVICES if set)
 import jax
 import jax.numpy as jnp
+from loguru import logger
+
+# Enable persistent compilation cache
+cache_dir = Path(".jax_cache")
+cache_dir.mkdir(parents=True, exist_ok=True)
+jax.config.update("jax_compilation_cache_dir", str(cache_dir))
+logger.info(f"JAX persistent compilation cache enabled at: {cache_dir.absolute()}")
 
 jax.config.update("jax_enable_x64", True)
 

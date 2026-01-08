@@ -31,6 +31,8 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
+from loguru import logger
+
 # Import device selection BEFORE JAX
 from src.physics.jax_config import select_device
 
@@ -96,6 +98,8 @@ Examples:
                         help="Normal nodes for grid generation")
     parser.add_argument("--n-wake", type=int,
                         help="Wake nodes for grid generation")
+    parser.add_argument("--wake-fan-factor", type=float,
+                        help="Wake expansion factor (default: 0.005)")
     parser.add_argument("--coarse", action="store_true",
                         help="Use coarse grid (256x32 cells)")
     parser.add_argument("--super-coarse", action="store_true",
@@ -129,26 +133,26 @@ Examples:
         if device_spec is None and 'device' in raw_config:
             device_spec = raw_config['device'].get('device', 'auto')
     
-    print("Device selection:")
+    logger.info("Device selection:")
     select_device(device_spec, verbose=True)
     
     # Now import JAX-dependent modules (after device selection)
     from src.solvers.rans_solver import RANSSolver, SolverConfig
     from src.grid.loader import load_or_generate_grid
     from src.physics.jax_config import jax
-    from src.config import load_yaml, from_dict, apply_cli_overrides, SimulationConfig
+    from src.config import load_yaml, apply_cli_overrides, SimulationConfig
     
     # Load configuration
     if args.config:
         # YAML-based configuration
         try:
             sim_config = load_yaml(args.config)
-            print(f"Loaded configuration from: {args.config}")
+            logger.info(f"Loaded configuration from: {args.config}")
         except FileNotFoundError as e:
-            print(f"ERROR: {e}")
+            logger.error(f"ERROR: {e}")
             sys.exit(1)
         except Exception as e:
-            print(f"ERROR loading config: {e}")
+            logger.error(f"ERROR loading config: {e}")
             sys.exit(1)
         
         # Apply CLI overrides
@@ -165,20 +169,20 @@ Examples:
             sim_config.grid.n_wake = 32
             sim_config.grid.y_plus = 5.0
             sim_config.grid.gradation = 1.5
-            print("Using SUPER-COARSE grid mode")
+            logger.info("Using SUPER-COARSE grid mode")
         elif args.coarse:
             sim_config.grid.n_surface = 193
             sim_config.grid.n_wake = 32
             sim_config.grid.y_plus = 1.0
             sim_config.grid.gradation = 1.3
-            print("Using COARSE grid mode")
+            logger.info("Using COARSE grid mode")
         
         # Apply CLI overrides
         sim_config = apply_cli_overrides(sim_config, args)
         
     else:
         parser.print_help()
-        print("\nERROR: Must provide either --config or a grid file")
+        logger.error("\nERROR: Must provide either --config or a grid file")
         sys.exit(1)
     
     # Handle legacy --coarse/--super-coarse flags with --config
@@ -188,13 +192,13 @@ Examples:
             sim_config.grid.n_wake = 32
             sim_config.grid.y_plus = 5.0
             sim_config.grid.gradation = 1.5
-            print("Override: Using SUPER-COARSE grid")
+            logger.info("Override: Using SUPER-COARSE grid")
         elif args.coarse:
             sim_config.grid.n_surface = 193
             sim_config.grid.n_wake = 32
             sim_config.grid.y_plus = 1.0
             sim_config.grid.gradation = 1.3
-            print("Override: Using COARSE grid")
+            logger.info("Override: Using COARSE grid")
     
     # Convert to legacy SolverConfig
     config = sim_config.to_solver_config()
@@ -220,12 +224,13 @@ Examples:
             gradation=gradation,
             reynolds=sim_config.flow.reynolds,
             farfield_radius=sim_config.grid.farfield_radius,
+            wake_fan_factor=sim_config.grid.wake_fan_factor,
             max_first_cell=max_first_cell,
             project_root=project_root,
             verbose=True
         )
     except (FileNotFoundError, ValueError) as e:
-        print(f"ERROR: {e}")
+        logger.error(f"ERROR: {e}")
         sys.exit(1)
     
     # Create solver with pre-loaded grid
@@ -250,24 +255,22 @@ Examples:
     solver._initialize_state()
     solver._initialize_output()
     
-    print(f"\nGrid size: {solver.NI} x {solver.NJ} cells")
-    print(f"Reynolds: {sim_config.flow.reynolds:.2e}")
-    print(f"Alpha: {sim_config.flow.alpha}°")
-    print(f"Backend: JAX ({jax.devices()[0].device_kind})")
-    print(f"Target CFL: {config.cfl_target} (ramp from {config.cfl_start} over {config.cfl_ramp_iters} iters)")
-    print(f"Turbulence model: AFT-SA (transition), χ_inf={config.chi_inf:.4g}")
-    print(f"Output: HTML animation every {config.diagnostic_freq} iterations")
+    logger.info(f"Grid size: {solver.NI} x {solver.NJ} cells")
+    logger.info(f"Reynolds: {sim_config.flow.reynolds:.2e}")
+    logger.info(f"Alpha: {sim_config.flow.alpha}°")
+    logger.info(f"Backend: JAX ({jax.devices()[0].device_kind})")
+    logger.info(f"Target CFL: {config.cfl_target} (ramp from {config.cfl_start} over {config.cfl_ramp_iters} iters)")
+    logger.info(f"Turbulence model: AFT-SA (transition), χ_inf={config.chi_inf:.4g}")
+    logger.info(f"Output: HTML animation every {config.diagnostic_freq} iterations")
     
     # Run
     try:
         converged = solver.run_steady_state()
     except KeyboardInterrupt:
-        print("\n\nSimulation interrupted by user.")
+        logger.warning("\n\nSimulation interrupted by user.")
         converged = False
     except Exception as e:
-        print(f"\nError during simulation: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.exception(f"\nError during simulation: {e}")
         converged = False
     
     # Final status

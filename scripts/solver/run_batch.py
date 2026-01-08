@@ -25,6 +25,9 @@ import numpy as np
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+from src.utils.logging import setup_logging
+from loguru import logger
+
 # Import device selection BEFORE JAX
 from src.physics.jax_config import select_device
 
@@ -111,7 +114,7 @@ def main():
         if device_spec is None and 'device' in raw_config:
             device_spec = raw_config['device'].get('device', 'auto')
     
-    print("Device selection:")
+    logger.info("Device selection:")
     select_device(device_spec, verbose=True)
     
     # Now import JAX-dependent modules
@@ -125,7 +128,7 @@ def main():
         # Extract grid and flow settings from config
         grid_file = config.grid.get('airfoil') or config.grid.get('file')
         if not grid_file:
-            print("Error: Config must specify grid.airfoil or grid.file")
+            logger.error("Error: Config must specify grid.airfoil or grid.file")
             sys.exit(1)
         
         # Create flow conditions from config
@@ -149,7 +152,7 @@ def main():
         print_freq = config.solver.get('print_freq', 50)
     else:
         if not args.grid:
-            print("Error: Must specify either --config or grid file")
+            logger.error("Error: Must specify either --config or grid file")
             sys.exit(1)
         
         grid_file = args.grid
@@ -165,20 +168,20 @@ def main():
     # Verify grid exists
     grid_path = Path(grid_file)
     if not grid_path.exists():
-        print(f"Error: Grid file not found: {grid_path}")
+        logger.error(f"Error: Grid file not found: {grid_path}")
         sys.exit(1)
     
     # Create and run solver
-    print(f"\n{'='*60}")
-    print("Batch RANS Solver")
-    print(f"{'='*60}")
-    print(f"Grid: {grid_file}")
-    print(f"Cases: {flow_conditions.n_batch}")
-    print(f"Alpha range: {flow_conditions.alpha_deg.min():.1f}° to {flow_conditions.alpha_deg.max():.1f}°")
-    print(f"Reynolds: {flow_conditions.reynolds[0]:.2e}")
-    print(f"Turbulence model: SA (fully turbulent)")
-    print(f"  Note: AFT transition model available in run_airfoil.py")
-    print(f"{'='*60}\n")
+    logger.info(f"\n{'='*60}")
+    logger.info("Batch RANS Solver")
+    logger.info(f"{'='*60}")
+    logger.info(f"Grid: {grid_file}")
+    logger.info(f"Cases: {flow_conditions.n_batch}")
+    logger.info(f"Alpha range: {flow_conditions.alpha_deg.min():.1f}° to {flow_conditions.alpha_deg.max():.1f}°")
+    logger.info(f"Reynolds: {flow_conditions.reynolds[0]:.2e}")
+    logger.info(f"Turbulence model: SA (fully turbulent)")
+    logger.info(f"  Note: AFT transition model available in run_airfoil.py")
+    logger.info(f"{'='*60}\n")
     
     solver = BatchRANSSolver(
         grid_file=str(grid_path),
@@ -196,27 +199,27 @@ def main():
     forces = solver.run()
     
     # Print results
-    print(f"\n{'='*60}")
-    print("Results Summary")
-    print(f"{'='*60}")
+    logger.info(f"\n{'='*60}")
+    logger.info("Results Summary")
+    logger.info(f"{'='*60}")
     data = forces.to_dataframe()
     
     # Print table
     ld = forces.CL / (forces.CD + 1e-12)
-    print(f"{'alpha':>8} {'CL':>10} {'CD':>10} {'CD_p':>10} {'CD_f':>10} {'L/D':>10}")
-    print("-" * 60)
+    logger.info(f"{'alpha':>8} {'CL':>10} {'CD':>10} {'CD_p':>10} {'CD_f':>10} {'L/D':>10}")
+    logger.info("-" * 60)
     for i in range(len(forces.alpha_deg)):
-        print(f"{forces.alpha_deg[i]:>8.1f} {forces.CL[i]:>10.4f} {forces.CD[i]:>10.5f} "
-              f"{forces.CD_p[i]:>10.5f} {forces.CD_f[i]:>10.5f} {ld[i]:>10.2f}")
+        logger.info(f"{forces.alpha_deg[i]:>8.1f} {forces.CL[i]:>10.4f} {forces.CD[i]:>10.5f} "
+                    f"{forces.CD_p[i]:>10.5f} {forces.CD_f[i]:>10.5f} {ld[i]:>10.2f}")
     
     # Find max L/D
     max_ld_idx = int(np.argmax(ld))
-    print(f"\nMax L/D = {ld[max_ld_idx]:.2f} at α = {forces.alpha_deg[max_ld_idx]:.1f}°")
+    logger.info(f"\nMax L/D = {ld[max_ld_idx]:.2f} at α = {forces.alpha_deg[max_ld_idx]:.1f}°")
     
     # Save residual history
     solver.save_residual_history()
     
-    print(f"\nDone! Results in: {output_dir}")
+    logger.info(f"\nDone! Results in: {output_dir}")
 
 
 if __name__ == "__main__":

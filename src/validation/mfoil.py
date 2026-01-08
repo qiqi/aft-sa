@@ -25,12 +25,12 @@
 #-------------------------------------------------------------------------------
 
 import numpy as np
-from scipy.interpolate import CubicSpline, interp1d
-from scipy import sparse
-from scipy.sparse import linalg
+from scipy.interpolate import interp1d, CubicSpline
+import scipy.sparse as sparse
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import copy
+from loguru import logger
 
 
 #-------------------------------------------------------------------------------
@@ -238,7 +238,14 @@ class mfoil:
 
 #-------------------------------------------------------------------------------
 def vprint(param, verb, *args):
-    if (verb <= param.verb): print(*args)
+    # Map mfoil verbosity to loguru levels
+    message = " ".join(map(str, args))
+    if verb == 1:
+        logger.info(message)
+    elif verb == 2:
+        logger.debug(message)
+    elif verb >= 3:
+        logger.trace(message)
 
 #-------------------------------------------------------------------------------
 def sind(alpha):
@@ -274,7 +281,7 @@ def plot_cpplus(ax, M):
     
     chord = M.geom.chord
     x = M.foil.x[0,:].copy()
-    N = M.foil.N
+    _N = M.foil.N
     xrng = np.array([-.1,1.4])*chord;
     if (M.oper.viscous):
         x = np.concatenate((x, M.wake.x[0,:]))
@@ -344,7 +351,7 @@ def mplot_boundary_layer(ax, M):
     #   boundary layer plot on given axes
     if (not M.oper.viscous): return
     xz = np.hstack((M.foil.x, M.wake.x))
-    x = xz[0,:]; N = M.foil.N
+    _x = xz[0,:]; N = M.foil.N
     ds = M.post.ds  # displacement thickness
     rl = 0.5*(1+(ds[0]-ds[N-1])/ds[N]); ru = 1-rl
     t = np.hstack((M.foil.t, M.wake.t))  # tangents
@@ -414,8 +421,8 @@ def calc_force(M):
   
     # calculate the pressure coefficient at each node
     ue = M.glob.U[3,:] if M.oper.viscous else get_ueinv(M)
-    cp, cp_ue = get_cp(ue, M.param); M.post.cp = cp
-    M.post.cpi, cpi_ue = get_cp(get_ueinv(M), M.param)  # inviscid cp
+    cp, _cp_ue = get_cp(ue, M.param); M.post.cp = cp
+    M.post.cpi, _cpi_ue = get_cp(get_ueinv(M), M.param)  # inviscid cp
 
 
     # lift, moment, near-field pressure cd coefficients by cp integration  
@@ -424,15 +431,15 @@ def calc_force(M):
         i,ip = (0,N-1) if (i0==N) else (i0,i0-1)
         x1, x2 = M.foil.x[:,ip], M.foil.x[:,i]  # panel points
         dxv = x2-x1; dx1 = x1-xref; dx2 = x2-xref
-        dx1nds = dxv[0]*dx1[0]+dxv[1]*dx1[1]  # (x1-xref) cross n*ds
-        dx2nds = dxv[0]*dx2[0]+dxv[1]*dx2[1]  # (x2-xref) cross n*ds
+        _dx1nds = dxv[0]*dx1[0]+dxv[1]*dx1[1]  # (x1-xref) cross n*ds
+        _dx2nds = dxv[0]*dx2[0]+dxv[1]*dx2[1]  # (x2-xref) cross n*ds
         dx = -dxv[0]*cosd(alpha) - dxv[1]*sind(alpha)  # minus from CW node ordering
         dz =  dxv[1]*cosd(alpha) - dxv[0]*sind(alpha)  # for drag
         cp1,cp2 = cp[ip], cp[i]; cpbar = 0.5*(cp1+cp2)  # average cp on the panel
         cl = cl + dx*cpbar
-        I = [ip,i]; cl_ue[I] += dx*0.5*cp_ue[I]
+        cl_ue[I] += dx*0.5*_cp_ue[I]
         cl_alpha += cpbar*(sind(alpha)*dxv[0] - cosd(alpha)*dxv[1])*np.pi/180
-        cm += cp1*dx1nds/3 + cp1*dx2nds/6 + cp2*dx1nds/6 + cp2*dx2nds/3
+        cm += cp1*_dx1nds/3 + cp1*_dx2nds/6 + cp2*_dx1nds/6 + cp2*_dx2nds/3
         cdpi = cdpi + dz*cpbar
         cl /= chord; cm /= chord**2; cdpi /= chord
         M.post.cl, M.post.cl_ue, M.post.cl_alpha = cl, cl_ue, cl_alpha
@@ -463,9 +470,9 @@ def calc_force(M):
             x1 = M.isol.xstag;
             for i in range(len(Is)):
                 station_param(M, param, Is[i])
-                cf2, cf2_U = get_cf(M.glob.U[:,Is[i]], param) # get cf value
-                ue2, ue2_ue = get_uk(M.glob.U[3,Is[i]], param)
-                rho2, rho2_U = get_rho(M.glob.U[:,Is[i]], param)
+                cf2, _cf2_U = get_cf(M.glob.U[:,Is[i]], param) # get cf value
+                ue2, _ue2_ue = get_uk(M.glob.U[3,Is[i]], param)
+                rho2, _rho2_U = get_rho(M.glob.U[:,Is[i]], param)
                 x2 = M.foil.x[:,Is[i]]; dxv = x2 - x1
                 dx = dxv[0]*cosd(alpha) + dxv[1]*sind(alpha)
                 Df += 0.25*(rho1*cf1*ue1**2 + rho2*cf2*ue2**2)*dx
@@ -497,7 +504,7 @@ def get_distributions(M):
     M.post.th = M.glob.U[0,:].copy()   # theta
     M.post.ds = M.glob.U[1,:].copy()   # delta*
     M.post.sa = M.glob.U[2,:].copy()   # amp or ctau
-    M.post.ue, uk_ue = get_uk(M.glob.U[3,:], M.param)  # compressible edge velocity 
+    M.post.ue, _uk_ue = get_uk(M.glob.U[3,:], M.param)  # compressible edge velocity 
     M.post.uei = get_ueinv(M)  # compressible inviscid edge velocity
   
     # derived viscous quantities
@@ -508,11 +515,11 @@ def get_distributions(M):
         for i in range(len(Is)):  # loop over points
             j = Is[i]; Uj = M.glob.U[:,j]
             station_param(M, param, j)
-            uk, uk_ue = get_uk(Uj[3], param) # corrected edge speed
-            cfloc, cf_u = get_cf(Uj, param)  # local skin friction coefficient
+            uk, _uk_ue = get_uk(Uj[3], param) # corrected edge speed
+            cfloc, _ = get_cf(Uj, param)  # local skin friction coefficient
             cf[j] = cfloc * uk*uk/(param.Vinf*param.Vinf)  # free-stream-based cf
-            Ret[j], Ret_U = get_Ret(Uj, param)  # Re_theta
-            Hk[j], Hk_U = get_Hk(Uj, param)  # kinematic shape factor
+            Ret[j], _ = get_Ret(Uj, param)  # Re_theta
+            Hk[j], _ = get_Hk(Uj, param)  # kinematic shape factor
 
     M.post.cf, M.post.Ret, M.post.Hk = cf, Ret, Hk
 
@@ -601,7 +608,7 @@ def get_ueinvref(M):
     else:
         uewref = np.array([])
     ueinvref = np.vstack((uearef, uewref))
-    return ueinvref
+    return ueinVref
 
 #-------------------------------------------------------------------------------
 def build_gamma(M, alpha):
@@ -623,8 +630,8 @@ def build_gamma(M, alpha):
     N = M.foil.N              # number of points  
     A = np.zeros([N+1,N+1])   # influence matrix
     rhs = np.zeros([N+1,2])   # right-hand sides for 0,90
-    t,hTE,dtdx,tcp,tdp = TE_info(M.foil.x) # trailing-edge info
-    nogap = (abs(hTE) < 1e-10*M.geom.chord) # indicates no TE gap
+    _t,_hTE,_dtdx,tcp,tdp = TE_info(M.foil.x) # trailing-edge info
+    nogap = (abs(_hTE) < 1e-10*M.geom.chord) # indicates no TE gap
   
     vprint(M.param,1, '\n <<< Solving the inviscid problem >>> \n')
   
@@ -687,7 +694,7 @@ def inviscid_velocity(X, G, Vinf, alpha, x, dolin):
     N = X.shape[1]   # number of points  
     V = np.zeros(2)   # velocity
     if (dolin): V_G = np.zeros([2,N])
-    t,hTE,dtdx,tcp,tdp = TE_info(X) # trailing-edge info
+    _t,_hTE,_dtdx,tcp,tdp = TE_info(X) # trailing-edge info
     # assume x is not a midpoint of a panel (can check for this)
     for j in range(N-1):        # loop over panels
         a, b = panel_linvortex_velocity(X[:,[j,j+1]], x, None, False)
@@ -742,7 +749,7 @@ def build_wake(M):
     xyw = np.zeros([2,Nw]); tw = xyw.copy()  # arrays of x,y points and tangents on wake
     xy1, xyN = M.foil.x[:,0], M.foil.x[:,N-1] # airfoil TE points
     xyte = 0.5*(xy1 + xyN)  # TE midpoint
-    n = xyN-xy1; t = np.array([n[1], -n[0]]) # normal and tangent
+    _n = xyN-xy1; t = np.array([_n[1], -_n[0]]) # normal and tangent
     assert t[0] > 0, 'Wrong wake direction; ensure airfoil points are CCW'
     xyw[:,0] = xyte + 1e-5*t*M.geom.chord  # first wake point, just behind TE
     sw = S[N-1] + sv  # s-values on wake, measured as continuation of the airfoil
@@ -973,7 +980,7 @@ def panel_linvortex_stream(Xj, xi):
     #   where g1 and g2 are the vortex strengths at the panel endpoints
 
     # panel info
-    t, n, x, z, d, r1, r2, theta1, theta2 = panel_info(Xj, xi)
+    _t, _n, x, z, d, r1, r2, theta1, theta2 = panel_info(Xj, xi)
 
     # check for r1, r2 zero
     ep = 1e-9
@@ -1007,7 +1014,7 @@ def panel_constsource_velocity(Xj, xi, vdir):
     #   Otherwise, a,b are dotted with vdir
 
     # panel info
-    t, n, x, z, d, r1, r2, theta1, theta2 = panel_info(Xj, xi)
+    _t, n, _x, _z, _d, r1, r2, theta1, theta2 = panel_info(Xj, xi)
   
     ep = 1e-9
     logr1, theta1, theta2 = (0, np.pi, np.pi) if (r1 < ep) else (np.log(r1), theta1, theta2)
@@ -1018,7 +1025,7 @@ def panel_constsource_velocity(Xj, xi, vdir):
     w = (0.5/np.pi)*(theta2-theta1)
   
     # velocity in original coord system dotted with given vector
-    a = np.array([u*t[0]+w*n[0], u*t[1]+w*n[1]])
+    a = np.array([u*_t[0]+w*n[0], u*_t[1]+w*n[1]])
     if (vdir is not None): a = np.dot(a, vdir)
 
     return a
@@ -1037,7 +1044,7 @@ def panel_constsource_stream(Xj, xi):
     #   where s is the panel source strength
   
     # panel info
-    t, n, x, z, d, r1, r2, theta1, theta2 = panel_info(Xj, xi)
+    _t, _n, x, z, d, r1, r2, theta1, theta2 = panel_info(Xj, xi)
     
     # streamfunction
     ep = 1e-9;
@@ -1071,7 +1078,7 @@ def panel_linsource_velocity(Xj, xi, vdir):
     #   Otherwise, a,b are dotted with vdir
 
     # panel info
-    t, n, x, z, d, r1, r2, theta1, theta2 = panel_info(Xj, xi)
+    _t, n, x, z, d, r1, r2, theta1, theta2 = panel_info(Xj, xi)
 
     # velocity in panel-aligned coord system
     temp1 = np.log(r1/r2)/(2*np.pi)
@@ -1084,8 +1091,8 @@ def panel_linsource_velocity(Xj, xi, vdir):
     wg2 =          temp2
   
     # velocity influence in original coord system
-    a = np.array([ug1*t[0]+wg1*n[0], ug1*t[1]+wg1*n[1]]) # point 1
-    b = np.array([ug2*t[0]+wg2*n[0], ug2*t[1]+wg2*n[1]]) # point 2
+    a = np.array([ug1*_t[0]+wg1*n[0], ug1*_t[1]+wg1*n[1]]) # point 1
+    b = np.array([ug2*_t[0]+wg2*n[0], ug2*_t[1]+wg2*n[1]]) # point 2
     if (vdir is not None): a, b = np.dot(a, vdir), np.dot(b,vdir)
   
     return a, b
@@ -1104,7 +1111,7 @@ def panel_linsource_stream(Xj, xi):
     #   where s1 and s2 are the source strengths at the panel endpoints
 
     # panel info
-    t, n, x, z, d, r1, r2, theta1, theta2 = panel_info(Xj, xi)
+    _t, _n, x, z, d, r1, r2, theta1, theta2 = panel_info(Xj, xi)
 
     # make branch cut at theta = 0
     if (theta1<0): theta1 = theta1 + 2*np.pi
@@ -1151,7 +1158,7 @@ def mgeom_flap(M, xzhinge, eta):
         X[:,If[i]] = xzhinge + R@(X[:,If[i]]-xzhinge)
   
     # remove flap points to left of hinge
-    I = If[X[0,If]<xh]; I = np.setdiff1d(np.arange(N),I)
+    _I = If[X[0,If]<xh]; I = np.setdiff1d(np.arange(N),_I)
   
     # re-assemble the airfoil; note, chord length is *not* redefined
     M.geom.xpoint = X[:,I]; M.geom.npoint = M.geom.xpoint.shape[1] 
@@ -1305,11 +1312,11 @@ def naca_points(M, digits):
         n = float(digits[1])
         valid = digits[0]=='2' and digits[2]=='0' and n>0 and n<6
         assert valid, '5-digit NACA must begin with 2X0, X in 1-5'
-        mv = [.058, .126, .2025, .29, .391]; m = mv(n);
+        mv = [.058, .126, .2025, .29, .391]; _m = mv(n);
         cv = [361.4, 51.64, 15.957, 6.643, 3.23]; cc = cv(n);
-        c = (cc/6.)*(x**3 - 3*m*x**2 + m**2*(3-m)*x);
+        c = (cc/6.)*(x**3 - 3*_m*x**2 + _m**2*(3-_m)*x);
         for i in range(len(x)): 
-            if x[i] > m: c[i] = (cc/6.)*m**3*(1-x(i));
+            if x[i] > _m: c[i] = (cc/6.)*_m**3*(1-x(i));
     else:
         raise ValueError('Provide 4 or 5 NACA digits')
     
@@ -1401,8 +1408,8 @@ def spline2d(X):
   
     # re-integrate to true arclength via several passes
     xq, wq = quadseg()
-    for ipass in range(10):
-        serr = 0
+    for _ipass in range(10):
+        _serr = 0
         Snew[0] = S[0]
         for i in range(N-1):
             ds = S[i+1]-S[i]
@@ -1412,7 +1419,7 @@ def spline2d(X):
             py = PPY.c[:,i]
             ys = 3.0*py[0]*st*st + 2.0*py[1]*st + py[2]
             sint = np.dot(wq, np.sqrt(xs*xs + ys*ys))*ds
-            serr = max(serr, abs(sint-ds))
+            _serr = max(_serr, abs(sint-ds))
             Snew[i+1] = Snew[i] + sint
         S[:] = Snew
         PPX = CubicSpline(S,X[0,:])
@@ -1487,7 +1494,7 @@ def calc_ue_m(M):
     # Cgam = d(wake uei)/d(gamma)   [Nw x N]   (not sparse)
     Cgam = np.zeros([Nw,N])
     for i in range(Nw):
-        [v, v_G] = inviscid_velocity(M.foil.x, M.isol.gam, 0, 0, M.wake.x[:,i], True)
+        [_v, v_G] = inviscid_velocity(M.foil.x, M.isol.gam, 0, 0, M.wake.x[:,i], True)
         Cgam[i,:] = v_G[0,:]*M.wake.t[0,i] + v_G[1,:]*M.wake.t[1,i]
   
     # B = d(airfoil surf streamfunction)/d(source)  [(N+1) x (N+Nw-2)]  (not sparse)
@@ -1539,19 +1546,19 @@ def calc_ue_m(M):
             Xj[:,2] = 0.5*(Xj[:,1] + Xj[:,2])  # right midpoint
 
             if (j==Nw-1): Xj[:,2] = 2*Xj[:,1] - Xj[:,0]  # ghost extension at last point
-            d1 = norm2(Xj[:,1]-Xj[:,0]) # left half-panel length
-            d2 = norm2(Xj[:,2]-Xj[:,1]) # right half-panel length
+            dl = norm2(Xj[:,1]-Xj[:,0]) # left half-panel length
+            dr = norm2(Xj[:,2]-Xj[:,1]) # right half-panel length
             if (i==j):
                 if (j==0): # first point: special TE system (three panels meet)
-                    dl = norm2(M.foil.x[:,  1]-M.foil.x[:,  0]) # lower surface panel length
-                    du = norm2(M.foil.x[:,N-1]-M.foil.x[:,N-2]) # upper surface panel length
-                    Csig[i,  0] += (0.5/np.pi)*(np.log(dl/d2) + 1) # lower panel effect
-                    Csig[i,N-2] += (0.5/np.pi)*(np.log(du/d2) + 1) # upper panel effect
+                    _dl_foil = norm2(M.foil.x[:,  1]-M.foil.x[:,  0]) # lower surface panel length
+                    _du_foil = norm2(M.foil.x[:,N-1]-M.foil.x[:,N-2]) # upper surface panel length
+                    Csig[i,  0] += (0.5/np.pi)*(np.log(_dl_foil/dr) + 1) # lower panel effect
+                    Csig[i,N-2] += (0.5/np.pi)*(np.log(_du_foil/dr) + 1) # upper panel effect
                     Csig[i,N-1] += - 0.5/np.pi # self effect
                 elif (j==Nw-1): # last point: no self effect of last pan (ghost extension)
                     Csig[i,N-1+j-1] += 0 # hence the 0
                 else: # all other points
-                    aa = (0.25/np.pi)*np.log(d1/d2)
+                    aa = (0.25/np.pi)*np.log(dl/dr)
                     Csig[i,N-1+j-1] += aa + 0.5/np.pi
                     Csig[i,N-1+j  ] += aa - 0.5/np.pi
             else:
@@ -1564,10 +1571,10 @@ def calc_ue_m(M):
                     a = panel_constsource_velocity(Xj[:,[0,2]], xi, ti)
                     Csig[i,N+Nw-3] += a  # full const source panel effect
                 else: # all other points have a half panel on left and right
-                    [a1,b1] = panel_linsource_velocity(Xj[:,[0,1]], xi, ti) # left half-panel ue contrib
-                    [a2,b2] = panel_linsource_velocity(Xj[:,[1,2]], xi, ti) # right half-panel ue contrib
-                    Csig[i,N-1+j-1] += a1 + 0.5*b1
-                    Csig[i,N-1+j  ] += 0.5*a2 + b2
+                    [a1,_b1] = panel_linsource_velocity(Xj[:,[0,1]], xi, ti) # left half-panel ue contrib
+                    [_a2,b2] = panel_linsource_velocity(Xj[:,[1,2]], xi, ti) # right half-panel ue contrib
+                    Csig[i,N-1+j-1] += a1 + 0.5*_b1
+                    Csig[i,N-1+j  ] += 0.5*_a2 + b2
   
     # compute ue_sigma = d(unsigned ue)/d(source) [(N+Nw) x (N+Nw-2)] (not sparse)
     # Df = +/- Bp = d(foil uei)/d(source)  [N x (N+Nw-2)]  (not sparse)
@@ -1671,7 +1678,7 @@ def set_wake_gap(M):
     #   Uses cubic function to extrapolate the TE gap into the wake
     #   See Drela, IBL for Blunt Trailing Edges, 1989, 89-2166-CP
   
-    t,hTE,dtdx,tcp,tdp = TE_info(M.foil.x) # trailing-edge info
+    _t,hTE,dtdx,_tcp,_tdp = TE_info(M.foil.x) # trailing-edge info
     flen = 2.5 # length-scale factor
     dtdx = min(max(dtdx,-3./flen), 3./flen)  # clip TE thickness slope
     Lw = flen*hTE
@@ -1917,7 +1924,7 @@ def update_state(M):
             j = Is[i]
             Uj = M.glob.U[:,j]
             station_param(M, param, j)
-            Hk, Hk_U = get_Hk(Uj, param)
+            Hk, _Hk_U = get_Hk(Uj, param)
             if (Hk < Hkmin):
                 M.glob.U[1,j] += 2*(Hkmin-Hk)*M.glob.U[1,j]
   
@@ -2084,7 +2091,7 @@ def build_glob_sys(M):
             Ip = [i0,i0+1]
             Ust, Ust_U, Ust_x, xst = stagnation_state(U[:,Ip], xi[Ip]) # stag state
             param.turb, param.simi = False, True  # similarity station flag  
-            R1, R1_Ut, R1_x = residual_station(param, np.r_[xst,xst], np.stack((Ust, Ust),axis=-1), Aux[[i0,i0]])
+            R1, R1_Ut, _R1_x = residual_station(param, np.r_[xst,xst], np.stack((Ust, Ust),axis=-1), Aux[[i0,i0]])
             param.simi = False
             R1_Ust = R1_Ut[:,0:4] + R1_Ut[:,4:8]
             R1_U = np.dot(R1_Ust, Ust_U)
@@ -2182,8 +2189,8 @@ def stagnation_state(U, x):
     rx = x2/x1; rx_x = np.r_[-rx,1]/x1
   
     # linear extrapolation weights and stagnation state
-    w1 =  x2/dx; w1_x = -w1/dx*dx_x + np.r_[ 0,1]/dx
-    w2 = -x1/dx; w2_x = -w2/dx*dx_x + np.r_[-1,0]/dx
+    w1 =  x2/dx; _w1_x = -w1/dx*dx_x + np.r_[ 0,1]/dx
+    w2 = -x1/dx; _w2_x = -w2/dx*dx_x + np.r_[-1,0]/dx
     Ust = U1*w1 + U2*w2
   
     # quadratic extrapolation of the edge velocity for better slope, ue=K*x
@@ -2197,7 +2204,7 @@ def stagnation_state(U, x):
     xst = 1e-6
     Ust[3] = K*xst  # linear dep of ue on x near stagnation
     Ust_U = np.block([[w1*np.eye(3,4), w2*np.eye(3,4)], [K_U*xst]])
-    Ust_x = np.vstack((np.outer(U1[0:3],w1_x) + np.outer(U2[0:3],w2_x), K_x*xst))
+    Ust_x = np.vstack((np.outer(U1[0:3],_w1_x) + np.outer(U2[0:3],_w2_x), K_x*xst))
  
     return Ust, Ust_U, Ust_x, xst
 
@@ -2234,7 +2241,7 @@ def wake_sys(M, param):
     il = M.vsol.Is[0][-1]; Ul = M.glob.U[:,il] # lower surface TE index, state
     iu = M.vsol.Is[1][-1]; Uu = M.glob.U[:,iu] # upper surface TE index, state
     iw = M.vsol.Is[2][ 0]; Uw = M.glob.U[:,iw] # first wake index, state
-    t,hTE,dtdx,tcp,tdp = TE_info(M.foil.x) # trailing-edge gap is hTE
+    _t,_hTE,_dtdx,_tcp,_tdp = TE_info(M.foil.x) # trailing-edge gap is hTE
 
     # Obtain wake shear stress from upper/lower; transition if not turb
     param.turb = True; param.wake = False # calculating turbulent quantities right before wake
@@ -2248,7 +2255,7 @@ def wake_sys(M, param):
     ctw_Uu = (ctu_Uu*Uu[0] + (ctu - ctw)*np.r_[1,0,0,0])/thsum
 
     # residual; note, delta star in wake includes the TE gap, hTE
-    R = np.r_[Uw[0]-(Ul[0]+Uu[0]), Uw[1]-(Ul[1]+Uu[1]+hTE), Uw[2]-ctw]
+    R = np.r_[Uw[0]-(Ul[0]+Uu[0]), Uw[1]-(Ul[1]+Uu[1]+_hTE), Uw[2]-ctw]
     J = [il, iu, iw]  # R depends on states at these nodes
     R_Ul = np.vstack((-np.eye(2,4), -ctw_Ul))
     R_Uu = np.vstack((-np.eye(2,4), -ctw_Uu)) 
@@ -2306,7 +2313,7 @@ def init_boundary_layer(M):
     #   The state in M.glob.U is filled in for each point
 
     Hmaxl = 3.8 # above this shape param value, laminar separation occurs
-    Hmaxt = 2.5 # above this shape param value, turbulent separation occurs 
+    _Hmaxt = 2.5 # above this shape param value, turbulent separation occurs 
   
     ueinv = get_ueinv(M) # get inviscid velocity
 
@@ -2349,8 +2356,8 @@ def init_boundary_layer(M):
         if (si < 2): 
 
             # Solve for the stagnation state (Thwaites initialization + Newton)
-            if (xi[0]<1e-8*xi[-1]): K, hitstag = ue[1]/xi[1], True 
-            else: K, hitstag = ue[0]/xi[0], False
+            if (xi[0]<1e-8*xi[-1]): K, _hitstag = ue[1]/xi[1], True 
+            else: K, _hitstag = ue[0]/xi[0], False
             th, ds = thwaites_init(K, param.mu0/param.rho0)
             xst = 1.e-6; # small but nonzero
             Ust = np.array([th, ds, 0, K*xst])
@@ -2358,7 +2365,7 @@ def init_boundary_layer(M):
             for iNewton in range(nNewton):
                 # call residual at stagnation
                 param.turb, param.simi = False, True  # similarity station flag 
-                R, R_U, R_x = residual_station(param, np.r_[xst,xst], np.stack((Ust,Ust),axis=-1), np.zeros(2))
+                R, R_U, _R_x = residual_station(param, np.r_[xst,xst], np.stack((Ust,Ust),axis=-1), np.zeros(2))
                 param.simi = False
                 if (norm2(R) < 1e-10): break
                 A = R_U[:,4:7] + R_U[:,0:3]; b = -R; dU = np.append(np.linalg.solve(A,b), 0)
@@ -2369,7 +2376,7 @@ def init_boundary_layer(M):
                 Ust = Ust + dU
       
             # store stagnation state in first one (rarely two) points
-            if (hitstag):
+            if (_hitstag):
                 U[:,0] = Ust; U[3,0] = ue[0]; i0=1
             U[:,i0] = Ust; U[3,i0] = ue[i0]
       
@@ -2381,13 +2388,14 @@ def init_boundary_layer(M):
         # march over rest of points
         tran = False # flag indicating that we are at transition
         i = i0+1
-        while (i<N):
+        while (i < N):
             Ip = [i-1,i]; # two points involved in the calculation
             U[:,i] = U[:,i-1]; U[3,i] = ue[i]  # guess = same state, new ue
             if (tran): # set shear stress at transition interval
-                ct, ct_U = get_cttr(U[:,i], param); U[2,i] = ct
+                ct, _ct_U = get_cttr(U[:,i], param); U[2,i] = ct
             M.vsol.turb[Is[i]] = (tran or param.turb)  # flag node i as turbulent
             direct = True  # default is direct mode
+            Hktgt = 0.0  # initialize target shape factor
             nNewton, iNswitch = 30, 12
             for iNewton in range(nNewton):
         
@@ -2395,7 +2403,7 @@ def init_boundary_layer(M):
                 if (tran): # we are at transition
                     vprint(param, 4, 'i=%d, residual_transition (iNewton = %d) \n'%(i, iNewton))
                     try:
-                        R, R_U, R_x = residual_transition(M, param, xi[Ip], U[:,Ip], Aux[Ip])
+                        R, R_U, _R_x = residual_transition(M, param, xi[Ip], U[:,Ip], Aux[Ip])
                     except:
                         vprint(param, 1, 'Transition calculation failed in BL init. Continuing.')
                         M.vsol.xt = 0.5*sum(xi[Ip])
@@ -2403,7 +2411,7 @@ def init_boundary_layer(M):
                         R = 0  # so we move on
                 else:
                     vprint(param, 4, 'i=%d, residual_station (iNewton = %d)'%(i, iNewton))
-                    R, R_U, R_x = residual_station(param, xi[Ip], U[:,Ip], Aux[Ip])
+                    R, R_U, _R_x = residual_station(param, xi[Ip], U[:,Ip], Aux[Ip])
                 if (norm2(R) < 1e-10): break
         
                 if (direct): # direct mode => ue is prescribed => solve for th, ds, sa
@@ -2432,17 +2440,17 @@ def init_boundary_layer(M):
                 #dH = max(0,Hklim-Hk); Ui(2) = Ui(2) + dH*Ui(1);
         
                 # check if about to separate
-                Hmax = Hmaxt if (param.turb) else Hmaxl
-                Hk, Hk_U = get_Hk(Ui, param)
+                Hmax = _Hmaxt if (param.turb) else Hmaxl
+                Hk, _Hk_U = get_Hk(Ui, param)
 
                 if (direct) and ((Hk>Hmax) or (iNewton > iNswitch)):
                     # no update; need to switch to inverse mode: prescribe Hk
                     direct = False
                     vprint(param, 2, '** switching to inverse: i=%d, iNewton=%d'%(i, iNewton))
-                    [Hk,Hk_U] = get_Hk(U[:,i-1], param); Hkr = (xi[i]-xi[i-1])/U[0,i-1]
+                    [Hk,_Hk_U] = get_Hk(U[:,i-1], param); Hkr = (xi[i]-xi[i-1])/U[0,i-1]
                     if (param.wake):
                         H2 = Hk 
-                        for k in range(6): H2 -= (H2+.03*Hkr*(H2-1)**3-Hk)/(1+.09*Hkr*(H2-1)**2)
+                        for _k in range(6): H2 -= (H2+.03*Hkr*(H2-1)**3-Hk)/(1+.09*Hkr*(H2-1)**2)
                         Hktgt = max(H2, 1.01)
                     elif (param.turb): Hktgt = Hk - .15*Hkr  # turb: decrease in Hk
                     else: Hktgt = Hk + .03*Hkr # lam: increase in Hk 
@@ -2461,8 +2469,8 @@ def init_boundary_layer(M):
                     U[0,i] = U[0,i-1]*(xi[i]/xi[i-1])**.5
                     U[1,i] = U[1,i-1]*(xi[i]/xi[i-1])**.5
                 else:
-                    rlen = (xi[i]-xi[i-1])/(10.*U[1,i-1])
-                    U[1,i] = (U[1,i-1] + U[0,i-1]*rlen)/(1.+rlen)  # TODO check on this extrap
+                    _rlen = (xi[i]-xi[i-1])/(10.*U[1,i-1])
+                    U[1,i] = (U[1,i-1] + U[0,i-1]*_rlen)/(1.+_rlen)  # TODO check on this extrap
 
       
             # check for transition
@@ -2539,7 +2547,7 @@ def update_transition(M):
         if (ilam < ilam0):
             # transition is now earlier: fill in turb between [ilam+1, ilam0]
             param.turb = True
-            sa0, temp = get_cttr(M.glob.U[:,Is[ilam+1]], param)
+            sa0, _temp = get_cttr(M.glob.U[:,Is[ilam+1]], param)
             sa1 = M.glob.U[2,Is[ilam0+1]] if (ilam0<N-1) else sa0
             xi = M.isol.xi[Is]
             dx = xi[min(ilam0+1,N-1)]-xi[ilam+1]
@@ -2604,7 +2612,7 @@ def march_amplification(M, si):
 
         # check for transition
         if (U2[2]>param.ncrit):
-            vprint(param, 2,'  march_amplification (si,i=%d,%d): %.5e is above critical.'%(si, i, U2[2]))
+            vprint(param,2, '  march_amplification (si,i=%d,%d): %.5e is above critical.'%(si, i, U2[2]))
             break
         else:
             M.glob.U[2,Is[i]] = U2[2]  # store amplification in M.glob.U (also seen in view U)
@@ -3040,7 +3048,7 @@ def get_cteq(U, param):
         if (Hk < 1.00005): Hk, Hk_U = 1.00005, Hk_U*0.
         Hkc = Hk - 1.; Hkc_U = Hk_U
     else:
-        if (Hk < 1.05): Hk, HK_U = 1.05, Hk_U*0.
+        if (Hk < 1.05): Hk, _HK_U = 1.05, Hk_U*0.
         Hkc = Hk - 1. - C/Ret
         Hkc_U = Hk_U + C/Ret**2*Ret_U
         if (Hkc < 0.01): Hkc, Hkc_U = 0.01, Hkc_U*0.
@@ -3081,7 +3089,7 @@ def get_Hs(U, param):
         Reb, Reb_U = Ret, Ret_U
         if (Ret < 200): Reb, Reb_U = 200, Reb_U*0.
         if (Hk < Ho):  # attached branch
-            Hr = (Ho-Hk)/(Ho-1)
+            _H0 = (11*H + 15)/(48*H + 59)
             Hr_U = (Ho_U - Hk_U)/(Ho-1) - (Ho-Hk)/(Ho-1)**2*Ho_U
             aa = (2-Hsmin-4/Reb)*Hr**2
             aa_U = (4/Reb**2*Reb_U)*Hr**2 + (2-Hsmin-4/Reb)*2*Hr*Hr_U

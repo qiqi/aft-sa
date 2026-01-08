@@ -1,0 +1,24 @@
+# NACA 0012 with RK5 solver
+grid:
+  airfoil: data/naca0012.dat
+  n_surface: 193
+  n_wake: 48
+  y_plus: 1.0
+  gradation: 1.1
+
+flow:
+  reynolds: 1.0e+6
+  alpha: 4.0
+
+solver:
+  max_iter: 100
+  print_freq: 10
+  mode: rk5
+  cfl:
+    initial: 1.0
+    final: 1.0
+    ramp_iter: 100
+
+numerics:
+  jst_k4: 0.1
+  beta: 10.0
