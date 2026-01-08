@@ -138,6 +138,7 @@ MODEL CONSTANTS (Standard SA-neg)
 from typing import Tuple, Union, Dict, Any
 from .jax_config import jax, jnp
 import numpy as np
+from loguru import logger
 
 ArrayLike = Union[jnp.ndarray, float]
 
@@ -794,17 +795,17 @@ def check_log_layer_equilibrium(y_plus: np.ndarray, P: np.ndarray, D: np.ndarray
     }
     
     if verbose:
-        print("\n" + "="*60)
-        print("LOG LAYER BALANCE CHECK (P + Diff = D)")
-        print("="*60)
-        print(result['message'])
-        print("\nDetailed metrics:")
-        print(f"  P/D in log layer:      {mean_ratio:.3f} (expected: {expected_P_over_D:.2f})")
+        logger.info("\n" + "="*60)
+        logger.info("LOG LAYER BALANCE CHECK (P + Diff = D)")
+        logger.info("="*60)
+        logger.info(result['message'])
+        logger.info("\nDetailed metrics:")
+        logger.info(f"  P/D in log layer:      {mean_ratio:.3f} (expected: {expected_P_over_D:.2f})")
         if mean_full_balance is not None:
-            print(f"  (P+Diff)/D:            {mean_full_balance:.3f} (expected: 1.0)")
-        print(f"  χ slope (dχ/dy⁺):      {slope:.4f} (expected: {expected_slope:.2f})")
-        print(f"  χ slope ratio:         {slope/expected_slope:.2%} of expected")
-        print("="*60)
+            logger.info(f"  (P+Diff)/D:            {mean_full_balance:.3f} (expected: 1.0)")
+        logger.info(f"  χ slope (dχ/dy⁺):      {slope:.4f} (expected: {expected_slope:.2f})")
+        logger.info(f"  χ slope ratio:         {slope/expected_slope:.2%} of expected")
+        logger.info("="*60)
     
     return result
 

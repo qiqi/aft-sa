@@ -309,8 +309,8 @@ def create_standard_layout(
 def configure_dashboard_controls(
     fig: 'go.Figure',
     layout_mgr: DashboardLayout,
-    all_snapshots: List,
-    color_config: Dict,
+    all_snapshots: List[Any],
+    color_config: Dict[str, Any],
     has_wall_dist: bool,
     has_surface_data: bool,
     surface_params: Optional[Dict],

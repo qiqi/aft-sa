@@ -416,9 +416,8 @@ def compute_blended_production(P_sa, P_aft, chi,
     P_blended : array
         Blended production term.
     """
-    # is_turb = compute_turbulent_fraction(chi, threshold, width)
-    # return P_sa * is_turb + P_aft * (1.0 - is_turb)
-    return P_sa
+    is_turb = compute_turbulent_fraction(chi, threshold, width)
+    return P_sa * is_turb + P_aft * (1.0 - is_turb)
 
 
 from functools import partial

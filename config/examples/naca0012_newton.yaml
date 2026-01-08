@@ -16,7 +16,7 @@ grid:
 flow:
   reynolds: 1.0e+6      # Re = 1 million
   alpha: 4.0            # Angle of attack in degrees
-  chi_inf: 10       # Initial/farfield turbulent viscosity ratio
+  chi_inf: 0.0001       # Initial/farfield turbulent viscosity ratio
 
 solver:
   max_iter: 1000       # Fewer iterations needed with Newton

@@ -12,6 +12,8 @@ try:
 except ImportError:
     HAS_PLOTLY = False
 
+from loguru import logger
+
 from .._vtk_writer import write_vtk
 from .._html_components import compute_color_ranges
 from .data import DataManager
@@ -79,11 +81,11 @@ class PlotlyDashboard:
     ) -> str:
         """Export all snapshots as interactive HTML animation."""
         if not HAS_PLOTLY:
-            print("Warning: plotly not installed. Skipping HTML animation.")
+            logger.warning("Plotly is required for HTML output but not installed. Skipping.")
             return ""
         
         if not self.data_mgr.snapshots:
-            print("Warning: No snapshots to save.")
+            logger.warning("No snapshots to save. Skipping HTML generation.")
             return ""
         
         output_path = Path(filename)
@@ -140,7 +142,7 @@ class PlotlyDashboard:
                 all_snapshots, n_wake, self.data_mgr.u_inf, self.data_mgr.v_inf
             )
             if yplus_params and yplus_params.get('yplus_max', 0) > 2 * target_yplus:
-                print(f"  WARNING: Max y+ = {yplus_params['yplus_max']:.1f} exceeds 2x target ({target_yplus:.1f})")
+                logger.warning(f"Max y+ = {yplus_params['yplus_max']:.1f} exceeds 2x target ({target_yplus:.1f})")
 
         surface_params = None
         if has_surface_data:
@@ -187,12 +189,14 @@ class PlotlyDashboard:
             uncompressed_size = len(html_str.encode('utf-8'))
             compressed_size = gz_path.stat().st_size
             ratio = uncompressed_size / compressed_size if compressed_size > 0 else 1
-            print(f"Saved compressed HTML to: {gz_path}")
-            print(f"  Size: {compressed_size / 1e6:.1f} MB (was {uncompressed_size / 1e6:.1f} MB, {ratio:.1f}x compression)")
+            uncompressed_size = len(html_str.encode('utf-8'))
+            compressed_size = gz_path.stat().st_size
+            ratio = uncompressed_size / compressed_size if compressed_size > 0 else 1
+            logger.info(f"Saved compressed HTML to: {gz_path} (Size: {compressed_size / 1e6:.1f} MB, {ratio:.1f}x compression)")
         else:
             fig.write_html(str(output_path), auto_play=False, include_plotlyjs=include_plotlyjs)
-            print(f"Saved HTML animation to: {output_path}")
+            logger.info(f"Saved HTML animation to: {output_path}")
         
         if self.use_cdn:
-            print("  Note: Requires internet connection (using plotly.js CDN)")
-        print("  Use sliders at top-right to adjust color ranges")
+            logger.info("Note: Animation requires internet connection (using plotly.js CDN)")
+        logger.info("Use sliders at top-right to adjust color ranges")

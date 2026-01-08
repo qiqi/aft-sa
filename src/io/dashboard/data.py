@@ -52,7 +52,7 @@ class DataManager:
         self, 
         Q: np.ndarray, 
         iteration: int, 
-        residual_history: List,
+        residual_history: List[Union[float, np.ndarray, tuple, list]],
         cfl: float = 0.0,
         C_pt: Optional[np.ndarray] = None,
         residual_field: Optional[np.ndarray] = None,
@@ -181,7 +181,7 @@ class DataManager:
         C_pt = (p_total_inf - p_total) / (0.5 * V_inf_sq)
         return sanitize_array(C_pt, fill_value=0.0)
 
-    def _update_residual_history(self, residual_history: List, iteration_history: Optional[List[int]]) -> None:
+    def _update_residual_history(self, residual_history: List[Union[float, np.ndarray, tuple, list]], iteration_history: Optional[List[int]]) -> None:
         """Update stored residual history."""
         self.residual_history = []
         for r in residual_history:

@@ -2,7 +2,7 @@
 Animation frame generation for CFD Dashboard.
 """
 
-from typing import List, Optional, Set, TYPE_CHECKING
+from typing import List, Optional, Set, Dict, Any, TYPE_CHECKING
 import numpy as np
 
 try:
@@ -40,11 +40,11 @@ class AnimationManager:
         yc: np.ndarray,
         all_snapshots: List[Snapshot],
         divergence_snapshots: List[Snapshot],
-        color_config: dict,
+        color_config: Dict[str, Any],
         has_cpt: bool,
         has_res_field: bool,
         has_surface_data: bool,
-        surface_params: Optional[dict],
+        surface_params: Optional[Dict[str, Any]],
         grid_metrics: 'FVMMetrics',
         n_wake: int,
         u_inf: float,
@@ -82,7 +82,7 @@ class AnimationManager:
         snap: Snapshot,
         A: np.ndarray,
         B: np.ndarray,
-        color_config: dict,
+        color_config: Dict[str, Any],
         has_cpt: bool,
         has_res_field: bool,
         snapshots_so_far: List[Snapshot],

@@ -3,7 +3,7 @@
 import numpy as np
 import numpy.typing as npt
 from src.constants import NGHOST
-from typing import NamedTuple, Dict, Tuple, Any
+from typing import NamedTuple, Dict, Tuple, Any, Optional
 
 NDArrayFloat = npt.NDArray[np.floating]
 
@@ -110,7 +110,7 @@ class WakeCutDiscontinuity(NamedTuple):
 def compute_wake_cut_discontinuity(
     Q: NDArrayFloat,
     n_wake: int,
-    X: NDArrayFloat = None,
+    X: Optional[NDArrayFloat] = None,
     nghost: int = NGHOST
 ) -> WakeCutDiscontinuity:
     """

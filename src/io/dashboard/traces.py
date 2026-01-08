@@ -2,7 +2,7 @@
 Trace generation logic for CFD animations.
 """
 
-from typing import List, Optional, Dict, TYPE_CHECKING
+from typing import List, Optional, Dict, Any, TYPE_CHECKING
 from dataclasses import dataclass
 import numpy as np
 
@@ -76,7 +76,7 @@ class TraceManager:
         xc: np.ndarray,
         yc: np.ndarray,
         snapshot: Snapshot,
-        color_config: dict,
+        color_config: Dict[str, Any],
         has_cpt: bool,
         has_res_field: bool,
     ) -> None:
@@ -189,7 +189,7 @@ class TraceManager:
         xc: np.ndarray,
         yc: np.ndarray,
         snapshot: Snapshot,
-        color_config: dict,
+        color_config: Dict[str, Any],
     ) -> None:
         """Add AFT diagnostic traces."""
         if snapshot.Re_Omega is None or snapshot.Gamma is None:

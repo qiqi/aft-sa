@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Callable, Dict, Optional, Tuple, Union
 from dataclasses import dataclass
 from loguru import logger
+from collections import deque
 
 from ..grid.metrics import MetricComputer
 from ..grid.mesher import Construct2DWrapper, GridOptions
@@ -43,6 +44,7 @@ from .boundary_conditions import make_apply_bc_jit
 from ..numerics.preconditioner import BlockJacobiPreconditioner
 from ..numerics.dissipation import compute_sponge_sigma_jax
 from ..numerics.updates import apply_patankar_update
+from ..numerics.gmres import gmres_solve
 
 
 
@@ -103,8 +105,9 @@ class RANSSolver:
     """
     
     def __init__(self, 
-                 grid_file: str, 
-                 config: Optional[Union[SolverConfig, Dict]] = None):
+                 grid_file: Optional[str] = None, 
+                 config: Optional[Union[SolverConfig, Dict]] = None,
+                 grid_data: Optional[Tuple[np.ndarray, np.ndarray]] = None):
         """Initialize the RANS solver."""
         if config is None:
             self.config = SolverConfig()
@@ -119,12 +122,22 @@ class RANSSolver:
         self.converged = False
         self._last_gmres_info = None  # GMRES stats for Newton mode printing
         
+        
         # Rolling buffer for divergence history (recent snapshots before divergence)
-        from collections import deque
         div_history_size = self.config.divergence_history if self.config.divergence_history > 0 else 0
         self._divergence_buffer = deque(maxlen=div_history_size) if div_history_size > 0 else None
         
-        self._load_grid(grid_file)
+        if grid_data is not None:
+            self.X, self.Y = grid_data
+            self.NI = self.X.shape[0] - 1
+            self.NJ = self.X.shape[1] - 1
+            logger.info(f"Using provided grid: {self.NI} x {self.NJ} cells")
+        elif grid_file is not None:
+            self._load_grid(grid_file)
+        else:
+            raise ValueError("Must provide either grid_file or grid_data to RANSSolver")
+
+
         self._compute_metrics()
         self._initialize_state()
         self._initialize_output()
@@ -257,8 +270,7 @@ class RANSSolver:
         )
         self.Q = self.bc.apply(self.Q)
         
-        print(f"  Freestream: u={self.freestream.u_inf:.4f}, "
-              f"v={self.freestream.v_inf:.4f}")
+        logger.info(f"  Freestream: u={self.freestream.u_inf:.4f}, v={self.freestream.v_inf:.4f}")
         logger.info("  Far-field BC: Dirichlet (with sponge layer stabilization)")
         logger.info(f"  Wall damping applied (L={self.config.wall_damping_length})")
     
@@ -450,7 +462,6 @@ class RANSSolver:
             dQ = alpha_rk * (dt * volume_inv)[:, :, jnp.newaxis] * dt_factors * R
             
             # Update with Patankar for nuHat
-            from ..numerics.updates import apply_patankar_update
             Q_int_new = apply_patankar_update(Q0_int, dQ)
             
             return Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new), R
@@ -459,7 +470,6 @@ class RANSSolver:
         self._physical_residual_jax = compute_R_physical
 
         # --- JIT-compiled Newton-GMRES Step ---
-        from src.numerics.gmres import gmres_solve
         
         @jax.jit
         def jit_newton_step(Q_n, dt, gmres_tol):
@@ -750,29 +760,7 @@ class RANSSolver:
         
         return rms
     
-    def _apply_smoothing(self, R: np.ndarray) -> np.ndarray:
-        """Apply residual smoothing based on configuration."""
-        smoothing_type = getattr(self.config, 'smoothing_type', 'none')
-        
-        if smoothing_type == "explicit":
-            epsilon = getattr(self.config, 'smoothing_epsilon', 0.2)
-            n_passes = getattr(self.config, 'smoothing_passes', 2)
-            if epsilon > 0.0 and n_passes > 0:
-                # Assuming this function is available via JAX or needs to be implemented.
-                # Since it was undefined, and smooth_explicit_jax is imported (line 37),
-                # we should probably use that or valid numpy equivalent.
-                # However, this method _apply_smoothing seems to operate on numpy arrays (self.Q).
-                # Checking imports: smooth_explicit_jax is for JAX.
-                # Let's check where apply_explicit_smoothing is supposed to come from.
-                # Based on file analysis, it's missing. I will comment it out with a TODO to avoid runtime crash.
-                pass # TODO: Implement apply_explicit_smoothing for numpy arrays if needed
-        elif smoothing_type == "implicit":
-            epsilon = self.config.irs_epsilon
-            if epsilon > 0.0:
-                apply_residual_smoothing(R, epsilon)
-        # else: no smoothing
-        
-        return R
+    # _apply_smoothing removed (unused legacy code)
     
     def _compute_aft_fields(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Compute Re_Omega, Gamma, and is_turb fields for visualization.
@@ -786,8 +774,6 @@ class RANSSolver:
         is_turb : np.ndarray (NI, NJ)
             Turbulent fraction indicator (0=laminar/AFT, 1=turbulent/SA)
         """
-        from ..physics.jax_config import jnp
-        
         # Get interior values
         # Note: Q stores TOTAL velocity (not perturbation from freestream)
         Q_int = self.Q_jax[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
@@ -993,7 +979,6 @@ class RANSSolver:
         alpha: float
     ) -> jnp.ndarray:
         """Apply RK update with Patankar scheme (uses utility)."""
-        from ..numerics.updates import apply_patankar_update
         dt_factors = jnp.array([1.0, 1.0, 1.0, 0.5])  # Half CFL for nuHat
         dQ = alpha * (dt * volume_inv)[:, :, jnp.newaxis] * dt_factors * R
         return apply_patankar_update(Q0_int, dQ)
@@ -1001,7 +986,7 @@ class RANSSolver:
     @staticmethod
     def _apply_newton_update_static(Q_int: jnp.ndarray, dQ: jnp.ndarray) -> jnp.ndarray:
         """Apply Newton update with Patankar scheme (for tests)."""
-        from ..numerics.updates import apply_patankar_update
+        """Apply Newton update with Patankar scheme (for tests)."""
         return apply_patankar_update(Q_int, dQ)
     
     
@@ -1310,21 +1295,22 @@ class RANSSolver:
                         )
                         
                         total_dumps = n_history_dumps + 1
-                        print(f"  Divergence snapshots captured: {total_dumps} ({n_history_dumps} from history + 1 current)")
+                        total_dumps = n_history_dumps + 1
+                        logger.info(f"  Divergence snapshots captured: {total_dumps} ({n_history_dumps} from history + 1 current)")
                     break
             
             else:
-                print(f"\n{'='*60}")
-                print(f"Maximum iterations ({self.config.max_iter}) reached")
+                logger.info(f"\n{'='*60}")
+                logger.info(f"Maximum iterations ({self.config.max_iter}) reached")
                 if self.residual_history:
                     res_final = self.residual_history[-1]
-                    print(f"Final residual: p={res_final[0]:.2e} u={res_final[1]:.2e} v={res_final[2]:.2e} ν̃={res_final[3]:.2e}")
-                print(f"{'='*60}")
+                    logger.info(f"Final residual: p={res_final[0]:.2e} u={res_final[1]:.2e} v={res_final[2]:.2e} ν̃={res_final[3]:.2e}")
+                logger.info(f"{'='*60}")
         
         except KeyboardInterrupt:
-            print("\nSimulation interrupted by user.")
+            logger.warning("\nSimulation interrupted by user.")
         except Exception as e:
-            print(f"\nError during simulation: {e}")
+            logger.error(f"\nError during simulation: {e}")
             import traceback
             traceback.print_exc()
         finally:
@@ -1501,5 +1487,5 @@ class RANSSolver:
                     # Legacy: single residual
                     f.write(f"{i+1:8d}  {res:.10e}\n")
         
-        print(f"Residual history saved to: {filename}")
+        logger.info(f"Residual history saved to: {filename}")
 

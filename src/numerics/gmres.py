@@ -18,8 +18,6 @@ from typing import Callable, Tuple, Optional
 from src.physics.jax_config import jax, jnp
 
 
-# Cache for JIT-compiled GMRES cycles to avoid retracing
-_gmres_cycle_cache = {}
 
 
 @dataclass

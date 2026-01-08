@@ -204,9 +204,9 @@ Examples:
     config = sim_config.to_solver_config()
     
     # Print banner
-    print("\n" + "="*70)
-    print("   2D Incompressible RANS Solver")
-    print("="*70)
+    logger.info("\n" + "="*70)
+    logger.info("   2D Incompressible RANS Solver")
+    logger.info("="*70)
     
     # Grid generation settings
     y_plus = sim_config.grid.y_plus
@@ -234,26 +234,7 @@ Examples:
         sys.exit(1)
     
     # Create solver with pre-loaded grid
-    solver = RANSSolver.__new__(RANSSolver)
-    solver.config = config
-    solver.X = X
-    solver.Y = Y
-    solver.NI = X.shape[0] - 1
-    solver.NJ = X.shape[1] - 1
-    solver.iteration = 0
-    solver.residual_history = []
-    solver.iteration_history = []  # Track which iteration each residual corresponds to
-    solver.converged = False
-    
-    # Rolling buffer for divergence history
-    from collections import deque
-    div_history_size = config.divergence_history if config.divergence_history > 0 else 0
-    solver._divergence_buffer = deque(maxlen=div_history_size) if div_history_size > 0 else None
-    
-    # Initialize components
-    solver._compute_metrics()
-    solver._initialize_state()
-    solver._initialize_output()
+    solver = RANSSolver(grid_data=(X, Y), config=config)
     
     logger.info(f"Grid size: {solver.NI} x {solver.NJ} cells")
     logger.info(f"Reynolds: {sim_config.flow.reynolds:.2e}")
@@ -274,12 +255,12 @@ Examples:
         converged = False
     
     # Final status
-    print("\n" + "="*70)
+    logger.info("\n" + "="*70)
     if converged:
-        print("Simulation completed successfully - CONVERGED")
+        logger.info("Simulation completed successfully - CONVERGED")
     else:
-        print("Simulation completed - NOT CONVERGED")
-    print("="*70 + "\n")
+        logger.info("Simulation completed - NOT CONVERGED")
+    logger.info("="*70 + "\n")
     
     return 0 if converged else 1
 
