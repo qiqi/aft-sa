@@ -36,7 +36,7 @@ solver:
   
   cfl:
     initial: 1        # Starting CFL (pseudo-transient continuation)
-    final: inf         # Maximum CFL (infinity for steady state)
+    final: 1000        # Maximum CFL (infinity for steady state)
     ramp_iter: 120      # Iterations per decade (CFL multiplied by 10 every ramp_iter)
 
 numerics:

@@ -12,6 +12,7 @@ from dataclasses import dataclass
 
 from src.constants import NGHOST, N_VARS
 from src.physics.jax_config import jax, jnp
+from src.solvers.params import PhysicsParams
 
 NDArrayFloat = npt.NDArray[np.floating]
 
@@ -512,12 +513,6 @@ def make_apply_bc_jit(NI: int, NJ: int, n_wake_points: int,
     j_int_first = nghost
     _j_int_last = NJ + nghost - 1  # last interior J
     
-    # Farfield values
-    p_inf = freestream.p_inf
-    u_inf = freestream.u_inf
-    v_inf = freestream.v_inf
-    nu_t_inf = freestream.nu_t_inf
-    
     # Upper wake end index
     i_upper_end = NI + nghost
     
@@ -525,8 +520,14 @@ def make_apply_bc_jit(NI: int, NJ: int, n_wake_points: int,
     j_end = NJ + nghost
     
     @jax.jit
-    def apply_bc(Q):
+    def apply_bc(Q, params: PhysicsParams):
         """Apply all boundary conditions (JIT-compiled) with Dirichlet farfield."""
+        
+        # Farfield values (dynamic)
+        p_inf = params.p_inf
+        u_inf = params.u_inf
+        v_inf = params.v_inf
+        nu_t_inf = params.nu_t_inf
         
         # === Surface BC: Airfoil wall (no-slip) ===
         # Q stores physical velocity. No-slip requires u_phys = 0 at wall.

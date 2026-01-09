@@ -114,7 +114,7 @@ class TraceManager:
             'residual': 'log₁₀(R)',
             'vel_mag': '|V|',
             'chi': 'log₁₀(χ)',
-            'amplification_rate': 'a',
+            'amplification_rate': 'log₁₀(a)',
         }
         
         for name, _, cfg in standard_plots:
@@ -140,7 +140,9 @@ class TraceManager:
                     # Note: compute_aft_amplification_rate handles numpy inputs
                     Re_Omega = sanitize_array(snapshot.Re_Omega, fill_value=0.0)
                     Gamma = sanitize_array(snapshot.Gamma, fill_value=0.0)
-                    data = np.array(compute_aft_amplification_rate(Re_Omega, Gamma)).flatten()
+                    raw_data = np.array(compute_aft_amplification_rate(Re_Omega, Gamma)).flatten()
+                    # Apply log10 scale
+                    data = np.log10(np.maximum(raw_data, 1e-12))
                 else:
                     data = np.zeros_like(xc).flatten()
             
@@ -181,12 +183,19 @@ class TraceManager:
                         tickformat='.2f' if name in ['pressure', 'u_vel', 'v_vel'] else '.1f',
                     )
 
+                # Prepare color limits (override for amplification rate as requested)
+                zmin_val = cfg.cmin
+                zmax_val = cfg.cmax
+                if name == 'amplification_rate':
+                    zmin_val = np.log10(0.0002)
+                    zmax_val = np.log10(0.2)
+
                 self.tracker.add_animated(trace_name)
                 fig.add_trace(go.Contourcarpet(
                     a=A.flatten(), b=B.flatten(), z=data,
                     carpet=carpet_id,
                     colorscale=cfg.colorscale,
-                    zmin=cfg.cmin, zmax=cfg.cmax,
+                    zmin=zmin_val, zmax=zmax_val,
                     contours=dict(coloring='fill', showlines=False),
                     ncontours=self.N_CONTOURS,
                     colorbar=colorbar_dict,

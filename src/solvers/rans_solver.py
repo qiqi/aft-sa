@@ -45,6 +45,7 @@ from ..numerics.preconditioner import BlockJacobiPreconditioner
 from ..numerics.dissipation import compute_sponge_sigma_jax
 from ..numerics.updates import apply_patankar_update
 from ..numerics.gmres import gmres_solve
+from .params import PhysicsParams
 
 
 
@@ -237,6 +238,35 @@ class RANSSolver:
         if not gcl.passed:
             logger.warning("  WARNING: GCL validation failed. Results may be inaccurate.")
     
+    def _build_params(self) -> PhysicsParams:
+        """Construct PhysicsParams from current configuration."""
+        alpha_rad = float(np.radians(self.config.alpha))
+        reynolds = float(self.config.reynolds)
+        mu_laminar = 1.0 / reynolds if reynolds > 0 else 0.0
+        
+        # Freestream
+        u_inf = float(np.cos(alpha_rad))
+        v_inf = float(np.sin(alpha_rad))
+        nu_t_inf = float(getattr(self.config, 'chi_inf', 3.0) * mu_laminar)
+        
+        return PhysicsParams(
+            p_inf=0.0,
+            u_inf=u_inf,
+            v_inf=v_inf,
+            nu_t_inf=nu_t_inf,
+            beta=float(self.config.beta),
+            k4=float(self.config.jst_k4),
+            mu_laminar=mu_laminar,
+            aft_gamma_coeff=float(self.config.aft_gamma_coeff),
+            aft_re_omega_scale=float(self.config.aft_re_omega_scale),
+            aft_log_divisor=float(self.config.aft_log_divisor),
+            aft_sigmoid_center=float(self.config.aft_sigmoid_center),
+            aft_sigmoid_slope=float(self.config.aft_sigmoid_slope),
+            aft_rate_scale=float(self.config.aft_rate_scale),
+            aft_blend_threshold=float(self.config.aft_blend_threshold),
+            aft_blend_width=float(self.config.aft_blend_width)
+        )
+
     def _initialize_state(self):
         """Initialize state vector with freestream and wall damping."""
         logger.info("Initializing flow state...")
@@ -395,12 +425,17 @@ class RANSSolver:
 
         # Preconditioner Graph Coloring (Static)
         I_idx, J_idx = jnp.meshgrid(jnp.arange(NI), jnp.arange(NJ), indexing='ij')
-        color_masks = jnp.stack([((I_idx % 2 == ci) & (J_idx % 2 == cj)).astype(jnp.float64)
+        color_masks = jnp.stack([((I_idx % 2 == ci) & (J_idx % 2 == cj)).astype(jnp.float64) 
                                  for ci in range(2) for cj in range(2)]) # (4, NI, NJ)
 
         # --- Common Physical Residual Logic ---
-        def compute_R_physical(Q):
+        def compute_R_physical(Q, params: PhysicsParams):
             """Core physics calculation (Convection + Diffusion + Sources)."""
+            # Extract dynamic parameters
+            beta = params.beta
+            k4 = params.k4
+            nu = params.mu_laminar
+            
             # 1. Convective fluxes
             R = compute_fluxes_jax(Q, Si_x, Si_y, Sj_x, Sj_y, beta, k4, nghost, sigma=sigma)
             
@@ -429,9 +464,9 @@ class RANSSolver:
             vel_mag = jnp.sqrt(Q_int[:, :, 1]**2 + Q_int[:, :, 2]**2)
             P, D, cb2_term = compute_aft_sa_source_jax(
                 nu_tilde, grad, wall_dist, vel_mag, nu,
-                aft_gamma_coeff, aft_re_omega_scale, aft_log_divisor,
-                aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale,
-                aft_blend_threshold, aft_blend_width,
+                params.aft_gamma_coeff, params.aft_re_omega_scale, params.aft_log_divisor,
+                params.aft_sigmoid_center, params.aft_sigmoid_slope, params.aft_rate_scale,
+                params.aft_blend_threshold, params.aft_blend_width,
                 explicit_production
             )
             R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
@@ -439,18 +474,18 @@ class RANSSolver:
 
         # --- JIT-compiles residual function (for preconditioner and diagnostics) ---
         @jax.jit
-        def jit_residual(Q):
-            Q = apply_bc(Q)
-            return compute_R_physical(Q)
+        def jit_residual(Q, params: PhysicsParams):
+            Q = apply_bc(Q, params)
+            return compute_R_physical(Q, params)
         
         self._jit_residual = jit_residual
 
         # --- JIT-compiled RK Stage ---
         @jax.jit
-        def jit_rk_stage(Q, Q0, dt, alpha_rk):
+        def jit_rk_stage(Q, Q0, dt, alpha_rk, params: PhysicsParams):
             """Single RK stage with optional residual smoothing."""
-            Q = apply_bc(Q)
-            R = compute_R_physical(Q)
+            Q = apply_bc(Q, params)
+            R = compute_R_physical(Q, params)
             
             # Explicit smoothing (Optional)
             if smoothing_epsilon > 0 and smoothing_passes > 0:
@@ -472,7 +507,7 @@ class RANSSolver:
         # --- JIT-compiled Newton-GMRES Step ---
         
         @jax.jit
-        def jit_newton_step(Q_n, dt, gmres_tol):
+        def jit_newton_step(Q_n, dt, gmres_tol, params: PhysicsParams):
             """Full Newton-GMRES step on GPU."""
             # 1. Block-Jacobi Preconditioner: P = V/dt - J_diag
             def compute_J_diag(Q):
@@ -484,7 +519,7 @@ class RANSSolver:
                 
                 tangents = jax.vmap(make_tangent)(jnp.arange(16))
                 def single_jvp(t):
-                    _, res = jax.jvp(jit_residual, (Q,), (t,))
+                    _, res = jax.jvp(lambda q: jit_residual(q, params), (Q,), (t,))
                     return res
                 jvps = jax.vmap(single_jvp)(tangents)
                 return (jvps.reshape(4, 4, NI, NJ, 4) * color_masks[:, None, :, :, None]).sum(axis=0).transpose(1, 2, 3, 0)
@@ -500,7 +535,7 @@ class RANSSolver:
             def F_fn(q_flat):
                 q_int = q_flat.reshape(NI, NJ, 4)
                 q_full = Q_n.at[nghost:-nghost, nghost:-nghost, :].set(q_int)
-                R = jit_residual(q_full)
+                R = jit_residual(q_full, params)
                 if smoothing_epsilon > 0 and smoothing_passes > 0:
                     R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
                 ptc = (volume / dt)[:, :, jnp.newaxis] * (q_int - Q_n[nghost:-nghost, nghost:-nghost, :])
@@ -525,19 +560,22 @@ class RANSSolver:
             Q0_int = Q_n[nghost:-nghost, nghost:-nghost, :]
             Q_int_new = apply_patankar_update(Q0_int, dQ)
             
-            Q_final = apply_bc(Q_n.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new))
+            Q_final = apply_bc(Q_n.at[nghost:-nghost, nghost:-nghost, :].set(Q_int_new), params)
             
             return Q_final, iters, r_norm, converged
 
         self._jit_newton_step = jit_newton_step
         
         @jax.jit
-        def jit_compute_dt(Q, cfl):
+        def jit_compute_dt(Q, cfl, params: PhysicsParams):
             """Compute local timestep - JIT compiled with turbulent viscosity correction."""
             # Compute effective viscosity at each cell for proper viscous stability
             Q_int = Q[nghost:-nghost, nghost:-nghost, :]
             nu_tilde = jnp.maximum(Q_int[:, :, 3], 0.0)
             
+            nu = params.mu_laminar
+            beta = params.beta
+
             # SA turbulent viscosity: mu_t = nu_tilde * fv1
             chi = nu_tilde / (nu + 1e-30)
             cv1 = 7.1
@@ -561,7 +599,7 @@ class RANSSolver:
         # self._warmup_jax()
     
 
-    def _get_unified_residual_fn(self, Q0: jnp.ndarray, dt: jnp.ndarray) -> Callable:
+    def _get_unified_residual_fn(self, Q0: jnp.ndarray, dt: jnp.ndarray, params: PhysicsParams) -> Callable:
         """Create a unified residual function F(Q) for Newton-Krylov.
         
         F(Q) = (V/dt) * (Q - Q0) - R(Q)
@@ -586,10 +624,10 @@ class RANSSolver:
             Q_full = Q0.at[nghost:-nghost, nghost:-nghost, :].set(Q_int)
             
             # 3. Apply BCs (sensitivities will be captured by AD!)
-            Q_full = apply_bc(Q_full)
+            Q_full = apply_bc(Q_full, params)
             
             # 4. Compute physical residual
-            R = self._physical_residual_jax(Q_full)
+            R = self._physical_residual_jax(Q_full, params)
             
             # 5. Apply residual smoothing if configured
             if smoothing_epsilon > 0 and smoothing_passes > 0:
@@ -620,10 +658,15 @@ class RANSSolver:
             cfl = self._get_cfl_newton(self.iteration)
         else:
             cfl = self._get_cfl(self.iteration)
-        dt = self._jit_compute_dt(self.Q_jax, cfl)
+            
+        params = self._build_params()
+        dt = self._jit_compute_dt(self.Q_jax, cfl, params)
+        
+        # Use lambda to bind params for residual function expected by preconditioner
+        residual_fn = lambda q: self._jit_residual(q, params)
         
         self._preconditioner = BlockJacobiPreconditioner.compute(
-            residual_fn=self._jit_residual,
+            residual_fn=residual_fn,
             Q=self.Q_jax,
             dt=dt,
             volume=self.volume_jax,
@@ -641,7 +684,8 @@ class RANSSolver:
         
         cfl = self.config.cfl_start
         Q_test = self.Q_jax
-        dt = self._jit_compute_dt(Q_test, cfl)
+        params = self._build_params()
+        dt = self._jit_compute_dt(Q_test, cfl, params)
         
         if solver_mode == 'newton':
             # Newton mode: warm up with EXACT production settings
@@ -650,13 +694,13 @@ class RANSSolver:
             
             # Use actual JIT function
             # Note: We must block until ready to ensure compilation finishes
-            _ = self._jit_newton_step(Q_test, dt, self.config.gmres_tol)
+            _ = self._jit_newton_step(Q_test, dt, self.config.gmres_tol, params)
             jax.block_until_ready(_)
             
         else:
             # RK mode: warm up RK stages
             for alpha in [0.25, 0.5]:
-                Q_test, _ = self._jit_rk_stage(Q_test, Q_test, dt, alpha)
+                Q_test, _ = self._jit_rk_stage(Q_test, Q_test, dt, alpha, params)
             jax.block_until_ready(Q_test)
         
         logger.info("JIT Warmup done")
@@ -842,8 +886,9 @@ class RANSSolver:
     
     def _step_rk5(self) -> None:
         """Standard explicit RK5 step."""
+        params = self._build_params()
         cfl = self._get_cfl(self.iteration)
-        dt = self._jit_compute_dt(self.Q_jax, cfl)
+        dt = self._jit_compute_dt(self.Q_jax, cfl, params)
         
         alphas = [0.25, 0.166666667, 0.375, 0.5, 1.0]
         
@@ -851,9 +896,9 @@ class RANSSolver:
         Q = self.Q_jax
         
         for alpha in alphas:
-            Q, R = self._jit_rk_stage(Q, Q0, dt, alpha)
+            Q, R = self._jit_rk_stage(Q, Q0, dt, alpha, params)
         
-        Q = self.apply_bc_jit(Q)
+        Q = self.apply_bc_jit(Q, params)
         
         self.Q_jax = Q
         self.R_jax = R
@@ -867,8 +912,9 @@ class RANSSolver:
         This accelerates convergence by accounting for local stiffness from
         turbulent viscosity and artificial compressibility.
         """
+        params = self._build_params()
         cfl = self._get_cfl(self.iteration)
-        dt = self._jit_compute_dt(self.Q_jax, cfl)
+        dt = self._jit_compute_dt(self.Q_jax, cfl, params)
         
         # Compute preconditioner at current state
         # This is done every iteration for maximum accuracy
@@ -880,15 +926,15 @@ class RANSSolver:
         Q = self.Q_jax
         
         for alpha in alphas:
-            Q, R = self._rk_stage_preconditioned(Q, Q0, dt, alpha)
+            Q, R = self._rk_stage_preconditioned(Q, Q0, dt, alpha, params)
         
-        Q = self.apply_bc_jit(Q)
+        Q = self.apply_bc_jit(Q, params)
         
         self.Q_jax = Q
         self.R_jax = R
     
     def _rk_stage_preconditioned(
-        self, Q: jnp.ndarray, Q0: jnp.ndarray, dt: jnp.ndarray, alpha: float
+        self, Q: jnp.ndarray, Q0: jnp.ndarray, dt: jnp.ndarray, alpha: float, params: PhysicsParams
     ) -> Tuple[jnp.ndarray, jnp.ndarray]:
         """Single RK stage with preconditioned residual.
         
@@ -903,8 +949,8 @@ class RANSSolver:
         smoothing_passes = getattr(self.config, 'smoothing_passes', 2)
         
         # Apply BC and compute residual
-        Q = self.apply_bc_jit(Q)
-        R = self._jit_residual(Q)  # (NI, NJ, 4)
+        Q = self.apply_bc_jit(Q, params)
+        R = self._jit_residual(Q, params)  # (NI, NJ, 4)
         
         # Apply preconditioner: R_precond = P^{-1} @ R
         R_precond = self._precond_apply(R)  # (NI, NJ, 4)
@@ -924,14 +970,15 @@ class RANSSolver:
     def _step_newton(self) -> None:
         """Newton-GMRES step with consolidated residual and JAX AD."""
         Q_n = self.Q_jax
+        params = self._build_params()
         cfl = self._get_cfl_newton(self.iteration)
-        dt = self._jit_compute_dt(Q_n, cfl)
+        dt = self._jit_compute_dt(Q_n, cfl, params)
         gmres_tol = float(getattr(self.config, 'gmres_tol', 1e-3))
         
         # Execute unified JIT Newton step (includes preconditioner + linear solve + update)
-        self.Q_jax, iters, r_norm, converged = self._jit_newton_step(Q_n, dt, gmres_tol)
+        self.Q_jax, iters, r_norm, converged = self._jit_newton_step(Q_n, dt, gmres_tol, params)
         
-        self.R_jax = self._jit_residual(self.Q_jax)
+        self.R_jax = self._jit_residual(self.Q_jax, params)
         self._last_gmres_info = {
             'iterations': int(iters),
             'rhs_norm': float(jnp.linalg.norm(self.R_jax)), # Approximation
