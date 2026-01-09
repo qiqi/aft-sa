@@ -97,7 +97,6 @@ class SolverConfig:
     aft_blend_width: float = 4.0      # Blending smoothness
     
     # Jacobian Control
-    explicit_production: bool = True  # Treat production terms explicitly to avoid negative diagonals
 
 
 class RANSSolver:
@@ -401,22 +400,6 @@ class RANSSolver:
         ls_weights_i = self.ls_weights_i_jax
         ls_weights_j = self.ls_weights_j_jax
         
-        # --- Capture Constants (Physics) ---
-        nu = self.mu_laminar
-        beta = self.config.beta
-        k4 = self.config.jst_k4
-        aft_gamma_coeff = self.config.aft_gamma_coeff
-        aft_re_omega_scale = self.config.aft_re_omega_scale
-        aft_log_divisor = self.config.aft_log_divisor
-        aft_sigmoid_center = self.config.aft_sigmoid_center
-        aft_sigmoid_slope = self.config.aft_sigmoid_slope
-        aft_rate_scale = self.config.aft_rate_scale
-        aft_blend_threshold = self.config.aft_blend_threshold
-        aft_blend_width = self.config.aft_blend_width
-        
-        # Jacobian control
-        explicit_production = self.config.explicit_production
-        
         # Newton-GMRES specific constants
         gmres_restart = getattr(self.config, 'gmres_restart', 20)
         gmres_maxiter = getattr(self.config, 'gmres_maxiter', 100)
@@ -466,8 +449,7 @@ class RANSSolver:
                 nu_tilde, grad, wall_dist, vel_mag, nu,
                 params.aft_gamma_coeff, params.aft_re_omega_scale, params.aft_log_divisor,
                 params.aft_sigmoid_center, params.aft_sigmoid_slope, params.aft_rate_scale,
-                params.aft_blend_threshold, params.aft_blend_width,
-                explicit_production
+                params.aft_blend_threshold, params.aft_blend_width
             )
             R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
             return R

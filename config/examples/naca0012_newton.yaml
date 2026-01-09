@@ -35,9 +35,9 @@ solver:
   gmres_tol: 1.0e-3     # Relative tolerance for GMRES linear solve
   
   cfl:
-    initial: 1        # Starting CFL (pseudo-transient continuation)
-    final: 1000        # Maximum CFL (infinity for steady state)
-    ramp_iter: 120      # Iterations per decade (CFL multiplied by 10 every ramp_iter)
+    initial: 10       # Starting CFL (pseudo-transient continuation)
+    final: inf         # Maximum CFL (infinity for steady state)
+    ramp_iter: 100      # Iterations per decade (CFL multiplied by 10 every ramp_iter)
 
 numerics:
   jst_k4: 0.10              # 4th-order dissipation coefficient

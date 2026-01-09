@@ -170,7 +170,7 @@ def compute_aft_amplification_rate(Re_Omega: ArrayLike, Gamma: ArrayLike,
     """
     # Activation variable
     # User modification: replace Gamma < 1 part with log(Gamma) + 1 (for continuity at 1)
-    Gamma_mod = jnp.where(Gamma < 1.0, jnp.log(jnp.maximum(Gamma, 1e-20)) + 1.0, Gamma)
+    Gamma_mod = jnp.where(Gamma < 1.0, jnp.log(jnp.maximum(Gamma * 2 - 1, 1e-20)) / 2 + 1.0, Gamma)
     a = jnp.log10(jnp.abs(Re_Omega) / re_scale + 1e-20) / log_divisor + Gamma_mod
     
     # Sigmoid activation (using jax.nn.sigmoid for stability)
