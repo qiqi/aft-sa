@@ -67,6 +67,7 @@ module vardef
     double precision :: funi        ! Uniformness of areas at farfield for
                                     !  hyperbolic grid
     double precision :: wkfn        ! Wake fan factor: scales grid spacing in wake
+    double precision :: wkfk        ! Wake fan exponent constant
     integer :: asmt                 ! Number of area smoothing steps hyp.
     logical :: f3d_compat           ! FUN3D compatibility mode
 

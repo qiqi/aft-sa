@@ -100,6 +100,8 @@ Examples:
                         help="Wake nodes for grid generation")
     parser.add_argument("--wake-fan-factor", type=float,
                         help="Wake expansion factor (default: 0.005)")
+    parser.add_argument("--wake-fan-k", type=float,
+                        help="Wake expansion exponent k (default: 10.0)")
     parser.add_argument("--coarse", action="store_true",
                         help="Use coarse grid (256x32 cells)")
     parser.add_argument("--super-coarse", action="store_true",
@@ -225,6 +227,7 @@ Examples:
             reynolds=sim_config.flow.reynolds,
             farfield_radius=sim_config.grid.farfield_radius,
             wake_fan_factor=sim_config.grid.wake_fan_factor,
+            wake_fan_k=sim_config.grid.wake_fan_k,
             max_first_cell=max_first_cell,
             project_root=project_root,
             verbose=True

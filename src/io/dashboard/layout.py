@@ -262,7 +262,7 @@ def create_standard_layout(
         PlotSpec("residual" if has_res_field else "vel_mag", PlotType.CONTOUR_2D,
                  "Residual Field (log₁₀)" if has_res_field else "Velocity Magnitude",
                  data_key="residual_field" if has_res_field else "vel_mag"),
-        PlotSpec("grid", PlotType.CONTOUR_2D, "Grid", data_key="grid"),
+        PlotSpec("amplification_rate", PlotType.CONTOUR_2D, "Amplification Rate (a)", data_key="amp_rate"),
     )
     
     # Optional AFT rows
@@ -409,6 +409,16 @@ def configure_dashboard_controls(
                      args=[[None], dict(frame=dict(duration=0, redraw=False),
                                        mode='immediate', transition=dict(duration=0))]),
             ]
+        ), dict(
+            type='buttons',
+            showactive=True,
+            y=1.05, x=0.13, xanchor='left',
+            buttons=[
+                dict(label='Show Grid', method='restyle',
+                     args=[{'aaxis.showgrid': True, 'baxis.showgrid': True}]),
+                dict(label='Hide Grid', method='restyle',
+                     args=[{'aaxis.showgrid': False, 'baxis.showgrid': False}]),
+            ]
         )],
         sliders=[
             dict(active=len(all_snapshots)-1, yanchor='bottom', xanchor='left',
@@ -435,7 +445,8 @@ def configure_dashboard_controls(
     
     # Configure axes for all contour plots
     contour_plot_names = ["pressure", "cpt" if has_cpt else "nu",
-                          "u_vel", "v_vel", "residual" if has_res_field else "vel_mag", "grid", "chi"]
+                          "u_vel", "v_vel", "residual" if has_res_field else "vel_mag", 
+                          "amplification_rate", "chi"]
     if has_aft:
         contour_plot_names.extend(["re_omega", "gamma", "is_turb"])
     if has_wall_dist:

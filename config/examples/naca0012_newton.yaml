@@ -11,6 +11,8 @@ grid:
   y_plus: 1.0           # Target y+ for first cell
   gradation: 1.2        # Wall-normal cell growth ratio
   farfield_radius: 15.0 # Farfield distance in chords
+  wake_fan_factor: 0.005 # Wake fanning m
+  wake_fan_k: 10.0       # Wake fanning exponent k (initial slope ~k*y0)
 
 
 flow:

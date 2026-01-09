@@ -411,6 +411,7 @@ subroutine apply_normal_spacing(grid, options)
   type(options_type), intent(in) :: options
 
   double precision y0, ga, gamax, dist, tex, tey, y0_local
+  double precision wk_a, wk_m, wk_k
   double precision, dimension(grid%jmax) :: x, y, cdfs, cdfj
   integer i, j, pt1 
   logical is_wake 
@@ -428,6 +429,8 @@ subroutine apply_normal_spacing(grid, options)
 
     x = grid%x(i,:)
     y = grid%y(i,:)
+
+
     
     ! Wake check
     is_wake = .false.
@@ -440,7 +443,22 @@ subroutine apply_normal_spacing(grid, options)
     y0_local = y0
     if (is_wake) then
         dist = sqrt((grid%x(i,1)-tex)**2.d0 + (grid%y(i,1)-tey)**2.d0)
-        y0_local = y0 + options%wkfn * dist
+        
+        wk_m = options%wkfn
+        wk_k = options%wkfk
+        
+        ! Check if exponential starts shallower than linear slope (easing in)
+        if (wk_k * y0 < wk_m .and. wk_k > 0.d0) then
+            wk_a = (1.d0 / wk_k) * log(wk_m / (wk_k * y0))
+            if (dist <= wk_a) then
+                y0_local = y0 * exp(wk_k * dist)
+            else
+                y0_local = wk_m * (dist - wk_a) + (wk_m / wk_k)
+            end if
+        else
+            ! Fallback to pure linear if exp is steeper or k invalid
+            y0_local = y0 + wk_m * dist
+        end if
     end if
 
 !   Cumulative distance function for splines in eta-direction
@@ -451,6 +469,7 @@ subroutine apply_normal_spacing(grid, options)
 
     ga = get_growth(cdfs(grid%jmax), y0_local, grid%jmax-1)
     if (ga > gamax) gamax = ga
+    
 
 !   Cumulative distance for actual points
 
@@ -460,6 +479,7 @@ subroutine apply_normal_spacing(grid, options)
     end do
     cdfj(grid%jmax) = cdfs(grid%jmax)
 
+
 !   Set points by interpolation
 
     pt1 = 1
@@ -468,6 +488,7 @@ subroutine apply_normal_spacing(grid, options)
     end do
 
   end do
+
 
 end subroutine apply_normal_spacing
 

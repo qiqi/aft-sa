@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import List, Dict, Any, Optional, TYPE_CHECKING
 
 from ._array_utils import sanitize_array, safe_minmax, safe_absmax
+from src.numerics.aft_sources import AFT_RATE_SCALE
 
 if TYPE_CHECKING:
     from .plotter import Snapshot
@@ -148,8 +149,11 @@ def compute_color_ranges(
         'wall_dist': ColorAxisConfig(
             colorscale='Viridis', cmin=0, cmax=1,
             # Wall distance row depends on whether AFT is present
-            colorbar=dict(title='d/c', len=cb_len, 
-                         y=row_y(5 if has_aft else 4), x=1.02, tickformat='.2f')
+            colorbar=dict(title='d/c', len=cb_len,                          y=row_y(5 if has_aft else 4), x=1.02, tickformat='.2f')
+        ),
+        'amplification_rate': ColorAxisConfig(
+            colorscale='Viridis', cmin=0.0, cmax=AFT_RATE_SCALE,
+            colorbar=dict(title='a', len=cb_len, y=row_y(3), x=0.90, tickformat='.2f')
         ),
     }
 

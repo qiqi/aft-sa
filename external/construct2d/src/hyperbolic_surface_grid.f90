@@ -108,7 +108,7 @@ subroutine specify_hyperbolic_area(area, grid, options, j)
   double precision :: lenscale, boundlen, y0, ga, xz, yz, xn, yn,              &
                       uniform_area, blend, area_scale, pi, smth_fact, &
                       sigma, dist_frac, y0_local, ga_local, step_local, dist, &
-                      tex, tey
+                      tex, tey, wk_a, wk_m, wk_k
   integer :: i, imax, jmax, jj, pt1, nsmt
   logical :: is_wake
 
@@ -144,8 +144,6 @@ subroutine specify_hyperbolic_area(area, grid, options, j)
 
 ! Compute offset surface
 
-! Compute offset surface
-
 ! Pre-calculate standard y0 and boundlen for safety (needed in loop)
   boundlen = options%radi * lenscale 
   y0 = wall_distance(options%yplus, options%Re, options%cfrac)
@@ -168,16 +166,30 @@ subroutine specify_hyperbolic_area(area, grid, options, j)
         ! Physical distance from TE
         dist = sqrt( (grid%x(i,1) - tex)**2.d0 + (grid%y(i,1) - tey)**2.d0 )
         
-        ! Modify local initial spacing
-        ! y0_local increases linearly with distance from TE
-        y0_local = y0 + options%wkfn * dist
+        ! Modify local initial spacing (Exponential-Linear Hybrid)
+        wk_m = options%wkfn
+        wk_k = options%wkfk
         
-        if (j == 1 .and. mod(i, 100) == 0) then
-             write(*,*) "DEBUG: i=", i, " dist=", dist, " y0_loc=", y0_local
-        endif
-        
+        ! Check if exponential starts shallower than linear slope (easing in)
+        if (wk_k * y0 < wk_m .and. wk_k > 0.d0) then
+            wk_a = (1.d0 / wk_k) * log(wk_m / (wk_k * y0))
+            if (dist <= wk_a) then
+                y0_local = y0 * exp(wk_k * dist)
+            else
+                y0_local = wk_m * (dist - wk_a) + (wk_m / wk_k)
+            end if
+        else
+            ! Fallback to pure linear if exp is steeper or k invalid
+            y0_local = y0 + wk_m * dist
+        end if
+
+        ! Compute local step size for this level j
+        ! h_j = y0_local * ga_local^(j-1)
         ! Recompute geometric growth for this point
-        ga_local = get_growth(boundlen, y0_local, jmax-1)
+        ! ga_local = get_growth(boundlen, y0_local, jmax-1)
+        ! step_local = y0_local * (ga_local**(j-1))
+        
+        step_local = cell_sizes(j)
         
         xoff(i) = grid%x(i,j) + normals(i,1)*step_local
         yoff(i) = grid%y(i,j) + normals(i,2)*step_local
@@ -190,6 +202,8 @@ subroutine specify_hyperbolic_area(area, grid, options, j)
         yoff(i) = grid%y(i,j) + normals(i,2)*cell_sizes(j)
     end if
   end do
+
+  ! Dump xoff/yoff (Explicit March) for debug
 
 ! Compute length of offset surface and current surface
   
@@ -248,7 +262,7 @@ subroutine specify_hyperbolic_area(area, grid, options, j)
     end if
   
     area(i) = xz*yn - xn*yz
-
+    
   end do
 
 ! Smooth cell areas locally 
@@ -357,7 +371,7 @@ subroutine hyperbolic_system(LHS, RHS, grid, options, area, j)
   double precision, dimension(2,2) :: A, B, Binv, C, Bl1, Bl2, Bl3
   double precision, dimension(2) :: fvec, rhsvec1, rhsvec2, rhsvec3 
 
-  eps_scale = dble(j-2)/dble(grid%jmax-2)
+  eps_scale = dble(j-1)/dble(grid%jmax-2)
   epsi = eps_scale*options%epsi
   epse = eps_scale*options%epse
   alfa = options%alfa
@@ -366,6 +380,8 @@ subroutine hyperbolic_system(LHS, RHS, grid, options, area, j)
   RHS(:) = 0.d0
   fvec(:) = 0.d0
   iimax = 2*imax - 2
+
+  ! Dump Current Grid Level (Base for next step)
 
   do i = 1, imax - 1
 
@@ -536,6 +552,8 @@ subroutine hyperbolic_system(LHS, RHS, grid, options, area, j)
     RHS(iindex:iindex+1) = rhsvec1 - (epsi+epse)*rhsvec2 +                     &
                            matmul(C,rhsvec3) + matmul(Binv,fvec)
 
+    ! Dump RHS Components for debug (only for LAST step j=jmax-1)
+
   end do
 
 end subroutine hyperbolic_system
@@ -563,6 +581,8 @@ subroutine solve_hyperbolic_system(grid, LHS, RHS, j, imax, topology)
 ! Solve (nearly) block tridiagonal system
 
   slnvec = lmult(LHS, RHS)
+
+  ! Dump Debug Before/After
 
 ! Put x and y back into grid structure
 

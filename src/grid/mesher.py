@@ -24,6 +24,7 @@ class GridOptions:
     wake_length_ratio: float = 1.0
     wake_init_ratio: float = 0.1
     wake_fan_factor: float = 0.0
+    wake_fan_k: float = 10.0
     
     n_normal: int = 100
     solver: str = 'HYPR'
@@ -103,6 +104,7 @@ class Construct2DWrapper:
   funi = {funi:.6f}
   asmt = {opts.asmt}
   wkfn = {opts.wake_fan_factor:.6f}
+  wkfk = {opts.wake_fan_k:.6f}
 /
 &OOPT
   gdim = {opts.grid_dim}
@@ -179,6 +181,8 @@ class Construct2DWrapper:
                     if 'First layer wall distance' in line:
                         print(f"  {line.strip()}")
                     elif 'Max skew angle' in line:
+                        print(f"  {line.strip()}")
+                    elif 'DEBUG' in line:
                         print(f"  {line.strip()}")
             
             X, Y = self._read_plot3d(output_file)

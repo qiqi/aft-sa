@@ -20,6 +20,7 @@ from .._html_components import (
 )
 from .data import Snapshot
 from .layout import DashboardLayout
+from src.numerics.aft_sources import compute_aft_amplification_rate
 
 if TYPE_CHECKING:
     from ...grid.metrics import FVMMetrics
@@ -100,7 +101,7 @@ class TraceManager:
             ('v_vel', 'v', color_config['velocity']),
             ('cpt' if has_cpt else 'nu', 'cpt' if has_cpt else 'nu', color_config['pressure']),
             ('residual' if has_res_field else 'vel_mag', 'res' if has_res_field else 'mag', color_config['residual']),
-            ('grid', 'grid', None),
+            ('amplification_rate', 'amp_rate', color_config['amplification_rate']),
             ('chi', 'chi', color_config['chi']),
         ]
         
@@ -113,6 +114,7 @@ class TraceManager:
             'residual': 'log₁₀(R)',
             'vel_mag': '|V|',
             'chi': 'log₁₀(χ)',
+            'amplification_rate': 'a',
         }
         
         for name, _, cfg in standard_plots:
@@ -132,13 +134,21 @@ class TraceManager:
             elif name == 'residual': data = field5.flatten()
             elif name == 'vel_mag': data = field5.flatten()
             elif name == 'chi': data = chi_log_safe
+            elif name == 'amplification_rate':
+                # Compute on-the-fly using numpy/jax
+                if snapshot.Re_Omega is not None and snapshot.Gamma is not None:
+                    # Note: compute_aft_amplification_rate handles numpy inputs
+                    Re_Omega = sanitize_array(snapshot.Re_Omega, fill_value=0.0)
+                    Gamma = sanitize_array(snapshot.Gamma, fill_value=0.0)
+                    data = np.array(compute_aft_amplification_rate(Re_Omega, Gamma)).flatten()
+                else:
+                    data = np.zeros_like(xc).flatten()
             
-            # Grid Pane
-            is_grid_panel = (name == 'grid')
+            # Grid Lines: Default to OFF (False), toggled via UI button
             axis_style = dict(
-                showgrid=is_grid_panel, 
-                gridcolor='black' if is_grid_panel else None,
-                gridwidth=0.5 if is_grid_panel else None,
+                showgrid=False, 
+                gridcolor='black',
+                gridwidth=0.5,
                 showticklabels='none', 
                 showline=False
             )
@@ -152,7 +162,7 @@ class TraceManager:
                 baxis=axis_style,
             ), row=row, col=col)
             
-            if not is_grid_panel and data is not None:
+            if data is not None:
                 trace_name = f'contour_{name}'
                 show_colorbar = self.layout.should_show_colorbar(name)
                 
@@ -182,6 +192,15 @@ class TraceManager:
                     colorbar=colorbar_dict,
                     showscale=show_colorbar,
                 ), row=row, col=col)
+                
+                # Add Grid Overlay (Hidden by default, toggled via button)
+                # We reuse the same carpet definition but control its axis visibility
+                # Actually, the carpet trace IS the coordinate system. We declared it above at line 170.
+                # We simply need to ensure it was created with showgrid=False initially.
+                # Lines 146-153 create the carpet trace.
+                # I should MODIFY that creation to be False by default.
+                # And remove this duplicate adding code which I added in previous step.
+                pass 
 
     def add_aft_traces(
         self,
