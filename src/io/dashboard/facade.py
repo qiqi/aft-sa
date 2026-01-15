@@ -33,6 +33,7 @@ class PlotlyDashboard:
         self.nu_laminar = 1.0 / reynolds if reynolds > 0 else 1e-6
         self.use_cdn = use_cdn
         self.compress = compress
+        self.surface_reference = None
         
         # Facade properties for backward compatibility if accessed directly
         self.snapshots = self.data_mgr.snapshots
@@ -69,6 +70,19 @@ class PlotlyDashboard:
             iteration_history, is_divergence_dump, Re_Omega, Gamma, is_turb,
             amplification_ratio
         )
+
+    def set_surface_reference(
+        self,
+        x_surface: np.ndarray,
+        cp_ref: np.ndarray,
+        cf_ref: np.ndarray,
+    ) -> None:
+        """Store reference Cp/Cf distributions for overlay plots."""
+        self.surface_reference = {
+            "x": np.array(x_surface),
+            "cp": np.array(cp_ref),
+            "cf": np.array(cf_ref),
+        }
 
     def save_html(
         self,
@@ -150,7 +164,8 @@ class PlotlyDashboard:
         if has_surface_data:
             surface_params = trace_mgr.add_surface_traces(
                 fig, grid_metrics, X, all_snapshots, n_wake, 
-                self.data_mgr.u_inf, self.data_mgr.v_inf
+                self.data_mgr.u_inf, self.data_mgr.v_inf,
+                surface_reference=self.surface_reference
             )
             
         # 5. Create Animation Frames

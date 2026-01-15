@@ -1081,7 +1081,7 @@ class RANSSolver:
         Per-cell scaling (scale_i):
         - Pressure: β (artificial compressibility parameter)
         - u, v: V_inf (freestream velocity magnitude)
-        - ν̃: (ν_laminar + ν̃_i) at each cell (local scaling to prevent far-wake dominance)
+        - ν̃: (100 * ν_laminar + 10 * ν̃_i) at each cell (local scaling to prevent far-wake dominance)
         
         Global normalization (F_scale):
         - V_inf * chord (freestream volume flux through unit chord, which equals V_inf for chord=1)
@@ -1103,8 +1103,8 @@ class RANSSolver:
         nuHat = jnp.maximum(Q_int[:, :, 3], 0.0)
         
         # Local effective viscosity for nuHat scaling (prevents far-wake dominance)
-        nu_eff = nu_laminar + nuHat
-        # nu_eff >= nu_laminar by construction since nuHat >= 0, no clipping needed
+        nu_eff = 100.0 * nu_laminar + 10.0 * nuHat
+        # nu_eff >= 100 * nu_laminar by construction since nuHat >= 0
         
         # Residual (this is the integral flux imbalance, NOT divided by volume)
         R = self.R_jax
@@ -1134,7 +1134,7 @@ class RANSSolver:
         Uses the same scaling as get_residual_l1_scaled():
         - p scaled by β
         - u, v scaled by V_inf  
-        - nuHat scaled by local (ν_laminar + ν̃)
+        - nuHat scaled by local (100 * ν_laminar + 10 * ν̃)
         
         Then divides by cell volume to get residual density,
         and takes RMS across the 4 equations.
@@ -1156,8 +1156,8 @@ class RANSSolver:
         nuHat = jnp.maximum(Q_int[:, :, 3], 0.0)
         
         # Local effective viscosity for nuHat scaling
-        # nu_eff >= nu_laminar by construction since nuHat >= 0
-        nu_eff = nu_laminar + nuHat
+        # nu_eff >= 100 * nu_laminar by construction since nuHat >= 0
+        nu_eff = 100.0 * nu_laminar + 10.0 * nuHat
         
         # Residual and volume
         R = self.R_jax

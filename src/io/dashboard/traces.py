@@ -377,6 +377,7 @@ class TraceManager:
         n_wake: int,
         u_inf: float,
         v_inf: float,
+        surface_reference: Optional[dict] = None,
     ) -> dict:
         """Add Cp and Cf surface plots."""
         if not self.layout.has_plot("cp"):
@@ -417,6 +418,25 @@ class TraceManager:
             mode='lines', line=dict(color='red', width=2),
             showlegend=False, name='Cf',
         ), row=surface_row, col=2)
+
+        if surface_reference is not None:
+            ref_x = surface_reference.get("x")
+            ref_cp = surface_reference.get("cp")
+            ref_cf = surface_reference.get("cf")
+            if ref_x is not None and ref_cp is not None:
+                self.tracker.add_static('cp_mfoil_line')
+                fig.add_trace(go.Scatter(
+                    x=ref_x, y=ref_cp,
+                    mode='lines', line=dict(color='blue', width=2, dash='dot'),
+                    showlegend=True, name='Cp (mfoil)',
+                ), row=surface_row, col=1)
+            if ref_x is not None and ref_cf is not None:
+                self.tracker.add_static('cf_mfoil_line')
+                fig.add_trace(go.Scatter(
+                    x=ref_x, y=ref_cf,
+                    mode='lines', line=dict(color='red', width=2, dash='dot'),
+                    showlegend=True, name='Cf (mfoil)',
+                ), row=surface_row, col=2)
         
         return {
             'surface_row': surface_row,

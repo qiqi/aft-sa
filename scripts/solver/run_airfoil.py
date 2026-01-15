@@ -250,6 +250,49 @@ Examples:
     
     # Create solver with pre-loaded grid
     solver = RANSSolver(grid_data=(X, Y), config=config)
+
+    # Optional: overlay mfoil reference Cp/Cf as dotted lines in HTML plots
+    try:
+        from src.validation.mfoil_runner import run_turbulent
+
+        airfoil_path = Path(sim_config.grid.airfoil)
+        if not airfoil_path.is_absolute():
+            airfoil_path = project_root / airfoil_path
+        mfoil_result = run_turbulent(
+            reynolds=sim_config.flow.reynolds,
+            alpha=sim_config.flow.alpha,
+            airfoil_file=str(airfoil_path),
+        )
+        if mfoil_result.get("converged", False):
+            x_upper = mfoil_result["x_upper"]
+            x_lower = mfoil_result["x_lower"]
+            cp_upper = mfoil_result["cp_upper"]
+            cp_lower = mfoil_result["cp_lower"]
+            cf_upper = mfoil_result["cf_upper"]
+            cf_lower = mfoil_result["cf_lower"]
+
+            x_surf = 0.5 * (X[:-1, 0] + X[1:, 0])
+            y_surf = 0.5 * (Y[:-1, 0] + Y[1:, 0])
+            i_start = sim_config.grid.n_wake
+            i_end = len(x_surf) - sim_config.grid.n_wake
+            x_surf_airfoil = x_surf[i_start:i_end]
+            y_surf_airfoil = y_surf[i_start:i_end]
+
+            order_upper = np.argsort(x_upper)
+            order_lower = np.argsort(x_lower)
+            cp_upper_interp = np.interp(x_surf_airfoil, x_upper[order_upper], cp_upper[order_upper])
+            cp_lower_interp = np.interp(x_surf_airfoil, x_lower[order_lower], cp_lower[order_lower])
+            cf_upper_interp = np.interp(x_surf_airfoil, x_upper[order_upper], cf_upper[order_upper])
+            cf_lower_interp = np.interp(x_surf_airfoil, x_lower[order_lower], cf_lower[order_lower])
+
+            cp_mfoil = np.where(y_surf_airfoil >= 0.0, cp_upper_interp, cp_lower_interp)
+            cf_mfoil = np.where(y_surf_airfoil >= 0.0, cf_upper_interp, cf_lower_interp)
+
+            solver.plotter.set_surface_reference(x_surf_airfoil, cp_mfoil, cf_mfoil)
+        else:
+            logger.warning("mfoil did not converge; skipping Cp/Cf overlay.")
+    except Exception as exc:
+        logger.warning(f"mfoil overlay skipped: {exc}")
     
     logger.info(f"Grid size: {solver.NI} x {solver.NJ} cells")
     logger.info(f"Reynolds: {sim_config.flow.reynolds:.2e}")
