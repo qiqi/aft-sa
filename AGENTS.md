@@ -21,6 +21,7 @@ This file coordinates work between multiple AI agents and human contributors on 
 
 
 
+
 ---
 
 ## Ready for Cleanup
@@ -29,6 +30,7 @@ Files that have been modified and are ready for the Janitor agent to review:
 
 | File/Folder | Last Modified By | Notes |
 |-------------|------------------|-------|
+| `scripts/solver/run_airfoil.py`, `src/physics/jax_config.py`, `src/numerics/explicit_smoothing.py` | GPT-5.2 Codex | Force JIT enabled; restore wake-aware smoothing implementation |
 | `src/io/dashboard/`, `src/io/_html_components.py`, `src/io/_plot_registry.py`, `src/solvers/rans_solver.py` | GPT-5.2 Codex | Add amplification ratio plot, sync wall-distance axes, refactor plot definitions |
 | `src/numerics/smoothing.py`, `src/solvers/time_stepping.py`, `src/numerics/__init__.py`, `tests/numerics/`, `src/solvers/rans_solver.py` | GPT-5.2 Codex | Remove unused implicit smoothing utilities and tests |
 | `src/numerics/gmres.py` | GPT-5.2 Codex | Restore GMRES helper functions for tests |

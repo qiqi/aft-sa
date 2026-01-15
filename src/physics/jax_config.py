@@ -160,6 +160,7 @@ cache_dir.mkdir(parents=True, exist_ok=True)
 jax.config.update("jax_compilation_cache_dir", str(cache_dir))
 logger.info(f"JAX persistent compilation cache enabled at: {cache_dir.absolute()}")
 
+jax.config.update("jax_disable_jit", False)
 jax.config.update("jax_enable_x64", True)
 
 

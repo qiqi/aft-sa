@@ -25,6 +25,7 @@ Usage:
 
 import sys
 import argparse
+import os
 from pathlib import Path
 
 # Add project root to path
@@ -125,6 +126,9 @@ Examples:
     
     args = parser.parse_args()
     
+    # Always keep JIT enabled for performance (override any env setting).
+    os.environ["JAX_DISABLE_JIT"] = "0"
+
     # Select device BEFORE importing JAX-dependent modules
     device_spec = args.device
     if args.config:

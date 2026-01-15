@@ -2,7 +2,10 @@
 Multi-Stage Explicit Residual Smoothing for 2D structured grids.
 
 Smoothing operator: R̄_i = R_i + ε(R_{i+1} - 2R_i + R_{i-1})
-Applied N passes in ADI fashion (I-direction then J-direction).
+Applied 2 passes in ADI fashion (I-direction then J-direction).
+
+For C-grid topology, J-direction smoothing at j=0 uses wake cut connectivity:
+wake cells connect across the cut in reverse i-order.
 
 Advantages over Implicit (tridiagonal) smoothing:
 - Fully parallelizable on GPU
@@ -23,12 +26,10 @@ NDArrayFloat = npt.NDArray[np.floating]
 # JAX Implementation
 # =============================================================================
 
-@jax.jit
 def _smooth_pass_i_jax(R, epsilon):
     """Apply one smoothing pass in I-direction (Neumann BC)."""
     # R has shape (NI, NJ, n_vars)
     
-    # Get shifted arrays using slicing (more efficient than roll for boundaries)
     # R_plus[i] = R[i+1], with R_plus[-1] = R[-1] (Neumann)
     R_plus = jnp.concatenate([R[1:, :, :], R[-1:, :, :]], axis=0)
     
@@ -36,75 +37,58 @@ def _smooth_pass_i_jax(R, epsilon):
     R_minus = jnp.concatenate([R[:1, :, :], R[:-1, :, :]], axis=0)
     
     # Apply smoothing operator: R̄ = R + ε(R+ - 2R + R-)
-    R_smooth = R + epsilon * (R_plus - 2.0 * R + R_minus)
-    
-    return R_smooth
+    return R + epsilon * (R_plus - 2.0 * R + R_minus)
 
 
-@jax.jit
-def _smooth_pass_j_jax(R, epsilon):
-    """Apply one smoothing pass in J-direction (Neumann BC)."""
-    # R has shape (NI, NJ, n_vars)
+def _smooth_pass_j_wake_jax(R, epsilon, n_wake):
+    """Apply one smoothing pass in J-direction with wake cut connectivity.
     
-    # R_plus[j] = R[j+1], with R_plus[-1] = R[-1] (Neumann)
+    For C-grid topology at j=0:
+    - Wake cells (i < n_wake or i >= NI - n_wake) connect across the cut
+    - Wake cut connectivity: point (i, 0) connects to point (NI-1-i, 0) in reverse order
+    - Airfoil surface cells use Neumann BC
+    """
+    NI = R.shape[0]
+    
+    # R_plus[j] = R[j+1], with R_plus[-1] = R[-1] (Neumann at farfield)
     R_plus = jnp.concatenate([R[:, 1:, :], R[:, -1:, :]], axis=1)
     
-    # R_minus[j] = R[j-1], with R_minus[0] = R[0] (Neumann)
-    R_minus = jnp.concatenate([R[:, :1, :], R[:, :-1, :]], axis=1)
+    # R_minus for j > 0: standard shift
+    R_minus_interior = R[:, :-1, :]
+    
+    # R_minus at j=0: wake cut connectivity
+    # For wake cells, R_minus comes from opposite side (reversed i)
+    # R_minus(i, 0) = R(NI-1-i, 0) for wake cells
+    R_at_j0 = R[:, 0, :]  # Shape: (NI, n_vars)
+    R_at_j0_reversed = R_at_j0[::-1, :]  # Reverse i-order
+    
+    # Create mask for wake cells: i < n_wake OR i >= NI - n_wake
+    i_indices = jnp.arange(NI)
+    is_wake = (i_indices < n_wake) | (i_indices >= NI - n_wake)
+    is_wake = is_wake[:, jnp.newaxis]  # Shape: (NI, 1) for broadcasting
+    
+    # At j=0: use wake connectivity for wake cells, Neumann for airfoil
+    R_minus_j0 = jnp.where(is_wake, R_at_j0_reversed, R_at_j0)
+    
+    # Concatenate to form full R_minus
+    R_minus = jnp.concatenate([R_minus_j0[:, jnp.newaxis, :], R_minus_interior], axis=1)
     
     # Apply smoothing operator
-    R_smooth = R + epsilon * (R_plus - 2.0 * R + R_minus)
-    
-    return R_smooth
+    return R + epsilon * (R_plus - 2.0 * R + R_minus)
 
 
-@jax.jit
-def _smooth_1_pass_jax(R, epsilon):
-    """Single ADI pass (I then J direction)."""
+def _smooth_2_passes_wake_jax(R, epsilon, n_wake):
+    """2-pass ADI smoothing with wake cut connectivity."""
     R = _smooth_pass_i_jax(R, epsilon)
-    R = _smooth_pass_j_jax(R, epsilon)
+    R = _smooth_pass_j_wake_jax(R, epsilon, n_wake)
+    R = _smooth_pass_i_jax(R, epsilon)
+    R = _smooth_pass_j_wake_jax(R, epsilon, n_wake)
     return R
 
 
-@jax.jit
-def _smooth_2_passes_jax(R, epsilon):
-    """Optimized 2-pass smoothing."""
-    R = _smooth_pass_i_jax(R, epsilon)
-    R = _smooth_pass_j_jax(R, epsilon)
-    R = _smooth_pass_i_jax(R, epsilon)
-    R = _smooth_pass_j_jax(R, epsilon)
-    return R
-
-
-@jax.jit
-def _smooth_3_passes_jax(R, epsilon):
-    """Optimized 3-pass smoothing."""
-    R = _smooth_pass_i_jax(R, epsilon)
-    R = _smooth_pass_j_jax(R, epsilon)
-    R = _smooth_pass_i_jax(R, epsilon)
-    R = _smooth_pass_j_jax(R, epsilon)
-    R = _smooth_pass_i_jax(R, epsilon)
-    R = _smooth_pass_j_jax(R, epsilon)
-    return R
-
-
-@jax.jit
-def _smooth_4_passes_jax(R, epsilon):
-    """Optimized 4-pass smoothing."""
-    R = _smooth_pass_i_jax(R, epsilon)
-    R = _smooth_pass_j_jax(R, epsilon)
-    R = _smooth_pass_i_jax(R, epsilon)
-    R = _smooth_pass_j_jax(R, epsilon)
-    R = _smooth_pass_i_jax(R, epsilon)
-    R = _smooth_pass_j_jax(R, epsilon)
-    R = _smooth_pass_i_jax(R, epsilon)
-    R = _smooth_pass_j_jax(R, epsilon)
-    return R
-
-
-def smooth_explicit_jax(R, epsilon: float = 0.2, n_passes: int = 2, skip_nuhat: bool = True):
+def smooth_explicit_jax(R, epsilon: float = 0.2, n_wake: int = 0, skip_nuhat: bool = True):
     """
-    Apply multi-pass explicit residual smoothing (JAX).
+    Apply 2-pass explicit residual smoothing (JAX).
     
     Parameters
     ----------
@@ -112,8 +96,9 @@ def smooth_explicit_jax(R, epsilon: float = 0.2, n_passes: int = 2, skip_nuhat: 
         Residual array (NI, NJ, n_vars).
     epsilon : float
         Smoothing coefficient (typically 0.1-0.3).
-    n_passes : int
-        Number of smoothing passes.
+    n_wake : int
+        Number of wake points on each side of the C-grid.
+        Wake cut connectivity is used at j=0 for wake cells.
     skip_nuhat : bool
         If True, do NOT smooth the nuHat variable (index 3).
         This prevents smoothing from corrupting the SA turbulence residual
@@ -124,7 +109,7 @@ def smooth_explicit_jax(R, epsilon: float = 0.2, n_passes: int = 2, skip_nuhat: 
     R_smooth : jnp.ndarray
         Smoothed residual (NI, NJ, n_vars).
     """
-    if epsilon <= 0.0 or n_passes <= 0:
+    if epsilon <= 0.0:
         return R
     
     # Save nuHat residual if we need to skip it
@@ -133,20 +118,8 @@ def smooth_explicit_jax(R, epsilon: float = 0.2, n_passes: int = 2, skip_nuhat: 
     if skip_nuhat and R.shape[-1] > 3:
         R_nuhat_original = R[:, :, 3]
     
-    # Use pre-compiled versions for common cases
-    if n_passes == 1:
-        R_smooth = _smooth_1_pass_jax(R, epsilon)
-    elif n_passes == 2:
-        R_smooth = _smooth_2_passes_jax(R, epsilon)
-    elif n_passes == 3:
-        R_smooth = _smooth_3_passes_jax(R, epsilon)
-    elif n_passes == 4:
-        R_smooth = _smooth_4_passes_jax(R, epsilon)
-    else:
-        # Fallback: manually unroll (less efficient for large n_passes)
-        R_smooth = R
-        for _ in range(n_passes):
-            R_smooth = _smooth_1_pass_jax(R_smooth, epsilon)
+    # Apply 2-pass smoothing with wake connectivity
+    R_smooth = _smooth_2_passes_wake_jax(R, epsilon, n_wake)
     
     # Restore unsmoothed nuHat residual
     if skip_nuhat and R.shape[-1] > 3:
@@ -159,7 +132,7 @@ def smooth_explicit_jax(R, epsilon: float = 0.2, n_passes: int = 2, skip_nuhat: 
 # Dispatch Interface
 # =============================================================================
 
-def apply_explicit_smoothing(R, epsilon: float = 0.2, n_passes: int = 2, skip_nuhat: bool = True):
+def apply_explicit_smoothing(R, epsilon: float = 0.2, n_wake: int = 0, skip_nuhat: bool = True):
     """
     Apply explicit residual smoothing.
     
@@ -169,8 +142,8 @@ def apply_explicit_smoothing(R, epsilon: float = 0.2, n_passes: int = 2, skip_nu
         Residual array (NI, NJ, n_vars). Can be numpy or JAX array.
     epsilon : float
         Smoothing coefficient (typically 0.1-0.3).
-    n_passes : int
-        Number of smoothing passes.
+    n_wake : int
+        Number of wake points on each side of the C-grid.
     skip_nuhat : bool
         If True, do NOT smooth the nuHat variable (index 3).
         
@@ -182,7 +155,7 @@ def apply_explicit_smoothing(R, epsilon: float = 0.2, n_passes: int = 2, skip_nu
     # Convert to JAX if numpy
     if isinstance(R, np.ndarray):
         R = jnp.asarray(R)
-        result = smooth_explicit_jax(R, epsilon, n_passes, skip_nuhat)
+        result = smooth_explicit_jax(R, epsilon, n_wake, skip_nuhat)
         return np.asarray(result)
     else:
-        return smooth_explicit_jax(R, epsilon, n_passes, skip_nuhat)
+        return smooth_explicit_jax(R, epsilon, n_wake, skip_nuhat)
