@@ -437,7 +437,7 @@ def calc_force(M):
         dz =  dxv[1]*cosd(alpha) - dxv[0]*sind(alpha)  # for drag
         cp1,cp2 = cp[ip], cp[i]; cpbar = 0.5*(cp1+cp2)  # average cp on the panel
         cl = cl + dx*cpbar
-        cl_ue[I] += dx*0.5*_cp_ue[I]
+        cl_ue[[ip, i]] += dx * 0.5 * _cp_ue[[ip, i]]
         cl_alpha += cpbar*(sind(alpha)*dxv[0] - cosd(alpha)*dxv[1])*np.pi/180
         cm += cp1*_dx1nds/3 + cp1*_dx2nds/6 + cp2*_dx1nds/6 + cp2*_dx2nds/3
         cdpi = cdpi + dz*cpbar
@@ -2061,7 +2061,7 @@ def build_glob_sys(M):
         alloc_R_U = False
         M.glob.R_U *= 0.
 
-    if (M.glob.realloc) or (type(M.glob.R_x) == list) or not (M.glob.R_x == (3*Nsys, Nsys)):
+    if (M.glob.realloc) or (type(M.glob.R_x) == list) or not (M.glob.R_x.shape == (3*Nsys, Nsys)):
         alloc_R_x = True
         M.glob.R_x = sparse.lil_matrix((3*Nsys,Nsys))
     else:
@@ -3089,7 +3089,9 @@ def get_Hs(U, param):
         Reb, Reb_U = Ret, Ret_U
         if (Ret < 200): Reb, Reb_U = 200, Reb_U*0.
         if (Hk < Ho):  # attached branch
-            _H0 = (11*H + 15)/(48*H + 59)
+            H = Hk
+            Hr = (Ho - Hk) / (Ho - 1.0)
+            _H0 = (11 * H + 15) / (48 * H + 59)
             Hr_U = (Ho_U - Hk_U)/(Ho-1) - (Ho-Hk)/(Ho-1)**2*Ho_U
             aa = (2-Hsmin-4/Reb)*Hr**2
             aa_U = (4/Reb**2*Reb_U)*Hr**2 + (2-Hsmin-4/Reb)*2*Hr*Hr_U

@@ -253,7 +253,7 @@ Examples:
 
     # Optional: overlay mfoil reference Cp/Cf as dotted lines in HTML plots
     try:
-        from src.validation.mfoil_runner import run_turbulent
+        from src.validation.mfoil_runner import run_turbulent, run_laminar
 
         airfoil_path = Path(sim_config.grid.airfoil)
         if not airfoil_path.is_absolute():
@@ -263,6 +263,14 @@ Examples:
             alpha=sim_config.flow.alpha,
             airfoil_file=str(airfoil_path),
         )
+        if not mfoil_result.get("converged", False):
+            logger.warning("mfoil turbulent run did not converge; trying laminar.")
+            mfoil_result = run_laminar(
+                reynolds=sim_config.flow.reynolds,
+                alpha=sim_config.flow.alpha,
+                airfoil_file=str(airfoil_path),
+            )
+
         if mfoil_result.get("converged", False):
             x_upper = mfoil_result["x_upper"]
             x_lower = mfoil_result["x_lower"]
@@ -289,6 +297,7 @@ Examples:
             cf_mfoil = np.where(y_surf_airfoil >= 0.0, cf_upper_interp, cf_lower_interp)
 
             solver.plotter.set_surface_reference(x_surf_airfoil, cp_mfoil, cf_mfoil)
+            logger.info("Added mfoil Cp/Cf overlay to HTML surface plots.")
         else:
             logger.warning("mfoil did not converge; skipping Cp/Cf overlay.")
     except Exception as exc:

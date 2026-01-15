@@ -106,11 +106,16 @@ def _extract_surface_data(M) -> Dict[str, np.ndarray]:
 
 def run_turbulent(reynolds: float, alpha: float = 0.0,
                   naca: str = '0012', npanel: int = 199,
-                  ncrit: float = 9.0) -> Dict[str, Any]:
+                  ncrit: float = 9.0,
+                  airfoil_file: Optional[str] = None) -> Dict[str, Any]:
     """Run mfoil with natural transition (e^N method)."""
     from .mfoil import mfoil
-    
-    M = mfoil(naca=naca, npanel=npanel)
+
+    if airfoil_file is not None:
+        coords = _load_airfoil_coords(airfoil_file)
+        M = mfoil(coords=coords, npanel=npanel)
+    else:
+        M = mfoil(naca=naca, npanel=npanel)
     M.param.ncrit = ncrit
     M.param.doplot = False
     M.param.verb = 0

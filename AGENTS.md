@@ -24,6 +24,8 @@ This file coordinates work between multiple AI agents and human contributors on 
 
 
 
+
+
 ---
 
 ## Ready for Cleanup
@@ -32,6 +34,8 @@ Files that have been modified and are ready for the Janitor agent to review:
 
 | File/Folder | Last Modified By | Notes |
 |-------------|------------------|-------|
+| `src/validation/mfoil.py` | GPT-5.2 Codex | Fix mfoil calc_force/indexing and shape check for overlay |
+| `scripts/solver/run_airfoil.py`, `src/validation/mfoil_runner.py` | GPT-5.2 Codex | Allow mfoil overlay for airfoil file inputs |
 | `scripts/solver/run_airfoil.py`, `src/io/dashboard/` | GPT-5.2 Codex | Overlay mfoil Cp/Cf as dotted reference lines |
 | `src/solvers/rans_solver.py` | GPT-5.2 Codex | Scale nuHat residual by (100*nu_lam + 10*nu_hat) |
 | `scripts/solver/run_airfoil.py`, `src/physics/jax_config.py`, `src/numerics/explicit_smoothing.py` | GPT-5.2 Codex | Force JIT enabled; restore wake-aware smoothing implementation |
