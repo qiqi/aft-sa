@@ -18,6 +18,7 @@ This file coordinates work between multiple AI agents and human contributors on 
 
 | Agent Name/Role | Target File/Folder | Task Description | Start Time |
 |-----------------|-------------------|------------------|------------|
+|                 |                   |                  |            |
 
 
 
@@ -34,6 +35,7 @@ Files that have been modified and are ready for the Janitor agent to review:
 
 | File/Folder | Last Modified By | Notes |
 |-------------|------------------|-------|
+| `src/io/_vtk_writer.py`, `src/io/dashboard/facade.py` | GPT-5.2 Codex | Add VTS time-series output with PVD index alongside legacy VTK |
 | `src/validation/mfoil.py` | GPT-5.2 Codex | Fix mfoil calc_force/indexing and shape check for overlay |
 | `scripts/solver/run_airfoil.py`, `src/validation/mfoil_runner.py` | GPT-5.2 Codex | Allow mfoil overlay for airfoil file inputs |
 | `scripts/solver/run_airfoil.py`, `src/io/dashboard/` | GPT-5.2 Codex | Overlay mfoil Cp/Cf as dotted reference lines |

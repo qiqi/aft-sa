@@ -14,7 +14,7 @@ except ImportError:
 
 from loguru import logger
 
-from .._vtk_writer import write_vtk
+from .._vtk_writer import write_vtk, write_vts_series
 from .._html_components import compute_color_ranges
 from .data import DataManager
 from .layout import create_standard_layout, configure_dashboard_controls
@@ -185,10 +185,25 @@ class PlotlyDashboard:
         # 7. Write Output
         self._write_html(fig, output_path)
             
-        # Write VTK
+        # Write legacy VTK (last snapshot only)
         vtk_path = output_path.with_suffix('.vtk')
         write_vtk(vtk_path, grid_metrics, last_snap, wall_distance,
                   self.data_mgr.u_inf, self.data_mgr.v_inf, self.nu_laminar)
+
+        # Write VTS time series (one file per snapshot + PVD collection)
+        if X is not None and Y is not None and all_snapshots:
+            pvd_path = write_vts_series(
+                output_path.parent,
+                output_path.stem,
+                X,
+                Y,
+                all_snapshots,
+                wall_distance=wall_distance,
+                u_inf=self.data_mgr.u_inf,
+                v_inf=self.data_mgr.v_inf,
+                nu_laminar=self.nu_laminar,
+            )
+            logger.info(f"Saved VTS time series to: {pvd_path}")
         
         return str(output_path)
     
