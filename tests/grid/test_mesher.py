@@ -12,7 +12,9 @@ from pathlib import Path
 
 # Skip all tests if construct2d binary not available
 PROJECT_ROOT = Path(__file__).parent.parent.parent
-CONSTRUCT2D_BIN = PROJECT_ROOT / "bin" / "construct2d"
+CONSTRUCT2D_BIN = PROJECT_ROOT / "external" / "construct2d" / "construct2d"
+if not CONSTRUCT2D_BIN.exists():
+    CONSTRUCT2D_BIN = PROJECT_ROOT / "bin" / "construct2d"
 SKIP_NO_BINARY = pytest.mark.skipif(
     not CONSTRUCT2D_BIN.exists(),
     reason="construct2d binary not found"

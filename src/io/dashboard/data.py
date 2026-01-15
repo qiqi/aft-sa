@@ -27,6 +27,7 @@ class Snapshot:
     Re_Omega: Optional[np.ndarray] = None  # Vorticity Reynolds number
     Gamma: Optional[np.ndarray] = None     # Shape factor for AFT
     is_turb: Optional[np.ndarray] = None   # Turbulent fraction (0=laminar, 1=turbulent)
+    amplification_ratio: Optional[np.ndarray] = None  # Blended production / nuHat
 
 
 class DataManager:
@@ -61,6 +62,7 @@ class DataManager:
         Re_Omega: Optional[np.ndarray] = None,
         Gamma: Optional[np.ndarray] = None,
         is_turb: Optional[np.ndarray] = None,
+        amplification_ratio: Optional[np.ndarray] = None,
     ) -> None:
         """Store current solution state with diagnostic data."""
         Q_int = Q[NGHOST:-NGHOST, NGHOST:-NGHOST, :]
@@ -71,7 +73,7 @@ class DataManager:
         # Create snapshot
         snapshot = self._create_snapshot(
             Q_int, iteration, residual, cfl, C_pt, residual_field,
-            Re_Omega, Gamma, is_turb
+            Re_Omega, Gamma, is_turb, amplification_ratio
         )
         
         if is_divergence_dump:
@@ -105,6 +107,7 @@ class DataManager:
         Re_Omega: Optional[np.ndarray] = None,
         Gamma: Optional[np.ndarray] = None,
         is_turb: Optional[np.ndarray] = None,
+        amplification_ratio: Optional[np.ndarray] = None,
     ) -> Snapshot:
         """Create a Snapshot from solution data."""
         max_safe_vel = 1e10
@@ -149,6 +152,9 @@ class DataManager:
         is_turb_arr = None
         if is_turb is not None:
             is_turb_arr = sanitize_array(is_turb, fill_value=0.0).copy()
+        amplification_ratio_arr = None
+        if amplification_ratio is not None:
+            amplification_ratio_arr = sanitize_array(amplification_ratio, fill_value=0.0).copy()
         
         return Snapshot(
             iteration=iteration,
@@ -166,6 +172,7 @@ class DataManager:
             Re_Omega=Re_Omega_arr,
             Gamma=Gamma_arr,
             is_turb=is_turb_arr,
+            amplification_ratio=amplification_ratio_arr,
         )
 
     def _compute_cpt(self, Q_int: np.ndarray, u_abs: np.ndarray, v_abs: np.ndarray) -> Optional[np.ndarray]:

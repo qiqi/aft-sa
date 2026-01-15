@@ -126,4 +126,8 @@ COLORBARS = {
         title="d/c",
         colorscale="Viridis",
     ),
+    "amplification_ratio": ColorbarConfig(
+        title="log₁₀(P/ν̃)",
+        colorscale="Viridis",
+    ),
 }

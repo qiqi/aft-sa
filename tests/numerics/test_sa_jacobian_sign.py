@@ -54,8 +54,10 @@ class TestSAJacobianSign:
         solver = solver_with_grid
         nghost = NGHOST
         NI, NJ = solver.NI, solver.NJ
-        
-        compute_jacobians = _make_block_jacobian_jit(solver._jit_residual, NI, NJ, nghost)
+
+        params = solver._build_params()
+        residual_fn = lambda Q: solver._jit_residual(Q, params)
+        compute_jacobians = _make_block_jacobian_jit(residual_fn, NI, NJ, nghost)
         J_diag = compute_jacobians(solver.Q_jax)
         
         return {
@@ -69,9 +71,10 @@ class TestSAJacobianSign:
     def test_lower_cfl_increases_v_over_dt(self, solver_with_grid):
         """Verify that lower CFL gives larger V/dt diagonal contribution."""
         solver = solver_with_grid
+        params = solver._build_params()
         
-        v_over_dt_low = solver.volume_jax / solver._jit_compute_dt(solver.Q_jax, cfl=0.1)
-        v_over_dt_high = solver.volume_jax / solver._jit_compute_dt(solver.Q_jax, cfl=1.0)
+        v_over_dt_low = solver.volume_jax / solver._jit_compute_dt(solver.Q_jax, cfl=0.1, params=params)
+        v_over_dt_high = solver.volume_jax / solver._jit_compute_dt(solver.Q_jax, cfl=1.0, params=params)
         
         # Lower CFL should give larger V/dt everywhere
         assert jnp.all(v_over_dt_low > v_over_dt_high), \
@@ -97,10 +100,11 @@ class TestSAJacobianSign:
         """Verify (V/dt - J) has all positive diagonal for nuHat equation."""
         solver = solver_with_grid
         J_nuHat = jacobian_data['J_nuHat']
+        params = solver._build_params()
         
         # Compute V/dt at conservative CFL
         cfl = 0.1
-        dt = solver._jit_compute_dt(solver.Q_jax, cfl)
+        dt = solver._jit_compute_dt(solver.Q_jax, cfl, params)
         v_over_dt = solver.volume_jax / dt
         
         # The CORRECT implicit system matrix is (V/dt - J)
@@ -117,6 +121,7 @@ class TestSAJacobianSign:
         J_diag = jacobian_data['J_diag']
         nghost = jacobian_data['nghost']
         NI, NJ = jacobian_data['NI'], jacobian_data['NJ']
+        params = solver._build_params()
         
         # Check at single cell (mid-domain) to reduce FD overhead
         i, j = NI // 2, NJ // 2
@@ -124,11 +129,11 @@ class TestSAJacobianSign:
         
         # Finite difference
         eps = 1e-7
-        R_base = solver._jit_residual(solver.Q_jax)
+        R_base = solver._jit_residual(solver.Q_jax, params)
         R_nuHat_base = float(R_base[i, j, 3])
         
         Q_pert = solver.Q_jax.at[i+nghost, j+nghost, 3].add(eps)
-        R_pert = solver._jit_residual(Q_pert)
+        R_pert = solver._jit_residual(Q_pert, params)
         R_nuHat_pert = float(R_pert[i, j, 3])
         
         J_fd = (R_nuHat_pert - R_nuHat_base) / eps

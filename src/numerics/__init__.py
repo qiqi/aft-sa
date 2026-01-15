@@ -34,8 +34,6 @@ from .forces import (
     SurfaceData,
 )
 
-from .smoothing import apply_residual_smoothing
-
 from .diagnostics import (
     compute_total_pressure_loss,
     compute_solution_bounds,
@@ -80,7 +78,6 @@ __all__ = [
     'create_surface_vtk_fields',
     'AeroForces',
     'SurfaceData',
-    'apply_residual_smoothing',
     'compute_total_pressure_loss',
     'compute_solution_bounds',
     'compute_residual_statistics',

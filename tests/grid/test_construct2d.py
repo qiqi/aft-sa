@@ -22,7 +22,9 @@ from src.grid import Construct2DWrapper, GridOptions, StructuredGrid, check_grid
 
 # Skip if construct2d binary not available
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-CONSTRUCT2D_BIN = os.path.join(PROJECT_ROOT, "bin", "construct2d")
+CONSTRUCT2D_BIN = os.path.join(PROJECT_ROOT, "external", "construct2d", "construct2d")
+if not os.path.exists(CONSTRUCT2D_BIN):
+    CONSTRUCT2D_BIN = os.path.join(PROJECT_ROOT, "bin", "construct2d")
 SKIP_NO_BINARY = pytest.mark.skipif(
     not os.path.exists(CONSTRUCT2D_BIN),
     reason="construct2d binary not found"
@@ -271,7 +273,7 @@ def main():
     
     # Setup paths (go up two levels: grid/ -> scripts/ -> project root)
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    bin_path = os.path.join(project_root, "bin", "construct2d")
+    bin_path = os.path.join(project_root, "external", "construct2d", "construct2d")
     data_dir = os.path.join(project_root, "data")
     output_dir = os.path.join(project_root, "output", "grid")
     
@@ -280,7 +282,7 @@ def main():
     # Check binary exists
     if not os.path.exists(bin_path):
         print(f"ERROR: Construct2D binary not found at: {bin_path}")
-        print("Please ensure the binary is compiled and symlinked to bin/")
+        print("Please ensure external/construct2d/construct2d is available.")
         sys.exit(1)
     
     # Initialize wrapper

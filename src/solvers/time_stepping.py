@@ -194,19 +194,16 @@ class RungeKutta5:
     
     beta: float
     cfg: TimeStepConfig
-    irs_epsilon: float
     smoothing_type: str
     smoothing_epsilon: float
     smoothing_passes: int
     
     def __init__(self, beta: float, cfg: Optional[TimeStepConfig] = None,
-                 irs_epsilon: float = 0.0,
                  smoothing_type: str = "none",
                  smoothing_epsilon: float = 0.2,
                  smoothing_passes: int = 2) -> None:
         self.beta = beta
         self.cfg = cfg if cfg is not None else TimeStepConfig()
-        self.irs_epsilon = irs_epsilon
         self.smoothing_type = smoothing_type
         self.smoothing_epsilon = smoothing_epsilon
         self.smoothing_passes = smoothing_passes
@@ -217,10 +214,6 @@ class RungeKutta5:
             from ..numerics.explicit_smoothing import apply_explicit_smoothing
             if self.smoothing_epsilon > 0.0 and self.smoothing_passes > 0:
                 return apply_explicit_smoothing(R, self.smoothing_epsilon, self.smoothing_passes)
-        elif self.smoothing_type == "implicit" or self.irs_epsilon > 0.0:
-            from ..numerics.smoothing import apply_residual_smoothing
-            eps = self.irs_epsilon if self.irs_epsilon > 0.0 else 0.5
-            apply_residual_smoothing(R, eps)
         return R
     
     def step(self, Q: NDArrayFloat, 

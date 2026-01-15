@@ -307,97 +307,6 @@ class TestViscousFluxComparison:
 
 
 # =============================================================================
-# IRS Tests
-# =============================================================================
-
-class TestIRSComparison:
-    """Compare JAX and Numba Implicit Residual Smoothing."""
-    
-    def test_irs_numerical_equivalence(self, medium_grid_dims):
-        """JAX and Numba IRS should match."""
-        NI, NJ, _ = medium_grid_dims
-        from src.numerics.smoothing import apply_residual_smoothing
-        from src.numerics.smoothing import apply_residual_smoothing_jax
-        
-        np.random.seed(42)
-        residual = np.random.randn(NI, NJ, 4)
-        epsilon = 0.5
-        
-        # Numba version (in-place)
-        res_numba = residual.copy()
-        apply_residual_smoothing(res_numba, epsilon)
-        
-        # JAX version
-        res_jax = apply_residual_smoothing_jax(jnp.array(residual), epsilon)
-        res_jax_np = np.array(res_jax)
-        
-        max_diff = np.abs(res_numba - res_jax_np).max()
-        rel_diff = max_diff / (np.abs(res_numba).max() + 1e-12)
-        
-        print(f"IRS max diff: {max_diff:.2e}, rel diff: {rel_diff:.2e}")
-        assert rel_diff < 1e-10, f"IRS mismatch: rel_diff = {rel_diff:.2e}"
-    
-    def test_irs_different_epsilon(self, small_grid_dims):
-        """Test IRS with different epsilon values."""
-        NI, NJ, _ = small_grid_dims
-        from src.numerics.smoothing import apply_residual_smoothing
-        from src.numerics.smoothing import apply_residual_smoothing_jax
-        
-        np.random.seed(42)
-        residual = np.random.randn(NI, NJ, 4)
-        
-        for epsilon in [0.1, 0.5, 1.0, 2.0]:
-            res_numba = residual.copy()
-            apply_residual_smoothing(res_numba, epsilon)
-            
-            res_jax = apply_residual_smoothing_jax(jnp.array(residual), epsilon)
-            res_jax_np = np.array(res_jax)
-            
-            max_diff = np.abs(res_numba - res_jax_np).max()
-            rel_diff = max_diff / (np.abs(res_numba).max() + 1e-12)
-            
-            assert rel_diff < 1e-10, f"IRS mismatch at epsilon={epsilon}: {rel_diff:.2e}"
-        
-        print("IRS matches for all epsilon values")
-    
-    def test_irs_performance(self, large_grid_dims):
-        """Benchmark IRS computation."""
-        NI, NJ, _ = large_grid_dims
-        from src.numerics.smoothing import apply_residual_smoothing
-        from src.numerics.smoothing import apply_residual_smoothing_jax
-        
-        np.random.seed(42)
-        residual = np.random.randn(NI, NJ, 4)
-        epsilon = 0.5
-        
-        res_jax_input = jnp.array(residual)
-        
-        # Warm up
-        res_numba = residual.copy()
-        apply_residual_smoothing(res_numba, epsilon)
-        _ = apply_residual_smoothing_jax(res_jax_input, epsilon)
-        
-        n_iter = 50
-        
-        t0 = time.perf_counter()
-        for _ in range(n_iter):
-            res_numba = residual.copy()
-            apply_residual_smoothing(res_numba, epsilon)
-        t_numba = (time.perf_counter() - t0) / n_iter * 1000
-        
-        t0 = time.perf_counter()
-        for _ in range(n_iter):
-            res = apply_residual_smoothing_jax(res_jax_input, epsilon)
-            jax.block_until_ready(res)
-        t_jax = (time.perf_counter() - t0) / n_iter * 1000
-        
-        print(f"\nIRS computation ({NI}x{NJ}):")
-        print(f"  Numba: {t_numba:.3f} ms")
-        print(f"  JAX:   {t_jax:.3f} ms")
-        print(f"  Speedup: {t_numba/t_jax:.2f}x")
-
-
-# =============================================================================
 # Combined Performance Summary
 # =============================================================================
 
@@ -414,15 +323,12 @@ class TestPerformanceSummary:
         from src.numerics.gradients import compute_gradients_jax
         from src.numerics.viscous_fluxes import compute_viscous_fluxes
         from src.numerics.viscous_fluxes import compute_viscous_fluxes_jax
-        from src.numerics.smoothing import apply_residual_smoothing
-        from src.numerics.smoothing import apply_residual_smoothing_jax
         
         Q = create_test_state(NI, NJ, nghost)
         Si_x, Si_y, Sj_x, Sj_y, volume = create_test_metrics(NI, NJ)
         beta = 10.0
         k4 = 0.016
         mu_laminar = 1e-3
-        epsilon = 0.5
         
         flux_metrics = GridMetrics(Si_x, Si_y, Sj_x, Sj_y, volume)
         grad_metrics = GradientMetrics(Si_x, Si_y, Sj_x, Sj_y, volume)
@@ -494,26 +400,6 @@ class TestPerformanceSummary:
         t_jax = (time.perf_counter() - t0) / n_iter * 1000
         results.append(("Viscous", t_numba, t_jax))
         
-        # IRS
-        residual = np.random.randn(NI, NJ, 4)
-        res_jax_input = jnp.array(residual)
-        
-        res_numba = residual.copy()
-        apply_residual_smoothing(res_numba, epsilon)
-        _ = apply_residual_smoothing_jax(res_jax_input, epsilon)
-        
-        t0 = time.perf_counter()
-        for _ in range(n_iter):
-            res_numba = residual.copy()
-            apply_residual_smoothing(res_numba, epsilon)
-        t_numba = (time.perf_counter() - t0) / n_iter * 1000
-        
-        t0 = time.perf_counter()
-        for _ in range(n_iter):
-            res = apply_residual_smoothing_jax(res_jax_input, epsilon)
-            jax.block_until_ready(res)
-        t_jax = (time.perf_counter() - t0) / n_iter * 1000
-        results.append(("IRS", t_numba, t_jax))
         
         # Print results
         print(f"\n{'Kernel':<12} {'Numba (ms)':<12} {'JAX (ms)':<12} {'Speedup':<10}")

@@ -12,7 +12,6 @@ except ImportError:
 
 from .._array_utils import sanitize_array, to_json_safe_list
 from .._html_components import (
-    compute_chi_log, 
     compute_yplus_distribution,
     compute_cf_distribution,
     extract_residual_value
@@ -20,6 +19,11 @@ from .._html_components import (
 from .data import Snapshot
 from .layout import DashboardLayout
 from .traces import AnimatedTraceTracker
+from .plot_definitions import (
+    build_aft_contour_data,
+    build_standard_contour_data,
+    get_standard_contour_specs,
+)
 
 if TYPE_CHECKING:
     from ...grid.metrics import FVMMetrics
@@ -98,67 +102,39 @@ class AnimationManager:
     ) -> list:
         """Create frame data dicts for a single snapshot."""
         
-        snap_p = sanitize_array(snap.p)
-        snap_u = sanitize_array(snap.u)
-        snap_v = sanitize_array(snap.v)
-        snap_nu = sanitize_array(snap.nu, fill_value=1e-12)
-        
-        field2 = sanitize_array(snap.C_pt if has_cpt and snap.C_pt is not None else snap.nu)
-        if has_res_field and snap.residual_field is not None:
-            field5 = np.log10(sanitize_array(snap.residual_field, fill_value=1e-12) + 1e-12)
-        else:
-            field5 = np.sqrt(snap_u**2 + snap_v**2)
-        
-        chi_log = compute_chi_log(snap_nu, self.nu_laminar)
-        
         frame_data = []
-        
-        # Standard keys order must match TraceManager.add_contour_traces
-        standard_keys = [
-            ('pressure', snap_p.flatten()),
-            ('u_vel', snap_u.flatten()),
-            ('v_vel', snap_v.flatten()),
-            ('cpt' if has_cpt else 'nu', field2.flatten()),
-            ('residual' if has_res_field else 'vel_mag', field5.flatten()),
-            ('grid', None),
-            ('chi', to_json_safe_list(chi_log)),
-        ]
-        
-        config_map = {
-            'pressure': color_config['pressure'],
-            'u_vel': color_config['velocity'],
-            'v_vel': color_config['velocity'],
-            'cpt': color_config['pressure'], 
-            'nu': color_config['pressure'],
-            'residual': color_config['residual'],
-            'vel_mag': color_config['residual'],
-            'chi': color_config['chi'],
-            'grid': None
-        }
 
-        for name, data in standard_keys:
+        standard_specs = get_standard_contour_specs(has_cpt, has_res_field)
+        standard_data = build_standard_contour_data(snap, self.nu_laminar, has_cpt, has_res_field)
+
+        for spec in standard_specs:
+            name = spec.name
             if not self.layout.has_plot(name):
                 continue
             
-            # Grid has no animated trace
-            if name == 'grid':
-                continue
-                
-            cfg = config_map[name]
+            cfg = color_config[spec.color_key]
             carpet_id = f'carpet_{name}'
+            data = standard_data.get(name)
+            if data is None:
+                data = np.zeros_like(snap.p).flatten()
+            zmin_val = cfg.cmin
+            zmax_val = cfg.cmax
+            if name == 'amplification_rate':
+                zmin_val = np.log10(0.0002)
+                zmax_val = np.log10(0.2)
             
             frame_data.append(go.Contourcarpet(
                 a=A.flatten(), b=B.flatten(), z=data,
                 carpet=carpet_id, 
                 colorscale=cfg.colorscale,
-                zmin=cfg.cmin, zmax=cfg.cmax,
+                zmin=zmin_val, zmax=zmax_val,
                 contours=dict(coloring='fill', showlines=False), 
                 ncontours=20
             ))
         
         # AFT fields
         if has_aft:
-            frame_data.extend(self._create_aft_frame_data(snap, A, B))
+            frame_data.extend(self._create_aft_frame_data(snap, A, B, color_config))
         
         # Snapshot markers
         snapshot_iters = [s.iteration for s in snapshots_so_far]
@@ -185,7 +161,13 @@ class AnimationManager:
         
         return frame_data
 
-    def _create_aft_frame_data(self, snap: Snapshot, A: np.ndarray, B: np.ndarray) -> list:
+    def _create_aft_frame_data(
+        self,
+        snap: Snapshot,
+        A: np.ndarray,
+        B: np.ndarray,
+        color_config: Dict[str, Any],
+    ) -> list:
         """Create AFT field frame data."""
         frame_data = []
         
@@ -201,14 +183,16 @@ class AnimationManager:
                     ncontours=20,
                 ))
         
-        Re_Omega_safe = np.maximum(sanitize_array(snap.Re_Omega, fill_value=10.0), 1.0)
-        Re_log = np.log10(Re_Omega_safe)
-        Gamma_safe = sanitize_array(snap.Gamma, fill_value=0.0)
-        is_turb_safe = sanitize_array(snap.is_turb, fill_value=0.0) if snap.is_turb is not None else np.zeros_like(Gamma_safe)
-        
-        add('re_omega', Re_log, 'Viridis', 1.0, 4.0)
-        add('gamma', Gamma_safe, 'Reds', 0.0, 2.0)
-        add('is_turb', is_turb_safe, 'RdYlBu_r', 0.0, 1.0)
+        aft_data = build_aft_contour_data(snap)
+        if not aft_data:
+            return frame_data
+
+        add('re_omega', aft_data['re_omega'], 'Viridis', 1.0, 4.0)
+        add('gamma', aft_data['gamma'], 'Reds', 0.0, 2.0)
+        add('is_turb', aft_data['is_turb'], 'RdYlBu_r', 0.0, 1.0)
+        if 'amplification_ratio' in aft_data and self.layout.has_plot('amplification_ratio'):
+            cfg = color_config['amplification_ratio']
+            add('amplification_ratio', aft_data['amplification_ratio'], cfg.colorscale, cfg.cmin, cfg.cmax)
         
         return frame_data
 

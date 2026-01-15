@@ -37,7 +37,9 @@ from typing import Dict, List, Any
 
 # Project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
-CONSTRUCT2D_BIN = PROJECT_ROOT / "bin" / "construct2d"
+CONSTRUCT2D_BIN = PROJECT_ROOT / "external" / "construct2d" / "construct2d"
+if not CONSTRUCT2D_BIN.exists():
+    CONSTRUCT2D_BIN = PROJECT_ROOT / "bin" / "construct2d"
 DATA_DIR = PROJECT_ROOT / "data"
 
 

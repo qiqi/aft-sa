@@ -19,6 +19,7 @@ except ImportError:
     HAS_PLOTLY = False
 
 from .._plot_registry import PlotSpec, PlotType
+from .plot_definitions import get_contour_plot_names, get_standard_contour_specs
 from .._html_components import make_log_range_slider_steps  # Needed for control configuration
 
 
@@ -279,6 +280,10 @@ def create_standard_layout(
             PlotSpec("is_turb", PlotType.CONTOUR_2D, "is_turb (Turbulent Fraction)",
                      data_key="is_turb"),
         )
+        layout.add_row(
+            PlotSpec("amplification_ratio", PlotType.CONTOUR_2D, "Amplification (P/ν̃)",
+                     data_key="amplification_ratio"),
+        )
     else:
         layout.add_row(
             PlotSpec("chi", PlotType.CONTOUR_2D, "χ = ν̃/ν (Turbulent/Laminar Viscosity Ratio)",
@@ -353,10 +358,7 @@ def configure_dashboard_controls(
     
     indices = {}
     idx = 0
-    trace_order = ['pressure', 'u_vel', 'v_vel', 
-                  'cpt' if has_cpt else 'nu', 
-                  'residual' if has_res_field else 'vel_mag', 
-                  'grid', 'chi']
+    trace_order = [spec.name for spec in get_standard_contour_specs(has_cpt, has_res_field)]
     
     # "grid" is created but usually static carpet + static contour, but here we only care about
     # the SLIDERS affecting the contour traces.
@@ -443,14 +445,14 @@ def configure_dashboard_controls(
         margin=dict(t=80),
     )
     
-    # Configure axes for all contour plots
-    contour_plot_names = ["pressure", "cpt" if has_cpt else "nu",
-                          "u_vel", "v_vel", "residual" if has_res_field else "vel_mag", 
-                          "amplification_rate", "chi"]
-    if has_aft:
-        contour_plot_names.extend(["re_omega", "gamma", "is_turb"])
-    if has_wall_dist:
-        contour_plot_names.append("wall_dist")
+    # Configure axes for all contour plots (includes wall distance contour)
+    contour_plot_names = get_contour_plot_names(
+        has_cpt=has_cpt,
+        has_res_field=has_res_field,
+        has_aft=has_aft,
+        include_wall_dist=has_wall_dist,
+        include_amplification_ratio=has_aft,
+    )
     
     field_positions = []
     for name in contour_plot_names:
@@ -463,7 +465,6 @@ def configure_dashboard_controls(
         
         x_settings = dict(
             title_text='x', range=[-0.5, 1.5],
-            scaleanchor=yaxis_name, scaleratio=1,
             row=row, col=col
         )
         y_settings = dict(
@@ -472,8 +473,13 @@ def configure_dashboard_controls(
         )
         
         if i > 0:
+            # Use matches to sync with first plot (can't combine with scaleanchor)
             x_settings['matches'] = 'x'
             y_settings['matches'] = 'y'
+        else:
+            # Only first plot gets scaleanchor for isotropic aspect ratio
+            x_settings['scaleanchor'] = yaxis_name
+            x_settings['scaleratio'] = 1
         
         fig.update_xaxes(**x_settings)
         fig.update_yaxes(**y_settings)

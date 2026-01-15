@@ -105,7 +105,8 @@ def compute_color_ranges(
     # Base rows: pressure, velocity, residual/chi, convergence = 4
     n_rows = 4
     if has_aft:
-        n_rows += 1  # Re_Ω, Γ row
+        n_rows += 2  # Re_Ω/Γ and χ/is_turb rows
+        n_rows += 1  # Amplification ratio row
     if has_wall_dist:
         n_rows += 1  # Wall distance row
     if has_surface:
@@ -127,6 +128,9 @@ def compute_color_ranges(
     pressure_row = 1
     velocity_row = 2
     res_chi_row = 3
+
+    amp_ratio_min = np.log10(0.0002)
+    amp_ratio_max = np.log10(0.2)
     
     return {
         'pressure': ColorAxisConfig(
@@ -154,6 +158,10 @@ def compute_color_ranges(
         'amplification_rate': ColorAxisConfig(
             colorscale='Viridis', cmin=0.0, cmax=AFT_RATE_SCALE,
             colorbar=dict(title='a', len=cb_len, y=row_y(3), x=0.90, tickformat='.2f')
+        ),
+        'amplification_ratio': ColorAxisConfig(
+            colorscale='Viridis', cmin=amp_ratio_min, cmax=amp_ratio_max,
+            colorbar=dict(title='log₁₀(P/ν̃)', len=cb_len, y=row_y(4), x=1.02, tickformat='.2f')
         ),
     }
 

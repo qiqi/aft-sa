@@ -19,6 +19,7 @@ from src.numerics.viscous_fluxes import compute_viscous_fluxes_jax
 from src.numerics.explicit_smoothing import smooth_explicit_jax
 from src.solvers.time_stepping import compute_local_timestep_jax
 from src.solvers.boundary_conditions import make_apply_bc_jit, FreestreamConditions
+from src.solvers.params import PhysicsParams
 
 # Batch implementations
 from src.solvers.batch import (
@@ -377,8 +378,26 @@ class TestBatchBoundaryConditions:
         v_inf = jnp.array([freestream.v_inf])
         p_inf = jnp.array([freestream.p_inf])
         nu_t_inf = jnp.array([freestream.nu_t_inf])
+
+        params = PhysicsParams(
+            p_inf=freestream.p_inf,
+            u_inf=freestream.u_inf,
+            v_inf=freestream.v_inf,
+            nu_t_inf=freestream.nu_t_inf,
+            beta=10.0,
+            k4=0.016,
+            mu_laminar=1e-6,
+            aft_gamma_coeff=0.0,
+            aft_re_omega_scale=0.0,
+            aft_log_divisor=0.0,
+            aft_sigmoid_center=0.0,
+            aft_sigmoid_slope=0.0,
+            aft_rate_scale=0.0,
+            aft_blend_threshold=0.0,
+            aft_blend_width=0.0,
+        )
         
-        Q_bc_single = apply_bc_single(Q_single)
+        Q_bc_single = apply_bc_single(Q_single, params)
         Q_bc_batch = apply_bc_batch(Q_batch, u_inf, v_inf, p_inf, nu_t_inf)
         
         assert_allclose(np.array(Q_bc_batch[0]), np.array(Q_bc_single), rtol=1e-12)

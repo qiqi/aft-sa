@@ -31,7 +31,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 # Skip if construct2d binary not available
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-CONSTRUCT2D_BIN = os.path.join(PROJECT_ROOT, "bin", "construct2d")
+CONSTRUCT2D_BIN = os.path.join(PROJECT_ROOT, "external", "construct2d", "construct2d")
+if not os.path.exists(CONSTRUCT2D_BIN):
+    CONSTRUCT2D_BIN = os.path.join(PROJECT_ROOT, "bin", "construct2d")
 SKIP_NO_BINARY = pytest.mark.skipif(
     not os.path.exists(CONSTRUCT2D_BIN),
     reason="construct2d binary not found"
@@ -429,7 +431,9 @@ def main():
     
     # Setup paths
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    bin_path = os.path.join(project_root, "bin", "construct2d")
+    bin_path = os.path.join(project_root, "external", "construct2d", "construct2d")
+    if not os.path.exists(bin_path):
+        bin_path = os.path.join(project_root, "bin", "construct2d")
     data_dir = os.path.join(project_root, "data")
     output_dir = os.path.join(project_root, "output", "grid")
     
@@ -502,7 +506,9 @@ def test_grid_topology():
     from contextlib import redirect_stdout
     
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    bin_path = os.path.join(project_root, "bin", "construct2d")
+    bin_path = os.path.join(project_root, "external", "construct2d", "construct2d")
+    if not os.path.exists(bin_path):
+        bin_path = os.path.join(project_root, "bin", "construct2d")
     data_dir = os.path.join(project_root, "data")
     output_dir = os.path.join(project_root, "output", "grid")
     

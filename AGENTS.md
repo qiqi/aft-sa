@@ -18,7 +18,6 @@ This file coordinates work between multiple AI agents and human contributors on 
 
 | Agent Name/Role | Target File/Folder | Task Description | Start Time |
 |-----------------|-------------------|------------------|------------|
-| Antigravity | `src/`, `config/` | Debugging Newton Divergence | 2026-01-06 |
 
 
 
@@ -30,7 +29,10 @@ Files that have been modified and are ready for the Janitor agent to review:
 
 | File/Folder | Last Modified By | Notes |
 |-------------|------------------|-------|
-| *None currently* | — | — |
+| `src/io/dashboard/`, `src/io/_html_components.py`, `src/io/_plot_registry.py`, `src/solvers/rans_solver.py` | GPT-5.2 Codex | Add amplification ratio plot, sync wall-distance axes, refactor plot definitions |
+| `src/numerics/smoothing.py`, `src/solvers/time_stepping.py`, `src/numerics/__init__.py`, `tests/numerics/`, `src/solvers/rans_solver.py` | GPT-5.2 Codex | Remove unused implicit smoothing utilities and tests |
+| `src/numerics/gmres.py` | GPT-5.2 Codex | Restore GMRES helper functions for tests |
+| `tests/grid/test_construct2d.py` | GPT-5.2 Codex | Prefer external construct2d binary in tests |
 
 ---
 

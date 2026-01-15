@@ -11,16 +11,20 @@ try:
 except ImportError:
     pass
 
-from .._array_utils import sanitize_array, safe_minmax, safe_absmax, to_json_safe_list
+from .._array_utils import sanitize_array, safe_absmax, to_json_safe_list
 from .._html_components import (
-    compute_chi_log, 
     compute_yplus_distribution,
     compute_cf_distribution,
     extract_residual_value
 )
 from .data import Snapshot
 from .layout import DashboardLayout
-from src.numerics.aft_sources import compute_aft_amplification_rate
+from .plot_definitions import (
+    build_aft_contour_data,
+    build_standard_contour_data,
+    get_aft_contour_specs,
+    get_standard_contour_specs,
+)
 
 if TYPE_CHECKING:
     from ...grid.metrics import FVMMetrics
@@ -85,39 +89,13 @@ class TraceManager:
         ni, nj = xc.shape
         A, B = np.meshgrid(np.arange(ni), np.arange(nj), indexing='ij')
         
-        # Prepare field data
-        field2 = sanitize_array(snapshot.C_pt if has_cpt else snapshot.nu, fill_value=0.0)
-        if has_res_field and snapshot.residual_field is not None:
-            field5 = np.log10(sanitize_array(snapshot.residual_field, fill_value=1e-12) + 1e-12)
-        else:
-            field5 = np.zeros_like(snapshot.p)
+        standard_plots = get_standard_contour_specs(has_cpt, has_res_field)
+        standard_data = build_standard_contour_data(snapshot, self.nu_laminar, has_cpt, has_res_field)
         
-        chi_log = compute_chi_log(snapshot.nu, self.nu_laminar)
-        chi_log_safe = to_json_safe_list(chi_log)
+        colorbar_titles = {spec.name: spec.title for spec in standard_plots}
         
-        standard_plots = [
-            ('pressure', 'p', color_config['pressure']),
-            ('u_vel', 'u', color_config['velocity']),
-            ('v_vel', 'v', color_config['velocity']),
-            ('cpt' if has_cpt else 'nu', 'cpt' if has_cpt else 'nu', color_config['pressure']),
-            ('residual' if has_res_field else 'vel_mag', 'res' if has_res_field else 'mag', color_config['residual']),
-            ('amplification_rate', 'amp_rate', color_config['amplification_rate']),
-            ('chi', 'chi', color_config['chi']),
-        ]
-        
-        colorbar_titles = {
-            'pressure': 'Δp',
-            'cpt': 'C_pt',
-            'nu': 'ν̃',
-            'u_vel': 'Δu',
-            'v_vel': 'Δv',
-            'residual': 'log₁₀(R)',
-            'vel_mag': '|V|',
-            'chi': 'log₁₀(χ)',
-            'amplification_rate': 'log₁₀(a)',
-        }
-        
-        for name, _, cfg in standard_plots:
+        for spec in standard_plots:
+            name = spec.name
             if not self.layout.has_plot(name):
                 continue
                 
@@ -125,26 +103,9 @@ class TraceManager:
             carpet_id = f'carpet_{name}'
             
             # Data selection
-            data = None
-            if name == 'pressure': data = sanitize_array(snapshot.p).flatten()
-            elif name == 'cpt': data = field2.flatten()
-            elif name == 'nu': data = field2.flatten()
-            elif name == 'u_vel': data = sanitize_array(snapshot.u).flatten()
-            elif name == 'v_vel': data = sanitize_array(snapshot.v).flatten()
-            elif name == 'residual': data = field5.flatten()
-            elif name == 'vel_mag': data = field5.flatten()
-            elif name == 'chi': data = chi_log_safe
-            elif name == 'amplification_rate':
-                # Compute on-the-fly using numpy/jax
-                if snapshot.Re_Omega is not None and snapshot.Gamma is not None:
-                    # Note: compute_aft_amplification_rate handles numpy inputs
-                    Re_Omega = sanitize_array(snapshot.Re_Omega, fill_value=0.0)
-                    Gamma = sanitize_array(snapshot.Gamma, fill_value=0.0)
-                    raw_data = np.array(compute_aft_amplification_rate(Re_Omega, Gamma)).flatten()
-                    # Apply log10 scale
-                    data = np.log10(np.maximum(raw_data, 1e-12))
-                else:
-                    data = np.zeros_like(xc).flatten()
+            data = standard_data.get(name)
+            if data is None:
+                data = np.zeros_like(xc).flatten()
             
             # Grid Lines: Default to OFF (False), toggled via UI button
             axis_style = dict(
@@ -176,7 +137,7 @@ class TraceManager:
                     if name == 'residual' and not has_res_field: title_key = 'vel_mag'
                     
                     colorbar_dict = dict(
-                        title=colorbar_titles.get(title_key, ''),
+                        title=colorbar_titles.get(title_key, spec.title),
                         x=cb_config['x'],
                         y=cb_config['y'],
                         len=cb_config['len'],
@@ -184,8 +145,8 @@ class TraceManager:
                     )
 
                 # Prepare color limits (override for amplification rate as requested)
-                zmin_val = cfg.cmin
-                zmax_val = cfg.cmax
+                zmin_val = color_config[spec.color_key].cmin
+                zmax_val = color_config[spec.color_key].cmax
                 if name == 'amplification_rate':
                     zmin_val = np.log10(0.0002)
                     zmax_val = np.log10(0.2)
@@ -194,7 +155,7 @@ class TraceManager:
                 fig.add_trace(go.Contourcarpet(
                     a=A.flatten(), b=B.flatten(), z=data,
                     carpet=carpet_id,
-                    colorscale=cfg.colorscale,
+                    colorscale=color_config[spec.color_key].colorscale,
                     zmin=zmin_val, zmax=zmax_val,
                     contours=dict(coloring='fill', showlines=False),
                     ncontours=self.N_CONTOURS,
@@ -226,18 +187,11 @@ class TraceManager:
         ni, nj = xc.shape
         A, B = np.meshgrid(np.arange(ni), np.arange(nj), indexing='ij')
         
-        # Re_Omega: log scale
-        Re_Omega_safe = np.maximum(sanitize_array(snapshot.Re_Omega, fill_value=10.0), 1.0)
-        Re_Omega_log = np.log10(Re_Omega_safe)
-        
-        # Gamma: linear scale
-        Gamma_safe = sanitize_array(snapshot.Gamma, fill_value=0.0)
-        
-        # is_turb: linear scale
-        is_turb_safe = sanitize_array(snapshot.is_turb, fill_value=0.0) if snapshot.is_turb is not None else np.zeros_like(Gamma_safe)
+        aft_data = build_aft_contour_data(snapshot)
+        aft_specs = get_aft_contour_specs(include_amplification_ratio=True)
         
         # Helper to add contour
-        def add_aft_contour(name, data, cscale, zmin, zmax, title, title_key=None):
+        def add_aft_contour(name, data, cscale, zmin, zmax, title):
             if not self.layout.has_plot(name): return
             row, col = self.layout.get_position(name)
             cb_config = self.layout.get_colorbar_config(name)
@@ -263,9 +217,19 @@ class TraceManager:
                 showscale=True,
             ), row=row, col=col)
 
-        add_aft_contour('re_omega', Re_Omega_log, 'Viridis', 1.0, 4.0, 'log₁₀(Re_Ω)')
-        add_aft_contour('gamma', Gamma_safe, 'Reds', 0.0, 2.0, 'Γ')
-        add_aft_contour('is_turb', is_turb_safe, 'RdYlBu_r', 0.0, 1.0, 'is_turb')
+        for spec in aft_specs:
+            data = aft_data.get(spec.name)
+            if data is None:
+                continue
+            if spec.name == 're_omega':
+                add_aft_contour(spec.name, data, 'Viridis', 1.0, 4.0, spec.title)
+            elif spec.name == 'gamma':
+                add_aft_contour(spec.name, data, 'Reds', 0.0, 2.0, spec.title)
+            elif spec.name == 'is_turb':
+                add_aft_contour(spec.name, data, 'RdYlBu_r', 0.0, 1.0, spec.title)
+            elif spec.name == 'amplification_ratio':
+                cfg = color_config['amplification_ratio']
+                add_aft_contour(spec.name, data, cfg.colorscale, cfg.cmin, cfg.cmax, spec.title)
 
     def add_convergence_traces(
         self, 

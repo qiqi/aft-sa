@@ -51,6 +51,64 @@ class GMRESResult:
 
 from functools import partial
 
+
+def _back_substitute(R: jnp.ndarray, b: jnp.ndarray) -> jnp.ndarray:
+    """Solve upper-triangular system R x = b via back substitution."""
+    n = b.size
+    x = jnp.zeros_like(b)
+    for i in range(n - 1, -1, -1):
+        s = b[i] - jnp.dot(R[i, i + 1 :], x[i + 1 :])
+        x = x.at[i].set(s / (R[i, i] + 1e-30))
+    return x
+
+
+def _modified_gram_schmidt(
+    H: jnp.ndarray,
+    V: jnp.ndarray,
+    w: jnp.ndarray,
+    k: int,
+) -> Tuple[jnp.ndarray, jnp.ndarray]:
+    """Orthogonalize w against V[0:k] and update Hessenberg column k."""
+    for i in range(k + 1):
+        h_ik = jnp.dot(w, V[i, :])
+        H = H.at[i, k].set(h_ik)
+        w = w - h_ik * V[i, :]
+    return H, w
+
+
+def make_jfnk_matvec(
+    residual_fn: Callable[[jnp.ndarray], jnp.ndarray],
+    Q: jnp.ndarray,
+    dt: jnp.ndarray,
+    volume: jnp.ndarray,
+    nghost: int,
+    eps: float = 1e-7,
+) -> Callable[[jnp.ndarray], jnp.ndarray]:
+    """Create Jacobian-free matvec for (V/dt - J)·v."""
+    Q_int = Q[nghost:-nghost, nghost:-nghost, :]
+    base_res = residual_fn(Q)
+
+    def matvec(v: jnp.ndarray) -> jnp.ndarray:
+        v_int = v.reshape(Q_int.shape)
+        scale = eps * (1.0 + jnp.linalg.norm(Q_int)) / (jnp.linalg.norm(v_int) + 1e-30)
+        Q_pert = Q.at[nghost:-nghost, nghost:-nghost, :].set(Q_int + scale * v_int)
+        res_pert = residual_fn(Q_pert)
+        jv = (res_pert - base_res) / scale
+        lhs = (volume / dt)[:, :, jnp.newaxis] * v_int - jv
+        return lhs.flatten()
+
+    return matvec
+
+
+def make_newton_rhs(
+    residual_fn: Callable[[jnp.ndarray], jnp.ndarray],
+    Q: jnp.ndarray,
+    nghost: int,
+) -> jnp.ndarray:
+    """Compute Newton RHS R(Q) for (V/dt - J)·ΔQ = R."""
+    res = residual_fn(Q)
+    return res.flatten()
+
 @partial(jax.jit, static_argnums=(0, 4, 5, 6))
 def gmres_solve(
     matvec: Callable[[jnp.ndarray], jnp.ndarray],
@@ -226,6 +284,14 @@ def gmres(
     else:
         b_precond = b
     b_norm = jnp.linalg.norm(b_precond)
+    if b_norm == 0.0:
+        return GMRESResult(
+            x=x0,
+            residual_norm=0.0,
+            converged=True,
+            iterations=0,
+            residual_history=[],
+        )
     tol_abs = tol * float(b_norm)
     
     x, r_norm, iters, converged = gmres_solve(

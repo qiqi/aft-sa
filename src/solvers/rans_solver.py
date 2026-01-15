@@ -20,7 +20,6 @@ from ..numerics.fluxes import compute_fluxes, FluxConfig, GridMetrics as FluxGri
 from ..numerics.forces import compute_aerodynamic_forces, AeroForces, compute_aerodynamic_forces_jax_pure
 from ..numerics.gradients import compute_gradients, GradientMetrics
 from ..numerics.viscous_fluxes import add_viscous_fluxes, compute_viscous_fluxes_tight_with_ghosts_jax
-from ..numerics.smoothing import apply_residual_smoothing
 from .boundary_conditions import (
     FreestreamConditions, 
     BoundaryConditions,
@@ -404,7 +403,7 @@ class RANSSolver:
         gmres_restart = getattr(self.config, 'gmres_restart', 20)
         gmres_maxiter = getattr(self.config, 'gmres_maxiter', 100)
         smoothing_epsilon = getattr(self.config, 'smoothing_epsilon', 0.2)
-        smoothing_passes = getattr(self.config, 'smoothing_passes', 2)
+        n_wake_smooth = getattr(self.config, 'n_wake', 0)  # For wake cut smoothing
 
         # Preconditioner Graph Coloring (Static)
         I_idx, J_idx = jnp.meshgrid(jnp.arange(NI), jnp.arange(NJ), indexing='ij')
@@ -469,9 +468,9 @@ class RANSSolver:
             Q = apply_bc(Q, params)
             R = compute_R_physical(Q, params)
             
-            # Explicit smoothing (Optional)
-            if smoothing_epsilon > 0 and smoothing_passes > 0:
-                R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
+            # Explicit smoothing (with wake cut connectivity)
+            if smoothing_epsilon > 0:
+                R = smooth_explicit_jax(R, smoothing_epsilon, n_wake_smooth, skip_nuhat=False)
             
             # Update increment
             Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
@@ -518,8 +517,8 @@ class RANSSolver:
                 q_int = q_flat.reshape(NI, NJ, 4)
                 q_full = Q_n.at[nghost:-nghost, nghost:-nghost, :].set(q_int)
                 R = jit_residual(q_full, params)
-                if smoothing_epsilon > 0 and smoothing_passes > 0:
-                    R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
+                if smoothing_epsilon > 0:
+                    R = smooth_explicit_jax(R, smoothing_epsilon, n_wake_smooth)
                 ptc = (volume / dt)[:, :, jnp.newaxis] * (q_int - Q_n[nghost:-nghost, nghost:-nghost, :])
                 return (ptc - R).flatten()
 
@@ -596,7 +595,7 @@ class RANSSolver:
         volume = self.volume_jax
         apply_bc = self.apply_bc_jit
         smoothing_epsilon = getattr(self.config, 'smoothing_epsilon', 0.2)
-        smoothing_passes = getattr(self.config, 'smoothing_passes', 2)
+        n_wake_smooth = getattr(self.config, 'n_wake', 0)
         
         def unified_residual(Q_flat):
             # 1. Reshape to interior state
@@ -611,9 +610,9 @@ class RANSSolver:
             # 4. Compute physical residual
             R = self._physical_residual_jax(Q_full, params)
             
-            # 5. Apply residual smoothing if configured
-            if smoothing_epsilon > 0 and smoothing_passes > 0:
-                R = smooth_explicit_jax(R, smoothing_epsilon, smoothing_passes)
+            # 5. Apply residual smoothing (with wake cut connectivity)
+            if smoothing_epsilon > 0:
+                R = smooth_explicit_jax(R, smoothing_epsilon, n_wake_smooth)
             
             # 6. PTC term: (V/dt) * (Q - Q0)
             Q0_int = Q0[nghost:-nghost, nghost:-nghost, :]
@@ -712,13 +711,14 @@ class RANSSolver:
             self.R_jax = jax.device_put(jnp.array(initial_R_raw))
             initial_R = self.get_scaled_residual_field()
             # Compute AFT diagnostic fields
-            Re_Omega, Gamma, is_turb = self._compute_aft_fields()
+            Re_Omega, Gamma, is_turb, amplification_ratio = self._compute_aft_fields()
             self.plotter.store_snapshot(
                 self.Q, 0, self.residual_history,
                 cfl=self._get_cfl(0), C_pt=C_pt, residual_field=initial_R,
                 freestream=self.freestream,
                 iteration_history=self.iteration_history,
-                Re_Omega=Re_Omega, Gamma=Gamma, is_turb=is_turb
+                Re_Omega=Re_Omega, Gamma=Gamma, is_turb=is_turb,
+                amplification_ratio=amplification_ratio
             )
         
         logger.info(f"  Output directory: {output_path}")
@@ -788,8 +788,8 @@ class RANSSolver:
     
     # _apply_smoothing removed (unused legacy code)
     
-    def _compute_aft_fields(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """Compute Re_Omega, Gamma, and is_turb fields for visualization.
+    def _compute_aft_fields(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Compute AFT fields for visualization.
         
         Returns
         -------
@@ -799,6 +799,8 @@ class RANSSolver:
             AFT shape factor
         is_turb : np.ndarray (NI, NJ)
             Turbulent fraction indicator (0=laminar/AFT, 1=turbulent/SA)
+        amplification_ratio : np.ndarray (NI, NJ)
+            Blended production divided by nuHat (P/nuHat)
         """
         # Get interior values
         # Note: Q stores TOTAL velocity (not perturbation from freestream)
@@ -841,8 +843,36 @@ class RANSSolver:
             threshold=self.config.aft_blend_threshold,
             width=self.config.aft_blend_width
         )
+
+        P_blended, _, _ = compute_aft_sa_source_jax(
+            nuHat,
+            grad,
+            wall_dist,
+            vel_mag,
+            nu,
+            aft_gamma_coeff=self.config.aft_gamma_coeff,
+            aft_re_scale=self.config.aft_re_omega_scale,
+            aft_log_divisor=self.config.aft_log_divisor,
+            aft_sigmoid_center=self.config.aft_sigmoid_center,
+            aft_sigmoid_slope=self.config.aft_sigmoid_slope,
+            aft_rate_scale=self.config.aft_rate_scale,
+            blend_threshold=self.config.aft_blend_threshold,
+            blend_width=self.config.aft_blend_width,
+        )
+        eps = 1e-12
+        nuHat_safe = jnp.where(
+            nuHat >= 0.0,
+            jnp.maximum(nuHat, eps),
+            jnp.minimum(nuHat, -eps),
+        )
+        amplification_ratio = P_blended / nuHat_safe
         
-        return np.array(Re_Omega), np.array(Gamma), np.array(is_turb)
+        return (
+            np.array(Re_Omega),
+            np.array(Gamma),
+            np.array(is_turb),
+            np.array(amplification_ratio),
+        )
     
     def step(self) -> None:
         """Perform one iteration of the solver.
@@ -928,7 +958,7 @@ class RANSSolver:
         """
         nghost = NGHOST
         smoothing_epsilon = getattr(self.config, 'smoothing_epsilon', 0.2)
-        smoothing_passes = getattr(self.config, 'smoothing_passes', 2)
+        n_wake_smooth = getattr(self.config, 'n_wake', 0)
         
         # Apply BC and compute residual
         Q = self.apply_bc_jit(Q, params)
@@ -937,9 +967,9 @@ class RANSSolver:
         # Apply preconditioner: R_precond = P^{-1} @ R
         R_precond = self._precond_apply(R)  # (NI, NJ, 4)
         
-        # Apply residual smoothing AFTER preconditioning (for RK modes)
-        if smoothing_epsilon > 0 and smoothing_passes > 0:
-            R_precond = smooth_explicit_jax(R_precond, smoothing_epsilon, smoothing_passes)
+        # Apply residual smoothing AFTER preconditioning (with wake cut connectivity)
+        if smoothing_epsilon > 0:
+            R_precond = smooth_explicit_jax(R_precond, smoothing_epsilon, n_wake_smooth)
         
         # Compute update with Patankar for nuHat
         Q_int_new = self._apply_rk_update(Q0, R_precond, dt, alpha)
@@ -1253,13 +1283,14 @@ class RANSSolver:
                         self.freestream.u_inf, self.freestream.v_inf
                     )
                     # Compute AFT diagnostic fields
-                    Re_Omega, Gamma, is_turb = self._compute_aft_fields()
+                    Re_Omega, Gamma, is_turb, amplification_ratio = self._compute_aft_fields()
                     self.plotter.store_snapshot(
                         self.Q, self.iteration, self.residual_history,
                         cfl=cfl, C_pt=C_pt, residual_field=R_field,
                         freestream=self.freestream,
                         iteration_history=self.iteration_history,
-                        Re_Omega=Re_Omega, Gamma=Gamma, is_turb=is_turb
+                        Re_Omega=Re_Omega, Gamma=Gamma, is_turb=is_turb,
+                        amplification_ratio=amplification_ratio
                     )
                 
                 if res_max < self.config.tol:
@@ -1313,14 +1344,15 @@ class RANSSolver:
                             self.freestream.u_inf, self.freestream.v_inf
                         )
                         # Compute AFT diagnostic fields
-                        Re_Omega, Gamma, is_turb = self._compute_aft_fields()
+                        Re_Omega, Gamma, is_turb, amplification_ratio = self._compute_aft_fields()
                         self.plotter.store_snapshot(
                             self.Q, self.iteration, self.residual_history,
                             cfl=cfl, C_pt=C_pt, residual_field=R_field,
                             freestream=self.freestream,
                             iteration_history=self.iteration_history,
                             is_divergence_dump=True,
-                            Re_Omega=Re_Omega, Gamma=Gamma, is_turb=is_turb
+                            Re_Omega=Re_Omega, Gamma=Gamma, is_turb=is_turb,
+                            amplification_ratio=amplification_ratio
                         )
                         
                         total_dumps = n_history_dumps + 1

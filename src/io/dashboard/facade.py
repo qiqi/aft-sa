@@ -58,6 +58,7 @@ class PlotlyDashboard:
         Re_Omega: Optional[np.ndarray] = None,
         Gamma: Optional[np.ndarray] = None,
         is_turb: Optional[np.ndarray] = None,
+        amplification_ratio: Optional[np.ndarray] = None,
     ) -> None:
         """Store current solution state with diagnostic data."""
         if freestream is not None:
@@ -65,7 +66,8 @@ class PlotlyDashboard:
             
         self.data_mgr.store_snapshot(
             Q, iteration, residual_history, cfl, C_pt, residual_field,
-            iteration_history, is_divergence_dump, Re_Omega, Gamma, is_turb
+            iteration_history, is_divergence_dump, Re_Omega, Gamma, is_turb,
+            amplification_ratio
         )
 
     def save_html(

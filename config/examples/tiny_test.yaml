@@ -1,0 +1,43 @@
+# Tiny test configuration for ultra-fast runs (<500 cells)
+# Purpose: Quick iteration and debugging without JIT compilation overhead
+# Grid: ~42x10 cells = ~420 total cells
+#
+# Usage: python scripts/solver/run_airfoil.py --config config/examples/tiny_test.yaml
+
+grid:
+  airfoil: data/naca0012.dat
+  n_surface: 121
+  n_wake: 30
+  y_plus: 1             # Relaxed wall resolution (coarse)
+  gradation: 1.25        # Aggressive stretching → ~10 J cells
+  farfield_radius: 25.0
+  te_spacing: 0.002
+  le_spacing: 0.0003     # Match te_spacing for balanced distribution
+
+flow:
+  reynolds: 1.0e+6
+  alpha: 4.0
+  chi_inf: 0.0001     # AFT transition model
+
+solver:
+  max_iter: 20000
+  tol: 1.0e-8
+  print_freq: 100
+  diagnostic_freq: 1000
+  mode: rk5              # Explicit RK5 (no implicit solver)
+  
+  cfl:
+    initial: 0.5
+    final: 3.0
+    ramp_iter: 500
+
+numerics:
+  jst_k4: 0.04           # 4th-order dissipation
+  beta: 10.0             # Artificial compressibility
+  sponge_thickness: 5
+
+output:
+  directory: output/tiny_test
+  case_name: tiny
+  html_animation: true
+  divergence_history: 1
