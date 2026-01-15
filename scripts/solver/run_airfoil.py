@@ -236,6 +236,14 @@ Examples:
         logger.error(f"ERROR: {e}")
         sys.exit(1)
     
+    # Save grid to output folder for debugging/comparison
+    import numpy as np
+    output_dir = Path(sim_config.output.directory)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    grid_output_path = output_dir / "grid.npz"
+    np.savez(str(grid_output_path), X=X, Y=Y)
+    logger.info(f"Saved grid to: {grid_output_path}")
+    
     # Create solver with pre-loaded grid
     solver = RANSSolver(grid_data=(X, Y), config=config)
     
