@@ -27,12 +27,26 @@ ArrayLike = Union[jnp.ndarray, float]
 # Gamma calculation
 AFT_GAMMA_COEFF = 2.0          # Coefficient in Γ numerator
 
-# Amplification rate formula
-AFT_RE_OMEGA_SCALE = 1000.0    # Re_Ω scaling in log term
-AFT_LOG_DIVISOR = 50.0         # Divisor in log term
-AFT_SIGMOID_CENTER = 1.04      # Center of sigmoid activation
-AFT_SIGMOID_SLOPE = 35.0       # Steepness of sigmoid
-AFT_RATE_SCALE = 0.2           # Overall rate magnitude
+# Amplification rate formula. Option A: kernel depends on Γ alone (no Re_Ω
+# log term in the sigmoid argument). The barrier is now a Γ-dependent cliff
+# (replacing the previous single-scalar Re_Ω cutoff):
+#     Re_Ω_cliff(Γ) = max(reOmegaFloor, 10^(log10(reOmegaFloor) + (1-Γ)/tiltSlope))
+# i.e. vertical wall at Re_Ω = reOmegaFloor for Γ >= 1, tilted segment for
+# Γ < 1 sloping outward through (Re_Ω=100, Γ=1) and (1000, 0.85). Designed
+# by tracing the outer envelope of Drela-onset Falkner-Skan trajectories.
+# Must stay in sync with Flow360 ModelConstants.h.
+AFT_SIGMOID_CENTER = 1.572
+AFT_SIGMOID_SLOPE = 5.263
+AFT_RATE_SCALE = 0.15          # a_max (no-tilt cliff_floor matches S-S ±12%, growth start at Drela 200)
+AFT_RE_OMEGA_FLOOR = 100.0     # cliff floor (Γ-independent, no slanted cliff)
+AFT_TILT_SLOPE = 1.0e6         # effectively disabled (favorable-PG suppression -> sigma_FPG(lambda_p))
+AFT_BARRIER_POWER = 4.0        # p: sharp cliff barrier = 1 - (Re_Ω_floor/Re_Ω)^p
+# Favorable-PG suppression sigma_FPG(lambda_p) = 1/(1 + exp(lambdaSlope*(lambda_p-lambdaStar)))
+# lambda_p = -d^2 * (u . grad_p) / (rho * nu * |u|^2)  -- local streamwise PG sensor
+AFT_LAMBDA_STAR = 0.64         # sigma_FPG sigmoid center
+AFT_LAMBDA_SLOPE = 4.56        # sigma_FPG sigmoid slope
+# FPG-dependent cliff: Re_Omega_cliff(lambda_p) = floor * exp(K * max(0, lambda_p))
+AFT_CLIFF_LAMBDA_SLOPE = 10.0  # K_λ — set to 0 to disable
 
 
 # =============================================================================
@@ -129,57 +143,49 @@ def compute_Re_Omega(omega_mag: ArrayLike, d: ArrayLike,
 
 @jax.jit
 def compute_aft_amplification_rate(Re_Omega: ArrayLike, Gamma: ArrayLike,
-                                   re_scale: float = AFT_RE_OMEGA_SCALE,
-                                   log_divisor: float = AFT_LOG_DIVISOR,
+                                   lambda_p: ArrayLike = 0.0,
                                    sigmoid_center: float = AFT_SIGMOID_CENTER,
                                    sigmoid_slope: float = AFT_SIGMOID_SLOPE,
-                                   rate_scale: float = AFT_RATE_SCALE) -> jnp.ndarray:
+                                   rate_scale: float = AFT_RATE_SCALE,
+                                   re_omega_floor: float = AFT_RE_OMEGA_FLOOR,
+                                   tilt_slope: float = AFT_TILT_SLOPE,
+                                   barrier_power: float = AFT_BARRIER_POWER,
+                                   lambda_star: float = AFT_LAMBDA_STAR,
+                                   lambda_slope: float = AFT_LAMBDA_SLOPE,
+                                   cliff_lambda_slope: float = AFT_CLIFF_LAMBDA_SLOPE) -> jnp.ndarray:
     """
-    Compute non-dimensional amplification rate from Drela-style correlation.
-    
-    FORMULA:
-        a = log10(Re_Ω / re_scale) / log_divisor + Γ
-        rate = rate_scale / (1 + exp(-sigmoid_slope * (a - sigmoid_center)))
-    
-    PHYSICAL MEANING:
-        The rate represents how fast TS waves amplify. The sigmoid ensures:
-        - rate → 0 for small a (stable conditions)
-        - rate → rate_scale for large a (unstable conditions)
-        - Transition at a ≈ sigmoid_center
-    
-    TUNABLE PARAMETERS (for ensemble studies):
-        - re_scale: Threshold Re_Ω for instability onset
-        - log_divisor: Sensitivity to Re_Ω changes
-        - sigmoid_center: Critical value of a for transition
-        - sigmoid_slope: Sharpness of transition
-        - rate_scale: Maximum growth rate
-    
-    Parameters
-    ----------
-    Re_Omega : array
-        Vorticity Reynolds number.
-    Gamma : array
-        Shape factor.
-    re_scale, log_divisor, sigmoid_center, sigmoid_slope, rate_scale : float
-        Tunable correlation parameters.
-        
-    Returns
-    -------
-    rate : array
-        Non-dimensional amplification rate (dimensionless).
+    Non-dimensional amplification rate. Matches CUDA `SAAftTransition.h::__aftRate`.
+
+    FORMULA (Option A kernel with Γ-dependent SHARP cliff barrier):
+        Re_Ω_cliff(Γ) = max(re_omega_floor,
+                            10^(log10(re_omega_floor) + (1-Γ)/tilt_slope))
+        barrier       = ln(1 - (Re_Ω_cliff(Γ) / Re_Ω)^p)       (Re_Ω > cliff)
+        x             = s * (Γ - g_c) + barrier
+        rate          = a_max * sigmoid(x)                     (rate ≡ 0 for Re_Ω ≤ cliff)
     """
-    # Activation variable
-    # User modification: replace Gamma < 1 part with log(Gamma) + 1 (for continuity at 1)
-    Gamma_mod = jnp.where(Gamma < 1.0, jnp.log(jnp.maximum(Gamma * 2 - 1, 1e-20)) / 2 + 1.0, Gamma)
-    a = jnp.log10(jnp.abs(Re_Omega) / re_scale + 1e-20) / log_divisor + Gamma_mod
-    
-    # Sigmoid activation (using jax.nn.sigmoid for stability)
-    # x = -slope * (a - center)
-    # sigmoid(x) = 1 / (1 + exp(-x))
-    # We want rate = rate_scale / (1 + exp(-slope*(a-center)))
-    # This is equivalent to rate_scale * sigmoid(slope * (a - center))
-    x_arg = sigmoid_slope * (a - sigmoid_center)
-    return rate_scale * jax.nn.sigmoid(x_arg)
+    # Cliff threshold with two modifiers:
+    #   (1) Gamma-dependent tilt (disabled by default with tilt_slope=1e6).
+    #   (2) FPG-dependent boost: cliff *= exp(cliff_lambda_slope * max(0, lambda_p))
+    # so favorable-PG regions (lambda_p > 0) delay the onset.
+    log_floor = jnp.log10(re_omega_floor)
+    log_extra = jnp.where(Gamma < 1.0, (1.0 - Gamma) / tilt_slope, 0.0)
+    lambda_pos = jnp.maximum(lambda_p, 0.0)
+    fpg_boost = cliff_lambda_slope * lambda_pos / jnp.log(10.0)
+    log_cliff = log_floor + log_extra + fpg_boost
+    re_cliff = jnp.power(10.0, log_cliff)
+    safe_Re = jnp.maximum(Re_Omega, re_cliff + 1e-12)
+    # Sharp cliff: barrier_inside = 1 - (re_cliff/Re_Omega)^p, large p gives
+    # near-Heaviside cutoff while leaving Re_Omega >> re_cliff unattenuated.
+    ratio = re_cliff / safe_Re
+    barrier_inside = jnp.maximum(1.0 - jnp.power(ratio, barrier_power), 1e-20)
+    barrier = jnp.log(barrier_inside)
+    x_arg = sigmoid_slope * (Gamma - sigmoid_center) + barrier
+    rate = rate_scale * jax.nn.sigmoid(x_arg)
+    # Favorable-PG suppression: sigma_FPG(lambda_p) = 1/(1+exp(slope*(lambda_p-star)))
+    # lambda_p > 0 -> favorable PG -> sigma_FPG -> 0 (suppress);
+    # lambda_p <= 0 -> Blasius/adverse PG -> sigma_FPG -> 1 (no suppression).
+    sigma_fpg = jax.nn.sigmoid(-lambda_slope * (lambda_p - lambda_star))
+    return jnp.where(Re_Omega > re_cliff, rate * sigma_fpg, 0.0)
 
 
 @jax.jit
@@ -188,11 +194,11 @@ def compute_aft_production(omega_mag: ArrayLike, vel_mag: ArrayLike,
                            nu_laminar: float = 1.0,
                            # Tunable parameters
                            gamma_coeff: float = AFT_GAMMA_COEFF,
-                           re_scale: float = AFT_RE_OMEGA_SCALE,
-                           log_divisor: float = AFT_LOG_DIVISOR,
                            sigmoid_center: float = AFT_SIGMOID_CENTER,
                            sigmoid_slope: float = AFT_SIGMOID_SLOPE,
-                           rate_scale: float = AFT_RATE_SCALE) -> jnp.ndarray:
+                           rate_scale: float = AFT_RATE_SCALE,
+                           re_omega_floor: float = AFT_RE_OMEGA_FLOOR,
+                           tilt_slope: float = AFT_TILT_SLOPE) -> jnp.ndarray:
     """
     Compute AFT production term for laminar instability growth.
     
@@ -234,10 +240,13 @@ def compute_aft_production(omega_mag: ArrayLike, vel_mag: ArrayLike,
     # Compute shape factor and vorticity Reynolds number
     Gamma = compute_gamma(omega_mag, vel_mag, d, gamma_coeff)
     Re_Omega = compute_Re_Omega(omega_mag, d, nu_laminar)
-    
+
     # Non-dimensional amplification rate
     rate = compute_aft_amplification_rate(
-        Re_Omega, Gamma, re_scale, log_divisor, sigmoid_center, sigmoid_slope, rate_scale
+        Re_Omega, Gamma,
+        sigmoid_center=sigmoid_center, sigmoid_slope=sigmoid_slope,
+        rate_scale=rate_scale,
+        re_omega_floor=re_omega_floor, tilt_slope=tilt_slope,
     )
     
     # Production = rate * omega * nuHat (zero for nuHat <= 0)
@@ -251,11 +260,11 @@ def compute_aft_source_jax(omega_mag: ArrayLike, vel_mag: ArrayLike,
                            nu_laminar: float = 1.0,
                            # Tunable parameters
                            gamma_coeff: float = AFT_GAMMA_COEFF,
-                           re_scale: float = AFT_RE_OMEGA_SCALE,
-                           log_divisor: float = AFT_LOG_DIVISOR,
                            sigmoid_center: float = AFT_SIGMOID_CENTER,
                            sigmoid_slope: float = AFT_SIGMOID_SLOPE,
-                           rate_scale: float = AFT_RATE_SCALE) -> jnp.ndarray:
+                           rate_scale: float = AFT_RATE_SCALE,
+                           re_omega_floor: float = AFT_RE_OMEGA_FLOOR,
+                           tilt_slope: float = AFT_TILT_SLOPE) -> jnp.ndarray:
     """
     Compute AFT source term for 2D RANS solver.
     
@@ -283,5 +292,8 @@ def compute_aft_source_jax(omega_mag: ArrayLike, vel_mag: ArrayLike,
     """
     return compute_aft_production(
         omega_mag, vel_mag, d, nuHat, nu_laminar,
-        gamma_coeff, re_scale, log_divisor, sigmoid_center, sigmoid_slope, rate_scale
+        gamma_coeff=gamma_coeff,
+        sigmoid_center=sigmoid_center, sigmoid_slope=sigmoid_slope,
+        rate_scale=rate_scale,
+        re_omega_floor=re_omega_floor, tilt_slope=tilt_slope,
     )

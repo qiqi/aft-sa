@@ -1,0 +1,204 @@
+%% references.bib — transition-modeling literature for the single-equation SA-AF paper.
+%% AIAA/journal entries (Langtry-Menter 2009, Coder-Maughmer 2014, Halila 2022,
+%% Medida-Baeder 2011, Menter 2006/2015, Cakmakcioglu 2018, Rahman 2024) verified
+%% via NASA TMR / Crossref / publisher metadata (deep-research pass, June 2026).
+%% Foundational e^N entries (Smith-Gamberoni, van Ingen, Mack, Drela-Giles) are
+%% standard; re-confirm exact venue/DOI before final submission.
+
+%% ---- Spalart--Allmaras baseline ----
+@inproceedings{spalart_allmaras_1992,
+  author    = {Spalart, Philippe R. and Allmaras, Steven R.},
+  title     = {A One-Equation Turbulence Model for Aerodynamic Flows},
+  booktitle = {30th Aerospace Sciences Meeting and Exhibit},
+  year      = {1992}, note = {AIAA Paper 1992-0439},
+  doi       = {10.2514/6.1992-439}}
+
+%% ---- e^N / linear-stability envelope methods ----
+@techreport{smith_gamberoni_1956,
+  author      = {Smith, A. M. O. and Gamberoni, Nathalie},
+  title       = {Transition, Pressure Gradient and Stability Theory},
+  institution = {Douglas Aircraft Company}, number = {Report ES~26388}, year = {1956}}
+
+@inproceedings{vaningen_2008,
+  author    = {van Ingen, J. L.},
+  title     = {The $e^N$ Method for Transition Prediction. Historical Review of Work at {TU} Delft},
+  booktitle = {38th AIAA Fluid Dynamics Conference and Exhibit},
+  year      = {2008}, note = {AIAA Paper 2008-3830}, doi = {10.2514/6.2008-3830}}
+
+@techreport{mack_1977,
+  author      = {Mack, Leslie M.},
+  title       = {Transition and Laminar Instability},
+  institution = {Jet Propulsion Laboratory}, number = {JPL Publication 77-15}, year = {1977}}
+
+@article{drela_giles_1987,
+  author  = {Drela, Mark and Giles, Michael B.},
+  title   = {Viscous--Inviscid Analysis of Transonic and Low Reynolds Number Airfoils},
+  journal = {AIAA Journal}, volume = {25}, number = {10}, pages = {1347--1355},
+  year    = {1987}, doi = {10.2514/3.9789}}
+
+@incollection{drela_xfoil_1989,
+  author    = {Drela, Mark},
+  title     = {{XFOIL}: An Analysis and Design System for Low Reynolds Number Airfoils},
+  booktitle = {Low Reynolds Number Aerodynamics}, series = {Lecture Notes in Engineering},
+  volume    = {54}, pages = {1--12}, publisher = {Springer}, year = {1989},
+  doi       = {10.1007/978-3-642-84010-4_1}}
+
+%% ---- Amplification Factor Transport (AFT) lineage ----
+@article{coder_maughmer_2014,
+  author  = {Coder, James G. and Maughmer, Mark D.},
+  title   = {Computational Fluid Dynamics Compatible Transition Modeling Using an
+             Amplification Factor Transport Equation},
+  journal = {AIAA Journal}, volume = {52}, number = {11}, pages = {2506--2512},
+  year    = {2014}, doi = {10.2514/1.J052905}}
+
+@article{halila_2022,
+  author  = {Halila, Gustavo L. O. and Yildirim, Anil and Mader, Charles A. and
+             Fidkowski, Krzysztof J. and Martins, Joaquim R. R. A.},
+  title   = {Linear Stability-Based Smooth Reynolds-Averaged Navier--Stokes
+             Transition Model for Aerodynamic Flows},
+  journal = {AIAA Journal}, volume = {60}, number = {2}, pages = {1077--1090},
+  year    = {2022}, doi = {10.2514/1.J060481}}
+
+%% ---- Local-correlation intermittency transport (gamma / gamma-Re_theta) ----
+@article{menter_langtry_2006,
+  author  = {Menter, F. R. and Langtry, R. B. and V{\"o}lker, S.},
+  title   = {Transition Modelling for General Purpose {CFD} Codes},
+  journal = {Flow, Turbulence and Combustion}, volume = {77}, number = {1--4},
+  pages   = {277--303}, year = {2006}, doi = {10.1007/s10494-006-9047-1}}
+
+@article{langtry_menter_2009,
+  author  = {Langtry, Robin B. and Menter, Florian R.},
+  title   = {Correlation-Based Transition Modeling for Unstructured Parallelized
+             Computational Fluid Dynamics Codes},
+  journal = {AIAA Journal}, volume = {47}, number = {12}, pages = {2894--2906},
+  year    = {2009}, doi = {10.2514/1.42362}}
+
+@article{menter_gamma_2015,
+  author  = {Menter, Florian R. and Smirnov, Pavel E. and Liu, Tao and Avancha, Ravikanth},
+  title   = {A One-Equation Local Correlation-Based Transition Model},
+  journal = {Flow, Turbulence and Combustion}, volume = {95}, number = {4},
+  pages   = {583--619}, year = {2015}, doi = {10.1007/s10494-015-9622-4}}
+
+@article{walters_cokljat_2008,
+  author  = {Walters, D. Keith and Cokljat, Davor},
+  title   = {A Three-Equation Eddy-Viscosity Model for Reynolds-Averaged
+             Navier--Stokes Simulations of Transitional Flow},
+  journal = {Journal of Fluids Engineering}, volume = {130}, number = {12},
+  pages   = {121401}, year = {2008}, doi = {10.1115/1.2979230}}
+
+@inproceedings{medida_baeder_2011,
+  author    = {Medida, Shivaji and Baeder, James D.},
+  title     = {Application of the Correlation-Based $\gamma$--$Re_{\theta_t}$
+               Transition Model to the {Spalart--Allmaras} Turbulence Model},
+  booktitle = {20th AIAA Computational Fluid Dynamics Conference}, year = {2011},
+  note      = {AIAA Paper 2011-3979}, doi = {10.2514/6.2011-3979}}
+
+%% ---- Algebraic (zero-extra-equation) SA-coupled transition: nearest neighbors ----
+@article{cakmakcioglu_2018,
+  author  = {Cakmakcioglu, Samet C. and Bas, Onur and Kaynak, Unver},
+  title   = {A Correlation-Based Algebraic Transition Model},
+  journal = {Proceedings of the Institution of Mechanical Engineers, Part C:
+             Journal of Mechanical Engineering Science},
+  volume  = {232}, number = {21}, pages = {3915--3929}, year = {2018},
+  doi     = {10.1177/0954406217743537}}
+
+@inproceedings{cakmakcioglu_2020,
+  author    = {Cakmakcioglu, Samet C. and Bas, Onur and Mura, Ricardo and Kaynak, Unver},
+  title     = {A Revised One-Equation Transitional Model for External Aerodynamics},
+  booktitle = {AIAA Aviation 2020 Forum}, year = {2020},
+  note      = {AIAA Paper 2020-2706}, doi = {10.2514/6.2020-2706}}
+
+@article{rahman_2024,
+  author  = {Rahman, Mizanur and Zhu, Huiyu and Hasan, Kamrul and Chen, Hua},
+  title   = {Replicating Transition with Modified {Spalart--Allmaras} Model},
+  journal = {Mathematics and Computers in Simulation}, volume = {221},
+  pages   = {570--588}, year = {2024}, doi = {10.1016/j.matcom.2024.03.016}}
+
+@article{crivellini_2023,
+  author  = {Crivellini, Andrea and Ghidoni, Antonio and Noventa, Gianmaria},
+  title   = {Algebraic Modifications of the $k$--$\tilde\omega$ and
+             {Spalart--Allmaras} Turbulence Models to Predict Bypass and
+             Separation-Induced Transition},
+  journal = {Computers \& Fluids}, volume = {253}, pages = {105791}, year = {2023},
+  doi     = {10.1016/j.compfluid.2023.105791}}
+
+%% ---- Classical hydrodynamic stability & early transition experiments ----
+@book{schmid_henningson_2001,
+  author    = {Schmid, Peter J. and Henningson, Dan S.},
+  title     = {Stability and Transition in Shear Flows},
+  series    = {Applied Mathematical Sciences},
+  volume    = {142}, publisher = {Springer}, address = {New York},
+  year      = {2001}, isbn = {0-387-98985-4},
+  doi       = {10.1007/978-1-4613-0185-1}}
+
+@techreport{schubauer_klebanoff_1956,
+  author      = {Schubauer, G. B. and Klebanoff, P. S.},
+  title       = {Contributions on the Mechanics of Boundary-Layer Transition},
+  institution = {National Advisory Committee for Aeronautics},
+  number      = {NACA Report 1289}, year = {1956},
+  note        = {Supersedes NACA TN 3489 (1955)}}
+
+@article{abu_ghannam_shaw_1980,
+  author  = {Abu-Ghannam, B. J. and Shaw, R.},
+  title   = {Natural Transition of Boundary Layers---The Effects of Turbulence,
+             Pressure Gradient, and Flow History},
+  journal = {Journal of Mechanical Engineering Science},
+  volume  = {22}, number = {5}, pages = {213--228}, year = {1980},
+  doi     = {10.1243/JMES_JOUR_1980_022_043_02}}
+
+%% ---- Spalart--Allmaras journal version ----
+@article{spalart_allmaras_1994,
+  author  = {Spalart, Philippe R. and Allmaras, Steven R.},
+  title   = {A One-Equation Turbulence Model for Aerodynamic Flows},
+  journal = {La Recherche A{\'e}rospatiale},
+  number  = {1}, pages = {5--21}, year = {1994}}
+
+%% ---- Vorticity Reynolds number transition criterion (origin) ----
+@article{VanDriest1963,
+  author  = {Van Driest, E. R. and Blumer, C. B.},
+  title   = {Boundary Layer Transition: Freestream Turbulence and Pressure
+             Gradient Effects},
+  journal = {AIAA Journal}, volume = {1}, number = {6}, pages = {1303--1306},
+  year    = {1963}, doi = {10.2514/3.1784}}
+
+%% ---- Menter--Langtry J. Turbomach. (Re_theta-based LCTM origin) ----
+@article{MenterLangtry2006,
+  author  = {Menter, F. R. and Langtry, R. B. and Likki, S. R. and
+             Suzen, Y. B. and Huang, P. G. and V{\"o}lker, S.},
+  title   = {A Correlation-Based Transition Model Using Local Variables---{Part~I}:
+             Model Formulation},
+  journal = {Journal of Turbomachinery}, volume = {128}, number = {3},
+  pages   = {413--422}, year = {2006}, doi = {10.1115/1.2184352}}
+
+%% ---- Canonical model registry ----
+@misc{nasa_tmr,
+  author       = {{NASA Langley Research Center}},
+  title        = {Turbulence Modeling Resource},
+  howpublished = {\url{https://turbmodels.larc.nasa.gov}}, year = {2024},
+  note         = {Transition model pages: SA-AFT2017b, SA-BCM, Langtry--Menter}}
+
+@techreport{coupland_1990,
+  author       = {Coupland, J.},
+  title        = {{ERCOFTAC} Special Interest Group on Laminar to Turbulent Transition and Retransition: T3A and T3B Test Cases},
+  institution  = {Rolls-Royce Applied Science Laboratory},
+  year         = {1990}
+}
+
+@inproceedings{savill_1993,
+  author       = {Savill, A. M.},
+  title        = {Some recent progress in the turbulence modelling of by-pass transition},
+  booktitle    = {Near-Wall Turbulent Flows},
+  editor       = {So, R. M. C. and Speziale, C. G. and Launder, B. E.},
+  publisher    = {Elsevier},
+  year         = {1993},
+  pages        = {829--848}
+}
+
+@techreport{schubauer_skramstad_1948,
+  author      = {Schubauer, G. B. and Skramstad, H. K.},
+  title       = {Laminar-Boundary-Layer Oscillations and Transition on a Flat Plate},
+  institution = {National Advisory Committee for Aeronautics},
+  number      = {Report 909},
+  year        = {1948}
+}
+
