@@ -303,14 +303,19 @@ def load_slice_derived(case_d):
     r.SetFileName(f"{case_d}/slice_with_derived.pvtu"); r.Update()
     return r.GetOutput()
 
-def wallnormal_max_metrics(case_d, side='upper', L_probe=0.01, n_probe=80):
+def wallnormal_max_metrics(case_d, side='upper', L_probe=0.01, n_probe=80,
+                            return_sigma_fpg=False):
     """For each surface point on `side`, shoot a probe line of length L_probe
     in the outward wall-normal direction, interpolate Re_Omega and Gamma on
     n_probe equally spaced points along the line (from slice_with_derived.pvtu),
     and take the max of each along the line. Returns (x_surf, Re_Omega_max,
-    Gamma_max). Both metrics are PURELY KINEMATIC — they do not depend on
+    Gamma_max). All metrics are PURELY KINEMATIC — they do not depend on
     nuHat or the amplification rate, so they are valid inputs for calibrating
     the rate kernel.
+
+    If return_sigma_fpg=True, also returns sigma_FPG_min — the MIN of
+    sigma_FPG(lambda_p) along the wall-normal probe (= strongest suppression
+    at the wall-normal location of strongest favorable pressure gradient).
     """
     Xm, Zm, up_idx, lo_idx = walk_contour_xz(case_d)
     idx = up_idx if side == 'upper' else lo_idx
@@ -354,7 +359,18 @@ def wallnormal_max_metrics(case_d, side='upper', L_probe=0.01, n_probe=80):
     ReO_max = np.nanmax(ReO, axis=0)
     Gam_max = np.nanmax(Gam, axis=0)
     order = np.argsort(xs)
-    return xs[order], ReO_max[order], Gam_max[order]
+    if not return_sigma_fpg:
+        return xs[order], ReO_max[order], Gam_max[order]
+    lam_arr = pdd.GetArray('lambda_p')
+    if lam_arr is None:
+        sigFPG_min = np.ones_like(ReO_max)
+    else:
+        lam_raw = vtk_to_numpy(lam_arr)
+        lam = np.where(mask, lam_raw, np.nan).reshape(n_probe, M)
+        LAMBDA_STAR, LAMBDA_SLOPE = 0.64, 4.56
+        sigFPG = 1.0 / (1.0 + np.exp(LAMBDA_SLOPE * (lam - LAMBDA_STAR)))
+        sigFPG_min = np.nanmin(sigFPG, axis=0)
+    return xs[order], ReO_max[order], Gam_max[order], sigFPG_min[order]
 
 def airfoil_surfaces(case_d, af='eppler387'):
     r = vtk.vtkXMLPUnstructuredGridReader(); r.SetFileName(f"{case_d}/surface_fluid_{af}.pvtu"); r.Update()
@@ -486,44 +502,47 @@ mn = pickle.load(open(f"{B}/mfoil_eppler387_Re200k.pkl", 'rb'))
 def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=80):
     """5 rows × len(alphas) cols. Rows top-to-bottom:
        (1) max Re_Omega along 0.01c wall-normal probe (purely kinematic);
-       (2) max Gamma  along 0.01c wall-normal probe (purely kinematic);
+       (2) min sigma_FPG along 0.01c wall-normal probe — the strongest
+           favorable-PG suppression encountered in the BL;
        (3) chi(x) (log) + mfoil N(x) (linear) on twin axes;
        (4) -Cp;
-       (5) |Cf|.
+       (5) signed Cf.
     `meshes` filters which mesh families to draw: None = both ['cav','str'],
     or pass e.g. ['str'] / ['cav'] for a single-family figure.
     """
     if meshes is None: meshes = ['cav','str']
-    fig, axs = plt.subplots(5, len(alphas), figsize=(5*len(alphas), 15), sharex=True)
+    fig, axs = plt.subplots(5, len(alphas), figsize=(5*len(alphas), 13), sharex=True)
     if len(alphas) == 1: axs = axs[:, None]
     for col, alpha in enumerate(alphas):
-        ax_reo = axs[0, col]; ax_gam = axs[1, col]
+        ax_reo = axs[0, col]; ax_sfpg = axs[1, col]
         ax_n   = axs[2, col]; ax_cp  = axs[3, col]; ax_cf = axs[4, col]
         ax_nN = ax_n.twinx()
-        # ROW 1+2: wall-normal-probe max Re_Omega and max Gamma
+        # ROW 1+2: wall-normal-probe max Re_Omega and min sigma_FPG
         for mesh in meshes:
             for level in ['L0', 'L1', 'L2']:  # all levels now current
                 d = case_dir(mesh, level, alpha)
                 if not os.path.exists(f"{d}/slice_with_derived.pvtu"): continue
                 lw = LEVEL_LW[level]; ls = MESH_LS[mesh]
                 try:
-                    xs_u, ReO_u, Gam_u = wallnormal_max_metrics(d, side='upper',
-                                                                L_probe=L_probe, n_probe=n_probe)
-                    xs_l, ReO_l, Gam_l = wallnormal_max_metrics(d, side='lower',
-                                                                L_probe=L_probe, n_probe=n_probe)
+                    xs_u, ReO_u, _, sFPG_u = wallnormal_max_metrics(
+                        d, side='upper', L_probe=L_probe, n_probe=n_probe,
+                        return_sigma_fpg=True)
+                    xs_l, ReO_l, _, sFPG_l = wallnormal_max_metrics(
+                        d, side='lower', L_probe=L_probe, n_probe=n_probe,
+                        return_sigma_fpg=True)
                 except Exception as e:
                     print(f"  skip probe ({mesh}/{level}, α={alpha}): {e}"); continue
                 ax_reo.semilogy(xs_u, ReO_u, ls=ls, lw=lw, color=UP_COLOR)
                 ax_reo.semilogy(xs_l, ReO_l, ls=ls, lw=lw, color=LO_COLOR)
-                ax_gam.plot(xs_u, Gam_u, ls=ls, lw=lw, color=UP_COLOR)
-                ax_gam.plot(xs_l, Gam_l, ls=ls, lw=lw, color=LO_COLOR)
+                ax_sfpg.plot(xs_u, sFPG_u, ls=ls, lw=lw, color=UP_COLOR)
+                ax_sfpg.plot(xs_l, sFPG_l, ls=ls, lw=lw, color=LO_COLOR)
         ax_reo.axhline(RE_OMEGA_FLOOR, color='gray', ls='--', lw=0.6, alpha=0.5)
         ax_reo.set_ylim(1e2, 1e4); ax_reo.grid(alpha=0.3, which='both')
         ax_reo.set_title(rf'$\alpha={alpha}^\circ$', fontsize=10)
         if col == 0: ax_reo.set_ylabel(r'$\max Re_\Omega$ (log)')
-        ax_gam.axhline(G_C, color='gray', ls=':', lw=0.6, alpha=0.6)
-        ax_gam.set_ylim(0, 2.05); ax_gam.grid(alpha=0.3)
-        if col == 0: ax_gam.set_ylabel(r'$\max \Gamma$')
+        ax_sfpg.axhline(0.5, color='gray', ls=':', lw=0.6, alpha=0.6)
+        ax_sfpg.set_ylim(-0.05, 1.05); ax_sfpg.grid(alpha=0.3)
+        if col == 0: ax_sfpg.set_ylabel(r'$\min \sigma_{\mathrm{FPG}}$')
         # ROW 3: chi + N
         for mesh in meshes:
             for level in ['L0', 'L1', 'L2']:  # all levels now current
@@ -568,7 +587,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
             ax_cp.plot(md['lower']['x'], -md['lower']['cp'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
             ax_cf.plot(md['upper']['x'], md['upper']['cf'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
             ax_cf.plot(md['lower']['x'], md['lower']['cf'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
-        for a in [ax_reo, ax_gam, ax_n, ax_cp, ax_cf]: a.set_xlim(0, 1)
+        for a in [ax_reo, ax_sfpg, ax_n, ax_cp, ax_cf]: a.set_xlim(0, 1)
         cf_hi = 0.025 if max(alphas) > 6 else 0.012
         ax_cf.set_ylim(-0.004, cf_hi)
         ax_cf.axhline(0.0, color='gray', lw=0.6, alpha=0.5)

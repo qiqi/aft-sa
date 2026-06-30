@@ -119,10 +119,10 @@ def cf_and_retheta(cd):
 
 def main():
     n = len(TU_LIST)
-    fig = plt.figure(figsize=(9, 12.5))
-    gs = gridspec.GridSpec(n + 1, 2, height_ratios=[1]*n + [2.6],
+    fig = plt.figure(figsize=(9, 11.0))
+    gs = gridspec.GridSpec(n + 1, 2, height_ratios=[1]*n + [1.8],
                            hspace=0.32, wspace=0.10,
-                           top=0.985, bottom=0.05, left=0.07, right=0.97)
+                           top=0.985, bottom=0.06, left=0.07, right=0.97)
 
     cf_results = {}  # Tu -> (Re_theta, cf_volume, chi_max)
 
@@ -185,13 +185,24 @@ def main():
         ax_cf.loglog(Re_th[valid_cf], cf_vol[valid_cf], SYMBOLS[k], mfc='w', mec='k',
                      color='k', ms=4, label=rf'SA-AF, $Tu={tu:g}$%')
 
-    # χ reference markers — chi=1 line and S-S transition x positions
+    # χ reference markers: χ=1 (start of σ_t blend) and χ=c_v1=7.1
+    # (half-saturation of f_v1 — this is where Cf actually rises and is the
+    # operational transition point that matches the S-S experimental marker.)
+    C_V1 = 7.1
     ax_chi.axhline(1.0, color='gray', lw=0.6, ls=':', alpha=0.7)
+    ax_chi.axhline(C_V1, color='gray', lw=0.8, ls='--', alpha=0.7)
+    ax_chi.text(0.02, 1.0 * 1.5, r'$\chi=1$ (blend start)', color='0.4',
+                fontsize=7, va='bottom')
+    ax_chi.text(0.02, C_V1 * 1.5, r'$\chi=c_{v1}$ (Cf rise)', color='0.4',
+                fontsize=7, va='bottom')
     ax_chi.set_xlabel('x'); ax_chi.set_ylabel(r'$\chi=\tilde\nu/\nu$')
     ax_chi.set_xlim(0, CONTOUR_X_MAX); ax_chi.set_ylim(1e-8, 1e2)
     ax_chi.grid(True, which='major', alpha=0.5)
     ax_chi.grid(True, which='minor', alpha=0.2)
     # S-S transition positions converted to x via Blasius:  x_SS = (Re_θ_SS/0.664)² / Re_unit
+    # These align with where the simulation curves cross χ=c_v1 (the dashed
+    # gray horizontal), NOT χ=1, because experimental S-S transition is read
+    # off the Cf rise — which the model puts at χ≈c_v1, not χ=1.
     Re_unit = 1.0 / NU
     for k, tu in enumerate(TU_LIST):
         x_SS = (SS_RETH[tu] / 0.664)**2 / Re_unit
