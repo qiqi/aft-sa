@@ -236,24 +236,48 @@ in a Blasius boundary layer the peak of $Re_\Omega$ inside the BL profile is
 proportional to $Re_\theta$ ($\max_y Re_\Omega\!\approx\!2.2\,Re_\theta$) and is
 located at $y\!\approx\!\theta$, so $Re_\Omega$ inherits the role of $Re_\theta$
 without the nonlocal integration (Fig.~\ref{fig:amp}). We adopt $Re_\Omega$ as the
-amplification indicator and pair it with a profile-fullness indicator
+amplification indicator and pair it with two purely local descriptors of the
+boundary-layer state,
 \begin{equation}
   Re_\Omega = \frac{d^2\,\omega}{\nu}, \qquad
-  \Gamma = \frac{2(\omega d)^2}{|\mathbf{u}|^2+(\omega d)^2},
+  \lambda_p = -\,\frac{d^{2}}{\rho\,\nu\,|\mathbf{u}|^{2}}\,\mathbf{u}\cdot\nabla p, \qquad
+  \Gamma = \frac{2(\omega d)^2}{|\mathbf{u}|^2+(\omega d)^2}.
   \label{eq:indicators}
 \end{equation}
-where $\Gamma\in[0,2]$ approaches unity in a near-wall shear layer (where
-$\omega d\!\sim\!|\mathbf{u}|$) and grows toward 2 on an inflectional profile.
-$\Gamma$ is a local surrogate for the role played by the shape factor in envelope
-methods and is not the boundary-layer shape factor $H$ itself.
 
-The velocity magnitude $|\mathbf{u}|$ in Eq.~\eqref{eq:indicators} is the flow
-speed measured relative to the nearest wall point. Because that reference is
-fixed to the body, $|\mathbf{u}|$ is Galilean invariant, as are $\omega$ and $d$:
-a uniform frame translation moves flow and wall point together. The indicators
-\eqref{eq:indicators} thus inherit the locality and frame independence of the
-wall-distance dependence already built into the baseline SA model, and require
-no nonlocal integration.
+The first of these, $\lambda_p$, is a local pressure-gradient parameter of the
+Pohlhausen/Thwaites type---the same quantity that enters the Abu-Ghannam \& Shaw
+transition-onset correlation through the Thwaites parameter
+\cite{abu_ghannam_shaw_1980}. It is positive in a favorable gradient
+(accelerating flow, $\partial p/\partial s\!<\!0$), zero on a
+zero-pressure-gradient (Blasius) profile, and negative in an adverse gradient.
+Because it reads the \emph{instantaneous, local} pressure gradient, $\lambda_p$
+is an excellent sensor for the favorable-gradient regions where amplification
+must be held off (it drives the suppression term introduced below). What it
+cannot do is record \emph{history}: an adverse gradient destabilizes a layer
+\emph{cumulatively}---the integrated adverse loading fills out the velocity
+profile and raises the shape factor $H$ downstream---whereas a pointwise
+$\partial p/\partial s$ carries no memory of that accumulation. A profile already
+driven toward separation by an upstream adverse run can sit at a small local
+$\lambda_p$ yet be strongly unstable.
+
+The second descriptor, $\Gamma\in[0,2]$, supplies what $\lambda_p$ misses: it
+measures the \emph{fullness} of the local velocity profile. It approaches unity
+in an attached near-wall shear layer (where $\omega d\!\sim\!|\mathbf{u}|$) and
+grows toward $2$ on an inflectional, near-separation profile, so it reflects the
+accumulated state of the layer rather than the local gradient---a local
+surrogate for the role the shape factor plays in envelope methods, though not
+$H$ itself. $\Gamma$ is built only from $\omega$, $d$, and the flow speed
+$|\mathbf{u}|$ measured relative to the nearest wall point; with that body-fixed
+reference all three quantities (and $\lambda_p$) are Galilean invariant---a
+uniform frame translation moves the flow and the wall point together---so the
+indicators \eqref{eq:indicators} inherit the locality and frame independence of
+the wall-distance dependence already built into the baseline SA model and need
+no nonlocal integration. One caveat: where two solid surfaces near the same
+point move relative to each other, the ``nearest-wall'' reference for
+$|\mathbf{u}|$ can switch discontinuously between them, so $\Gamma$ can be
+discontinuous there; the present cases involve no such relative wall motion, and
+the general treatment is left to future work.
 
 The non-dimensional amplification rate is a smooth sigmoid in $\Gamma$
 gated below a vorticity-Reynolds floor $Re_\Omega^{\mathrm{f}}$,
@@ -268,9 +292,10 @@ with $a\equiv0$ for $Re_\Omega\le Re_\Omega^{\mathrm{f}}$. The floor
 $Re_\Omega^{\mathrm{f}}\!=\!100$ is chosen so the Blasius growth onset
 matches Drela's $Re_{\theta,\mathrm{crit}}\!\approx\!200$ for the
 zero-pressure-gradient profile. The barrier is $\Gamma$-independent:
-favorable-pressure-gradient suppression is handled separately by a streamwise
-pressure-gradient sensor (see below), avoiding the contamination of Blasius
-growth that a $\Gamma$-dependent (slanted) cliff would otherwise cause. The second term in $z$ is the
+favorable-pressure-gradient suppression is handled separately by the
+$\lambda_p$ sensor of Eq.~\eqref{eq:indicators} (see below), avoiding the
+contamination of Blasius growth that a $\Gamma$-dependent (slanted) cliff would
+otherwise cause. The second term in $z$ is the
 log barrier centered on this cliff: it drives $z\!\to\!-\infty$ as
 $Re_\Omega\!\to\!Re_\Omega^{\mathrm{c}}(\Gamma)^{+}$ and vanishes very rapidly
 for $Re_\Omega\!>\!Re_\Omega^{\mathrm{c}}$ (the high exponent $p\!=\!4$ makes
@@ -296,7 +321,7 @@ The laminar production is
   \label{eq:paft}
 \end{equation}
 where the rate carries an additional dependence on the local streamwise
-pressure-gradient sensor $\lambda_p$ (defined below) that suppresses
+pressure-gradient sensor $\lambda_p$ of Eq.~\eqref{eq:indicators} that suppresses
 favorable-pressure-gradient amplification. Specifically,
 \begin{equation}
   a(Re_\Omega,\Gamma,\lambda_p) =
@@ -306,28 +331,23 @@ favorable-pressure-gradient amplification. Specifically,
   \label{eq:rate_with_fpg}
 \end{equation}
 with the same $\Gamma$-sigmoid and cliff floor as before, and the new
-favorable-pressure-gradient suppression
+favorable-pressure-gradient suppression built on $\lambda_p$ of
+Eq.~\eqref{eq:indicators},
 \begin{equation}
   \sigma_\mathrm{FPG}(\lambda_p) =
-       \frac{1}{1+\exp(s_\lambda(\lambda_p-\lambda_\ast))},
-  \qquad
-  \lambda_p = -\,\frac{d^{2}}{\rho\,\nu\,|\mathbf{u}|^{2}}\,\mathbf{u}\cdot\nabla p .
+       \frac{1}{1+\exp(s_\lambda(\lambda_p-\lambda_\ast))} .
   \label{eq:fpg}
 \end{equation}
-$\lambda_p$ is a purely local Pohlhausen-like indicator: it is positive
-where the flow is accelerating (favorable PG, $\partial p/\partial s\!<\!0$),
-zero on a zero-pressure-gradient (Blasius) profile, and negative under
-adverse PG. Calibrated against Falkner--Skan profiles at $\eta\!\approx\!1$
-(the kernel-active band): Blasius gives $\lambda_p\!=\!0$, Hiemenz
-($\beta\!=\!1$) gives $\lambda_p\!\approx\!1.29$. Anchors
-$\sigma_\mathrm{FPG}(0)\!=\!0.95$ and $\sigma_\mathrm{FPG}(1.29)\!=\!0.05$
-yield $(\lambda_\ast, s_\lambda) = (0.64, 4.56)$. Adverse PG ($\lambda_p\!<\!0$)
-sees $\sigma_\mathrm{FPG}\!>\!0.95$, leaving the inflectional-profile
-amplification (which $\Gamma$-sigmoid already captures) untouched.
-$\lambda_p$ is Galilean invariant (pressure differences are frame
-independent), local (no nonlocal integration), and independent of
-$\tilde\nu$, so it preserves the analytic Jacobian of
-Sec.~\ref{sec:impl}.
+The suppression is calibrated against Falkner--Skan profiles at
+$\eta\!\approx\!1$ (the kernel-active band): Blasius gives $\lambda_p\!=\!0$ and
+Hiemenz ($\beta\!=\!1$) gives $\lambda_p\!\approx\!1.29$, so anchoring
+$\sigma_\mathrm{FPG}(0)\!=\!0.95$ and $\sigma_\mathrm{FPG}(1.29)\!=\!0.05$ yields
+$(\lambda_\ast, s_\lambda)\!=\!(0.64, 4.56)$. An adverse gradient
+($\lambda_p\!<\!0$) then sees $\sigma_\mathrm{FPG}\!>\!0.95$, leaving the
+inflectional-profile amplification---which the $\Gamma$-sigmoid already
+captures---untouched. Like the other indicators \eqref{eq:indicators},
+$\lambda_p$ is local and independent of $\tilde\nu$, so it preserves the
+analytic Jacobian of Sec.~\ref{sec:impl}.
 
 \paragraph{FPG-modulated cliff floor.} $\sigma_\mathrm{FPG}$ alone reduces
 the growth \emph{rate} in favorable-pressure-gradient regions, but does not
