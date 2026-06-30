@@ -104,9 +104,26 @@ def cf_and_retheta(cd):
         keep = np.concatenate(([True], np.diff(wd_s) > 1e-10))
         wd_s, u_s = wd_s[keep], u_s[keep]
         if len(wd_s) >= 2:
-            theta = np.trapezoid(u_s * (1.0 - u_s), wd_s)
-            Re_theta_arr[i] = theta / NU
-            # Wall shear: skip wd=0 wall node; use first wd>0 node.
+            # Momentum thickness with EDGE-VELOCITY normalization, integral cut
+            # at the BL edge. A fixed-height integral (to z_clip) is corrupted by
+            # the weak inviscid overshoot over the plate (u/U_inf ~ 1.02-1.04
+            # just above the BL): there u(1-u) < 0 and cancels the real momentum
+            # deficit, collapsing theta to ~40% of Blasius and shifting the
+            # laminar points off the Cf = 0.441/Re_theta line. Normalizing by
+            # the local edge velocity u_e = max(u) and integrating only to the
+            # edge (first wd where u/u_e >= 0.999) recovers Blasius to within ~5%
+            # in the laminar region and the log-law in the turbulent region.
+            u_e = u_s.max()
+            r = u_s / u_e
+            above = np.where(r >= 0.999)[0]
+            edge = above[0] if len(above) else len(u_s) - 1
+            if edge >= 1:
+                rr = r[:edge+1]
+                theta = np.trapezoid(rr * (1.0 - rr), wd_s[:edge+1])
+                Re_theta_arr[i] = theta / NU
+            # Wall shear: skip wd=0 wall node; use first wd>0 node. Cf is
+            # referenced to the FREESTREAM dynamic pressure (u_s is u/U_inf),
+            # NOT u_e, so it is left unnormalized by the edge velocity.
             nz = np.where(wd_s > 1e-9)[0]
             if len(nz):
                 j = nz[0]
