@@ -11,7 +11,7 @@ Usage: python converge_by_xtr.py <case_dir> [--batch N] [--tol 0.01] [--max-batc
 
 History file: <case_dir>/xtr_history.csv  (step, x_tr_upper, x_tr_lower)
 """
-import os, sys, json, shutil, time, argparse, csv
+import os, sys, json, shutil, time, argparse, csv, glob
 import numpy as np
 import vtk
 from vtkmodules.util.numpy_support import vtk_to_numpy, numpy_to_vtk
@@ -26,7 +26,23 @@ def _import_runner():
     from rans.solve import run_solver  # noqa
     return walk_contour_xz, make_env, run_solver
 
-NU = 2.5e-8  # Flow360 stored ν for Re=4M cases (Mach=0.1, muRef=2.5e-8)
+# Half-thickness of the blunt TE per airfoil — used by walk_contour_xz to filter
+# the interior blunt-face nodes off the upper/lower contours.
+Z_TE_HALF = {'nlf0416': 0.00125, 'eppler387': 0.000833, 'naca0012': 0.0}
+
+def detect_airfoil(cd):
+    """Find <af> from surface_fluid_<af>.pvtu in the case dir."""
+    fs = glob.glob(f"{cd}/surface_fluid_*.pvtu")
+    if not fs:
+        raise RuntimeError(f"no surface_fluid_*.pvtu in {cd}")
+    name = os.path.basename(fs[0])
+    return name[len("surface_fluid_"):-len(".pvtu")]
+
+def detect_nu(cd):
+    """Stored ν = muRef = Mach/Re_chord from Flow360.json."""
+    p = f"{cd}/Flow360.json"
+    d = json.load(open(p))
+    return float(d['freestream']['muRef'])
 
 def get_current_step(cd):
     """Read last pseudo-step from nonlinear_residual_v2.csv."""
@@ -44,13 +60,16 @@ def extract_xtr(cd, walk_contour_xz, chi_thresh=1.0, wd_max=1e-3):
     """Find x_tr on upper + lower of the airfoil case.
     Probe each surface point with a short wall-normal stencil; take the max
     chi over the stencil; find the first x where this max > chi_thresh."""
+    af = detect_airfoil(cd)
+    nu = detect_nu(cd)
+    z_te_half = Z_TE_HALF.get(af, 0.00125)
     r = vtk.vtkXMLPUnstructuredGridReader()
     r.SetFileName(f"{cd}/volume.pvtu"); r.Update()
     g = r.GetOutput(); pd = g.GetPointData()
     pts = vtk_to_numpy(g.GetPoints().GetData())
-    chi = vtk_to_numpy(pd.GetArray('nuHat')) / NU
+    chi = vtk_to_numpy(pd.GetArray('nuHat')) / nu
     wd = vtk_to_numpy(pd.GetArray('wallDistance'))
-    Xm, Zm, up_idx, lo_idx = walk_contour_xz(cd)
+    Xm, Zm, up_idx, lo_idx = walk_contour_xz(cd, af=af, z_te_half=z_te_half)
     x_up = Xm[up_idx]; z_up = Zm[up_idx]
     x_lo = Xm[lo_idx]; z_lo = Zm[lo_idx]
     out = {}
