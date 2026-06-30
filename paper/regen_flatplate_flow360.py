@@ -18,22 +18,32 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
 B = "/home/qiqi/flexcompute/aft-sa/flow360"
-NU = 1.0e-6   # Re_unit = 1e6, nu = 1/Re
+NU = 1.0e-6   # Re_unit = 1e6, nu = 1/Re  (=> Re_x = x * 1e6)
 MACH = 0.1    # Flow360 stores velocity = u/c_∞; freestream u/U_∞ = Mach/Mach = 1, so divide by MACH
-TU_LIST = [0.026, 0.06, 0.18, 0.30, 0.85]
-SS_RETH = {0.026: 1115, 0.06: 890, 0.18: 681, 0.30: 575, 0.85: 345}
+# AGS-calibrated case set (Tu in S-S/AGS natural-transition range; drop the old
+# out-of-range Tu=0.85% and the mis-sourced 5-pt set). See run_flatplate_ags.py.
+TU_LIST = [0.04, 0.08, 0.16, 0.30, 0.60]
 SYMBOLS = ['o', 's', '^', 'v', 'D']
+
+def AGS_Reth(tu_pct):
+    """Abu-Ghannam & Shaw (1980) zero-PG transition-onset Re_theta (Tu in %)."""
+    return 163.0 + np.exp(6.91 - tu_pct)
+
+# Schubauer-Skramstad (1948) Fig. 7 transition band, digitized (NACA Rep. 909):
+# (Tu%, Re_x_begin, Re_x_end) in units of 1e6 -- shown as a secondary reference.
+SS_BAND = [(0.026, 2.78, 3.82), (0.04, 2.80, 3.85), (0.08, 2.80, 3.88),
+           (0.12, 2.62, 3.72), (0.16, 2.10, 3.25), (0.20, 1.82, 3.00),
+           (0.24, 1.66, 2.90), (0.28, 1.55, 2.83), (0.32, 1.47, 2.76),
+           (0.342, 1.42, 2.70)]
 
 # Plate extends 0..PLATE_END_X. Last ~10% near outlet has BL corrupted by the
 # downstream BC (artificial pressure adjustment) so we clip it out.
 PLATE_END_X = 6.0
 OUTLET_MARGIN = 0.5         # ignore data within this distance of outlet
-# x to which contour panels are drawn (slightly past latest S-S transition).
-# Tu=0.026 ⇒ Re_θ=1115 ⇒ x_tr ≈ (Re_θ/0.664)²/Re ≈ 2.8; add margin.
 CONTOUR_X_MAX = 4.0
 
 def case_dir(tu):
-    return f"{B}/flatplate_aftsa_Tu{int(round(tu*1000)):04d}"
+    return f"{B}/flatplate_ags_Tu{int(round(tu*1000)):04d}"
 
 def extract_volume(cd):
     """Return points (x, z), u, chi at all volume nodes. Span (y) handled by
@@ -171,7 +181,7 @@ def main():
         ax.set_title(rf'$u/U_\infty$, $Tu={tu:g}$%', y=0.82, fontsize=9)
         ax.set_ylim(0, y_max_plot); ax.set_ylabel('y')
         if row < n-1: ax.set_xticklabels([])
-        else: ax.set_xlabel('x')
+        else: ax.set_xlabel(r'$Re_x/10^6$')
 
         # log10(nuhat/nu) contours (right) — uniformly spaced so visual spacing
         # matches the χ(x) curve in the bottom-left panel.
@@ -182,7 +192,7 @@ def main():
         ax.set_title(rf'$\log_{{10}}\hat\nu/\nu$, $Tu={tu:g}$%', y=0.82, fontsize=9)
         ax.set_ylim(0, y_max_plot); ax.set_yticklabels([])
         if row < n-1: ax.set_xticklabels([])
-        else: ax.set_xlabel('x')
+        else: ax.set_xlabel(r'$Re_x/10^6$')
 
         # Wall-shear-based Cf & chi vs (x, Re_theta) from the volume slice
         xc, Re_th, cf_vol, chi_mx, _, _ = cf_and_retheta(cd)
@@ -214,18 +224,19 @@ def main():
     ax_chi.axhline(C_V1, color='gray', lw=0.8, ls='--', alpha=0.7)
     ax_chi.text(0.02, 1.0 * 1.5, r'$\chi=1$', color='0.4', fontsize=7, va='bottom')
     ax_chi.text(0.02, C_V1 * 1.5, r'$\chi=c_{v1}$', color='0.4', fontsize=7, va='bottom')
-    ax_chi.set_xlabel('x'); ax_chi.set_ylabel(r'$\chi=\tilde\nu/\nu$')
+    # x-axis IS Re_x/1e6 (Re_x = x*Re_unit, Re_unit=1e6).
+    ax_chi.set_xlabel(r'$Re_x / 10^6$'); ax_chi.set_ylabel(r'$\chi=\tilde\nu/\nu$')
     ax_chi.set_xlim(0, CONTOUR_X_MAX); ax_chi.set_ylim(1e-8, 1e2)
     ax_chi.grid(True, which='major', alpha=0.5)
     ax_chi.grid(True, which='minor', alpha=0.2)
-    # S-S transition x positions (Blasius x_SS = (Re_θ_SS/0.664)² / Re_unit),
-    # drawn in the SAME style as the bottom-right panel: solid-gray verticals
-    # plus a filled per-Tu symbol on the bottom edge.
+    # AGS-1980 transition-onset reference, as x=Re_x/1e6 = (AGS_Reth/0.664)^2/Re_unit:
+    # solid-gray vertical + filled per-Tu symbol on the bottom edge (same style as
+    # the bottom-right panel). The model's χ=1 crossing should sit near these.
     for k, tu in enumerate(TU_LIST):
-        x_SS = (SS_RETH[tu] / 0.664)**2 / Re_unit
-        if x_SS < CONTOUR_X_MAX:
-            ax_chi.axvline(x_SS, color='0.5', lw=0.8, ls='-', zorder=1)
-            ax_chi.plot(x_SS, y_bot, SYMBOLS[k], mfc='k', mec='k', ms=8, zorder=5)
+        x_ags = (AGS_Reth(tu) / 0.664)**2 / Re_unit
+        if x_ags < CONTOUR_X_MAX:
+            ax_chi.axvline(x_ags, color='0.5', lw=0.8, ls='-', zorder=1)
+            ax_chi.plot(x_ags, y_bot, SYMBOLS[k], mfc='k', mec='k', ms=8, zorder=5)
     ax_chi.legend(loc='lower right', fontsize=7, frameon=False, ncol=2)
 
     # Cf reference correlations (Blasius + Coles-Fernholz)
@@ -239,16 +250,28 @@ def main():
     ax_cf.loglog(Re_th_ref, cf_turb, 'k:', lw=1.2,
                  label=r'turbulent, $C_f=2[(\ln Re_\theta)/0.38+3.7]^{-2}$')
 
-    # S-S experimental markers + vertical lines
+    # AGS-1980 onset markers (calibration target) + S-S Fig.7 band (context).
+    # Per Tu: vertical gray line + filled symbol at AGS Re_theta_t; a faint
+    # horizontal bar shows the digitized S-S transition band [begin,end] in
+    # Re_theta at that Tu (interpolated; skipped beyond S-S's 0.342% range).
+    from numpy import interp
+    ss_tu = np.array([b[0] for b in SS_BAND])
+    ss_rb = np.array([0.664*np.sqrt(b[1]*1e6) for b in SS_BAND])  # begin Re_theta
+    ss_re = np.array([0.664*np.sqrt(b[2]*1e6) for b in SS_BAND])  # end   Re_theta
     y_min = 1e-4
     for k, tu in enumerate(TU_LIST):
-        Re_SS = SS_RETH[tu]
-        ax_cf.axvline(Re_SS, color='0.5', lw=0.8, ls='-', zorder=1)
-        ax_cf.plot(Re_SS, y_min * 1.15, SYMBOLS[k], mfc='k', mec='k', ms=8, zorder=5)
-        ax_cf.annotate(f'S-S {tu}%', (Re_SS, y_min * 1.15),
-                       xytext=(6, 4), textcoords='offset points',
-                       fontsize=7, color='0.2')
-
+        Re_AGS = AGS_Reth(tu)
+        ax_cf.axvline(Re_AGS, color='0.5', lw=0.8, ls='-', zorder=1)
+        ax_cf.plot(Re_AGS, y_min * 1.15, SYMBOLS[k], mfc='k', mec='k', ms=8, zorder=5)
+        if tu <= ss_tu.max():   # S-S band only within its measured range
+            rb, re = float(interp(tu, ss_tu, ss_rb)), float(interp(tu, ss_tu, ss_re))
+            ax_cf.plot([rb, re], [y_min*1.05, y_min*1.05], '-', color='0.5',
+                       lw=2.5, alpha=0.5, zorder=2)
+    # legend proxies for the two references
+    from matplotlib.lines import Line2D
+    ref_handles = [Line2D([],[],color='0.5',marker='o',mfc='k',mec='k',ls='-',lw=0.8,
+                          ms=6,label='AGS 1980 onset'),
+                   Line2D([],[],color='0.5',lw=2.5,alpha=0.5,label='S-S Fig.7 band')]
     ax_cf.legend(loc='lower left', fontsize=7, frameon=False)
     ax_cf.grid(True, which='major', alpha=0.5)
     ax_cf.grid(True, which='minor', alpha=0.2)

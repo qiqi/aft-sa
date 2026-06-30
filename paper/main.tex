@@ -43,8 +43,8 @@ retains an analytic Jacobian and integrates implicitly at the cost of the
 baseline model. The model is tuned in three stages of increasing complexity,
 each targeting a distinct pressure-gradient regime. On a zero-pressure-gradient
 flat plate the amplification magnitude and the freestream-turbulence sensitivity
-are pinned against the Schubauer--Skramstad transition Reynolds numbers across
-five turbulence levels, fixing the Blasius behavior. On the NLF(1)-0416
+are pinned against the Abu-Ghannam \& Shaw transition-onset correlation across
+the natural-transition turbulence range, fixing the Blasius behavior. On the NLF(1)-0416
 natural-laminar-flow airfoil at $Re\!=\!4\!\times\!10^6$ a
 favorable-pressure-gradient cliff factor is set so the onset of growth matches
 the $e^N$ rooftop ignition; the model then resolves the laminar-to-turbulent
@@ -181,8 +181,8 @@ amplification rate is tuned in three stages of increasing complexity, each
 targeting a distinct pressure-gradient regime. Section~\ref{sec:flatplate}
 uses a zero-pressure-gradient flat plate to fix the amplification magnitude
 $a_{\max}$ and the freestream-turbulence-to-seed map $\chi_\infty(Tu)$ against
-the Schubauer--Skramstad transition data at five $Tu$ levels (the Blasius
-behavior). Section~\ref{sec:nlfval} uses the NLF(1)-0416 natural-laminar-flow
+the Abu-Ghannam \& Shaw transition-onset correlation over the
+natural-transition $Tu$ range (the Blasius behavior). Section~\ref{sec:nlfval} uses the NLF(1)-0416 natural-laminar-flow
 airfoil to fix the favorable-pressure-gradient cliff factor $K_\lambda$
 against the $e^N$ rooftop ignition (the favorable-PG behavior).
 Section~\ref{sec:eppval} uses the Eppler 387 at low Reynolds number to
@@ -426,9 +426,9 @@ and does not need a $\Gamma$-dependent tilt that would otherwise contaminate
 Blasius growth.
 
 The remaining global magnitude $a_{\max}\!=\!0.15$ is set by matching the
-model's predicted transition $Re_\theta^{\mathrm{tr}}$ to the
-Schubauer--Skramstad flat-plate data \cite{schubauer_skramstad_1948} across
-five freestream turbulence levels (Sec.~\ref{sec:flatplate}), jointly with
+model's predicted transition $Re_\theta^{\mathrm{tr}}$ to the Abu-Ghannam \&
+Shaw zero-PG transition-onset correlation~\cite{abu_ghannam_shaw_1980} across
+the natural-transition $Tu$ range (Sec.~\ref{sec:flatplate}), jointly with
 the Tu$\to\chi_\infty$ slope $B$ of Eq.~\eqref{eq:tumap}. The cliff threshold
 $Re_\Omega^{\mathrm{c}}(\lambda_p)$ of Eq.~\eqref{eq:cliff_fpg} suppresses growth
 both near the wall (where $\Gamma\!\to\!1$ yet $Re_\Omega\!\to\!0$) and on
@@ -511,21 +511,22 @@ freestream value $\chi_\infty$: a higher $Tu$ is a larger seed and thus fewer
 $e$-folds to reach the eddy-viscosity half-saturation point $\chi\!=\!c_{v1}$,
 so transition moves upstream, with $N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)$.
 This is the $e^N$ pathway, but the $N_\mathrm{crit}(Tu)$ correlation is
-fit from data rather than transcribed from Mack: matching the Schubauer
---Skramstad transition Reynolds numbers under the present (gentle, blended)
-amplification dynamics requires a steeper Tu-sensitivity than Mack's,
+fit from data rather than transcribed from Mack: the slope and offset are set
+so the model's transition onset reproduces the Abu-Ghannam \& Shaw zero-PG
+correlation~\cite{abu_ghannam_shaw_1980} under the present (gentle, blended)
+amplification dynamics,
 \begin{equation}
-  N_\mathrm{crit}(Tu) = -20.25 - 4.00\,\ln(Tu_{\mathrm{frac}}),
+  N_\mathrm{crit}(Tu) = -9.09 - 2.71\,\ln(Tu_{\mathrm{frac}}),
   \qquad
   \chi_\infty = c_{v1}\,e^{-N_\mathrm{crit}},
   \label{eq:tumap}
 \end{equation}
 with $Tu_{\mathrm{frac}}$ the rms freestream turbulence intensity expressed as
-a fraction. The slope $4.00$ replaces Mack's $2.4$
-\cite{mack_1977, nasa_tmr} because Mack maps $Tu$ to a linear-stability
+a fraction. The fitted slope $B\!=\!2.71$ is comparable to Mack's
+$2.4$~\cite{mack_1977, nasa_tmr}: Mack maps $Tu$ to a linear-stability
 $N_\mathrm{crit}$, whereas Eq.~\eqref{eq:tumap} maps $Tu$ to the seed
-$\chi_\infty$ that the present nonlinear, blended dynamics actually need to
-reproduce the experimental transition spread (Sec.~\ref{sec:flatplate}). This
+$\chi_\infty$ that the present nonlinear, blended dynamics need to reproduce
+the AGS transition-onset spread (Sec.~\ref{sec:flatplate}). This
 is conceptually different from the critical-momentum-thickness correlation
 $Re_{\theta c}=803.73\,(Tu_\infty+0.6067)^{-1.027}$ through which $Tu$ enters
 the $\gamma$--$Re_\theta$ and BC/BCM models
@@ -543,8 +544,8 @@ of the wall.
   floor $Re_\Omega^{\mathrm{f}}\!=\!100$ places Blasius growth onset at
   Drela's $Re_{\theta,\mathrm{crit}}\!\approx\!200$. The
   global magnitude $a_{\max}\!=\!0.15$ and the Tu$\to\chi_\infty$ slope $B$
-  of Eq.~\eqref{eq:tumap} are jointly fit to the Schubauer--Skramstad
-  flat-plate transition Reynolds numbers across five $Tu$ levels
+  of Eq.~\eqref{eq:tumap} are fit to the Abu-Ghannam \& Shaw flat-plate
+  transition-onset correlation across the natural-transition $Tu$ range
   (Sec.~\ref{sec:flatplate}). All constants below
   are used unchanged for the Blasius transport verification
   (Figs.~\ref{fig:amp}--\ref{fig:nuhat}) and for all subsequent coupled-RANS
@@ -584,52 +585,56 @@ from the leading edge on a fine mesh and bypass the transition model entirely.
 
 Figure~\ref{fig:flatplate_batch} computes the model on a zero-pressure-gradient
 flat plate with the solver's own SA source terms in a thin-layer boundary-layer
-march, at the five freestream-turbulence levels tabulated by Schubauer and
-Skramstad~\cite{schubauer_skramstad_1948} and re-summarized by Mack~\cite{mack_1977}:
-$Tu\!=\!0.026\%,\,0.06\%,\,0.18\%,\,0.30\%,\,0.85\%$. The Tu $\to\chi_\infty$
-map of Eq.~\eqref{eq:tumap} sends each case to a single freestream seed
-$\chi_\infty\!=\!c_{v1}\exp(-N_\mathrm{crit})$:
-$\chi_\infty\!\approx\!2.0\!\times\!10^{-5}$ ($Tu\!=\!0.026\%$),
-$5.8\!\times\!10^{-4}$ ($0.06\%$), $4.7\!\times\!10^{-2}$ ($0.18\%$),
-$3.6\!\times\!10^{-1}$ ($0.30\%$), $2.3\!\times\!10^{1}$ ($0.85\%$).
-Starting from a small laminar seed, $\tilde\nu$ remains inert while the skin
-friction follows the laminar Blasius law (dashed); the amplification
-\eqref{eq:paft} grows the disturbance through the unstable region until $\chi$
-reaches unity, after which $C_f$ rises toward the turbulent log-law correlation
-(dotted). The standard SA model, by contrast, amplifies its own production from
-any nonzero freestream seed and is turbulent from the leading edge regardless of
-$\chi_\infty$. As $Tu$ is raised the freestream seed
-$\chi_\infty=e^{-N_\mathrm{crit}}(Tu)$ grows, and the laminar
-branch shortens monotonically, with the transition moving forward across the
-natural-transition range. The same
-$\hat\nu$ field is plotted on $(Re_x,Re_y)$ contours next to the velocity field,
-making visible the seed-and-amplify pathway: at low $Tu$ the layer is laminar for a
-long stretch and $\hat\nu$ amplifies through the unstable band; at high $Tu$ the
-band itself extends to the wall and $\hat\nu$ already exceeds unity at $Re_x\!\to\!0$.
+march, at five freestream-turbulence levels spanning the natural-transition
+range, $Tu\!=\!0.04\%,\,0.08\%,\,0.16\%,\,0.30\%,\,0.60\%$. The
+freestream-turbulence sensitivity is calibrated against the Abu-Ghannam \&
+Shaw correlation~\cite{abu_ghannam_shaw_1980} for zero-pressure-gradient
+transition onset, $Re_\theta^\mathrm{tr}\!=\!163+\exp(6.91-Tu[\%])$ --- the
+community-standard low-disturbance reference, itself a smooth fit through
+flat-plate data including Schubauer \& Skramstad~\cite{schubauer_skramstad_1948}.
+We calibrate to the correlation rather than to Schubauer \& Skramstad's raw
+Fig.~7 directly because that figure's low-$Tu$ \emph{plateau} (transition
+fixed near $Re_x\!\approx\!2.8\!\times\!10^6$ below $Tu\!\approx\!0.08\%$) was
+later shown by Wells~\cite{wells_1967} to be largely an artifact of
+wind-tunnel acoustic noise rather than a true insensitivity to turbulence ---
+a caveat Schubauer \& Skramstad themselves raise.
+
+The Tu $\to\chi_\infty$ map of Eq.~\eqref{eq:tumap} sends each case to a single
+freestream seed $\chi_\infty\!=\!c_{v1}\exp(-N_\mathrm{crit})$ (in-domain
+values $\chi_\infty\!\approx\!4.0\!\times\!10^{-5}$, $2.6\!\times\!10^{-4}$,
+$1.7\!\times\!10^{-3}$, $9.4\!\times\!10^{-3}$, $6.1\!\times\!10^{-2}$ at the
+five $Tu$). Starting from this small laminar seed, $\tilde\nu$ remains inert
+while the skin friction follows the laminar Blasius law (dashed); the
+amplification \eqref{eq:paft} grows the disturbance through the unstable region
+until $\chi$ reaches unity, after which $C_f$ rises toward the turbulent
+log-law correlation (dotted). The standard SA model, by contrast, amplifies its
+own production from any nonzero freestream seed and is turbulent from the
+leading edge regardless of $\chi_\infty$. As $Tu$ is raised the seed grows, so
+fewer $e$-folds are needed to reach $\chi\!\sim\!1$ and the transition moves
+forward across the natural-transition range. The same $\hat\nu$ field is
+plotted on $(Re_x,Re_y)$ contours next to the velocity field, making visible
+the seed-and-amplify pathway.
+
 The two bottom panels collect the streamwise growth of the in-BL maximum
-$\chi$ (left) and the resulting $C_f(Re_\theta)$ (right); both draw black
-curves with a distinct symbol per $Tu$, and both mark the Schubauer--Skramstad
-experimental transition with a solid vertical line and a filled symbol on the
-bottom edge --- at the Blasius-mapped location $x_\mathrm{SS}\!=\!(Re_{\theta,
-\mathrm{SS}}/0.664)^2\,\nu/U_\infty$ on the left and at
-$Re_\theta^\mathrm{tr}$ on the right
-($Re_\theta^\mathrm{tr}\!=\!1115,\,890,\,681,\,575,\,345$). The operational
-transition --- the $C_f$ rise --- occurs where $\chi$ reaches the
-eddy-viscosity half-saturation value $c_{v1}\!=\!7.1$, not where the
-production blend first engages at $\chi\!=\!1$ (both drawn as horizontal
-references on the bottom-left panel); the experimental verticals accordingly
-line up with the simulation's $\chi\!=\!c_{v1}$ crossings rather than its
-$\chi\!=\!1$ crossings. The $C_f$ collapses onto the laminar Blasius curve in
-the pre-transitional region and onto the turbulent correlation once $\chi$ has
-saturated. The
-amplification kernel and the Tu $\to\chi_\infty$ slope $B\!=\!4.00$ in
-Eq.~\eqref{eq:tumap} are fit jointly to these five points, giving predicted
-$Re_\theta^\mathrm{tr}\!\approx\!1141,\,953,\,765,\,610$ at
-$Tu\!=\!0.026,0.06,0.18,0.30\%$ (within $\pm\!12\%$ of the experimental
-locations), with growth start at $Re_\theta\!\approx\!200$ matching Drela's
-$Re_{\theta,\mathrm{crit}}$ for Blasius. The $Tu\!=\!0.85\%$ case lies in the saturation regime where the
-seed exceeds $c_{v1}$ and the model is turbulent from the leading edge; this
-limit is shown in the figure but not used in the calibration fit.
+$\chi$ (left, vs $Re_x$) and the resulting $C_f(Re_\theta)$ (right); both draw
+black curves with a distinct symbol per $Tu$ and mark the AGS transition-onset
+reference with a solid vertical line and a filled symbol on the bottom edge.
+The right panel additionally shows the digitized Schubauer--Skramstad Fig.~7
+transition band (begin--end, faint horizontal bars) for context. The
+operational transition --- the $C_f$ rise --- begins where $\chi$ crosses
+unity (the start of the $\sigma_t$ blend) and is essentially complete by
+$\chi\!=\!c_{v1}\!=\!7.1$ (the eddy-viscosity half-saturation point); both are
+drawn as horizontal references on the bottom-left panel. The model's
+$\chi\!=\!1$ crossing tracks the AGS onset to within $\sim\!4\%$ in $Re_\theta$
+over $0.04\%\!\le\!Tu\!\le\!0.30\%$ (rising to $\sim\!13\%$ at $Tu\!=\!0.60\%$,
+the edge of the natural-transition range), and the onset falls within the
+Schubauer--Skramstad band throughout. The eddy-viscosity rise from $\chi\!=\!1$
+to $c_{v1}$ is deliberately gentle, so the modeled transition is more gradual
+in $Re_\theta$ than the experimental band is wide --- a consequence of the
+soft handover \eqref{eq:sigma} chosen for stable implicit coupling. The fitted
+slope, $B\!=\!2.705$ in Eq.~\eqref{eq:tumap}, is comparable to Mack's
+$2.4$~\cite{mack_1977}; growth begins near $Re_\theta\!\approx\!200$, matching
+Drela's $Re_{\theta,\mathrm{crit}}$ for Blasius.
 
 The model is calibrated for natural transition. Strongly bypass-dominated
 conditions ($Tu\!\gtrsim\!1\%$, e.g. the ERCOFTAC T3A and T3B test cases at
@@ -643,21 +648,24 @@ limit of the single-equation formulation.
 
 \begin{figure}[tp]
   \centering
-  \includegraphics[width=0.95\textwidth]{flat_plate_batch_flow360.pdf}
-  \caption{Freestream-turbulence sweep on the flat plate at the five
-  Schubauer--Skramstad~\cite{schubauer_skramstad_1948} levels
-  $Tu\!=\!0.026$--$0.85\%$ (rows). \emph{Left columns}: contours of
-  $u/U_\infty$ and $\log_{10}\hat\nu$ in the $(Re_x,Re_y)$ plane.
-  \emph{Bottom-left}: in-BL maximum $\chi\!=\!\tilde\nu/\nu$ vs $x$, with
-  horizontal references at $\chi\!=\!1$ and $\chi\!=\!c_{v1}\!=\!7.1$.
-  \emph{Bottom-right}: $C_f$ vs $Re_\theta$ with the laminar
+  \includegraphics[width=0.90\textwidth]{flat_plate_batch_flow360.pdf}
+  \caption{Freestream-turbulence sweep on the flat plate at five levels in the
+  natural-transition range $Tu\!=\!0.04$--$0.60\%$ (rows). \emph{Left columns}:
+  contours of $u/U_\infty$ and $\log_{10}\hat\nu$ in the $(Re_x,Re_y)$ plane
+  ($Re_x\!=\!x\!\cdot\!10^6$). \emph{Bottom-left}: in-BL maximum
+  $\chi\!=\!\tilde\nu/\nu$ vs $Re_x$, with horizontal references at $\chi\!=\!1$
+  (onset of the $\sigma_t$ blend) and $\chi\!=\!c_{v1}\!=\!7.1$ (eddy-viscosity
+  half-saturation). \emph{Bottom-right}: $C_f$ vs $Re_\theta$ with the laminar
   ($C_f\!=\!0.441/Re_\theta$, dashed) and turbulent
   ($C_f\!=\!2[(\ln Re_\theta)/0.38+3.7]^{-2}$, dotted) correlations. Both
   bottom panels use black curves with one symbol per $Tu$ (legend); solid-gray
-  verticals and filled bottom-edge symbols mark the Schubauer--Skramstad
-  transition. See text for the $c_{v1}$ transition criterion, the calibration
-  fit, and why the experimental markers align with the $\chi\!=\!c_{v1}$
-  crossings.}
+  verticals and filled bottom-edge symbols mark the Abu-Ghannam \& Shaw
+  (1980)~\cite{abu_ghannam_shaw_1980} transition-onset reference the model is
+  calibrated to, and the bottom-right adds the digitized Schubauer--Skramstad
+  Fig.~7 band (faint bars) for context. The model's $\chi\!=\!1$ onset tracks
+  AGS to $\sim\!4\%$ over $Tu\!\le\!0.30\%$ and lies within the S-S band; the
+  $C_f$ follows the laminar branch then recovers the turbulent correlation,
+  a behavior baseline SA cannot produce.}
   \label{fig:flatplate_batch}
 \end{figure}
 
@@ -977,8 +985,9 @@ implicitly at the cost of the baseline model.
 The amplification rate was tuned in three stages of increasing complexity,
 each targeting a distinct pressure-gradient regime. On a zero-pressure-gradient
 flat plate (Sec.~\ref{sec:flatplate}) the amplification magnitude $a_{\max}$
-and the $Tu\!\to\!\chi_\infty$ slope were pinned to the Schubauer--Skramstad
-data at five $Tu$ levels, fixing the Blasius behavior. On the NLF(1)-0416 at
+and the $Tu\!\to\!\chi_\infty$ slope were pinned to the Abu-Ghannam \& Shaw
+transition-onset correlation over the natural-transition range, fixing the
+Blasius behavior. On the NLF(1)-0416 at
 $Re\!=\!4\!\times\!10^6$ (Sec.~\ref{sec:nlfval}) the favorable-pressure-gradient
 cliff factor $K_\lambda$ was set so that growth onset matches the $e^N$ rooftop
 ignition, and the laminar-to-turbulent handover was resolved across
