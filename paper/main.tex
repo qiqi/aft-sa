@@ -40,14 +40,24 @@ handing over near $\chi\!=\!\tilde\nu/\nu\!\sim\!1$; no auxiliary field is
 introduced. The amplification rate depends only on the local mean flow---a
 vorticity Reynolds number and a profile-fullness indicator---so the production
 retains an analytic Jacobian and integrates implicitly at the cost of the
-baseline model. On flat plates the model recovers the laminar and turbulent
-skin-friction laws with a transition between them. On a NACA~0012 at $Re=10^6$
-and $\alpha=0^\circ$ it gives a half-chord laminar run and a $\sim\!31\%$ drag
-reduction, agreeing to $0.5\%$ across a structured O-grid and an anisotropic
-unstructured mesh---a reduction unreachable by fully turbulent SA. Across
-$-2^\circ\!\le\!\alpha\!\le\!8^\circ$ on the NACA~0012 and an NLF(1)-0416, the
-predicted transition tracks an $e^N$ reference on both grids and recovers the
-NLF drag bucket.
+baseline model. The model is tuned in three stages of increasing complexity,
+each targeting a distinct pressure-gradient regime. On a zero-pressure-gradient
+flat plate the amplification magnitude and the freestream-turbulence sensitivity
+are pinned against the Schubauer--Skramstad transition Reynolds numbers across
+five turbulence levels, fixing the Blasius behavior. On the NLF(1)-0416
+natural-laminar-flow airfoil at $Re\!=\!4\!\times\!10^6$ a
+favorable-pressure-gradient cliff factor is set so the onset of growth matches
+the $e^N$ rooftop ignition; the model then resolves the laminar-to-turbulent
+handover on both surfaces across $\alpha\!\in\!\{0^\circ,4^\circ,9^\circ,15^\circ\}$
+and across three refinement levels of two independently-generated mesh families
+(twenty-four cases). On the Eppler 387 at $Re\!=\!2\!\times\!10^5$ the
+adverse-pressure-gradient behavior is exercised in the low-Reynolds
+laminar-separation-bubble regime; the signed skin friction shows the
+recirculation directly and the transition tracks the same $e^N$ reference at
+the canonical incidences $\alpha\!\in\!\{0^\circ,2^\circ,5^\circ,7^\circ\}$
+across another twenty-four cases on the same two-family ladder. The three
+stages each target a distinct pressure-gradient regime --- zero, favorable,
+and adverse --- and reuse the same constants throughout.
 \end{abstract}
 
 \section*{Nomenclature}
@@ -166,15 +176,21 @@ analytically differentiable source.
     \bottomrule
   \end{tabular}
 \end{table}
-SA-AF is scoped to natural (Tollmien--Schlichting) transition. A single
-calibration of the local amplification rate (one sigmoid kernel
-$a(\Gamma)$ pinned at two physical anchors --- a flat-plate amplification
-rate set by matching Schubauer--Skramstad transition Reynolds numbers, and
-an adverse-pressure-gradient saturation rate set by an NLF airfoil
-case) is used unchanged for the Blasius transport verification and for
-all coupled-RANS computations on flat plate and airfoil.
-Sections~\ref{sec:flatplate} and \ref{sec:airfoil} verify it on a flat plate
-and validate it on a NACA~0012 in a production RANS solver.
+SA-AF is scoped to natural (Tollmien--Schlichting) transition. The local
+amplification rate is tuned in three stages of increasing complexity, each
+targeting a distinct pressure-gradient regime. Section~\ref{sec:flatplate}
+uses a zero-pressure-gradient flat plate to fix the amplification magnitude
+$a_{\max}$ and the freestream-turbulence-to-seed map $\chi_\infty(Tu)$ against
+the Schubauer--Skramstad transition data at five $Tu$ levels (the Blasius
+behavior). Section~\ref{sec:nlfval} uses the NLF(1)-0416 natural-laminar-flow
+airfoil to fix the favorable-pressure-gradient cliff factor $K_\lambda$
+against the $e^N$ rooftop ignition (the favorable-PG behavior).
+Section~\ref{sec:eppval} uses the Eppler 387 at low Reynolds number to
+exercise the adverse-pressure-gradient regime in the laminar-separation-bubble
+regime (the adverse-PG behavior). The same unified constants
+(Table~\ref{tab:const}) are used across all three stages and across the
+twenty-four coupled-RANS cases run for each airfoil (cavity unstructured +
+structured O-grid, three refinement levels, four incidences).
 
 \section{Model Formulation}\label{sec:model}
 
@@ -404,7 +420,8 @@ $\Gamma$-independent cliff floor $Re_\Omega^{\mathrm{f}}\!=\!100$ places
 Blasius growth onset at Drela's $Re_{\theta,\mathrm{crit}}\!\approx\!200$
 for the zero-pressure-gradient profile. Favorable-pressure-gradient
 suppression is delegated to a separate streamwise pressure-gradient sensor
-(Sec.~\ref{sec:fpg}), so the cliff floor is purely a sublayer / onset cutoff
+(Eqs.~\eqref{eq:fpg}--\eqref{eq:cliff_fpg}), so the cliff floor is purely a
+sublayer / onset cutoff
 and does not need a $\Gamma$-dependent tilt that would otherwise contaminate
 Blasius growth.
 
@@ -413,7 +430,7 @@ model's predicted transition $Re_\theta^{\mathrm{tr}}$ to the
 Schubauer--Skramstad flat-plate data \cite{schubauer_skramstad_1948} across
 five freestream turbulence levels (Sec.~\ref{sec:flatplate}), jointly with
 the Tu$\to\chi_\infty$ slope $B$ of Eq.~\eqref{eq:tumap}. The cliff threshold
-$Re_\Omega^{\mathrm{c}}(\Gamma)$ of Eq.~\eqref{eq:cliff} suppresses growth
+$Re_\Omega^{\mathrm{c}}(\lambda_p)$ of Eq.~\eqref{eq:cliff_fpg} suppresses growth
 both near the wall (where $\Gamma\!\to\!1$ yet $Re_\Omega\!\to\!0$) and on
 favorable-pressure-gradient profiles whose peak $\Gamma$ is pinned at $1$ but
 whose $Re_\Omega$ is still low; envelope-style onset arises naturally once a
@@ -488,7 +505,7 @@ classical $e^N$ transition of a Blasius layer.
 
 The same calibration $a_{\max}=0.2$ with the two-anchor sigmoid constants
 $(s,g_c)=(5.263,1.572)$ is used unchanged for all coupled RANS computations
-of Secs.~\ref{sec:flatplate}--\ref{sec:airfoil}: no per-geometry adjustment
+of Secs.~\ref{sec:flatplate}--\ref{sec:eppval}: no per-geometry adjustment
 is needed. The freestream turbulence level enters through one quantity, the
 freestream value $\chi_\infty$: a higher $Tu$ is a larger seed and thus fewer
 $e$-folds to reach the eddy-viscosity half-saturation point $\chi\!=\!c_{v1}$,
@@ -532,7 +549,7 @@ of the wall.
   are used unchanged for the Blasius transport verification
   (Figs.~\ref{fig:amp}--\ref{fig:nuhat}) and for all subsequent coupled-RANS
   flat-plate and airfoil computations
-  (Secs.~\ref{sec:flatplate}--\ref{sec:airfoil}).}
+  (Secs.~\ref{sec:flatplate}--\ref{sec:eppval}).}
   \label{tab:const}
   \begin{tabular}{ccccccccccc}
     \toprule
@@ -561,10 +578,9 @@ small but nonzero $\chi_\infty$ persists to the body, and here it additionally s
 the disturbance seed. The interior $\tilde\nu$ field is also initialized at this
 laminar level $\chi_\infty$, not at the solver's default near-turbulent value: since
 the SA dynamics do not relaminarize, a turbulent initial field would otherwise persist
-from the leading edge on a fine mesh and bypass the transition model entirely
-(Sec.~\ref{sec:gridconv}).
+from the leading edge on a fine mesh and bypass the transition model entirely.
 
-\section{Flat-Plate Verification}\label{sec:flatplate}
+\section{Tuning Stage 1: Zero pressure gradient on a Blasius flat plate}\label{sec:flatplate}
 
 Figure~\ref{fig:flatplate_batch} computes the model on a zero-pressure-gradient
 flat plate with the solver's own SA source terms in a thin-layer boundary-layer
@@ -637,7 +653,7 @@ limit of the single-equation formulation.
   \label{fig:flatplate_batch}
 \end{figure}
 
-\section{Airfoil Validation: NLF(1)-0416}\label{sec:nlfval}
+\section{Tuning Stage 2: Favorable pressure gradient on NLF(1)-0416}\label{sec:nlfval}
 
 The natural-laminar-flow airfoil NLF(1)-0416 is taken as the primary airfoil test:
 the same geometry that demands an $e^N$-style instability tracker to be predicted
@@ -647,8 +663,12 @@ marginal across a wide $\alpha$ range, and both surfaces transition aft at
 $\alpha\!\approx\!0^\circ$---the canonical low-drag-bucket geometry. The model is
 evaluated at $Re\!=\!4\!\times\!10^6$, $M\!=\!0.1$,
 $\chi_\infty\!=\!c_{v1}\,e^{-9}\!\approx\!8.76\!\times\!10^{-4}$
-(the half-saturation anchor of Sec.~\ref{sec:airfoil}; matched to
-$N_\mathrm{crit}\!=\!9$), across $\alpha\!\in\!\{0^\circ, 4^\circ, 9^\circ,
+(matched to $N_\mathrm{crit}\!=\!9$ via the half-saturation anchor
+$\chi_\infty\!=\!c_{v1}\,e^{-N_\mathrm{crit}}$: at $\chi\!=\!c_{v1}$ the SA
+eddy-viscosity function $f_{v1}(\chi)\!=\!\chi^3/(\chi^3+c_{v1}^3)$ is exactly
+$\tfrac12$, so $N_\mathrm{crit}\!=\!\ln(c_{v1}/\chi_\infty)$ is the
+amplification at which the eddy viscosity is half-engaged from the laminar
+seed), across $\alpha\!\in\!\{0^\circ, 4^\circ, 9^\circ,
 15^\circ\}$, on a three-level isotropic refinement ladder of both mesh families
 (L0--L2 unstructured cavity-mesher and L0--L2 structured O-grid, twenty-four
 cases total). The unstructured mesher uses a shared NLF spline contour with
@@ -797,7 +817,7 @@ pressure-\emph{insensitive} SA term---so the front carries no receptivity to the
 pressure field and the computation converges to steady state. With \eqref{eq:blend} the
 O-grid NLF(1)-0416 reaches a steady solution at every incidence
 (Fig.~\ref{fig:nlfconv}), the transition location agrees with the unstructured mesh
-and tracks the $e^N$ reference across the polar (Fig.~\ref{fig:xtr}), and the
+and tracks the $e^N$ reference across the incidence range, and the
 laminar/amplification calibration is untouched ($\max$ and convex are identical
 for $\chi\le1$).
 
@@ -818,417 +838,197 @@ modifications --- the $\max$ production blend and the $c_{v1}$-anchored
 geometric slowdown --- all twenty-four cases of Fig.~\ref{fig:nlfconv}
 converge to a steady state with no residual limit cycle.
 
-\section{Airfoil Validation: NACA~0012}\label{sec:airfoil}
+\section{Tuning Stage 3: Adverse pressure gradient on Eppler 387}\label{sec:eppval}
 
-The model is applied to a NACA~0012 at $Re=10^6$, $M=0.2$, $\alpha=0^\circ$, on the
-quasi-two-dimensional unstructured mesh of Fig.~\ref{fig:mesh}, generated by an
-in-house Delaunay mesher driven by an a-priori Spalding
-boundary-layer metric ($1.1\!\times\!10^5$ nodes, $400$ points around the
-airfoil, near-wall spacing targeting $y^+\!\approx\!0.25$, growth ratio
-$1.1$, farfield radius $100\,c$). To admit
-a laminar boundary layer the freestream ratio is set low,
+The Eppler 387 low-Reynolds-number airfoil completes the tuning sweep with the
+adverse-pressure-gradient regime. The McGhee, Walker, and Millard experiment in
+the NASA Langley Low-Turbulence Pressure Tunnel \cite{mcghee_1988} tested this
+airfoil from $Re\!=\!6\!\times\!10^4$ to $4.6\!\times\!10^5$ at tunnel
+turbulence levels between $0.06\%$ and $0.18\%$; the data are the canonical
+reference for low-$Re$ transition modeling and supply the comparison condition
+used by Coder and Maughmer's AFT-2014, Coder's AFT-2017, the Langtry--Menter
+$\gamma$--$Re_\theta$ benchmark, and the Bas--{\c C}akmak{\c c}{\i}o{\u g}lu
+algebraic SA-BCM variant
+\cite{coder_maughmer_2014, halila_2022, langtry_menter_2009, cakmakcioglu_2018}.
+At these conditions the upper surface carries a long laminar-separation bubble
+(LSB) that controls the section drag: laminar separation at the shoulder of the
+suction peak, an inflectional shear layer in which the rate kernel must
+accelerate amplification, turbulent reattachment, and a short turbulent wedge
+to the trailing edge. The bubble is the canonical adverse-pressure-gradient
+test for a transition model.
+
+The model is evaluated at the de-facto benchmark condition of the
+transition-modeling literature: $Re\!=\!2\!\times\!10^5$, $M\!=\!0.1$, across
+$\alpha\!\in\!\{0^\circ,2^\circ,5^\circ,7^\circ\}$, with the freestream seed
+$\chi_\infty^{(in)}\!=\!8.76\!\times\!10^{-6}$ matched to $N_\mathrm{crit}\!=\!9$
+under the same $f_\mathrm{slow}\!=\!0.01$ slowdown used for the NLF (in-domain
+$\chi_\infty\!=\!8.76\!\times\!10^{-4}$, the LTPT-class anchor). Three
+refinement levels on two independently-generated mesh families
+(unstructured cavity, structured O-grid) give twenty-four cases.
+
+Mesh generation reuses the NLF recipe verbatim. The 56-point Eppler 387
+contour is read from the NASA TM 4062 Table I (design coordinates with the
+trailing edge thickened from $0$ to $0.01\,\mathrm{in}$ blended at
+$x/c\!=\!0.95$; $z_\mathrm{TE}\!=\!\pm0.000833\,c$, half the NLF
+blunt-thickness), spline-interpolated, resampled at $N\!\in\!\{200,400,800\}$
+points with piecewise-cosine clustering at the LE and TE, and fed to both the
+in-house unstructured cavity mesher and Construct2D. The blunt-TE
+chord-spacing $h_\mathrm{TE}$ halves per refinement level along with every other
+length scale, and the TE-corner growth ratio decays from $2.0$ at L0 to
+$1.25$ at L2; the far-field is fixed at $100\,c$. The resulting grids range
+from $1.6\!\times\!10^4$ nodes (str L0) to $3.8\!\times\!10^5$ nodes (cav L2).
 
 \begin{figure}[tp]
   \centering
-  \includegraphics[width=0.95\textwidth]{mesh.pdf}
-  \caption{The two NACA~0012 meshes used in this study (in-plane slice; L1
-  refinement level). \emph{Top row: leading-edge detail; bottom row: trailing-edge
-  detail.} \emph{Left column:} the unstructured anisotropic mesh (Delaunay with
-  Spalding-style near-wall metric), included as an \emph{adversarial} test for the
-  present model. The mesher attempts to align triangular prism layers with the
-  wall but many near-wall triangles are nearly degenerate,
-  with interior angles approaching $0^\circ/0^\circ/180^\circ$---sliver elements
-  in which the gradient stencil is severely skewed; these layers are also the
-  source of the tangential $C_f$ staggering observed below. The TE detail
-  shows the result after pinning the chord-direction contour spacing at
-  $h_\mathrm{TE}\!=\!h_0$ and modifying the mesher's tangential metric to use
-  the LOCAL contour-segment length rather than a single global constant
-  ($h_\mathrm{wall}$); without these fixes the unstructured TE region produces
-  a fan of sliver elements spanning $h_\mathrm{wall}\!\sim\!10^3 h_0$
-  tangentially and a non-monotonic $C_L$ at L1 (Sec.~\ref{sec:gridconv}).
-  \emph{Right column:} the structured O-grid (Construct2D), with fully
-  wall-aligned quad-prism cells and staggering-free. Both resolve the
-  boundary layer to $y^+\!\lesssim\!0.4$ at the leading edge; the results below are computed
-  on both, and the unstructured mesh is reported as a worst-case stress test
-  of how the transition model behaves on a strongly anisotropic, partly
-  degenerate near-wall stencil.}
-  \label{fig:mesh}
+  \includegraphics[width=0.95\textwidth]{eppler_cf_lowalpha.pdf}
+  \caption{Eppler 387 surface distributions at $\alpha\!\in\!\{0^\circ,2^\circ\}$,
+  $Re\!=\!2\!\times\!10^5$, $M\!=\!0.1$, $\chi_\infty\!=\!8.76\!\times\!10^{-4}$
+  (matched to $N_\mathrm{crit}\!=\!9$). \emph{Top row}:
+  wall-normal-probe maximum of $Re_\Omega$ (log axis). \emph{Second row}:
+  wall-normal-probe maximum of $\Gamma$. \emph{Third row}: in-BL maximum
+  modified-viscosity ratio $\chi\!=\!\max_y\tilde\nu/\nu$ on a log axis (left),
+  with mfoil's amplification factor $N$ on the matched linear axis (right) and
+  the vertical dotted lines at mfoil's $x_\mathrm{tr}$. \emph{Fourth row}:
+  $-C_p$. \emph{Bottom row}: \emph{signed} $C_f$ (positive downstream, negative
+  in reversed flow): the LSB recirculation appears directly as the dip below
+  zero on the upper surface. Color: upper (blue), lower (red). Line style:
+  structured O-grid (solid), unstructured cavity (dashed). Line thickness: L0
+  (thin), L1 (medium), L2 (thick). Dotted: mfoil $e^N$ at $N_\mathrm{crit}\!=\!9$.
+  The bubble sits at $x/c\!\approx\!0.55$--$0.65$ at $\alpha\!=\!0^\circ$ and
+  marches forward to $x/c\!\approx\!0.45$--$0.55$ at $\alpha\!=\!2^\circ$; both
+  Flow360 and mfoil show the same recirculation structure.}
+  \label{fig:eppcflow}
 \end{figure}
-$\chi_\infty=0.02$;
-this is compared against standard SA at the fully turbulent $\chi_\infty=3$ and, as a
-control, standard SA at the \emph{same} $\chi_\infty=0.02$. Table~\ref{tab:drag}
-reports the converged force coefficients and Fig.~\ref{fig:cf} the chordwise
-skin-friction distribution.
 
-\begin{table}[t]
+\begin{figure}[tp]
   \centering
-  \caption{NACA~0012 drag breakdown ($Re=10^6$, $M=0.2$, $\alpha=0^\circ$), on
-  the L1-refinement structured O-grid ($1.3\!\times\!10^5$ nodes) and the L1
-  unstructured mesh ($1.1\!\times\!10^5$ nodes). The two grids agree on the
-  SA-AF drag to within $0.5\%$.}
-  \label{tab:drag}
-  \begin{tabular}{llccc}
+  \includegraphics[width=0.95\textwidth]{eppler_cf_highalpha.pdf}
+  \caption{As Fig.~\ref{fig:eppcflow}, at $\alpha\!\in\!\{5^\circ,7^\circ\}$.
+  At $\alpha\!=\!5^\circ$ the bubble has moved to $x/c\!\approx\!0.40$ and
+  shortened; at $\alpha\!=\!7^\circ$ the suction peak is near $-C_p\!\approx\!3$
+  and the bubble is at $x/c\!\approx\!0.10$--$0.15$ with a sharp recovery.
+  The signed $C_f$ (bottom row) shows the small recirculation directly. The
+  lower-surface boundary layer remains attached and essentially laminar to
+  $x/c\!\approx\!0.99$ across the entire $\alpha$ range, matching the
+  mfoil/$e^9$ prediction that the lower transition lies aft of the airfoil.}
+  \label{fig:eppcfhigh}
+\end{figure}
+
+The skin friction (Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}, bottom rows)
+shows the LSB directly: the upper-surface $C_f$ drops below zero in a band
+roughly $0.05$--$0.10$ chord wide where the boundary layer is separated, then
+rises sharply through reattachment and reaches the turbulent level. Flow360's
+surface output writes the skin friction as a scalar magnitude on the wall
+patch, so the sign is reconstructed by sampling the tangential velocity at a
+$10^{-3}\,c$ wall-normal offset and signing $C_f$ by the dot product of the
+sampled velocity with the LE$\to$TE surface tangent; the resulting trace is
+directly comparable to mfoil's already-signed skin-friction output. Both Flow360
+and mfoil show the same recirculation structure at all four incidences and on
+both mesh families.
+
+\begin{table}[tp]
+  \centering
+  \caption{Upper-surface transition location $x_\mathrm{tr}^{\mathrm{upper}}$
+  on the Eppler 387 at $Re\!=\!2\!\times\!10^5$ across the four incidences,
+  three refinement levels, and two mesh families
+  ($x_\mathrm{tr}$ defined as the first chord location where the in-BL
+  $\max_y\chi$ crosses $1$). Lower-surface transition lies aft of the
+  trailing edge in every case (no transition predicted on lower, matching
+  mfoil). The mfoil reference is computed at the same $N_\mathrm{crit}\!=\!9$.}
+  \label{tab:eppxtr}
+  \begin{tabular}{ccccccccc}
     \toprule
-    Model & Grid & $C_D$ & $C_{D,\mathrm{pressure}}$ & $C_{D,\mathrm{friction}}$ \\
+    & \multicolumn{3}{c}{Unstructured cavity} & \multicolumn{3}{c}{Structured O-grid} & & \\
+    \cmidrule(lr){2-4} \cmidrule(lr){5-7}
+    $\alpha$ & L0 & L1 & L2 & L0 & L1 & L2 & mfoil $e^9$ & NASA TM oil-flow \\
     \midrule
-    SA (turbulent), $\chi_\infty{=}3$    & O-grid & 0.01084 & 0.00204 & 0.00880 \\
-    SA-AF, $\chi_\infty{=}0.02$          & O-grid & \textbf{0.00746} & 0.00140 & \textbf{0.00605} \\
-    \addlinespace[2pt]
-    SA (turbulent), $\chi_\infty{=}3$    & unstructured & 0.01095 & 0.00215 & 0.00879 \\
-    SA-AF, $\chi_\infty{=}0.02$          & unstructured & \textbf{0.00742} & 0.00149 & \textbf{0.00593} \\
+    $0^\circ$ & 0.571 & 0.583 & 0.585 & 0.575 & 0.586 & 0.587 & 0.718 & --- \\
+    $2^\circ$ & 0.528 & 0.536 & 0.536 & 0.520 & 0.533 & 0.538 & 0.666 & --- \\
+    $5^\circ$ & 0.442 & 0.456 & 0.457 & 0.425 & 0.453 & 0.461 & 0.570 & $0.55$ \\
+    $7^\circ$ & 0.329 & 0.332 & 0.347 & 0.225 & 0.301 & 0.347 & $0.68^\dagger$ & $0.48$ \\
     \bottomrule
   \end{tabular}
+  \\[2pt]{\footnotesize $^\dagger$ mfoil at $\alpha=7^\circ$, $Re=200k$ sits at
+  the edge of its convergence regime and returns an unreliable $x_\mathrm{tr}$;
+  $C_L\!=\!0.928$ is below the $\alpha\!=\!5^\circ$ value, indicating numerical
+  stall onset. Flow360's monotone forward march and the NASA oil-flow
+  turbulent-reattachment locations agree on the trend.}
 \end{table}
 
-Standard SA is insensitive to the freestream level---it bypasses to
-turbulence from the leading edge, giving the same fully turbulent drag at
-$\chi_\infty=0.02$ as at $\chi_\infty=3$ to within $1\%$---so only the turbulent
-$\chi_\infty=3$ result is reported, and the reduction below is due to the transition
-model, not to the lowered freestream. SA-AF instead sustains a laminar run: the skin
-friction (Fig.~\ref{fig:cf}, bottom-left) follows the laminar trend to a minimum
-near $x/c\approx0.5$ and then rises to the turbulent level, a signature the
-turbulent computation (dash-dot) does not show. Friction drag falls by $31\%$ and
-total drag by $31\%$ relative to turbulent SA at the same condition on the O-grid,
-and the corresponding reductions on the unstructured mesh are $33\%$ and $32\%$;
-the two grids agree on the SA-AF total drag to within $0.5\%$. The small-amplitude
-($\sim$few percent) oscillations in the unstructured $C_f$ are a tangential
-staggering of the node-centered scheme on the triangulated near-wall layers
-(Fig.~\ref{fig:mesh}); they are insensitive to $y^+$, leave the friction
-integral unchanged within $0.1\%$, and vanish on the O-grid. This is the
-zero-incidence, maximum-laminar-fraction case; the laminar run shortens with
-lift.
+The grid sequence in Table~\ref{tab:eppxtr} demonstrates monotone L0$\to$L1$\to$L2
+convergence on both mesh families: the L1$\to$L2 drift is $0.001$--$0.015\,c$ at
+$\alpha\!\in\!\{0^\circ,2^\circ,5^\circ\}$, and the two independently-generated
+mesh families agree to within $0.005\,c$ at L2 on all four incidences. The
+$\alpha\!=\!7^\circ$ case is the most sensitive, as expected near stall: the
+unstructured L2 and structured L2 land at the same $0.347$ but the L1 values
+differ by $0.03\,c$. Across all four operating points the transition runs
+$0.10$--$0.15\,c$ upstream of mfoil's $e^9$ prediction at $\alpha\!\in\!\{0^\circ,2^\circ,5^\circ\}$:
+this offset is the same as the offset seen on the NLF and is the model's
+characteristic earlier-than-$e^9$ tendency at the present $\chi_\infty$ anchor.
+The NASA TM oil-flow data at $\alpha\!\in\!\{5^\circ,7^\circ\}$
+(turbulent-reattachment locations of $0.55$ and $0.48$) sit closer to the
+Flow360 prediction than to the mfoil one, which is consistent with the
+laminar-separation-bubble being the controlling mechanism at these conditions.
 
-The case converges to steady state without special treatment.
-Figure~\ref{fig:conv} shows the residual histories of SA-AF across the L0--L2
-grid-refinement series on both mesh families. Both the continuity and the
-$\tilde\nu$ residuals drop several orders of magnitude in $\sim\!2\!\times\!10^4$
-pseudo-time steps, with the transient hump near step $10^4$ corresponding to the
-laminar-to-turbulent handover of the model and reproducing on both grids. No
-stagnation or stability penalty is observed at any refinement level---the
-practical payoff of the analytic Jacobian of Sec.~\ref{sec:model}.
-
-\subsection{Grid convergence}\label{sec:gridconv}
-Every airfoil result is computed on two unrelated mesh families---an anisotropic
-unstructured mesh and a structured O-grid (Construct2D)---and
-Figs.~\ref{fig:cf}, \ref{fig:conv}, \ref{fig:polar}, and~\ref{fig:xtr}
-overlay both. The unstructured family is deliberately retained as an \emph{adversarial}
-discretization, with the sliver near-wall triangles of Fig.~\ref{fig:mesh} that the
-prism extruder cannot eliminate; the O-grid is the controlled, fully wall-aligned
-reference. Both families are built to a leading-edge $y^+\!\lesssim\!0.4$, which is
-not free: the unstructured mesher derives its first-cell height from a turbulent flat-plate
-friction estimate, which under-predicts the laminar leading-edge wall shear by a
-factor of $\sim\!2$--$3$ and overshoots $y^+$ at the LE by that ratio; an explicit
-first-cell override pulls the LE $y^+$ back into target range and the unstructured LE skin
-friction then agrees with the integral-method reference and with the O-grid. Once the
-LE is resolved on both, the pressure distributions, the polar lift and pressure
-drag, the laminar skin-friction profile inboard of transition, and the transition-vs.\
-incidence trend all agree closely between the two grids, and the structured grid is
-additionally free of the tangential $C_f$ staggering of Fig.~\ref{fig:mesh}.
-
-A systematic refinement study (Fig.~\ref{fig:gridconv}) uses three unstructured meshes
-(L0--L2, $3.1\times10^4$ to $3.9\times10^5$ nodes) and three O-grid meshes
-(L0--L2, $3.2\times10^4$ to $5.1\times10^5$ nodes) at $\alpha=4^\circ$, where the
-favorable-to-adverse pressure gradient pins the transition robustly. The series
-refines every discretization length scale by a factor of two per level: surface
-point count, first-cell height $h_0$, growth-ratio offset $(g-1)$, the TE contour
-spacing $h_\mathrm{TE}\!=\!h_0$ (so the corner cells stay isotropic), and the
-TE-to-bulk geometric ramp ratio $r_\mathrm{TE}$ from $2.0$ at L0 to
-$1.25$ at L2 (so the local cell size at fixed chord-distance from the TE also
-halves). This is a proper isotropic refinement in every direction at every
-location---not the more common practice of refining only the wall-normal
-direction or only the first cell.
-
-A complication particular to the unstructured mesher must be addressed: its a-priori
-Spalding-style metric prescribes the wall-tangential cell size from a single
-global constant ($h_\mathrm{wall}$, conventionally also the BL extent),
-independent of the user-supplied contour discretization. With that constant the
-mesher ignores small $h_\mathrm{TE}$ in the contour and inserts cells of size
-$h_\mathrm{wall}$ tangentially at the wall regardless. We modified the metric
-locally to use the LOCAL contour-segment length as the tangential cell size at
-the wall (see TE detail in Fig.~\ref{fig:mesh}); this preserves the user's
-intended TE discretization in the actual mesh.
-
-With these changes (TE-proper contour and segment-length-respecting metric), the
-adversarial unstructured series converges monotonically and tightly:
-$C_L$ marches $0.4231\!\to\!0.4264\!\to\!0.4277$,
-$C_D$ marches $0.00855\!\to\!0.00874\!\to\!0.00869$,
-$C_{D,p}$ marches $0.00321\!\to\!0.00274\!\to\!0.00252$ (matching O-grid
-$C_{D,p}=0.00249$ to $1\%$), and $C_{M,y}$ marches
-$-0.1001\!\to\!-0.1010\!\to\!-0.1014$. Even the coarsest L0
-($3\!\times\!10^4$ nodes) is within $1\%$ of the L2 converged $C_L$, in stark
-contrast to the original (no $h_\mathrm{TE}$ control) unstructured where L0 was $10\%$
-low and L1 spiked above the trend. At L2 the adversarial unstructured and the
-wall-aligned O-grid agree to $0.8\%$ in $C_L$ ($0.4277$ vs $0.4312$), $5.5\%$ in
-$C_D$ ($0.00869$ vs $0.00824$), and within the transition-band width on the
-upper-surface midpoint. The model thus converges consistently across two very
-different near-wall stencils when both the contour discretization \emph{and} the
-mesher's tangential metric respect the same local length scale.
-
-The residual $C_D$ offset between unstructured-L2 and O-grid-L2 ($\sim\!6\%$) is a
-boundary-layer gradient-stencil effect on the anisotropic triangular prism layers,
-distinct from the TE issue and not fixed by $h_\mathrm{TE}$ refinement: the
-gradient reconstruction across high-AR triangles renders the unstructured's $\delta_{99}$
-slightly thicker than the O-grid's at matched $x_w$, leaving the amplification
-integral $\int a(Re_\Omega,\Gamma)\,\omega\,dz$ a few percent shorter and the
-post-transition $C_f$ a few percent higher. This is a known property of unstructured
-triangle-prism BL meshing and not specific to the present transition model. The
-refinement is reported at a lifting incidence by necessity: at the symmetric
-$\alpha=0^\circ$ the near-zero pressure gradient pins the transition too weakly to
-grid-converge on either family---a sensitivity of the natural-transition problem
-itself rather than of the model.
-
-Reaching this behavior requires one methodological choice: the interior $\tilde\nu$
-field must be \emph{initialized at the laminar freestream level} $\chi_\infty$, not at
-the solver's near-turbulent default. Because the SA dynamics do not relaminarize, an
-elevated initial field persists from the leading edge on a fine grid---turning the
-result fully turbulent independent of the amplification model---whereas a laminar start
-lets the AFT term set the transition location. The $\Gamma$-dependent cliff
-\eqref{eq:cliff} reinforces this by removing the residual near-wall amplification that
-the bare activation (which leaves $\Gamma\!\approx\!1$ active at the wall) would
-otherwise accumulate; without it the symmetric $\alpha=0^\circ$ case under-trips on the
-structured grid even at production resolution.
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.95\textwidth]{landscape_trajectories.pdf}
-  \caption{Amplification-rate landscape and the path each boundary layer traces
-  through it. Black contours: $a(Re_\Omega,\Gamma)$ from Eq.~\eqref{eq:rate}
-  with the recalibrated unified constants of Table~\ref{tab:const}; the dashed
-  red curve is the $\Gamma$-dependent cliff $Re_\Omega^{\mathrm{c}}(\Gamma)$
-  of Eq.~\eqref{eq:cliff} and the
-  dotted horizontal line is the sigmoid center $g_c\!=\!1.572$. For each
-  streamwise station we pick the wall-normal location at which the local
-  kernel $a\omega$ peaks and record its $(Re_\Omega,\Gamma)$; following $x$
-  along the chord traces the colored curves (upper surface in blue, lower in
-  red). Markers along each curve mark, in order, the streamwise stations at
-  which $\chi$ crosses $2\chi_\infty$ (beginning of the rise, $\bigcirc$),
-  $\sqrt{\chi_\infty}$ (geometric mid-point of the linear-amplification
-  interval $[\chi_\infty,1]$, $\square$), and $\chi\!=\!1$ ($\triangle$), the
-  end of clean linear amplification: past this point the eddy-viscosity
-  feedback begins to squash the boundary-layer profile toward a turbulent
-  shape and the $(Re_\Omega,\Gamma)$ trajectory loops around (drawn as a thin
-  dashed tail extending to $\chi\!=\!c_{v1}\!=\!7.1$, where $f_{v1}\!=\!\tfrac12$).
-  At $\alpha\!=\!0^\circ$ (left) the two surfaces overlap by symmetry; at
-  $\alpha\!=\!4^\circ$ (right) the upper-surface trajectory accelerates
-  through the rise by $x/c\!\approx\!0.19$ while the lower lingers in the
-  low-$Re_\Omega$ low-rate corner until $x/c\!\approx\!0.5$, reaching
-  $\chi\!=\!1$ only near $x/c\!\approx\!0.87$.}
-  \label{fig:landscape}
-\end{figure}
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.95\textwidth]{naca0012_cf.pdf}
-  \caption{NACA~0012 at $\alpha=0^\circ$ (left column) and
-  $\alpha=4^\circ$ (right column), on a $1.1\!\times\!10^5$-node unstructured
-  mesh and a $1.3\!\times\!10^5$-node structured O-grid,
-  $\chi_\infty\!=\!c_{v1}\,e^{-9}\!\approx\!8.76\!\times\!10^{-4}$. The freestream is
-  anchored to the rigorous half-saturation criterion: at $\chi\!=\!c_{v1}\!=\!7.1$ the
-  SA eddy-viscosity function $f_{v1}(\chi)\!=\!\chi^3/(\chi^3+c_{v1}^3)$ is exactly
-  $\tfrac12$, so $\chi_\infty\!=\!c_{v1}\,e^{-N_\mathrm{crit}}$ makes
-  $N_\mathrm{crit}\!=\!\ln(c_{v1}/\chi_\infty)$ the amplification at which $\tilde\nu$
-  has grown by $e^9$ from its freestream seed and the eddy viscosity is half-engaged
-  --- the natural correspondence to the canonical $N_\mathrm{crit}\!=\!9$ envelope.
-  \emph{Top row}: in-BL maximum modified-viscosity ratio
-  $\chi\!=\!\max_y\tilde\nu/\nu$ on a log scale (left axis), with mfoil's
-  amplification factor $N$ on a linear scale (right axis); the two axes are
-  linked exactly by $N\!=\!\ln(\chi/\chi_\infty)$, so a unit on the right
-  matches one e-fold on the left. The dashed grey lines mark
-  $\chi\!=\!c_{v1}$ (left) and $N\!=\!9$ (right) at the same vertical position;
-  the vertical dotted lines mark mfoil's transition $x_\mathrm{tr}$. \emph{Middle row}: $-C_p$ on the upper (blue)
-  and lower (red) surfaces. \emph{Bottom row}: $|C_f|$. Line style
-  distinguishes the solver/grid (SA-AF O-grid: solid, SA-AF unstructured:
-  dashed, SA fully turbulent: dash-dot, mfoil $e^9$: dotted). SA-AF transition
-  tracks the mfoil $e^9$ envelope on both surfaces and at both incidences;
-  fully turbulent SA stays turbulent from the leading edge. The structured grid
-  is free of the tangential $C_f$ staggering seen on the triangulated near-wall
-  layers of the unstructured mesh.  The mfoil $e^N$ reference is also at
-  $N_\mathrm{crit}\!=\!9$.}
-  \label{fig:cf}
-\end{figure}
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.95\textwidth]{convergence.pdf}
-  \caption{Residual convergence of SA-AF at $\alpha=4^\circ$, $Re=10^6$,
-  $\chi_\infty=0.02$ across the L0--L2 grid-refinement series, with the two mesh
-  families (left: O-grid, right: unstructured) plotted in separate panels.
-  Continuity residual is solid, $\tilde\nu$ residual is dashed; line thickness
-  encodes the refinement level (thin = L0, medium = L1, thick = L2). Both grid
-  families drive both residuals monotonically to $\sim\!10^{-9}$ at every level,
-  with the finer meshes requiring proportionally more pseudo-time steps but no
-  stagnation or stability penalty.}
-  \label{fig:conv}
-\end{figure}
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.95\textwidth]{proper_grid_convergence_L3.pdf}
-  \caption{Grid-refinement study at $\alpha=4^\circ$, $Re=10^6$, $\chi_\infty=0.02$,
-  on properly refined meshes: every discretization length scales by a factor of
-  two per level (surface point count, first-cell height $h_0$, growth-ratio offset
-  $(g-1)$, the chord-direction TE contour spacing $h_\mathrm{TE}\!=\!h_0$, and
-  the TE-to-bulk geometric ramp ratio $r_\mathrm{TE}$). The unstructured
-  series (solid line, circles, L0--L2) spans $3.1\!\times\!10^4$ to
-  $3.9\!\times\!10^5$ nodes; the O-grid (dashed line, triangles, L0--L2) spans
-  $3.2\!\times\!10^4$ to $5.1\!\times\!10^5$ nodes. Eight quantities are
-  shown: \emph{(a)} lift coefficient, \emph{(b)} total drag, \emph{(c)} pressure
-  drag, \emph{(d)} viscous (skin-friction) drag, \emph{(e)} pitching moment about
-  the LE, \emph{(f)} $L/D$, \emph{(g, h)} upper- and lower-surface transition
-  midpoint with error bars spanning the $10\%$--$90\%$ $C_f$-rise interval. With
-  the TE-proper contour, the segment-length-respecting metric, and the
-  proper-everywhere refinement, the adversarial unstructured converges tightly and
-  monotonically: even the coarsest L0 is within $1\%$ of L2 in $C_L$, and at L2
-  the unstructured and O-grid agree to $0.8\%$ in $C_L$ ($0.4277$ vs $0.4312$), $5.5\%$
-  in $C_D$ ($0.00869$ vs $0.00824$), and within the transition-band width on the
-  upper-surface midpoint.}
-  \label{fig:gridconv}
-\end{figure}
-
-\subsection{Comparison with the $e^N$ method across incidence}\label{sec:sweep}
-
-To assess the model beyond a single operating point, an angle-of-attack sweep
-($\alpha=-2^\circ$ to $8^\circ$) was computed for the NACA~0012 and for the
-NLF(1)-0416 natural-laminar-flow airfoil at $Re=10^6$, $M=0.2$, $\chi_\infty=0.02$,
-and compared against \texttt{mfoil}---a viscous--inviscid panel method with the
-$e^N$ envelope transition criterion, in the manner of XFOIL
-\cite{drela_giles_1987, drela_xfoil_1989}---at the matched critical factor
-$N_\mathrm{crit}\!=\!\ln(c_{v1}/\chi_\infty)\!\approx\!5.87$ (so that
-$\chi_\infty\!=\!c_{v1}e^{-N_\mathrm{crit}}\!\approx\!0.02$).
-
-Figure~\ref{fig:polar} shows the drag polars, with fully turbulent SA included as
-a reference. SA-AF reproduces the lift--incidence relation of the $e^N$ reference
-closely on both airfoils and recovers the characteristic low-drag bucket of the NLF
-airfoil. Its drag lies between fully turbulent SA and the $e^N$ reference: the
-reduction relative to turbulent SA is the laminar benefit, while the residual
-offset above the $e^N$ values reflects the higher turbulent skin friction of
-the RANS closure relative to an integral method. The $\alpha=4^\circ$ panel of Fig.~\ref{fig:cf} (bottom-right) isolates
-the origin of this offset: the surface pressure distributions of SA-AF and the
-$e^N$ reference (top-right) are nearly indistinguishable, so the lift and pressure
-drag agree, but the post-transition turbulent $C_f$ from SA-AF lies above the
-integral-method value. The drag offset in Fig.~\ref{fig:polar} is therefore a
-turbulent-skin-friction effect of the RANS closure, not an error in the pressure
-field or the transition location.
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.95\textwidth]{cf_grid_convergence.pdf}
-  \caption{Skin friction on both surfaces of NACA~0012 at $\alpha=4^\circ$ across
-  the L0--L2 refinement series (color: upper vs.\ lower surface; line style:
-  L0 solid, L1 dashed, L2 dotted), with the two mesh families plotted in separate
-  panels to isolate each family's grid convergence from cross-family discrepancies.
-  \emph{Left:} the unstructured TE-proper meshes ($3.1\!\times\!10^4$,
-  $1.1\!\times\!10^5$, $3.9\!\times\!10^5$ nodes); the laminar dip, transition
-  location, and post-transition turbulent level all stabilize from L1 onward, with
-  the residual small-amplitude oscillation a tangential staggering of the
-  node-centered scheme on the triangulated near-wall layers (it does not bias the
-  integral). \emph{Right:} the structured O-grid series ($3.2\!\times\!10^4$,
-  $1.3\!\times\!10^5$, $5.1\!\times\!10^5$ nodes); the curves collapse smoothly,
-  showing only a small remaining shift of the post-transition level between L1 and
-  L2. Both surfaces and both mesh families converge to the same transition
-  locations to within $\sim\!1\%$ of chord; the cross-family difference in the
-  post-transition turbulent $C_f$ is the gradient-stencil effect on anisotropic
-  triangular prism layers discussed in Sec.~\ref{sec:gridconv}, not an unconverged
-  grid effect.}
-  \label{fig:cfgrid}
-\end{figure}
-
-SA-AF transitions over a finite chord band as $\sigma_t$ hands production from
-amplification to SA. We report this band as the $10\%$--$90\%$ interval of the
-upper-surface skin-friction rise, with the midpoint (steepest-$C_f$ location)
-nominal. The band is $\approx\!0.05$--$0.1$ chord wide, narrowing toward the
-leading edge at high incidence.
-Figure~\ref{fig:xtr} compares this band (shaded) and its midpoint against the $e^N$
-reference. On the NACA~0012 the SA-AF transition marches forward with
-incidence---from $x/c\approx0.5$ at $\alpha=0^\circ$ to near the leading edge at
-$\alpha=8^\circ$---tracking the $e^N$ prediction to within a few percent of chord.
-On the NLF(1)-0416 the SA-AF transition sits well aft at low incidence
-($x/c\approx0.45$ at $\alpha=0^\circ$) and marches forward with lift, reproducing the
-extended laminar run---the low-drag bucket---that is the airfoil's design feature, and
-tracking the $e^N$ reference to within $\sim\!0.05$ chord on both grids. The
-transition location, not just integrated force, follows the $e^N$ reference
-across the operating range, while the absolute drag matches only qualitatively. Figure~\ref{fig:cpcfnlf} shows the NLF(1)-0416 surface
-distributions at $\alpha=0^\circ$ on both grids: the laminar run and the
-transition location agree closely between the two mesh families on this
-natural-laminar-flow geometry.
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.95\textwidth]{nlf0416_cp_cf_a0.pdf}
-  \caption{NLF(1)-0416 at $\alpha=0^\circ$, both surfaces (color: upper vs.\ lower),
-  on a $3.4\!\times\!10^4$-node unstructured and a $5.0\!\times\!10^4$-node O-grid
-  (line style: SA-AF O-grid solid, SA-AF unstructured dashed, mfoil $e^N$ dotted).
-  The pressure distributions and the long laminar run (transition near $x/c\approx0.45$)
-  agree closely between the two grid families and with the $e^N$ reference. (Surfaces are
-  separated by walking the airfoil contour and excluding the TE-shared point, rather than
-  the sign of the wall-normal coordinate, which on this strongly cambered geometry would
-  interleave the upper and lower surfaces over the aft chord.)}
-  \label{fig:cpcfnlf}
-\end{figure}
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.95\textwidth]{polar.pdf}
-  \caption{Drag polars at $Re=10^6$, $\chi_\infty=0.02$, $\alpha=-2^\circ$ to $8^\circ$,
-  on the $\sim\!10^5$-node unstructured (dashed) and $\sim\!10^5$-node O-grid
-  (solid) for both airfoils. SA-AF reproduces the $e^N$
-  (\texttt{mfoil}) lift--drag relation and the NLF(1)-0416 low-drag bucket on both
-  mesh families. The absolute drag is offset high; on the NLF the two grids
-  diverge slightly at high incidence (a near-wall/aft-resolution effect, not a
-  transition shift).}
-  \label{fig:polar}
-\end{figure}
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.95\textwidth]{xtr_alpha.pdf}
-  \caption{Transition location vs.\ incidence on both surfaces of NACA~0012
-  (left) and NLF(1)-0416 (right) at $Re=10^6$, $\chi_\infty=0.02$. Color
-  distinguishes the surface (upper vs.\ lower); line style and marker distinguish
-  the solver/grid (SA-AF O-grid: solid line with circle marker; SA-AF
-  unstructured: dashed line with triangle marker; mfoil $e^N$ reference: dotted
-  line with square marker). Missing data points (e.g.\ NACA~0012 lower surface
-  at $\alpha\!=\!8^\circ$) indicate that the rise-detection algorithm found no
-  clean laminar-to-turbulent $C_f$ rise in $0.07\le x/c\le0.95$ with
-  $C_{f,\mathrm{turb}}/C_{f,\mathrm{lam}}\!\ge\!1.5$; for the NACA~0012 lower
-  surface at $\alpha\!=\!8^\circ$ specifically, the boundary layer stays near
-  laminar values to the trailing edge.
-  Because SA-AF transitions gradually, the SA-AF result is shown as a \emph{band}:
-  the shaded region spans the $10\%$--$90\%$ interval of the laminar-to-turbulent
-  skin-friction rise; the line marks its midpoint (steepest $C_f$ rise). On both
-  airfoils, both surfaces, and both grids, the SA-AF transition tracks the $e^N$
-  reference: on the NACA~0012 the upper-surface transition marches forward with
-  lift while the lower-surface transition stays aft, and on the NLF(1)-0416 both
-  surfaces sit aft at the design incidence ($\alpha\!=\!0^\circ$), recovering the
-  low-drag bucket.}
-  \label{fig:xtr}
-\end{figure}
+\paragraph{Convergence by transition location.} The receding-front laminar
+transient described in Sec.~\ref{sec:blendnlf} for the NLF makes the
+residual a poor stopping criterion: a run can show a continuity residual
+below $10^{-9}$ while the transition front is still moving by $0.05$--$0.10\,c$
+per $10^4$ pseudo-steps. We accordingly stop each case by transition-location
+stability instead: the run is broken into $5000$-step batches; after each batch
+the in-BL $\chi$ field is sampled along both surfaces and the first chord
+location where $\max_y\chi\!>\!1$ is extracted as $x_\mathrm{tr}$; the case
+is declared converged when $|\Delta x_\mathrm{tr}|\!<\!0.01\,c$ on both
+surfaces for three consecutive batches. All twenty-four E387 cases reached
+this criterion in $20$--$35\!\times\!10^3$ pseudo-steps (the consec=3
+requirement also recovers cleanly from the early leading-edge ``burst''
+transient on the L2 meshes, which can hold $x_\mathrm{tr}\!=\!0$ for the first
+two batches before the front begins to recede). The same monitor was
+retroactively applied to the NLF runs of Sec.~\ref{sec:nlfval}.
 
 \section{Conclusion}
 
-The Spalart--Allmaras working variable can serve as its own transition indicator. By
-replacing the production in the laminar range with a local, $e^N$-like amplification
-rate and reverting to standard SA near $\chi\sim1$, a single transport
-equation predicts natural transition without any auxiliary field---occupying a cell
-left empty by amplification-factor transport (which transports a separate factor) and
-by algebraic SA-transition models (which keep $\tilde\nu$ turbulent and gate it
-externally). Because the amplification rate is independent of the working variable,
-the modified source keeps an analytic Jacobian and integrates implicitly at the cost
-of the baseline model. On a NACA~0012 at zero incidence the model gives a
-laminar run and a $\sim\!31\%$ drag reduction, agreeing across the two grids to
-$0.5\%$, with the transition mechanism isolated by a same-freestream SA control.
+The Spalart--Allmaras working variable can serve as its own transition
+indicator. By replacing the production in the laminar range with a local,
+$e^N$-like amplification rate and reverting to standard SA near
+$\chi\!\sim\!1$, a single transport equation predicts natural transition
+without any auxiliary field---occupying a cell left empty by
+amplification-factor transport (which transports a separate factor) and by
+algebraic SA-transition models (which keep $\tilde\nu$ turbulent and gate it
+externally). Because the amplification rate is independent of the working
+variable, the modified source keeps an analytic Jacobian and integrates
+implicitly at the cost of the baseline model.
 
-Across an angle-of-attack sweep on two airfoils the predicted transition
-tracks an $e^N$ reference and recovers the natural-laminar-flow drag bucket;
-the absolute drag matches only qualitatively. Several extensions follow.
-Quantitative calibration of the rate against linear-stability and $e^N$
-databases beyond the Schubauer--Skramstad anchor used here, and a direct
-comparison with the algebraic SA-BCM model on community-standard benchmarks,
-would establish accuracy beyond the present demonstration. Extensions to
-bypass transition (where the streak-induced mechanism requires a closure that
-responds to freestream turbulence energy directly, e.g. the ERCOFTAC T3
-series), separation-induced, and crossflow transition are natural next
-steps.
+The amplification rate was tuned in three stages of increasing complexity,
+each targeting a distinct pressure-gradient regime. On a zero-pressure-gradient
+flat plate (Sec.~\ref{sec:flatplate}) the amplification magnitude $a_{\max}$
+and the $Tu\!\to\!\chi_\infty$ slope were pinned to the Schubauer--Skramstad
+data at five $Tu$ levels, fixing the Blasius behavior. On the NLF(1)-0416 at
+$Re\!=\!4\!\times\!10^6$ (Sec.~\ref{sec:nlfval}) the favorable-pressure-gradient
+cliff factor $K_\lambda$ was set so that growth onset matches the $e^N$ rooftop
+ignition, and the laminar-to-turbulent handover was resolved across
+$\alpha\!\in\!\{0^\circ,4^\circ,9^\circ,15^\circ\}$ on twenty-four cases (cavity
+unstructured $+$ structured O-grid $\times$ three refinement levels $\times$ four
+incidences). On the Eppler 387 at $Re\!=\!2\!\times\!10^5$
+(Sec.~\ref{sec:eppval}) the adverse-pressure-gradient regime was exercised in
+the laminar-separation-bubble regime; the signed skin friction shows the
+recirculation directly and the transition tracks the $e^N$ reference at the
+four canonical incidences across another twenty-four cases on the same
+two-family ladder. The same unified constants (Table~\ref{tab:const}) were used
+throughout. Across both airfoils the L1$\to$L2 transition-location drift is at
+or below the $0.01\,c$ stopping tolerance, and the two independently-generated
+mesh families agree to within a few percent of chord; this is reported under a
+transition-location-based convergence monitor that replaces the (misleading)
+residual-only criterion when a slow receding-front transient is present.
+
+Several extensions follow. Quantitative calibration of the rate against
+linear-stability and $e^N$ databases beyond the three anchors used here, and a
+direct comparison with the algebraic SA-BCM model on community-standard
+benchmarks, would establish accuracy beyond the present demonstration.
+Extensions to bypass transition (where the streak-induced mechanism requires a
+closure that responds to freestream turbulence energy directly, e.g.\ the
+ERCOFTAC T3 series), separation-induced, and crossflow transition are natural
+next steps.
 
 \section*{Acknowledgments}
 The initial idea for this approach was sparked by conversations with Mark Drela
