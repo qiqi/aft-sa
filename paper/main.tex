@@ -606,11 +606,22 @@ $\hat\nu$ field is plotted on $(Re_x,Re_y)$ contours next to the velocity field,
 making visible the seed-and-amplify pathway: at low $Tu$ the layer is laminar for a
 long stretch and $\hat\nu$ amplifies through the unstable band; at high $Tu$ the
 band itself extends to the wall and $\hat\nu$ already exceeds unity at $Re_x\!\to\!0$.
-The bottom panel collects the resulting $C_f(Re_\theta)$, which collapse onto the
-laminar Blasius curve in the pre-transitional region and onto the turbulent
-correlation once $\chi$ has saturated. Vertical reference lines and bottom-row
-markers denote the Schubauer--Skramstad experimental transition Reynolds number
-at each $Tu$ ($Re_\theta^\mathrm{tr}\!=\!1115,\,890,\,681,\,575,\,345$). The
+The two bottom panels collect the streamwise growth of the in-BL maximum
+$\chi$ (left) and the resulting $C_f(Re_\theta)$ (right); both draw black
+curves with a distinct symbol per $Tu$, and both mark the Schubauer--Skramstad
+experimental transition with a solid vertical line and a filled symbol on the
+bottom edge --- at the Blasius-mapped location $x_\mathrm{SS}\!=\!(Re_{\theta,
+\mathrm{SS}}/0.664)^2\,\nu/U_\infty$ on the left and at
+$Re_\theta^\mathrm{tr}$ on the right
+($Re_\theta^\mathrm{tr}\!=\!1115,\,890,\,681,\,575,\,345$). The operational
+transition --- the $C_f$ rise --- occurs where $\chi$ reaches the
+eddy-viscosity half-saturation value $c_{v1}\!=\!7.1$, not where the
+production blend first engages at $\chi\!=\!1$ (both drawn as horizontal
+references on the bottom-left panel); the experimental verticals accordingly
+line up with the simulation's $\chi\!=\!c_{v1}$ crossings rather than its
+$\chi\!=\!1$ crossings. The $C_f$ collapses onto the laminar Blasius curve in
+the pre-transitional region and onto the turbulent correlation once $\chi$ has
+saturated. The
 amplification kernel and the Tu $\to\chi_\infty$ slope $B\!=\!4.00$ in
 Eq.~\eqref{eq:tumap} are fit jointly to these five points, giving predicted
 $Re_\theta^\mathrm{tr}\!\approx\!1141,\,953,\,765,\,610$ at
@@ -634,29 +645,19 @@ limit of the single-equation formulation.
   \centering
   \includegraphics[width=0.95\textwidth]{flat_plate_batch_flow360.pdf}
   \caption{Freestream-turbulence sweep on the flat plate at the five
-  Schubauer--Skramstad~\cite{schubauer_skramstad_1948} test levels
-  $Tu\!=\!0.026\%,\,0.06\%,\,0.18\%,\,0.30\%,\,0.85\%$ (rows). \emph{Left columns}:
-  contours of streamwise velocity $u/U_\infty$ and of $\log_{10}\hat\nu$ in the
-  $(Re_x,Re_y)$ plane. \emph{Bottom-left}: in-BL maximum $\chi\!=\!\tilde\nu/\nu$
-  along $x$, one curve per $Tu$, with colored dashed verticals at the
-  Schubauer--Skramstad transition locations $x_\mathrm{SS}\!=\!(Re_{\theta,SS}/0.664)^2\nu/U_\infty$.
-  The two horizontal grey references mark $\chi\!=\!1$ (start of the $\sigma_t$
-  blend) and $\chi\!=\!c_{v1}\!=\!7.1$ (the half-saturation of $f_{v1}$, where
-  $C_f$ actually rises). The experimental verticals line up with the simulation's
-  $\chi\!=\!c_{v1}$ crossings, not the $\chi\!=\!1$ crossings: the operational
-  transition in the model is the $C_f$ rise, which occurs at $\chi\!\approx\!c_{v1}$,
-  not at the onset of $\sigma_t$ engagement. \emph{Bottom-right}: $C_f(Re_\theta)$
-  against the laminar Blasius correlation $C_f\!=\!0.441/Re_\theta$ (dashed) and
-  the turbulent log-law correlation $C_f\!=\!2[(\ln Re_\theta)/0.38+3.7]^{-2}$ (dotted).
-  Vertical gray reference lines and filled markers along the bottom edge indicate
-  the Schubauer--Skramstad experimental $Re_\theta^\mathrm{tr}$ at each $Tu$;
-  the simulated $C_f$ leaves the laminar branch and joins the turbulent
-  correlation slightly downstream of each marker (within $\pm12\%$ on $Re_\theta$
-  across the four natural-transition cases). The baseline SA model cannot produce
-  this behavior: it bypasses to turbulence at the leading edge for any nonzero
-  freestream seed. As $Tu$ rises the seed
-  $\chi_\infty\!\sim\!e^{-N_\mathrm{crit}}$ grows, so fewer $e$-folds are needed
-  to reach the half-saturation point and transition moves upstream.}
+  Schubauer--Skramstad~\cite{schubauer_skramstad_1948} levels
+  $Tu\!=\!0.026$--$0.85\%$ (rows). \emph{Left columns}: contours of
+  $u/U_\infty$ and $\log_{10}\hat\nu$ in the $(Re_x,Re_y)$ plane.
+  \emph{Bottom-left}: in-BL maximum $\chi\!=\!\tilde\nu/\nu$ vs $x$, with
+  horizontal references at $\chi\!=\!1$ and $\chi\!=\!c_{v1}\!=\!7.1$.
+  \emph{Bottom-right}: $C_f$ vs $Re_\theta$ with the laminar
+  ($C_f\!=\!0.441/Re_\theta$, dashed) and turbulent
+  ($C_f\!=\!2[(\ln Re_\theta)/0.38+3.7]^{-2}$, dotted) correlations. Both
+  bottom panels use black curves with one symbol per $Tu$ (legend); solid-gray
+  verticals and filled bottom-edge symbols mark the Schubauer--Skramstad
+  transition. See text for the $c_{v1}$ transition criterion, the calibration
+  fit, and why the experimental markers align with the $\chi\!=\!c_{v1}$
+  crossings.}
   \label{fig:flatplate_batch}
 \end{figure}
 
@@ -690,42 +691,49 @@ $f_\mathrm{slow}\!=\!0.01$ of Sec.~\ref{sec:blendnlf} so the in-domain ratio mat
 the half-saturation anchor (input $\chi_\infty^{(in)}\!=\!8.76\!\times\!10^{-6}$;
 in-domain $\chi_\infty\!=\!\chi_\infty^{(in)}/f_\mathrm{slow}\!=\!8.76\!\times\!10^{-4}$).
 
+The airfoil surface distributions are presented as five-row figures
+(Figs.~\ref{fig:nlfcflow}--\ref{fig:nlfcfhigh} here and
+Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh} for the Eppler 387) with a
+common layout: \emph{row 1} the wall-normal-probe maximum of $Re_\Omega$
+(log); \emph{row 2} the wall-normal-probe minimum of $\sigma_\mathrm{FPG}$
+(the favorable-pressure-gradient suppression of Eq.~\eqref{eq:fpg} at the
+wall-normal location of strongest favorable PG --- the quantity tuned in this
+section, with $\sigma_\mathrm{FPG}\!\to\!0$ over the favorable rooftop and
+$\to\!1$ once recovery begins); \emph{row 3} the in-BL maximum
+$\chi\!=\!\max_y\tilde\nu/\nu$ on a log axis with mfoil's amplification factor
+$N$ on a linear right axis, the two linked by $N\!=\!\ln(\chi/\chi_\infty)$ so
+one unit on the right equals one $e$-fold on the left (vertical dotted lines:
+mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} signed $C_f$.
+Throughout, color encodes the surface (upper blue, lower red), line style the
+mesh family (structured O-grid solid, unstructured cavity dashed), and line
+thickness the refinement level (L0 thinnest, L2 thickest); dotted curves are
+the mfoil $e^9$ reference. Surfaces are separated by walking the airfoil
+contour through the mesh connectivity and splitting at the geometric LE/TE
+extrema rather than by the sign of $z$, which is essential on the NLF because
+the reflex camber places the lower surface above the chord line over the aft
+region.
+
 \begin{figure}[tp]
   \centering
-  \includegraphics[width=0.95\textwidth]{nlf_cf_lowalpha.pdf}
+  \includegraphics[width=0.86\textwidth]{nlf_cf_lowalpha.pdf}
   \caption{NLF(1)-0416 surface distributions at $\alpha\!\in\!\{0^\circ,4^\circ\}$,
-  $Re\!=\!4\!\times\!10^6$, $\chi_\infty\!=\!8.76\!\times\!10^{-4}$. \emph{Row 1:}
-  wall-normal-probe maximum of $Re_\Omega$ (log axis). \emph{Row 2:}
-  wall-normal-probe minimum of $\sigma_\mathrm{FPG}$ --- the
-  favorable-pressure-gradient suppression of Eq.~\eqref{eq:fpg} evaluated at
-  the wall-normal location of strongest favorable PG in the BL. This is the
-  parameter directly tuned by the present section: $\sigma_\mathrm{FPG}\!\to\!0$
-  over the favorable-gradient rooftop (no amplification) and rises to
-  $\sigma_\mathrm{FPG}\!\to\!1$ once recovery begins. \emph{Row 3:} in-BL
-  maximum modified-viscosity ratio $\chi\!=\!\max_y\tilde\nu/\nu$ on a log
-  axis (left), with mfoil's amplification factor $N$ on a linear axis (right);
-  the two axes are linked by $N\!=\!\ln(\chi/\chi_\infty)$, so a unit on the
-  right matches one $e$-fold on the left. Vertical dotted lines mark mfoil's
-  $x_\mathrm{tr}$ on each surface. \emph{Row 4:} $-C_p$. \emph{Row 5:} signed
-  $C_f$. Color encodes the surface (upper blue, lower red); line style encodes
-  the mesh family (structured O-grid: solid, unstructured cavity: dashed);
-  line thickness encodes the refinement level (L0 thinnest, L2 thickest).
-  Dotted curves are the mfoil $e^9$ reference. Surfaces are separated by
-  walking the airfoil contour via mesh connectivity and splitting at the
-  geometric LE/TE extrema; this is essential on the NLF because the reflex
-  camber places the lower surface above the chord line over the aft region.
-  At $\alpha\!=\!0^\circ$ both surfaces transition near $x/c\!\approx\!0.45$,
-  recovering the low-drag bucket; at $\alpha\!=\!4^\circ$ the upper-surface
-  transition has marched forward to $x/c\!\approx\!0.30$ while the lower stays
-  near design. The transition locations track the $e^9$ envelope to within
-  $\sim\!0.03$--$0.05\,c$ on both surfaces, both meshes, and at every
-  refinement level from L0 ($N{\approx}200$ surface points) to L2 ($N{=}800$).}
+  $Re\!=\!4\!\times\!10^6$, $\chi_\infty\!=\!8.76\!\times\!10^{-4}$. Five-row
+  layout and line conventions as described in the text (row~1 $\max Re_\Omega$,
+  row~2 $\min\sigma_\mathrm{FPG}$, row~3 $\chi$ with mfoil $N$, row~4 $-C_p$,
+  row~5 signed $C_f$; upper blue / lower red, O-grid solid / cavity dashed,
+  L0--L2 by thickness, mfoil $e^9$ dotted). At $\alpha\!=\!0^\circ$ both
+  surfaces transition near $x/c\!\approx\!0.45$, recovering the low-drag
+  bucket; at $\alpha\!=\!4^\circ$ the upper-surface transition has marched
+  forward to $x/c\!\approx\!0.30$ while the lower stays near design. The
+  transition locations track the $e^9$ envelope to within $\sim\!0.03$--$0.05\,c$
+  on both surfaces, both meshes, and at every refinement level from L0
+  ($N{\approx}200$ surface points) to L2 ($N{=}800$).}
   \label{fig:nlfcflow}
 \end{figure}
 
 \begin{figure}[tp]
   \centering
-  \includegraphics[width=0.95\textwidth]{nlf_cf_highalpha.pdf}
+  \includegraphics[width=0.86\textwidth]{nlf_cf_highalpha.pdf}
   \caption{As Fig.~\ref{fig:nlfcflow}, at $\alpha\!\in\!\{9^\circ,15^\circ\}$.
   The upper-surface transition has marched to $x/c\!\lesssim\!0.05$ at
   $\alpha\!=\!9^\circ$ and is at the LE by $\alpha\!=\!15^\circ$, while the
@@ -844,36 +852,24 @@ from $1.6\!\times\!10^4$ nodes (str L0) to $3.8\!\times\!10^5$ nodes (cav L2).
 
 \begin{figure}[tp]
   \centering
-  \includegraphics[width=0.95\textwidth]{eppler_cf_lowalpha.pdf}
+  \includegraphics[width=0.86\textwidth]{eppler_cf_lowalpha.pdf}
   \caption{Eppler 387 surface distributions at $\alpha\!\in\!\{0^\circ,2^\circ\}$,
   $Re\!=\!2\!\times\!10^5$, $M\!=\!0.1$, $\chi_\infty\!=\!8.76\!\times\!10^{-4}$
-  (matched to $N_\mathrm{crit}\!=\!9$). \emph{Row 1}:
-  wall-normal-probe maximum of $Re_\Omega$ (log axis). \emph{Row 2}:
-  wall-normal-probe minimum of $\sigma_\mathrm{FPG}$ (the
-  favorable-pressure-gradient suppression of Eq.~\eqref{eq:fpg} at the
-  wall-normal location of strongest favorable PG): $\sigma_\mathrm{FPG}\!\to\!0$
-  in regions where the FPG actively suppresses amplification, rising back
-  toward $1$ once the recovery begins. The Eppler 387 at low Re carries only
-  a short FPG segment near the LE, so $\sigma_\mathrm{FPG}\!\to\!1$ over most
-  of the chord and the parameter tuned on the NLF transfers cleanly without
-  retuning. \emph{Row 3}: in-BL maximum
-  modified-viscosity ratio $\chi\!=\!\max_y\tilde\nu/\nu$ on a log axis (left),
-  with mfoil's amplification factor $N$ on the matched linear axis (right) and
-  the vertical dotted lines at mfoil's $x_\mathrm{tr}$. \emph{Row 4}:
-  $-C_p$. \emph{Row 5}: \emph{signed} $C_f$ (positive downstream, negative
-  in reversed flow): the LSB recirculation appears directly as the dip below
-  zero on the upper surface. Color: upper (blue), lower (red). Line style:
-  structured O-grid (solid), unstructured cavity (dashed). Line thickness: L0
-  (thin), L1 (medium), L2 (thick). Dotted: mfoil $e^N$ at $N_\mathrm{crit}\!=\!9$.
-  The bubble sits at $x/c\!\approx\!0.55$--$0.65$ at $\alpha\!=\!0^\circ$ and
-  marches forward to $x/c\!\approx\!0.45$--$0.55$ at $\alpha\!=\!2^\circ$; both
-  Flow360 and mfoil show the same recirculation structure.}
+  (matched to $N_\mathrm{crit}\!=\!9$). Five-row layout and line conventions as
+  described in the text (row~1 $\max Re_\Omega$, row~2 $\min\sigma_\mathrm{FPG}$,
+  row~3 $\chi$ with mfoil $N$, row~4 $-C_p$, row~5 signed $C_f$; upper blue /
+  lower red, O-grid solid / cavity dashed, L0--L2 by thickness, mfoil $e^9$
+  dotted). The signed $C_f$ (row~5) shows the laminar-separation bubble
+  directly as the dip below zero on the upper surface. The bubble sits at
+  $x/c\!\approx\!0.55$--$0.65$ at $\alpha\!=\!0^\circ$ and marches forward to
+  $x/c\!\approx\!0.45$--$0.55$ at $\alpha\!=\!2^\circ$; both Flow360 and mfoil
+  show the same recirculation structure.}
   \label{fig:eppcflow}
 \end{figure}
 
 \begin{figure}[tp]
   \centering
-  \includegraphics[width=0.95\textwidth]{eppler_cf_highalpha.pdf}
+  \includegraphics[width=0.86\textwidth]{eppler_cf_highalpha.pdf}
   \caption{As Fig.~\ref{fig:eppcflow}, at $\alpha\!\in\!\{5^\circ,7^\circ\}$.
   At $\alpha\!=\!5^\circ$ the bubble has moved to $x/c\!\approx\!0.40$ and
   shortened; at $\alpha\!=\!7^\circ$ the suction peak is near $-C_p\!\approx\!3$
@@ -896,6 +892,14 @@ sampled velocity with the LE$\to$TE surface tangent; the resulting trace is
 directly comparable to mfoil's already-signed skin-friction output. Both Flow360
 and mfoil show the same recirculation structure at all four incidences and on
 both mesh families.
+
+The favorable-pressure-gradient suppression $\sigma_\mathrm{FPG}$ (row~2 of
+Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}) confirms that the cliff factor
+tuned on the NLF transfers to the Eppler 387 without retuning: at this low
+Reynolds number the airfoil carries only a short favorable-gradient segment
+near the leading edge, so $\sigma_\mathrm{FPG}\!\to\!1$ over most of the chord
+and the adverse-gradient amplification that controls the bubble is left
+untouched by the FPG term.
 
 \begin{table}[tp]
   \centering

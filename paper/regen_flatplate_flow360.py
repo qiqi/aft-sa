@@ -192,39 +192,40 @@ def main():
     ax_chi = fig.add_subplot(gs[n, 0])
     ax_cf = fig.add_subplot(gs[n, 1])
 
+    # Monochrome with per-Tu symbols (matching the bottom-right Cf panel) so
+    # the two bottom panels share one legend convention.
+    C_V1 = 7.1
+    y_bot = 1.5e-8   # height of the bottom-edge S-S markers (χ-axis bottom)
+    Re_unit = 1.0 / NU
     for k, tu in enumerate(TU_LIST):
         if tu not in cf_results: continue
         x_centers, Re_th, cf_vol, chi_mx = cf_results[tu]
         valid_chi = np.isfinite(chi_mx) & (x_centers < PLATE_END_X - OUTLET_MARGIN)
-        ax_chi.semilogy(x_centers[valid_chi], chi_mx[valid_chi], '-', color=f'C{k}',
-                        lw=1.2, label=rf'$Tu={tu:g}$%')
+        ax_chi.semilogy(x_centers[valid_chi], chi_mx[valid_chi], '-', color='k',
+                        lw=1.0, marker=SYMBOLS[k], markevery=12, mfc='w', mec='k',
+                        ms=4, label=rf'$Tu={tu:g}$%')
         valid_cf = np.isfinite(Re_th) & (Re_th > 1) & (x_centers < PLATE_END_X - OUTLET_MARGIN)
         ax_cf.loglog(Re_th[valid_cf], cf_vol[valid_cf], SYMBOLS[k], mfc='w', mec='k',
                      color='k', ms=4, label=rf'SA-AF, $Tu={tu:g}$%')
 
-    # χ reference markers: χ=1 (start of σ_t blend) and χ=c_v1=7.1
-    # (half-saturation of f_v1 — this is where Cf actually rises and is the
-    # operational transition point that matches the S-S experimental marker.)
-    C_V1 = 7.1
+    # χ reference horizontals: χ=1 (start of σ_t blend) and χ=c_v1=7.1
+    # (half-saturation of f_v1 — where Cf actually rises; see body text).
     ax_chi.axhline(1.0, color='gray', lw=0.6, ls=':', alpha=0.7)
     ax_chi.axhline(C_V1, color='gray', lw=0.8, ls='--', alpha=0.7)
-    ax_chi.text(0.02, 1.0 * 1.5, r'$\chi=1$ (blend start)', color='0.4',
-                fontsize=7, va='bottom')
-    ax_chi.text(0.02, C_V1 * 1.5, r'$\chi=c_{v1}$ (Cf rise)', color='0.4',
-                fontsize=7, va='bottom')
+    ax_chi.text(0.02, 1.0 * 1.5, r'$\chi=1$', color='0.4', fontsize=7, va='bottom')
+    ax_chi.text(0.02, C_V1 * 1.5, r'$\chi=c_{v1}$', color='0.4', fontsize=7, va='bottom')
     ax_chi.set_xlabel('x'); ax_chi.set_ylabel(r'$\chi=\tilde\nu/\nu$')
     ax_chi.set_xlim(0, CONTOUR_X_MAX); ax_chi.set_ylim(1e-8, 1e2)
     ax_chi.grid(True, which='major', alpha=0.5)
     ax_chi.grid(True, which='minor', alpha=0.2)
-    # S-S transition positions converted to x via Blasius:  x_SS = (Re_θ_SS/0.664)² / Re_unit
-    # These align with where the simulation curves cross χ=c_v1 (the dashed
-    # gray horizontal), NOT χ=1, because experimental S-S transition is read
-    # off the Cf rise — which the model puts at χ≈c_v1, not χ=1.
-    Re_unit = 1.0 / NU
+    # S-S transition x positions (Blasius x_SS = (Re_θ_SS/0.664)² / Re_unit),
+    # drawn in the SAME style as the bottom-right panel: solid-gray verticals
+    # plus a filled per-Tu symbol on the bottom edge.
     for k, tu in enumerate(TU_LIST):
         x_SS = (SS_RETH[tu] / 0.664)**2 / Re_unit
         if x_SS < CONTOUR_X_MAX:
-            ax_chi.axvline(x_SS, color=f'C{k}', lw=0.6, ls='--', alpha=0.6)
+            ax_chi.axvline(x_SS, color='0.5', lw=0.8, ls='-', zorder=1)
+            ax_chi.plot(x_SS, y_bot, SYMBOLS[k], mfc='k', mec='k', ms=8, zorder=5)
     ax_chi.legend(loc='lower right', fontsize=7, frameon=False, ncol=2)
 
     # Cf reference correlations (Blasius + Coles-Fernholz)
