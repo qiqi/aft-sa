@@ -446,11 +446,16 @@ vanishes in the viscous sublayer and the outer flow, in the manner of the local
 growth rate of envelope $e^N$ methods. Taking the peak of the local kernel
 across the wall-normal direction and converting from $x$ to $Re_\theta$ recovers
 an envelope rate of a flat plate (Fig.~\ref{fig:amp}, right) that rises
-monotonically with $Re_\theta$ through the unstable range, in the range of
-Drela-style envelope-$e^N$ rates at the calibrated intensity
-$a_{\max}\!=\!0.2$.
+monotonically with $Re_\theta$ through the unstable range. On the
+zero-pressure-gradient Blasius profile the rate is deliberately gentle ---
+peak $dN/dRe_\theta\!\approx\!0.006$ at the committed $a_{\max}\!=\!0.15$, below
+the full Drela envelope --- because the sigmoid is centered at
+$g_c\!=\!1.572$, above the wall-asymptote $\Gamma\!=\!1$ of a ZPG layer, so the
+$\Gamma$-sigmoid concentrates amplification on the fuller, inflectional profiles
+($\Gamma\!\to\!2$) where natural transition actually localizes on airfoils
+(Secs.~\ref{sec:nlfval}--\ref{sec:eppval}).
 
-To confirm that the working variable, in its sub-$O(1)$ range, behaves as an
+To illustrate that the working variable, in its sub-$O(1)$ range, behaves as an
 amplification factor, we solve the disturbance transport equation in non-dimensional
 boundary-layer variables (length in $\nu/U_\infty$, velocities normalized by
 $U_\infty$),
@@ -461,16 +466,20 @@ $U_\infty$),
   \label{eq:transport}
 \end{equation}
 with the SA cross-stream diffusion coefficient $\sigma_\mathrm{SA}\!=\!2/3$ retained
-from the laminar limit of the SA equation.
+from the laminar limit of the SA equation,
 on the Blasius layer, seeded with $\hat\nu_\infty=1$ at the leading edge as a
 unit-scale reference, so that $N\!=\!\ln(\hat\nu/\hat\nu_\infty)\!=\!\ln\hat\nu$ is the
-amplification factor by construction. Figure~\ref{fig:nuhat} shows
-$\ln\hat\nu$ growing from the seed and concentrated in the unstable band;
-$\ln\hat\nu\!=\!9$, the classical $e^9$ envelope criterion for natural
-transition, is reached at $Re_\theta\!\approx\!1330$, matching Drela's
-correlation for Blasius transition under low-disturbance conditions. With the
-rate at unit-order magnitude ($a_{\max}=0.2$) the model thus reproduces the
-classical $e^N$ transition of a Blasius layer.
+amplification factor by construction. Figure~\ref{fig:nuhat} shows $\ln\hat\nu$
+growing monotonically from the seed, concentrated in the unstable band between
+$\theta$ and $\delta_{99}$ --- the qualitative signature of an envelope
+amplification factor. With the committed kernel the ZPG rate is gentle, so
+$\ln\hat\nu$ accumulates to $\approx\!2.3$ over the $Re_x\!\le\!4\!\times\!10^6$
+plate rather than reaching the $e^9$ threshold by pure linear amplification.
+The model therefore does not set its transition location from the standalone
+ZPG envelope; the quantitative transition-onset calibration is carried out in
+the coupled RANS solver on a flat plate against the Abu-Ghannam \& Shaw
+correlation (Sec.~\ref{sec:flatplate}), where the small freestream seed and the
+near-wall SA dynamics bring $\chi$ to the handover at the observed $Re_\theta$.
 
 \begin{figure}[tp]
   \centering
@@ -484,8 +493,9 @@ classical $e^N$ transition of a Blasius layer.
   inherits the band structure of $Re_\Omega$. \emph{Right}: envelope
   amplification rate $dN/dRe_\theta$ obtained from the wall-normal peak of the
   kernel at each station; the rate rises monotonically with $Re_\theta$ through
-  the unstable range, consistent with Drela-style envelope-$e^N$ rates at
-  $a_{\max}\!=\!0.2$.}
+  the unstable range, peaking near $dN/dRe_\theta\!\approx\!0.006$ at the
+  committed $a_{\max}\!=\!0.15$ --- a deliberately gentle ZPG rate (the sigmoid
+  center $g_c\!=\!1.572$ sits above the Blasius wall-asymptote $\Gamma\!=\!1$).}
   \label{fig:amp}
 \end{figure}
 
@@ -494,17 +504,21 @@ classical $e^N$ transition of a Blasius layer.
   \includegraphics[width=0.78\textwidth]{blasius_nuHat_solution.pdf}
   \caption{Amplification factor $N\!=\!\ln\hat\nu$ from the transport
   \eqref{eq:transport} on a Blasius layer ($\hat\nu_\infty\!=\!1$ seed,
-  $a_{\max}=0.2$). Line contours show $\ln\hat\nu$ in the $(Re_x, Re_y)$
-  plane; the $\ln\hat\nu\!=\!9$ contour marks the classical $e^9$
-  laminar--turbulent crossover and is reached at $Re_\theta\!\approx\!1330$.
-  Black curves overlay the Blasius momentum thickness $\theta$, displacement
-  thickness $\delta^*$, and edge thickness $\delta_{99}$; the amplification is
-  concentrated between $\theta$ and $\delta_{99}$, where $Re_\Omega$ peaks.}
+  committed $a_{\max}\!=\!0.15$). Line contours show $\ln\hat\nu$ in the
+  $(Re_x, Re_y)$ plane; $\ln\hat\nu$ grows monotonically as an envelope
+  amplification factor, reaching $\approx\!2.3$ over the
+  $Re_x\!\le\!4\!\times\!10^6$ plate at this deliberately gentle ZPG rate
+  (the $e^9$ transition threshold is set by the coupled dynamics, not standalone
+  amplification; see text and Sec.~\ref{sec:flatplate}). Black curves overlay
+  the Blasius momentum thickness $\theta$, displacement thickness $\delta^*$,
+  and edge thickness $\delta_{99}$; the amplification is concentrated between
+  $\theta$ and $\delta_{99}$, where $Re_\Omega$ peaks.}
   \label{fig:nuhat}
 \end{figure}
 
-The same calibration $a_{\max}=0.2$ with the two-anchor sigmoid constants
-$(s,g_c)=(5.263,1.572)$ is used unchanged for all coupled RANS computations
+The same kernel ($a_{\max}\!=\!0.15$, $(s,g_c)\!=\!(5.263,1.572)$, and the
+remaining constants of Table~\ref{tab:const}) is used unchanged for the Blasius
+transport illustration above and for all coupled RANS computations
 of Secs.~\ref{sec:flatplate}--\ref{sec:eppval}: no per-geometry adjustment
 is needed. The freestream turbulence level enters through one quantity, the
 freestream value $\chi_\infty$: a higher $Tu$ is a larger seed and thus fewer
