@@ -213,10 +213,15 @@ in the standard form of Ref.~\cite{spalart_allmaras_1992}, with the modified
 vorticity $\tilde S$, the wall function $f_w$, the constants $c_{b1},c_{b2},c_{w1},
 \sigma$, and the eddy viscosity $\mu_t=\rho\,\tilde\nu f_{v1}(\chi)$,
 $\chi=\tilde\nu/\nu$, all as defined there; we use the negative-$\tilde\nu$
-safeguards of the standard implementation. Because $f_{v1}\!\to\!0$ as
-$\chi\!\to\!0$, the field $\tilde\nu$ contributes negligibly to the mean flow while
-$\chi\lesssim1$: this sub-$O(1)$ range is dynamically inert in the baseline model
-and is what we repurpose.
+safeguards of the standard implementation. The eddy-viscosity function
+$f_{v1}(\chi)\!=\!\chi^3/(\chi^3+c_{v1}^3)$ vanishes cubically for
+$\chi\!\ll\!c_{v1}$, $f_{v1}\!\approx\!(\chi/c_{v1})^3\!=\!\chi^3/357.9\!\approx\!
+2.8\!\times\!10^{-3}\,\chi^3$ (with $c_{v1}\!=\!7.1$): even at $\chi\!=\!1$ the
+eddy viscosity $\mu_t\!=\!\rho\,\tilde\nu f_{v1}$ is only $\sim\!0.3\%$ of
+$\rho\tilde\nu$, and it falls off as $\chi^3$ below that. The field $\tilde\nu$
+therefore contributes negligibly to the mean flow while $\chi\lesssim1$: this
+sub-$O(1)$ range is dynamically inert in the baseline model and is what we
+repurpose.
 
 \subsection{Laminar amplification production}
 In a laminar boundary layer we replace the SA production by a local instability rate
