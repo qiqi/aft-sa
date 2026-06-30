@@ -19,7 +19,7 @@ NU = 2.5e-8
 
 # NOTE: these MUST match ModelConstants.h. Out-of-sync values silently produce
 # wrong landscape contours. Final committed model: Option A kernel (Gamma-only
-# sigmoid), Gamma-dependent cliff barrier, aft_nuLamScale=0.25 in SA diffusion.
+# sigmoid), Gamma-dependent cliff barrier, aft_nuLamScale=1/12 in SA diffusion.
 G_C, SLOPE, BARRIER_POWER, A_MAX = 1.572, 5.263, 4.0, 0.15
 RE_OMEGA_FLOOR = 100.0
 TILT_SLOPE = 1.0e6  # effectively disabled (cliff is pure floor)

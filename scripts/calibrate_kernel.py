@@ -84,10 +84,13 @@ if __name__ == '__main__':
         print(f"  {Tu_pct:>5.3f}  {chi:>10.3e}  {N_AFT:>11.3f}  {N_Mack:>11.3f}")
     print()
 
-    print("=== Current committed model: (a_FP, a_PG) = (0.0094, 0.181), nuLamScale=0.25 ===")
-    s, gc = sg_from_anchors(0.0094, 0.181)
-    print(f"  -> (s, g_c) = ({s:.4f}, {gc:.4f})")
-    a1, a2 = anchors_from_sg(s, gc)
-    print(f"  Round-trip: a(Γ=1)={a1:.5f}, a(Γ=2)={a2:.5f}")
-    print(f"  a(Γ=1.5) = {A_MAX/(1+math.exp(-s*(1.5-gc))):.5f}")
-    print(f"  a(Γ=1.7) = {A_MAX/(1+math.exp(-s*(1.7-gc))):.5f}")
+    # Committed kernel: the (s, g_c) sigmoid is the single source of truth
+    # (ModelConstants.h aft_sigmoidSlope/aft_sigmoidCenter, JAX
+    # AFT_SIGMOID_SLOPE/CENTER, paper Table). a_max=0.15, nuLamScale=1/12.
+    S_COMMIT, GC_COMMIT = 5.263, 1.572
+    a1, a2 = anchors_from_sg(S_COMMIT, GC_COMMIT)
+    print(f"=== Committed kernel: (s, g_c) = ({S_COMMIT}, {GC_COMMIT}), "
+          f"a_max={A_MAX}, nuLamScale=1/12 ===")
+    print(f"  implied anchors: a(Γ=1)=a_FP={a1:.5f}, a(Γ=2)=a_PG={a2:.5f}")
+    print(f"  a(Γ=1.5) = {A_MAX/(1+math.exp(-S_COMMIT*(1.5-GC_COMMIT))):.5f}")
+    print(f"  a(Γ=1.7) = {A_MAX/(1+math.exp(-S_COMMIT*(1.7-GC_COMMIT))):.5f}")
