@@ -528,35 +528,36 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
     fig, axs = plt.subplots(5, len(alphas), figsize=(5*len(alphas), 13), sharex=True)
     if len(alphas) == 1: axs = axs[:, None]
     for col, alpha in enumerate(alphas):
-        ax_reo = axs[0, col]; ax_sfpg = axs[1, col]
+        ax_reo = axs[0, col]; ax_gam = axs[1, col]
         ax_n   = axs[2, col]; ax_cp  = axs[3, col]; ax_cf = axs[4, col]
         ax_nN = ax_n.twinx()
-        # ROW 1+2: wall-normal-probe max Re_Omega and min sigma_FPG
+        # ROW 1+2: wall-normal-probe max Re_Omega and max Gamma. The Eppler 387
+        # is the adverse-PG calibration, so row 2 shows Gamma (the profile-
+        # fullness indicator the kernel sigmoid acts on) rather than lambda_p.
         for mesh in meshes:
             for level in ['L0', 'L1', 'L2']:  # all levels now current
                 d = case_dir(mesh, level, alpha)
                 if not os.path.exists(f"{d}/slice_with_derived.pvtu"): continue
                 lw = LEVEL_LW[level]; ls = MESH_LS[mesh]
                 try:
-                    xs_u, ReO_u, _, sFPG_u = wallnormal_max_metrics(
-                        d, side='upper', L_probe=L_probe, n_probe=n_probe,
-                        return_sigma_fpg=True)
-                    xs_l, ReO_l, _, sFPG_l = wallnormal_max_metrics(
-                        d, side='lower', L_probe=L_probe, n_probe=n_probe,
-                        return_sigma_fpg=True)
+                    xs_u, ReO_u, Gam_u = wallnormal_max_metrics(
+                        d, side='upper', L_probe=L_probe, n_probe=n_probe)
+                    xs_l, ReO_l, Gam_l = wallnormal_max_metrics(
+                        d, side='lower', L_probe=L_probe, n_probe=n_probe)
                 except Exception as e:
                     print(f"  skip probe ({mesh}/{level}, α={alpha}): {e}"); continue
                 ax_reo.semilogy(xs_u, ReO_u, ls=ls, lw=lw, color=UP_COLOR)
                 ax_reo.semilogy(xs_l, ReO_l, ls=ls, lw=lw, color=LO_COLOR)
-                ax_sfpg.plot(xs_u, sFPG_u, ls=ls, lw=lw, color=UP_COLOR)
-                ax_sfpg.plot(xs_l, sFPG_l, ls=ls, lw=lw, color=LO_COLOR)
+                ax_gam.plot(xs_u, Gam_u, ls=ls, lw=lw, color=UP_COLOR)
+                ax_gam.plot(xs_l, Gam_l, ls=ls, lw=lw, color=LO_COLOR)
         ax_reo.axhline(RE_OMEGA_FLOOR, color='gray', ls='--', lw=0.6, alpha=0.5)
         ax_reo.set_ylim(1e2, 1e4); ax_reo.grid(alpha=0.3, which='both')
         ax_reo.set_title(rf'$\alpha={alpha}^\circ$', fontsize=10)
         if col == 0: ax_reo.set_ylabel(r'$\max Re_\Omega$ (log)')
-        ax_sfpg.axhline(0.5, color='gray', ls=':', lw=0.6, alpha=0.6)
-        ax_sfpg.set_ylim(-0.05, 1.05); ax_sfpg.grid(alpha=0.3)
-        if col == 0: ax_sfpg.set_ylabel(r'$\sigma_{\mathrm{FPG}}$')
+        # Gamma: profile-fullness indicator; sigmoid center g_c=1.572 marked.
+        ax_gam.axhline(G_C, color='gray', ls=':', lw=0.6, alpha=0.6)
+        ax_gam.set_ylim(0, 2.05); ax_gam.grid(alpha=0.3)
+        if col == 0: ax_gam.set_ylabel(r'$\max \Gamma$')
         # ROW 3: chi + N
         for mesh in meshes:
             for level in ['L0', 'L1', 'L2']:  # all levels now current
@@ -601,7 +602,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
             ax_cp.plot(md['lower']['x'], -md['lower']['cp'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
             ax_cf.plot(md['upper']['x'], md['upper']['cf'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
             ax_cf.plot(md['lower']['x'], md['lower']['cf'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
-        for a in [ax_reo, ax_sfpg, ax_n, ax_cp, ax_cf]: a.set_xlim(0, 1)
+        for a in [ax_reo, ax_gam, ax_n, ax_cp, ax_cf]: a.set_xlim(0, 1)
         cf_hi = 0.025 if max(alphas) > 6 else 0.012
         ax_cf.set_ylim(-0.004, cf_hi)
         ax_cf.axhline(0.0, color='gray', lw=0.6, alpha=0.5)

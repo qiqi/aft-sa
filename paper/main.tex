@@ -745,12 +745,14 @@ The airfoil surface distributions are presented as five-row figures
 (Figs.~\ref{fig:nlfcflow}--\ref{fig:nlfcfhigh} here and
 Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh} for the Eppler 387) with a
 common layout: \emph{row 1} the wall-normal-probe maximum of $Re_\Omega$
-(log); \emph{row 2} the favorable-pressure-gradient suppression
-$\sigma_\mathrm{FPG}$ of Eq.~\eqref{eq:fpg}, evaluated at the wall-normal
-location where $Re_\Omega$ peaks (the kernel-active band the amplification
-actually sees --- the quantity tuned in this section), with
-$\sigma_\mathrm{FPG}\!\to\!0$ where the flow accelerates near the leading edge
-and $\to\!1$ once the favorable gradient relaxes; \emph{row 3} the in-BL maximum
+(log); \emph{row 2} the pressure-gradient/profile indicator being calibrated in
+that section, evaluated over the kernel-active band ($Re_\Omega\!>\!\tfrac12
+\max_y Re_\Omega$, the $\theta$-scale layer around the $Re_\Omega$ peak): for the
+NLF (favorable-PG tuning) this is the streamwise pressure-gradient parameter
+$\lambda_p$ of Eq.~\eqref{eq:indicators} (reference lines at
+$\lambda_\ast\!=\!0.64$ and $0$), and for the Eppler~387 (adverse-PG tuning) it
+is the profile-fullness indicator $\max_y\Gamma$ (reference line at the sigmoid
+center $g_c\!=\!1.572$); \emph{row 3} the in-BL maximum
 $\chi\!=\!\max_y\tilde\nu/\nu$ on a log axis with mfoil's amplification factor
 $N$ on a linear right axis, the two linked by $N\!=\!\ln(\chi/\chi_\infty)$ so
 one unit on the right equals one $e$-fold on the left (vertical dotted lines:
@@ -770,7 +772,7 @@ region.
   \caption{NLF(1)-0416 surface distributions at $\alpha\!\in\!\{0^\circ,4^\circ\}$,
   $Re\!=\!4\!\times\!10^6$, $\chi_\infty\!=\!8.76\!\times\!10^{-4}$. Five-row
   layout and line conventions as described in the text (row~1 $\max Re_\Omega$,
-  row~2 $\sigma_\mathrm{FPG}$, row~3 $\chi$ with mfoil $N$, row~4 $-C_p$,
+  row~2 $\lambda_p$, row~3 $\chi$ with mfoil $N$, row~4 $-C_p$,
   row~5 signed $C_f$; upper blue / lower red, O-grid solid / cavity dashed,
   L0--L2 by thickness, mfoil $e^9$ dotted). At $\alpha\!=\!0^\circ$ both
   surfaces transition near $x/c\!\approx\!0.45$, recovering the low-drag
@@ -907,7 +909,7 @@ from $1.6\!\times\!10^4$ nodes (str L0) to $3.8\!\times\!10^5$ nodes (cav L2).
   \caption{Eppler 387 surface distributions at $\alpha\!\in\!\{0^\circ,2^\circ\}$,
   $Re\!=\!2\!\times\!10^5$, $M\!=\!0.1$, $\chi_\infty\!=\!8.76\!\times\!10^{-4}$
   (matched to $N_\mathrm{crit}\!=\!9$). Five-row layout and line conventions as
-  described in the text (row~1 $\max Re_\Omega$, row~2 $\sigma_\mathrm{FPG}$,
+  described in the text (row~1 $\max Re_\Omega$, row~2 $\max\Gamma$,
   row~3 $\chi$ with mfoil $N$, row~4 $-C_p$, row~5 signed $C_f$; upper blue /
   lower red, O-grid solid / cavity dashed, L0--L2 by thickness, mfoil $e^9$
   dotted). The signed $C_f$ (row~5) shows the laminar-separation bubble
@@ -944,13 +946,18 @@ directly comparable to mfoil's already-signed skin-friction output. Both Flow360
 and mfoil show the same recirculation structure at all four incidences and on
 both mesh families.
 
-The favorable-pressure-gradient suppression $\sigma_\mathrm{FPG}$ (row~2 of
-Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}) confirms that the cliff factor
-tuned on the NLF transfers to the Eppler 387 without retuning: at this low
-Reynolds number the airfoil carries only a short favorable-gradient segment
-near the leading edge, so $\sigma_\mathrm{FPG}\!\to\!1$ over most of the chord
-and the adverse-gradient amplification that controls the bubble is left
-untouched by the FPG term.
+The profile-fullness indicator $\max_y\Gamma$ (row~2 of
+Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}) shows the adverse-gradient
+response the Eppler~387 calibrates: on the upper surface $\Gamma$ climbs from
+its attached-layer value $\approx\!1$ through the sigmoid center
+$g_c\!=\!1.572$ and saturates at $2$ across the laminar-separation bubble (the
+inflectional profile), then relaxes after reattachment, while the lower surface
+stays near $\Gamma\!\approx\!1$; the $\Gamma$-sigmoid is what ignites the
+amplification at the bubble. The favorable-PG term $\lambda_p$ plays little role
+here: at this low Reynolds number the airfoil carries only a short
+favorable-gradient segment near the leading edge, so the $\sigma_\mathrm{FPG}$
+cliff/rate factors calibrated on the NLF transfer to the Eppler~387 without
+retuning and leave the bubble-controlling amplification untouched.
 
 \begin{table}[tp]
   \centering

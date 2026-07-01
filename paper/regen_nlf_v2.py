@@ -238,7 +238,7 @@ def load_slice_derived(case_d):
     return r.GetOutput()
 
 def wallnormal_max_metrics(case_d, side='upper', L_probe=0.01, n_probe=80,
-                            return_sigma_fpg=False):
+                            return_sigma_fpg=False, return_lambda_p=False):
     """For each surface point on `side`, shoot a probe line of length L_probe
     in the outward wall-normal direction, interpolate Re_Omega and Gamma on
     n_probe equally spaced points along the line (from slice_with_derived.pvtu),
@@ -247,13 +247,16 @@ def wallnormal_max_metrics(case_d, side='upper', L_probe=0.01, n_probe=80,
     nuHat or the amplification rate, so they are valid inputs for calibrating
     the rate kernel.
 
-    If return_sigma_fpg=True, also returns sigma_FPG evaluated at the wall-normal
-    location where Re_Omega peaks (the kernel-active band) — the FPG suppression
-    the amplification actually sees. (An earlier version took the min over the
-    probe, but lambda_p ~ d^2 grows into the free stream, so that picked a noisy
-    far-field extreme instead of the BL band.)
-    sigma_FPG(lambda_p) = 1 / (1 + exp(s_lambda * (lambda_p - lambda_*))) with
-    s_lambda = 4.56, lambda_* = 0.64 (matching ModelConstants.h).
+    If return_lambda_p=True, also returns the representative streamwise
+    pressure-gradient parameter lambda_p = -d^2 (u.grad p)/(rho nu |u|^2),
+    taken as the mean over the kernel-active band (Re_Omega > 0.5*max_y Re_Omega,
+    the theta-scale layer around the Re_Omega peak) and lightly smoothed.
+    lambda_p is plotted directly for the NLF (favorable-PG calibration); it is
+    smoother than sigma_FPG(lambda_p) because the sigmoid steepens noise near
+    lambda_*. lambda_p ~ d^2 blows up in the free stream, so the band-mean (not a
+    probe extremum) is used.  If return_sigma_fpg=True, returns
+    sigma_FPG = 1/(1+exp(s_lambda(lambda_p-lambda_*))) instead (s_lambda=4.56,
+    lambda_*=0.64, matching ModelConstants.h).
     """
     Xm, Zm, up_idx, lo_idx = walk_contour_xz(case_d)
     idx = up_idx if side == 'upper' else lo_idx
@@ -297,40 +300,29 @@ def wallnormal_max_metrics(case_d, side='upper', L_probe=0.01, n_probe=80,
     ReO_max = np.nanmax(ReO, axis=0)
     Gam_max = np.nanmax(Gam, axis=0)
     order = np.argsort(xs)
-    if not return_sigma_fpg:
+    if not (return_sigma_fpg or return_lambda_p):
         return xs[order], ReO_max[order], Gam_max[order]
-    # sigma_FPG evaluated at the wall-normal location where Re_Omega PEAKS (the
-    # kernel-active band), NOT the min over the probe. lambda_p = -d^2(u.grad p)
-    # /(rho nu |u|^2) grows like d^2 into the free stream, so a probe-min (=max
-    # lambda_p) picks a noisy far-field extreme rather than the amplification
-    # band; at the Re_Omega peak lambda_p is in the calibrated O(1) range.
+    # Representative lambda_p = mean over the kernel-active band
+    # (Re_Omega > 0.5*max_y Re_Omega, the theta-scale layer around the Re_Omega
+    # peak), lightly smoothed. Band-mean (not a probe extremum) because
+    # lambda_p = -d^2(u.grad p)/(rho nu |u|^2) ~ d^2 blows up in the free stream.
     lam_arr = pdd.GetArray('lambda_p')
     if lam_arr is None:
-        sigFPG_pk = np.ones_like(ReO_max)
-    else:
-        lam_raw = vtk_to_numpy(lam_arr)
-        lam = np.where(mask, lam_raw, np.nan).reshape(n_probe, M)
-        LAMBDA_STAR, LAMBDA_SLOPE = 0.64, 4.56   # matches ModelConstants.h
-        # Representative lambda_p = mean over the kernel-active band
-        # (Re_Omega > 0.5*max_y Re_Omega, i.e. the theta-scale layer around the
-        # Re_Omega peak). Averaging over the band is robust to the wall-normal
-        # argmax jitter that makes a single-point pick noisy on the mildly
-        # favorable NLF lower surface (where lambda_p ~ lambda_* sits on the
-        # steep part of the sigmoid).
-        band = ReO > 0.5 * ReO_max[None, :]
-        lam_rep = np.nanmean(np.where(band, lam, np.nan), axis=0)
-        sigFPG = 1.0 / (1.0 + np.exp(LAMBDA_SLOPE * (lam_rep - LAMBDA_STAR)))
-        sigFPG = np.where(np.isfinite(lam_rep), sigFPG, np.nan)
-        sigFPG_pk = sigFPG[order]
-        # light smoothing of residual grad(p) noise (same spirit as the
-        # landscape-trajectory smoothing); fill gaps first so the filter is stable
-        finite = np.isfinite(sigFPG_pk)
-        if finite.sum() > 3:
-            filled = np.interp(np.arange(len(sigFPG_pk)),
-                               np.where(finite)[0], sigFPG_pk[finite])
-            sigFPG_pk = gaussian_filter1d(filled, 1.5)
-        return xs[order], ReO_max[order], Gam_max[order], sigFPG_pk
-    return xs[order], ReO_max[order], Gam_max[order], sigFPG_pk[order]
+        extra = np.zeros_like(ReO_max) if return_lambda_p else np.ones_like(ReO_max)
+        return xs[order], ReO_max[order], Gam_max[order], extra[order]
+    lam_raw = vtk_to_numpy(lam_arr)
+    lam = np.where(mask, lam_raw, np.nan).reshape(n_probe, M)
+    band = ReO > 0.5 * ReO_max[None, :]
+    lam_rep = np.nanmean(np.where(band, lam, np.nan), axis=0)[order]
+    finite = np.isfinite(lam_rep)
+    if finite.sum() > 3:
+        lam_rep = gaussian_filter1d(
+            np.interp(np.arange(len(lam_rep)), np.where(finite)[0], lam_rep[finite]), 1.5)
+    if return_lambda_p:
+        return xs[order], ReO_max[order], Gam_max[order], lam_rep
+    LAMBDA_STAR, LAMBDA_SLOPE = 0.64, 4.56   # matches ModelConstants.h
+    sigFPG = 1.0 / (1.0 + np.exp(LAMBDA_SLOPE * (lam_rep - LAMBDA_STAR)))
+    return xs[order], ReO_max[order], Gam_max[order], sigFPG
 
 def airfoil_surfaces(case_d, af='nlf0416'):
     r = vtk.vtkXMLPUnstructuredGridReader(); r.SetFileName(f"{case_d}/surface_fluid_{af}.pvtu"); r.Update()
@@ -475,36 +467,39 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
     fig, axs = plt.subplots(5, len(alphas), figsize=(5*len(alphas), 13), sharex=True)
     if len(alphas) == 1: axs = axs[:, None]
     for col, alpha in enumerate(alphas):
-        ax_reo = axs[0, col]; ax_sfpg = axs[1, col]
+        ax_reo = axs[0, col]; ax_lam = axs[1, col]
         ax_n   = axs[2, col]; ax_cp  = axs[3, col]; ax_cf = axs[4, col]
         ax_nN = ax_n.twinx()
-        # ROW 1+2: wall-normal-probe max Re_Omega and min sigma_FPG
+        # ROW 1+2: wall-normal-probe max Re_Omega and band-mean lambda_p
         for mesh in meshes:
             for level in ['L0', 'L1', 'L2']:  # all levels now current
                 d = case_dir(mesh, level, alpha)
                 if not os.path.exists(f"{d}/slice_with_derived.pvtu"): continue
                 lw = LEVEL_LW[level]; ls = MESH_LS[mesh]
                 try:
-                    xs_u, ReO_u, _, sFPG_u = wallnormal_max_metrics(
+                    xs_u, ReO_u, _, lam_u = wallnormal_max_metrics(
                         d, side='upper', L_probe=L_probe, n_probe=n_probe,
-                        return_sigma_fpg=True)
-                    xs_l, ReO_l, _, sFPG_l = wallnormal_max_metrics(
+                        return_lambda_p=True)
+                    xs_l, ReO_l, _, lam_l = wallnormal_max_metrics(
                         d, side='lower', L_probe=L_probe, n_probe=n_probe,
-                        return_sigma_fpg=True)
+                        return_lambda_p=True)
                 except Exception as e:
                     print(f"  skip probe ({mesh}/{level}, α={alpha}): {e}"); continue
                 ax_reo.semilogy(xs_u, ReO_u, ls=ls, lw=lw, color=UP_COLOR)
                 ax_reo.semilogy(xs_l, ReO_l, ls=ls, lw=lw, color=LO_COLOR)
-                ax_sfpg.plot(xs_u, sFPG_u, ls=ls, lw=lw, color=UP_COLOR)
-                ax_sfpg.plot(xs_l, sFPG_l, ls=ls, lw=lw, color=LO_COLOR)
+                ax_lam.plot(xs_u, lam_u, ls=ls, lw=lw, color=UP_COLOR)
+                ax_lam.plot(xs_l, lam_l, ls=ls, lw=lw, color=LO_COLOR)
         ax_reo.axhline(RE_OMEGA_FLOOR, color='gray', ls='--', lw=0.6, alpha=0.5)
         ax_reo.set_ylim(1e2, 1e4); ax_reo.grid(alpha=0.3, which='both')
         ax_reo.set_title(rf'$\alpha={alpha}^\circ$', fontsize=10)
         if col == 0: ax_reo.set_ylabel(r'$\max Re_\Omega$ (log)')
-        # sigma_FPG ∈ [0,1]; mark the half-suppression line at 0.5.
-        ax_sfpg.axhline(0.5, color='gray', ls=':', lw=0.6, alpha=0.6)
-        ax_sfpg.set_ylim(-0.05, 1.05); ax_sfpg.grid(alpha=0.3)
-        if col == 0: ax_sfpg.set_ylabel(r'$\sigma_{\mathrm{FPG}}$')
+        # lambda_p: favorable-PG parameter. Reference lines at lambda_*=0.64
+        # (sigma_FPG center) and 0 (Blasius). Range focuses on the FPG-calibration
+        # band; the strongly-adverse recovery region runs off the bottom.
+        ax_lam.axhline(0.64, color='gray', ls='--', lw=0.6, alpha=0.6)
+        ax_lam.axhline(0.0, color='gray', ls=':', lw=0.6, alpha=0.5)
+        ax_lam.set_ylim(-1.5, 1.5); ax_lam.grid(alpha=0.3)
+        if col == 0: ax_lam.set_ylabel(r'$\lambda_p$')
         # ROW 3: chi + N
         for mesh in meshes:
             for level in ['L0', 'L1', 'L2']:  # all levels now current
@@ -549,7 +544,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
             ax_cp.plot(md['lower']['x'], -md['lower']['cp'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
             ax_cf.plot(md['upper']['x'], md['upper']['cf'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
             ax_cf.plot(md['lower']['x'], md['lower']['cf'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
-        for a in [ax_reo, ax_sfpg, ax_n, ax_cp, ax_cf]: a.set_xlim(0, 1)
+        for a in [ax_reo, ax_lam, ax_n, ax_cp, ax_cf]: a.set_xlim(0, 1)
         ax_cf.set_ylim(0, 0.025 if max(alphas) > 6 else 0.012)
         ax_cp.grid(alpha=0.3); ax_cf.grid(alpha=0.3)
         ax_cf.set_xlabel('$x/c$')
