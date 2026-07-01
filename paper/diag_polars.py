@@ -42,7 +42,7 @@ def converged_forces(cd):
 def gather(family, alphas):
     out = {}  # (mesh,level) -> dict(alpha->forces)  + 'mfoil'
     for mesh in ['cav', 'str']:
-        for level in ['L1', 'L2']:
+        for level in ['L0', 'L1', 'L2']:
             key = f"{mesh}{level}"
             series = {}
             for a in alphas:
@@ -62,8 +62,8 @@ def main():
 
         fig, ax = plt.subplots(1, 3, figsize=(15, 4.6))
         style = {'cav': '--', 'str': '-'}
-        lw = {'L1': 1.4, 'L2': 2.4}
-        col = {'L1': 'C0', 'L2': 'C1'}
+        lw = {'L0': 0.9, 'L1': 1.6, 'L2': 2.6}
+        col = {'L0': 'C2', 'L1': 'C0', 'L2': 'C1'}
         for key, series in sorted(data.items()):
             mesh, level = key[:3], key[3:]
             aa = sorted(series)
@@ -83,8 +83,9 @@ def main():
         ax[2].set_xlabel('$C_D$'); ax[2].set_ylabel('$C_L$'); ax[2].set_title('drag polar')
         for a_ax in ax: a_ax.grid(alpha=0.3)
         # legend
-        handles = [Line2D([],[],color=col['L1'],lw=1.4,label='L1'),
-                   Line2D([],[],color=col['L2'],lw=2.4,label='L2'),
+        handles = [Line2D([],[],color=col['L0'],lw=0.9,label='L0'),
+                   Line2D([],[],color=col['L1'],lw=1.6,label='L1'),
+                   Line2D([],[],color=col['L2'],lw=2.6,label='L2'),
                    Line2D([],[],color='0.3',ls='-',lw=1.6,label='str (O-grid)'),
                    Line2D([],[],color='0.3',ls='--',lw=1.6,label='cav (unstructured)'),
                    Line2D([],[],color='k',ls=':',lw=1.6,marker='s',ms=4,label='mfoil $e^9$')]
