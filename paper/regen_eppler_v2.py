@@ -313,9 +313,10 @@ def wallnormal_max_metrics(case_d, side='upper', L_probe=0.01, n_probe=80,
     nuHat or the amplification rate, so they are valid inputs for calibrating
     the rate kernel.
 
-    If return_sigma_fpg=True, also returns sigma_FPG_min — the MIN of
-    sigma_FPG(lambda_p) along the wall-normal probe (= strongest suppression
-    at the wall-normal location of strongest favorable pressure gradient).
+    If return_sigma_fpg=True, also returns sigma_FPG evaluated at the wall-normal
+    location where Re_Omega peaks (the kernel-active band) — the FPG suppression
+    the amplification actually sees. (lambda_p ~ d^2 grows into the free stream,
+    so a probe-min would pick a noisy far-field extreme, not the BL band.)
     """
     Xm, Zm, up_idx, lo_idx = walk_contour_xz(case_d)
     idx = up_idx if side == 'upper' else lo_idx
@@ -363,14 +364,27 @@ def wallnormal_max_metrics(case_d, side='upper', L_probe=0.01, n_probe=80,
         return xs[order], ReO_max[order], Gam_max[order]
     lam_arr = pdd.GetArray('lambda_p')
     if lam_arr is None:
-        sigFPG_min = np.ones_like(ReO_max)
+        sigFPG_pk = np.ones_like(ReO_max)
     else:
         lam_raw = vtk_to_numpy(lam_arr)
         lam = np.where(mask, lam_raw, np.nan).reshape(n_probe, M)
-        LAMBDA_STAR, LAMBDA_SLOPE = 0.64, 4.56
-        sigFPG = 1.0 / (1.0 + np.exp(LAMBDA_SLOPE * (lam - LAMBDA_STAR)))
-        sigFPG_min = np.nanmin(sigFPG, axis=0)
-    return xs[order], ReO_max[order], Gam_max[order], sigFPG_min[order]
+        LAMBDA_STAR, LAMBDA_SLOPE = 0.64, 4.56   # matches ModelConstants.h
+        # Representative lambda_p = mean over the kernel-active band
+        # (Re_Omega > 0.5*max_y Re_Omega), then sigma_FPG + light smoothing.
+        # Averaging over the band avoids the wall-normal argmax jitter; a probe
+        # min/max would be dominated by lambda_p ~ d^2 in the free stream.
+        band = ReO > 0.5 * ReO_max[None, :]
+        lam_rep = np.nanmean(np.where(band, lam, np.nan), axis=0)
+        sigFPG = 1.0 / (1.0 + np.exp(LAMBDA_SLOPE * (lam_rep - LAMBDA_STAR)))
+        sigFPG = np.where(np.isfinite(lam_rep), sigFPG, np.nan)
+        sigFPG_pk = sigFPG[order]
+        finite = np.isfinite(sigFPG_pk)
+        if finite.sum() > 3:
+            filled = np.interp(np.arange(len(sigFPG_pk)),
+                               np.where(finite)[0], sigFPG_pk[finite])
+            sigFPG_pk = gaussian_filter1d(filled, 1.5)
+        return xs[order], ReO_max[order], Gam_max[order], sigFPG_pk
+    return xs[order], ReO_max[order], Gam_max[order], sigFPG_pk[order]
 
 def airfoil_surfaces(case_d, af='eppler387'):
     r = vtk.vtkXMLPUnstructuredGridReader(); r.SetFileName(f"{case_d}/surface_fluid_{af}.pvtu"); r.Update()
@@ -542,7 +556,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         if col == 0: ax_reo.set_ylabel(r'$\max Re_\Omega$ (log)')
         ax_sfpg.axhline(0.5, color='gray', ls=':', lw=0.6, alpha=0.6)
         ax_sfpg.set_ylim(-0.05, 1.05); ax_sfpg.grid(alpha=0.3)
-        if col == 0: ax_sfpg.set_ylabel(r'$\min \sigma_{\mathrm{FPG}}$')
+        if col == 0: ax_sfpg.set_ylabel(r'$\sigma_{\mathrm{FPG}}$')
         # ROW 3: chi + N
         for mesh in meshes:
             for level in ['L0', 'L1', 'L2']:  # all levels now current

@@ -247,9 +247,11 @@ def wallnormal_max_metrics(case_d, side='upper', L_probe=0.01, n_probe=80,
     nuHat or the amplification rate, so they are valid inputs for calibrating
     the rate kernel.
 
-    If return_sigma_fpg=True, also returns sigma_FPG_min — the MIN of
-    sigma_FPG(lambda_p) along the wall-normal probe (= strongest suppression
-    at the wall-normal location of strongest favorable pressure gradient).
+    If return_sigma_fpg=True, also returns sigma_FPG evaluated at the wall-normal
+    location where Re_Omega peaks (the kernel-active band) — the FPG suppression
+    the amplification actually sees. (An earlier version took the min over the
+    probe, but lambda_p ~ d^2 grows into the free stream, so that picked a noisy
+    far-field extreme instead of the BL band.)
     sigma_FPG(lambda_p) = 1 / (1 + exp(s_lambda * (lambda_p - lambda_*))) with
     s_lambda = 4.56, lambda_* = 0.64 (matching ModelConstants.h).
     """
@@ -297,19 +299,38 @@ def wallnormal_max_metrics(case_d, side='upper', L_probe=0.01, n_probe=80,
     order = np.argsort(xs)
     if not return_sigma_fpg:
         return xs[order], ReO_max[order], Gam_max[order]
-    # Probe lambda_p (FPG sensor) along same stencil; compute sigma_FPG and
-    # take the MIN along the probe (strongest FPG suppression encountered).
+    # sigma_FPG evaluated at the wall-normal location where Re_Omega PEAKS (the
+    # kernel-active band), NOT the min over the probe. lambda_p = -d^2(u.grad p)
+    # /(rho nu |u|^2) grows like d^2 into the free stream, so a probe-min (=max
+    # lambda_p) picks a noisy far-field extreme rather than the amplification
+    # band; at the Re_Omega peak lambda_p is in the calibrated O(1) range.
     lam_arr = pdd.GetArray('lambda_p')
     if lam_arr is None:
-        sigFPG_min = np.ones_like(ReO_max)
+        sigFPG_pk = np.ones_like(ReO_max)
     else:
         lam_raw = vtk_to_numpy(lam_arr)
         lam = np.where(mask, lam_raw, np.nan).reshape(n_probe, M)
-        # sigma_FPG matches ModelConstants.h
-        LAMBDA_STAR, LAMBDA_SLOPE = 0.64, 4.56
-        sigFPG = 1.0 / (1.0 + np.exp(LAMBDA_SLOPE * (lam - LAMBDA_STAR)))
-        sigFPG_min = np.nanmin(sigFPG, axis=0)
-    return xs[order], ReO_max[order], Gam_max[order], sigFPG_min[order]
+        LAMBDA_STAR, LAMBDA_SLOPE = 0.64, 4.56   # matches ModelConstants.h
+        # Representative lambda_p = mean over the kernel-active band
+        # (Re_Omega > 0.5*max_y Re_Omega, i.e. the theta-scale layer around the
+        # Re_Omega peak). Averaging over the band is robust to the wall-normal
+        # argmax jitter that makes a single-point pick noisy on the mildly
+        # favorable NLF lower surface (where lambda_p ~ lambda_* sits on the
+        # steep part of the sigmoid).
+        band = ReO > 0.5 * ReO_max[None, :]
+        lam_rep = np.nanmean(np.where(band, lam, np.nan), axis=0)
+        sigFPG = 1.0 / (1.0 + np.exp(LAMBDA_SLOPE * (lam_rep - LAMBDA_STAR)))
+        sigFPG = np.where(np.isfinite(lam_rep), sigFPG, np.nan)
+        sigFPG_pk = sigFPG[order]
+        # light smoothing of residual grad(p) noise (same spirit as the
+        # landscape-trajectory smoothing); fill gaps first so the filter is stable
+        finite = np.isfinite(sigFPG_pk)
+        if finite.sum() > 3:
+            filled = np.interp(np.arange(len(sigFPG_pk)),
+                               np.where(finite)[0], sigFPG_pk[finite])
+            sigFPG_pk = gaussian_filter1d(filled, 1.5)
+        return xs[order], ReO_max[order], Gam_max[order], sigFPG_pk
+    return xs[order], ReO_max[order], Gam_max[order], sigFPG_pk[order]
 
 def airfoil_surfaces(case_d, af='nlf0416'):
     r = vtk.vtkXMLPUnstructuredGridReader(); r.SetFileName(f"{case_d}/surface_fluid_{af}.pvtu"); r.Update()
@@ -483,7 +504,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         # sigma_FPG ∈ [0,1]; mark the half-suppression line at 0.5.
         ax_sfpg.axhline(0.5, color='gray', ls=':', lw=0.6, alpha=0.6)
         ax_sfpg.set_ylim(-0.05, 1.05); ax_sfpg.grid(alpha=0.3)
-        if col == 0: ax_sfpg.set_ylabel(r'$\min \sigma_{\mathrm{FPG}}$')
+        if col == 0: ax_sfpg.set_ylabel(r'$\sigma_{\mathrm{FPG}}$')
         # ROW 3: chi + N
         for mesh in meshes:
             for level in ['L0', 'L1', 'L2']:  # all levels now current
