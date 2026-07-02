@@ -32,12 +32,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install jaxlib  # CPU jaxlib; jax itself comes from requirements.txt
-          # Core deps from the source-of-truth requirements.txt (includes loguru,
-          # which core src modules import at module level -- omitting it made
-          # pytest collection fail with exit code 2). Plus optional-feature deps
-          # (plotly/pandas/pyyaml) exercised by the dashboard/batch/config tests.
-          pip install -r requirements.txt plotly pandas pyyaml
+          pip install jax jaxlib  # co-resolved together so versions match
+          # loguru is imported at module level by core src modules (jax_config,
+          # spalart_allmaras, rans_solver, ...); omitting it made pytest
+          # collection fail with exit code 2. pandas/pyyaml/pytest-xdist and
+          # plotly are exercised by the batch/config/dashboard tests.
+          pip install numpy scipy matplotlib numba pytest pytest-xdist plotly loguru pandas pyyaml
       
       - name: Run tests
         run: pytest tests/ -v --tb=short
