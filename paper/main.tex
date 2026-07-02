@@ -15,8 +15,8 @@
 
 \graphicspath{{figs/}}
 
-\title{A Single-Equation Transition Model: The Spalart--Allmaras Working
-Variable as an Amplification Factor}
+\title{A One-Equation Transition Model: Autogenous Inception from the
+Spalart--Allmaras Working Variable}
 
 \author[1,2]{Qiqi Wang\footnote{Founding Technologist, Flexcompute, Inc.;
 Associate Professor, Department of Aeronautics and Astronautics, Massachusetts
@@ -28,7 +28,7 @@ Institute of Technology. AIAA Associate Fellow.}}
 \maketitle
 
 \begin{abstract}
-We present a single-equation Reynolds-averaged Navier--Stokes (RANS) transition
+We present a one-equation Reynolds-averaged Navier--Stokes (RANS) transition
 model in which the Spalart--Allmaras (SA) working variable $\tilde\nu$ serves as
 its own transition indicator. Since $\tilde\nu$ already spans laminar to fully
 turbulent values, we repurpose its sub-$O(\nu)$ range---inert in the baseline
@@ -113,7 +113,7 @@ These nearest neighbors share a common premise that we depart from: the SA worki
 variable $\tilde\nu$ is treated as a purely turbulent quantity, switched on either
 by an extra transported field (AFT, $\gamma$--$Re_\theta$) or by an external
 algebraic intermittency (BC/BCM). Equation count alone therefore does not separate
-the present approach from the algebraic family, which is also single-equation. The
+the present approach from the algebraic family, which is also one-equation. The
 distinction is in \emph{what the field represents}. A scaling argument shows the
 sub-$O(1)$ range of $\tilde\nu$ is the natural home for a TS-envelope variable. The SA working variable carries the dimensions of an eddy viscosity, i.e.\
 a product $u'\ell$ of a fluctuation-velocity scale and a length scale. In a
@@ -172,19 +172,24 @@ analytically differentiable source.
     \bottomrule
   \end{tabular}
 \end{table}
-SA-AI is scoped to natural (Tollmien--Schlichting) transition. Its amplification
-rate is anchored to canonical stability limits (Sec.~\ref{sec:calib}) and then
-exercised across three pressure-gradient regimes of increasing complexity.
+SA-AI is scoped to natural (Tollmien--Schlichting) transition.
+Section~\ref{sec:model} formulates the model: the blended production term that
+lets $\tilde\nu$ amplify in the laminar range and revert to standard SA past
+handover. Section~\ref{sec:calib} anchors the amplification kernel to canonical
+stability limits and fixes the freestream-turbulence seed map
+$\chi_\infty(Tu)$---Mack's $e^N$ correlation adopted wholesale.
+Section~\ref{sec:impl} details the numerical implementation, including the
+analytic source Jacobian. The model is then exercised across three
+pressure-gradient regimes of increasing complexity.
 Section~\ref{sec:flatplate} uses a zero-pressure-gradient flat plate to verify
-the freestream-turbulence closure---the seed map $\chi_\infty(Tu)$, which is
-Mack's $e^N$ correlation adopted wholesale (Sec.~\ref{sec:calib})---against the
-Abu-Ghannam \& Shaw transition-onset correlation over the natural-transition
-$Tu$ range, confirming the Blasius envelope and onset. Section~\ref{sec:nlfval}
-uses the NLF(1)-0416 natural-laminar-flow airfoil to set the one
-favorable-gradient onset-delay constant $K_\lambda$ against the $e^N$ rooftop
-ignition and to test the favorable-PG handover. Section~\ref{sec:eppval} uses the
-Eppler 387 at low Reynolds number to test the adverse-pressure-gradient,
-laminar-separation-bubble regime, with no further constant. The same unified
+the seed map against the Abu-Ghannam \& Shaw transition-onset correlation over
+the natural-transition $Tu$ range, confirming the Blasius envelope and onset.
+Section~\ref{sec:nlfval} uses the NLF(1)-0416 natural-laminar-flow airfoil to
+set the one favorable-gradient onset-delay constant $K_\lambda$ against the
+$e^N$ rooftop ignition and to test the favorable-PG handover.
+Section~\ref{sec:eppval} uses the Eppler 387 at low Reynolds number to test the
+adverse-pressure-gradient, laminar-separation-bubble regime, with no further
+constant. The same unified
 constants (Table~\ref{tab:const}) are used across all three regimes and across the
 twenty-four coupled-RANS cases run for each airfoil (cavity unstructured +
 structured O-grid, three refinement levels, four incidences).
@@ -377,7 +382,7 @@ location rather than matching the $e^N$ growth rate quantitatively. Transition i
 reached when $\tilde\nu$ has grown to $\chi\sim1$, where the eddy viscosity becomes
 dynamically active.
 
-\subsection{Single-equation blend}
+\subsection{One-equation blend}
 A handover weight ties the laminar and turbulent regimes to the single state
 variable through $\chi$,
 \begin{equation}
@@ -469,7 +474,7 @@ the flat-plate data on which SA was founded, and below typical industrial
 discretization error, so Eq.~\eqref{eq:nulamscale} operates entirely within the
 sub-percent margin of the original calibration.
 
-\subsection{Assembled single-equation model}
+\subsection{Assembled one-equation model}
 Collecting the three modifications, the SA-AI model solves the single transport
 equation
 \begin{equation}
@@ -769,7 +774,7 @@ $Tu\!\gtrsim\!1\%$, which is not a meaningful kinematic parametrisation of
 bypass transition. The mechanism in those experiments is streak-induced and
 requires a closure that responds to the freestream turbulence energy directly.
 We therefore do not present T3A/T3B comparisons here; this is a known scope
-limit of the single-equation formulation.
+limit of the one-equation formulation.
 
 \begin{figure}[tp]
   \centering
