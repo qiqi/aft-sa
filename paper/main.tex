@@ -136,17 +136,19 @@ envelope-method-inspired instability rate, so $\ln\tilde\nu$ accumulates
 monotonically in the manner of an amplification factor; as $\tilde\nu$ approaches its
 turbulent level the production reverts smoothly to the standard SA form. One
 transport equation---the SA equation, unchanged in structure---spans laminar
-instability and turbulence with no auxiliary field. We refer to the model as
-SA-AI\footnote{Where the prevailing pursuit of artificial intelligence is all
-Yang---ever more parameters, more compute---this model is its Yin: transition
-arises autogenously, from a variable the baseline equation already carries, at
-essentially no added cost. Here ``AI'' abbreviates \emph{Autogenous Inception},
-not the other kind.} (Spalart--Allmaras with \emph{A}utogenous
-\emph{I}nception): the SA working variable generates its own transition from
-within, with no added field. It is distinct from Coder's SA-AFT, in which a
-separate amplification factor is transported.
+instability and turbulence with no auxiliary field. The same working variable
+whose magnitude measures how turbulent the flow already \emph{is} thus also
+carries the inception of that turbulence: the field gives rise to its own
+transition from within, rather than having it triggered by a separate marker.
 
-The contribution is thus a model that occupies an otherwise empty cell
+We refer to the model as SA-AI\footnote{Where the prevailing pursuit of
+artificial intelligence is all Yang---ever more parameters, more compute---this
+model is its Yin: transition arises autogenously, from a variable the baseline
+equation already carries, at essentially no added cost. Here ``AI'' abbreviates
+\emph{Autogenous Inception}, not the other kind.} (Spalart--Allmaras with
+\emph{A}utogenous \emph{I}nception), distinguishing it from Coder's SA-AFT, in
+which a separate amplification factor is transported. The contribution is thus a
+model that occupies an otherwise empty cell
 (Table~\ref{tab:taxonomy}): amplification-factor ($e^N$-like) physics carried by the
 turbulence working variable itself, with no auxiliary equation and a local,
 analytically differentiable source.
