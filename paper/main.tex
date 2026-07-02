@@ -36,33 +36,14 @@ model---to carry a Tollmien--Schlichting amplification factor, so that a single
 modified production term drives the one SA transport equation, unchanged in
 structure, through laminar instability growth and turbulent eddy-viscosity
 production, handing over near $\chi\!=\!\tilde\nu/\nu\!\sim\!1$. No auxiliary
-field is introduced---in contrast to conventional RANS transition models, which
-add a transport equation for an auxiliary variable (amplification factor,
-intermittency, or transition Reynolds number) or gate turbulent production with
-an algebraic intermittency. The amplification rate depends only on the local mean flow---a
-vorticity Reynolds number and a profile-fullness indicator---so the production
-retains an analytic Jacobian and integrates implicitly at the cost of the
-baseline model. The amplification kernel is anchored to canonical stability
-limits---the free-shear rate, the Blasius $e^N$ envelope, and the Falkner--Skan
-pressure-gradient response---and then exercised across three pressure-gradient
-regimes of increasing complexity. On a zero-pressure-gradient flat plate the
-single freestream-turbulence closure---Mack's $e^N$ critical-$N$-factor
-correlation, adopted rather than fit---places transition onset within $\sim\!8\%$
-of the Abu-Ghannam \& Shaw correlation across the natural-transition turbulence
-range, verifying the Blasius envelope. On the NLF(1)-0416
-natural-laminar-flow airfoil at $Re\!=\!4\!\times\!10^6$ one
-favorable-gradient onset-delay constant is set so the onset of growth matches
-the $e^N$ rooftop ignition, and the model then predicts the laminar-to-turbulent
-handover on both surfaces across $\alpha\!\in\!\{0^\circ,4^\circ,9^\circ,15^\circ\}$
-and across three refinement levels of two independently-generated mesh families
-(twenty-four cases). On the Eppler 387 at $Re\!=\!2\!\times\!10^5$ the
-adverse-pressure-gradient behavior---with no further constant---is predicted in
-the low-Reynolds laminar-separation-bubble regime; the signed skin friction shows the
-recirculation directly and the transition tracks the same $e^N$ reference at
-the canonical incidences $\alpha\!\in\!\{0^\circ,2^\circ,5^\circ,7^\circ\}$
-across another twenty-four cases on the same two-family ladder. The three
-stages each target a distinct pressure-gradient regime --- zero, favorable,
-and adverse --- and reuse the same constants throughout.
+field is introduced. The amplification rate depends only on the local mean
+flow---a vorticity Reynolds number and a profile-fullness indicator---and its
+kernel is anchored to canonical stability limits: the free-shear rate, the
+Blasius $e^N$ envelope, and the Falkner--Skan pressure-gradient response. The
+model is then tested on three cases spanning zero, favorable, and adverse
+pressure gradients---a flat plate, the NLF(1)-0416 airfoil at
+$Re\!=\!4\!\times\!10^6$, and the Eppler 387 at $Re\!=\!2\!\times\!10^5$---with
+the same constants throughout.
 \end{abstract}
 
 \section*{Nomenclature}
