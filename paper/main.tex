@@ -299,9 +299,9 @@ the general treatment is left to future work.
 The three indicators combine into the single nondimensional rate of
 Eq.~\eqref{eq:paft},
 \begin{equation}
-  a(Re_\Omega,\Gamma,\lambda_p) = a_{\max}\,S(z)\,\sigma_\mathrm{FPG}(\lambda_p),
+  a(Re_\Omega,\Gamma,\lambda_p) = a_{\max}\,S(z),
   \quad
-  z = s(\Gamma-g_c) + \ln\!\Big(1-\big(Re_\Omega^{\mathrm{c}}/Re_\Omega\big)^{p}\Big),
+  z = s(\Gamma-g_c) + \ln\!\Big(1-\big(Re_\Omega^{\mathrm{c}}(\lambda_p)/Re_\Omega\big)^{p}\Big),
   \quad S(z)=\frac{1}{1+e^{-z}},
   \label{eq:rate}
 \end{equation}
@@ -317,49 +317,38 @@ vanishes for $Re_\Omega\!\gtrsim\!2\,Re_\Omega^{\mathrm{c}}$ (the high exponent
 $p\!=\!4$ makes the cutoff near-Heaviside while leaving the amplifying band away
 from the cliff unattenuated). Its baseline cliff is the floor
 $Re_\Omega^{\mathrm{c}}\!=\!Re_\Omega^{\mathrm{f}}\!=\!100$, chosen so the Blasius
-growth onset matches Drela's $Re_{\theta,\mathrm{crit}}\!\approx\!200$; the cliff
-is $\Gamma$-independent (favorable-gradient onset delay is carried by $\lambda_p$
-below, not by tilting the cliff). Because $Re_\Omega\!=\!d^2\omega/\nu\!\to\!0$
+growth onset matches Drela's $Re_{\theta,\mathrm{crit}}\!\approx\!200$. Because
+$Re_\Omega\!=\!d^2\omega/\nu\!\to\!0$
 at the wall, the same barrier suppresses the viscous sublayer robustly under mesh
 refinement, where $\Gamma\!\to\!1$ is a generic near-wall asymptote rather than a
-true instability. The prefactor $\sigma_\mathrm{FPG}(\lambda_p)$ suppresses
-amplification in favorable pressure gradient,
-\begin{equation}
-  \sigma_\mathrm{FPG}(\lambda_p) =
-       \frac{1}{1+\exp(s_\lambda(\lambda_p-\lambda_\ast))} ,
-  \label{eq:fpg}
-\end{equation}
-anchored to Falkner--Skan profiles at $\eta\!\approx\!1$ (the
-kernel-active band): Blasius gives $\lambda_p\!=\!0$ and Hiemenz ($\beta\!=\!1$)
-$\lambda_p\!\approx\!1.29$, so anchoring $\sigma_\mathrm{FPG}(0)\!=\!0.95$ and
-$\sigma_\mathrm{FPG}(1.29)\!=\!0.05$ gives $(\lambda_\ast, s_\lambda)\!=\!(0.64,
-4.56)$; an adverse gradient ($\lambda_p\!<\!0$) sees
-$\sigma_\mathrm{FPG}\!>\!0.95$ and leaves the inflectional-profile amplification
-the $\Gamma$-sigmoid already captures untouched. All three factors depend only on
-the local mean flow, not on $\tilde\nu$, so the rate \eqref{eq:rate} preserves
-the analytic Jacobian of Sec.~\ref{sec:impl}. Figure~\ref{fig:kernel} maps the
-two shape factors of the rate.
+true instability. The single favorable-pressure-gradient effect enters through the
+cliff itself: $Re_\Omega^{\mathrm{c}}$ is a function of $\lambda_p$
+(Eq.~\eqref{eq:cliff_fpg} below), rising in accelerating flow so that the
+growth-onset threshold is pushed downstream---there is no separate rate-suppression
+factor. Both terms depend only on the local mean flow, not on $\tilde\nu$, so the
+rate \eqref{eq:rate} preserves the analytic Jacobian of Sec.~\ref{sec:impl}.
+Figure~\ref{fig:kernel} maps the kernel.
 
 \begin{figure}[tp]
   \centering
-  \includegraphics[width=\textwidth]{kernel_maps.pdf}
-  \caption{The two shape factors of the amplification rate \eqref{eq:rate}.
-  \emph{Left}: the $\Gamma$-sigmoid-with-cliff $S(z)$ over $(Re_\Omega,\Gamma)$
-  at $\lambda_p\!\le\!0$ (so $\sigma_\mathrm{FPG}\!=\!1$): the log barrier zeroes
-  the rate below the cliff floor $Re_\Omega^{\mathrm{f}}\!=\!100$ (dotted), while
-  above it the sigmoid centered at $g_c\!=\!1.572$ (dashed) leaves attached
-  Blasius-like profiles ($\Gamma\!\approx\!1$) on the low shoulder and saturates
-  on inflectional profiles ($\Gamma\!\to\!2$). \emph{Right}: the
-  favorable-pressure-gradient suppression $\sigma_\mathrm{FPG}(\lambda_p)$,
-  anchored to $0.95$ on Blasius ($\lambda_p\!=\!0$) and $0.05$ on Hiemenz
-  stagnation flow ($\lambda_p\!=\!1.29$), with center $\lambda_\ast\!=\!0.64$.}
+  \includegraphics[width=0.62\textwidth]{kernel_maps.pdf}
+  \caption{The amplification-rate kernel $S(z)$ of Eq.~\eqref{eq:rate} over
+  $(Re_\Omega,\Gamma)$ at the baseline cliff (zero or adverse gradient,
+  $Re_\Omega^{\mathrm{c}}\!=\!Re_\Omega^{\mathrm{f}}\!=\!100$): the log barrier
+  zeroes the rate below the cliff floor (dotted), while above it the sigmoid
+  centered at $g_c\!=\!1.572$ (dashed) leaves attached Blasius-like profiles
+  ($\Gamma\!\approx\!1$) on the low shoulder and saturates on inflectional
+  profiles ($\Gamma\!\to\!2$). In favorable pressure gradient the cliff floor
+  shifts right to $Re_\Omega^{\mathrm{c}}(\lambda_p)$ (Eq.~\eqref{eq:cliff_fpg}),
+  delaying growth onset; there is no separate rate factor.}
   \label{fig:kernel}
 \end{figure}
 
-\paragraph{FPG-modulated cliff floor.} $\sigma_\mathrm{FPG}$ alone reduces
-the growth \emph{rate} in favorable-pressure-gradient regions, but does not
-delay the growth \emph{onset}. To match the airfoil rooftop start-of-growth
-location, the cliff floor is also amplified by $\lambda_p$:
+\paragraph{Favorable-pressure-gradient cliff.} The single
+favorable-pressure-gradient mechanism is the cliff floor itself:
+$Re_\Omega^{\mathrm{c}}$ rises with $\lambda_p$, pushing the growth-onset
+threshold downstream in accelerating flow and matching the airfoil rooftop
+start-of-growth location:
 \begin{equation}
   Re_\Omega^{\mathrm{c}}(\lambda_p) =
         Re_\Omega^{\mathrm{f}}\,
@@ -373,23 +362,22 @@ For $\lambda_p\!\le\!0$ (zero or adverse PG), the cliff floor reverts to
 $Re_\Omega^{\mathrm{f}}\!=\!100$ exactly, so Blasius and adverse-PG profiles
 are unaffected.
 
-This rate/onset split mirrors how Drela's envelope $e^N$
-method~\cite{drela_giles_1987} responds to a favorable gradient, which lets us
-check both factors against stability theory rather than treat them as free.
-Along the Falkner--Skan family the shape factor falls monotonically as the
-gradient strengthens ($H\!=\!2.59\!\to\!2.22$ from Blasius to Hiemenz
-$\beta\!=\!1$, computed from the self-similar profiles), and the local indicator
-tracks it ($\lambda_p\!=\!0\!\to\!1.29$), so Drela's two $H$-dependences become
-functions of $\lambda_p$. His growth rate $d\tilde N/dRe_\theta(H)$ weakens as
-the profile fills---the behavior $\sigma_\mathrm{FPG}$ encodes---while the
-critical Reynolds number $Re_{\theta c}(H)$ rises steeply, by $\approx\!27\times$
-from Blasius to Hiemenz: this is the onset delay carried by the cliff. In the
-weak-gradient regime that sets airfoil rooftops the logarithmic slope
-$d\ln Re_{\theta c}/d\lambda_p\!\approx\!6.5$ is comparable to the fitted
-$K_\lambda\!=\!10$, so the one favorable-gradient constant is consistent with the
-$e^N$ critical Reynolds number rather than an independent tuning. Together the
-rate factor and the cliff reproduce the favorable-gradient stabilization that the
-$e^N$ method distributes between $d\tilde N/dRe_\theta$ and $Re_{\theta c}$.
+Carrying the favorable-gradient effect entirely through this onset delay follows
+Drela's envelope $e^N$ method~\cite{drela_giles_1987}, in which the response to a
+favorable gradient is dominated by the critical Reynolds number, not the growth
+rate---which lets us anchor the cliff to stability theory rather than treat
+$K_\lambda$ as free. Along the Falkner--Skan family the shape factor falls
+monotonically as the gradient strengthens ($H\!=\!2.59\!\to\!2.22$ from Blasius to
+Hiemenz $\beta\!=\!1$, computed from the self-similar profiles), and the local
+indicator tracks it ($\lambda_p\!=\!0\!\to\!1.29$). Over that range Drela's
+critical Reynolds number $Re_{\theta c}(H)$ rises steeply---by
+$\approx\!27\times$---while his growth rate $d\tilde N/dRe_\theta(H)$ changes only
+mildly (to $\approx\!0.7$); the favorable-gradient stabilization is thus almost
+entirely an onset delay, exactly what the cliff provides and why no separate rate
+factor is needed. In the weak-gradient regime that sets airfoil rooftops the
+logarithmic slope $d\ln Re_{\theta c}/d\lambda_p\!\approx\!6.5$ is comparable to
+the fitted $K_\lambda\!=\!10$, so the one favorable-gradient constant is consistent
+with the $e^N$ critical Reynolds number rather than an independent tuning.
 
 Equation~\eqref{eq:paft} grows $\tilde\nu$ along the flow at the local rate
 $a\,\omega$, so $\ln(\tilde\nu/\tilde\nu_\infty)$ accumulates monotonically in the
@@ -520,7 +508,7 @@ the sub-percent diffusion scaling of Sec.~\ref{sec:nulamscale}).
 
 The amplification rate \eqref{eq:rate} carries a global magnitude $a_{\max}$, the
 $\Gamma$-sigmoid pair $(s,g_c)$, the cliff floor $Re_\Omega^{\mathrm{f}}$, and the
-favorable-pressure-gradient parameters $(\lambda_\ast,s_\lambda,K_\lambda)$.
+favorable-pressure-gradient onset-delay slope $K_\lambda$.
 Rather than fit these to the transition cases that follow, we anchor them to
 canonical stability limits---all but the favorable-gradient onset-delay
 $K_\lambda$, the single constant fit to a transition case (the NLF(1)-0416
@@ -621,14 +609,15 @@ The same kernel ($a_{\max}\!=\!0.15$, $(s,g_c)\!=\!(5.263,1.572)$, and the
 remaining constants of Table~\ref{tab:const}) is used unchanged for the Blasius
 transport illustration above and for every coupled-RANS computation of
 Secs.~\ref{sec:flatplate}--\ref{sec:eppval}: no per-geometry adjustment is made.
-The favorable-pressure-gradient response $\sigma_\mathrm{FPG}(\lambda_p)$ in
-particular plays the role that the Thwaites/Pohlhausen pressure-gradient
-parameter plays in the Abu-Ghannam \& Shaw onset
-correlation~\cite{abu_ghannam_shaw_1980} and that the shape factor $H$ plays in
-Drela's $e^N$ envelope~\cite{drela_giles_1987}; anchoring it to the exact
-self-similar Falkner--Skan profiles (Blasius at $\lambda_p\!=\!0$, Hiemenz at
-$\lambda_p\!\approx\!1.29$; Sec.~\ref{sec:model}) fixes the accelerating-flow
-stabilization from stability theory rather than from the airfoil data.
+The favorable-pressure-gradient response---now the onset-delay cliff
+$Re_\Omega^{\mathrm{c}}(\lambda_p)$ alone---uses the same $\lambda_p$
+pressure-gradient sensor that the Thwaites/Pohlhausen parameter provides for the
+Abu-Ghannam \& Shaw onset correlation~\cite{abu_ghannam_shaw_1980} and that the
+shape factor $H$ provides for Drela's $e^N$ critical Reynolds
+number~\cite{drela_giles_1987}; its slope $K_\lambda$, fit on the NLF rooftop, is
+consistent with Drela's $Re_{\theta c}(H)$ through the Falkner--Skan map
+$H(\lambda_p)$ (Sec.~\ref{sec:model}), fixing the accelerating-flow stabilization
+against stability theory rather than the airfoil data alone.
 
 A single empirical closure remains---the one every $e^N$ method carries---namely
 the freestream-turbulence receptivity. A higher $Tu$ is a larger seed
@@ -671,8 +660,9 @@ prediction.
   the attached-layer value $\Gamma\!=\!1$ at the foot depth that reproduces the
   Blasius $e^N$ envelope; the cliff floor $Re_\Omega^{\mathrm{f}}\!=\!100$ places
   Blasius growth onset at Drela's $Re_{\theta,\mathrm{crit}}\!\approx\!200$; and
-  $(\lambda_\ast,s_\lambda)$ anchor $\sigma_\mathrm{FPG}$ to the Falkner--Skan
-  family. The Tu$\to\chi_\infty$ receptivity closure (Eq.~\eqref{eq:tumap}) is
+  the favorable-gradient onset delay is carried entirely by the cliff
+  $Re_\Omega^{\mathrm{c}}(\lambda_p)$ (no separate rate factor). The
+  Tu$\to\chi_\infty$ receptivity closure (Eq.~\eqref{eq:tumap}) is
   Mack's $e^N$ correlation, adopted wholesale. Only \emph{one} scalar is fit to
   the transition cases: the favorable-gradient onset-delay $K_\lambda$ (NLF
   rooftop vs.\ $e^N$). All constants below
@@ -681,11 +671,11 @@ prediction.
   flat-plate and airfoil computations
   (Secs.~\ref{sec:flatplate}--\ref{sec:eppval}).}
   \label{tab:const}
-  \begin{tabular}{ccccccccccc}
+  \begin{tabular}{ccccccccc}
     \toprule
-    $a_{\max}$ & $s$ & $g_c$ & $Re_\Omega^{\mathrm{f}}$ & $p$ & $\lambda_\ast$ & $s_\lambda$ & $K_\lambda$ & $\tau$ & $c_{\nu,\mathrm{aft}}$ & $c_{v1}$ \\
+    $a_{\max}$ & $s$ & $g_c$ & $Re_\Omega^{\mathrm{f}}$ & $p$ & $K_\lambda$ & $\tau$ & $c_{\nu,\mathrm{aft}}$ & $c_{v1}$ \\
     \midrule
-    $0.15$ & $5.263$ & $1.572$ & $100$ & $4$ & $0.64$ & $4.56$ & $10$ & $4$ & $1/12$ & $7.1$ \\
+    $0.15$ & $5.263$ & $1.572$ & $100$ & $4$ & $10$ & $4$ & $1/12$ & $7.1$ \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -844,8 +834,9 @@ common layout: \emph{row 1} the wall-normal-probe maximum of $Re_\Omega$
 that section, evaluated over the kernel-active band ($Re_\Omega\!>\!\tfrac12
 \max_y Re_\Omega$, the $\theta$-scale layer around the $Re_\Omega$ peak): for the
 NLF (favorable-PG regime) this is the streamwise pressure-gradient parameter
-$\lambda_p$ of Eq.~\eqref{eq:indicators} (reference lines at
-$\lambda_\ast\!=\!0.64$ and $0$), and for the Eppler~387 (adverse-PG regime) it
+$\lambda_p$ of Eq.~\eqref{eq:indicators} (reference line at $\lambda_p\!=\!0$,
+separating favorable $\lambda_p\!>\!0$ where the cliff delays onset from adverse
+$\lambda_p\!<\!0$), and for the Eppler~387 (adverse-PG regime) it
 is the profile-fullness indicator $\max_y\Gamma$ (reference line at the sigmoid
 center $g_c\!=\!1.572$); \emph{row 3} the in-BL maximum
 $\chi\!=\!\max_y\tilde\nu/\nu$ on a log axis with mfoil's amplification factor
@@ -1077,10 +1068,10 @@ inflectional profile), then relaxes after reattachment, while the lower surface
 stays near $\Gamma\!\approx\!1$; the $\Gamma$-sigmoid is what ignites the
 amplification at the bubble. The favorable-PG term $\lambda_p$ plays little role
 here: at this low Reynolds number the airfoil carries only a short
-favorable-gradient segment near the leading edge, so the $\sigma_\mathrm{FPG}$
-cliff/rate factors ($K_\lambda$ fit on the NLF, the rest anchored to
-Falkner--Skan) transfer to the Eppler~387 without retuning and leave the
-bubble-controlling amplification untouched.
+favorable-gradient segment near the leading edge, so the onset-delay cliff
+$Re_\Omega^{\mathrm{c}}(\lambda_p)$ ($K_\lambda$ fit on the NLF) transfers to the
+Eppler~387 without retuning and leaves the bubble-controlling amplification
+untouched.
 
 \begin{table}[tp]
   \centering
@@ -1183,8 +1174,9 @@ implicitly at the cost of the baseline model.
 
 The amplification rate is anchored to canonical stability limits---the free-shear
 rate ($a_{\max}$), the Blasius $e^N$ envelope ($s,g_c$), the critical Reynolds
-number ($Re_\Omega^{\mathrm{f}}$), and the Falkner--Skan pressure-gradient
-response ($\sigma_\mathrm{FPG}$)---and then exercised across three
+number ($Re_\Omega^{\mathrm{f}}$), and the favorable-gradient onset delay (the
+cliff $Re_\Omega^{\mathrm{c}}(\lambda_p)$, consistent with Drela's
+$Re_{\theta c}(H)$)---and then exercised across three
 pressure-gradient regimes of increasing complexity. The freestream-turbulence
 closure $\chi_\infty(Tu)$ is Mack's $e^N$ correlation, adopted wholesale rather
 than fit. On a zero-pressure-gradient flat plate (Sec.~\ref{sec:flatplate}) this

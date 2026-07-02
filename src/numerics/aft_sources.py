@@ -41,19 +41,13 @@ AFT_RATE_SCALE = 0.15          # a_max (no-tilt cliff_floor matches S-S ±12%, g
 AFT_RE_OMEGA_FLOOR = 100.0     # cliff floor (Γ-independent, no slanted cliff)
 AFT_TILT_SLOPE = 1.0e6         # effectively disabled (favorable-PG suppression -> sigma_FPG(lambda_p))
 AFT_BARRIER_POWER = 4.0        # p: sharp cliff barrier = 1 - (Re_Ω_floor/Re_Ω)^p
-# Favorable-PG suppression sigma_FPG(lambda_p) = 1/(1 + exp(lambdaSlope*(lambda_p-lambdaStar)))
-# lambda_p = -d^2 * (u . grad_p) / (rho * nu * |u|^2)  -- local streamwise PG sensor
-AFT_LAMBDA_STAR = 0.64         # sigma_FPG sigmoid center
-AFT_LAMBDA_SLOPE = 4.56        # sigma_FPG sigmoid slope
-# --- EXPERIMENT (branch explore/drop-sigma-fpg) ---------------------------------
-# Hypothesis (from the Drela H(lambda_p) analysis): favorable-PG stabilization is
-# ~90% onset-delay (Re_theta,crit rises ~27x Blasius->Hiemenz) and only mild rate
-# change (~0.72). So drop the sigma_FPG RATE factor entirely and carry ALL of the
-# favorable-PG effect through the onset-delay cliff Re_Omega^c(lambda_p). When
-# disabled, sigma_FPG == 1 and only AFT_CLIFF_LAMBDA_SLOPE (K_lambda) acts.
-AFT_SIGMA_FPG_ENABLED = False  # <- experiment: sigma_FPG OFF (baseline was True)
-# FPG-dependent cliff: Re_Omega_cliff(lambda_p) = floor * exp(K * max(0, lambda_p))
-AFT_CLIFF_LAMBDA_SLOPE = 10.0  # K_λ — set to 0 to disable; may need re-tune w/o sigma_FPG
+# Favorable-PG effect is carried ENTIRELY by an onset-delay cliff (no rate factor):
+# Re_Omega_cliff(lambda_p) = floor * exp(K_lambda * max(0, lambda_p)).
+# lambda_p = -d^2 * (u . grad_p) / (rho * nu * |u|^2)  -- local streamwise PG sensor.
+# (The former sigma_FPG rate-suppression factor was removed: the Drela H(lambda_p)
+#  analysis shows favorable-PG stabilization is dominated by onset delay, which the
+#  cliff already provides; see paper Sec. calib.)
+AFT_CLIFF_LAMBDA_SLOPE = 10.0  # K_λ — favorable-PG onset-delay slope (0 disables)
 
 
 # =============================================================================
@@ -157,8 +151,6 @@ def compute_aft_amplification_rate(Re_Omega: ArrayLike, Gamma: ArrayLike,
                                    re_omega_floor: float = AFT_RE_OMEGA_FLOOR,
                                    tilt_slope: float = AFT_TILT_SLOPE,
                                    barrier_power: float = AFT_BARRIER_POWER,
-                                   lambda_star: float = AFT_LAMBDA_STAR,
-                                   lambda_slope: float = AFT_LAMBDA_SLOPE,
                                    cliff_lambda_slope: float = AFT_CLIFF_LAMBDA_SLOPE) -> jnp.ndarray:
     """
     Non-dimensional amplification rate. Matches CUDA `SAAftTransition.h::__aftRate`.
@@ -191,11 +183,9 @@ def compute_aft_amplification_rate(Re_Omega: ArrayLike, Gamma: ArrayLike,
     # Favorable-PG suppression: sigma_FPG(lambda_p) = 1/(1+exp(slope*(lambda_p-star)))
     # lambda_p > 0 -> favorable PG -> sigma_FPG -> 0 (suppress);
     # lambda_p <= 0 -> Blasius/adverse PG -> sigma_FPG -> 1 (no suppression).
-    # sigma_FPG rate factor (disabled on the explore/drop-sigma-fpg branch: the
-    # favorable-PG effect is carried entirely by the onset-delay cliff re_cliff).
-    sigma_fpg = (jax.nn.sigmoid(-lambda_slope * (lambda_p - lambda_star))
-                 if AFT_SIGMA_FPG_ENABLED else 1.0)
-    return jnp.where(Re_Omega > re_cliff, rate * sigma_fpg, 0.0)
+    # Favorable-PG effect enters only through re_cliff(lambda_p) (onset delay);
+    # there is no sigma_FPG rate factor.
+    return jnp.where(Re_Omega > re_cliff, rate, 0.0)
 
 
 @jax.jit
