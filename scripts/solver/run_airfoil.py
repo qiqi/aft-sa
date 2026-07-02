@@ -249,7 +249,7 @@ Examples:
     logger.info(f"Alpha: {sim_config.flow.alpha}°")
     logger.info(f"Backend: JAX ({jax.devices()[0].device_kind})")
     logger.info(f"Target CFL: {config.cfl_target} (ramp from {config.cfl_start} over {config.cfl_ramp_iters} iters)")
-    logger.info(f"Turbulence model: SA-AF (transition), χ_inf={config.chi_inf:.4g}")
+    logger.info(f"Turbulence model: SA-AI (transition), χ_inf={config.chi_inf:.4g}")
     logger.info(f"Output: HTML animation every {config.diagnostic_freq} iterations")
     
     # Run

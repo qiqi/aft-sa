@@ -2,7 +2,7 @@
 """
 Flat Plate Boundary Layer Solver with Transition (JAX Version).
 
-This script runs the SA-AFT model on a flat plate for different
+This script runs the SA-AI model on a flat plate for different
 freestream turbulence intensities and compares Cf to correlations.
 
 Uses JAX for GPU acceleration and improved performance.
@@ -125,7 +125,7 @@ def run():
     for batch_idx, Tu_pct in enumerate(Tu_labels):
         Re_theta, cf = cf_results[Tu_pct]
         axCf.loglog(Re_theta[1:], cf[1:], symbols[batch_idx], mfc='w', mec='k',
-                    color='k', ms=5, label=f'SA-AF, {case_names[batch_idx]}')
+                    color='k', ms=5, label=f'SA-AI, {case_names[batch_idx]}')
 
     # Reference correlations
     Re_theta_ref = cf_results[Tu_labels[0]][0]

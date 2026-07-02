@@ -38,7 +38,6 @@ ax.annotate('', xy=(cl, 0.42), xytext=(FLOOR, 0.42),
 ax.text(np.sqrt(FLOOR * cl), 0.50, 'FPG onset delay', color='0.4', fontsize=7.5, ha='center')
 ax.set_xscale('log'); ax.set_xlim(100, 1000); ax.set_ylim(0, 2)
 ax.set_xlabel(r'$Re_\Omega$'); ax.set_ylabel(r'$\Gamma$')
-ax.set_title(r'Amplification-rate kernel $S(z)$', fontsize=10)
 plt.tight_layout()
 plt.savefig('figs/kernel_maps.pdf'); plt.savefig('/tmp/kernel_maps.png', dpi=140)
 print('wrote figs/kernel_maps.pdf')

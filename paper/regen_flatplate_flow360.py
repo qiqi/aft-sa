@@ -205,7 +205,7 @@ def main():
     # Monochrome with per-Tu symbols (matching the bottom-right Cf panel) so
     # the two bottom panels share one legend convention.
     C_V1 = 7.1
-    y_bot = 1.5e-8   # height of the bottom-edge S-S markers (χ-axis bottom)
+    y_bot = 1.3e-5   # height of the bottom-edge AGS markers (just above χ-axis bottom)
     Re_unit = 1.0 / NU
     for k, tu in enumerate(TU_LIST):
         if tu not in cf_results: continue
@@ -216,7 +216,7 @@ def main():
                         ms=4, label=rf'$Tu={tu:g}$%')
         valid_cf = np.isfinite(Re_th) & (Re_th > 1) & (x_centers < PLATE_END_X - OUTLET_MARGIN)
         ax_cf.loglog(Re_th[valid_cf], cf_vol[valid_cf], SYMBOLS[k], mfc='w', mec='k',
-                     color='k', ms=4, label=rf'SA-AF, $Tu={tu:g}$%')
+                     color='k', ms=4, label=rf'SA-AI, $Tu={tu:g}$%')
 
     # χ reference horizontals: χ=1 (start of σ_t blend) and χ=c_v1=7.1
     # (half-saturation of f_v1 — where Cf actually rises; see body text).
@@ -226,7 +226,7 @@ def main():
     ax_chi.text(0.02, C_V1 * 1.5, r'$\chi=c_{v1}$', color='0.4', fontsize=7, va='bottom')
     # x-axis IS Re_x/1e6 (Re_x = x*Re_unit, Re_unit=1e6).
     ax_chi.set_xlabel(r'$Re_x / 10^6$'); ax_chi.set_ylabel(r'$\chi=\tilde\nu/\nu$')
-    ax_chi.set_xlim(0, CONTOUR_X_MAX); ax_chi.set_ylim(1e-8, 1e2)
+    ax_chi.set_xlim(0, CONTOUR_X_MAX); ax_chi.set_ylim(1e-5, 1e2)
     ax_chi.grid(True, which='major', alpha=0.5)
     ax_chi.grid(True, which='minor', alpha=0.2)
     # AGS-1980 transition-onset reference, as x=Re_x/1e6 = (AGS_Reth/0.664)^2/Re_unit:

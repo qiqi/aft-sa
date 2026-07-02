@@ -1,4 +1,4 @@
-# SA-AF: GPU-Accelerated RANS Solver
+# SA-AI: GPU-Accelerated RANS Solver
 
 A 2D structured-grid RANS solver for incompressible airfoil flow using the Artificial Compressibility Method. Fully GPU-accelerated with JAX.
 
@@ -109,7 +109,7 @@ src/
 │   ├── batch.py              # BatchRANSSolver for parametric sweeps
 │   ├── boundary_conditions.py# Wall, farfield, wake cut BCs
 │   ├── time_stepping.py      # Local time-stepping + RK integration
-│   ├── boundary_layer_solvers.py # 1D BL solvers for SA-AFT development
+│   ├── boundary_layer_solvers.py # 1D BL solvers for SA-AI development
 │   └── factory.py            # Solver creation utilities
 │
 ├── physics/                  # Physical models
@@ -242,7 +242,7 @@ The **Amplification Factor Transport (AFT)** model enables natural transition pr
 
 The goal is to add AFT-based transition to the 2D airfoil RANS solver, similar to how `run_flat_plate.py` blends laminar (AFT) and turbulent (SA) regimes.
 
-#### Phase 1: SA-AFT Source Term Blending
+#### Phase 1: SA-AI Source Term Blending
 
 **Concept**: Smoothly blend between AFT amplification and SA turbulence based on local `ν̃` value.
 
@@ -333,7 +333,7 @@ source_blended = (1 - is_turb) * source_aft + is_turb * source_sa
 ```
 src/
 ├── physics/
-│   ├── transition.py         # SA-AF blending logic
+│   ├── transition.py         # SA-AI blending logic
 │   └── correlations.py       # (extend) N-factor correlations
 │
 ├── numerics/

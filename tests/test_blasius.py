@@ -202,9 +202,9 @@ class TestBlasiusFlatPlate:
 
 
 class TestAFTTransition:
-    """Test SA-AF transition model on flat plate boundary layer.
+    """Test SA-AI transition model on flat plate boundary layer.
     
-    These tests validate that the SA-AFT model correctly predicts:
+    These tests validate that the SA-AI model correctly predicts:
     1. Laminar behavior in the early boundary layer
     2. Transition to turbulence at Re_theta dependent on initial Tu
     3. Turbulent behavior downstream of transition

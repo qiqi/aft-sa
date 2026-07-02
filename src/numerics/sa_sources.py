@@ -334,7 +334,7 @@ def compute_sa_cb2_advection_jax(nuHat, grad_nuHat, Si_x, Si_y, Sj_x, Sj_y, k2, 
 
 
 # =============================================================================
-# SA-AF BLENDING FUNCTIONS
+# SA-AI BLENDING FUNCTIONS
 # =============================================================================
 
 # Default blending parameters (tunable for ensemble studies)
@@ -348,7 +348,7 @@ def compute_turbulent_fraction(chi,
                                threshold: float = AFT_BLEND_THRESHOLD,
                                width: float = AFT_BLEND_WIDTH):
     """
-    Compute smooth activation function for SA-AF blending.
+    Compute smooth activation function for SA-AI blending.
     
     FORMULA:
         is_turb = clip(1 - exp(-(chi - threshold) / width), 0, 1)
@@ -384,7 +384,7 @@ def compute_blended_production(P_sa, P_aft, chi,
                                threshold: float = AFT_BLEND_THRESHOLD,
                                width: float = AFT_BLEND_WIDTH):
     """
-    Compute blended production term for SA-AF transition model.
+    Compute blended production term for SA-AI transition model.
     
     FORMULA:
         is_turb = turbulent_fraction(chi)
@@ -435,9 +435,9 @@ def compute_aft_sa_source_jax(nuHat, grad, wall_dist, vel_mag, nu_laminar,
                               blend_threshold: float = AFT_BLEND_THRESHOLD,
                               blend_width: float = AFT_BLEND_WIDTH):
     """
-    Compute combined SA-AF source terms for transition prediction.
+    Compute combined SA-AI source terms for transition prediction.
     
-    This is the main entry point for the SA-AF transition model.
+    This is the main entry point for the SA-AI transition model.
     
     SOURCE TERMS:
         P_blended = blend(P_sa, P_aft)  - Blended production

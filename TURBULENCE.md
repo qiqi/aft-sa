@@ -287,7 +287,7 @@ def _make_rk_stage_jit(self):
 
 Extend `BatchRANSSolver` similarly - the `vmap` structure naturally handles per-case SA sources since wall distance is shared.
 
-### Phase 5: SA-AF Transition Model (Optional)
+### Phase 5: SA-AI Transition Model (Optional)
 
 For transition prediction, blend AFT amplification with SA:
 
@@ -295,7 +295,7 @@ For transition prediction, blend AFT amplification with SA:
 @jax.jit
 def compute_aft_sa_source_jax(nuHat, grad, wall_dist, nu_laminar):
     """
-    Blended SA-AF source for transition prediction.
+    Blended SA-AI source for transition prediction.
     
     - Low nuHat: AFT amplification dominates (laminar growth)
     - High nuHat: SA production/destruction dominates (turbulent)

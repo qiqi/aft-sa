@@ -650,7 +650,6 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
                      Patch(facecolor='0.55', alpha=0.32, label='expt. LSB (oil flow)')]
     axs[0,-1].legend(handles=surfh, fontsize=8, frameon=False, loc='upper left')
     axs[4,-1].legend(handles=legend_items, fontsize=8, frameon=False, loc='upper right')
-    plt.suptitle(title, fontsize=11)
     plt.tight_layout(rect=(0,0,1,0.97))
     plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=130)
     plt.close()
@@ -696,7 +695,6 @@ def make_landscape_figure(alphas, out_name, title):
                Line2D([],[],color='0.3', ls='-',  lw=1.6, label='str (O-grid)'),
                Line2D([],[],color='0.3', ls='--', lw=1.6, label='cav (unstructured)')]
     axs[-1].legend(handles=handles, fontsize=8, frameon=False, loc='lower right')
-    plt.suptitle(title, fontsize=11)
     plt.tight_layout(rect=(0,0,1,0.96))
     plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=130)
     plt.close()
@@ -778,7 +776,6 @@ def make_convergence_figure(alphas, out_name, title, meshes=None):
             ax_cd.set_ylim(cd_lo - cd_pad, cd_hi + cd_pad)
         if col_idx == 0:
             ax_res.legend(fontsize=7, loc='upper right', ncol=2, frameon=False)
-    plt.suptitle(title, fontsize=11)
     plt.tight_layout(rect=(0,0,1,0.94))
     plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=130)
     plt.close()
@@ -835,7 +832,6 @@ def make_landscape_normal_figure(alphas, out_name, title, L_probe=0.01, n_probe=
                Line2D([],[],color='0.3', ls='-',  lw=1.6, label='str (O-grid)'),
                Line2D([],[],color='0.3', ls='--', lw=1.6, label='cav (unstructured)')]
     axs[-1].legend(handles=handles, fontsize=8, frameon=False, loc='lower right')
-    plt.suptitle(title, fontsize=11)
     plt.tight_layout(rect=(0,0,1,0.96))
     plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=130)
     plt.close()
@@ -855,7 +851,7 @@ def converged_clcd(d):
     return float(np.median(np.array(cl)[t])), float(np.median(np.array(cd)[t]))
 
 def make_polar_figure(out_name='eppler_polar_compare'):
-    """Drag polar: SA-AF (O-grid + unstructured, all three refinement levels)
+    """Drag polar: SA-AI (O-grid + unstructured, all three refinement levels)
     overlaid on the digitized experimental section-characteristics line
     (App. B, R=2e5). Mesh -> color, level -> line thickness (L0/L1/L2)."""
     alphas = [0, 2, 5, 7]
@@ -869,7 +865,7 @@ def make_polar_figure(out_name='eppler_polar_compare'):
     ma = [a for a in alphas if float(a) in mn]
     ax.plot([mn[float(a)]['cd'] for a in ma], [mn[float(a)]['cl'] for a in ma],
             ls=':', color='0.4', marker='s', mfc='none', ms=5, lw=1.2, zorder=2)
-    # SA-AF on top: structured = circle/solid, unstructured = triangle/dashed.
+    # SA-AI on top: structured = circle/solid, unstructured = triangle/dashed.
     mesh_mk = {'str': 'o', 'cav': '^'}
     for mesh in ['str', 'cav']:
         for level in ['L0', 'L1', 'L2']:
@@ -885,13 +881,12 @@ def make_polar_figure(out_name='eppler_polar_compare'):
     ax.grid(alpha=0.3)
     handles = [Line2D([],[],color='k', ls='-', marker='o', mfc='none', ms=4, label='Experiment (LTPT)'),
                Line2D([],[],color='0.4', ls=':', marker='s', mfc='none', ms=5, lw=1.2, label='mfoil ($e^9$)'),
-               Line2D([],[],color='C0', ls='-',  marker='o', ms=4, label='SA-AF, structured (O-grid)'),
-               Line2D([],[],color='C1', ls='--', marker='^', ms=4, label='SA-AF, unstructured'),
+               Line2D([],[],color='C0', ls='-',  marker='o', ms=4, label='SA-AI, structured (O-grid)'),
+               Line2D([],[],color='C1', ls='--', marker='^', ms=4, label='SA-AI, unstructured'),
                Line2D([],[],color='0.4', lw=LEVEL_LW['L0'], label='L0'),
                Line2D([],[],color='0.4', lw=LEVEL_LW['L1'], label='L1'),
                Line2D([],[],color='0.4', lw=LEVEL_LW['L2'], label='L2')]
     ax.legend(handles=handles, fontsize=8, loc='lower right')
-    ax.set_title('Eppler 387, $Re=2\\times10^5$: drag polar vs experiment', fontsize=10)
     plt.tight_layout()
     plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=140)
     plt.close(); print(f'wrote {out_name}.pdf')

@@ -2,7 +2,7 @@
   - Re_Omega = d^2 * |omega| / nu
   - Gamma    = 2 (omega d)^2 / (|U|^2 + (omega d)^2)
   - lambda_p = -d^2 (u . grad_p) / (rho nu |u|^2)  -- local streamwise PG sensor
-  - amp_rate = a(Re_Omega, Gamma, lambda_p)  -- kernel rate WITH FPG-cliff + sigma_FPG
+  - amp_rate = a(Re_Omega, Gamma, lambda_p)  -- kernel rate (FPG-cliff only, no sigma_FPG)
               (matches Flow360 SAAftTransition.h::__aftRate)
 Writes slice_with_derived.pvtu next to slice_centerSpan.pvtu.
 """
@@ -24,11 +24,10 @@ def detect_nu(case_dir):
     return float(d['freestream']['muRef'])
 
 def rate(Re_O, Gamma, lambda_p):
-    """Full SA-AF kernel: FPG-modulated cliff + σ_FPG.  Matches Flow360
-    SAAftTransition.h::__aftRate exactly (modulo float32 rounding).
+    """SA-AI kernel: FPG-modulated onset-delay cliff only (no sigma_FPG). Matches
+    Flow360 SAAftTransition.h::__aftRate (modulo float32 rounding).
         Re_Ω_cliff(λ_p) = floor · exp(K_λ · max(0, λ_p))  (FPG-cliff)
-        sigma_FPG(λ_p)  = 1 / (1 + exp(lambdaSlope (λ_p - λ_*)))
-        rate            = A_MAX · sigmoid(z) · sigma_FPG
+        rate            = A_MAX · sigmoid(z)
         z               = SLOPE·(Γ - Γ_c) + ln(barrier)
     """
     log_floor = np.log10(RE_OMEGA_FLOOR)
@@ -42,11 +41,9 @@ def rate(Re_O, Gamma, lambda_p):
     barr = np.where(Re_O > Re_cliff, np.log(bar_inside), -np.inf)
     z = SLOPE*(Gamma - G_C) + barr
     a_kernel = A_MAX/(1.0+np.exp(-z))
-    # sigma_FPG
-    x_fpg = LAMBDA_SLOPE * (lambda_p - LAMBDA_STAR)
-    sigFPG = 1.0 / (1.0 + np.exp(x_fpg))
-    a_total = a_kernel * sigFPG
-    return np.where(Re_O > Re_cliff, a_total, 0.0)
+    # (sigma_FPG rate factor removed: favorable-PG is carried entirely by the
+    #  onset-delay cliff Re_cliff(lambda_p) above; see paper Sec. calib.)
+    return np.where(Re_O > Re_cliff, a_kernel, 0.0)
 
 def augment(pvtu_path):
     case_dir = os.path.dirname(pvtu_path)

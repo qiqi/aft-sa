@@ -451,6 +451,9 @@ def find_x_at_chi(xs, chi, chi_target):
 mn = pickle.load(open(f"{B}/mfoil_nlf0416_Re4M.pkl", 'rb'))
 
 
+LEVELS_CF = ['L0', 'L1', 'L2']   # configurable: restrict the refinement levels drawn
+
+
 def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=80):
     """5 rows × len(alphas) cols. Rows top-to-bottom:
        (1) max Re_Omega along 0.01c wall-normal probe (purely kinematic);
@@ -472,7 +475,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         ax_nN = ax_n.twinx()
         # ROW 1+2: wall-normal-probe max Re_Omega and band-mean lambda_p
         for mesh in meshes:
-            for level in ['L0', 'L1', 'L2']:  # all levels now current
+            for level in LEVELS_CF:  # configurable level set
                 d = case_dir(mesh, level, alpha)
                 if not os.path.exists(f"{d}/slice_with_derived.pvtu"): continue
                 lw = LEVEL_LW[level]; ls = MESH_LS[mesh]
@@ -493,16 +496,15 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         ax_reo.set_ylim(1e2, 1e4); ax_reo.grid(alpha=0.3, which='both')
         ax_reo.set_title(rf'$\alpha={alpha}^\circ$', fontsize=10)
         if col == 0: ax_reo.set_ylabel(r'$\max Re_\Omega$ (log)')
-        # lambda_p: favorable-PG parameter. Reference lines at lambda_*=0.64
-        # (sigma_FPG center) and 0 (Blasius). Range focuses on the FPG-calibration
-        # band; the strongly-adverse recovery region runs off the bottom.
-        ax_lam.axhline(0.64, color='gray', ls='--', lw=0.6, alpha=0.6)
+        # lambda_p: favorable-PG parameter. Reference line at 0 separates
+        # favorable (lambda_p>0, where the cliff delays onset) from adverse
+        # (lambda_p<0). Strongly-adverse recovery region runs off the bottom.
         ax_lam.axhline(0.0, color='gray', ls=':', lw=0.6, alpha=0.5)
         ax_lam.set_ylim(-5, 5); ax_lam.grid(alpha=0.3)
         if col == 0: ax_lam.set_ylabel(r'$\lambda_p$')
         # ROW 3: chi + N
         for mesh in meshes:
-            for level in ['L0', 'L1', 'L2']:  # all levels now current
+            for level in LEVELS_CF:  # configurable level set
                 d = case_dir(mesh, level, alpha)
                 if not os.path.exists(d) or not os.path.exists(f"{d}/slice_centerSpan.pvtu"): continue
                 lw = LEVEL_LW[level]; ls = MESH_LS[mesh]
@@ -526,7 +528,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         if col == len(alphas)-1: ax_nN.set_ylabel('mfoil $N$ (linear)')
         # ROWS 4+5: Cp/Cf
         for mesh in meshes:
-            for level in ['L0', 'L1', 'L2']:  # all levels now current
+            for level in LEVELS_CF:  # configurable level set
                 d = case_dir(mesh, level, alpha)
                 if not os.path.exists(f"{d}/surface_fluid_nlf0416.pvtu"): continue
                 lw = LEVEL_LW[level]; ls = MESH_LS[mesh]
@@ -564,7 +566,6 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
     legend_items += [Line2D([],[],color='0.3', ls=':',  lw=1.2, alpha=0.5, label='mfoil ($e^9$)')]
     axs[0,-1].legend(handles=surfh, fontsize=8, frameon=False, loc='upper left')
     axs[4,-1].legend(handles=legend_items, fontsize=8, frameon=False, loc='upper right')
-    plt.suptitle(title, fontsize=11)
     plt.tight_layout(rect=(0,0,1,0.97))
     plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=130)
     plt.close()
@@ -610,7 +611,6 @@ def make_landscape_figure(alphas, out_name, title):
                Line2D([],[],color='0.3', ls='-',  lw=1.6, label='str (O-grid)'),
                Line2D([],[],color='0.3', ls='--', lw=1.6, label='cav (unstructured)')]
     axs[-1].legend(handles=handles, fontsize=8, frameon=False, loc='lower right')
-    plt.suptitle(title, fontsize=11)
     plt.tight_layout(rect=(0,0,1,0.96))
     plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=130)
     plt.close()
@@ -631,7 +631,7 @@ def make_convergence_figure(alphas, out_name, title, meshes=None):
         ax_cd  = ax_cl.twinx()
         cl_tail = []; cd_tail = []
         for mesh in meshes:
-            for level in ['L0', 'L1', 'L2']:  # all levels now current
+            for level in LEVELS_CF:  # configurable level set
                 d = case_dir(mesh, level, alpha)
                 if not os.path.exists(f"{d}/nonlinear_residual_v2.csv"): continue
                 lw = LEVEL_LW[level]; ls = MESH_LS[mesh]
@@ -692,7 +692,6 @@ def make_convergence_figure(alphas, out_name, title, meshes=None):
             ax_cd.set_ylim(cd_lo - cd_pad, cd_hi + cd_pad)
         if col_idx == 0:
             ax_res.legend(fontsize=7, loc='upper right', ncol=2, frameon=False)
-    plt.suptitle(title, fontsize=11)
     plt.tight_layout(rect=(0,0,1,0.94))
     plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=130)
     plt.close()
@@ -749,7 +748,6 @@ def make_landscape_normal_figure(alphas, out_name, title, L_probe=0.01, n_probe=
                Line2D([],[],color='0.3', ls='-',  lw=1.6, label='str (O-grid)'),
                Line2D([],[],color='0.3', ls='--', lw=1.6, label='cav (unstructured)')]
     axs[-1].legend(handles=handles, fontsize=8, frameon=False, loc='lower right')
-    plt.suptitle(title, fontsize=11)
     plt.tight_layout(rect=(0,0,1,0.96))
     plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=130)
     plt.close()

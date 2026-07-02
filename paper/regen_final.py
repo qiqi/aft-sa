@@ -61,10 +61,10 @@ for ax,af,ttl in [(axs[0],'naca0012','NACA 0012'),(axs[1],'nlf0416','NLF(1)-0416
     except:pass
     ax.plot([float(mf[af][a]['cd']) for a in ALPHAS],[float(mf[af][a]['cl']) for a in ALPHAS],'s--',color='0.4',ms=4,lw=1.1,label='mfoil ($e^N$)')
     # Both grids equally prominent (the new TEprop unstructured converges tightly).
-    # Monotone polar: black for both SA-AF lines, distinguish by linestyle + marker.
-    try:ax.plot(col('ogrid','aftsa_m2',1),col('ogrid','aftsa_m2',0),'^-',color='k',ms=4,lw=1.4,label='SA-AF, O-grid')
+    # Monotone polar: black for both SA-AI lines, distinguish by linestyle + marker.
+    try:ax.plot(col('ogrid','aftsa_m2',1),col('ogrid','aftsa_m2',0),'^-',color='k',ms=4,lw=1.4,label='SA-AI, O-grid')
     except Exception as e:print('ogrid polar',af,e)
-    ax.plot(col('cavity','aftsa_m2',1),col('cavity','aftsa_m2',0),'o--',color='k',ms=4,lw=1.4,alpha=1.0,label='SA-AF, unstructured')
+    ax.plot(col('cavity','aftsa_m2',1),col('cavity','aftsa_m2',0),'o--',color='k',ms=4,lw=1.4,alpha=1.0,label='SA-AI, unstructured')
     ax.set_xlabel('$C_D$');ax.set_title(ttl,fontsize=10);ax.grid(alpha=0.3)
 axs[0].set_ylabel('$C_L$');axs[0].legend(fontsize=6.4,frameon=False,loc='lower right')
 plt.tight_layout(pad=0.3);plt.savefig(f"{PD}/figs/polar.pdf");print("wrote polar.pdf")
@@ -106,7 +106,7 @@ for ax, af, ttl in [(axs[0], 'naca0012', 'NACA 0012'), (axs[1], 'nlf0416', 'NLF(
     # mfoil reference (dotted), both surfaces
     ax.plot(ALPHAS, [float(mf[af][a]['xtr_up']) for a in ALPHAS], ':', color=UP, lw=1.4, marker='s', ms=4)
     ax.plot(ALPHAS, [float(mf[af][a]['xtr_lo']) for a in ALPHAS], ':', color=LO, lw=1.4, marker='s', ms=4)
-    # SA-AF on both grids, both surfaces, with x10..x90 band; span the full alpha range.
+    # SA-AI on both grids, both surfaces, with x10..x90 band; span the full alpha range.
     for mesh, ls, mk in [('ogrid', '-', 'o'), ('cavity', '--', '^')]:
         bands = [tbands_both(wd(af, mesh, 'aftsa_m2', a), af) for a in ALPHAS]
         x10u = np.array([b[0][0] for b in bands]); x50u = np.array([b[0][1] for b in bands]); x90u = np.array([b[0][2] for b in bands])
@@ -121,8 +121,8 @@ axs[0].set_ylabel('$x_{tr}/c$')
 # Composite legend
 from matplotlib.lines import Line2D
 surfh = [Line2D([],[],color=UP, lw=2, label='upper'), Line2D([],[],color=LO, lw=2, label='lower')]
-solh  = [Line2D([],[],color='0.3', ls='-',  marker='o', ms=4, label='SA-AF, O-grid'),
-         Line2D([],[],color='0.3', ls='--', marker='^', ms=4, label='SA-AF, unstructured'),
+solh  = [Line2D([],[],color='0.3', ls='-',  marker='o', ms=4, label='SA-AI, O-grid'),
+         Line2D([],[],color='0.3', ls='--', marker='^', ms=4, label='SA-AI, unstructured'),
          Line2D([],[],color='0.3', ls=':',  marker='s', ms=4, label='mfoil ($e^N$)')]
 axs[0].legend(handles=surfh, fontsize=8, frameon=False, loc='upper right')
 axs[1].legend(handles=solh,  fontsize=7.5, frameon=False, loc='center right')
@@ -147,8 +147,8 @@ axs[1].set_xlabel('$x/c$');axs[1].set_ylabel('$C_f$');axs[1].set_xlim(0,1);axs[1
 from matplotlib.lines import Line2D
 surfh = [Line2D([],[],color=UP, lw=2, label='upper'),
          Line2D([],[],color=LO, lw=2, label='lower')]
-solh  = [Line2D([],[],color='0.3',ls='-', label='SA-AF, O-grid'),
-         Line2D([],[],color='0.3',ls='--',label='SA-AF, unstructured'),
+solh  = [Line2D([],[],color='0.3',ls='-', label='SA-AI, O-grid'),
+         Line2D([],[],color='0.3',ls='--',label='SA-AI, unstructured'),
          Line2D([],[],color='0.3',ls=':', label='mfoil ($e^N$)')]
 axs[0].legend(handles=surfh, fontsize=8, frameon=False, loc='upper right')
 axs[1].legend(handles=solh,  fontsize=8, frameon=False, loc='upper right')

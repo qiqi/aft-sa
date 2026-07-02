@@ -24,7 +24,7 @@ import math
 
 A_MAX = 0.15   # no-tilt cliff_floor=100, p=4 matches S-S ±12% with growth start at Drela 200
 
-# Tu -> chi_inf mapping. Single source of truth for the SA-AF paper.
+# Tu -> chi_inf mapping. Single source of truth for the SA-AI paper.
 #
 # N_crit = A_TU - B_TU * ln(Tu_fraction)     [Tu in fraction, NOT percent]
 # chi_inf = c_v1 * exp(-N_crit)              [transition at chi = c_v1]
@@ -32,7 +32,7 @@ A_MAX = 0.15   # no-tilt cliff_floor=100, p=4 matches S-S ±12% with growth star
 # We ADOPT Mack's (1977) e^N critical-N-factor correlation WHOLESALE:
 #     N_crit = -8.43 - 2.4 ln(Tu_fraction)       (Mack 1977, JPL 77-15)
 # This is the community-standard e^N translation of freestream turbulence to a
-# transition threshold; it is BORROWED, not fit. The SA-AF seed/threshold pair
+# transition threshold; it is BORROWED, not fit. The SA-AI seed/threshold pair
 # (seed chi_inf, transition at chi=c_v1) is isomorphic to the e^N envelope/N_crit
 # split, so N_crit = ln(c_v1/chi_inf) is exactly the e^N threshold and B_TU IS the
 # Mack slope. K_lambda (favorable-gradient onset delay) is then the ONLY fitted
@@ -52,18 +52,18 @@ C_V1 = 7.1
 
 import math as _math
 def chi_inf_from_Tu_pct(Tu_pct):
-    """SA-AF Tu (%) -> chi_inf seed for freestream BC (Anchor A)."""
+    """SA-AI Tu (%) -> chi_inf seed for freestream BC (Anchor A)."""
     N_crit = A_TU - B_TU * _math.log(Tu_pct / 100.0)
     return C_V1 * _math.exp(-N_crit)
 
 def Tu_pct_from_chi_inf(chi_inf):
-    """Inverse: given chi_inf, what Tu (%) does the SA-AF model see?"""
+    """Inverse: given chi_inf, what Tu (%) does the SA-AI model see?"""
     N_crit = _math.log(C_V1 / chi_inf)
     Tu_frac = _math.exp(-(N_crit - A_TU) / B_TU)
     return Tu_frac * 100.0
 
 def sg_from_anchors(a_FP, a_PG, a_max=A_MAX):
-    """Given (a_FP, a_PG, a_max), return (s, g_c) for the SA-AFT kernel."""
+    """Given (a_FP, a_PG, a_max), return (s, g_c) for the SA-AI kernel."""
     if not (0 < a_FP < a_max and 0 < a_PG < a_max):
         raise ValueError(f"need 0 < a_FP, a_PG < a_max={a_max}")
     z_FP = math.log(a_FP / (a_max - a_FP))

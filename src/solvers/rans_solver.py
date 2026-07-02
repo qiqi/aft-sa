@@ -440,7 +440,7 @@ class RANSSolver:
             )
             R = R.at[:, :, 1:4].add(R_visc[:, :, 1:4])
             
-            # 4. SA-AF Sources
+            # 4. SA-AI Sources
             vel_mag = jnp.sqrt(Q_int[:, :, 1]**2 + Q_int[:, :, 2]**2)
             P, D, cb2_term = compute_aft_sa_source_jax(
                 nu_tilde, grad, wall_dist, vel_mag, nu,

@@ -1,4 +1,4 @@
-"""Diagnostic drag polars + force-vs-alpha for both airfoils (SA-AF vs mfoil).
+"""Diagnostic drag polars + force-vs-alpha for both airfoils (SA-AI vs mfoil).
 NOT a paper figure -- written to /tmp for examination.
 
 For each airfoil, each (mesh, level, alpha) the converged CL/CD/CDp/CDf are the
@@ -90,7 +90,7 @@ def main():
                    Line2D([],[],color='0.3',ls='--',lw=1.6,label='cav (unstructured)'),
                    Line2D([],[],color='k',ls=':',lw=1.6,marker='s',ms=4,label='mfoil $e^9$')]
         ax[2].legend(handles=handles, fontsize=8, frameon=False, loc='best')
-        fig.suptitle(f"{cfg['title']} — SA-AF converged forces vs mfoil (DIAGNOSTIC, not in paper)",
+        fig.suptitle(f"{cfg['title']} — SA-AI converged forces vs mfoil (DIAGNOSTIC, not in paper)",
                      fontsize=12)
         plt.tight_layout(rect=(0,0,1,0.95))
         out = f"/tmp/polar_{family}.png"

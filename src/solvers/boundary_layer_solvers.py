@@ -4,7 +4,7 @@ Boundary Layer Solvers with JAX JIT compilation for GPU acceleration.
 This module provides solvers for:
 - Blasius flat plate boundary layer
 - Falkner-Skan (pressure gradient) boundary layer
-- Flat plate with SA-AFT transition model
+- Flat plate with SA-AI transition model
 """
 
 import numpy as np
@@ -175,7 +175,7 @@ class NuHatFalknerSkanSolver:
 
 
 class NuHatFlatPlateSolver:
-    """Flat plate boundary layer solver with SA-AFT transition."""
+    """Flat plate boundary layer solver with SA-AI transition."""
     
     def __init__(self):
         self.nx = 160

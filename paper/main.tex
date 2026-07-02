@@ -153,10 +153,15 @@ envelope-method-inspired instability rate, so $\ln\tilde\nu$ accumulates
 monotonically in the manner of an amplification factor; as $\tilde\nu$ approaches its
 turbulent level the production reverts smoothly to the standard SA form. One
 transport equation---the SA equation, unchanged in structure---spans laminar
-instability and turbulence with no auxiliary field. We refer to the model as SA-AF
-(the SA working variable serving as the \emph{a}mplification \emph{f}actor); it is
-distinct from Coder's SA-AFT, in which a separate amplification factor is
-transported.
+instability and turbulence with no auxiliary field. We refer to the model as
+SA-AI\footnote{Where the prevailing pursuit of artificial intelligence is all
+Yang---ever more parameters, more compute---this model is its Yin: transition
+arises autogenously, from a variable the baseline equation already carries, at
+essentially no added cost. Here ``AI'' abbreviates \emph{Autogenous Inception},
+not the other kind.} (Spalart--Allmaras with \emph{A}utogenous
+\emph{I}nception): the SA working variable generates its own transition from
+within, with no added field. It is distinct from Coder's SA-AFT, in which a
+separate amplification factor is transported.
 
 The contribution is thus a model that occupies an otherwise empty cell
 (Table~\ref{tab:taxonomy}): amplification-factor ($e^N$-like) physics carried by the
@@ -166,7 +171,7 @@ analytically differentiable source.
 \begin{table}[t]
   \centering
   \caption{RANS-compatible transition-model families and where the present model
-  (SA-AF) sits. ``Extra equations'' counts transport equations beyond the baseline
+  (SA-AI) sits. ``Extra equations'' counts transport equations beyond the baseline
   turbulence model.}
   \label{tab:taxonomy}
   \begin{tabular}{lcl}
@@ -178,11 +183,11 @@ analytically differentiable source.
     $\gamma$--$Re_\theta$ \cite{langtry_menter_2009, medida_baeder_2011} & $2$ & transported intermittency, $Re_{\theta t}$ \\
     one-equation $\gamma$ \cite{menter_gamma_2015} & $1$ & transported intermittency \\
     algebraic SA \cite{cakmakcioglu_2018, rahman_2024} & $0$ & local intermittency gates production \\
-    \textbf{SA-AF (present)} & $\mathbf{0}$ & working variable \emph{is} the factor \\
+    \textbf{SA-AI (present)} & $\mathbf{0}$ & working variable \emph{is} the factor \\
     \bottomrule
   \end{tabular}
 \end{table}
-SA-AF is scoped to natural (Tollmien--Schlichting) transition. Its amplification
+SA-AI is scoped to natural (Tollmien--Schlichting) transition. Its amplification
 rate is anchored to canonical stability limits (Sec.~\ref{sec:calib}) and then
 exercised across three pressure-gradient regimes of increasing complexity.
 Section~\ref{sec:flatplate} uses a zero-pressure-gradient flat plate to verify
@@ -480,7 +485,7 @@ discretization error, so Eq.~\eqref{eq:nulamscale} operates entirely within the
 sub-percent margin of the original calibration.
 
 \subsection{Assembled single-equation model}
-Collecting the three modifications, the SA-AF model solves the single transport
+Collecting the three modifications, the SA-AI model solves the single transport
 equation
 \begin{equation}
   \frac{D\tilde\nu}{Dt} = P - D
@@ -633,7 +638,7 @@ by
 with $Tu_{\mathrm{frac}}$ the rms turbulence intensity as a fraction. This is
 \emph{exactly} Mack's~\cite{mack_1977, nasa_tmr} $e^N$ critical-$N$-factor
 correlation $N_\mathrm{crit}=A+B\ln Tu$, with $A\!=\!-8.43$ and $B\!=\!2.4$: we
-adopt it wholesale rather than fit it. This is legitimate because the SA-AF
+adopt it wholesale rather than fit it. This is legitimate because the SA-AI
 seed/threshold structure is isomorphic to the $e^N$ envelope/$N_\mathrm{crit}$
 split---the amplification transport plays the role of the (mean-flow-only,
 $Tu$-independent) $e^N$ envelope, and $N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)$
@@ -705,7 +710,18 @@ from the leading edge on a fine mesh and bypass the transition model entirely.
 Figure~\ref{fig:flatplate_batch} computes the model on a zero-pressure-gradient
 flat plate with the solver's own SA source terms in a thin-layer boundary-layer
 march, at five freestream-turbulence levels spanning the natural-transition
-range, $Tu\!=\!0.04\%,\,0.08\%,\,0.16\%,\,0.30\%,\,0.60\%$. The
+range, $Tu\!=\!0.04\%,\,0.08\%,\,0.16\%,\,0.30\%,\,0.60\%$. The plate is
+resolved by a structured $320\!\times\!80$ grid (streamwise $\times$
+wall-normal; $25{,}600$ cells). In units of the reference length (unit Reynolds
+number $10^6$), the domain spans $0\!\le\!x\!\le\!6$
+($Re_x\!\le\!6\!\times\!10^6$) streamwise and $0.5$ in the wall-normal direction;
+the streamwise spacing is clustered at the leading edge (from
+$\Delta x\!\approx\!8\!\times\!10^{-4}$, coarsening toward the outflow) and the
+wall-normal spacing grows geometrically at ratio $1.12$ from a first-cell height
+of $\approx\!7\!\times\!10^{-6}$ ($y^+\!\lesssim\!0.3$), resolving the laminar and
+transitional boundary layer. The boundary conditions are no-slip on the plate, a
+characteristic freestream on the far boundary, and slip walls on the two span
+planes (quasi-2D); the freestream Mach number is $0.1$. The
 freestream-turbulence receptivity is Mack's $e^N$ correlation
 (Sec.~\ref{sec:calib}), adopted without adjustment; the flat plate is a check,
 not a fit. We compare the resulting transition onset to the Abu-Ghannam \&
@@ -825,6 +841,50 @@ per level. The freestream $\chi_\infty$ is compensated for the slowdown factor
 $f_\mathrm{slow}\!=\!0.01$ of Sec.~\ref{sec:blendnlf} so the in-domain ratio matches
 the half-saturation anchor (input $\chi_\infty^{(in)}\!=\!8.76\!\times\!10^{-6}$;
 in-domain $\chi_\infty\!=\!\chi_\infty^{(in)}/f_\mathrm{slow}\!=\!8.76\!\times\!10^{-4}$).
+Figures~\ref{fig:nlfmesh_str} and~\ref{fig:nlfmesh_cav} show the two mesh
+families at the leading and trailing edges across the three refinement levels.
+
+The unstructured family is deliberately adversarial. Unlike the usual
+``unstructured'' airfoil mesh---which grows a \emph{structured} layer of
+wall-normal quadrilaterals or prisms through the boundary layer and triangulates
+only the isotropic exterior---the cavity mesher is all-triangle everywhere,
+including the boundary layer. There the metric is stretched by
+$O(10^2\text{--}10^3)\!:\!1$, and the cavity point-insertion uses an anisotropic
+distortion metric (with a skewness/normal-deviation objective) to promote
+near-right-angled stretched triangles ($\sim\!90^\circ$-$90^\circ$-$0^\circ$)
+over flat slivers ($\sim\!180^\circ$-$0^\circ$-$0^\circ$); but this is a
+preference, not a guarantee, and the resolved boundary layer carries many
+near-degenerate triangles (visible in Fig.~\ref{fig:nlfmesh_cav}). This directly
+stresses the model, whose indicators are all \emph{local} and gradient-based
+($Re_\Omega\!=\!d^2\omega/\nu$ from the vorticity, together with $\Gamma$ and
+$\lambda_p$), so sliver-induced errors in the least-squares gradients feed
+straight into the amplification rate. That the cavity and O-grid families
+nevertheless predict the same transition---agreeing in drag to within
+$\Delta C_d\!\approx\!6\!\times\!10^{-4}$ through $\alpha\!=\!9^\circ$ (rising to
+$\approx\!1\!\times\!10^{-3}$ at $\alpha\!=\!15^\circ$) at L2, once the transition
+front is fully converged (below)---is therefore a genuine robustness result, not
+merely a grid-convergence check.
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{mesh_nlf_str.pdf}
+  \caption{NLF(1)-0416 structured O-grid mesh at the leading edge (left column)
+  and blunt trailing edge (right column) for the three refinement levels
+  L0--L2 (rows). The O-grid wraps the section with wall-normal clustering for
+  the boundary layer; every length scale halves per level. Chord normalized to
+  unity ($z$ vertical).}
+  \label{fig:nlfmesh_str}
+\end{figure}
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{mesh_nlf_cav.pdf}
+  \caption{NLF(1)-0416 unstructured cavity mesh (leading and trailing edges,
+  levels L0--L2), built from the same spline contour as the structured grid of
+  Fig.~\ref{fig:nlfmesh_str} with blunt-trailing-edge--aware spacing. Every
+  length scale halves per level.}
+  \label{fig:nlfmesh_cav}
+\end{figure}
 
 The airfoil surface distributions are presented as five-row figures
 (Figs.~\ref{fig:nlfcflow}--\ref{fig:nlfcfhigh} here and
@@ -953,7 +1013,7 @@ state with no residual limit cycle.
   \centering
   \includegraphics[width=0.62\textwidth]{nlf_polar_compare.pdf}
   \caption{Drag polar of the NLF(1)-0416 at $Re\!=\!4\!\times\!10^6$: the present
-  SA-AF prediction (structured O-grid and unstructured meshes, all three
+  SA-AI prediction (structured O-grid and unstructured meshes, all three
   refinement levels) at $\alpha\!\in\!\{0^\circ,4^\circ,9^\circ,15^\circ\}$
   overlaid on the digitized experimental section characteristics (Somers, NASA
   TP-1861, Fig.~11d) and the mfoil $e^9$ reference. Mesh family sets the colour
@@ -963,11 +1023,11 @@ state with no residual limit cycle.
 \end{figure}
 
 The section drag summarizes the transition prediction
-(Fig.~\ref{fig:nlfpolar}). On the refined meshes the SA-AF polar tracks the
+(Fig.~\ref{fig:nlfpolar}). On the refined meshes the SA-AI polar tracks the
 measured low-drag laminar bucket across $\alpha\!\in\!\{0^\circ,4^\circ,9^\circ\}$,
 with the computed $C_d$ within $\sim\!5\times10^{-4}$ of the digitized data
 through the bucket and up the upper knee, and the two independently generated
-mesh families agreeing to within $\Delta C_d\!\approx\!5\times10^{-4}$ at L2.
+mesh families agreeing to within $\Delta C_d\!\approx\!8\times10^{-4}$ at L2.
 The $\alpha\!=\!15^\circ$ point lies beyond the measured stall
 ($C_{l,\max}\!\approx\!1.68$ in the tunnel data), where the quasi-2D computation
 does not capture three-dimensional stall and returns a higher $C_l$ at elevated
@@ -1015,6 +1075,29 @@ chord-spacing $h_\mathrm{TE}$ halves per refinement level along with every other
 length scale, and the TE-corner growth ratio decays from $2.0$ at L0 to
 $1.25$ at L2; the far-field is fixed at $100\,c$. The resulting grids range
 from $1.6\!\times\!10^4$ nodes (str L0) to $3.8\!\times\!10^5$ nodes (cav L2).
+Figures~\ref{fig:eppmesh_str} and~\ref{fig:eppmesh_cav} show the two mesh
+families at the leading and trailing edges across the three levels.
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{mesh_eppler_str.pdf}
+  \caption{Eppler 387 structured O-grid mesh at the leading edge (left column)
+  and trailing edge (right column) for the three refinement levels L0--L2
+  (rows), generated by the same recipe as the NLF grid
+  (Fig.~\ref{fig:nlfmesh_str}); every length scale halves per level. Chord
+  normalized to unity ($z$ vertical).}
+  \label{fig:eppmesh_str}
+\end{figure}
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{mesh_eppler_cav.pdf}
+  \caption{Eppler 387 unstructured cavity mesh (leading and trailing edges,
+  levels L0--L2), built from the same spline contour as the structured grid of
+  Fig.~\ref{fig:eppmesh_str} with an anisotropic near-wall boundary-layer
+  region; every length scale halves per level.}
+  \label{fig:eppmesh_cav}
+\end{figure}
 
 \begin{figure}[tp]
   \centering
@@ -1121,7 +1204,7 @@ laminar-separation-bubble being the controlling mechanism at these conditions.
   \centering
   \includegraphics[width=0.62\textwidth]{eppler_polar_compare.pdf}
   \caption{Drag polar of the Eppler 387 at $Re\!=\!2\!\times\!10^5$: the present
-  SA-AF prediction (finest structured O-grid and unstructured meshes, L2) at
+  SA-AI prediction (finest structured O-grid and unstructured meshes, L2) at
   $\alpha\!\in\!\{0^\circ,2^\circ,5^\circ,7^\circ\}$ overlaid on the digitized
   experimental section characteristics from the Langley Low-Turbulence Pressure
   Tunnel (McGhee et al., NASA TM-4062, App.~B, $R\!=\!2\!\times\!10^5$) and the
@@ -1131,7 +1214,7 @@ laminar-separation-bubble being the controlling mechanism at these conditions.
 \end{figure}
 
 The section drag collapses the bubble physics into a single number.
-Figure~\ref{fig:epppolar} overlays the SA-AF polar on the measured section
+Figure~\ref{fig:epppolar} overlays the SA-AI polar on the measured section
 characteristics: across $\alpha\!\in\!\{0^\circ,2^\circ,5^\circ,7^\circ\}$ the
 computed $C_d$ runs $0.0094$--$0.0145$ against the measured $0.0106$--$0.0145$,
 so the prediction sits along the left (low-drag) edge of the experimental bucket

@@ -406,7 +406,7 @@ _compute_sa_source_batch_vmap = jax.vmap(
     in_axes=(0, 0, None, None)  # nuHat batched, grad batched, wall_dist shared, nu shared
 )
 
-# SA-AF source terms batched - wall_dist is shared, AFT params are shared scalars
+# SA-AI source terms batched - wall_dist is shared, AFT params are shared scalars
 _compute_aft_sa_source_batch_vmap = jax.vmap(
     compute_aft_sa_source_jax,
     # nuHat batched, grad batched, wall_dist shared, vel_mag batched, nu shared
@@ -596,7 +596,7 @@ def compute_aft_sa_source_batch(nuHat_batch, grad_batch, wall_dist, vel_mag_batc
                                 aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale,
                                 aft_blend_threshold, aft_blend_width):
     """
-    Compute SA-AF blended source terms for a batch of cases.
+    Compute SA-AI blended source terms for a batch of cases.
 
     Parameters
     ----------
