@@ -1240,7 +1240,15 @@ this criterion in $20$--$35\!\times\!10^3$ pseudo-steps (the consec=3
 requirement also recovers cleanly from the early leading-edge ``burst''
 transient on the L2 meshes, which can hold $x_\mathrm{tr}\!=\!0$ for the first
 two batches before the front begins to recede). The same monitor was
-retroactively applied to the NLF runs of Sec.~\ref{sec:nlfval}.
+retroactively applied to the NLF runs of Sec.~\ref{sec:nlfval}. For the slowest
+cases---the high-incidence NLF airfoil on the finest (L2) grids, where under the
+$f_\mathrm{slow}\!=\!0.01$ damping the front recedes only marginally per
+$10^4$ steps and a fixed budget under-converges---the front is first advanced to
+its settled location with the slowdown released ($f_\mathrm{slow}\!=\!1$) and then
+re-damped ($f_\mathrm{slow}\!=\!0.01$) to quench the residual breathing; this
+two-stage restart reaches the same $|\Delta x_\mathrm{tr}|\!<\!0.01\,c$ steady
+state far faster than $f_\mathrm{slow}\!=\!0.01$ alone, and both routes give the
+same converged $C_d$ (to $\sim\!10^{-4}$).
 
 \section{Conclusion}
 
