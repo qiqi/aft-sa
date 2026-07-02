@@ -256,6 +256,8 @@ class RANSSolver:
             k4=float(self.config.jst_k4),
             mu_laminar=mu_laminar,
             aft_gamma_coeff=float(self.config.aft_gamma_coeff),
+            aft_re_omega_scale=float(self.config.aft_re_omega_scale),
+            aft_log_divisor=float(self.config.aft_log_divisor),
             aft_sigmoid_center=float(self.config.aft_sigmoid_center),
             aft_sigmoid_slope=float(self.config.aft_sigmoid_slope),
             aft_rate_scale=float(self.config.aft_rate_scale),
