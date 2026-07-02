@@ -28,16 +28,18 @@ Institute of Technology. AIAA Associate Fellow.}}
 \maketitle
 
 \begin{abstract}
-Conventional Reynolds-averaged Navier--Stokes (RANS) transition models add a
-transport equation for an auxiliary variable (amplification factor,
+We present a single-equation Reynolds-averaged Navier--Stokes (RANS) transition
+model in which the Spalart--Allmaras (SA) working variable $\tilde\nu$ serves as
+its own transition indicator. Since $\tilde\nu$ already spans laminar to fully
+turbulent values, we repurpose its sub-$O(\nu)$ range---inert in the baseline
+model---to carry a Tollmien--Schlichting amplification factor, so that a single
+modified production term drives the one SA transport equation, unchanged in
+structure, through laminar instability growth and turbulent eddy-viscosity
+production, handing over near $\chi\!=\!\tilde\nu/\nu\!\sim\!1$. No auxiliary
+field is introduced---in contrast to conventional RANS transition models, which
+add a transport equation for an auxiliary variable (amplification factor,
 intermittency, or transition Reynolds number) or gate turbulent production with
-an algebraic intermittency. The Spalart--Allmaras (SA) working variable
-$\tilde\nu$ already spans laminar to fully turbulent values; its sub-$O(\nu)$
-range, inert in the baseline model, carries a Tollmien--Schlichting amplification
-factor. A single modified production term drives the same transport equation
-through laminar instability growth and turbulent eddy-viscosity production,
-handing over near $\chi\!=\!\tilde\nu/\nu\!\sim\!1$; no auxiliary field is
-introduced. The amplification rate depends only on the local mean flow---a
+an algebraic intermittency. The amplification rate depends only on the local mean flow---a
 vorticity Reynolds number and a profile-fullness indicator---so the production
 retains an analytic Jacobian and integrates implicitly at the cost of the
 baseline model. The amplification kernel is anchored to canonical stability
