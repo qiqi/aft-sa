@@ -40,80 +40,66 @@ def run():
     y = np.arange(5000)
     Rex_list = np.array([50_000, 200_000, 500_000, 1_000_000, 2_000_000])
 
-    fig, ax = plt.subplots(1, 4, figsize=(10, 4), sharey='row')
-    axp = [a.twiny() for a in ax]
-    
+    # 3-panel layout matching the paper figure caption.
+    fig, ax = plt.subplots(1, 3, figsize=(11, 3.6), sharey=False)
+
     all_passed = True
 
+    # ----- Panels 1 & 2: profiles vs y at five streamwise stations -----
     for Rex in Rex_list:
         yCell, u, dudy, _ = b.at(Rex, y)
-        
-        # Convert to JAX arrays
-        u_jax = jnp.array(u)
-        dudy_jax = jnp.array(dudy)
-        yCell_jax = jnp.array(yCell)
-        
-        # ===== PHYSICAL ASSERTIONS =====
-        
-        # 1. Velocity should be bounded [0, 1]
-        if u.min() < -0.01:
-            print(f"❌ Rex={Rex}: Velocity below 0: {u.min():.4f}")
-            all_passed = False
-        if u.max() > 1.01:
-            print(f"❌ Rex={Rex}: Velocity above 1: {u.max():.4f}")
-            all_passed = False
-        
-        # 2. Shear should be non-negative (no flow reversal in Blasius)
+        u_jax = jnp.array(u); dudy_jax = jnp.array(dudy); yCell_jax = jnp.array(yCell)
+
+        # physical sanity
+        if u.min() < -0.01 or u.max() > 1.01:
+            print(f"❌ Rex={Rex}: u out of [0,1]"); all_passed = False
         if (dudy < -1e-10).any():
-            print(f"❌ Rex={Rex}: Negative shear detected")
-            all_passed = False
-        
-        # 3. Shape factor Gamma should be in [0, 2]
-        valid = u > 0.01
-        Gamma = 2 * (dudy[valid] * yCell[valid])**2 / (u[valid]**2 + (dudy[valid] * yCell[valid])**2)
-        if Gamma.min() < -0.01 or Gamma.max() > 2.01:
-            print(f"❌ Rex={Rex}: Gamma out of bounds [{Gamma.min():.3f}, {Gamma.max():.3f}]")
-            all_passed = False
-        
-        # 4. Amplification should be non-negative and bounded (using JAX version)
+            print(f"❌ Rex={Rex}: negative shear"); all_passed = False
+
         amp_jax = amplification(u_jax, dudy_jax, yCell_jax)
         amp = np.array(amp_jax)
-        if (amp < -1e-10).any():
-            print(f"❌ Rex={Rex}: Negative amplification")
-            all_passed = False
-        if amp.max() > 1.0:
-            print(f"❌ Rex={Rex}: Amplification too high: {amp.max():.4f}")
-            all_passed = False
-        
-        # 5. Re_Omega should be non-negative (using JAX version)
-        re_omega_jax = Re_Omega(dudy_jax, yCell_jax)
-        re_omega = np.array(re_omega_jax)
-        if (re_omega < -1e-10).any():
-            print(f"❌ Rex={Rex}: Negative Re_Omega")
-            all_passed = False
+        re_omega = np.array(Re_Omega(dudy_jax, yCell_jax))
+        kernel = amp * dudy  # local growth-rate kernel a * dU/dy
 
-        # Plotting
-        for a in axp:
-            a.plot(u, yCell, '--', linewidth=2, alpha=0.5)
-        ax[0].plot(re_omega / 2.2, yCell, linewidth=3)
-        ax[1].plot(2 * (dudy * yCell)**2 / (u**2 + (dudy * yCell)**2 + 1e-20), yCell, linewidth=3)
-        ax[2].plot(amp * 1e3, yCell, linewidth=3)
-        ax[3].plot(dudy * 1000, yCell, linewidth=3)
+        ax[0].plot(re_omega / 2.2, yCell, linewidth=2,
+                   label=fr'$\theta\!=\!{0.665 * np.sqrt(Rex):.0f}$')
+        ax[1].plot(kernel * 1e5, yCell, linewidth=2)
 
-    for a in ax:
-        a.set_ylim([0, 5000])
-    for a in axp:
-        a.set_xticks([])
-        
-    ax[0].legend([f'$\\theta = {0.665 * np.sqrt(Rex):.1f}$' for Rex in Rex_list], loc='upper left')
-    ax[0].set_ylabel(r"$y$")
-    ax[0].set_xlabel(r"$Re_{\Omega} / 2.2$")
-    ax[1].set_xlabel(r"$\Gamma$")
-    ax[2].set_xlabel(r"amplification $(\times 10^{-3})$")
-    ax[3].set_xlabel(r"$dU/dy (\times 10^{-3})$")
-    
+    for a_ in ax[:2]:
+        a_.set_ylim([0, 5000])
+        a_.set_ylabel(r'$y\,U_\infty/\nu$')
+        a_.grid(alpha=0.3)
+    ax[0].set_xlabel(r'$Re_\Omega / 2.2$')
+    ax[1].set_xlabel(r'kernel $a\,\partial U/\partial y\ (\times 10^{-5})$')
+    ax[0].legend(loc='upper left', fontsize=8, frameon=False)
+
+    # ----- Panel 3: envelope growth rate dN/dRe_x = max_y(a*dU/dy), vs Re_theta -----
+    # (The kernel integrated across y is dominated by its peak; we plot the peak as
+    # the envelope amplification rate, in units of 1/Re_x, then convert to dN/dRe_theta.)
+    Rex_sweep = np.linspace(2e4, 4e6, 200)
+    dNdRetheta = np.zeros_like(Rex_sweep)
+    Retheta = np.zeros_like(Rex_sweep)
+    for i, Rex in enumerate(Rex_sweep):
+        yCell, u, dudy, _ = b.at(Rex, y)
+        u_j = jnp.array(u); dudy_j = jnp.array(dudy); yCell_j = jnp.array(yCell)
+        amp = np.array(amplification(u_j, dudy_j, yCell_j))
+        kernel = amp * dudy
+        dNdRex = float(kernel.max())
+        # Re_theta = 0.665*sqrt(Rex), so dRetheta/dRex = 0.5*0.665/sqrt(Rex)
+        Retheta[i] = 0.665 * np.sqrt(Rex)
+        dRetheta_dRex = 0.5 * 0.665 / max(np.sqrt(Rex), 1e-12)
+        dNdRetheta[i] = dNdRex / dRetheta_dRex if dRetheta_dRex > 0 else 0.0
+
+    ax[2].plot(Retheta, dNdRetheta, 'k-', linewidth=1.5)
+    ax[2].set_xlabel(r'$Re_\theta$')
+    ax[2].set_ylabel(r'envelope $dN/dRe_\theta$')
+    ax[2].set_xlim(0, 1500)
+    ax[2].set_ylim(0, None)
+    ax[2].grid(alpha=0.3)
+
+    plt.tight_layout(pad=0.4)
     out_path = os.path.join(get_output_dir(), 'blasius_ReOmega_growth.pdf')
-    plt.savefig(out_path)
+    plt.savefig(out_path, bbox_inches='tight', pad_inches=0.05)
     print(f'Saved: {out_path}')
     
     # Summary

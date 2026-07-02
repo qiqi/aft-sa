@@ -1,5 +1,5 @@
 &SOPT
-  nsrf =          250
+  nsrf =          150
   lesp =    4.0000000000000001E-003
   tesp =    2.5200000000000000E-004
   radi =    15.000000000000000     
@@ -10,7 +10,7 @@
 /
 &VOPT
   name = 'naca0012'
-  jmax =          100
+  jmax =           60
   slvr = 'HYPR'
   topo = 'OGRD'
   ypls =   0.90000000000000002     

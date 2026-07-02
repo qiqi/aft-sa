@@ -18,7 +18,7 @@ This file coordinates work between multiple AI agents and human contributors on 
 
 | Agent Name/Role | Target File/Folder | Task Description | Start Time |
 |-----------------|-------------------|------------------|------------|
-|                 |                   |                  |            |
+| Claude | `scripts/solver/run_airfoil.py`, `README.md` | Remove --coarse/--super-coarse CLI flags | 2026-01-27 |
 
 
 
@@ -36,6 +36,7 @@ Files that have been modified and are ready for the Janitor agent to review:
 | File/Folder | Last Modified By | Notes |
 |-------------|------------------|-------|
 | `src/io/_vtk_writer.py`, `src/io/dashboard/facade.py` | GPT-5.2 Codex | Add VTS time-series output with PVD index alongside legacy VTK |
+| `src/validation/mfoil_runner.py`, `scripts/solver/run_airfoil.py` | GPT-5.2 Codex | Run mfoil quietly in background process and update overlay after CFD |
 | `src/validation/mfoil.py` | GPT-5.2 Codex | Fix mfoil calc_force/indexing and shape check for overlay |
 | `scripts/solver/run_airfoil.py`, `src/validation/mfoil_runner.py` | GPT-5.2 Codex | Allow mfoil overlay for airfoil file inputs |
 | `scripts/solver/run_airfoil.py`, `src/io/dashboard/` | GPT-5.2 Codex | Overlay mfoil Cp/Cf as dotted reference lines |
@@ -54,6 +55,7 @@ Archive of recently completed work (for reference):
 
 | Date | Agent | Files | Summary |
 |------|-------|-------|---------|
+| 2026-01-27 | Claude | `scripts/solver/run_airfoil.py`, `README.md`, `config/examples/` | **CLI Simplification**: Made config file a required positional argument, removed legacy grid file mode and `--config` flag. |
 | 2026-01-06 | Antigravity | `.antigravity/` | **Initial Setup**: Created agent protocol and registered in coordination board. |
 | 2026-01-06 | Claude | `src/numerics/gmres.py`, `src/numerics/preconditioner.py`, `src/solvers/rans_solver.py`, `tests/` | **Newton Sign Convention Fix**: Corrected implicit Euler formulation from `(V/dt + J)·ΔQ = -R` to `(V/dt - J)·ΔQ = R`. This ensures SA destruction terms contribute positively to diagonal (stabilizing). All 223 tests pass. |
 

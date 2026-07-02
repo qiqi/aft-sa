@@ -9,6 +9,7 @@ import csv, os, sys, pickle, numpy as np, vtk
 from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 from scipy.ndimage import gaussian_filter1d
 matplotlib.rcParams.update({'font.size': 10, 'axes.titlesize': 10, 'axes.labelsize': 10,
                             'xtick.labelsize': 9, 'ytick.labelsize': 9, 'legend.fontsize': 8})
@@ -37,6 +38,20 @@ LO_COLOR = 'C3'
 LEVEL_LW = {'L0': 0.8, 'L1': 1.6, 'L2': 2.4}
 # Per-mesh line STYLE (str = solid, cav = dashed).
 MESH_LS = {'str': '-', 'cav': '--'}
+
+# --- Experimental reference data, digitized from McGhee et al., NASA TM-4062 ---
+# Upper-surface laminar separation bubble from oil-flow visualization (Table III),
+# R=200,000: alpha -> (x_LS laminar separation, x_TR turbulent reattachment).
+EXP_LSB = {0: (0.48, 0.74), 2: (0.43, 0.67), 5: (0.38, 0.59), 7: (0.33, 0.48)}
+# Section characteristics, Appendix B (RUNS 9,10,13, R=200,000): (C_D, C_L) for the
+# points with valid wake-rake drag (post-stall ****-drag rows excluded).
+EXP_POLAR = [
+ (0.0163,0.066),(0.0133,0.156),(0.0105,0.249),(0.0106,0.350),(0.0105,0.352),
+ (0.0113,0.466),(0.0118,0.574),(0.0127,0.680),(0.0133,0.785),(0.0138,0.891),
+ (0.0139,0.895),(0.0137,0.894),(0.0137,0.897),(0.0142,0.948),(0.0141,1.004),
+ (0.0144,0.999),(0.0143,1.052),(0.0145,1.103),(0.0144,1.107),(0.0145,1.127),
+ (0.0152,1.155),(0.0160,1.166),(0.0175,1.180),(0.0174,1.182),(0.0244,1.219),
+ (0.0357,1.231),(0.0570,1.214)]
 
 def rate(Re_O, Gamma):
     """Option A kernel with Γ-dependent SHARP cliff. barrier = 1 - (Re_cliff/Re_Ω)^p.
@@ -602,6 +617,16 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
             ax_cp.plot(md['lower']['x'], -md['lower']['cp'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
             ax_cf.plot(md['upper']['x'], md['upper']['cf'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
             ax_cf.plot(md['lower']['x'], md['lower']['cf'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
+        # Experimental upper-surface LSB (oil flow, Table III, R=200k) as a grey
+        # band spanning laminar-separation -> turbulent-reattachment (x/c). Shown
+        # on the surface-distribution rows so it can be read against the computed
+        # C_f reversal and the C_p plateau.
+        if int(alpha) in EXP_LSB:
+            xls, xtr = EXP_LSB[int(alpha)]
+            for a in (ax_cp, ax_cf):
+                a.axvspan(xls, xtr, color='0.55', alpha=0.32, zorder=0)
+                a.axvline(xls, color='0.35', ls=':', lw=0.8, alpha=0.8, zorder=0)
+                a.axvline(xtr, color='0.35', ls=':', lw=0.8, alpha=0.8, zorder=0)
         for a in [ax_reo, ax_gam, ax_n, ax_cp, ax_cf]: a.set_xlim(0, 1)
         cf_hi = 0.025 if max(alphas) > 6 else 0.012
         ax_cf.set_ylim(-0.004, cf_hi)
@@ -621,7 +646,8 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         legend_items += [Line2D([],[],color='0.3', ls='--', lw=0.8, label='L0 cav'),
                          Line2D([],[],color='0.3', ls='--', lw=1.6, label='L1 cav'),
                          Line2D([],[],color='0.3', ls='--', lw=2.4, label='L2 cav')]
-    legend_items += [Line2D([],[],color='0.3', ls=':',  lw=1.2, alpha=0.5, label='mfoil ($e^9$)')]
+    legend_items += [Line2D([],[],color='0.3', ls=':',  lw=1.2, alpha=0.5, label='mfoil ($e^9$)'),
+                     Patch(facecolor='0.55', alpha=0.32, label='expt. LSB (oil flow)')]
     axs[0,-1].legend(handles=surfh, fontsize=8, frameon=False, loc='upper left')
     axs[4,-1].legend(handles=legend_items, fontsize=8, frameon=False, loc='upper right')
     plt.suptitle(title, fontsize=11)
@@ -815,8 +841,65 @@ def make_landscape_normal_figure(alphas, out_name, title, L_probe=0.01, n_probe=
     plt.close()
     print(f'wrote {out_name}.pdf')
 
+def converged_clcd(d):
+    """Median (C_L, C_D) over the last 20% of the pseudo-step history."""
+    p = f"{d}/total_forces_v2.csv"
+    if not os.path.exists(p): return None
+    cl, cd = [], []
+    for r in list(csv.reader(open(p)))[1:]:
+        if len(r) > 3:
+            try: cl.append(float(r[2])); cd.append(float(r[3]))
+            except ValueError: pass
+    if len(cl) < 3: return None
+    n = len(cl); t = slice(int(0.8*n), n)
+    return float(np.median(np.array(cl)[t])), float(np.median(np.array(cd)[t]))
+
+def make_polar_figure(out_name='eppler_polar_compare'):
+    """Drag polar: SA-AF (O-grid + unstructured, all three refinement levels)
+    overlaid on the digitized experimental section-characteristics line
+    (App. B, R=2e5). Mesh -> color, level -> line thickness (L0/L1/L2)."""
+    alphas = [0, 2, 5, 7]
+    mesh_col = {'str': 'C0', 'cav': 'C1'}
+    fig, ax = plt.subplots(figsize=(5.8, 5.2))
+    ecd = [p[0] for p in EXP_POLAR]; ecl = [p[1] for p in EXP_POLAR]
+    # Draw experiment first (bottom), then mfoil, then our lines on top so the
+    # computed curves are never covered by the reference data.
+    ax.plot(ecd, ecl, '-', color='k', lw=1.4, zorder=1)
+    ax.plot(ecd, ecl, 'o', mfc='none', mec='k', ms=4, zorder=1)
+    ma = [a for a in alphas if float(a) in mn]
+    ax.plot([mn[float(a)]['cd'] for a in ma], [mn[float(a)]['cl'] for a in ma],
+            ls=':', color='0.4', marker='s', mfc='none', ms=5, lw=1.2, zorder=2)
+    # SA-AF on top: structured = circle/solid, unstructured = triangle/dashed.
+    mesh_mk = {'str': 'o', 'cav': '^'}
+    for mesh in ['str', 'cav']:
+        for level in ['L0', 'L1', 'L2']:
+            cl, cd = [], []
+            for a in alphas:
+                f = converged_clcd(case_dir(mesh, level, a))
+                if f: cl.append(f[0]); cd.append(f[1])
+            if cl:
+                ax.plot(cd, cl, marker=mesh_mk[mesh], ms=4, ls=MESH_LS[mesh],
+                        lw=LEVEL_LW[level], color=mesh_col[mesh], zorder=3)
+    ax.set_xlim(0.0, 0.05); ax.set_ylim(0.0, 1.25)
+    ax.set_xlabel('$C_d$'); ax.set_ylabel('$C_l$')
+    ax.grid(alpha=0.3)
+    handles = [Line2D([],[],color='k', ls='-', marker='o', mfc='none', ms=4, label='Experiment (LTPT)'),
+               Line2D([],[],color='0.4', ls=':', marker='s', mfc='none', ms=5, lw=1.2, label='mfoil ($e^9$)'),
+               Line2D([],[],color='C0', ls='-',  marker='o', ms=4, label='SA-AF, structured (O-grid)'),
+               Line2D([],[],color='C1', ls='--', marker='^', ms=4, label='SA-AF, unstructured'),
+               Line2D([],[],color='0.4', lw=LEVEL_LW['L0'], label='L0'),
+               Line2D([],[],color='0.4', lw=LEVEL_LW['L1'], label='L1'),
+               Line2D([],[],color='0.4', lw=LEVEL_LW['L2'], label='L2')]
+    ax.legend(handles=handles, fontsize=8, loc='lower right')
+    ax.set_title('Eppler 387, $Re=2\\times10^5$: drag polar vs experiment', fontsize=10)
+    plt.tight_layout()
+    plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=140)
+    plt.close(); print(f'wrote {out_name}.pdf')
+
 if __name__ == '__main__':
     mode = sys.argv[1] if len(sys.argv) > 1 else 'all'
+    if mode in ('polar', 'all'):
+        make_polar_figure()
     if mode in ('low', 'all'):
         alphas = [0, 2]
         title_all = 'Eppler 387, Re=200k at $\\alpha\\in\\{0^\\circ,2^\\circ\\}$ — L0/L1/L2 × cav/str'

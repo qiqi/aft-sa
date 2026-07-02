@@ -498,7 +498,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         # band; the strongly-adverse recovery region runs off the bottom.
         ax_lam.axhline(0.64, color='gray', ls='--', lw=0.6, alpha=0.6)
         ax_lam.axhline(0.0, color='gray', ls=':', lw=0.6, alpha=0.5)
-        ax_lam.set_ylim(-1.5, 1.5); ax_lam.grid(alpha=0.3)
+        ax_lam.set_ylim(-5, 5); ax_lam.grid(alpha=0.3)
         if col == 0: ax_lam.set_ylabel(r'$\lambda_p$')
         # ROW 3: chi + N
         for mesh in meshes:

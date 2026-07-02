@@ -75,30 +75,39 @@ class NuHatBlasiusSolver:
         self.nx = 200
         self.dy = 50
         self.ny = 200
+        # Scale factor for the laminar viscosity that the nuHat diffusion sees,
+        # matching Flow360 SpalartAllmaras.h (nu_sa = nu * aft_nuLamScale) with
+        # ModelConstants.h aft_nuLamScale = 1/12. The momentum equation keeps the
+        # full nu; only the SA diffusion operator uses nu/12. Without this the
+        # (normalized nu=1) molecular diffusion spuriously over-damps the gentle
+        # AFT amplification and the flat plate never transitions.
+        self.aft_nuLamScale = 1.0 / 12.0
         self.blasius = Blasius()
-    
+
     def build_M_A_b(self, x):
         """Build M(x), A(x), b for the semi-discrete system."""
         y_grid = self.dy * np.arange(self.ny + 1)
         y_cell, u, dudy, v = self.blasius.at(x, y_grid, cellCentered=True)
-        
+
         u_jax = jnp.array(u)
         dudy_jax = jnp.array(dudy)
         y_cell_jax = jnp.array(y_cell)
-        
+
         M = jnp.diag(u_jax)
-        
+
         coeff = np.concatenate([np.zeros(1), (v[1:] + v[:-1]) / 2]) / self.dy
         A = jnp.diag(jnp.array(coeff)) - jnp.diag(jnp.array(coeff[1:]), k=-1)
-        
+
         sigma = 2./3
-        A = A + (2 * jnp.eye(self.ny) - jnp.eye(self.ny, k=1) - jnp.eye(self.ny, k=-1)) / self.dy**2
-        A = A.at[0, 0].add(1 / self.dy**2)
-        A = A.at[-1, -1].add(-1 / self.dy**2)
+        # SA diffusion sees nu_sa = nu * aft_nuLamScale (nu = 1 in these units).
+        nu_sa = self.aft_nuLamScale
+        A = A + nu_sa * (2 * jnp.eye(self.ny) - jnp.eye(self.ny, k=1) - jnp.eye(self.ny, k=-1)) / self.dy**2
+        A = A.at[0, 0].add(nu_sa / self.dy**2)
+        A = A.at[-1, -1].add(-nu_sa / self.dy**2)
         A = A / sigma
-        
+
         b = amplification(u_jax, dudy_jax, y_cell_jax) * dudy_jax
-        
+
         return M, A, b
     
     def __call__(self, nuHat0):
@@ -122,30 +131,34 @@ class NuHatFalknerSkanSolver:
         self.nx = 200
         self.dy = 50
         self.ny = 200
+        # nuHat diffusion sees nu * aft_nuLamScale (= nu/12), matching Flow360
+        # (SpalartAllmaras.h nu_sa; ModelConstants.h aft_nuLamScale=1/12).
+        self.aft_nuLamScale = 1.0 / 12.0
         self.fs = FalknerSkanWedge(beta)
-    
+
     def build_M_A_b(self, x):
         """Build M(x), A(x), b for the semi-discrete system."""
         y_grid = self.dy * np.arange(self.ny + 1)
         y_cell, u, dudy, v = self.fs.at(x, y_grid, cellCentered=True)
-        
+
         u_jax = jnp.array(u)
         dudy_jax = jnp.array(dudy)
         y_cell_jax = jnp.array(y_cell)
-        
+
         M = jnp.diag(u_jax)
-        
+
         coeff = np.concatenate([np.zeros(1), (v[1:] + v[:-1]) / 2]) / self.dy
         A = jnp.diag(jnp.array(coeff)) - jnp.diag(jnp.array(coeff[1:]), k=-1)
-        
+
         sigma = 2./3
-        A = A + (2 * jnp.eye(self.ny) - jnp.eye(self.ny, k=1) - jnp.eye(self.ny, k=-1)) / self.dy**2
-        A = A.at[0, 0].add(1 / self.dy**2)
-        A = A.at[-1, -1].add(-1 / self.dy**2)
+        nu_sa = self.aft_nuLamScale
+        A = A + nu_sa * (2 * jnp.eye(self.ny) - jnp.eye(self.ny, k=1) - jnp.eye(self.ny, k=-1)) / self.dy**2
+        A = A.at[0, 0].add(nu_sa / self.dy**2)
+        A = A.at[-1, -1].add(-nu_sa / self.dy**2)
         A = A / sigma
-        
+
         b = amplification(u_jax, dudy_jax, y_cell_jax) * dudy_jax
-        
+
         return M, A, b
     
     def __call__(self, nuHat0):
@@ -211,11 +224,12 @@ class NuHatFlatPlateSolver:
         """Build M, A for nuHat equation."""
         sigma = 2./3
         Cb2 = 0.622
+        NU_LAM_SCALE = 1.0/12.0  # matches Flow360 aft_nuLamScale default (1/12)
         B = u.shape[0]
         dnuHat_dy = (nuHat[:, 1:] - nuHat[:, :-1]) / self.dy_dual[1:]
         v_eff = vgrid - dnuHat_dy * Cb2 / sigma
-        nu_eff = (1.0 + nuHat) / sigma
-        ones = jnp.ones((B, 1))
+        nu_eff = (NU_LAM_SCALE * 1.0 + nuHat) / sigma   # scaled laminar viscosity
+        ones = jnp.ones((B, 1)) * NU_LAM_SCALE / sigma  # BC also scaled
         nu_eff_avg = (nu_eff[:, 1:] + nu_eff[:, :-1]) / 2
         nu_eff_grid = jnp.concatenate([ones, nu_eff_avg], axis=-1)
         return _build_M_A(u, v_eff, nu_eff_grid, self.dy_vol, self.dy_dual)
@@ -243,7 +257,16 @@ class NuHatFlatPlateSolver:
         delta_nuHat = jnp.zeros_like(nuHat0)
         
         is_turb = jnp.clip(1 - jnp.exp(-(nuHat0 - 1) / 4), min=0.0)
-        Gamma = jnp.abs(dudy) * self.y_cell / jnp.abs(u)
+        # Saturating shape-factor formula matching Flow360 SAAftTransition.h:
+        # Gamma = 2 (omega d)^2 / (|U|^2 + (omega d)^2), bounded in [0, 2].
+        # The previous BL-only definition Gamma = |dudy|*y / |u| was UNBOUNDED
+        # and gave a higher peak Gamma than Flow360's saturating form, producing
+        # a different amplification rate than the production solver.
+        omega_d = jnp.abs(dudy) * self.y_cell
+        omega_d_sq = omega_d**2
+        u_sq = u**2
+        denom = u_sq + omega_d_sq
+        Gamma = jnp.where(denom > 0, 2.0 * omega_d_sq / denom, 0.0)
         a_aft = compute_nondimensional_amplification_rate(Re_Omega(dudy, self.y_cell), Gamma)
         a_aft = a_aft * dudy
         

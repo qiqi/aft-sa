@@ -202,7 +202,7 @@ class TestBlasiusFlatPlate:
 
 
 class TestAFTTransition:
-    """Test AFT-SA transition model on flat plate boundary layer.
+    """Test SA-AF transition model on flat plate boundary layer.
     
     These tests validate that the SA-AFT model correctly predicts:
     1. Laminar behavior in the early boundary layer

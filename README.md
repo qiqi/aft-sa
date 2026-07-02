@@ -1,4 +1,4 @@
-# AFT-SA: GPU-Accelerated RANS Solver
+# SA-AF: GPU-Accelerated RANS Solver
 
 A 2D structured-grid RANS solver for incompressible airfoil flow using the Artificial Compressibility Method. Fully GPU-accelerated with JAX.
 
@@ -31,8 +31,10 @@ pip install jax[cuda12]
 Run a NACA 0012 simulation:
 
 ```bash
-python scripts/solver/run_airfoil.py data/naca0012.dat \
-    --alpha 5.0 --reynolds 6e6 --max-iter 500
+python scripts/solver/run_airfoil.py config/examples/naca0012_re1m.yaml
+
+# With CLI overrides
+python scripts/solver/run_airfoil.py config/examples/quick_test.yaml --alpha 5.0
 ```
 
 ---
@@ -331,7 +333,7 @@ source_blended = (1 - is_turb) * source_aft + is_turb * source_sa
 ```
 src/
 ├── physics/
-│   ├── transition.py         # AFT-SA blending logic
+│   ├── transition.py         # SA-AF blending logic
 │   └── correlations.py       # (extend) N-factor correlations
 │
 ├── numerics/
@@ -362,19 +364,18 @@ physics:
 ## Command Line Options
 
 ```bash
-python scripts/solver/run_airfoil.py <airfoil.dat> [options]
+python scripts/solver/run_airfoil.py <config.yaml> [options]
 
 Options:
-  --alpha ANGLE       Angle of attack in degrees (default: 0)
-  --reynolds RE       Reynolds number (default: 6e6)
-  --mach MACH         Mach number for compressibility (default: 0.15)
-  --cfl CFL           Target CFL number (default: 5.0)
-  --max-iter N        Maximum iterations (default: 500)
-  --n-surface N       Surface grid points (default: 129)
-  --n-normal N        Normal direction points (default: 65)
-  --n-wake N          Wake cut points (default: 32)
-  --chi-inf CHI       Initial/farfield turbulent viscosity ratio (default: 3.0)
-  --config FILE       YAML configuration file
+  --alpha ANGLE       Angle of attack in degrees (override config)
+  --reynolds RE       Reynolds number (override config)
+  --cfl CFL           Target CFL number (override config)
+  --max-iter N        Maximum iterations (override config)
+  --n-surface N       Surface grid points (override config)
+  --n-normal N        Normal direction points (override config)
+  --n-wake N          Wake cut points (override config)
+  --chi-inf CHI       Initial/farfield turbulent viscosity ratio (override config)
+  --device DEVICE     GPU device: 'auto', 'cpu', or GPU index ('0', '1')
 ```
 
 ## Running Tests

@@ -61,7 +61,7 @@ for ax,af,ttl in [(axs[0],'naca0012','NACA 0012'),(axs[1],'nlf0416','NLF(1)-0416
     except:pass
     ax.plot([float(mf[af][a]['cd']) for a in ALPHAS],[float(mf[af][a]['cl']) for a in ALPHAS],'s--',color='0.4',ms=4,lw=1.1,label='mfoil ($e^N$)')
     # Both grids equally prominent (the new TEprop unstructured converges tightly).
-    # Monotone polar: black for both AFT-SA lines, distinguish by linestyle + marker.
+    # Monotone polar: black for both SA-AF lines, distinguish by linestyle + marker.
     try:ax.plot(col('ogrid','aftsa_m2',1),col('ogrid','aftsa_m2',0),'^-',color='k',ms=4,lw=1.4,label='SA-AF, O-grid')
     except Exception as e:print('ogrid polar',af,e)
     ax.plot(col('cavity','aftsa_m2',1),col('cavity','aftsa_m2',0),'o--',color='k',ms=4,lw=1.4,alpha=1.0,label='SA-AF, unstructured')

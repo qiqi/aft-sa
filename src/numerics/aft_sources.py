@@ -2,7 +2,7 @@
 AFT (Amplification Factor Transport) Source Terms for Laminar Transition.
 
 This module implements the laminar instability amplification model that
-drives transition in the AFT-SA combined model. The amplification rate
+drives transition in the SA-AF combined model. The amplification rate
 is based on Drela-style correlations relating growth rate to:
 - Vorticity Reynolds number Re_Ω = d² |ω|
 - Shape factor Γ characterizing the velocity profile

@@ -47,12 +47,13 @@ def run():
     
     levels = np.linspace(0, 11, 12)
     levels[0] = 0.1
-    plt.clabel(plt.contour(x, y, np.log(nuHat_np.T), levels))
+    cs = plt.contour(x, y, np.log(nuHat_np.T), levels, colors='k', linewidths=0.7)
+    plt.clabel(cs, fontsize=8)
     plt.xlabel(r'$Re_x$')
     plt.ylabel(r'$Re_y$')
-    
+
     out_path = os.path.join(get_output_dir(), 'blasius_nuHat_solution.pdf')
-    plt.savefig(out_path)
+    plt.savefig(out_path, bbox_inches='tight', pad_inches=0.05)
     print(f'Saved: {out_path}')
 
 

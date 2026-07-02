@@ -1,5 +1,5 @@
 # Quick test configuration with super-coarse grid
-# Usage: python scripts/solver/run_airfoil.py --config config/examples/quick_test.yaml
+# Usage: python scripts/solver/run_airfoil.py config/examples/quick_test.yaml
 
 preset: super-coarse   # Uses 128x32 cell grid
 

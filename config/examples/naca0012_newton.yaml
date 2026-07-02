@@ -1,5 +1,5 @@
 # NACA 0012 with Newton-GMRES solver
-# Usage: python scripts/solver/run_airfoil.py --config config/examples/naca0012_newton.yaml
+# Usage: python scripts/solver/run_airfoil.py config/examples/naca0012_newton.yaml
 #
 # This config uses the Newton-GMRES solver mode for potentially faster convergence
 # compared to the standard RK5 explicit time stepping.

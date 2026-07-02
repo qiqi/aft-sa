@@ -2,13 +2,33 @@
 Mfoil (XFOIL-like) runner utilities for RANS validation.
 """
 
-import numpy as np
+import io
+import os
+from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from typing import Optional, Dict, Any
+
+import numpy as np
+from loguru import logger
+
+
+@contextmanager
+def _suppress_output(enabled: bool = True):
+    if not enabled:
+        yield
+        return
+    with open(os.devnull, 'w') as devnull:
+        with redirect_stdout(devnull), redirect_stderr(devnull):
+            logger.disable("src.validation.mfoil")
+            try:
+                yield
+            finally:
+                logger.enable("src.validation.mfoil")
 
 
 def run_laminar(reynolds: float, alpha: float = 0.0,
                 naca: str = '0012', npanel: int = 199,
-                airfoil_file: Optional[str] = None) -> Dict[str, Any]:
+                airfoil_file: Optional[str] = None,
+                quiet: bool = True) -> Dict[str, Any]:
     """Run mfoil for fully laminar flow."""
     from .mfoil import mfoil
     
@@ -24,10 +44,12 @@ def run_laminar(reynolds: float, alpha: float = 0.0,
     M.setoper(alpha=alpha, Re=reynolds)
     
     try:
-        M.solve()
+        with _suppress_output(quiet):
+            M.solve()
         converged = True
     except Exception as e:
-        print(f"mfoil solve failed: {e}")
+        if not quiet:
+            print(f"mfoil solve failed: {e}")
         return {
             'cl': np.nan, 'cd': np.nan, 'cdf': np.nan, 'cdp': np.nan,
             'converged': False
@@ -107,7 +129,8 @@ def _extract_surface_data(M) -> Dict[str, np.ndarray]:
 def run_turbulent(reynolds: float, alpha: float = 0.0,
                   naca: str = '0012', npanel: int = 199,
                   ncrit: float = 9.0,
-                  airfoil_file: Optional[str] = None) -> Dict[str, Any]:
+                  airfoil_file: Optional[str] = None,
+                  quiet: bool = True) -> Dict[str, Any]:
     """Run mfoil with natural transition (e^N method)."""
     from .mfoil import mfoil
 
@@ -123,7 +146,8 @@ def run_turbulent(reynolds: float, alpha: float = 0.0,
     M.setoper(alpha=alpha, Re=reynolds)
     
     try:
-        M.solve()
+        with _suppress_output(quiet):
+            M.solve()
         converged = True
     except Exception:
         return {
@@ -140,5 +164,36 @@ def run_turbulent(reynolds: float, alpha: float = 0.0,
         'converged': converged,
     })
     
+    return result
+
+
+def run_reference(
+    reynolds: float,
+    alpha: float = 0.0,
+    naca: str = '0012',
+    npanel: int = 199,
+    ncrit: float = 9.0,
+    airfoil_file: Optional[str] = None,
+    quiet: bool = True,
+) -> Dict[str, Any]:
+    """Run mfoil reference case: turbulent first, fallback to laminar."""
+    result = run_turbulent(
+        reynolds=reynolds,
+        alpha=alpha,
+        naca=naca,
+        npanel=npanel,
+        ncrit=ncrit,
+        airfoil_file=airfoil_file,
+        quiet=quiet,
+    )
+    if not result.get("converged", False):
+        result = run_laminar(
+            reynolds=reynolds,
+            alpha=alpha,
+            naca=naca,
+            npanel=npanel,
+            airfoil_file=airfoil_file,
+            quiet=quiet,
+        )
     return result
 

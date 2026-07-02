@@ -1,5 +1,5 @@
 # NACA 0012 at Re = 1M test configuration
-# Usage: python scripts/solver/run_airfoil.py --config config/examples/naca0012_re1m.yaml
+# Usage: python scripts/solver/run_airfoil.py config/examples/naca0012_re1m.yaml
 
 grid:
   airfoil: data/naca0012.dat
@@ -11,7 +11,7 @@ grid:
 
 flow:
   reynolds: 1.0e+6      # Re = 1 million
-  alpha: 4.0            # Angle of attack in degrees
+  alpha: 2.0            # Angle of attack in degrees
   # Alpha can also be:
   #   sweep: [-5, 15, 21]           # start, end, count
   #   values: [0, 2, 4, 6, 8]       # explicit list

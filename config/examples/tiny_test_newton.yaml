@@ -2,7 +2,7 @@
 # CFL ramps exponentially: 1 → 10 → 100 → 1000 → 10000 → infinity
 # Each decade takes 200 iterations, 5 decades = 1000 iterations total
 #
-# Usage: python scripts/solver/run_airfoil.py --config config/examples/tiny_test_newton.yaml
+# Usage: python scripts/solver/run_airfoil.py config/examples/tiny_test_newton.yaml
 
 grid:
   airfoil: data/naca0012.dat

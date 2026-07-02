@@ -1,9 +1,12 @@
-"""Set up + run the AGS-calibrated flat-plate cases.
+"""Set up + run the flat-plate natural-transition cases.
 
-Re-calibration of the Tu->chi_inf map to the Abu-Ghannam & Shaw (1980) natural-
-transition onset correlation Re_theta_t = 163 + exp(6.91 - Tu%), replacing the
-mis-sourced "Mack 1977 tabulation" targets. New map (calibrate_kernel):
-    N_crit = -9.088 - 2.705 ln(Tu_frac)     [B=2.705, was 4.00; Mack 2.4]
+Tu->chi_inf map (calibrate_kernel) is Mack's (1977) e^N critical-N-factor
+correlation, adopted wholesale:
+    N_crit = -8.43 - 2.4 ln(Tu_frac)        [= Mack 1977; borrowed, not fit]
+    chi_inf = c_v1 * exp(-N_crit)           [transition at chi = c_v1]
+The coupled-RANS onset (chi=1) then lands within ~7% of the Abu-Ghannam & Shaw
+(1980) correlation Re_theta_t = 163 + exp(6.91 - Tu%) across Tu=0.04-0.60%, which
+is used here only as an independent verification reference (not a fit target).
 Flow360 BC seed = chi_inf_from_Tu_pct(Tu) * f_slow,  f_slow = 0.01.
 
 Cases cloned from flatplate_aftsa_Tu0026 (mesh reused), BC seed patched, run with

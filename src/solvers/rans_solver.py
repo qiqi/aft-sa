@@ -256,8 +256,6 @@ class RANSSolver:
             k4=float(self.config.jst_k4),
             mu_laminar=mu_laminar,
             aft_gamma_coeff=float(self.config.aft_gamma_coeff),
-            aft_re_omega_scale=float(self.config.aft_re_omega_scale),
-            aft_log_divisor=float(self.config.aft_log_divisor),
             aft_sigmoid_center=float(self.config.aft_sigmoid_center),
             aft_sigmoid_slope=float(self.config.aft_sigmoid_slope),
             aft_rate_scale=float(self.config.aft_rate_scale),
@@ -442,7 +440,7 @@ class RANSSolver:
             )
             R = R.at[:, :, 1:4].add(R_visc[:, :, 1:4])
             
-            # 4. AFT-SA Sources
+            # 4. SA-AF Sources
             vel_mag = jnp.sqrt(Q_int[:, :, 1]**2 + Q_int[:, :, 2]**2)
             P, D, cb2_term = compute_aft_sa_source_jax(
                 nu_tilde, grad, wall_dist, vel_mag, nu,
@@ -851,8 +849,6 @@ class RANSSolver:
             vel_mag,
             nu,
             aft_gamma_coeff=self.config.aft_gamma_coeff,
-            aft_re_scale=self.config.aft_re_omega_scale,
-            aft_log_divisor=self.config.aft_log_divisor,
             aft_sigmoid_center=self.config.aft_sigmoid_center,
             aft_sigmoid_slope=self.config.aft_sigmoid_slope,
             aft_rate_scale=self.config.aft_rate_scale,

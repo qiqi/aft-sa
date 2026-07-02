@@ -13,20 +13,20 @@ Features:
     - Surface data extraction
 
 Usage:
-    # Using YAML config (recommended)
-    python run_airfoil.py --config config/examples/single_case.yaml
+    python run_airfoil.py config/examples/single_case.yaml
     
     # With CLI overrides
-    python run_airfoil.py --config config/examples/quick_test.yaml --alpha 4.0
-    
-    # Legacy mode (positional grid file)
-    python run_airfoil.py data/naca0012.dat --super-coarse --max-iter 100
+    python run_airfoil.py config/examples/quick_test.yaml --alpha 4.0
 """
 
 import sys
 import argparse
 import os
+import multiprocessing as mp
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
+
+import numpy as np
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
@@ -45,27 +45,16 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Use YAML config
-  %(prog)s --config config/examples/quick_test.yaml
-  
-  # YAML with overrides  
-  %(prog)s --config config/examples/single_case.yaml --alpha 8.0
-  
-  # Legacy mode
-  %(prog)s data/naca0012.dat --super-coarse --max-iter 500
+  %(prog)s config/examples/quick_test.yaml
+  %(prog)s config/examples/single_case.yaml --alpha 8.0
+  %(prog)s config/examples/naca0012_newton.yaml --max-iter 500
 """
     )
     
-    # Configuration file (new primary way)
+    # Configuration file (required positional argument)
     parser.add_argument(
-        "--config", "-c",
+        "config",
         help="Path to YAML configuration file"
-    )
-    
-    # Legacy: positional grid file
-    parser.add_argument(
-        "grid_file", nargs="?",
-        help="Path to grid file (.p3d) or airfoil file (.dat)"
     )
     
     # Flow conditions (can override YAML)
@@ -103,10 +92,6 @@ Examples:
                         help="Wake expansion factor (default: 0.005)")
     parser.add_argument("--wake-fan-k", type=float,
                         help="Wake expansion exponent k (default: 10.0)")
-    parser.add_argument("--coarse", action="store_true",
-                        help="Use coarse grid (256x32 cells)")
-    parser.add_argument("--super-coarse", action="store_true",
-                        help="Use super-coarse grid (128x32 cells)")
     
     # Output settings
     parser.add_argument("--output-dir", "-o", type=str,
@@ -130,81 +115,36 @@ Examples:
     os.environ["JAX_DISABLE_JIT"] = "0"
 
     # Select device BEFORE importing JAX-dependent modules
+    # Peek at config for device setting if not specified on CLI
+    import yaml
+    with open(args.config) as f:
+        raw_config = yaml.safe_load(f)
     device_spec = args.device
-    if args.config:
-        # Peek at config for device setting if not specified on CLI
-        import yaml
-        with open(args.config) as f:
-            raw_config = yaml.safe_load(f)
-        if device_spec is None and 'device' in raw_config:
-            device_spec = raw_config['device'].get('device', 'auto')
+    if device_spec is None and 'device' in raw_config:
+        device_spec = raw_config['device'].get('device', 'auto')
     
     logger.info("Device selection:")
     select_device(device_spec, verbose=True)
     
     # Now import JAX-dependent modules (after device selection)
-    from src.solvers.rans_solver import RANSSolver, SolverConfig
+    from src.solvers.rans_solver import RANSSolver
     from src.grid.loader import load_or_generate_grid
     from src.physics.jax_config import jax
-    from src.config import load_yaml, apply_cli_overrides, SimulationConfig
+    from src.config import load_yaml, apply_cli_overrides
     
     # Load configuration
-    if args.config:
-        # YAML-based configuration
-        try:
-            sim_config = load_yaml(args.config)
-            logger.info(f"Loaded configuration from: {args.config}")
-        except FileNotFoundError as e:
-            logger.error(f"ERROR: {e}")
-            sys.exit(1)
-        except Exception as e:
-            logger.error(f"ERROR loading config: {e}")
-            sys.exit(1)
-        
-        # Apply CLI overrides
-        sim_config = apply_cli_overrides(sim_config, args)
-        
-    elif args.grid_file:
-        # Legacy mode: build config from CLI args
-        sim_config = SimulationConfig()
-        sim_config.grid.airfoil = args.grid_file
-        
-        # Apply defaults for --coarse and --super-coarse
-        if args.super_coarse:
-            sim_config.grid.n_surface = 65
-            sim_config.grid.n_wake = 32
-            sim_config.grid.y_plus = 5.0
-            sim_config.grid.gradation = 1.5
-            logger.info("Using SUPER-COARSE grid mode")
-        elif args.coarse:
-            sim_config.grid.n_surface = 193
-            sim_config.grid.n_wake = 32
-            sim_config.grid.y_plus = 1.0
-            sim_config.grid.gradation = 1.3
-            logger.info("Using COARSE grid mode")
-        
-        # Apply CLI overrides
-        sim_config = apply_cli_overrides(sim_config, args)
-        
-    else:
-        parser.print_help()
-        logger.error("\nERROR: Must provide either --config or a grid file")
+    try:
+        sim_config = load_yaml(args.config)
+        logger.info(f"Loaded configuration from: {args.config}")
+    except FileNotFoundError as e:
+        logger.error(f"ERROR: {e}")
+        sys.exit(1)
+    except Exception as e:
+        logger.error(f"ERROR loading config: {e}")
         sys.exit(1)
     
-    # Handle legacy --coarse/--super-coarse flags with --config
-    if args.config:
-        if args.super_coarse:
-            sim_config.grid.n_surface = 65
-            sim_config.grid.n_wake = 32
-            sim_config.grid.y_plus = 5.0
-            sim_config.grid.gradation = 1.5
-            logger.info("Override: Using SUPER-COARSE grid")
-        elif args.coarse:
-            sim_config.grid.n_surface = 193
-            sim_config.grid.n_wake = 32
-            sim_config.grid.y_plus = 1.0
-            sim_config.grid.gradation = 1.3
-            logger.info("Override: Using COARSE grid")
+    # Apply CLI overrides
+    sim_config = apply_cli_overrides(sim_config, args)
     
     # Convert to legacy SolverConfig
     config = sim_config.to_solver_config()
@@ -218,7 +158,7 @@ Examples:
     y_plus = sim_config.grid.y_plus
     gradation = sim_config.grid.gradation
     # Coarser grids (high gradation) need larger max_first_cell for safety
-    max_first_cell = 0.005 if gradation >= 1.4 else 0.001
+    max_first_cell = 0.005
     
     # Load or generate grid
     try:
@@ -241,7 +181,6 @@ Examples:
         sys.exit(1)
     
     # Save grid to output folder for debugging/comparison
-    import numpy as np
     output_dir = Path(sim_config.output.directory)
     output_dir.mkdir(parents=True, exist_ok=True)
     grid_output_path = output_dir / "grid.npz"
@@ -252,54 +191,56 @@ Examples:
     solver = RANSSolver(grid_data=(X, Y), config=config)
 
     # Optional: overlay mfoil reference Cp/Cf as dotted lines in HTML plots
+    mfoil_future = None
+    mfoil_executor = None
+
+    def _apply_mfoil_overlay(mfoil_result):
+        if not mfoil_result.get("converged", False):
+            logger.warning("mfoil did not converge; skipping Cp/Cf overlay.")
+            return
+
+        x_upper = mfoil_result["x_upper"]
+        x_lower = mfoil_result["x_lower"]
+        cp_upper = mfoil_result["cp_upper"]
+        cp_lower = mfoil_result["cp_lower"]
+        cf_upper = mfoil_result["cf_upper"]
+        cf_lower = mfoil_result["cf_lower"]
+
+        x_surf = 0.5 * (X[:-1, 0] + X[1:, 0])
+        y_surf = 0.5 * (Y[:-1, 0] + Y[1:, 0])
+        i_start = sim_config.grid.n_wake
+        i_end = len(x_surf) - sim_config.grid.n_wake
+        x_surf_airfoil = x_surf[i_start:i_end]
+        y_surf_airfoil = y_surf[i_start:i_end]
+
+        order_upper = np.argsort(x_upper)
+        order_lower = np.argsort(x_lower)
+        cp_upper_interp = np.interp(x_surf_airfoil, x_upper[order_upper], cp_upper[order_upper])
+        cp_lower_interp = np.interp(x_surf_airfoil, x_lower[order_lower], cp_lower[order_lower])
+        cf_upper_interp = np.interp(x_surf_airfoil, x_upper[order_upper], cf_upper[order_upper])
+        cf_lower_interp = np.interp(x_surf_airfoil, x_lower[order_lower], cf_lower[order_lower])
+
+        cp_mfoil = np.where(y_surf_airfoil >= 0.0, cp_upper_interp, cp_lower_interp)
+        cf_mfoil = np.where(y_surf_airfoil >= 0.0, cf_upper_interp, cf_lower_interp)
+
+        solver.plotter.set_surface_reference(x_surf_airfoil, cp_mfoil, cf_mfoil)
+        logger.info("Added mfoil Cp/Cf overlay to HTML surface plots.")
+
     try:
-        from src.validation.mfoil_runner import run_turbulent, run_laminar
+        from src.validation.mfoil_runner import run_reference
 
         airfoil_path = Path(sim_config.grid.airfoil)
         if not airfoil_path.is_absolute():
             airfoil_path = project_root / airfoil_path
-        mfoil_result = run_turbulent(
+
+        mfoil_executor = ProcessPoolExecutor(max_workers=1, mp_context=mp.get_context("spawn"))
+        mfoil_future = mfoil_executor.submit(
+            run_reference,
             reynolds=sim_config.flow.reynolds,
             alpha=sim_config.flow.alpha,
             airfoil_file=str(airfoil_path),
+            quiet=True,
         )
-        if not mfoil_result.get("converged", False):
-            logger.warning("mfoil turbulent run did not converge; trying laminar.")
-            mfoil_result = run_laminar(
-                reynolds=sim_config.flow.reynolds,
-                alpha=sim_config.flow.alpha,
-                airfoil_file=str(airfoil_path),
-            )
-
-        if mfoil_result.get("converged", False):
-            x_upper = mfoil_result["x_upper"]
-            x_lower = mfoil_result["x_lower"]
-            cp_upper = mfoil_result["cp_upper"]
-            cp_lower = mfoil_result["cp_lower"]
-            cf_upper = mfoil_result["cf_upper"]
-            cf_lower = mfoil_result["cf_lower"]
-
-            x_surf = 0.5 * (X[:-1, 0] + X[1:, 0])
-            y_surf = 0.5 * (Y[:-1, 0] + Y[1:, 0])
-            i_start = sim_config.grid.n_wake
-            i_end = len(x_surf) - sim_config.grid.n_wake
-            x_surf_airfoil = x_surf[i_start:i_end]
-            y_surf_airfoil = y_surf[i_start:i_end]
-
-            order_upper = np.argsort(x_upper)
-            order_lower = np.argsort(x_lower)
-            cp_upper_interp = np.interp(x_surf_airfoil, x_upper[order_upper], cp_upper[order_upper])
-            cp_lower_interp = np.interp(x_surf_airfoil, x_lower[order_lower], cp_lower[order_lower])
-            cf_upper_interp = np.interp(x_surf_airfoil, x_upper[order_upper], cf_upper[order_upper])
-            cf_lower_interp = np.interp(x_surf_airfoil, x_lower[order_lower], cf_lower[order_lower])
-
-            cp_mfoil = np.where(y_surf_airfoil >= 0.0, cp_upper_interp, cp_lower_interp)
-            cf_mfoil = np.where(y_surf_airfoil >= 0.0, cf_upper_interp, cf_lower_interp)
-
-            solver.plotter.set_surface_reference(x_surf_airfoil, cp_mfoil, cf_mfoil)
-            logger.info("Added mfoil Cp/Cf overlay to HTML surface plots.")
-        else:
-            logger.warning("mfoil did not converge; skipping Cp/Cf overlay.")
     except Exception as exc:
         logger.warning(f"mfoil overlay skipped: {exc}")
     
@@ -308,7 +249,7 @@ Examples:
     logger.info(f"Alpha: {sim_config.flow.alpha}°")
     logger.info(f"Backend: JAX ({jax.devices()[0].device_kind})")
     logger.info(f"Target CFL: {config.cfl_target} (ramp from {config.cfl_start} over {config.cfl_ramp_iters} iters)")
-    logger.info(f"Turbulence model: AFT-SA (transition), χ_inf={config.chi_inf:.4g}")
+    logger.info(f"Turbulence model: SA-AF (transition), χ_inf={config.chi_inf:.4g}")
     logger.info(f"Output: HTML animation every {config.diagnostic_freq} iterations")
     
     # Run
@@ -320,6 +261,17 @@ Examples:
     except Exception as e:
         logger.exception(f"\nError during simulation: {e}")
         converged = False
+
+    if mfoil_future is not None:
+        try:
+            mfoil_result = mfoil_future.result()
+            _apply_mfoil_overlay(mfoil_result)
+            solver.save_diagnostics()
+        except Exception as exc:
+            logger.warning(f"mfoil overlay skipped: {exc}")
+        finally:
+            if mfoil_executor is not None:
+                mfoil_executor.shutdown(wait=False, cancel_futures=False)
     
     # Final status
     logger.info("\n" + "="*70)

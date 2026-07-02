@@ -11,7 +11,7 @@
 
 ## Overview
 
-This document outlines the implementation plan for adding a Jacobian-Free Newton-Krylov solver with GMRES(m) and block-Jacobi preconditioning to the AFT-SA RANS solver.
+This document outlines the implementation plan for adding a Jacobian-Free Newton-Krylov solver with GMRES(m) and block-Jacobi preconditioning to the SA-AF RANS solver.
 
 **Goal:** Improve convergence rate compared to explicit RK5 time-stepping, especially for stiff problems (high Re, complex geometries).
 

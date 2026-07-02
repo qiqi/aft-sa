@@ -1,5 +1,5 @@
 # Single airfoil simulation configuration
-# Usage: python scripts/solver/run_airfoil.py --config config/examples/single_case.yaml
+# Usage: python scripts/solver/run_airfoil.py config/examples/single_case.yaml
 
 grid:
   airfoil: data/naca0012.dat

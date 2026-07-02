@@ -379,7 +379,7 @@ def plot_results(M):
     # figure parameters
     plt.rcParams["figure.figsize"] = [8, 7]
     plt.rcParams["figure.autolayout"] = True
-    plt.rcParams['text.usetex'] = True
+    plt.rcParams['text.usetex'] = False
 
     # figure
     f = plt.figure()

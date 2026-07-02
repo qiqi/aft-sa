@@ -2,7 +2,7 @@
 # Purpose: Quick iteration and debugging without JIT compilation overhead
 # Grid: ~42x10 cells = ~420 total cells
 #
-# Usage: python scripts/solver/run_airfoil.py --config config/examples/tiny_test.yaml
+# Usage: python scripts/solver/run_airfoil.py config/examples/tiny_test.yaml
 
 grid:
   airfoil: data/naca0012.dat
@@ -22,8 +22,8 @@ flow:
 solver:
   max_iter: 20000
   tol: 1.0e-8
-  print_freq: 100
-  diagnostic_freq: 1000
+  print_freq: 500
+  diagnostic_freq: 5000
   mode: rk5              # Explicit RK5 (no implicit solver)
   
   cfl:

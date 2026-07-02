@@ -24,7 +24,7 @@ def detect_nu(case_dir):
     return float(d['freestream']['muRef'])
 
 def rate(Re_O, Gamma, lambda_p):
-    """Full AFT-SA kernel: FPG-modulated cliff + σ_FPG.  Matches Flow360
+    """Full SA-AF kernel: FPG-modulated cliff + σ_FPG.  Matches Flow360
     SAAftTransition.h::__aftRate exactly (modulo float32 rounding).
         Re_Ω_cliff(λ_p) = floor · exp(K_λ · max(0, λ_p))  (FPG-cliff)
         sigma_FPG(λ_p)  = 1 / (1 + exp(lambdaSlope (λ_p - λ_*)))

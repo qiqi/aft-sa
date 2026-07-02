@@ -1036,7 +1036,7 @@ def diagnose_sa_physics(y_plus: np.ndarray, nuHat: np.ndarray,
 
 
 # =============================================================================
-# AFT-SA INTERFACE - Production/Destruction with gradients for transition model
+# SA-AF INTERFACE - Production/Destruction with gradients for transition model
 # =============================================================================
 
 @jax.jit
@@ -1047,7 +1047,7 @@ def spalart_allmaras_amplification(omega: ArrayLike, nuHat: ArrayLike, d: ArrayL
     """
     Compute SA production & destruction with gradients w.r.t. nuHat.
     
-    INTERFACE FOR AFT-SA BLENDING:
+    INTERFACE FOR SA-AF BLENDING:
     -----------------------------
     This function provides production and destruction terms along with their
     gradients for use in the boundary layer transition model. The gradients
