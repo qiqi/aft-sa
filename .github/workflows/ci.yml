@@ -32,8 +32,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install jax jaxlib  # JAX for numerical computations
-          pip install numpy scipy matplotlib numba pytest plotly
+          pip install jaxlib  # CPU jaxlib; jax itself comes from requirements.txt
+          # Core deps from the source-of-truth requirements.txt (includes loguru,
+          # which core src modules import at module level -- omitting it made
+          # pytest collection fail with exit code 2). Plus optional-feature deps
+          # (plotly/pandas/pyyaml) exercised by the dashboard/batch/config tests.
+          pip install -r requirements.txt plotly pandas pyyaml
       
       - name: Run tests
         run: pytest tests/ -v --tb=short
