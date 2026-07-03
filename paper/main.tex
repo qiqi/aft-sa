@@ -31,7 +31,7 @@ Institute of Technology. AIAA Associate Fellow.}}
 We present a one-equation Reynolds-averaged Navier--Stokes (RANS) transition
 model in which the Spalart--Allmaras (SA) working variable $\tilde\nu$ serves as
 its own transition indicator. Since $\tilde\nu$ already spans laminar to fully
-turbulent values, we repurpose its sub-$O(\nu)$ range---inert in the baseline
+turbulent values, we repurpose its sub-$O(1)$ range---inert in the baseline
 model---to carry a Tollmien--Schlichting amplification factor, so that a single
 modified production term drives the one SA transport equation, unchanged in
 structure, through laminar instability growth and turbulent eddy-viscosity
@@ -61,7 +61,7 @@ the same constants throughout.
   $N,\;N_\mathrm{crit}$ \> amplification factor and its critical value ($e^N$ method) \\
   $Tu$ \> freestream turbulence intensity \\
   $\chi_\infty$ \> freestream value of $\chi$ \\
-  $C_f,\;C_D,\;C_L$ \> skin-friction, drag, and lift coefficients \\
+  $C_f,\;C_d,\;C_l$ \> skin-friction, drag, and lift coefficients \\
   $Re_x,\;Re_\theta$ \> streamwise and momentum-thickness Reynolds numbers \\
   $c_{\nu,\mathrm{aft}}$ \> laminar-viscosity scale factor in the SA cross-stream diffusion only ($1/12$) \\
 \end{tabbing}
@@ -114,24 +114,28 @@ variable $\tilde\nu$ is treated as a purely turbulent quantity, switched on eith
 by an extra transported field (AFT, $\gamma$--$Re_\theta$) or by an external
 algebraic intermittency (BC/BCM). Equation count alone therefore does not separate
 the present approach from the algebraic family, which is also one-equation. The
-distinction is in \emph{what the field represents}. A scaling argument shows the
-sub-$O(1)$ range of $\tilde\nu$ is the natural home for a TS-envelope variable. The SA working variable carries the dimensions of an eddy viscosity, i.e.\
-a product $u'\ell$ of a fluctuation-velocity scale and a length scale. In a
-Blasius-like layer just before secondary instability, the TS-envelope velocity
-amplitude $u'$ is a few percent of the mean and the wall-normal extent $\ell$
-over which that fluctuation is coherent is a fraction of the
-boundary-layer thickness at
-$Re_\theta\!\sim\!\mathcal{O}(10^2)$--$\mathcal{O}(10^3)$
-\cite{schmid_henningson_2001,abu_ghannam_shaw_1980}; their product $u'\ell$ is at
-most a few times the laminar viscosity $\nu$. Assigning that product to the same
-working variable, $\tilde\nu\!\sim\!u'\ell$, makes $\chi=\tilde\nu/\nu$ at most
-$\mathcal{O}(1)$ in the pre-transitional layer.
-The region $\chi\!\lesssim\!\mathcal{O}(1)$ is exactly the part of the SA state space
-that contributes negligibly to the eddy viscosity and is largely inert in the
-baseline model \cite{spalart_allmaras_1994}. The natural amplitude and length scales
-of laminar instabilities therefore correspond to a range of $\tilde\nu$ that SA
-barely uses---a coincidence we exploit: we let that range \emph{be} the amplification
-factor. In the laminar regime the production of $\tilde\nu$ is replaced by a local,
+distinction is in \emph{what the field represents}. A simple scaling argument shows that the sub-$O(1)$ range of $\tilde\nu$ is the
+natural home for a Tollmien--Schlichting envelope variable. The SA working
+variable has the dimensions of an eddy viscosity---a product $u'\ell$ of a
+fluctuation-velocity scale $u'$ and a coherence length $\ell$. In a Blasius-like
+layer just before secondary instability, the TS-envelope amplitude $u'$ is a few
+percent of the mean and its wall-normal coherence length $\ell$ is a fraction of
+the boundary-layer thickness, at $Re_\theta\!\sim\!O(10^2)$--$O(10^3)$
+\cite{schmid_henningson_2001,abu_ghannam_shaw_1980}. Their product is therefore
+at most a few times the molecular viscosity,
+\begin{equation}
+  \frac{u'\ell}{\nu}\;\lesssim\;O(1),
+  \label{eq:scaling}
+\end{equation}
+so identifying it with the working variable, $\tilde\nu\!\sim\!u'\ell$, makes
+$\chi\!=\!\tilde\nu/\nu$ at most $O(1)$ through the pre-transitional layer.
+
+This is precisely the part of the SA state space the baseline model barely uses:
+for $\chi\!\lesssim\!1$ the field contributes negligibly to the eddy viscosity and
+is dynamically inert \cite{spalart_allmaras_1994}. The natural amplitude and
+length scales of laminar instabilities thus correspond to a range of $\tilde\nu$
+that SA leaves idle---a coincidence we exploit: we let that range \emph{be} the
+amplification factor. In the laminar regime the production of $\tilde\nu$ is replaced by a local,
 envelope-method-inspired instability rate, so $\ln\tilde\nu$ accumulates
 monotonically in the manner of an amplification factor; as $\tilde\nu$ approaches its
 turbulent level the production reverts smoothly to the standard SA form. One
@@ -415,10 +419,10 @@ leaving the mean-flow viscosity, the SA production and destruction, and the
 definition $\chi=\tilde\nu/\nu$ (formed with the \emph{true} $\nu$) untouched.
 Only the molecular coefficient is scaled: relative to it, the nonlinear
 self-diffusion $\tilde\nu\,\nabla^2\tilde\nu$ and the $c_{b2}|\nabla\tilde\nu|^2$
-gradient term are both smaller by a factor $\mathcal{O}(\chi)$ and hence
+gradient term are both smaller by a factor $O(\chi)$ and hence
 negligible where $\chi\!\ll\!1$, so we leave them as in Eq.~\eqref{eq:sa}.
 
-The reduction is needed because, while the disturbance is sub-$\mathcal{O}(1)$
+The reduction is needed because, while the disturbance is sub-$O(1)$
 ($\chi\!<\!1$), the diffusion coefficient $(\nu+\tilde\nu)$ is dominated by the
 molecular part $\nu$, which does not vanish as the working variable does. In a
 thin, low-$Re_\theta$ laminar layer the amplifying band is narrow and abuts the
@@ -479,7 +483,7 @@ saturates ($S\!\to\!1$) as $\Gamma\!\to\!2$, the value a fully inflectional
 profile reaches---the detached shear layer over a laminar separation bubble.
 There the instability is the inviscid Rayleigh/Kelvin--Helmholtz mode of a free
 shear layer, whose maximum growth rate scaled by the local vorticity is a
-classical $\mathcal{O}(0.15$--$0.2)$~\cite{michalke_1964}; we identify $a_{\max}$
+classical $O(0.15$--$0.2)$~\cite{michalke_1964}; we identify $a_{\max}$
 with this free-shear ceiling and set $a_{\max}\!=\!0.15$.
 
 With the ceiling fixed at $\Gamma\!=\!2$, the pair $(s,g_c)$ sets how far the rate
@@ -1229,7 +1233,7 @@ untouched.
   \end{tabular}
   \\[2pt]{\footnotesize $^\dagger$ mfoil at $\alpha=7^\circ$, $Re=200k$ sits at
   the edge of its convergence regime and returns an unreliable $x_\mathrm{tr}$;
-  $C_L\!=\!0.928$ is below the $\alpha\!=\!5^\circ$ value, indicating numerical
+  $C_l\!=\!0.928$ is below the $\alpha\!=\!5^\circ$ value, indicating numerical
   stall onset. The present computation and the NASA oil-flow
   turbulent-reattachment locations agree on the trend.}
 \end{table}
