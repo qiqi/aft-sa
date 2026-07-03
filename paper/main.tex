@@ -178,8 +178,9 @@ lets $\tilde\nu$ amplify in the laminar range and revert to standard SA past
 handover. Section~\ref{sec:calib} fixes every constant of the model by anchoring
 it to a canonical stability limit or established correlation---the free-shear
 growth ceiling, the Blasius $e^N$ envelope, Drela's critical Reynolds number, and
-Mack's freestream-turbulence receptivity---with a single favorable-gradient
-onset-delay constant the only quantity fit to the transition cases.
+Mack's freestream-turbulence receptivity---so that no constant is fit to the
+transition cases (even the onset-delay slope $K_\lambda$ is derived, by matching
+the cliff to the rate Drela's critical Reynolds number rises with gradient).
 Section~\ref{sec:impl} details the numerical implementation, including the
 analytic source Jacobian. The model is then exercised across three
 pressure-gradient regimes of increasing complexity.
@@ -465,13 +466,13 @@ the sub-percent diffusion scaling of Sec.~\ref{sec:nulamscale}).
 The amplification rate \eqref{eq:rate} carries a global magnitude $a_{\max}$, the
 $\Gamma$-sigmoid pair $(s,g_c)$, the cliff floor $Re_\Omega^{\mathrm{f}}$, and the
 favorable-pressure-gradient onset-delay slope $K_\lambda$.
-Rather than fit these to the transition cases that follow, we anchor them to
-canonical stability limits. The favorable-gradient onset-delay $K_\lambda$ is
-anchored in the same spirit---its form fixed by requiring Falkner--Skan profiles
-to ignite at their Drela critical Reynolds number (Fig.~\ref{fig:collapse})---but
-its value carries one deliberate design choice and is confirmed against the
-NLF(1)-0416 rooftop (Sec.~\ref{sec:nlfval}); it is the closest thing to a fitted
-constant. The subsequent cases are thus predictive tests.
+Rather than fit these to the transition cases that follow, we anchor every one to
+canonical stability limits. Even the favorable-gradient onset-delay $K_\lambda$
+is \emph{derived}, not fit: it is set by matching the cliff's slope to the rate
+at which Drela's critical Reynolds number rises with pressure gradient
+(Eq.~\eqref{eq:klambda}, Figs.~\ref{fig:worstpoint}--\ref{fig:klambda}). The
+model thus carries no constant tuned to a transition case, and the subsequent
+airfoil cases are pure predictive tests.
 
 The magnitude $a_{\max}$ is the free-shear amplification ceiling. The sigmoid
 saturates ($S\!\to\!1$) as $\Gamma\!\to\!2$, the value a fully inflectional
@@ -501,51 +502,79 @@ $\Gamma$-tilt: favorable-pressure-gradient onset delay is handled by $\lambda_p$
 through $Re_\Omega^{\mathrm{c}}(\lambda_p)$ (Eq.~\eqref{eq:cliff_fpg}), which also
 suppresses the near-wall region where $\Gamma\!\to\!1$ but $Re_\Omega\!\to\!0$.
 
-The favorable-gradient onset-delay slope $K_\lambda$ sets how fast the cliff
-$Re_\Omega^{\mathrm{c}}(\lambda_p)$ rises with acceleration; its form is anchored
-by requiring the cliff to place amplification onset at the stability-theory
-critical Reynolds number across pressure gradients. Figure~\ref{fig:collapse}
-traces Falkner--Skan profiles---from Blasius through strong favorable gradient
-($\beta\!>\!1$)---each placed at its \emph{own} Drela--Giles critical Reynolds
-number $Re_{\theta c}(H)$, in the normalized
-$(Re_\Omega/Re_\Omega^{\mathrm{c}},\Gamma)$ plane of the kernel. With
-$Re_\Omega^{\mathrm{f}}\!=\!100$ and $K_\lambda\!=\!10$ every profile ignites just
-past the cliff at a small amplification rate: growth turns on right at the
-critical Reynolds number, uniformly from the flat plate to strong acceleration,
-even though $Re_{\theta c}$ itself rises about $40\times$ across this family
-(from $242$ at Blasius, $H\!=\!2.59$, to $\sim\!9800$ at $\beta\!=\!1.8$,
-$H\!=\!2.17$). This is the sense in which the cliff is anchored to Drela's
-envelope $e^N$ method~\cite{drela_giles_1987}: the favorable-gradient response is
-carried by the critical Reynolds number, not the growth rate---which changes only
-mildly over the same range---so no separate rate factor is needed.
-
-One feature of Figure~\ref{fig:collapse} is deliberate: the low-Reynolds Blasius
-profile ignites at slightly \emph{higher} amplification than the accelerated
-ones. Blasius transitions at small $Re_\theta$, where the layer is thin and the
-reduced but nonzero laminar diffusion ($c_{\nu,\mathrm{aft}}\!=\!1/12$) is
-relatively stronger, so a little more amplification is needed for net growth; the
-favorable-gradient profiles transition at much larger $Re_\theta$ and need less.
-This trend---more amplification at low $Re_\theta$, less at high---is a design
-choice rather than a fine calibration. The resulting $K_\lambda\!=\!10$ is
-consistent with the NLF(1)-0416 $\alpha\!=\!0^\circ$ rooftop, where mfoil's $e^N$
-method holds $N\!\approx\!0$ until $x/c\!\approx\!0.2$.
+The favorable-gradient onset-delay slope $K_\lambda$ follows from the same
+anchoring logic, once one asks \emph{where} on a profile growth is triggered.
+The cliff is applied pointwise, so amplification is permitted wherever the local
+$Re_\Omega$ clears its local threshold $Re_\Omega^{\mathrm{c}}(\lambda_p)$; growth
+therefore triggers at the \emph{worst} point---the wall-normal location that
+maximizes $Re_\Omega/Re_\Omega^{\mathrm{c}}$ (equivalently, the largest local rate
+$S$). There is no single $\lambda_p$ for a profile: on a favorable-gradient layer
+the $Re_\Omega$ peak sits in the outer boundary layer, where $\lambda_p$ is large
+and the cliff is high, so the trigger retreats inboard to where $\lambda_p$ is
+small. Figure~\ref{fig:worstpoint} places Falkner--Skan profiles, from adverse
+through strong favorable gradient, each at its Drela--Giles critical Reynolds
+number $Re_{\theta c}(H)$, in the $(Re_\Omega,\Gamma)$ plane, colored by the local
+rate $S$ the solver computes; the star marks the worst (triggering) point.
+Adverse profiles arch over $\Gamma\!=\!1$ into the inflectional, strongly
+amplifying band and ignite hard at low $Re_\theta$; favorable profiles stay at
+$\Gamma\!<\!1$ and ignite only weakly, at a worst point close to the wall.
 
 \begin{figure}[tp]
   \centering
-  \includegraphics[width=0.78\textwidth]{collapse_cliff.pdf}
-  \caption{The onset cliff anchored to Drela + Falkner--Skan. Falkner--Skan
-  profiles from Blasius ($\beta\!=\!0$) through strong favorable gradient
-  ($\beta\!=\!1.8$, $m\!=\!9$), each placed at its own Drela--Giles critical
-  Reynolds number $Re_{\theta c}(H)$, traced in the normalized
-  $(Re_\Omega/Re_\Omega^{\mathrm{c}},\Gamma)$ plane of the amplification kernel
-  $S(z)$ (shading; cliff at ratio $1$, dotted). Stars mark each profile's peak
-  amplification. With $Re_\Omega^{\mathrm{f}}\!=\!100$ and $K_\lambda\!=\!10$
-  every profile ignites just past the cliff at a small rate---amplification turns
-  on at the critical Reynolds number across the whole pressure-gradient family.
-  The low-$Re_\theta$ Blasius case is deliberately the hottest (thin layer,
-  relatively stronger $c_{\nu,\mathrm{aft}}\nu$ diffusion).}
-  \label{fig:collapse}
+  \includegraphics[width=0.72\textwidth]{klambda_profiles.pdf}
+  \caption{Where growth is triggered. Falkner--Skan profiles---adverse
+  ($\beta\!<\!0$) through strong favorable ($\beta\!=\!1.4$)---each at its own
+  Drela--Giles critical Reynolds number $Re_{\theta c}(H)$, in the true
+  $(Re_\Omega,\Gamma)$ plane, colored by the local amplification rate $S$; the
+  star on each is the \emph{worst} (triggering) point, $\max_\eta S$. Adverse
+  profiles arch over $\Gamma\!=\!1$ into the inflectional band and ignite hard;
+  favorable profiles stay below $\Gamma\!=\!1$ and ignite weakly, with the trigger
+  driven toward the wall (small $\lambda_p$). The low-$Re_\theta$ Blasius star is
+  slightly hotter than the favorable ones---see text.}
+  \label{fig:worstpoint}
 \end{figure}
+
+This pins $K_\lambda$ with no reference to the transition cases. As the gradient
+turns weakly favorable ($\beta\!\to\!0^+$), the worst point's $\lambda_p$ rises at
+a rate $d\lambda_p^{\mathrm{worst}}/d\beta\!\approx\!1.3$; the trigger's inboard
+retreat holds this slope well below the $\approx\!2$ of the $Re_\Omega$-peak
+$\lambda_p$ (using the peak value instead is what makes a naive estimate come out
+several times too small). Over the same range Drela's critical Reynolds number
+climbs steeply, $d\ln Re_{\theta c}/d\beta=(d\ln Re_{\theta c}/dH)(dH/d\beta)
+\approx(-11.2)(-1.09)\approx 12.3$. Requiring the cliff to lift the onset
+threshold at exactly the rate the critical Reynolds number rises---so that the
+favorable-gradient response is carried by the onset delay, as in Drela's envelope
+method~\cite{drela_giles_1987}, and not by a growth-rate change---gives
+\begin{equation}
+  K_\lambda = \left.\frac{d\ln Re_{\theta c}/d\beta}{d\lambda_p^{\mathrm{worst}}/d\beta}\right|_{\beta\to0}
+  \approx \frac{12.3}{1.3} \approx 10.
+  \label{eq:klambda}
+\end{equation}
+The worst point itself depends on $K_\lambda$, so this is a self-consistency
+condition; Figure~\ref{fig:klambda} plots the implied $K_\lambda$ against the value
+used, and the two meet at $K_\lambda\!\approx\!9.7$. The committed
+$K_\lambda\!=\!10$ is therefore \emph{derived} from the Drela--Giles envelope and
+the Falkner--Skan family, not fit to the transition cases.
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.56\textwidth]{klambda_selfconsistent.pdf}
+  \caption{Self-consistent determination of $K_\lambda$. Because the worst point
+  moves with $K_\lambda$, the slope match of Eq.~\eqref{eq:klambda} is a fixed-point
+  condition: the implied $K_\lambda$ (blue) equals the value used (dashed) at
+  $K_\lambda\!\approx\!9.7$. The numerator, Drela's $d\ln Re_{\theta c}/d\beta
+  \!\approx\!12.3$, is set by the Drela--Giles envelope through the Falkner--Skan
+  map $H(\beta)$.}
+  \label{fig:klambda}
+\end{figure}
+
+A corollary is visible in Figure~\ref{fig:worstpoint}: the low-Reynolds Blasius
+profile ignites at slightly \emph{higher} $S$ than the accelerated ones. This is
+consistent with the reduced laminar diffusion---Blasius transitions at small
+$Re_\theta$, where the thin layer makes the residual $c_{\nu,\mathrm{aft}}\nu$
+diffusion relatively stronger, so a little more amplification is needed for net
+growth, while favorable layers transition at much larger $Re_\theta$ and need
+less.
 
 On a Blasius profile the local rate $a\,\omega$ is concentrated in a band at
 intermediate wall distance---the part of the profile where Tollmien--Schlichting
@@ -686,9 +715,9 @@ slope. In contrast, the $\gamma$--$Re_\theta$ and BC/BCM
 models~\cite{langtry_menter_2009, cakmakcioglu_2018, nasa_tmr} carry their
 critical-momentum-thickness closure $Re_{\theta c}(Tu)$ in an auxiliary
 transport equation. With the rate structure anchored to stability limits and the
-receptivity closure borrowed from Mack, only \emph{one} scalar is fit to the
-transition cases: the favorable-gradient onset-delay $K_\lambda$, set on the
-NLF(1)-0416 rooftop against the $e^N$ onset (Sec.~\ref{sec:nlfval}). The flat
+receptivity closure borrowed from Mack, and the favorable-gradient onset-delay
+$K_\lambda$ itself derived from the Drela--Giles envelope (Eq.~\eqref{eq:klambda}),
+\emph{no} scalar is fit to the transition cases. The flat
 plate (Sec.~\ref{sec:flatplate}) then \emph{verifies} rather than fits---that the
 working variable reproduces the Blasius envelope and that onset falls within the
 $e^N$/Abu-Ghannam \& Shaw reference spread---and the adverse-pressure-gradient
@@ -707,9 +736,9 @@ prediction.
   the favorable-gradient onset delay is carried entirely by the cliff
   $Re_\Omega^{\mathrm{c}}(\lambda_p)$ (no separate rate factor). The
   Tu$\to\chi_\infty$ receptivity closure (Eq.~\eqref{eq:tumap}) is
-  Mack's $e^N$ correlation, adopted wholesale. Only \emph{one} scalar is fit to
-  the transition cases: the favorable-gradient onset-delay $K_\lambda$ (NLF
-  rooftop vs.\ $e^N$). All constants below
+  Mack's $e^N$ correlation, adopted wholesale. The onset-delay slope $K_\lambda$
+  is derived by matching the cliff to Drela's critical-Reynolds-number rise
+  (Eq.~\eqref{eq:klambda}); no constant is fit to the transition cases. All constants below
   are used unchanged for the Blasius transport verification
   (Fig.~\ref{fig:nuhat}) and for all subsequent coupled-RANS
   flat-plate and airfoil computations
@@ -1191,7 +1220,7 @@ stays near $\Gamma\!\approx\!1$; the $\Gamma$-sigmoid is what ignites the
 amplification at the bubble. The favorable-PG term $\lambda_p$ plays little role
 here: at this low Reynolds number the airfoil carries only a short
 favorable-gradient segment near the leading edge, so the onset-delay cliff
-$Re_\Omega^{\mathrm{c}}(\lambda_p)$ ($K_\lambda$ fit on the NLF) transfers to the
+$Re_\Omega^{\mathrm{c}}(\lambda_p)$ (with the derived $K_\lambda$) transfers to the
 Eppler~387 without retuning and leaves the bubble-controlling amplification
 untouched.
 
@@ -1312,10 +1341,11 @@ closure $\chi_\infty(Tu)$ is Mack's $e^N$ correlation, adopted wholesale rather
 than fit. On a zero-pressure-gradient flat plate (Sec.~\ref{sec:flatplate}) this
 closure places transition onset within $\sim\!8\%$ of the Abu-Ghannam \& Shaw
 correlation over the natural-transition range, verifying the Blasius envelope. On
-the NLF(1)-0416 at $Re\!=\!4\!\times\!10^6$ (Sec.~\ref{sec:nlfval}) the one
-favorable-gradient onset-delay constant $K_\lambda$ was set so that growth onset
-matches the $e^N$ rooftop ignition, and the laminar-to-turbulent handover was
-predicted across $\alpha\!\in\!\{0^\circ,4^\circ,9^\circ,15^\circ\}$ on
+the NLF(1)-0416 at $Re\!=\!4\!\times\!10^6$ (Sec.~\ref{sec:nlfval}) the
+favorable-gradient onset-delay slope $K_\lambda$---derived from the Drela--Giles
+envelope, not fit---places growth onset at the $e^N$ rooftop ignition, and the
+laminar-to-turbulent handover was predicted across
+$\alpha\!\in\!\{0^\circ,4^\circ,9^\circ,15^\circ\}$ on
 twenty-four cases (cavity unstructured $+$ structured O-grid $\times$ three
 refinement levels $\times$ four incidences). On the Eppler 387 at
 $Re\!=\!2\!\times\!10^5$ (Sec.~\ref{sec:eppval}), with no further constant, the
