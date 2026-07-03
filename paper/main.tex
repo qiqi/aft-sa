@@ -181,9 +181,9 @@ growth ceiling, the Blasius $e^N$ envelope, Drela's critical Reynolds number, an
 Mack's freestream-turbulence receptivity---so that no constant is fit to the
 transition cases (even the onset-delay slope $K_\lambda$ is derived, by matching
 the cliff to the rate Drela's critical Reynolds number rises with gradient).
-Section~\ref{sec:impl} details the numerical implementation, including the
-analytic source Jacobian. The model is then exercised across three
-pressure-gradient regimes of increasing complexity.
+Section~\ref{sec:impl} notes the solver and how the model is seeded. The model
+is then exercised across three pressure-gradient regimes of increasing
+complexity.
 Section~\ref{sec:flatplate} uses a zero-pressure-gradient flat plate to verify
 the seed map against the Abu-Ghannam \& Shaw transition-onset correlation over
 the natural-transition $Tu$ range, confirming the Blasius envelope and onset.
@@ -395,8 +395,9 @@ The $\max$ hands the production cleanly from amplification to SA at the
 crossover: for $\chi\!\le\!1$ ($\sigma_t\!=\!0$) it returns $P_\mathrm{AFT}$,
 leaving the $e^N$ amplification unchanged, and once $\sigma_t P_\mathrm{SA}$
 overtakes it just past $\chi\!=\!1$ the source reverts to standard SA with no
-laminar residue (a residue, left in, can drive a transition-front limit cycle;
-Sec.~\ref{sec:blendnlf}). Gating the destruction by $\sigma_t$ is likewise
+laminar residue (a pressure-sensitive residue left past $\chi\!=\!1$ would couple
+the transition front to the outer pressure field; Sec.~\ref{sec:blendnlf}).
+Gating the destruction by $\sigma_t$ is likewise
 essential, since the SA wall-damping destruction would otherwise quench the
 gentle amplification; the limit $\sigma_t\!\to\!1$ recovers the unmodified SA
 equation and its fully turbulent calibration (log law, freestream decay).
@@ -772,25 +773,22 @@ prediction.
   \end{tabular}
 \end{table}
 
-\section{Numerical Implementation}\label{sec:impl}
+\section{Solver and seeding}\label{sec:impl}
 
-The model is implemented in Flow360, an implicit, GPU-accelerated, unstructured
-finite-volume RANS solver. The only change relative to the baseline SA model is in
-the production/destruction of the turbulence equation, Eq.~\eqref{eq:blend}; the
-convective and diffusive operators, boundary conditions, and the implicit
-pseudo-transient time integration are unchanged. The analytic production Jacobian of
-Sec.~\ref{sec:model} is supplied to the same point-implicit linear solve used for the
-baseline model. As is standard for SA-like equations, the diagonal contribution of
-the production Jacobian is clipped to be non-positive in the implicit assembly
-(equivalent to treating the production as a destruction-like term in the linearization
-while retaining its full value on the right-hand side); this preserves diagonal
-dominance under the gentle amplification, where $\partial P_\mathrm{AFT}/\partial\tilde\nu = a\,\omega > 0$. The freestream boundary value $\tilde\nu_\infty$ is prescribed through
-the freestream modified-viscosity ratio $\chi_\infty$; as with all SA computations a
-small but nonzero $\chi_\infty$ persists to the body, and here it additionally sets
-the disturbance seed. The interior $\tilde\nu$ field is also initialized at this
-laminar level $\chi_\infty$, not at the solver's default near-turbulent value: since
-the SA dynamics do not relaminarize, a turbulent initial field would otherwise persist
-from the leading edge on a fine mesh and bypass the transition model entirely.
+The results below were produced with Flow360, an unstructured, second-order
+finite-element RANS solver with a Roe flux; the numerical scheme is otherwise
+irrelevant to the model and we do not dwell on it. The only change from the
+baseline SA model is the production/destruction of Eq.~\eqref{eq:blend}, and
+because the amplification rate depends only on the local mean flow
+(Sec.~\ref{sec:model}), the modified source keeps an analytic Jacobian and is
+integrated exactly as the baseline turbulence equation is.
+
+Two points of \emph{usage} bear on the model itself. First, the freestream
+modified-viscosity ratio $\chi_\infty$ sets both the SA freestream value and the
+disturbance seed (Sec.~\ref{sec:calib}). Second, the interior $\tilde\nu$ field is
+initialized at this laminar level $\chi_\infty$ rather than the solver's default
+near-turbulent value: since SA does not relaminarize, a turbulent initial field
+would persist from the leading edge and bypass the transition model.
 
 \section{Zero pressure gradient: the Blasius flat plate}\label{sec:flatplate}
 
@@ -857,7 +855,7 @@ $Tu\!=\!0.04\%$), rising to $+7.7\%$ at the $Tu\!=\!0.60\%$ edge of the range,
 and the onset falls within the Schubauer--Skramstad band throughout. The eddy-viscosity rise from
 $\chi\!=\!1$ to $c_{v1}$ is deliberately gentle, so the modeled transition is
 more gradual in $Re_\theta$ than the experimental band is wide --- a consequence
-of the soft handover \eqref{eq:sigma} chosen for stable implicit coupling. The
+of the soft handover \eqref{eq:sigma}. The
 seed slope $B\!=\!2.4$ in Eq.~\eqref{eq:tumap} is Mack's $e^N$
 value~\cite{mack_1977}, adopted rather than fit; appreciable growth sets in near
 $Re_\theta\!\approx\!200$, consistent with Drela's $Re_{\theta,\mathrm{crit}}$ for
@@ -925,10 +923,9 @@ $2.0$ at L0 to $1.25$ at L2 so that the local cell size at fixed chord-distance
 from the TE also halves); the structured O-grid is generated with the same
 contour by Construct2D. Every length scale---surface point count, $h_0$,
 growth-ratio offset $(g-1)$, TE step, and TE ramp---refines by a factor of two
-per level. The freestream $\chi_\infty$ is compensated for the slowdown factor
-$f_\mathrm{slow}\!=\!0.01$ of Sec.~\ref{sec:blendnlf} so the in-domain ratio matches
-the half-saturation anchor (input $\chi_\infty^{(in)}\!=\!8.76\!\times\!10^{-6}$;
-in-domain $\chi_\infty\!=\!\chi_\infty^{(in)}/f_\mathrm{slow}\!=\!8.76\!\times\!10^{-4}$).
+per level. The freestream modified-viscosity ratio is set to the $N_\mathrm{crit}\!=\!9$
+anchor, $\chi_\infty\!=\!c_{v1}e^{-9}\!\approx\!8.76\!\times\!10^{-4}$
+(Sec.~\ref{sec:calib}).
 Figures~\ref{fig:nlfmesh_str} and~\ref{fig:nlfmesh_cav} show the two mesh
 families at the leading and trailing edges across the three refinement levels.
 
@@ -949,9 +946,8 @@ $\lambda_p$), so sliver-induced errors in the least-squares gradients feed
 straight into the amplification rate. That the cavity and O-grid families
 nevertheless predict the same transition---agreeing in drag to within
 $\Delta C_d\!\approx\!6\!\times\!10^{-4}$ through $\alpha\!=\!9^\circ$ (rising to
-$\approx\!1\!\times\!10^{-3}$ at $\alpha\!=\!15^\circ$) at L2, once the transition
-front is fully converged (below)---is therefore a genuine robustness result, not
-merely a grid-convergence check.
+$\approx\!1\!\times\!10^{-3}$ at $\alpha\!=\!15^\circ$) at L2---is therefore a
+genuine robustness result, not merely a grid-convergence check.
 
 \begin{figure}[tp]
   \centering
@@ -1049,53 +1045,19 @@ $y^+$/resolution effect that the L1 mesh removes).
 
 \subsection{Marginal natural transition and the production blend}\label{sec:blendnlf}
 
-The NLF(1)-0416 exposes a coupling that fixes the form of the production blend
-\eqref{eq:blend}. Its long favorable-gradient rooftop keeps the boundary layer near
-neutral over an extended chord fraction, so the amplification ignites only where
-recovery begins ($\Gamma\!\to\!1$) and the transition location is marginal. On the
-fine structured O-grid, a \emph{convex} blend $\sigma_t P_\mathrm{SA}+(1-\sigma_t)
-P_\mathrm{AFT}$ then fails to reach a steady state: the transition front breathes with
-a $\pm$few-percent drag oscillation at fixed pseudo-time settings. The oscillation is
-not numerical---it is invariant to the pseudo-time step---but a genuine feedback. Its
-signature is \emph{global}: the surface pressure at the leading edge, far upstream of
-transition, oscillates in near-perfect anti-phase with the lift coefficient
-($\mathrm{corr}\approx-1$), which a local disturbance could not produce. The loop is
-transition $\to$ boundary-layer displacement $\to$ Kutta circulation $\to$ effective
-incidence $\to$ the pressure-gradient (shape-factor) sensitivity of the amplification
-at the front $\to$ transition. Because the amplification rate depends on $\Gamma$
-through a steep activation \eqref{eq:rate}, even the $\mathcal{O}(1\%)$ circulation
-breathing is enough to move a marginal front; on coarser or more dissipative meshes
-the feedback is damped and the issue does not appear.
-
-The carrier of this receptivity is exactly the term the convex blend retains past
-transition: the $(1-\sigma_t)P_\mathrm{AFT}$ bleed for $\chi>1$, which keeps the
-\emph{pressure-sensitive} amplification weighted into the early-turbulent region where
-the front lives. The $\max$ blend \eqref{eq:blend} removes it---once $\sigma_t
-P_\mathrm{SA}$ overtakes amplification just past $\chi=1$, the production is purely the
-pressure-\emph{insensitive} SA term---so the front carries no receptivity to the global
-pressure field and the computation converges to steady state. With \eqref{eq:blend} the
-O-grid NLF(1)-0416 reaches a steady solution at every incidence,
-the transition location agrees with the unstructured mesh
-and tracks the $e^N$ reference across the incidence range, and the
-laminar/amplification calibration is untouched ($\max$ and convex are identical
-for $\chi\le1$).
-
-A second, weaker form of the same coupling persists with the $\max$ blend on
-the unstructured cavity grid: a slow chi-front breathing whose amplitude
-remains finite at long pseudo-times. A small laminar slowdown factor
-$f_\mathrm{slow}\!=\!0.01$ multiplying the amplification production
-geometrically through a blend variable
-$\mathrm{scale}\!=\!f_\mathrm{slow}^{\,1-g_\mathrm{slow}}$ damps this residual
-feedback without shifting the converged transition location. The slowdown
-gate $g_\mathrm{slow}(\chi)\!=\!1\!-\!\exp\!\big(-(\chi-\chi_\mathrm{slow})/w_\mathrm{slow}\big)$
-holds the slowdown FULLY ON throughout $\chi\!\in\![0,\chi_\mathrm{slow}]$
-and only relaxes once $\chi$ crosses the eddy-viscosity half-saturation point;
-we set $\chi_\mathrm{slow}\!=\!c_{v1}\!=\!7.1$ (the slowdown gate spans the
-entire breathing $\chi\!\in\![1,c_{v1}]$ band where the transition-front
-receptivity actually lives) with $w_\mathrm{slow}\!=\!4$. With both
-modifications --- the $\max$ production blend and the $c_{v1}$-anchored
-geometric slowdown --- all twenty-four cases converge to a steady
-state with no residual limit cycle.
+The form of the production blend~\eqref{eq:blend}---a $\max$ rather than a convex
+combination---matters on the NLF(1)-0416. Its long favorable-gradient rooftop
+keeps the boundary layer near neutral over an extended chord, so transition is
+marginal and the early-turbulent region just past $\chi\!=\!1$ sits close behind
+the front. A convex blend $\sigma_t P_\mathrm{SA}+(1-\sigma_t)P_\mathrm{AFT}$
+would leave a $(1-\sigma_t)P_\mathrm{AFT}$ bleed there, keeping the
+\emph{pressure-sensitive} amplification weighted into that region and coupling the
+front---through the airfoil's circulation---to the outer pressure field. The
+$\max$ form removes it: once $\sigma_t P_\mathrm{SA}$ overtakes amplification just
+past $\chi\!=\!1$ the production is the pressure-\emph{insensitive} SA term, so the
+front carries no residual receptivity to the outer pressure field, while the
+laminar amplification is untouched ($\max$ and convex coincide for
+$\chi\!\le\!1$).
 
 \begin{figure}[tp]
   \centering
@@ -1145,10 +1107,9 @@ test for a transition model.
 
 The model is evaluated at the de-facto benchmark condition of the
 transition-modeling literature: $Re\!=\!2\!\times\!10^5$, $M\!=\!0.1$, across
-$\alpha\!\in\!\{0^\circ,2^\circ,5^\circ,7^\circ\}$, with the freestream seed
-$\chi_\infty^{(in)}\!=\!8.76\!\times\!10^{-6}$ matched to $N_\mathrm{crit}\!=\!9$
-under the same $f_\mathrm{slow}\!=\!0.01$ slowdown used for the NLF (in-domain
-$\chi_\infty\!=\!8.76\!\times\!10^{-4}$, the LTPT-class anchor). Three
+$\alpha\!\in\!\{0^\circ,2^\circ,5^\circ,7^\circ\}$, with the freestream seed at
+the same $N_\mathrm{crit}\!=\!9$ anchor as the NLF,
+$\chi_\infty\!=\!8.76\!\times\!10^{-4}$ (the LTPT-class value). Three
 refinement levels on two independently-generated mesh families
 (unstructured cavity, structured O-grid) give twenty-four cases.
 
@@ -1269,7 +1230,7 @@ untouched.
   \\[2pt]{\footnotesize $^\dagger$ mfoil at $\alpha=7^\circ$, $Re=200k$ sits at
   the edge of its convergence regime and returns an unreliable $x_\mathrm{tr}$;
   $C_L\!=\!0.928$ is below the $\alpha\!=\!5^\circ$ value, indicating numerical
-  stall onset. Flow360's monotone forward march and the NASA oil-flow
+  stall onset. The present computation and the NASA oil-flow
   turbulent-reattachment locations agree on the trend.}
 \end{table}
 
@@ -1320,32 +1281,6 @@ finite-span increments that the quasi-2D computation omits. The structured
 O-grid and unstructured meshes bracket the same polar to within
 $\Delta C_d\!\approx\!2\times10^{-4}$ at L2.
 
-\paragraph{Convergence by transition location.} The receding-front laminar
-transient described in Sec.~\ref{sec:blendnlf} for the NLF makes the
-residual a poor stopping criterion: a run can show a continuity residual
-below $10^{-9}$ while the transition front is still moving by $0.05$--$0.10\,c$
-per $10^4$ pseudo-steps. The front migrates through a marginally-amplifying band
-where $a\,\omega$ is tiny, so its motion barely perturbs the global residual,
-which is dominated by the already-converged bulk of the field. We accordingly stop each case by transition-location
-stability instead: the run is broken into $5000$-step batches; after each batch
-the in-BL $\chi$ field is sampled along both surfaces and the first chord
-location where $\max_y\chi\!>\!1$ is extracted as $x_\mathrm{tr}$; the case
-is declared converged when $|\Delta x_\mathrm{tr}|\!<\!0.01\,c$ on both
-surfaces for three consecutive batches. All twenty-four E387 cases reached
-this criterion in $20$--$35\!\times\!10^3$ pseudo-steps (the consec=3
-requirement also recovers cleanly from the early leading-edge ``burst''
-transient on the L2 meshes, which can hold $x_\mathrm{tr}\!=\!0$ for the first
-two batches before the front begins to recede). The same monitor was
-retroactively applied to the NLF runs of Sec.~\ref{sec:nlfval}. For the slowest
-cases---the high-incidence NLF airfoil on the finest (L2) grids, where under the
-$f_\mathrm{slow}\!=\!0.01$ damping the front recedes only marginally per
-$10^4$ steps and a fixed budget under-converges---the front is first advanced to
-its settled location with the slowdown released ($f_\mathrm{slow}\!=\!1$) and then
-re-damped ($f_\mathrm{slow}\!=\!0.01$) to quench the residual breathing; this
-two-stage restart reaches the same steady state far faster than
-$f_\mathrm{slow}\!=\!0.01$ alone: the two routes agree in transition location to
-$|\Delta x_\mathrm{tr}|\!<\!0.01\,c$ and in drag to $\sim\!10^{-4}$.
-
 \section{Conclusion}
 
 The Spalart--Allmaras working variable can serve as its own transition
@@ -1355,9 +1290,9 @@ $\chi\!\sim\!1$, a single transport equation predicts natural transition
 without any auxiliary field---occupying a cell left empty by
 amplification-factor transport (which transports a separate factor) and by
 algebraic SA-transition models (which keep $\tilde\nu$ turbulent and gate it
-externally). Because the amplification rate is independent of the working
-variable, the modified source keeps an analytic Jacobian and integrates
-implicitly at the cost of the baseline model.
+externally). Because the amplification rate depends only on the local mean flow
+and not on the working variable, the source is local and analytically
+differentiable, like the baseline SA production it replaces.
 
 The amplification rate is anchored to canonical stability limits---the free-shear
 rate ($a_{\max}$), the Blasius $e^N$ envelope ($s,g_c$), the critical Reynolds
@@ -1383,10 +1318,8 @@ recirculation directly and the transition tracks the $e^N$ reference at the
 four canonical incidences across another twenty-four cases on the same
 two-family ladder. The same unified constants (Table~\ref{tab:const}) were used
 throughout. Across both airfoils the L1$\to$L2 transition-location drift is at
-or below the $0.01\,c$ stopping tolerance, and the two independently-generated
-mesh families agree to within a few percent of chord; this is reported under a
-transition-location-based convergence monitor that replaces the (misleading)
-residual-only criterion when a slow receding-front transient is present.
+or below $0.01\,c$, and the two independently-generated mesh families agree to
+within a few percent of chord.
 
 Several extensions follow. The constants adopted here are ballpark values
 anchored to canonical limits and rounded for convenience (e.g.\
