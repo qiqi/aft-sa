@@ -15,8 +15,8 @@ def blasiusEqn(eta, y):
 
 def findh0(h0):
     """Find wall shear h0 such that f'(∞) = 1."""
-    f0, g0 = 0, 0
-    initVals = np.array([f0, g0, h0], dtype=object)
+    h0 = float(np.asarray(h0).reshape(-1)[0])   # fsolve passes a 1-element array
+    initVals = np.array([0.0, 0.0, h0], dtype=float)
     res = integrate.RK45(blasiusEqn, 0, initVals, 100)
     for i in range(100):
         res.step()
@@ -61,12 +61,12 @@ def falknerSkanEqn(eta, y, beta):
 
 def shoot_boundary_condition(h0, beta):
     """Shooting target: f'(∞) = 1."""
-    f0, g0 = 0, 0
-    initVals = np.array([f0, g0, h0], dtype=object)
+    h0 = float(np.asarray(h0).reshape(-1)[0])   # fsolve passes a 1-element array
+    initVals = np.array([0.0, 0.0, h0], dtype=float)
     res = solve_ivp(
         fun=lambda t, y: falknerSkanEqn(t, y, beta),
         t_span=(0, 10),
-        y0=initVals.astype(float),
+        y0=initVals,
         max_step=0.1
     )
     return 1.0 - res.y[1][-1]
@@ -81,14 +81,13 @@ def solve_falkner_skan(beta, guess=None):
         elif beta < 0: guess = 0.05
         else: guess = 0.05 + beta * 2
 
-    h0 = fsolve(shoot_boundary_condition, guess, args=(beta,))[0]
+    h0 = float(fsolve(shoot_boundary_condition, guess, args=(beta,))[0])
 
-    f0, g0 = 0, 0
-    initVals = np.array([f0, g0, h0], dtype=object)
+    initVals = np.array([0.0, 0.0, h0], dtype=float)
     res = solve_ivp(
         fun=lambda t, y: falknerSkanEqn(t, y, beta),
         t_span=(0, 10),
-        y0=initVals.astype(float),
+        y0=initVals,
         max_step=0.01
     )
 
