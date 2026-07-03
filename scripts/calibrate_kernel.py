@@ -35,8 +35,12 @@ A_MAX = 0.15   # no-tilt cliff_floor=100, p=4 matches S-S ±12% with growth star
 # transition threshold; it is BORROWED, not fit. The SA-AI seed/threshold pair
 # (seed chi_inf, transition at chi=c_v1) is isomorphic to the e^N envelope/N_crit
 # split, so N_crit = ln(c_v1/chi_inf) is exactly the e^N threshold and B_TU IS the
-# Mack slope. K_lambda (favorable-gradient onset delay) is then the ONLY fitted
-# scalar in the model.
+# Mack slope. K_lambda (favorable-gradient onset delay) is DERIVED, not fit: it is
+# set by matching the cliff's slope to the rate Drela's critical Re_theta rises
+# with pressure gradient, evaluated at the worst (most-triggering) point of the
+# Falkner-Skan family -- K_lambda = (d ln Re_theta_c/dbeta)/(d lambda_p^worst/dbeta)
+# ~ 12.3/1.3 ~ 10 (self-consistent fixed point 9.7). See paper Sec. calib
+# (regen_klambda.py). The model thus carries NO constant fit to a transition case.
 #
 # The flat plate (paper Sec. flat-plate) then VERIFIES that (i) the working
 # variable reproduces the Blasius amplification envelope and (ii) onset falls
