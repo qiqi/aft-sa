@@ -175,9 +175,11 @@ analytically differentiable source.
 SA-AI is scoped to natural (Tollmien--Schlichting) transition.
 Section~\ref{sec:model} formulates the model: the blended production term that
 lets $\tilde\nu$ amplify in the laminar range and revert to standard SA past
-handover. Section~\ref{sec:calib} anchors the amplification kernel to canonical
-stability limits and fixes the freestream-turbulence seed map
-$\chi_\infty(Tu)$---Mack's $e^N$ correlation adopted wholesale.
+handover. Section~\ref{sec:calib} fixes every constant of the model by anchoring
+it to a canonical stability limit or established correlation---the free-shear
+growth ceiling, the Blasius $e^N$ envelope, Drela's critical Reynolds number, and
+Mack's freestream-turbulence receptivity---with a single favorable-gradient
+onset-delay constant the only quantity fit to the transition cases.
 Section~\ref{sec:impl} details the numerical implementation, including the
 analytic source Jacobian. The model is then exercised across three
 pressure-gradient regimes of increasing complexity.
@@ -300,79 +302,70 @@ Eq.~\eqref{eq:paft},
   \quad S(z)=\frac{1}{1+e^{-z}},
   \label{eq:rate}
 \end{equation}
-with $a\equiv0$ for $Re_\Omega\le Re_\Omega^{\mathrm{c}}$, and where $S$ is the
-logistic function. The sigmoid argument $z$ superposes two effects. The
-$\Gamma$ term $s(\Gamma-g_c)$---with $\Gamma$-sigmoid steepness $s\!=\!5.263$ and
-center $g_c\!=\!1.572$---switches amplification on as the profile fills out toward
-the inflectional value $\Gamma\!\to\!2$; because $g_c$ sits above the
-attached-layer asymptote $\Gamma\!=\!1$, it places a Blasius profile on the low
-shoulder and inflectional (near-separation) profiles on the high shoulder. The log-barrier term drives
-$z\!\to\!-\infty$ as $Re_\Omega\!\to\!Re_\Omega^{\mathrm{c}}$ from above and
-vanishes for $Re_\Omega\!\gtrsim\!2\,Re_\Omega^{\mathrm{c}}$ (the high exponent
-$p\!=\!4$ makes the cutoff near-Heaviside while leaving the amplifying band away
-from the cliff unattenuated). Its baseline cliff is the floor
-$Re_\Omega^{\mathrm{c}}\!=\!Re_\Omega^{\mathrm{f}}\!=\!100$, chosen so the Blasius
-growth onset matches Drela's $Re_{\theta,\mathrm{crit}}\!\approx\!200$. Because
-$Re_\Omega\!=\!d^2\omega/\nu\!\to\!0$
-at the wall, the same barrier suppresses the viscous sublayer robustly under mesh
-refinement, where $\Gamma\!\to\!1$ is a generic near-wall asymptote rather than a
-true instability. The single favorable-pressure-gradient effect enters through the
-cliff itself: $Re_\Omega^{\mathrm{c}}$ is a function of $\lambda_p$
-(Eq.~\eqref{eq:cliff_fpg} below), rising in accelerating flow so that the
-growth-onset threshold is pushed downstream---there is no separate rate-suppression
-factor. Both terms depend only on the local mean flow, not on $\tilde\nu$, so the
-rate \eqref{eq:rate} preserves the analytic Jacobian of Sec.~\ref{sec:impl}.
+with $a\equiv0$ for $Re_\Omega\le Re_\Omega^{\mathrm{c}}$, and $S$ the logistic
+function. The argument $z$ superposes two physically distinct decisions. The
+$\Gamma$ term $s(\Gamma-g_c)$ switches amplification on as the profile fills out
+toward the inflectional value $\Gamma\!\to\!2$; its center $g_c$ is placed
+\emph{above} the attached-layer asymptote $\Gamma\!=\!1$, so an attached
+zero-pressure-gradient profile sits on the low shoulder of the sigmoid and only
+fuller, inflectional (near-separation) profiles reach the top. The log-barrier
+term is an onset threshold: it drives $z\!\to\!-\infty$ as
+$Re_\Omega\!\to\!Re_\Omega^{\mathrm{c}}$ from above and switches off once
+$Re_\Omega$ has cleared the cliff, so amplification is forbidden until the layer
+is thick enough and then proceeds essentially unattenuated. Two consequences
+follow with no added machinery. First, since
+$Re_\Omega\!=\!d^2\omega/\nu\!\to\!0$ at the wall, the same threshold suppresses
+the viscous sublayer automatically---and ever more sharply under mesh
+refinement, where $\Gamma\!\to\!1$ is a generic near-wall limit, not a true
+instability. Second---and this is the one modeling decision we make about
+pressure gradient---a favorable gradient acts \emph{only} by raising the onset
+threshold $Re_\Omega^{\mathrm{c}}(\lambda_p)$ (Eq.~\eqref{eq:cliff_fpg}),
+postponing the start of growth; it leaves the growth rate itself untouched.
+Favorable-gradient stabilization is therefore an \emph{onset delay}, not a rate
+suppression---a distinction we defend on stability-theory grounds and calibrate
+in Sec.~\ref{sec:calib}. Both terms read only the local mean flow, never
+$\tilde\nu$, so the rate carries an analytic Jacobian (Sec.~\ref{sec:impl}).
 Figure~\ref{fig:kernel} maps the kernel.
 
 \begin{figure}[tp]
   \centering
-  \includegraphics[width=0.62\textwidth]{kernel_maps.pdf}
-  \caption{The amplification-rate kernel $S(z)$ of Eq.~\eqref{eq:rate} over
-  $(Re_\Omega,\Gamma)$ at the baseline cliff (zero or adverse gradient,
-  $Re_\Omega^{\mathrm{c}}\!=\!Re_\Omega^{\mathrm{f}}\!=\!100$): the log barrier
-  zeroes the rate below the cliff floor (dotted), while above it the sigmoid
-  centered at $g_c\!=\!1.572$ (dashed) leaves attached Blasius-like profiles
-  ($\Gamma\!\approx\!1$) on the low shoulder and saturates on inflectional
-  profiles ($\Gamma\!\to\!2$). In favorable pressure gradient the cliff floor
-  shifts right to $Re_\Omega^{\mathrm{c}}(\lambda_p)$ (Eq.~\eqref{eq:cliff_fpg}),
-  delaying growth onset; there is no separate rate factor.}
+  \includegraphics[width=0.98\textwidth]{kernel_maps.pdf}
+  \caption{The amplification-rate kernel of Eq.~\eqref{eq:rate}, in full.
+  \textbf{(a)} The rate $S(z)$ over the \emph{normalized} vorticity Reynolds
+  number $Re_\Omega/Re_\Omega^{\mathrm{c}}$ and the profile-fullness indicator
+  $\Gamma$. Because the log barrier depends only on this ratio, the map is
+  \emph{universal}: it holds for every pressure gradient, with the onset cliff
+  always at $Re_\Omega/Re_\Omega^{\mathrm{c}}\!=\!1$ (dotted). The rate is zero
+  left of the cliff, rises as the layer clears it, and---set by the
+  $\Gamma$-sigmoid centered at $g_c$ (dashed)---leaves attached profiles
+  ($\Gamma\!\approx\!1$) on the low shoulder while saturating on inflectional
+  ones ($\Gamma\!\to\!2$). \textbf{(b)} The cliff location
+  $Re_\Omega^{\mathrm{c}}(\lambda_p)$ of Eq.~\eqref{eq:cliff_fpg}: a favorable
+  gradient ($\lambda_p\!>\!0$) is the only thing that moves the cliff, raising it
+  exponentially to delay onset, while zero and adverse gradients rest at the
+  floor $Re_\Omega^{\mathrm{f}}$. Together the panels are the complete content of
+  the rate---(b) places the cliff, (a) gives the universal shape above it.}
   \label{fig:kernel}
 \end{figure}
 
-\paragraph{Favorable-pressure-gradient cliff.} The single
-favorable-pressure-gradient mechanism is the cliff floor itself:
-$Re_\Omega^{\mathrm{c}}$ rises with $\lambda_p$, pushing the growth-onset
-threshold downstream in accelerating flow and matching the airfoil rooftop
-start-of-growth location:
+\paragraph{Favorable-pressure-gradient cliff.} The favorable-gradient effect
+enters through the threshold and nowhere else: $Re_\Omega^{\mathrm{c}}$ rises
+with $\lambda_p$, so an accelerating layer must grow thicker before amplification
+is permitted, postponing the onset of growth:
 \begin{equation}
   Re_\Omega^{\mathrm{c}}(\lambda_p) =
         Re_\Omega^{\mathrm{f}}\,
         \exp\!\big[K_\lambda\,\max(0,\lambda_p)\big].
   \label{eq:cliff_fpg}
 \end{equation}
-$K_\lambda\!=\!10$ is the study's only scalar fit to the transition cases, set
-against the NLF(1)-0416 $\alpha=0^\circ$ rooftop where mfoil's $e^N$ method puts
-$N\approx 0$ until $x/c\approx 0.2$.
-For $\lambda_p\!\le\!0$ (zero or adverse PG), the cliff floor reverts to
-$Re_\Omega^{\mathrm{f}}\!=\!100$ exactly, so Blasius and adverse-PG profiles
-are unaffected.
-
-Carrying the favorable-gradient effect entirely through this onset delay follows
-Drela's envelope $e^N$ method~\cite{drela_giles_1987}, in which the response to a
-favorable gradient is dominated by the critical Reynolds number, not the growth
-rate---which lets us anchor the cliff to stability theory rather than treat
-$K_\lambda$ as free. Along the Falkner--Skan family the shape factor falls
-monotonically as the gradient strengthens ($H\!=\!2.59\!\to\!2.22$ from Blasius to
-Hiemenz $\beta\!=\!1$, computed from the self-similar profiles), and the local
-indicator tracks it ($\lambda_p\!=\!0\!\to\!1.29$). Over that range Drela's
-critical Reynolds number $Re_{\theta c}(H)$ rises steeply---by
-$\approx\!27\times$---while his growth rate $d\tilde N/dRe_\theta(H)$ changes only
-mildly (to $\approx\!0.7$); the favorable-gradient stabilization is thus almost
-entirely an onset delay, exactly what the cliff provides and why no separate rate
-factor is needed. In the weak-gradient regime that sets airfoil rooftops the
-logarithmic slope $d\ln Re_{\theta c}/d\lambda_p\!\approx\!6.5$ is comparable to
-the fitted $K_\lambda\!=\!10$, so the one favorable-gradient constant is consistent
-with the $e^N$ critical Reynolds number rather than an independent tuning.
+Here $Re_\Omega^{\mathrm{f}}$ is the cliff floor and $K_\lambda$ the onset-delay
+slope. For $\lambda_p\!\le\!0$ (zero or adverse gradient) the threshold sits
+exactly at the floor, leaving Blasius and adverse-gradient profiles untouched.
+That a favorable gradient should act as an onset delay rather than a change of
+growth rate is itself a claim about stability theory---one that lets the slope be
+anchored to the $e^N$ critical Reynolds number rather than tuned freely; we make
+the argument precise, and fix $K_\lambda$ and $Re_\Omega^{\mathrm{f}}$, in
+Sec.~\ref{sec:calib}.
 
 Equation~\eqref{eq:paft} grows $\tilde\nu$ along the flow at the local rate
 $a\,\omega$, so $\ln(\tilde\nu/\tilde\nu_\infty)$ accumulates monotonically in the
@@ -411,7 +404,7 @@ equation and its fully turbulent calibration (log law, freestream decay).
 The SA diffusion operator is retained in both regimes, but its molecular
 coefficient must be reduced for the laminar amplification to survive. We scale
 the laminar viscosity in the SA diffusion term---and only there---by a constant
-$c_{\nu,\mathrm{aft}}\!=\!1/12$,
+factor $c_{\nu,\mathrm{aft}}\!<\!1$ (its value fixed in Sec.~\ref{sec:calib}),
 \begin{equation}
   (\nu+\tilde\nu)\;\longrightarrow\;(c_{\nu,\mathrm{aft}}\,\nu+\tilde\nu)
   \quad\text{in the diffusion term of Eq.~\eqref{eq:sa} only,}
@@ -436,43 +429,11 @@ Reducing the molecular coefficient keeps the in-BL $\tilde\nu$ peak co-located
 with the $Re_\Omega$ peak and recovers a $dN/dRe_\theta$ in the Drela envelope
 range (Fig.~\ref{fig:nuhat}).
 
-This reduction is nonetheless invisible to Spalart's turbulent calibrations. The
-constants ($c_{b1},c_{b2},c_{w1},\sigma,\kappa,c_{v1}$) were fixed on
-high-Reynolds turbulent flows---free-shear spreading rates and flat-plate skin
-friction---and Eq.~\eqref{eq:nulamscale} leaves each intact, by a
-region-by-region partition:
-\begin{enumerate}
-  \item \emph{Outer layer, wakes, and mixing layers (asymptotic dominance).}
-  Wherever these calibrations act, $\tilde\nu\!\gg\!\nu$
-  ($\chi\!\gtrsim\!100$), so $c_{\nu,\mathrm{aft}}\nu+\tilde\nu\!\approx\!\tilde
-  \nu\!\approx\!\nu+\tilde\nu$; dividing an already sub-percent molecular
-  contribution by twelve is imperceptible, and spreading rates and the outer
-  velocity deficit are unchanged.
-  \item \emph{Viscous sublayer (exact zero-curvature).} At the wall $\tilde\nu$
-  is linear, $\tilde\nu\!\to\!a\,y$; the SA constant
-  $c_{w1}\!=\!c_{b1}/\kappa^2+(1+c_{b2})/\sigma$ balances the quadratic
-  production, destruction, and self-diffusion so that the \emph{linear} molecular
-  diffusion is the surviving near-wall constraint,
-  $(c_{\nu,\mathrm{aft}}\nu/\sigma)\,\partial^2\tilde\nu/\partial y^2\!=\!0$.
-  Because $c_{\nu,\mathrm{aft}}\nu$ is a nonzero constant it still enforces
-  $\partial^2\tilde\nu/\partial y^2\!=\!0$: the scaling multiplies a term that
-  evaluates to zero and cannot alter the sublayer profile.
-  \item \emph{Buffer layer (shielded by $f_{v1}$).} The lone region where
-  $\nu\!\sim\!\tilde\nu$ is the buffer layer, and there the change is only a
-  $\sim\!15\%$ local reduction in diffusion (at $\chi\!\approx\!5$,
-  $(\tfrac{1}{12}+5)/(1+5)\!\approx\!0.85$). Since $\chi$ is formed with the true
-  $\nu$, the damping function $f_{v1}\!=\!\chi^3/(\chi^3+c_{v1}^3)$
-  ($c_{v1}\!=\!7.1$) still switches on the eddy viscosity at exactly the
-  calibrated $\chi$; it absorbs most of the resulting $\tilde\nu$ perturbation
-  before it reaches $\nu_t\!=\!\rho\tilde\nu f_{v1}$, the quantity the momentum
-  equations feel.
-\end{enumerate}
-Propagated to the macroscopic solution, the $\sim\!15\%$ buffer-layer deficit
-shifts the log-law intercept by a fraction of a percent---of order $0.6\%$ in
-skin friction $C_f$. This sits well below the $2$--$5\%$ experimental scatter of
-the flat-plate data on which SA was founded, and below typical industrial
-discretization error, so Eq.~\eqref{eq:nulamscale} operates entirely within the
-sub-percent margin of the original calibration.
+This reduction leaves Spalart's turbulent calibrations intact: it touches only
+the molecular part of the diffusion, which is negligible in every region where
+those high-Reynolds calibrations were set, so the mean flow does not feel it. The
+region-by-region accounting, and the resulting sub-percent skin-friction margin,
+are deferred to Sec.~\ref{sec:calib}.
 
 \subsection{Assembled one-equation model}
 Collecting the three modifications, the SA-AI model solves the single transport
@@ -505,9 +466,12 @@ The amplification rate \eqref{eq:rate} carries a global magnitude $a_{\max}$, th
 $\Gamma$-sigmoid pair $(s,g_c)$, the cliff floor $Re_\Omega^{\mathrm{f}}$, and the
 favorable-pressure-gradient onset-delay slope $K_\lambda$.
 Rather than fit these to the transition cases that follow, we anchor them to
-canonical stability limits---all but the favorable-gradient onset-delay
-$K_\lambda$, the single constant fit to a transition case (the NLF(1)-0416
-rooftop, Sec.~\ref{sec:nlfval})---so that the cases become predictive tests.
+canonical stability limits. The favorable-gradient onset-delay $K_\lambda$ is
+anchored in the same spirit---its form fixed by requiring Falkner--Skan profiles
+to ignite at their Drela critical Reynolds number (Fig.~\ref{fig:collapse})---but
+its value carries one deliberate design choice and is confirmed against the
+NLF(1)-0416 rooftop (Sec.~\ref{sec:nlfval}); it is the closest thing to a fitted
+constant. The subsequent cases are thus predictive tests.
 
 The magnitude $a_{\max}$ is the free-shear amplification ceiling. The sigmoid
 saturates ($S\!\to\!1$) as $\Gamma\!\to\!2$, the value a fully inflectional
@@ -536,6 +500,52 @@ $\theta$-based onset criterion into the present local variable. The cliff needs 
 $\Gamma$-tilt: favorable-pressure-gradient onset delay is handled by $\lambda_p$
 through $Re_\Omega^{\mathrm{c}}(\lambda_p)$ (Eq.~\eqref{eq:cliff_fpg}), which also
 suppresses the near-wall region where $\Gamma\!\to\!1$ but $Re_\Omega\!\to\!0$.
+
+The favorable-gradient onset-delay slope $K_\lambda$ sets how fast the cliff
+$Re_\Omega^{\mathrm{c}}(\lambda_p)$ rises with acceleration; its form is anchored
+by requiring the cliff to place amplification onset at the stability-theory
+critical Reynolds number across pressure gradients. Figure~\ref{fig:collapse}
+traces Falkner--Skan profiles---from Blasius through strong favorable gradient
+($\beta\!>\!1$)---each placed at its \emph{own} Drela--Giles critical Reynolds
+number $Re_{\theta c}(H)$, in the normalized
+$(Re_\Omega/Re_\Omega^{\mathrm{c}},\Gamma)$ plane of the kernel. With
+$Re_\Omega^{\mathrm{f}}\!=\!100$ and $K_\lambda\!=\!10$ every profile ignites just
+past the cliff at a small amplification rate: growth turns on right at the
+critical Reynolds number, uniformly from the flat plate to strong acceleration,
+even though $Re_{\theta c}$ itself rises about $40\times$ across this family
+(from $242$ at Blasius, $H\!=\!2.59$, to $\sim\!9800$ at $\beta\!=\!1.8$,
+$H\!=\!2.17$). This is the sense in which the cliff is anchored to Drela's
+envelope $e^N$ method~\cite{drela_giles_1987}: the favorable-gradient response is
+carried by the critical Reynolds number, not the growth rate---which changes only
+mildly over the same range---so no separate rate factor is needed.
+
+One feature of Figure~\ref{fig:collapse} is deliberate: the low-Reynolds Blasius
+profile ignites at slightly \emph{higher} amplification than the accelerated
+ones. Blasius transitions at small $Re_\theta$, where the layer is thin and the
+reduced but nonzero laminar diffusion ($c_{\nu,\mathrm{aft}}\!=\!1/12$) is
+relatively stronger, so a little more amplification is needed for net growth; the
+favorable-gradient profiles transition at much larger $Re_\theta$ and need less.
+This trend---more amplification at low $Re_\theta$, less at high---is a design
+choice rather than a fine calibration. The resulting $K_\lambda\!=\!10$ is
+consistent with the NLF(1)-0416 $\alpha\!=\!0^\circ$ rooftop, where mfoil's $e^N$
+method holds $N\!\approx\!0$ until $x/c\!\approx\!0.2$.
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.78\textwidth]{collapse_cliff.pdf}
+  \caption{The onset cliff anchored to Drela + Falkner--Skan. Falkner--Skan
+  profiles from Blasius ($\beta\!=\!0$) through strong favorable gradient
+  ($\beta\!=\!1.8$, $m\!=\!9$), each placed at its own Drela--Giles critical
+  Reynolds number $Re_{\theta c}(H)$, traced in the normalized
+  $(Re_\Omega/Re_\Omega^{\mathrm{c}},\Gamma)$ plane of the amplification kernel
+  $S(z)$ (shading; cliff at ratio $1$, dotted). Stars mark each profile's peak
+  amplification. With $Re_\Omega^{\mathrm{f}}\!=\!100$ and $K_\lambda\!=\!10$
+  every profile ignites just past the cliff at a small rate---amplification turns
+  on at the critical Reynolds number across the whole pressure-gradient family.
+  The low-$Re_\theta$ Blasius case is deliberately the hottest (thin layer,
+  relatively stronger $c_{\nu,\mathrm{aft}}\nu$ diffusion).}
+  \label{fig:collapse}
+\end{figure}
 
 On a Blasius profile the local rate $a\,\omega$ is concentrated in a band at
 intermediate wall distance---the part of the profile where Tollmien--Schlichting
@@ -579,6 +589,45 @@ The reduced laminar diffusion is essential here: with the unmodified coefficient
 $\tilde\nu$ over-damps the gentle amplification and collapses the envelope to
 $N\!\approx\!2$, suppressing transition.
 
+The value $c_{\nu,\mathrm{aft}}\!=\!1/12$ is the reduction that restores a
+$dN/dRe_\theta$ in the Drela envelope range, and it is invisible to Spalart's
+turbulent calibrations. Those constants
+($c_{b1},c_{b2},c_{w1},\sigma,\kappa,c_{v1}$) were fixed on high-Reynolds
+turbulent flows---free-shear spreading rates and flat-plate skin friction---and
+the scaling \eqref{eq:nulamscale} leaves each intact, by a region-by-region
+partition:
+\begin{enumerate}
+  \item \emph{Outer layer, wakes, and mixing layers (asymptotic dominance).}
+  Wherever these calibrations act, $\tilde\nu\!\gg\!\nu$ ($\chi\!\gtrsim\!100$),
+  so $c_{\nu,\mathrm{aft}}\nu+\tilde\nu\!\approx\!\tilde\nu\!\approx\!\nu+\tilde
+  \nu$; dividing an already sub-percent molecular contribution by twelve is
+  imperceptible, and spreading rates and the outer velocity deficit are
+  unchanged.
+  \item \emph{Viscous sublayer (exact zero-curvature).} At the wall $\tilde\nu$
+  is linear, $\tilde\nu\!\to\!a\,y$; the SA constant
+  $c_{w1}\!=\!c_{b1}/\kappa^2+(1+c_{b2})/\sigma$ balances the quadratic
+  production, destruction, and self-diffusion so that the \emph{linear} molecular
+  diffusion is the surviving near-wall constraint,
+  $(c_{\nu,\mathrm{aft}}\nu/\sigma)\,\partial^2\tilde\nu/\partial y^2\!=\!0$.
+  Because $c_{\nu,\mathrm{aft}}\nu$ is a nonzero constant it still enforces
+  $\partial^2\tilde\nu/\partial y^2\!=\!0$: the scaling multiplies a term that
+  evaluates to zero and cannot alter the sublayer profile.
+  \item \emph{Buffer layer (shielded by $f_{v1}$).} The lone region where
+  $\nu\!\sim\!\tilde\nu$ is the buffer layer, and there the change is only a
+  $\sim\!15\%$ local reduction in diffusion (at $\chi\!\approx\!5$,
+  $(\tfrac{1}{12}+5)/(1+5)\!\approx\!0.85$). Since $\chi$ is formed with the true
+  $\nu$, the damping function $f_{v1}\!=\!\chi^3/(\chi^3+c_{v1}^3)$
+  ($c_{v1}\!=\!7.1$) still switches on the eddy viscosity at exactly the
+  calibrated $\chi$; it absorbs most of the resulting $\tilde\nu$ perturbation
+  before it reaches $\nu_t\!=\!\rho\tilde\nu f_{v1}$, the quantity the momentum
+  equations feel.
+\end{enumerate}
+Propagated to the macroscopic solution, the $\sim\!15\%$ buffer-layer deficit
+shifts the log-law intercept by a fraction of a percent---of order $0.6\%$ in
+skin friction $C_f$, well below the $2$--$5\%$ experimental scatter of the
+flat-plate data on which SA was founded and below typical industrial
+discretization error.
+
 \begin{figure}[tp]
   \centering
   \includegraphics[width=0.78\textwidth]{blasius_nuHat_solution.pdf}
@@ -609,10 +658,10 @@ $Re_\Omega^{\mathrm{c}}(\lambda_p)$ alone---uses the same $\lambda_p$
 pressure-gradient sensor that the Thwaites/Pohlhausen parameter provides for the
 Abu-Ghannam \& Shaw onset correlation~\cite{abu_ghannam_shaw_1980} and that the
 shape factor $H$ provides for Drela's $e^N$ critical Reynolds
-number~\cite{drela_giles_1987}; its slope $K_\lambda$, fit on the NLF rooftop, is
-consistent with Drela's $Re_{\theta c}(H)$ through the Falkner--Skan map
-$H(\lambda_p)$ (Sec.~\ref{sec:model}), fixing the accelerating-flow stabilization
-against stability theory rather than the airfoil data alone.
+number~\cite{drela_giles_1987}; as established above, its slope $K_\lambda$ is
+anchored to Drela's $Re_{\theta c}(H)$ through the Falkner--Skan map
+$H(\lambda_p)$, fixing the accelerating-flow stabilization against stability
+theory rather than the airfoil data alone.
 
 A single empirical closure remains---the one every $e^N$ method carries---namely
 the freestream-turbulence receptivity. A higher $Tu$ is a larger seed
