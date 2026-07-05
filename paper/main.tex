@@ -1388,7 +1388,7 @@ inviscid--viscous $e^N$ solver---converges at the same conditions
 the failure lies in mfoil's Newton globalization rather than in the underlying
 method.
 
-\section{The Eppler 387 airfoil at $Re\!=\!2\!\times\!10^5$}\label{sec:eppval}
+\section{The Eppler 387 low-Reynolds-number airfoil}\label{sec:eppval}
 
 The Eppler 387 low-Reynolds-number airfoil closes the study with the
 adverse-pressure-gradient regime. The McGhee, Walker, and Millard experiment in
@@ -1495,7 +1495,8 @@ Table~\ref{tab:eppmesh} lists their resolution quantitatively.
   described in the text (row~1 $\max Re_\Omega$, row~2 $\max\Gamma$,
   row~3 $\chi$ with mfoil $N$, row~4 $-C_p$, row~5 signed $C_f$; upper blue /
   lower red, O-grid solid / cavity dashed, L0--L2 by thickness, mfoil $e^9$
-  dotted). The signed $C_f$ (row~5) shows the laminar-separation bubble
+  dotted, and the tabulated experimental $C_p$ (NASA TM-4062 App.~D, nearest-$\alpha$
+  column) as open black circles on the $-C_p$ row). The signed $C_f$ (row~5) shows the laminar-separation bubble
   directly as the dip below zero on the upper surface. The bubble sits at
   $x/c\!\approx\!0.55$--$0.65$ at $\alpha\!=\!0^\circ$ and marches forward to
   $x/c\!\approx\!0.45$--$0.55$ at $\alpha\!=\!2^\circ$; both Flow360 and mfoil
@@ -1513,7 +1514,12 @@ Table~\ref{tab:eppmesh} lists their resolution quantitatively.
   The signed $C_f$ (bottom row) shows the small recirculation directly. The
   lower-surface boundary layer remains attached and essentially laminar to
   $x/c\!\approx\!0.99$ across the entire $\alpha$ range, matching the
-  mfoil/$e^9$ prediction that the lower transition lies aft of the airfoil.}
+  $e^9$ prediction that the lower transition lies aft of the airfoil. At
+  $\alpha\!=\!7^\circ$ the dotted reference is XFOIL rather than mfoil: mfoil
+  stalls numerically there ($C_l\!=\!0.928$, below its $\alpha\!=\!5^\circ$
+  value; cf.\ Table~\ref{tab:eppxtr}), whereas XFOIL converges cleanly
+  ($C_l\!=\!1.17$). XFOIL provides $C_p$ and $C_f$ only (no amplification
+  envelope), so the mfoil $N$ curve (row~3) is absent at $7^\circ$.}
   \label{fig:eppcfhigh}
 \end{figure}
 
@@ -1620,6 +1626,87 @@ $\sim\!10$--$15\%$ drag under-prediction---is shared with the mfoil $e^9$
 reference, i.e.\ common to both two-dimensional predictions. The structured
 O-grid and unstructured meshes bracket the same polar to within
 $\Delta C_d\!\approx\!2\times10^{-4}$ at L2.
+
+\subsection{Reynolds-number dependence at $\alpha\!=\!5^\circ$}\label{sec:eppresweep}
+
+The $Re\!=\!2\!\times\!10^5$ benchmark fixes the model; the remaining question is
+whether the same calibration follows the bubble across the Reynolds-number range
+of the McGhee experiment without retuning. We hold the incidence at
+$\alpha\!=\!5^\circ$ and the freestream seed at
+$\chi_\infty\!=\!8.76\!\times\!10^{-4}$ and sweep the four other tabulated
+Reynolds numbers,
+$Re\!\in\!\{6\!\times\!10^4,\,1\!\times\!10^5,\,3\!\times\!10^5,\,4.6\!\times\!10^5\}$,
+on the L1 grids of both mesh families.
+Figures~\ref{fig:eppresweep_low} and~\ref{fig:eppresweep_high} show the resulting
+$-C_p$ and signed $C_f$, overlaid with the exact experimental surface pressures
+(open circles, hand-read from the NASA TM-4062 Appendix~D tables at the
+nearest-$5^\circ$ column) and the mfoil/XFOIL $e^9$ reference where it converges.
+All eight solutions are steady and fully converged---the force coefficients are
+flat to $\Delta C_l,\Delta C_d\!<\!10^{-8}$ over the final $2000$ iterations,
+i.e.\ no bubble limit cycle.
+
+The sweep traces the classic low-$Re$ bubble progression at fixed incidence: as
+the Reynolds number rises the transition front moves forward and the
+laminar-separation bubble shortens. The upper-surface $C_f$ shows an open,
+non-reattaching separation at $Re\!=\!6\!\times\!10^4$---the flow separates near
+$x/c\!\approx\!0.4$ and does not recover ahead of the trailing edge, the
+low-$Re$ bubble-bursting limit---then a long bubble reattaching near
+$x/c\!\approx\!0.73$ at $10^5$, and progressively shorter bubbles reattaching at
+$x/c\!\approx\!0.55$ ($3\!\times\!10^5$) and $x/c\!\approx\!0.50$
+($4.6\!\times\!10^5$). The section drag falls monotonically across the range,
+$C_d\!=\!0.040,\,0.021,\,0.011,\,0.0097$ (unstructured L1), capturing the sharp
+low-$Re$ drag rise as the bubble lengthens toward bursting. The measured
+pressures confirm the structure directly: the suction-side plateau of the
+separated shear layer appears in the open-circle data at $10^5$ and
+$3\!\times\!10^5$ exactly where the computed $C_p$ flattens, and the computed and
+measured $C_p$ agree closely on both surfaces at every Reynolds number.
+
+The two independently generated L1 meshes bracket the same solution at the higher
+Reynolds numbers ($\Delta C_d\!\lesssim\!4\!\times\!10^{-4}$ at
+$3$--$4.6\!\times\!10^5$) and diverge only at $6\!\times\!10^4$, where the open
+separation is genuinely mesh-sensitive ($C_l\!=\!0.80$ unstructured vs.\ $0.73$
+structured)---the expected behavior once the bubble fails to close and the
+afterbody is fully separated. The mfoil $e^9$ panel reference converges from
+$6\!\times\!10^4$ to $3\!\times\!10^5$ but fails at $4.6\!\times\!10^5$
+(stagnation-point iteration divergence on the thin high-$Re$ bubble), where
+XFOIL~\cite{drela_xfoil_1989} supplies the $e^9$ line instead; both the
+viscous-panel reference and the measured pressures track the computed
+distributions. Across the full factor-of-eight Reynolds-number range the model
+reproduces the bubble march with the single $Re\!=\!2\!\times\!10^5$ calibration
+left untouched.
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=\textwidth]{eppler_L1compare_lowRe.pdf}
+  \caption{Eppler 387 at $\alpha\!=\!5^\circ$, $Re\!=\!6\!\times\!10^4$ (left) and
+  $1\!\times\!10^5$ (right): the near-wall $\max\chi$ (log, left axis) with the
+  mfoil amplification factor $N$ (linear, right axis) where mfoil data exist (top
+  row), $-C_p$ (middle row) and signed $C_f$ (bottom row) on the
+  L1 grids of both mesh families---unstructured cavity (solid) and structured
+  O-grid (dashed), upper surface blue / lower red. Dotted: mfoil $e^9$ reference.
+  Open circles: exact experimental surface pressures (NASA TM-4062 Appendix~D,
+  nearest-$5^\circ$ column). Grey band: experimental laminar-separation-bubble
+  extent from the oil-flow visualization (TM-4062 Table~III), which exists only at
+  $10^5$ among these two; no oil-flow bubble data were taken at $6\!\times\!10^4$.
+  At $6\!\times\!10^4$ the upper-surface separation does not reattach ahead of the
+  trailing edge (bubble bursting); at $10^5$ a long bubble reattaches near
+  $x/c\!\approx\!0.73$.}
+  \label{fig:eppresweep_low}
+\end{figure}
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=\textwidth]{eppler_L1compare_highRe.pdf}
+  \caption{As Fig.~\ref{fig:eppresweep_low}, at $Re\!=\!3\!\times\!10^5$ (left) and
+  $4.6\!\times\!10^5$ (right). The bubble is short and moves forward with Reynolds
+  number, reattaching near $x/c\!\approx\!0.55$ at $3\!\times\!10^5$ and
+  $\approx\!0.50$ at $4.6\!\times\!10^5$. The mfoil $e^9$ panel solver converges at
+  $3\!\times\!10^5$ but diverges on the thin bubble at $4.6\!\times\!10^5$, where
+  XFOIL supplies the $e^9$ $C_p$/$C_f$ reference (dotted) instead; XFOIL carries no
+  amplification envelope, so the $N$ curve (top row, right axis) is drawn only at
+  $3\!\times\!10^5$. The oil-flow bubble band is available at $3\!\times\!10^5$ only.}
+  \label{fig:eppresweep_high}
+\end{figure}
 
 \section{Conclusion}
 

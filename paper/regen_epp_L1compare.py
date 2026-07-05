@@ -1,11 +1,13 @@
 """Two E387 alpha=5 Cf/Cp comparison figures, each overlaying the cav (unstructured)
 and str (structured) L1 meshes at two Reynolds numbers:
   Figure A: Re = 60k, 100k     Figure B: Re = 300k, 460k
-Rows: -Cp and Cf (upper & lower surface).  Grey band = experimental laminar-
+Rows: max chi (log, left) with mfoil N (linear, right) where mfoil data exist;
+-Cp; and Cf (upper & lower surface).  Grey band = experimental laminar-
 separation-bubble (McGhee TM-4062 Table III, oil flow) -- ONLY at the Re where
 oil-flow data exist (100k, 200k, 300k); 60k and 460k have no experimental bubble
 data (oil flow was run only to 300k), so no band is drawn there.
-Experimental Cp (digitized from TM-4062 Fig. 22) overlaid where available.
+Experimental Cp (hand-read & verified from TM-4062 Appendix D tables, nearest-5deg
+column per Re) overlaid as open circles.
 -> figs/eppler_L1compare_lowRe.pdf, figs/eppler_L1compare_highRe.pdf
 """
 import sys, os; sys.path.insert(0, '.')
@@ -18,21 +20,53 @@ B = "/home/qiqi/flexcompute/aft-sa/flow360"
 UP, LO = R.UP_COLOR, R.LO_COLOR
 # Experimental LSB band (x_LS, x_TR) at alpha=5, oil flow, TM-4062 Table III.
 EXP_LSB_RE = {100: (0.35, 0.67), 200: (0.38, 0.59), 300: (0.40, 0.58)}
-# Digitized experimental Cp at alpha=5 from TM-4062 Fig. 22 (filled in by
-# digitize_cp_tm4062.py -> exp_cp_alpha5.json). {Re:{'upper':[[x],[cp]],'lower':...}}
-import json
-EXP_CP = {}
-_cpf = "data/exp_cp_alpha5.json"
-if os.path.exists(_cpf):
-    EXP_CP = {int(k): v for k, v in json.load(open(_cpf)).items()}
+# mfoil reference Cp/Cf at alpha=5 (accurate viscous-inviscid e^9 solution; no
+# scanned-plot digitization). {Re_k: {'upper':{'x','cp','cf'}, 'lower':{...}}}.
+import pickle
+_mf = f"{B}/mfoil_eppler387_sweep_a5.pkl"
+MFOIL = pickle.load(open(_mf, 'rb')) if os.path.exists(_mf) else {}
+# xfoil fallback for any Re where mfoil failed to converge (low Re / big bubble).
+_xf = f"{B}/xfoil_eppler387_sweep_a5.pkl"
+XFOIL = pickle.load(open(_xf, 'rb')) if os.path.exists(_xf) else {}
+# EXACT experimental Cp from TM-4062 Appendix D (hand-read + verified against the
+# scanned tables). Nearest-to-5deg column per Re (60k has only 4.99).
+import json as _json
+_ct = "data/exp_cp_tables.json"
+EXP_CP_TAB = _json.load(open(_ct)) if os.path.exists(_ct) else {}
+RE_COL = {60: "4.99", 100: "5.01", 200: "5.05", 300: "5.00", 460: "5.01"}
 
 def cav_dir(Rk): return f"{B}/cavL1prop_eppler387_Re200k_a5" if Rk == 200 else f"{B}/sweep_Re{Rk}k_a5"
 def str_dir(Rk): return f"{B}/strL1prop_eppler387_Re200k_a5" if Rk == 200 else f"{B}/sweep_str_Re{Rk}k_a5"
 
 def make_fig(re_list, out):
-    fig, axs = plt.subplots(2, len(re_list), figsize=(5.2 * len(re_list), 7.4), sharex=True)
+    fig, axs = plt.subplots(3, len(re_list), figsize=(5.2 * len(re_list), 10.4), sharex=True)
     for col, Rk in enumerate(re_list):
-        ax_cp, ax_cf = axs[0, col], axs[1, col]
+        ax_chi, ax_cp, ax_cf = axs[0, col], axs[1, col], axs[2, col]
+        ax_N = ax_chi.twinx()
+        NU_Re = 0.1 / (Rk * 1000.0)      # muRef = M/Re, M=0.1 (chi = nuHat/muRef)
+        # ROW 0: max chi (log, left) from the CFD BL, and mfoil N (linear, right)
+        for dfn, ls in [(cav_dir, '-'), (str_dir, '--')]:
+            try:
+                xc, mu, ml = R.max_chi_vs_x(dfn(Rk))
+                ax_chi.semilogy(xc, mu / NU_Re, ls, lw=1.5, color=UP)
+                ax_chi.semilogy(xc, ml / NU_Re, ls, lw=1.5, color=LO)
+            except Exception as e:
+                print(f"Re{Rk}k chi: {e}")
+        mf = MFOIL.get(Rk)
+        if mf is not None and 'n' in mf['upper']:
+            ax_N.plot(mf['upper']['x'], mf['upper']['n'], ':', color=UP, lw=1.4, alpha=0.8)
+            ax_N.plot(mf['lower']['x'], mf['lower']['n'], ':', color=LO, lw=1.4, alpha=0.8)
+            ax_N.axhline(9.0, color='gray', ls=':', lw=0.6, alpha=0.6)
+        else:
+            ax_chi.text(0.03, 0.92, "no mfoil $N$", transform=ax_chi.transAxes,
+                        ha='left', va='top', fontsize=8, color='0.4', style='italic')
+        ax_chi.axhline(R.C_V1, color='gray', ls=':', lw=0.6, alpha=0.6)   # chi=c_v1 (handover)
+        ax_chi.set_ylim(R.CHI_LO, R.CHI_HI); ax_N.set_ylim(R.N_LO, R.N_HI)
+        ax_chi.set_title(f"Re = {Rk}k", fontsize=12)
+        if col == 0: ax_chi.set_ylabel(r'$\chi$ (log)')
+        if col == len(re_list) - 1: ax_N.set_ylabel('mfoil $N$ (linear)')
+        ax_chi.grid(alpha=0.3)
+        # ROWS 1+2: -Cp and Cf
         for mesh, dfn, ls, lab in [("cav L1", cav_dir, '-', 'unstructured'),
                                     ("str L1", str_dir, '--', 'structured')]:
             try:
@@ -46,20 +80,29 @@ def make_fig(re_list, out):
         # experimental bubble band (only where oil-flow data exist)
         if Rk in EXP_LSB_RE:
             xls, xtr = EXP_LSB_RE[Rk]
-            for a in (ax_cp, ax_cf):
+            for a in (ax_chi, ax_cp, ax_cf):
                 a.axvspan(xls, xtr, color='0.55', alpha=0.30, zorder=0)
         else:
             ax_cp.text(0.03, 0.05, "no exp. bubble/$C_p$ data", transform=ax_cp.transAxes,
                        ha='left', va='bottom', fontsize=8, color='0.4', style='italic')
-        # experimental Cp overlay
-        if Rk in EXP_CP:
+        # mfoil (or xfoil fallback) reference Cp/Cf -- accurate e^9 viscous solution
+        ref = MFOIL.get(Rk) or XFOIL.get(Rk)
+        reftag = 'mfoil' if Rk in MFOIL else ('xfoil' if Rk in XFOIL else None)
+        if ref is not None:
             for side, c in [('upper', UP), ('lower', LO)]:
-                if side in EXP_CP[Rk]:
-                    x, cp = EXP_CP[Rk][side]
-                    ax_cp.plot(x, -np.array(cp), 'o', ms=3.2, mfc='none', mec='k', mew=0.7, zorder=5)
-        ax_cp.set_title(f"Re = {Rk}k", fontsize=12)
+                s = ref[side]
+                ax_cp.plot(s['x'], -np.asarray(s['cp']), ':', color=c, lw=1.4, alpha=0.8, zorder=4)
+                ax_cf.plot(s['x'], np.asarray(s['cf']), ':', color=c, lw=1.4, alpha=0.8, zorder=4)
+        # exact experimental Cp (TM-4062 Appendix D, hand-read & verified) at nearest-5deg col
+        etab = EXP_CP_TAB.get(str(Rk)); ecol = RE_COL.get(Rk)
+        if etab is not None and ecol is not None:
+            for side, c in [('upper', UP), ('lower', LO)]:
+                if ecol in etab[side]:
+                    xcs = np.asarray(etab[side]['xc']); cps = np.asarray(etab[side][ecol])
+                    ax_cp.plot(xcs, -cps, 'o', mfc='none', mec=c, mew=1.1, ms=5, zorder=6)
         ax_cp.set_ylabel(r'$-C_p$'); ax_cf.set_ylabel(r'$C_f$')
         ax_cp.grid(alpha=0.3); ax_cf.grid(alpha=0.3)
+        ax_cp.set_ylim(bottom=-1.0)   # -Cp >= -1 (Cp <= +1 stagnation; no unphysical range)
         ax_cf.set_ylim(-0.004, 0.012); ax_cf.axhline(0, color='gray', lw=0.6, alpha=0.5)
         ax_cf.set_xlim(0, 1); ax_cf.set_xlabel('$x/c$')
     # legend
@@ -68,8 +111,11 @@ def make_fig(re_list, out):
                Line2D([], [], color='0.3', lw=2, ls='-', label='cav L1 (unstructured)'),
                Line2D([], [], color='0.3', lw=2, ls='--', label='str L1 (structured)'),
                Patch(facecolor='0.55', alpha=0.30, label='exp. LSB (TM-4062 oil flow)')]
-    if EXP_CP:
-        handles.append(Line2D([], [], marker='o', ls='none', mfc='none', mec='k', label='exp. $C_p$ (TM-4062 Fig. 22)'))
+    if MFOIL or XFOIL:
+        handles.append(Line2D([], [], color='0.3', ls=':', lw=1.4, label='mfoil/xfoil ($e^9$)'))
+    if EXP_CP_TAB:
+        handles.append(Line2D([], [], color='0.3', ls='none', marker='o', mfc='none', mew=1.1, ms=5,
+                              label=r'exp. $C_p$ (TM-4062, $\alpha\!\approx\!5^\circ$)'))
     fig.legend(handles=handles, fontsize=9, frameon=False, ncol=3, loc='lower center', bbox_to_anchor=(0.5, 0.0))
     fig.suptitle(f'Eppler 387, $\\alpha=5^\\circ$: L1 unstructured vs structured', y=0.995, fontsize=13)
     plt.tight_layout(rect=(0, 0.07, 1, 0.98))

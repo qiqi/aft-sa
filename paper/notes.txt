@@ -1,0 +1,3 @@
+1. Hunt down difference between flat plate and flow360, compare flat plate in Flow360
+2. Replot the NFL plots after the new suite of runs and examine, compare against not just mfoil but also experiment paper
+3. Read the other airfoil papers downloaded (NLF, Eppler, S807)
