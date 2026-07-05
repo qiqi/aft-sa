@@ -5,7 +5,7 @@ import os, sys, json, shutil, time
 import numpy as np
 sys.path.insert(0, "/home/qiqi/flexcompute/flexfoil/rans")
 sys.path.insert(0, "/home/qiqi/flexcompute/aft-sa/flow360")
-os.environ["AFT_CHI_INF"] = "0.02"
+os.environ["AI_CHI_INF"] = "0.02"
 from rans.env import make_env
 from rans.config import CaseConfig
 from rans import case as _case, mesh as _mesh

@@ -9,7 +9,7 @@ LEVELS = ['L0', 'L1', 'L2']
 ALPHAS = [0.0, 2.0, 5.0, 7.0]
 RES_FIELDS = ['residualTurbulence', 'residualNavierStokes', 'nuHat',
               'wallDistance', 'vorticityMagnitude']
-# Same BC value as NLF (compensated for AFT_LAMINAR_SLOWDOWN=0.01 at runtime).
+# Same BC value as NLF (compensated for AI_LAMINAR_SLOWDOWN=0.01 at runtime).
 CHI_INPUT = 8.76e-6
 MU_REF = 5.0e-7   # M / Re = 0.1 / 2e5
 

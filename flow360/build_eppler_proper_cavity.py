@@ -11,7 +11,7 @@ Mirrors build_nlf_proper_cavity.py.  Key differences from NLF:
 import os, sys, json, shutil, copy, time
 sys.path.insert(0, "/home/qiqi/flexcompute/flexfoil/rans")
 sys.path.insert(0, "/home/qiqi/flexcompute/aft-sa/flow360")
-os.environ["AFT_CHI_INF"] = "0.02"
+os.environ["AI_CHI_INF"] = "0.02"
 from rans.pipeline import run as pipe_run
 from eppler_contour_te import generate_contour_te
 

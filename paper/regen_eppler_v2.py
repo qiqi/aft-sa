@@ -43,6 +43,9 @@ MESH_LS = {'str': '-', 'cav': '--'}
 # Upper-surface laminar separation bubble from oil-flow visualization (Table III),
 # R=200,000: alpha -> (x_LS laminar separation, x_TR turbulent reattachment).
 EXP_LSB = {0: (0.48, 0.74), 2: (0.43, 0.67), 5: (0.38, 0.59), 7: (0.33, 0.48)}
+# Upper/lower-surface Cp digitized from TM-4062 Fig.22(b) (R=200k), by alpha.
+import json as _json, os as _os
+EXP_CP_200K = _json.load(open("data/exp_cp_200k.json")) if _os.path.exists("data/exp_cp_200k.json") else {}
 # Section characteristics, Appendix B (RUNS 9,10,13, R=200,000): (C_D, C_L) for the
 # points with valid wake-rake drag (post-stall ****-drag rows excluded).
 EXP_POLAR = [
@@ -627,6 +630,12 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
                 a.axvspan(xls, xtr, color='0.55', alpha=0.32, zorder=0)
                 a.axvline(xls, color='0.35', ls=':', lw=0.8, alpha=0.8, zorder=0)
                 a.axvline(xtr, color='0.35', ls=':', lw=0.8, alpha=0.8, zorder=0)
+        # Experimental Cp (digitized, TM-4062 Fig.22(b), R=200k) as open markers.
+        if str(int(alpha)) in EXP_CP_200K:
+            ec = EXP_CP_200K[str(int(alpha))]
+            for side, c in [('upper', UP_COLOR), ('lower', LO_COLOR)]:
+                xcp, cpv = ec[side]
+                ax_cp.plot(xcp, -np.array(cpv), 'o', ms=3.0, mfc='none', mec='k', mew=0.6, zorder=6)
         for a in [ax_reo, ax_gam, ax_n, ax_cp, ax_cf]: a.set_xlim(0, 1)
         cf_hi = 0.025 if max(alphas) > 6 else 0.012
         ax_cf.set_ylim(-0.004, cf_hi)
@@ -862,9 +871,15 @@ def make_polar_figure(out_name='eppler_polar_compare'):
     # computed curves are never covered by the reference data.
     ax.plot(ecd, ecl, '-', color='k', lw=1.4, zorder=1)
     ax.plot(ecd, ecl, 'o', mfc='none', mec='k', ms=4, zorder=1)
-    ma = [a for a in alphas if float(a) in mn]
+    # mfoil is reliable at alpha=0,2,5; at alpha=7 it is at the edge of convergence
+    # (unphysical cl), so xfoil fills that point.
+    ma = [a for a in alphas if float(a) in mn and int(a) != 7]
     ax.plot([mn[float(a)]['cd'] for a in ma], [mn[float(a)]['cl'] for a in ma],
             ls=':', color='0.4', marker='s', mfc='none', ms=5, lw=1.2, zorder=2)
+    xf = pickle.load(open(f"{B}/xfoil_eppler387_Re200k.pkl", 'rb'))
+    if 7.0 in xf:
+        ax.plot(xf[7.0]['cd'], xf[7.0]['cl'], ls='none', color='0.5',
+                marker='D', mfc='none', ms=6, mew=1.3, zorder=2)
     # SA-AI on top: structured = circle/solid, unstructured = triangle/dashed.
     mesh_mk = {'str': 'o', 'cav': '^'}
     for mesh in ['str', 'cav']:
@@ -880,7 +895,8 @@ def make_polar_figure(out_name='eppler_polar_compare'):
     ax.set_xlabel('$C_d$'); ax.set_ylabel('$C_l$')
     ax.grid(alpha=0.3)
     handles = [Line2D([],[],color='k', ls='-', marker='o', mfc='none', ms=4, label='Experiment (LTPT)'),
-               Line2D([],[],color='0.4', ls=':', marker='s', mfc='none', ms=5, lw=1.2, label='mfoil ($e^9$)'),
+               Line2D([],[],color='0.4', ls=':', marker='s', mfc='none', ms=5, lw=1.2, label='mfoil ($e^9$, $\\alpha\\!\\leq\\!5^\\circ$)'),
+               Line2D([],[],color='0.5', ls='none', marker='D', mfc='none', ms=6, mew=1.3, label='xfoil ($e^9$, $\\alpha\\!=\\!7^\\circ$)'),
                Line2D([],[],color='C0', ls='-',  marker='o', ms=4, label='SA-AI, structured (O-grid)'),
                Line2D([],[],color='C1', ls='--', marker='^', ms=4, label='SA-AI, unstructured'),
                Line2D([],[],color='0.4', lw=LEVEL_LW['L0'], label='L0'),

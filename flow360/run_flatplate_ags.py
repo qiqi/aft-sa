@@ -10,7 +10,7 @@ is used here only as an independent verification reference (not a fit target).
 Flow360 BC seed = chi_inf_from_Tu_pct(Tu) * f_slow,  f_slow = 0.01.
 
 Cases cloned from flatplate_aftsa_Tu0026 (mesh reused), BC seed patched, run with
-AFT_SA=1, AFT_LAMINAR_SLOWDOWN=0.01. New dirs flatplate_ags_Tu#### (old dirs kept).
+AI_SA=1, AI_LAMINAR_SLOWDOWN=0.01. New dirs flatplate_ags_Tu#### (old dirs kept).
 """
 import os, sys, shutil, threading, time, json
 sys.path.insert(0, "/home/qiqi/flexcompute/flexfoil/rans")
@@ -58,7 +58,7 @@ def run_case(Tu, gpu, sem, lock, results):
     cd = case_dir(Tu); tag = f"Tu{Tu}"
     with sem:
         env, find = make_env()
-        env["AFT_SA"] = "1"; env["AFT_LAMINAR_SLOWDOWN"] = "0.01"
+        env["AI_SA"] = "1"; env["AI_LAMINAR_SLOWDOWN"] = "0.01"
         t0 = time.time()
         print(f"[{tag}] launching on GPU {gpu}  seed={chi_inf_from_Tu_pct(Tu)*FSLOW:.3e}", flush=True)
         try:

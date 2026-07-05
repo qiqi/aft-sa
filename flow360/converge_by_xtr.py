@@ -123,7 +123,7 @@ def run_batch(cd, n_steps, walk_contour_xz, make_env, run_solver, gpu=0):
         for f in os.listdir(ro):
             shutil.copy2(f"{ro}/{f}", f"{cd}/{f}")
     env, find = make_env()
-    env["AFT_SA"] = "1"; env["AFT_LAMINAR_SLOWDOWN"] = "0.01"
+    env["AI_SA"] = "1"; env["AI_LAMINAR_SLOWDOWN"] = "0.01"
     t0 = time.time()
     run_solver(cd, find, env, gpu=gpu, timeout=14400)
     dt = time.time() - t0

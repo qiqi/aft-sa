@@ -450,6 +450,24 @@ def find_x_at_chi(xs, chi, chi_target):
 # Load mfoil reference
 mn = pickle.load(open(f"{B}/mfoil_nlf0416_Re4M.pkl", 'rb'))
 
+def _mfoil_usable(md):
+    """mfoil is a valid e^N reference only where its coupled solve converged AND
+    the upper surface stays attached. It fails to converge at alpha=9 deg and
+    returns a stalled solution (upper H>>1) at alpha=15 deg; neither is usable."""
+    try:
+        return bool(md.get('conv', True)) and float(np.nanmax(md['upper']['H'])) < 4.0
+    except Exception:
+        return bool(md.get('conv', True))
+
+# xfoil reference: used ONLY to fill Cp/Cf/xtr where mfoil is unusable
+# (non-converged / stalled). mfoil's N(x) is kept everywhere it exists.
+try:
+    xf = pickle.load(open(f"{B}/xfoil_nlf0416_Re4M.pkl", 'rb'))
+except Exception:
+    xf = {}
+def _xfoil_fill(alpha):
+    return (float(alpha) in xf) and not (float(alpha) in mn and _mfoil_usable(mn[float(alpha)]))
+
 
 LEVELS_CF = ['L0', 'L1', 'L2']   # configurable: restrict the refinement levels drawn
 
@@ -467,6 +485,11 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
     or pass e.g. ['str'] / ['cav'] for a single-family figure.
     """
     if meshes is None: meshes = ['cav','str']
+    # Is a usable mfoil reference available for ANY alpha in this figure? If not
+    # (e.g. the high-alpha figure, where mfoil doesn't converge / stalls), drop
+    # the mfoil legend entry and the mfoil N right-axis label.
+    any_mfoil = any(float(a) in mn and _mfoil_usable(mn[float(a)]) for a in alphas)
+    any_xfoil = any(_xfoil_fill(a) for a in alphas)
     fig, axs = plt.subplots(5, len(alphas), figsize=(5*len(alphas), 13), sharex=True)
     if len(alphas) == 1: axs = axs[:, None]
     for col, alpha in enumerate(alphas):
@@ -514,18 +537,22 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
                     print(f"  skip chi ({mesh}/{level}, α={alpha}): {e}"); continue
                 ax_n.semilogy(xc, mu/NU, ls=ls, lw=lw, color=UP_COLOR)
                 ax_n.semilogy(xc, ml/NU, ls=ls, lw=lw, color=LO_COLOR)
-        if float(alpha) in mn:
+        if float(alpha) in mn and _mfoil_usable(mn[float(alpha)]):
             md = mn[float(alpha)]
             ax_nN.plot(md['upper']['x'], md['upper']['n'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
             ax_nN.plot(md['lower']['x'], md['lower']['n'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
             ax_nN.axhline(9.0, color='gray', ls=':', lw=0.6, alpha=0.6)
             if md.get('xtr_upper') is not None: ax_n.axvline(md['xtr_upper'], color=UP_COLOR, ls=':', lw=0.6, alpha=0.5)
             if md.get('xtr_lower') is not None: ax_n.axvline(md['xtr_lower'], color=LO_COLOR, ls=':', lw=0.6, alpha=0.5)
+        elif _xfoil_fill(alpha):
+            xd = xf[float(alpha)]
+            if xd.get('xtr_upper') is not None: ax_n.axvline(xd['xtr_upper'], color=UP_COLOR, ls='-.', lw=0.7, alpha=0.6)
+            if xd.get('xtr_lower') is not None: ax_n.axvline(xd['xtr_lower'], color=LO_COLOR, ls='-.', lw=0.7, alpha=0.6)
         ax_n.axhline(C_V1, color='gray', ls=':', lw=0.6, alpha=0.6)
         ax_n.set_ylim(CHI_LO, CHI_HI); ax_nN.set_ylim(N_LO, N_HI)
         ax_n.grid(alpha=0.3)
         if col == 0: ax_n.set_ylabel('$\\chi$ (log)')
-        if col == len(alphas)-1: ax_nN.set_ylabel('mfoil $N$ (linear)')
+        if col == len(alphas)-1 and any_mfoil: ax_nN.set_ylabel('mfoil $N$ (linear)')
         # ROWS 4+5: Cp/Cf
         for mesh in meshes:
             for level in LEVELS_CF:  # configurable level set
@@ -540,12 +567,18 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
                     ax_cf.plot(xl, cfl, ls=ls, lw=lw, color=LO_COLOR)
                 except Exception as e:
                     print(f"  skip surf ({mesh}/{level}, α={alpha}): {e}")
-        if float(alpha) in mn:
+        if float(alpha) in mn and _mfoil_usable(mn[float(alpha)]):
             md = mn[float(alpha)]
             ax_cp.plot(md['upper']['x'], -md['upper']['cp'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
             ax_cp.plot(md['lower']['x'], -md['lower']['cp'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
             ax_cf.plot(md['upper']['x'], md['upper']['cf'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
             ax_cf.plot(md['lower']['x'], md['lower']['cf'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
+        elif _xfoil_fill(alpha):
+            xd = xf[float(alpha)]
+            ax_cp.plot(xd['upper']['x'], -np.asarray(xd['upper']['cp']), '-.', color=UP_COLOR, lw=1.1, alpha=0.6)
+            ax_cp.plot(xd['lower']['x'], -np.asarray(xd['lower']['cp']), '-.', color=LO_COLOR, lw=1.1, alpha=0.6)
+            ax_cf.plot(xd['upper']['x'], xd['upper']['cf'], '-.', color=UP_COLOR, lw=1.1, alpha=0.6)
+            ax_cf.plot(xd['lower']['x'], xd['lower']['cf'], '-.', color=LO_COLOR, lw=1.1, alpha=0.6)
         for a in [ax_reo, ax_lam, ax_n, ax_cp, ax_cf]: a.set_xlim(0, 1)
         ax_cf.set_ylim(0, 0.025 if max(alphas) > 6 else 0.012)
         ax_cp.grid(alpha=0.3); ax_cf.grid(alpha=0.3)
@@ -563,7 +596,10 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         legend_items += [Line2D([],[],color='0.3', ls='--', lw=0.8, label='L0 cav'),
                          Line2D([],[],color='0.3', ls='--', lw=1.6, label='L1 cav'),
                          Line2D([],[],color='0.3', ls='--', lw=2.4, label='L2 cav')]
-    legend_items += [Line2D([],[],color='0.3', ls=':',  lw=1.2, alpha=0.5, label='mfoil ($e^9$)')]
+    if any_mfoil:
+        legend_items += [Line2D([],[],color='0.3', ls=':',  lw=1.2, alpha=0.5, label='mfoil ($e^9$)')]
+    if any_xfoil:
+        legend_items += [Line2D([],[],color='0.3', ls='-.', lw=1.1, alpha=0.6, label='xfoil ($e^9$)')]
     axs[0,-1].legend(handles=surfh, fontsize=8, frameon=False, loc='upper left')
     axs[4,-1].legend(handles=legend_items, fontsize=8, frameon=False, loc='upper right')
     plt.tight_layout(rect=(0,0,1,0.97))
