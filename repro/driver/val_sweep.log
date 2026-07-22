@@ -1,0 +1,7 @@
+[sweep_Re300k_a5] building case dir -> /home/qiqi/flexcompute/sa-ai/repro/driver/out/sweep_Re300k_a5
+[sweep_Re300k_a5] chi_inf = 8.7600e-04
+[sweep_Re300k_a5] solving on GPU 2 (canonical SA-AI env, protocol=staged)...
+[sweep_Re300k_a5] sweep stage fSlow=0.1 (+30000 steps)
+[sweep_Re300k_a5] sweep stage fSlow=0.01 (+10000 steps)
+[sweep_Re300k_a5] DONE  CL=+0.9603  CD=0.01110  xtr=0.700
+[sweep_Re300k_a5] outputs in /home/qiqi/flexcompute/sa-ai/repro/driver/out/sweep_Re300k_a5

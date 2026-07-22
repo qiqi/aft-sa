@@ -1,0 +1,34 @@
+===== LAMBDA_V GATE SCAN (anchors re-solved per candidate) =====
+   cand  gate     w |   floor     g_c      s |  bl_int  bl_late  m(-.09)  m(-.15)
+ q4_ref    q4   4.0 |   251.9  1.0205   9.86 |   0.031    1.070    0.878    0.939
+    cV1    lv   1.0 |   177.5  0.9676  13.62 |   0.035    1.080    0.741    0.809
+    cV2    lv   2.0 |   227.0  1.1581   5.96 |   0.034    1.076    0.627    0.669
+    cV4    lv   4.0 |   219.4  1.3471   4.70 |   0.036    1.082    0.582    0.643
+    cV8    lv   8.0 |   247.9  1.4000   4.54 |   0.182    1.403    0.723    0.714
+   cV16    lv  16.0 |   292.4  1.4000   4.33 |   0.370    1.989    1.018    0.838
+
+===== LAMBDA_V GATE SCAN EXT (cV < 1) =====
+   cand  gate     w |   floor     g_c      s |  bl_int  bl_late  m(-.09)  m(-.15)
+ cV0.25    lv  0.25 |   265.6  0.8000  40.00 |   0.078    1.001    0.502    0.382   INVALID: sep anchor unreachable (stuck 0.64), gc pinned at lower clamp
+  cV0.5    lv  0.50 |   160.0  0.9039  40.00 |   0.060    1.053    0.669    0.620   INVALID: sep anchor unreachable (stuck 0.87), s pinned at clamp
+ cV0.71    lv  0.71 |   144.4  0.9286  28.80 |   0.039    1.088    0.761    0.765   converged it6-7 (sep=1.006); table's s=40 was a spurious
+                                                                                    post-loop secant blowup, observables recomputed at true s
+
+CONCLUSIONS (step A):
+  * Viable window cV in [~0.7, ~4]: below, the band gate over-closes and the
+    separation-limit anchor is unreachable; above, it over-opens at the wall
+    and the Blasius anchors are unreachable (g_c pins at 1.40).
+  * Mid-adverse mean rate plateaus at 0.74-0.81 x Drela across the viable
+    window (committed Q4: 0.88-0.94). The de-overlap of the FS family on the
+    (Gamma, Lambda_v) plane costs ~15% mid-adverse fidelity at the anchors.
+  * CHOSEN CANDIDATE: cV = 1.0, (floor, g_c, s) = (177.5, 0.9676, 13.62) --
+    the cleanest solve, sigmoid slope closest to the committed kernel (11.0).
+  * K_lambda fixed point (fig05_06 protocol, Q_v analytic): 7.44
+    (d ln Re_theta_c / d beta = 12.28, unchanged; canonical Q4: 6.1).
+
+SIGN CONVENTION (adopted 2026-07-17, user request): Lambda_v flipped to
+  Lambda_v = -u'u'' d^3/((u'd)^2+u^2) = (d2u/dn2 . (n x omega)) d^3/(...) [3D]
+  ~ -d(u'^2)/dn: Blasius and all favorable profiles are ALL POSITIVE; the
+  NEGATIVE lobe is the sub-inflection shear-growth layer unique to adverse
+  profiles (wall slope +beta/2a). The gate is sign-blind (|Lambda_v|), so
+  every number in this log and in the CFD runs is unchanged.

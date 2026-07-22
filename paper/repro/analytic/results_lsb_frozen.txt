@@ -1,0 +1,99 @@
+frozen-assumption check (dtheta/dx = Cf/2 = f''(0)*Theta/Re_th):
+  beta=-0.1988 H= 3.982 f''(0)=+0.0038 -> dtheta/dx = +3.30e-03/Re_th (over 100 theta at Re_th=200: +0.17%)
+  beta=-0.1900 H= 4.922 f''(0)=-0.0483 -> dtheta/dx = -4.10e-02/Re_th (over 100 theta at Re_th=200: -2.05%)
+  beta=-0.1700 H= 6.145 f''(0)=-0.0778 -> dtheta/dx = -6.18e-02/Re_th (over 100 theta at Re_th=200: -3.09%)
+  beta=-0.1500 H= 7.516 f''(0)=-0.0915 -> dtheta/dx = -6.68e-02/Re_th (over 100 theta at Re_th=200: -3.34%)
+  beta=-0.1200 H=10.632 f''(0)=-0.0996 -> dtheta/dx = -6.01e-02/Re_th (over 100 theta at Re_th=200: -3.01%)
+
+inviscid Rayleigh ceiling (temporal, wall-bounded profile):
+  H= 3.982: omega_i,max=0.0219 (U_e/theta), a_ray = 0.1037, c_phase = +0.415 U_e, alpha*theta = 0.173
+  H= 4.922: omega_i,max=0.0265 (U_e/theta), a_ray = 0.1280, c_phase = +0.421 U_e, alpha*theta = 0.173
+  H= 6.145: omega_i,max=0.0279 (U_e/theta), a_ray = 0.1434, c_phase = +0.424 U_e, alpha*theta = 0.162
+  H= 7.516: omega_i,max=0.0272 (U_e/theta), a_ray = 0.1526, c_phase = +0.426 U_e, alpha*theta = 0.148
+  H=10.632: omega_i,max=0.0239 (U_e/theta), a_ray = 0.1622, c_phase = +0.437 U_e, alpha*theta = 0.119
+
+      H  Re_th | a_eff q4 a_eff lv   a_ray | u@t-pk u@x-pk |  R_x q4  R_x lv (ufrac=0.03; u@pk: temporal / spatial mode; R_x vs Drela)
+  3.982    100 |   0.0988   0.0591  0.1037 | +0.700 +0.684 |    1.10    0.80
+  3.982    200 |   0.1082   0.0646  0.1037 | +0.704 +0.296 |    2.03    1.75
+  3.982    400 |   0.1145   0.0705  0.1037 | +0.704 +0.197 |    3.45    2.58
+  3.982    800 |   0.1189   0.0725  0.1037 | +0.704 +0.127 |    4.71    3.44
+  3.982   1600 |   0.1219   0.0737  0.1037 | +0.700 +0.082 |    6.08    4.35
+  4.922    100 |   0.1202   0.0795  0.1280 | +0.706 +0.330 |    1.42    1.49
+  4.922    200 |   0.1276   0.0904  0.1280 | +0.706 +0.202 |    2.86    2.54
+  4.922    400 |   0.1327   0.0934  0.1280 | +0.702 +0.113 |    4.30    3.95
+  4.922    800 |   0.1363   0.0952  0.1280 | +0.702 +0.057 |    6.44    6.37
+  4.922   1600 |   0.1388   0.0964  0.1280 | +0.702 +0.030 |    9.50    8.46
+  6.145    100 |   0.1309   0.1010  0.1434 | +0.700 +0.233 |    1.98    2.00
+  6.145    200 |   0.1372   0.1059  0.1434 | +0.697 +0.112 |    3.40    3.71
+  6.145    400 |   0.1416   0.1084  0.1434 | +0.694 +0.040 |    6.36    7.04
+  6.145    800 |   0.1447   0.1101  0.1434 | +0.690 +0.024 |    8.88    8.43
+  6.145   1600 |   0.1469   0.1113  0.1434 | +0.690 +0.024 |    9.43    8.88
+  7.516    100 |   0.1372   0.1118  0.1526 | +0.692 +0.151 |    2.13    2.46
+  7.516    200 |   0.1427   0.1152  0.1526 | +0.688 +0.046 |    4.38    5.40
+  7.516    400 |   0.1468   0.1175  0.1526 | +0.685 +0.020 |    7.08    6.91
+  7.516    800 |   0.1497   0.1192  0.1526 | +0.682 +0.020 |    7.65    7.37
+  7.516   1600 |   0.1517   0.1204  0.1526 | +0.682 +0.022 |    8.01    7.71
+ 10.632    100 |   0.1453   0.1227  0.1622 | +0.299 +0.038 |    2.57    3.27
+ 10.632    200 |   0.1495   0.1256  0.1622 | +0.683 +0.013 |    4.12    4.05
+ 10.632    400 |   0.1531   0.1278  0.1622 | +0.676 +0.015 |    4.46    4.35
+ 10.632    800 |   0.1557   0.1294  0.1622 | +0.676 +0.018 |    4.69    4.58
+ 10.632   1600 |   0.1576   0.1305  0.1622 | +0.673 +0.020 |    4.87    4.76
+
+advection-floor sensitivity of dN/dx (Q4 gate, ratio to Drela):
+      H  Re_th | uf=0.01  uf=0.03  uf=0.1   uf=0.3  
+  3.982    100 |     1.10     1.10     1.10     1.10
+  3.982    200 |     2.03     2.03     2.03     1.95
+  3.982    400 |     3.45     3.45     3.45     2.58
+  3.982    800 |     4.71     4.71     4.70     2.69
+  3.982   1600 |     6.08     6.08     5.49     2.74
+  4.922    100 |     1.42     1.42     1.42     1.39
+  4.922    200 |     2.86     2.86     2.86     2.20
+  4.922    400 |     4.30     4.30     4.22     2.32
+  4.922    800 |     6.45     6.44     4.86     2.38
+  4.922   1600 |    10.97     9.50     5.02     2.42
+  6.145    100 |     1.98     1.98     1.98     1.66
+  6.145    200 |     3.40     3.40     3.29     1.85
+  6.145    400 |     6.70     6.36     3.93     1.91
+  6.145    800 |    18.04     8.88     4.09     1.95
+  6.145   1600 |    22.13     9.43     4.21     1.98
+  7.516    100 |     2.13     2.13     2.11     1.39
+  7.516    200 |     4.60     4.38     2.97     1.46
+  7.516    400 |    15.09     7.08     3.15     1.50
+  7.516    800 |    18.78     7.65     3.26     1.53
+  7.516   1600 |    20.06     8.01     3.35     1.56
+ 10.632    100 |     2.92     2.57     1.63     0.82
+ 10.632    200 |     9.63     4.12     1.76     0.85
+ 10.632    400 |    11.34     4.46     1.83     0.87
+ 10.632    800 |    12.13     4.69     1.89     0.88
+ 10.632   1600 |    12.77     4.87     1.94     0.90
+wrote /home/qiqi/flexcompute/sa-ai/paper/repro/analytic/figs_explore/lsb_frozen.png
+
+CONCLUSIONS (frozen constant-pressure separated-profile study):
+  * Frozen assumption VERIFIED: dtheta/dx = Cf/2 <= 3.3% theta drift over a
+    100-theta bubble at Re_theta=200 (reversed-flow profiles sit near Cf=0).
+  * TEMPORAL rate ledger is nearly clean: model a_eff = 0.10-0.16 vs the
+    profile's own inviscid Rayleigh ceiling 0.104-0.162 -- the model grows
+    essentially AT the inviscid ceiling (viscous reality at Re_theta
+    100-200 is somewhat below it, so call it ~1.2-1.5x hot). The Rayleigh
+    phase speed is c = 0.42-0.44 U_e for every profile, alpha*theta =
+    0.12-0.17 -- consistent with the Daedalus critical-layer measurement.
+  * The over-amplification is in the SPATIAL CONVERSION: dN/dx(model)/
+    dN/dx(Drela) = 2.9-7.1 at LSB-typical (H=5-7.5, Re_theta=200-400),
+    growing with Re_theta and diverging as the advection floor -> 0
+    (up to 22x at ufrac=0.01). The spatial eigenmode abandons the wave
+    frame: the temporal mode rides at u = 0.7 U_e, but the spatial mode
+    migrates to u = 0.02-0.2 U_e (the dead-air side of the u=0 line, where
+    Gamma=2 opens the band gate fully). e^N grows at omega_i/c with the
+    wave's c = 0.42 U_e; the transported scalar grows at sigma/u_local with
+    u_local -> 0, bounded only by nu_lam diffusion (hence the Re_theta
+    trend). At ufrac=0.3 the ratio collapses to 0.8-2.7 -- the family-march
+    numbers -- confirming the mechanism is the advection denominator, not
+    the rate calibration.
+  * Gate-independent: Lambda_v (cV=1) shows the same spatial ratios
+    (both gates are wide open at the u=0 line where Gamma=2).
+  * IMPLICATION (future model work, no paper edits per directive): the fix
+    belongs in the transport/conversion, not the kernel rate -- e.g. a
+    group-velocity floor on the effective advection of nuHat where the
+    source is active (u_eff = max(u, ~0.4 sqrt(u^2+(omega d)^2))), or
+    source suppression where u < c_min. A rate recalibration cannot fix
+    this: the temporal rate is already at the physical ceiling.

@@ -1,0 +1,155 @@
+"""fig:indicatorplane -> paper/figs/indicator_plane.pdf.
+
+(a) Falkner-Skan profiles in the local-indicator plane (Re_Omega/Re_theta, Gamma);
+(b) the same profiles in the (Gamma_g, Gamma) plane, sharing the Gamma
+ordinate of (a) so the panels correlate point-for-point: the near-wall
+high-order vanishing of Gamma_g (at Gamma -> 1), the O(1) unstable band,
+and the excursions to Gamma_g -> 0 at finite Gamma marking each profile's
+inflection point.
+
+Supplementing the attached family: Stewartson's reverse-flow branch of the
+SAME equation (second solution with f''(0) < 0 for -0.1988 < beta < 0;
+Stewartson 1954, existence/uniqueness Hastings 1972) -- the canonical
+analytic separated profile, whose spatial stability Taghavi & Wazzan (1974)
+computed. Solved here by shooting (bisection on f''(0) < 0); its interior
+stagnation point (u = 0, omega != 0) carries Gamma to the detached value 2
+exactly."""
+import _saai  # noqa: F401
+import numpy as np
+import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
+from scipy.integrate import solve_bvp, cumulative_trapezoid
+CUT = 0.16
+
+def fs(beta, n=2400):
+    m = beta/(2-beta)
+    def ode(x, y): return np.vstack([y[1], y[2], -0.5*(m+1)*y[0]*y[2] - m*(1-y[1]**2)])
+    def bc(a, b): return np.array([a[0], a[1], b[1]-1])
+    x = np.linspace(0, 12, n); y0 = np.vstack([x-1+np.exp(-x), 1-np.exp(-x), np.exp(-x)])
+    s = solve_bvp(ode, bc, x, y0, max_nodes=800000, tol=1e-9); Y = s.sol(x)
+    return x, Y[0], Y[1], Y[2]
+
+def fs_reverse(beta_target=-0.15, eta_max=30.0, n=3000):
+    """Stewartson lower-branch (reverse-flow) FS solution (Stewartson 1954;
+    existence/uniqueness Hastings 1972). The branch repels plain Newton from
+    attached-profile guesses, so the wall shear f''(0) = s < 0 is IMPOSED as a
+    boundary condition and beta solved as the unknown parameter (Cebeci-Keller
+    style); a continuation ladder in s walks down the branch from the merge
+    point beta* = -0.1988, and a final secant on s lands on beta_target.
+    (The s-parameterization folds near s = -0.09/beta = -0.15, where the wall
+    shear turns back toward zero as beta -> 0-; targets much above -0.15
+    would need arclength continuation.)"""
+    x = np.linspace(0, eta_max, n)
+
+    def solve_s(s_wall, guess, beta_g):
+        def ode(x_, y, p):
+            b = p[0]; m = b/(2-b)
+            return np.vstack([y[1], y[2], -0.5*(m+1)*y[0]*y[2] - m*(1-y[1]**2)])
+        def bc(a, b_, p):
+            return np.array([a[0], a[1], a[2]-s_wall, b_[1]-1])
+        return solve_bvp(ode, bc, x, guess, p=[beta_g], max_nodes=800000, tol=1e-9)
+
+    fp0 = 1 - (1 + 0.04*x)*np.exp(-0.9*x)
+    guess = np.vstack([cumulative_trapezoid(fp0, x, initial=0.0), fp0,
+                       np.gradient(fp0, x)])
+    beta_g, betas_s = -0.19, {}
+    for s_wall in np.arange(-0.02, -0.0901, -0.01):
+        sol = solve_s(s_wall, guess, beta_g)
+        assert sol.status == 0 and -0.1989 < sol.p[0] < 0, f"ladder failed at s={s_wall}"
+        guess, beta_g = sol.sol(x), float(sol.p[0])
+        betas_s[round(s_wall, 4)] = beta_g
+    # secant on s for beta(s) = beta_target
+    s0, s1 = -0.08, -0.09
+    b0, b1 = betas_s[-0.08], betas_s[-0.09]
+    for _ in range(12):
+        if abs(b1 - beta_target) < 1e-4 or abs(b1 - b0) < 1e-12:
+            break
+        s2 = s1 + (beta_target - b1)*(s1 - s0)/(b1 - b0)
+        sol = solve_s(s2, guess, b1)
+        assert sol.status == 0, f"secant solve failed at s={s2}"
+        guess = sol.sol(x)
+        s0, b0, s1, b1 = s1, b1, s2, float(sol.p[0])
+    Y = guess
+    assert abs(b1 - beta_target) < 1e-3, f"landed at beta={b1}, wanted {beta_target}"
+    assert Y[2][0] < 0 and Y[1].min() < -0.03, "not on the reverse-flow branch"
+    return x, Y[0], Y[1], Y[2], b1
+
+
+def prof_gg(beta):
+    eta, f, fp, fpp = fs(beta); m = beta/(2-beta)
+    fppp = -0.5*(m+1)*f*fpp - m*(1-fp**2)
+    den = fp**2 + (eta*fpp)**2 + 1e-30
+    G = 2*(eta*fpp)**2/den
+    Gg = (fppp*eta**2)**2/den
+    # trim as in prof(): start off the wall, cut the far outer region
+    x = eta**2*fpp
+    ipk = int(np.argmax(x)); outer = np.where(G[ipk:] < 0.008)[0]
+    e = (ipk + outer[0]) if len(outer) else len(G)
+    return Gg[1:e], G[1:e]
+
+def prof(beta):
+    eta, f, fp, fpp = fs(beta)
+    th = np.trapezoid(fp*(1-fp), eta); m = beta/(2-beta)
+    x = eta**2*fpp/th                                  # Re_Omega / Re_theta
+    G = 2*(eta*fpp)**2/(fp**2 + (eta*fpp)**2 + 1e-30)
+    lam = m*eta**2/np.maximum(fp, 1e-6)
+    ipk = int(np.argmax(x)); outer = np.where(G[ipk:] < 0.008)[0]
+    e = (ipk + outer[0]) if len(outer) else len(G)
+    return x[1:e], G[1:e], lam[1:e]
+
+def prof_reverse(beta):
+    """Indicator-plane traces of the reverse-flow branch. Re_Omega uses the
+    vorticity MAGNITUDE |f''|; Gamma/Gamma_g are even in (f', f''). At the
+    interior stagnation point f' = 0 (with f'' != 0), Gamma = 2 exactly."""
+    eta, f, fp, fpp, beta_solved = fs_reverse(beta)
+    m = beta_solved/(2-beta_solved)
+    fppp = -0.5*(m+1)*f*fpp - m*(1-fp**2)
+    th = np.trapezoid(fp*(1-fp), eta)
+    den = fp**2 + (eta*fpp)**2 + 1e-30
+    x = eta**2*np.abs(fpp)/th
+    G = 2*(eta*fpp)**2/den
+    Gg = (fppp*eta**2)**2/den
+    ipk = int(np.argmax(x)); outer = np.where(G[ipk:] < 0.008)[0]
+    e = (ipk + outer[0]) if len(outer) else len(G)
+    print(f"  reverse branch beta={beta_solved:.4f}: f_pp(0)={fpp[0]:.4f}, "
+          f"min f_p={fp.min():.4f}, theta={th:.4f}")
+    return x[1:e], G[1:e], Gg[1:e]
+
+betas = [-0.198, -0.10, 0.0, 0.30, 1.00]
+BETA_REV = -0.15
+fig, (ax, axQ) = plt.subplots(1, 2, figsize=(11.8, 5.0))
+xr, Gr, Ggr = prof_reverse(BETA_REV)
+for b in betas:
+    x, G, lam = prof(b); soft = lam < CUT; strong = lam >= CUT
+    ax.plot(np.where(soft, x, np.nan), np.where(soft, G, np.nan), '-', color='k', lw=2.4)
+    ax.plot(np.where(strong, x, np.nan), np.where(strong, G, np.nan), ls=':', color='k', lw=2.8)
+    i = int(np.argmax(x)) if b != 1.00 else int(np.argmax(x)) + int(np.argmin(np.abs(G[int(np.argmax(x)):]-0.15)))
+    ax.annotate(fr'$\beta={b}$', (x[i], G[i]), fontsize=8.5, ha='left', va='center',
+                xytext=(5, 0), textcoords='offset points')
+ax.plot(xr, Gr, ls=(0, (5, 1.6, 1, 1.6)), color='0.45', lw=2.2)
+ir = int(np.argmax(Gr))
+ax.annotate(fr'reverse-flow branch, $\beta={BETA_REV}$' '\n(Stewartson)',
+            (xr[ir], Gr[ir]), fontsize=8, color='0.3', ha='left', va='top',
+            xytext=(10, -8), textcoords='offset points')
+ax.axhline(1, color='0.6', ls=(0, (4, 3)), lw=0.8)
+ax.set_xscale('log'); ax.set_xlim(1e-2, 15.0); ax.set_ylim(0, 2.0)
+ax.set_xlabel(r'$Re_\Omega/Re_\theta$'); ax.set_ylabel(r'$\Gamma$')
+ax.text(0.03, 0.97, '(a)', transform=ax.transAxes, fontsize=11, va='top', fontweight='bold')
+
+for b in betas:
+    Gg, G = prof_gg(b)
+    axQ.plot(np.maximum(Gg, 1e-12), G, '-', color='k', lw=2.4)
+    j = int(np.argmax(Gg))
+    if b == -0.198:
+        axQ.annotate(fr'$\beta={b}$', (Gg[j], G[j]), fontsize=8.5, ha='left',
+                     va='center', xytext=(6, 0), textcoords='offset points')
+    elif b == 1.00:
+        axQ.annotate(fr'$\beta={b}$', (Gg[j], G[j]), fontsize=8.5, ha='right',
+                     va='center', xytext=(-7, 0), textcoords='offset points')
+axQ.plot(np.maximum(Ggr, 1e-12), Gr, ls=(0, (5, 1.6, 1, 1.6)), color='0.45', lw=2.2)
+axQ.axhline(1, color='0.6', ls=(0, (4, 3)), lw=0.8)
+axQ.set_xscale('log')
+axQ.set_xlim(1e-4, 30.0); axQ.set_ylim(0, 2.0)
+axQ.set_xlabel(r'$\Gamma_g$'); axQ.set_ylabel(r'$\Gamma$')
+axQ.text(0.03, 0.97, '(b)', transform=axQ.transAxes, fontsize=11, va='top', fontweight='bold')
+plt.tight_layout(); plt.savefig('figs/indicator_plane.pdf')
+print("wrote figs/indicator_plane.pdf")

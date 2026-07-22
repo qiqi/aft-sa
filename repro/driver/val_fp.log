@@ -1,0 +1,5 @@
+[flatplate_ags_Tu0160] building case dir -> /home/qiqi/flexcompute/sa-ai/repro/driver/out/flatplate_ags_Tu0160
+[flatplate_ags_Tu0160] chi_inf = 6.3423e-03 (Tu=0.16% )
+[flatplate_ags_Tu0160] solving on GPU 0 (canonical SA-AI env, protocol=plain)...
+[flatplate_ags_Tu0160] DONE  CL=+0.0161  CD=0.00802
+[flatplate_ags_Tu0160] outputs in /home/qiqi/flexcompute/sa-ai/repro/driver/out/flatplate_ags_Tu0160

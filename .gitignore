@@ -85,3 +85,25 @@ scripts/test_*.py
 *.html
 *.html.gz
 *.vtk
+paper/repro/**/__pycache__/
+paper/repro/**/*.npz
+paper/repro/driver/out/
+flow360_g6/
+
+# Relocated CFD working areas (symlinks into /local_data/qiqi/sa-ai)
+/flow360
+/scripts/daedalus
+
+# Local Flow360 case/output directories
+/flow360_*/
+/case_ogrid_saai_a5/
+
+# Session logs and scratch
+run*.log
+texput.log
+crash_analysis.log
+error_rank_0.json
+*.bak
+
+# Generated Construct2D contour inputs
+external/construct2d/*.dat

@@ -422,15 +422,22 @@ def compute_blended_production(P_sa, P_aft, chi,
 
 from functools import partial
 
+from src.numerics.aft_sources import (
+    AFT_SIGMOID_CENTER, AFT_SIGMOID_SLOPE, AFT_RATE_SCALE,
+    AFT_RE_OMEGA_FLOOR, AFT_TILT_SLOPE,
+)
+
+
 @jax.jit
 def compute_aft_sa_source_jax(nuHat, grad, wall_dist, vel_mag, nu_laminar,
-                              # AFT parameters
+                              # AFT parameters (committed Option-A kernel;
+                              # defaults = src/numerics/aft_sources.py)
                               aft_gamma_coeff: float = 2.0,
-                              aft_re_scale: float = 1000.0,
-                              aft_log_divisor: float = 50.0,
-                              aft_sigmoid_center: float = 1.04,
-                              aft_sigmoid_slope: float = 35.0,
-                              aft_rate_scale: float = 0.2,
+                              aft_sigmoid_center: float = AFT_SIGMOID_CENTER,
+                              aft_sigmoid_slope: float = AFT_SIGMOID_SLOPE,
+                              aft_rate_scale: float = AFT_RATE_SCALE,
+                              aft_re_omega_floor: float = AFT_RE_OMEGA_FLOOR,
+                              aft_tilt_slope: float = AFT_TILT_SLOPE,
                               # Blending parameters
                               blend_threshold: float = AFT_BLEND_THRESHOLD,
                               blend_width: float = AFT_BLEND_WIDTH):
@@ -494,11 +501,18 @@ def compute_aft_sa_source_jax(nuHat, grad, wall_dist, vel_mag, nu_laminar,
     # We treat production implicitly (differentiable nuHat) for robustness.
     P_sa = compute_sa_production(omega, nuHat, wall_dist, nu_laminar)
     
-    # AFT production (pass nu_laminar for proper Re_Omega scaling)
+    # AFT production (pass nu_laminar for proper Re_Omega scaling).
+    # NOTE: forwarded by KEYWORD — an earlier positional call passed the
+    # legacy (re_scale, log_divisor) pair into (sigmoid_center, sigmoid_slope),
+    # silently zeroing the laminar production in the 2D RANS path.
     P_aft = compute_aft_production(
         omega, vel_mag, wall_dist, nuHat, nu_laminar,
-        aft_gamma_coeff, aft_re_scale, aft_log_divisor,
-        aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale
+        gamma_coeff=aft_gamma_coeff,
+        sigmoid_center=aft_sigmoid_center,
+        sigmoid_slope=aft_sigmoid_slope,
+        rate_scale=aft_rate_scale,
+        re_omega_floor=aft_re_omega_floor,
+        tilt_slope=aft_tilt_slope,
     )
     
     # Blended production (use chi for blending, not nuHat)

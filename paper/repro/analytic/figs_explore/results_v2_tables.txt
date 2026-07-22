@@ -1,0 +1,1138 @@
+===== regen_nlf_transition
+  a  cl_str cl_cav |  up_str up_cav  up_mf up_exp |  lo_str lo_cav  lo_mf lo_exp
+  0  0.494  0.521 |   0.371  0.378  0.426   0.38 |   0.566  0.575  0.622   0.55  cl_mf=0.516 conv=True  (*=exp extrapolated)
+  4  0.956  0.984 |   0.256  0.257  0.329  0.31* |   0.596  0.601  0.651   0.62  cl_mf=0.991 conv=True  (*=exp extrapolated)
+  9  1.482  1.504 |   0.073  0.054    n/a     -- |   0.612  0.621    n/a   0.64  cl_mf=1.672 conv=False  [mfoil NOT CONVERGED]  (*=exp extrapolated)
+ 15  1.954  1.987 |   0.000  0.000    n/a     -- |   0.634  0.642    n/a  0.66*  cl_mf=1.848 conv=True  [mfoil STALLED: upper H=7.4]  (*=exp extrapolated)
+===== regen_epp_reattach
+  a |  cavL0  cavL1  cavL2 |  strL0  strL1  strL2 |  mfoil |   exp
+  0 |  0.752  0.724  0.721 |  0.699  0.718  0.724 |  0.764  |  0.74   cl_mf=0.397
+  2 |  0.698  0.679  0.674 |  0.664  0.669  0.676 |  0.713  |  0.67   cl_mf=0.625
+  5 |  0.642  0.598  0.595 |  0.591  0.588  0.595 |  0.612  |  0.59   cl_mf=0.960
+  7 |  0.534  0.443  0.437 |  0.310  0.399  0.440 |  0.332* |  0.48   cl_mf=0.928
+* mfoil at alpha=7 (Re=2e5) is at the edge of its convergence regime; unreliable.
+===== regen_resweep_table
+ <<< Solving the inviscid problem >>> 
+
+ <<< Initializing the boundary layer >>> 
+
+2026-07-18 16:26:29.380 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=57, iNewton=0
+2026-07-18 16:26:29.385 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=58, iNewton=0
+2026-07-18 16:26:29.392 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=59, iNewton=2
+2026-07-18 16:26:29.398 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=60, iNewton=1
+2026-07-18 16:26:29.406 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=61, iNewton=1
+2026-07-18 16:26:29.413 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=62, iNewton=1
+2026-07-18 16:26:29.420 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=63, iNewton=1
+2026-07-18 16:26:29.428 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=64, iNewton=1
+2026-07-18 16:26:29.437 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=65, iNewton=3
+2026-07-18 16:26:29.446 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=66, iNewton=3
+2026-07-18 16:26:29.455 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=67, iNewton=3
+2026-07-18 16:26:29.464 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=68, iNewton=3
+2026-07-18 16:26:29.470 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=69, iNewton=0
+2026-07-18 16:26:29.476 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=70, iNewton=0
+2026-07-18 16:26:29.481 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=71, iNewton=0
+2026-07-18 16:26:29.487 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=72, iNewton=0
+2026-07-18 16:26:29.492 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=73, iNewton=0
+2026-07-18 16:26:29.498 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=74, iNewton=0
+2026-07-18 16:26:29.503 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=75, iNewton=0
+2026-07-18 16:26:29.509 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=76, iNewton=0
+2026-07-18 16:26:29.515 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=77, iNewton=0
+2026-07-18 16:26:29.520 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=78, iNewton=0
+2026-07-18 16:26:29.526 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=79, iNewton=0
+2026-07-18 16:26:29.531 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=80, iNewton=0
+2026-07-18 16:26:29.537 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=81, iNewton=0
+2026-07-18 16:26:29.542 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=82, iNewton=0
+2026-07-18 16:26:29.548 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=83, iNewton=0
+2026-07-18 16:26:29.553 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=84, iNewton=0
+2026-07-18 16:26:29.559 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=85, iNewton=0
+2026-07-18 16:26:29.565 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=86, iNewton=0
+2026-07-18 16:26:29.570 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=87, iNewton=0
+2026-07-18 16:26:29.576 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=88, iNewton=0
+2026-07-18 16:26:29.581 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=89, iNewton=0
+2026-07-18 16:26:29.587 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=90, iNewton=0
+2026-07-18 16:26:29.592 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=91, iNewton=0
+2026-07-18 16:26:29.598 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=92, iNewton=0
+2026-07-18 16:26:29.603 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=93, iNewton=0
+2026-07-18 16:26:29.608 | DEBUG    | mfoil:vprint:246 - Identified transition at (si=1, i=93): n=9.22010, ncrit=9.00000
+
+2026-07-18 16:26:29.614 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=93, iNewton=0
+2026-07-18 16:26:29.646 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=94, iNewton=0
+2026-07-18 16:26:29.666 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=95, iNewton=0
+2026-07-18 16:26:29.685 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=96, iNewton=0
+2026-07-18 16:26:29.704 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=97, iNewton=0
+2026-07-18 16:26:29.724 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=98, iNewton=0
+2026-07-18 16:26:29.743 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=99, iNewton=0
+2026-07-18 16:26:29.763 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=100, iNewton=0
+2026-07-18 16:26:29.783 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=101, iNewton=0
+2026-07-18 16:26:29.802 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=102, iNewton=0
+2026-07-18 16:26:29.822 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=103, iNewton=0
+2026-07-18 16:26:29.841 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=104, iNewton=0
+2026-07-18 16:26:29.861 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=105, iNewton=0
+2026-07-18 16:26:29.881 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=106, iNewton=0
+2026-07-18 16:26:29.900 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=107, iNewton=0
+2026-07-18 16:26:29.920 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=108, iNewton=0
+2026-07-18 16:26:29.939 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=109, iNewton=0
+2026-07-18 16:26:29.959 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=110, iNewton=0
+2026-07-18 16:26:29.978 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=111, iNewton=0
+2026-07-18 16:26:29.998 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=1, iNewton=0
+2026-07-18 16:26:30.010 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=2, iNewton=0
+2026-07-18 16:26:30.023 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=3, iNewton=0
+2026-07-18 16:26:30.036 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=4, iNewton=0
+2026-07-18 16:26:30.297 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.956218513627325e-01 -> s=9.956218513627325e-01
+ <<< Beginning coupled solver iterations >>>
+2026-07-18 16:26:30.298 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:31.056 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 0, Rnorm = 8.3228641898e+00
+2026-07-18 16:26:31.073 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:31.179 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:31.179 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.60322
+2026-07-18 16:26:31.183 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:31.183 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.956218513627325e-01 -> s=9.955472454616112e-01
+2026-07-18 16:26:31.183 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:31.228 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,87): 9.18543e+00 is above critical.
+2026-07-18 16:26:31.228 | DEBUG    | mfoil:vprint:246 -   Update transition: last lam [92]->[86]
+2026-07-18 16:26:31.229 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:31.718 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 1, Rnorm = 4.5802983965e+00
+2026-07-18 16:26:31.735 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:31.772 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:31.773 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.69529
+2026-07-18 16:26:31.776 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:31.776 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point up
+2026-07-18 16:26:31.776 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.955472454616112e-01 -> s=9.966429056425083e-01
+2026-07-18 16:26:31.776 | DEBUG    | mfoil:vprint:246 -   New stagnation panel = 88 89
+2026-07-18 16:26:31.798 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:31.840 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,83): 9.21635e+00 is above critical.
+2026-07-18 16:26:31.840 | DEBUG    | mfoil:vprint:246 -   Update transition: last lam [85]->[82]
+2026-07-18 16:26:31.840 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:32.606 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 2, Rnorm = 6.3358061083e+01
+2026-07-18 16:26:32.623 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:32.692 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:32.693 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:32.696 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:32.696 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.966429056425083e-01 -> s=9.971217523365246e-01
+2026-07-18 16:26:32.696 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:32.736 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,82): 9.18663e+00 is above critical.
+2026-07-18 16:26:32.737 | DEBUG    | mfoil:vprint:246 -   Update transition: last lam [82]->[81]
+2026-07-18 16:26:32.737 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:33.234 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 3, Rnorm = 2.1745774308e+01
+2026-07-18 16:26:33.251 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:33.288 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:33.288 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:33.291 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:33.291 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.971217523365246e-01 -> s=9.977608591080885e-01
+2026-07-18 16:26:33.291 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:33.331 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,81): 9.15083e+00 is above critical.
+2026-07-18 16:26:33.331 | DEBUG    | mfoil:vprint:246 -   Update transition: last lam [81]->[80]
+2026-07-18 16:26:33.331 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:33.830 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 4, Rnorm = 5.2334148199e+00
+2026-07-18 16:26:33.848 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:33.885 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:33.885 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:33.889 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:33.889 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.977608591080885e-01 -> s=9.977296452253174e-01
+2026-07-18 16:26:33.889 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:33.928 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,81): 9.06711e+00 is above critical.
+2026-07-18 16:26:33.928 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:34.427 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 5, Rnorm = 1.5134227029e+00
+2026-07-18 16:26:34.445 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:34.482 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:34.482 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:34.486 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:34.486 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.977296452253174e-01 -> s=9.977775840625276e-01
+2026-07-18 16:26:34.486 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:34.525 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,81): 9.12285e+00 is above critical.
+2026-07-18 16:26:34.525 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:35.024 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 6, Rnorm = 5.0796849791e-01
+2026-07-18 16:26:35.041 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:35.078 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:35.079 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:35.082 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:35.082 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.977775840625276e-01 -> s=9.977554231542225e-01
+2026-07-18 16:26:35.082 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:35.121 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,81): 9.10714e+00 is above critical.
+2026-07-18 16:26:35.121 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:35.620 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 7, Rnorm = 1.1436657123e-01
+2026-07-18 16:26:35.638 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:35.675 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:35.675 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:35.678 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:35.679 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.977554231542225e-01 -> s=9.977552610634719e-01
+2026-07-18 16:26:35.679 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:35.717 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,81): 9.10834e+00 is above critical.
+2026-07-18 16:26:35.717 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:36.214 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 8, Rnorm = 5.6102986758e-03
+2026-07-18 16:26:36.232 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:36.269 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:36.269 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:36.272 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:36.273 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.977552610634719e-01 -> s=9.977552295046186e-01
+2026-07-18 16:26:36.273 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:36.310 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,81): 9.10826e+00 is above critical.
+2026-07-18 16:26:36.310 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:36.807 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 9, Rnorm = 1.0897359224e-05
+2026-07-18 16:26:36.824 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:36.861 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:36.862 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:36.865 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:36.865 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.977552295046186e-01 -> s=9.977552314390083e-01
+2026-07-18 16:26:36.865 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:36.901 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,81): 9.10826e+00 is above critical.
+2026-07-18 16:26:36.901 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:37.398 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 10, Rnorm = 1.5017910249e-07
+2026-07-18 16:26:37.416 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:37.453 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:37.453 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:37.457 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:37.457 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.977552314390083e-01 -> s=9.977552313089828e-01
+2026-07-18 16:26:37.457 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:37.492 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,81): 9.10826e+00 is above critical.
+2026-07-18 16:26:37.492 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:37.993 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 11, Rnorm = 1.0109580439e-08
+2026-07-18 16:26:38.010 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:38.048 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:38.049 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:38.052 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:38.052 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.977552313089828e-01 -> s=9.977552313177253e-01
+2026-07-18 16:26:38.052 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:38.086 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,81): 9.10826e+00 is above critical.
+2026-07-18 16:26:38.086 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:38.583 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 12, Rnorm = 6.8030618485e-10
+2026-07-18 16:26:38.601 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:38.642 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:38.642 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:38.645 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:38.646 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.977552313177253e-01 -> s=9.977552313171369e-01
+2026-07-18 16:26:38.646 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:38.678 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,81): 9.10826e+00 is above critical.
+2026-07-18 16:26:38.678 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:39.176 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 13, Rnorm = 4.5782877174e-11
+ <<< Solving the inviscid problem >>> 
+
+ <<< Initializing the boundary layer >>> 
+
+2026-07-18 16:26:44.302 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=57, iNewton=0
+2026-07-18 16:26:44.308 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=58, iNewton=0
+2026-07-18 16:26:44.314 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=59, iNewton=2
+2026-07-18 16:26:44.320 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=60, iNewton=1
+2026-07-18 16:26:44.328 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=61, iNewton=1
+2026-07-18 16:26:44.335 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=62, iNewton=1
+2026-07-18 16:26:44.342 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=63, iNewton=1
+2026-07-18 16:26:44.352 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=64, iNewton=3
+2026-07-18 16:26:44.361 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=65, iNewton=3
+2026-07-18 16:26:44.367 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=66, iNewton=0
+2026-07-18 16:26:44.373 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=67, iNewton=0
+2026-07-18 16:26:44.378 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=68, iNewton=0
+2026-07-18 16:26:44.384 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=69, iNewton=0
+2026-07-18 16:26:44.389 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=70, iNewton=0
+2026-07-18 16:26:44.395 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=71, iNewton=0
+2026-07-18 16:26:44.400 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=72, iNewton=0
+2026-07-18 16:26:44.406 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=73, iNewton=0
+2026-07-18 16:26:44.411 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=74, iNewton=0
+2026-07-18 16:26:44.416 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=75, iNewton=0
+2026-07-18 16:26:44.422 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=76, iNewton=0
+2026-07-18 16:26:44.427 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=77, iNewton=0
+2026-07-18 16:26:44.433 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=78, iNewton=0
+2026-07-18 16:26:44.438 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=79, iNewton=0
+2026-07-18 16:26:44.444 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=80, iNewton=0
+2026-07-18 16:26:44.449 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=81, iNewton=0
+2026-07-18 16:26:44.455 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=82, iNewton=0
+2026-07-18 16:26:44.460 | DEBUG    | mfoil:vprint:246 - Identified transition at (si=1, i=82): n=9.34194, ncrit=9.00000
+
+2026-07-18 16:26:44.466 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=82, iNewton=0
+2026-07-18 16:26:44.498 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=83, iNewton=0
+2026-07-18 16:26:44.518 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=84, iNewton=0
+2026-07-18 16:26:44.537 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=85, iNewton=0
+2026-07-18 16:26:44.557 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=86, iNewton=0
+2026-07-18 16:26:44.576 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=87, iNewton=0
+2026-07-18 16:26:44.595 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=88, iNewton=0
+2026-07-18 16:26:44.615 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=89, iNewton=0
+2026-07-18 16:26:44.634 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=90, iNewton=0
+2026-07-18 16:26:44.654 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=91, iNewton=0
+2026-07-18 16:26:44.673 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=92, iNewton=0
+2026-07-18 16:26:44.693 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=93, iNewton=0
+2026-07-18 16:26:44.713 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=94, iNewton=0
+2026-07-18 16:26:44.732 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=95, iNewton=0
+2026-07-18 16:26:44.755 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=96, iNewton=1
+2026-07-18 16:26:44.778 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=97, iNewton=1
+2026-07-18 16:26:44.803 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=98, iNewton=1
+2026-07-18 16:26:44.829 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=99, iNewton=1
+2026-07-18 16:26:44.851 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=100, iNewton=1
+2026-07-18 16:26:44.874 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=101, iNewton=1
+2026-07-18 16:26:44.893 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=102, iNewton=0
+2026-07-18 16:26:44.912 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=103, iNewton=0
+2026-07-18 16:26:44.931 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=104, iNewton=0
+2026-07-18 16:26:44.947 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=105, iNewton=0
+2026-07-18 16:26:44.963 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=106, iNewton=0
+2026-07-18 16:26:44.979 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=107, iNewton=0
+2026-07-18 16:26:44.998 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=108, iNewton=0
+2026-07-18 16:26:45.017 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=109, iNewton=0
+2026-07-18 16:26:45.037 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=110, iNewton=0
+2026-07-18 16:26:45.062 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=111, iNewton=2
+2026-07-18 16:26:45.369 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.956218513627325e-01 -> s=9.956218513627325e-01
+ <<< Beginning coupled solver iterations >>>
+2026-07-18 16:26:45.369 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:46.141 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 0, Rnorm = 8.3228641898e+00
+2026-07-18 16:26:46.158 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:46.226 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:46.226 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.61262
+2026-07-18 16:26:46.230 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:46.230 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.956218513627325e-01 -> s=9.961812188686618e-01
+2026-07-18 16:26:46.230 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:46.271 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,81): 9.29204e+00 is above critical.
+2026-07-18 16:26:46.271 | DEBUG    | mfoil:vprint:246 -   Update transition: last lam [81]->[80]
+2026-07-18 16:26:46.272 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:46.770 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 1, Rnorm = 4.1439437373e+00
+2026-07-18 16:26:46.788 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:46.824 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:46.825 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:46.828 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:46.828 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point up
+2026-07-18 16:26:46.828 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961812188686618e-01 -> s=9.966931471599787e-01
+2026-07-18 16:26:46.828 | DEBUG    | mfoil:vprint:246 -   New stagnation panel = 88 89
+2026-07-18 16:26:46.849 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:46.889 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,78): 9.12946e+00 is above critical.
+2026-07-18 16:26:46.889 | DEBUG    | mfoil:vprint:246 -   Update transition: last lam [79]->[77]
+2026-07-18 16:26:46.889 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:47.667 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 2, Rnorm = 5.6684194742e+02
+2026-07-18 16:26:47.685 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:47.752 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:47.753 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:47.756 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:47.756 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.966931471599787e-01 -> s=9.967822786484533e-01
+2026-07-18 16:26:47.756 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:47.795 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,77): 9.08663e+00 is above critical.
+2026-07-18 16:26:47.795 | DEBUG    | mfoil:vprint:246 -   Update transition: last lam [77]->[76]
+2026-07-18 16:26:47.795 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:48.301 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 3, Rnorm = 2.7140879175e+02
+2026-07-18 16:26:48.319 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:48.355 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:48.355 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:48.358 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:48.359 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.967822786484533e-01 -> s=9.967511807401034e-01
+2026-07-18 16:26:48.359 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:48.398 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,78): 9.24741e+00 is above critical.
+2026-07-18 16:26:48.398 | DEBUG    | mfoil:vprint:246 -   Update transition: last lam [76]->[77]
+2026-07-18 16:26:48.398 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:48.901 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 4, Rnorm = 1.2085658273e+02
+2026-07-18 16:26:48.919 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:48.955 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:48.955 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:48.958 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:48.958 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.967511807401034e-01 -> s=9.967861479517959e-01
+2026-07-18 16:26:48.959 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:48.997 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,78): 9.27961e+00 is above critical.
+2026-07-18 16:26:48.998 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:49.499 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 5, Rnorm = 7.7668083466e+01
+2026-07-18 16:26:49.517 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:49.553 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:49.554 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:49.557 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:49.557 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.967861479517959e-01 -> s=9.967841179443709e-01
+2026-07-18 16:26:49.557 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:49.595 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,78): 9.27934e+00 is above critical.
+2026-07-18 16:26:49.595 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:50.100 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 6, Rnorm = 3.1611501691e+01
+2026-07-18 16:26:50.117 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:50.153 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:50.154 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:50.157 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:50.157 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.967841179443709e-01 -> s=9.967788024924779e-01
+2026-07-18 16:26:50.157 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:50.195 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,78): 9.27933e+00 is above critical.
+2026-07-18 16:26:50.195 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:50.698 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 7, Rnorm = 1.2228311657e+01
+2026-07-18 16:26:50.716 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:50.752 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:50.752 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:50.756 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:50.756 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.967788024924779e-01 -> s=9.967733186317600e-01
+2026-07-18 16:26:50.756 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:50.794 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,78): 9.27933e+00 is above critical.
+2026-07-18 16:26:50.794 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:51.297 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 8, Rnorm = 4.1940112118e+00
+2026-07-18 16:26:51.314 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:51.350 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:51.351 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:51.354 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:51.354 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.967733186317600e-01 -> s=9.967690102612023e-01
+2026-07-18 16:26:51.354 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:51.388 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,78): 9.27933e+00 is above critical.
+2026-07-18 16:26:51.388 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:51.892 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 9, Rnorm = 1.0662280437e+00
+2026-07-18 16:26:51.909 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:51.945 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:51.946 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:51.949 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:51.949 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.967690102612023e-01 -> s=9.967670328171898e-01
+2026-07-18 16:26:51.949 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:51.982 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,78): 9.27933e+00 is above critical.
+2026-07-18 16:26:51.982 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:52.486 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 10, Rnorm = 1.2689295413e-01
+2026-07-18 16:26:52.503 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:52.539 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:52.540 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:52.543 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:52.543 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.967670328171898e-01 -> s=9.967667177232669e-01
+2026-07-18 16:26:52.543 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:52.576 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,78): 9.27933e+00 is above critical.
+2026-07-18 16:26:52.576 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:53.081 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 11, Rnorm = 2.4904789065e-03
+2026-07-18 16:26:53.098 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:53.134 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:53.135 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:53.138 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:53.138 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.967667177232669e-01 -> s=9.967667107534370e-01
+2026-07-18 16:26:53.138 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:53.169 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,78): 9.27933e+00 is above critical.
+2026-07-18 16:26:53.170 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:53.673 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 12, Rnorm = 2.0295135366e-06
+2026-07-18 16:26:53.691 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:26:53.727 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:26:53.727 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:26:53.731 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:26:53.731 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.967667107534370e-01 -> s=9.967667107500073e-01
+2026-07-18 16:26:53.731 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:26:53.758 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,78): 9.27933e+00 is above critical.
+2026-07-18 16:26:53.759 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:26:54.261 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 13, Rnorm = 3.7040943449e-12
+ <<< Solving the inviscid problem >>> 
+
+ <<< Initializing the boundary layer >>> 
+
+2026-07-18 16:26:59.372 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=57, iNewton=0
+2026-07-18 16:26:59.378 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=58, iNewton=0
+2026-07-18 16:26:59.385 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=59, iNewton=2
+2026-07-18 16:26:59.392 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=60, iNewton=1
+2026-07-18 16:26:59.399 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=61, iNewton=1
+2026-07-18 16:26:59.406 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=62, iNewton=1
+2026-07-18 16:26:59.416 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=63, iNewton=3
+2026-07-18 16:26:59.422 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=64, iNewton=0
+2026-07-18 16:26:59.427 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=65, iNewton=0
+2026-07-18 16:26:59.433 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=66, iNewton=0
+2026-07-18 16:26:59.438 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=67, iNewton=0
+2026-07-18 16:26:59.444 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=68, iNewton=0
+2026-07-18 16:26:59.449 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=69, iNewton=0
+2026-07-18 16:26:59.455 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=70, iNewton=0
+2026-07-18 16:26:59.460 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=71, iNewton=0
+2026-07-18 16:26:59.465 | DEBUG    | mfoil:vprint:246 - Identified transition at (si=1, i=71): n=9.15960, ncrit=9.00000
+
+2026-07-18 16:26:59.471 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=71, iNewton=0
+2026-07-18 16:26:59.502 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=72, iNewton=0
+2026-07-18 16:26:59.522 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=73, iNewton=0
+2026-07-18 16:26:59.541 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=74, iNewton=0
+2026-07-18 16:26:59.561 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=75, iNewton=0
+2026-07-18 16:26:59.580 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=76, iNewton=0
+2026-07-18 16:26:59.599 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=77, iNewton=0
+2026-07-18 16:27:00.337 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.956218513627325e-01 -> s=9.956218513627325e-01
+ <<< Beginning coupled solver iterations >>>
+2026-07-18 16:27:00.338 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:01.137 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 0, Rnorm = 8.3228641898e+00
+2026-07-18 16:27:01.154 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:01.220 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:01.221 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.67233
+2026-07-18 16:27:01.224 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:01.224 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.956218513627325e-01 -> s=9.962268079881831e-01
+2026-07-18 16:27:01.224 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:01.264 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,72): 9.13110e+00 is above critical.
+2026-07-18 16:27:01.264 | DEBUG    | mfoil:vprint:246 -   Update transition: last lam [70]->[71]
+2026-07-18 16:27:01.264 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:01.784 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 1, Rnorm = 3.8529967875e+00
+2026-07-18 16:27:01.802 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:01.838 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:01.839 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:01.842 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:01.842 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point up
+2026-07-18 16:27:01.842 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.962268079881831e-01 -> s=9.965905547409381e-01
+2026-07-18 16:27:01.842 | DEBUG    | mfoil:vprint:246 -   New stagnation panel = 88 89
+2026-07-18 16:27:01.864 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:01.902 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,72): 9.52757e+00 is above critical.
+2026-07-18 16:27:01.902 | DEBUG    | mfoil:vprint:246 -   Update transition: last lam [70]->[71]
+2026-07-18 16:27:01.902 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:02.697 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 2, Rnorm = 3.8095205520e+02
+2026-07-18 16:27:02.715 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:02.783 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:02.784 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:02.787 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:02.787 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.965905547409381e-01 -> s=9.964998150640734e-01
+2026-07-18 16:27:02.787 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:02.825 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,72): 9.19600e+00 is above critical.
+2026-07-18 16:27:02.826 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:03.345 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 3, Rnorm = 1.7794009357e+02
+2026-07-18 16:27:03.363 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:03.400 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:03.400 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:03.404 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:03.404 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.964998150640734e-01 -> s=9.965207328905352e-01
+2026-07-18 16:27:03.404 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:03.442 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,72): 9.10812e+00 is above critical.
+2026-07-18 16:27:03.442 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:03.961 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 4, Rnorm = 5.5251709366e+01
+2026-07-18 16:27:03.979 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:04.016 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:04.017 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:04.020 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:04.020 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.965207328905352e-01 -> s=9.965286531384532e-01
+2026-07-18 16:27:04.020 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:04.058 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,72): 9.10830e+00 is above critical.
+2026-07-18 16:27:04.058 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:04.577 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 5, Rnorm = 2.2465484424e+01
+2026-07-18 16:27:04.595 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:04.633 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:04.633 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:04.637 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:04.637 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.965286531384532e-01 -> s=9.965311565480709e-01
+2026-07-18 16:27:04.637 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:04.670 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,72): 9.10823e+00 is above critical.
+2026-07-18 16:27:04.670 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:05.191 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 6, Rnorm = 8.6127219886e+00
+2026-07-18 16:27:05.209 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:05.246 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:05.247 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:05.250 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:05.250 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.965311565480709e-01 -> s=9.965328236045714e-01
+2026-07-18 16:27:05.250 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:05.281 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,72): 9.10823e+00 is above critical.
+2026-07-18 16:27:05.281 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:05.801 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 7, Rnorm = 2.9326134830e+00
+2026-07-18 16:27:05.819 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:05.856 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:05.856 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:05.860 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:05.860 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.965328236045714e-01 -> s=9.965344842663373e-01
+2026-07-18 16:27:05.860 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:05.891 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,72): 9.10823e+00 is above critical.
+2026-07-18 16:27:05.891 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:06.414 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 8, Rnorm = 8.6836002444e-01
+2026-07-18 16:27:06.431 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:06.468 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:06.469 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:06.472 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:06.472 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.965344842663373e-01 -> s=9.965355827399994e-01
+2026-07-18 16:27:06.472 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:06.503 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,72): 9.10823e+00 is above critical.
+2026-07-18 16:27:06.503 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:07.023 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 9, Rnorm = 2.5771582504e-01
+2026-07-18 16:27:07.041 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:07.079 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:07.080 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:07.083 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:07.083 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.965355827399994e-01 -> s=9.965359203180653e-01
+2026-07-18 16:27:07.083 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:07.115 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,72): 9.10823e+00 is above critical.
+2026-07-18 16:27:07.115 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:07.638 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 10, Rnorm = 3.6368794985e-02
+2026-07-18 16:27:07.656 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:07.694 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:07.695 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:07.698 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:07.698 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.965359203180653e-01 -> s=9.965359513047507e-01
+2026-07-18 16:27:07.698 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:07.728 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,72): 9.10823e+00 is above critical.
+2026-07-18 16:27:07.728 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:08.248 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 11, Rnorm = 5.4341152441e-04
+2026-07-18 16:27:08.266 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:08.303 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:08.303 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:08.306 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:08.307 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.965359513047507e-01 -> s=9.965359516642400e-01
+2026-07-18 16:27:08.307 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:08.334 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,72): 9.10823e+00 is above critical.
+2026-07-18 16:27:08.334 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:08.856 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 12, Rnorm = 9.9997244719e-08
+2026-07-18 16:27:08.874 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:08.911 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:08.911 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:08.914 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:08.914 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.965359516642400e-01 -> s=9.965359516643026e-01
+2026-07-18 16:27:08.915 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:08.941 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,72): 9.10823e+00 is above critical.
+2026-07-18 16:27:08.942 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:09.461 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 13, Rnorm = 1.1970624128e-13
+ <<< Solving the inviscid problem >>> 
+
+ <<< Initializing the boundary layer >>> 
+
+2026-07-18 16:27:14.605 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=57, iNewton=0
+2026-07-18 16:27:14.610 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=58, iNewton=0
+2026-07-18 16:27:14.617 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=59, iNewton=1
+2026-07-18 16:27:14.624 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=60, iNewton=1
+2026-07-18 16:27:14.631 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=61, iNewton=1
+2026-07-18 16:27:14.638 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=62, iNewton=0
+2026-07-18 16:27:14.643 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=63, iNewton=0
+2026-07-18 16:27:14.649 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=64, iNewton=0
+2026-07-18 16:27:14.654 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=65, iNewton=0
+2026-07-18 16:27:14.659 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=66, iNewton=0
+2026-07-18 16:27:14.665 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=67, iNewton=0
+2026-07-18 16:27:14.670 | DEBUG    | mfoil:vprint:246 - Identified transition at (si=1, i=67): n=9.38858, ncrit=9.00000
+
+2026-07-18 16:27:14.675 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=67, iNewton=0
+2026-07-18 16:27:14.706 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=68, iNewton=0
+2026-07-18 16:27:14.725 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=69, iNewton=0
+2026-07-18 16:27:14.745 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=70, iNewton=0
+2026-07-18 16:27:14.764 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=71, iNewton=0
+2026-07-18 16:27:14.783 | DEBUG    | mfoil:vprint:246 - ** switching to inverse: i=72, iNewton=0
+2026-07-18 16:27:15.577 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.956218513627325e-01 -> s=9.956218513627325e-01
+ <<< Beginning coupled solver iterations >>>
+2026-07-18 16:27:15.577 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:16.385 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 0, Rnorm = 8.3228641898e+00
+2026-07-18 16:27:16.403 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:16.471 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:16.472 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.52151
+2026-07-18 16:27:16.475 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:16.475 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.956218513627325e-01 -> s=9.961323545500985e-01
+2026-07-18 16:27:16.475 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:16.514 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,68): 9.36245e+00 is above critical.
+2026-07-18 16:27:16.514 | DEBUG    | mfoil:vprint:246 -   Update transition: last lam [66]->[67]
+2026-07-18 16:27:16.514 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:17.045 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 1, Rnorm = 4.6380692712e+00
+2026-07-18 16:27:17.063 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:17.100 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:17.100 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.78488
+2026-07-18 16:27:17.104 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:17.104 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point up
+2026-07-18 16:27:17.104 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961323545500985e-01 -> s=9.964379135035022e-01
+2026-07-18 16:27:17.104 | DEBUG    | mfoil:vprint:246 -   New stagnation panel = 88 89
+2026-07-18 16:27:17.125 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:17.165 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,68): 9.81028e+00 is above critical.
+2026-07-18 16:27:17.165 | DEBUG    | mfoil:vprint:246 -   Update transition: last lam [66]->[67]
+2026-07-18 16:27:17.165 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:17.973 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 2, Rnorm = 1.3980282704e+03
+2026-07-18 16:27:17.992 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:18.063 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:18.064 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.99284
+2026-07-18 16:27:18.067 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:18.067 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.964379135035022e-01 -> s=9.964369884661686e-01
+2026-07-18 16:27:18.067 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:18.106 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,68): 9.29107e+00 is above critical.
+2026-07-18 16:27:18.106 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:18.631 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 3, Rnorm = 6.5779090529e+02
+2026-07-18 16:27:18.649 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:18.686 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:18.686 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:18.690 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:18.690 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.964369884661686e-01 -> s=9.964569053741106e-01
+2026-07-18 16:27:18.690 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:18.738 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,87): 9.00182e+00 is above critical.
+2026-07-18 16:27:18.738 | DEBUG    | mfoil:vprint:246 -   Update transition: last lam [67]->[86]
+2026-07-18 16:27:18.738 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:19.218 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 4, Rnorm = 2.9123782913e+02
+2026-07-18 16:27:19.236 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:19.272 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:19.273 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.19036
+2026-07-18 16:27:19.276 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:19.276 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.964569053741106e-01 -> s=9.966038016022929e-01
+2026-07-18 16:27:19.277 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:19.314 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.28904e+00 is above critical.
+2026-07-18 16:27:19.314 | DEBUG    | mfoil:vprint:246 -   Update transition: last lam [86]->[68]
+2026-07-18 16:27:19.314 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:19.838 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 5, Rnorm = 2.3205982153e+02
+2026-07-18 16:27:19.856 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:19.892 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:19.893 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.70795
+2026-07-18 16:27:19.896 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:19.896 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.966038016022929e-01 -> s=9.964433089702138e-01
+2026-07-18 16:27:19.896 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:19.933 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.23179e+00 is above critical.
+2026-07-18 16:27:19.934 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:20.456 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 6, Rnorm = 1.3350879389e+05
+2026-07-18 16:27:20.474 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:20.511 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:20.512 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:20.515 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:20.515 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.964433089702138e-01 -> s=9.964734883633549e-01
+2026-07-18 16:27:20.515 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:20.552 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.09928e+00 is above critical.
+2026-07-18 16:27:20.552 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:21.075 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 7, Rnorm = 5.9312702790e+04
+2026-07-18 16:27:21.093 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:21.129 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:21.130 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:21.133 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:21.133 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.964734883633549e-01 -> s=9.964632683590071e-01
+2026-07-18 16:27:21.133 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:21.170 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.05021e+00 is above critical.
+2026-07-18 16:27:21.170 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:21.694 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 8, Rnorm = 2.5701024111e+04
+2026-07-18 16:27:21.711 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:21.748 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:21.748 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:21.752 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:21.752 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.964632683590071e-01 -> s=9.964600505239820e-01
+2026-07-18 16:27:21.752 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:21.788 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.05014e+00 is above critical.
+2026-07-18 16:27:21.788 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:22.311 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 9, Rnorm = 1.2454888193e+03
+2026-07-18 16:27:22.329 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:22.366 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:22.366 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:22.370 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:22.370 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.964600505239820e-01 -> s=9.964636410040166e-01
+2026-07-18 16:27:22.370 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:22.406 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.05017e+00 is above critical.
+2026-07-18 16:27:22.407 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:22.929 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 10, Rnorm = 2.3343408154e+02
+2026-07-18 16:27:22.947 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:22.984 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:22.985 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:22.988 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:22.988 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.964636410040166e-01 -> s=9.964672787659534e-01
+2026-07-18 16:27:22.988 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:23.025 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.05019e+00 is above critical.
+2026-07-18 16:27:23.025 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:23.547 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 11, Rnorm = 1.6116935902e+02
+2026-07-18 16:27:23.565 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:23.614 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:23.615 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:23.620 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:23.621 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.964672787659534e-01 -> s=9.964666722516284e-01
+2026-07-18 16:27:23.621 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:23.670 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.05019e+00 is above critical.
+2026-07-18 16:27:23.671 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:24.201 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 12, Rnorm = 3.0292988774e+01
+2026-07-18 16:27:24.219 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:24.267 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:24.268 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 1.00000
+2026-07-18 16:27:24.273 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:24.274 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.964666722516284e-01 -> s=9.964703649525427e-01
+2026-07-18 16:27:24.274 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:24.335 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.05017e+00 is above critical.
+2026-07-18 16:27:24.335 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:24.863 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 13, Rnorm = 5.7336561824e+00
+2026-07-18 16:27:24.881 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:24.928 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:24.929 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.53020
+2026-07-18 16:27:24.935 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:24.935 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.964703649525427e-01 -> s=9.965887561425681e-01
+2026-07-18 16:27:24.935 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:24.996 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.04973e+00 is above critical.
+2026-07-18 16:27:24.997 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:25.523 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 14, Rnorm = 9.1372123978e+00
+2026-07-18 16:27:25.541 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:25.589 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:25.590 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.00005
+2026-07-18 16:27:25.595 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:25.596 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.965887561425681e-01 -> s=9.966763890068401e-01
+2026-07-18 16:27:25.596 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:25.657 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.04899e+00 is above critical.
+2026-07-18 16:27:25.658 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:26.184 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 15, Rnorm = 1.3372734819e+01
+2026-07-18 16:27:26.202 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:26.249 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:26.250 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.01311
+2026-07-18 16:27:26.256 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:26.256 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.966763890068401e-01 -> s=9.967232693166428e-01
+2026-07-18 16:27:26.256 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:26.317 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.05319e+00 is above critical.
+2026-07-18 16:27:26.317 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:26.845 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 16, Rnorm = 1.4511418624e+01
+2026-07-18 16:27:26.863 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:26.910 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:26.911 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.00017
+2026-07-18 16:27:26.917 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:26.917 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.967232693166428e-01 -> s=9.966725277319708e-01
+2026-07-18 16:27:26.917 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:26.979 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.04497e+00 is above critical.
+2026-07-18 16:27:26.979 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:27.505 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 17, Rnorm = 1.4242381334e+01
+2026-07-18 16:27:27.523 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:27.571 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:27.572 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.00575
+2026-07-18 16:27:27.578 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:27.578 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.966725277319708e-01 -> s=9.966119432289489e-01
+2026-07-18 16:27:27.578 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:27.640 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.04477e+00 is above critical.
+2026-07-18 16:27:27.640 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:28.167 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 18, Rnorm = 1.4334604461e+01
+2026-07-18 16:27:28.185 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:28.232 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:28.233 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.03093
+2026-07-18 16:27:28.239 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:28.239 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.966119432289489e-01 -> s=9.966928735652040e-01
+2026-07-18 16:27:28.239 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:28.301 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.04297e+00 is above critical.
+2026-07-18 16:27:28.301 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:28.829 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 19, Rnorm = 1.4266764430e+01
+2026-07-18 16:27:28.847 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:28.894 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:28.895 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.00001
+2026-07-18 16:27:28.901 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:28.901 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.966928735652040e-01 -> s=9.966395866858395e-01
+2026-07-18 16:27:28.902 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:28.963 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.04428e+00 is above critical.
+2026-07-18 16:27:28.964 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:29.492 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 20, Rnorm = 1.4388075687e+01
+2026-07-18 16:27:29.510 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:29.561 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:29.562 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.00001
+2026-07-18 16:27:29.567 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:29.568 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.966395866858395e-01 -> s=9.965793020864531e-01
+2026-07-18 16:27:29.568 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:29.630 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.04539e+00 is above critical.
+2026-07-18 16:27:29.630 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:30.157 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 21, Rnorm = 1.4484465719e+01
+2026-07-18 16:27:30.175 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:30.223 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:30.223 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.00001
+2026-07-18 16:27:30.229 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:30.229 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.965793020864531e-01 -> s=9.965050632806050e-01
+2026-07-18 16:27:30.230 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:30.291 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,69): 9.04604e+00 is above critical.
+2026-07-18 16:27:30.291 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:30.819 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 22, Rnorm = 1.4424687337e+01
+2026-07-18 16:27:30.836 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:30.873 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:30.873 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.00001
+2026-07-18 16:27:30.877 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:30.877 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point down
+2026-07-18 16:27:30.877 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.965050632806050e-01 -> s=9.962194593003396e-01
+2026-07-18 16:27:30.877 | DEBUG    | mfoil:vprint:246 -   New stagnation panel = 87 88
+2026-07-18 16:27:30.899 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:30.935 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.04694e+00 is above critical.
+2026-07-18 16:27:30.935 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:31.781 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 23, Rnorm = 1.0894091354e+01
+2026-07-18 16:27:31.798 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:31.866 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:31.867 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.00563
+2026-07-18 16:27:31.870 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:31.870 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.962194593003396e-01 -> s=9.962231753221542e-01
+2026-07-18 16:27:31.870 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:31.907 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.04693e+00 is above critical.
+2026-07-18 16:27:31.907 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:32.430 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 24, Rnorm = 1.0922524599e+01
+2026-07-18 16:27:32.448 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:32.486 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:32.487 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.00342
+2026-07-18 16:27:32.490 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:32.490 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.962231753221542e-01 -> s=9.962272112535787e-01
+2026-07-18 16:27:32.490 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:32.526 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.04692e+00 is above critical.
+2026-07-18 16:27:32.527 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:33.051 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 25, Rnorm = 1.0991204516e+01
+2026-07-18 16:27:33.069 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:33.105 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:33.106 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.00277
+2026-07-18 16:27:33.109 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:33.109 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.962272112535787e-01 -> s=9.962314673574625e-01
+2026-07-18 16:27:33.109 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:33.150 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.07119e+00 is above critical.
+2026-07-18 16:27:33.150 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:33.675 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 26, Rnorm = 1.1059998275e+01
+2026-07-18 16:27:33.692 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:33.730 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:33.731 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.08653
+2026-07-18 16:27:33.734 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:33.734 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.962314673574625e-01 -> s=9.962257598966658e-01
+2026-07-18 16:27:33.734 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:33.775 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.16140e+00 is above critical.
+2026-07-18 16:27:33.776 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:34.301 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 27, Rnorm = 9.6815865726e+00
+2026-07-18 16:27:34.318 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:34.355 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:34.356 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.04439
+2026-07-18 16:27:34.359 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:34.359 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.962257598966658e-01 -> s=9.961991749719081e-01
+2026-07-18 16:27:34.359 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:34.401 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.16008e+00 is above critical.
+2026-07-18 16:27:34.401 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:34.926 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 28, Rnorm = 1.2770463624e+01
+2026-07-18 16:27:34.943 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:34.981 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:34.981 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.10798
+2026-07-18 16:27:34.984 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:34.984 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961991749719081e-01 -> s=9.961916203339604e-01
+2026-07-18 16:27:34.985 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:35.026 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.14975e+00 is above critical.
+2026-07-18 16:27:35.026 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:35.550 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 29, Rnorm = 1.1660844890e+01
+2026-07-18 16:27:35.567 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:35.604 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:35.605 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.08123
+2026-07-18 16:27:35.608 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:35.608 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961916203339604e-01 -> s=9.961857693842302e-01
+2026-07-18 16:27:35.608 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:35.650 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.14392e+00 is above critical.
+2026-07-18 16:27:35.650 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:36.174 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 30, Rnorm = 1.1074456534e+01
+2026-07-18 16:27:36.192 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:36.231 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:36.231 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.06095
+2026-07-18 16:27:36.234 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:36.234 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961857693842302e-01 -> s=9.961811452639020e-01
+2026-07-18 16:27:36.235 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:36.276 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.13856e+00 is above critical.
+2026-07-18 16:27:36.276 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:36.801 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 31, Rnorm = 1.0816041239e+01
+2026-07-18 16:27:36.818 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:36.855 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:36.856 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.05223
+2026-07-18 16:27:36.859 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:36.859 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961811452639020e-01 -> s=9.961776143853462e-01
+2026-07-18 16:27:36.859 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:36.900 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.13440e+00 is above critical.
+2026-07-18 16:27:36.900 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:37.425 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 32, Rnorm = 1.0726847198e+01
+2026-07-18 16:27:37.443 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:37.480 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:37.480 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.03652
+2026-07-18 16:27:37.484 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:37.484 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961776143853462e-01 -> s=9.961761601914056e-01
+2026-07-18 16:27:37.484 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:37.525 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.13183e+00 is above critical.
+2026-07-18 16:27:37.525 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:38.050 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 33, Rnorm = 1.0901751485e+01
+2026-07-18 16:27:38.068 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:38.105 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:38.105 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.00531
+2026-07-18 16:27:38.109 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:38.109 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961761601914056e-01 -> s=9.961794808634346e-01
+2026-07-18 16:27:38.109 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:38.150 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.13117e+00 is above critical.
+2026-07-18 16:27:38.150 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:38.677 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 34, Rnorm = 1.1566360213e+01
+2026-07-18 16:27:38.695 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:38.733 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:38.734 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.03169
+2026-07-18 16:27:38.737 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:38.737 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961794808634346e-01 -> s=9.961622212471949e-01
+2026-07-18 16:27:38.737 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:38.779 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.12626e+00 is above critical.
+2026-07-18 16:27:38.779 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:39.303 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 35, Rnorm = 1.2485598157e+01
+2026-07-18 16:27:39.320 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:39.357 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:39.358 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.00592
+2026-07-18 16:27:39.361 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:39.361 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961622212471949e-01 -> s=9.961657769144350e-01
+2026-07-18 16:27:39.361 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:39.402 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.12630e+00 is above critical.
+2026-07-18 16:27:39.402 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:39.926 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 36, Rnorm = 1.3554488570e+01
+2026-07-18 16:27:39.944 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:39.981 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:39.981 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.01157
+2026-07-18 16:27:39.984 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:39.984 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961657769144350e-01 -> s=9.961701381954284e-01
+2026-07-18 16:27:39.985 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:40.026 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.12304e+00 is above critical.
+2026-07-18 16:27:40.026 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:40.550 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 37, Rnorm = 1.4723467876e+01
+2026-07-18 16:27:40.568 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:40.605 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:40.605 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.02848
+2026-07-18 16:27:40.608 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:40.608 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961701381954284e-01 -> s=9.961531480965332e-01
+2026-07-18 16:27:40.609 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:40.650 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.12123e+00 is above critical.
+2026-07-18 16:27:40.650 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:41.175 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 38, Rnorm = 1.4794748715e+01
+2026-07-18 16:27:41.192 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:41.229 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:41.230 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.02447
+2026-07-18 16:27:41.233 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:41.233 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961531480965332e-01 -> s=9.961597637723276e-01
+2026-07-18 16:27:41.233 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:41.275 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.11947e+00 is above critical.
+2026-07-18 16:27:41.275 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:41.799 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 39, Rnorm = 1.6119295203e+01
+2026-07-18 16:27:41.816 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:41.853 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:41.854 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.01378
+2026-07-18 16:27:41.857 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:41.857 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961597637723276e-01 -> s=9.961462316664290e-01
+2026-07-18 16:27:41.857 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:41.898 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.11872e+00 is above critical.
+2026-07-18 16:27:41.898 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:42.422 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 40, Rnorm = 1.6330733815e+01
+2026-07-18 16:27:42.440 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:42.476 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:42.477 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.02731
+2026-07-18 16:27:42.480 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:42.480 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961462316664290e-01 -> s=9.961519613730374e-01
+2026-07-18 16:27:42.480 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:42.522 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.11690e+00 is above critical.
+2026-07-18 16:27:42.522 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:43.045 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 41, Rnorm = 1.8059123506e+01
+2026-07-18 16:27:43.063 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:43.100 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:43.100 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.01252
+2026-07-18 16:27:43.103 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:43.104 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961519613730374e-01 -> s=9.961399157080875e-01
+2026-07-18 16:27:43.104 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:43.145 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.11630e+00 is above critical.
+2026-07-18 16:27:43.145 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:43.669 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 42, Rnorm = 1.9544772677e+01
+2026-07-18 16:27:43.687 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:43.723 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:43.724 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.03033
+2026-07-18 16:27:43.727 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:43.727 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961399157080875e-01 -> s=9.961450220329855e-01
+2026-07-18 16:27:43.727 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:43.768 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.11442e+00 is above critical.
+2026-07-18 16:27:43.769 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:44.292 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 43, Rnorm = 2.2555617571e+01
+2026-07-18 16:27:44.310 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:44.347 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:44.347 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.03944
+2026-07-18 16:27:44.351 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:44.351 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961450220329855e-01 -> s=9.961276908738238e-01
+2026-07-18 16:27:44.351 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:44.392 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.11217e+00 is above critical.
+2026-07-18 16:27:44.392 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:44.917 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 44, Rnorm = 2.5092265060e+01
+2026-07-18 16:27:44.935 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:44.971 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:44.972 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.03598
+2026-07-18 16:27:44.975 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:44.975 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961276908738238e-01 -> s=9.961292844157921e-01
+2026-07-18 16:27:44.975 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:45.016 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.11015e+00 is above critical.
+2026-07-18 16:27:45.016 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:45.540 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 45, Rnorm = 3.5378259925e+01
+2026-07-18 16:27:45.557 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:45.594 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:45.595 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.01189
+2026-07-18 16:27:45.598 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:45.598 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961292844157921e-01 -> s=9.961464020150307e-01
+2026-07-18 16:27:45.598 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:45.639 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.10946e+00 is above critical.
+2026-07-18 16:27:45.639 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:46.163 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 46, Rnorm = 7.0742317470e+01
+2026-07-18 16:27:46.181 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:46.218 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:46.218 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.13782
+2026-07-18 16:27:46.221 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:46.221 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961464020150307e-01 -> s=9.961199065561537e-01
+2026-07-18 16:27:46.222 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:46.263 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.10211e+00 is above critical.
+2026-07-18 16:27:46.263 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:46.787 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 47, Rnorm = 6.4600266557e+01
+2026-07-18 16:27:46.805 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:46.842 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:46.842 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.06125
+2026-07-18 16:27:46.845 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:46.846 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961199065561537e-01 -> s=9.961043140510065e-01
+2026-07-18 16:27:46.846 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:46.887 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.09920e+00 is above critical.
+2026-07-18 16:27:46.887 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:47.410 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 48, Rnorm = 6.8051249965e+01
+2026-07-18 16:27:47.428 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:47.465 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:47.465 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.06091
+2026-07-18 16:27:47.468 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:47.468 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.961043140510065e-01 -> s=9.960937147569170e-01
+2026-07-18 16:27:47.469 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:47.510 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.09635e+00 is above critical.
+2026-07-18 16:27:47.510 | DEBUG    | mfoil:vprint:246 - Building global system
+2026-07-18 16:27:48.033 | DEBUG    | mfoil:vprint:246 - Calculating force
+Newton iteration 49, Rnorm = 7.7773964539e+01
+2026-07-18 16:27:48.050 | DEBUG    | mfoil:vprint:246 - Solving global system
+2026-07-18 16:27:48.087 | DEBUG    | mfoil:vprint:246 - Updating the state
+2026-07-18 16:27:48.088 | DEBUG    | mfoil:vprint:246 -   state update: under-relaxation = 0.06973
+2026-07-18 16:27:48.091 | DEBUG    | mfoil:vprint:246 - Moving stagnation point
+2026-07-18 16:27:48.091 | DEBUG    | mfoil:vprint:246 -   Moving stagnation point: s=9.960937147569170e-01 -> s=9.960864073473890e-01
+2026-07-18 16:27:48.091 | DEBUG    | mfoil:vprint:246 - Updating transition
+2026-07-18 16:27:48.132 | DEBUG    | mfoil:vprint:246 -   march_amplification (si,i=1,70): 9.09297e+00 is above critical.
+** Global Newton NOT CONVERGED **
+
+  mfoil Re=60k fresh cl=0.889 cd=0.0368 cm=-0.0974 conv=True (pkl cl=0.889 cd=0.0368)
+  mfoil Re=100k fresh cl=0.952 cd=0.0213 cm=-0.0874 conv=True (pkl cl=0.952 cd=0.0213)
+  mfoil Re=200k fresh cl=0.960 cd=0.0128 cm=-0.0820 conv=True (pkl cl=0.960 cd=0.0128)
+  mfoil Re=300k fresh cl=0.962 cd=0.0103 cm=-0.0815 conv=False (pkl cl=0.962 cd=0.0103)
+  xfoil Re=460k cl=0.9578 cd=0.00853 cm=-0.0806
+
+% ---- LaTeX rows: Re | str L1 (cl cd cm) | cav L1 | e9 | Exp ----
+    $60$k & 0.721 & 0.0458 & -0.0943 & 0.781 & 0.0432 & -0.0990 & 0.889 & 0.0368 & -0.0974 & 0.838 & 0.0439 & -0.1139 \\
+    $100$k & 0.896 & 0.0216 & -0.0813 & 0.914 & 0.0210 & -0.0852 & 0.952 & 0.0213 & -0.0874 & 0.873 & 0.0237 & -0.0889 \\
+    $200$k & 0.926 & 0.0135 & -0.0785 & 0.949 & 0.0132 & -0.0835 & 0.960 & 0.0128 & -0.0820 & 0.891 & 0.0138 & -0.0809 \\
+    $300$k & 0.936 & 0.0115 & -0.0791 & 0.960 & 0.0111 & -0.0844 & 0.962 & 0.0103 & -0.0815 & 0.901 & 0.0114 & -0.0799 \\
+    $460$k & 0.943 & 0.0101 & -0.0798 & 0.969 & 0.0096 & -0.0855 & 0.958 & 0.0085 & -0.0806 & 0.914 & 0.0093 & -0.0807 \\

@@ -4,6 +4,7 @@ Configuration schema for RANS solver.
 Dataclass-based configuration that can be loaded from YAML or constructed programmatically.
 """
 
+import src.numerics.aft_sources as _aft
 from dataclasses import dataclass, field, asdict
 from typing import Optional, List, Union, Dict, Any
 
@@ -45,7 +46,9 @@ class FlowConfig:
     
     # Initial/farfield turbulent viscosity ratio: χ = ν̃/ν
     # Low value (0.0001) for transition prediction with AFT model
-    chi_inf: float = 0.0001
+    chi_inf: float = 0.0001   # tiny laminar seed default for standalone JAX studies;
+                               # the paper's coupled runs set chi_inf = c_v1*e^-N_crit
+                               # per case (Mack map, scripts/calibrate_kernel.py)
     
     def is_batch(self) -> bool:
         """Check if this is a batch configuration."""
@@ -114,11 +117,13 @@ class AFTConfig:
     gamma_coeff: float = 2.0
     
     # Amplification rate: rate = rate_scale * sigmoid(slope * (Γ - center))
-    # gated by a Γ-dependent cliff barrier (matches ModelConstants.h).
-    sigmoid_center: float = 1.572     # g_c
-    sigmoid_slope: float = 5.263      # s
-    rate_scale: float = 0.15          # a_max (no-tilt cliff_floor matches S-S ±12%)
-    re_omega_floor: float = 100.0     # Re_Ω cliff floor (Γ-independent)
+    # gated by the cliff barrier. Defaults IMPORT the canonical constants
+    # (src/numerics/aft_sources.py = ModelConstants.h = paper Table); see
+    # tests/test_constants_consistency.py.
+    sigmoid_center: float = _aft.AFT_SIGMOID_CENTER   # g_c
+    sigmoid_slope: float = _aft.AFT_SIGMOID_SLOPE     # s
+    rate_scale: float = _aft.AFT_RATE_SCALE           # a_max
+    re_omega_floor: float = _aft.AFT_RE_OMEGA_FLOOR   # Re_Ω cliff floor (Γ-independent)
     tilt_slope: float = 1.0e6         # effectively disabled (favorable-PG suppression → sigma_FPG)
     barrier_power: float = 4.0        # p in (1 - (Re_Ω_floor/Re_Ω)^p)
     
@@ -182,6 +187,8 @@ class SimulationConfig:
             aft_sigmoid_center=self.aft.sigmoid_center,
             aft_sigmoid_slope=self.aft.sigmoid_slope,
             aft_rate_scale=self.aft.rate_scale,
+            aft_re_omega_floor=self.aft.re_omega_floor,
+            aft_tilt_slope=self.aft.tilt_slope,
             aft_blend_threshold=self.aft.blend_threshold,
             aft_blend_width=self.aft.blend_width,
         )

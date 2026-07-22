@@ -1,0 +1,55 @@
+[cavL1prop_nlf0416_Re4M_a4] building case dir -> /home/qiqi/flexcompute/sa-ai/repro/driver/out/cavL1prop_nlf0416_Re4M_a4
+[cavL1prop_nlf0416_Re4M_a4] chi_inf = 8.7600e-04
+[cavL1prop_nlf0416_Re4M_a4] solving on GPU 1 (canonical SA-AI env, protocol=ladder)...
+
+=== batch 1/24 ===
+  step 4999: dt=37s  x_tr_upper=0.6638  x_tr_lower=0.9951
+
+=== batch 2/24 ===
+  step 9998: dt=65s  x_tr_upper=0.2732  x_tr_lower=0.6111
+  Δx_tr_upper = 0.3906  Δx_tr_lower = 0.3841  (tol=0.01)
+  stability not counted (min-batches)
+
+=== batch 3/24 ===
+  step 14997: dt=94s  x_tr_upper=0.2733  x_tr_lower=0.6017
+  Δx_tr_upper = 0.0001  Δx_tr_lower = 0.0093  (tol=0.01)
+  stability not counted (min-batches)
+
+=== batch 4/24 ===
+  step 19996: dt=123s  x_tr_upper=0.2733  x_tr_lower=0.6017
+  Δx_tr_upper = 0.0000  Δx_tr_lower = 0.0000  (tol=0.01)
+  stability not counted (min-batches)
+
+=== batch 5/24 ===
+  step 24995: dt=152s  x_tr_upper=0.2733  x_tr_lower=0.6017
+  Δx_tr_upper = 0.0000  Δx_tr_lower = 0.0000  (tol=0.01)
+  stability not counted (min-batches)
+
+=== batch 6/24 ===
+  step 29994: dt=180s  x_tr_upper=0.2733  x_tr_lower=0.6017
+  Δx_tr_upper = 0.0000  Δx_tr_lower = 0.0000  (tol=0.01)
+  stability not counted (min-batches)
+
+=== batch 7/24 ===
+  step 34993: dt=209s  x_tr_upper=0.2733  x_tr_lower=0.6017
+  Δx_tr_upper = 0.0000  Δx_tr_lower = 0.0000  (tol=0.01)
+  stability not counted (min-batches)
+
+=== batch 8/24 ===
+  step 39992: dt=236s  x_tr_upper=0.2733  x_tr_lower=0.6017
+  Δx_tr_upper = 0.0000  Δx_tr_lower = 0.0000  (tol=0.01)
+  stability not counted (min-batches)
+
+=== batch 9/24 ===
+  step 44991: dt=265s  x_tr_upper=0.2733  x_tr_lower=0.6017
+  Δx_tr_upper = 0.0000  Δx_tr_lower = 0.0000  (tol=0.01)
+  stable for 1/2 consecutive batches
+
+=== batch 10/24 ===
+  step 49990: dt=293s  x_tr_upper=0.2733  x_tr_lower=0.6017
+  Δx_tr_upper = 0.0000  Δx_tr_lower = 0.0000  (tol=0.01)
+  stable for 2/2 consecutive batches
+
+CONVERGED after 49990 pseudo-steps
+[cavL1prop_nlf0416_Re4M_a4] DONE  CL=+0.9813  CD=0.00827  xtr=0.300
+[cavL1prop_nlf0416_Re4M_a4] outputs in /home/qiqi/flexcompute/sa-ai/repro/driver/out/cavL1prop_nlf0416_Re4M_a4

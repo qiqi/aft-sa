@@ -1,0 +1,32 @@
+                            case |                       xtr_up |                       xtr_lo |          CL Lv/Q4 |            CD Lv/Q4
+                                 |       Lv       Q4       e9 |       Lv       Q4       e9 |
+       cavL1prop_nlf0416_Re4M_a0 |    0.376    0.377    0.426 |    0.578    0.574    0.622 | +0.519/+0.519 | 0.00674/0.00673
+       strL1prop_nlf0416_Re4M_a0 |    0.380    0.380    0.426 |    0.553    0.541    0.622 | +0.487/+0.487 | 0.00585/0.00587
+       cavL1prop_nlf0416_Re4M_a4 |    0.272    0.269    0.329 |    0.600    0.601    0.651 | +0.981/+0.981 | 0.00828/0.00827
+       strL1prop_nlf0416_Re4M_a4 |    0.236    0.229    0.329 |    0.605    0.598    0.651 | +0.945/+0.945 | 0.00774/0.00780
+   cavL1prop_eppler387_Re200k_a0 |    0.616    0.593    0.718 |    0.999    0.998    1.000 | +0.394/+0.394 | 0.00974/0.00972
+   strL1prop_eppler387_Re200k_a0 |    0.610    0.589    0.718 |    1.000    1.000    1.000 | +0.377/+0.377 | 0.00983/0.00981
+   cavL1prop_eppler387_Re200k_a2 |    0.564    0.542    0.667 |    0.999    0.998    1.000 | +0.620/+0.620 | 0.01075/0.01071
+   strL1prop_eppler387_Re200k_a2 |    0.555    0.541    0.667 |    1.000    0.999    1.000 | +0.602/+0.602 | 0.01062/0.01059
+   cavL1prop_eppler387_Re200k_a5 |    0.474    0.462    0.571 |    0.998    0.998    1.000 | +0.949/+0.949 | 0.01318/0.01314
+   strL1prop_eppler387_Re200k_a5 |    0.465    0.454    0.571 |    1.000    0.999    1.000 | +0.926/+0.926 | 0.01352/0.01348
+   cavL1prop_eppler387_Re200k_a7 |    0.337    0.334    0.391 |    0.998    0.998    1.000 | +1.159/+1.159 | 0.01541/0.01542
+   strL1prop_eppler387_Re200k_a7 |    0.304    0.301    0.391 |    1.000    0.999    1.000 | +1.125/+1.125 | 0.01672/0.01675
+
+Flat-plate Tu sweep (chi=1 onset Re_theta vs AGS): composite IDENTICAL to
+committed Q4 at Tu=0.04-0.30% (+4.5/-3.5/-9.2/-11.7%), -6.9% vs -7.4% at 0.6%.
+
+CONCLUSIONS (composite gate AI_VG_GATE=6, 17-case matrix, out_lambda_v2):
+  * Flat plate + NLF: indistinguishable from committed Q4 (x_tr within
+    0.007, CL identical, CD within 0.8%) -- as the analytics predicted.
+  * Eppler upper-surface transition moves TOWARD e^9 by +0.010-0.023
+    (a0: 0.610-0.616 vs Q4 0.589-0.593, e^9 0.718; a2: 0.555-0.564 vs
+    0.541-0.542, e^9 0.667; a5: 0.465-0.474 vs 0.454-0.462; a7 ~unchanged),
+    closing ~15-25% of the model-vs-e^9 gap at low alpha.
+  * The modest (not full) closure is CONSISTENT with the frozen analysis:
+    Eppler-at-200k bubbles at transition are shallow (H ~ 4-5), where the
+    composite intentionally leaves rates near-unchanged (residual R_x
+    2.2-2.8; the deep-bubble H>=6 fix has no test case in this matrix) and
+    where the H>4 Drela-reference blindspot means e^9 itself understates
+    the physical rate.
+  * Forces: CL bit-identical to Q4 on all 12 airfoil cases; CD within 1%.

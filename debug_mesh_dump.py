@@ -30,7 +30,7 @@ def dump_mesh(wkfn=0.0):
     
     if not os.path.exists(airfoil_file):
         # Maybe absolute path needed
-        airfoil_file = '/home/qiqi/aft-sa/data/naca0012.dat'
+        airfoil_file = '/home/qiqi/flexcompute/sa-ai/data/naca0012.dat'
         
     try:
         X, Y = wrapper.generate(airfoil_file, options=options, verbose=True)

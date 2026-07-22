@@ -40,7 +40,7 @@ def run():
     # Five Tu values of natural transition on a smooth flat plate. Tu -> chi_inf
     # uses Mack's (1977) e^N critical-N-factor correlation, adopted wholesale via
     # calibrate_kernel.chi_inf_from_Tu_pct (A=-8.43, B=2.4). The coupled-RANS
-    # onset (chi=1) then lands within ~7% of Abu-Ghannam & Shaw across the
+    # onset (chi=1) then lands within ~8% of Abu-Ghannam & Shaw across the
     # natural-transition range; see paper Sec. flat-plate.
     import sys, os
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'scripts'))

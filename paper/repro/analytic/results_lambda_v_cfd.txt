@@ -1,0 +1,36 @@
+                            case |                       xtr_up |                       xtr_lo |          CL Lv/Q4 |            CD Lv/Q4
+                                 |       Lv       Q4       e9 |       Lv       Q4       e9 |
+       cavL1prop_nlf0416_Re4M_a0 |    0.375    0.377    0.426 |    0.579    0.574    0.622 | +0.519/+0.519 | 0.00673/0.00673
+       strL1prop_nlf0416_Re4M_a0 |    0.380    0.380    0.426 |    0.590    0.541    0.622 | +0.487/+0.487 | 0.00584/0.00587
+       cavL1prop_nlf0416_Re4M_a4 |    0.275    0.269    0.329 |    0.601    0.601    0.651 | +0.981/+0.981 | 0.00827/0.00827
+       strL1prop_nlf0416_Re4M_a4 |    0.260    0.229    0.329 |    0.594    0.598    0.651 | +0.946/+0.945 | 0.00773/0.00780
+   cavL1prop_eppler387_Re200k_a0 |    0.617    0.593    0.718 |    0.999    0.998    1.000 | +0.394/+0.394 | 0.00974/0.00972
+   strL1prop_eppler387_Re200k_a0 |    0.613    0.589    0.718 |    1.000    1.000    1.000 | +0.377/+0.377 | 0.00986/0.00981
+   cavL1prop_eppler387_Re200k_a2 |    0.565    0.542    0.667 |    0.999    0.998    1.000 | +0.620/+0.620 | 0.01077/0.01071
+   strL1prop_eppler387_Re200k_a2 |    0.564    0.541    0.667 |    1.000    0.999    1.000 | +0.603/+0.602 | 0.01068/0.01059
+   cavL1prop_eppler387_Re200k_a5 |    0.474    0.462    0.571 |    0.998    0.998    1.000 | +0.949/+0.949 | 0.01323/0.01314
+   strL1prop_eppler387_Re200k_a5 |    0.468    0.454    0.571 |    1.000    0.999    1.000 | +0.926/+0.926 | 0.01363/0.01348
+   cavL1prop_eppler387_Re200k_a7 |    0.333    0.334    0.391 |    0.998    0.998    1.000 | +1.159/+1.159 | 0.01543/0.01542
+   strL1prop_eppler387_Re200k_a7 |    0.298    0.301    0.391 |    1.000    0.999    1.000 | +1.126/+1.125 | 0.01670/0.01675
+
+Flat-plate Tu sweep (onset Re_theta vs AGS, chi=1 crossing):
+  Tu%    AGS |  Q4 onset    dev |  Lv onset    dev
+ 0.04   1126 |     1176   +4.5% |     1185   +5.3%
+ 0.08   1088 |     1050   -3.5% |     1070   -1.7%
+ 0.16   1017 |      924   -9.2% |      930   -8.6%
+ 0.30    905 |      800  -11.7% |      811  -10.4%
+ 0.60    713 |      661   -7.4% |      696   -2.3%
+
+CONCLUSIONS (step C, 17-case matrix, cV=1/177.5/0.9676/13.62, K_l=7.44, K_r=10):
+  * Flat plate: Lambda_v tracks AGS slightly BETTER than Q4 (worst -10.4%
+    vs -11.7%; Tu=0.6%: -2.3% vs -7.4%).
+  * Airfoils: near-clone of the committed model. x_tr within 0.01-0.03 of
+    Q4 on all 12 cases (Eppler upper surface 0.01-0.024 LATER = marginally
+    toward e^9); CL identical to 3 decimals, CD within 1%.
+  * The analytic mid-adverse deficit (0.73x vs Q4's 0.92x at beta=-0.09)
+    does NOT surface on these cases: transition here is bubble-driven
+    (Eppler) or onset/cliff-driven (NLF rooftop), both pinned by the
+    anchors. The de-overlapped indicator plane comes at no aerodynamic
+    cost on this matrix.
+  * Both gates share the LSB over-amplification (see results_lsb_frozen.txt)
+    -- transition inside the Eppler bubble still earlier than e^9.

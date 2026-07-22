@@ -1,0 +1,59 @@
+HM85 anchor (u = Um + tanh y; absolute for R = 1/Um > 1.315):
+  Um=0.950 (R=1.053): alpha0=+0.1460-0.5582i  w0=+0.33068-0.09916i  conv
+  Um=0.850 (R=1.176): alpha0=+0.2074-0.5215i  w0=+0.31298-0.04508i  conv
+  Um=0.760 (R=1.316): alpha0=+0.2574-0.4798i  w0=+0.29202+0.00003i  ABS
+  Um=0.700 (R=1.429): alpha0=+0.2874-0.4484i  w0=+0.27566+0.02788i  ABS
+  Um=0.620 (R=1.613): alpha0=+0.3230-0.4033i  w0=+0.25121+0.06197i  ABS
+  threshold: Um = 0.7601  ->  R_crit = 1.3157 (HM85: 1.315)
+  OK (0.05% from HM85)
+
+tanh-wall family: Briggs-Bers vs Avanci label
+    h   u_r | u_rev%  margin  Avanci |    Im w0    BB | agree
+  3.0  0.03 |    0.8   -2.91    conv |  -0.0860  conv | yes
+  3.0  0.06 |    2.6   -1.95    conv |  -0.0668  conv | yes
+  3.0  0.10 |    5.4   -1.15    conv |  -0.0433  conv | yes
+  3.0  0.14 |    8.4   -0.56    conv |  -0.0220  conv | yes
+  3.0  0.18 |   11.6   -0.08    conv |  -0.0026  conv | yes
+  3.0  0.22 |   14.8   +0.36     ABS |  +0.0150   ABS | yes
+  3.0  0.28 |   19.8   +0.98     ABS |  +0.0386   ABS | yes
+  3.0  0.35 |   25.6   +1.60     ABS |  +0.0625   ABS | yes
+  4.0  0.03 |    2.1   -2.15    conv |  -0.0496  conv | yes
+  4.0  0.06 |    4.7   -1.20    conv |  -0.0339  conv | yes
+  4.0  0.10 |    8.4   -0.36    conv |  -0.0143  conv | yes
+  4.0  0.14 |   12.2   +0.26     ABS |  +0.0037   ABS | yes
+  4.0  0.18 |   15.9   +0.81     ABS |  +0.0203   ABS | yes
+  4.0  0.22 |   19.7   +1.34     ABS |  +0.0355   ABS | yes
+  4.0  0.28 |   25.4   +2.08     ABS |  +0.0562   ABS | yes
+  4.0  0.35 |   32.1   +2.87     ABS |  +0.0774   ABS | yes
+  6.0  0.03 |    2.9   -1.30    conv |  -0.0240  conv | yes
+  6.0  0.06 |    5.9   -0.31    conv |  -0.0121  conv | yes
+  6.0  0.10 |    9.9   +0.61     ABS |  +0.0032   ABS | yes
+  6.0  0.14 |   13.9   +1.38     ABS |  +0.0177   ABS | yes
+  6.0  0.18 |   17.9   +2.12     ABS |  +0.0316   ABS | yes
+  6.0  0.22 |   21.8   +2.80     ABS |  +0.0447   ABS | yes
+  6.0  0.28 |   27.8   +3.80     ABS |  +0.0631   ABS | yes
+  6.0  0.35 |   34.8   +4.97     ABS |  +0.0826   ABS | yes
+  8.0  0.03 |    3.0   -0.78    conv |  -0.0607  conv | yes
+  8.0  0.06 |    6.0   +0.27     ABS |  -0.0449  conv | NO
+  8.0  0.10 |   10.0   +1.33     ABS |  -0.0250  conv | NO
+  8.0  0.14 |   14.0   +2.27     ABS |  -0.0062  conv | NO
+  8.0  0.18 |   18.0   +3.19     ABS |  +0.0115   ABS | yes
+  8.0  0.22 |   22.0   +4.07     ABS |  +0.0282   ABS | yes
+  8.0  0.28 |   28.0   +5.39     ABS |  +0.0515   ABS | yes
+  8.0  0.35 |   35.0   +7.00     ABS |  +0.0766   ABS | yes
+
+agreement: 29/32
+
+
+CAVEAT: the reversed-FS rows above are UNRELIABLE -- the Chebyshev
+continuation of the tabulated profiles rings at complex y (pad-joint kink,
+Gibbs ripples amplified off the real axis): Re(w0) values land far outside
+the KH range and the H=4.92 "ABS" label contradicts both its Avanci margin
+(-2.9) and the tanh-family agreement in the same (thin-layer) regime.
+The HM85 anchor and the 32-case tanh-family verification use ANALYTIC
+profiles and are unaffected. Proper fix if FS pinch points are ever needed
+directly: analytic continuation by integrating the FS ODE itself along
+complex eta (f(0)=0, f'(0)=0, f''(0)=branch guess), not by fitting the
+real-axis table. The FS profiles' convective character is independently
+established (Avanci margins -1.5..-2.9, all deep in the convective side,
++ perfect thin-layer agreement of the criterion with Briggs-Bers).

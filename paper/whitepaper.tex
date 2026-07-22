@@ -1,0 +1,899 @@
+%% SA-AI technical whitepaper: model formulation, constants, calibration facts, results.
+%% Build: pdflatex whitepaper (figures from figs/, shared with main.tex)
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{caption}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{float}
+\graphicspath{{figs/}}
+\setlength{\parskip}{4pt}\setlength{\parindent}{0pt}
+
+\title{\vspace{-2em}SA-AI (Spalart--Allmaras with Autogenous Inception):\\
+Technical Summary\vspace{-0.5em}}
+\author{Qiqi Wang (Flexcompute, Inc.\ / MIT)}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+Technical summary of the SA-AI one-equation transition model: the model
+formulation (the paper's Sec.~II), every constant with its
+determination, and all results. Calibration derivations and the
+reference list are in the paper (\texttt{main.tex}). Every number below
+is reproducible from \texttt{paper/repro/}: the analytic figures and
+tables from \texttt{repro/analytic/} alone; the coupled-RANS results
+additionally require the Flow360 solver binary (\texttt{repro/driver/}
+re-runs the cases, \texttt{repro/cfd/} regenerates the figures).
+
+\section{Model}
+
+\subsection{The working variable and its laminar range}
+
+The Spalart--Allmaras (SA) model solves one transport equation for a
+working variable $\tilde\nu$, with eddy viscosity
+$\mu_t=\rho\,\tilde\nu f_{v1}(\chi)$, $\chi=\tilde\nu/\nu$. The
+eddy-viscosity function $f_{v1}(\chi)=\chi^3/(\chi^3+c_{v1}^3)$ vanishes
+cubically for $\chi\ll c_{v1}$ (with $c_{v1}=7.1$,
+$f_{v1}\approx2.8\times10^{-3}\chi^3$): even at $\chi=1$ the eddy
+viscosity is $\sim0.3\%$ of $\rho\tilde\nu$, so the field contributes
+negligibly to the mean flow while $\chi\lesssim1$. This sub-$O(1)$ range
+is dynamically inert in the baseline model; SA-AI repurposes it: in the
+laminar range $\ln(\tilde\nu/\tilde\nu_\infty)$ accumulates as an
+$e^N$-style envelope amplification factor, and the working variable
+gives rise to its own transition. The equation remains one
+(negative-$\tilde\nu$ 2012 safeguards retained):
+\begin{equation}
+  \frac{D\tilde\nu}{Dt} = P - D
+  + \frac{1}{\sigma}\nabla\!\cdot\!\big[(c_{\nu,\mathrm{ai}}\,\nu+\tilde\nu)\,\nabla\tilde\nu\big]
+  + \frac{c_{b2}}{\sigma}\,|\nabla\tilde\nu|^2 ,
+  \label{w:sa}
+\end{equation}
+\begin{equation}
+  P = \max\!\big[\,(1-\sigma_P)\,a\,\omega\,\tilde\nu,\;\sigma_P\,P_\mathrm{SA}\,\big],
+  \qquad D = \sigma_D\,D_\mathrm{SA},
+  \label{w:blend}
+\end{equation}
+\begin{equation}
+  \sigma_P = \sigma_t(\chi;\tau),\quad
+  \sigma_D = 1-\frac{c_{b1}}{\kappa^2c_{w1}}\,(1-\sigma_P),
+  \qquad
+  \sigma_t(\chi;\tau) = \max\!\big[1-e^{-(\chi-1)/\tau},\,0\big].
+  \label{w:sigma}
+\end{equation}
+$P_\mathrm{SA}=c_{b1}\tilde S\tilde\nu$,
+$D_\mathrm{SA}=c_{w1}f_w(\tilde\nu/d)^2$, and all closure functions are
+baseline SA. $\sigma_P\!\equiv\!1$ (and with it $\sigma_D\!=\!1$),
+$c_{\nu,\mathrm{ai}}\!=\!1$ recovers baseline SA exactly.
+
+In the laminar range ($\chi\le1$, where $\sigma_P=0$) the production is
+the laminar amplification $a\,\omega\,\tilde\nu$, of the same algebraic
+form as $P_\mathrm{SA}$: the vorticity magnitude $\omega$ (units
+$T^{-1}$) supplies the inverse time scale in place of $c_{b1}\tilde S$,
+and $a$ is a nondimensional amplification rate built from local flow
+indicators. The physics makes six demands, and the model answers each
+in turn. A ceiling $a_{\max}$ pins the rate to its fastest natural
+limit, the Kelvin--Helmholtz growth of a detached free shear layer. A
+profile-fullness sigmoid throttles that ceiling down to the gentle
+Tollmien--Schlichting rate of an attached Blasius layer. A gate $Q$
+keeps amplification off the wall---its main job is to be pinched shut
+on the attached-wall locus $\omega d=|\mathbf u|$---while opening
+across the layer's unstable band. An onset threshold in
+$Re_\Omega$---a floor, raised exponentially by favorable pressure
+gradient, which also lowers the rate above the threshold---withholds
+amplification until the layer can sustain it. A laminar$\to$turbulent
+handover returns the equation to standard SA: smoothly, with SA's wall
+destruction inert at the seed's quadratic scale, with no
+pressure-sensitive residue past the crossover, and with the linear
+$\tilde\nu$ wall solution---the log law included---preserved exactly. And a reduced laminar diffusion lets the sub-$O(1)$
+disturbance survive its own cross-stream smearing. One more, empirical,
+closure---the freestream seed $\chi_\infty$ that sets where the count
+begins---closes this section.
+
+\subsection{Local indicators}
+
+The envelope $e^N$ rate $dN/dRe_\theta$ is written in terms of the
+momentum thickness $\theta$, which is impractical in a general RANS
+field: it requires integration ``to the edge'' of a boundary layer
+whose edge may be ill-defined under shear-layer merging, separation, or
+freestream turbulence. A practical local surrogate is the vorticity
+Reynolds number $Re_\Omega=d^2\omega/\nu$ (van Driest--Blumer, familiar
+from the Menter--Langtry framework): in a Blasius layer the peak of
+$Re_\Omega$ inside the profile is proportional to $Re_\theta$
+($\max_y Re_\Omega\approx2.2\,Re_\theta$) and sits at a fixed multiple
+of $\theta$ ($y\approx4.4\,\theta\approx0.6\,\delta_{99}$, near
+mid-layer), so $Re_\Omega$ inherits the role of $Re_\theta$ without the
+nonlocal integration. It is paired with three local descriptors of the
+boundary-layer state, each algebraic in quantities a RANS solver
+already carries at a node ($d$ = wall distance, $\omega$ = vorticity
+magnitude, $|\mathbf u|$ = speed relative to the nearest wall point):
+\begin{equation}
+  Re_\Omega = \frac{d^2\omega}{\nu}, \qquad
+  \lambda_p = -\frac{d^{2}}{\rho\,\nu\,|\mathbf{u}|^{2}}\frac{Dp}{Dt}, \qquad
+  \Gamma = \frac{2(\omega d)^2}{|\mathbf{u}|^2+(\omega d)^2}, \qquad
+  \Gamma_g = \frac{\big(d^{2}|\nabla^2\mathbf{u}|\big)^2}{|\mathbf{u}|^2+(\omega d)^2},
+  \label{w:ind}
+\end{equation}
+where $\nabla^2\mathbf u$ is the vector Laplacian of the velocity. All
+four are Galilean invariant: the numerator of $\lambda_p$ is the
+material derivative $Dp/Dt$ (equal to $\mathbf u\cdot\nabla p$ in the
+steady wall frame), the velocity scale $|\mathbf u|$ is taken relative
+to the nearest wall point, and $d$, $\omega$, $\nabla p$,
+$\nabla^2\mathbf u$ are invariant already. $\lambda_p$ is a local
+pressure-gradient parameter of the Pohlhausen/Thwaites type---the same
+quantity that enters the Abu-Ghannam \& Shaw correlation through the
+Thwaites parameter: positive in a favorable gradient (accelerating
+flow), zero on a Blasius profile, negative in an adverse gradient.
+
+$\Gamma\in[0,2]$ is a pointwise measure of velocity-profile fullness:
+it approaches unity in an attached near-wall shear layer (where
+$\omega d\sim|\mathbf u|$), grows toward $2$ on an inflectional,
+near-separation profile, and---whatever the layer's shape---falls to
+zero outside it, where the vorticity dies. It contains no integral and
+no memory---it reads the profile shape the upstream history has already
+produced---so it plays locally the role of the shape factor $H$ in
+envelope methods, without being $H$ itself, at the cost of one algebraic
+expression per node.
+Fig.~1 shows how the Falkner--Skan family populates the
+$(Re_\Omega,\Gamma)$ plane: adverse profiles arch over $\Gamma=1$ into
+the inflectional range, favorable ones stay attached below it. Past the
+separation limit the same equation carries Stewartson's reverse-flow
+branch, the canonical analytic separated profile, and it reaches
+$\Gamma=2$ exactly at its interior stagnation point ($|\mathbf u|=0$,
+$\omega\neq0$): the detached limit that anchors $a_{\max}$ is populated
+by an exact solution of the family.
+
+What the instability responds to is the velocity profile, not the
+pressure gradient that shaped it: the stability problem is posed on the
+profile alone, and both the critical Reynolds number and the $e^9$
+transition Reynolds number collapse onto a single shape-factor map
+whether the shape is set by pressure gradient, wall heating, or suction
+(Wazzan--Gazley--Smith)---the parameterization the Drela--Giles
+correlations adopt. (Treating a non-similar profile through the similar
+profile of the same $H$ is the working approximation of the envelope
+tradition itself, which the model inherits.) The model therefore reads
+shape wherever shape can carry the signal, and the division falls along
+the sign of the gradient. On the adverse side the shape indicators
+carry the onset themselves: at fixed $Re_\theta$ a fuller (higher-$H$)
+profile holds a larger $Re_\Omega$---the noses of Fig.~1(a) march from
+$2.2\,Re_\theta$ at Blasius to $4.4\,Re_\theta$ at the separation
+limit---so it reaches any fixed threshold at a lower $Re_\theta$. And
+adverse layers remember: the local gradient can read small downstream
+of an adverse run that has since relaxed, while the profile is still
+inflectional, so a gradient parameter would misread exactly the layers
+that matter most. On the favorable side the situation inverts twice.
+The shape family saturates---$H$ compresses from $2.59$ to
+$\approx2.2$ across the entire favorable range while the critical
+Reynolds number rises by more than an order of magnitude---so no
+shape-reading indicator can carry the delay. But the local gradient
+becomes trustworthy there: an accelerated laminar layer relaxes toward
+the equilibrium profile of its local gradient---for accelerated
+power-law edge velocities the downstream convergence to the
+Falkner--Skan profile is a theorem, with a rate (Serrin)---and it is
+the regime where one-parameter descriptions of the Thwaites type are
+most accurate. $\lambda_p$ is thus a faithful shape surrogate precisely
+where the shape itself is uninformative; it carries the favorable side
+alone---the cliff and rate factor of Eq.~\eqref{w:gate}---and is
+clipped to zero on the adverse side, where the shape must be, and is,
+read directly.
+
+$\Gamma_g$ reads the curvature of the velocity profile. On a parallel
+shear layer
+$\nabla^2\mathbf u=(\partial^2u/\partial y^2)\,\hat{\mathbf x}
+=(\partial\omega/\partial y)\,\hat{\mathbf x}$---the quantity whose
+interior zero defines the inflection point of the Rayleigh
+criterion---and in incompressible flow
+$\nabla^2\mathbf u=-\nabla\times\boldsymbol\omega$ generally.
+$d^2|\nabla^2\mathbf u|$ is a velocity---the same construction that
+makes $\omega d$ one---and $\Gamma_g$ compares it, squared, against the
+profile's own velocity scale, the denominator it shares with $\Gamma$.
+Where the profile is curved---the outer part of any layer, and the
+whole neighborhood of an inflection point---$\Gamma_g$ is at least
+$O(1)$: across the band it reaches $1.6$ on Blasius, $6$ at the
+separation limit, and $O(10)$ on the separated profile of Fig.~1(b); on
+the linear near-wall profile it vanishes to high order. It lets the
+model tell the layer's unstable band apart from its wall; its only
+entry into the model is the gate $Q$, and evaluating it re-uses the
+operator the viscous flux already discretizes.
+
+\subsection{The amplification rate}
+
+The four indicators combine into the single nondimensional rate
+($a\equiv0$ for $Re_\Omega\le Re_\Omega^{\mathrm{c}}$):
+\begin{gather}
+  a = a_{\max}\,Q\,S(z)\,f_\lambda, \qquad
+  z = s(\Gamma-g_c) + \ln\!\Big(1-\big(Re_\Omega^{\mathrm{c}}(\lambda_p)/Re_\Omega\big)^{p}\Big),
+  \qquad S(z)=\frac{1}{1+e^{-z}},
+  \label{w:rate}\\
+  Q = 1-\frac{\sqrt{\Gamma(2-\Gamma)}}{1 + c_A\,\Gamma_g}, \qquad
+  Re_\Omega^{\mathrm{c}}(\lambda_p) = Re_\Omega^{\mathrm{f}}\,
+        e^{K_\lambda \max(0,\lambda_p)}, \qquad
+  f_\lambda = \frac{1}{1+\big(K_r \max(0,\lambda_p)\big)^2}.
+  \label{w:gate}
+\end{gather}
+
+\textbf{The ceiling $a_{\max}$} is the one global constant: the fastest
+natural amplification, that of a detached free shear layer, fixed as an
+eigenvalue (\S3.1). The remaining factors decide where, and how much
+of, that ceiling is realized.
+
+\textbf{The sigmoid--barrier switch $S(z)$} superposes two physically
+distinct mechanisms. The $\Gamma$ term $s(\Gamma-g_c)$ switches
+amplification on as the profile fills out toward the inflectional value
+$\Gamma\to2$; its center $g_c$ lies just above the attached asymptote
+$\Gamma=1$, so the two ends of the range pin the two physical regimes:
+at $\Gamma=2$ the sigmoid is fully on and $a\to a_{\max}$, the growth
+rate of a detached shear layer, while attached profiles sit on its
+tail, at the small rate of Tollmien--Schlichting growth ($s$ and $g_c$
+are fixed in \S3.3). The log-barrier term is an onset threshold: it
+drives $z\to-\infty$ as $Re_\Omega\to Re_\Omega^{\mathrm c}$ from
+above, so amplification is forbidden until the layer is thick enough,
+the residual attenuation fading as
+$(Re_\Omega^{\mathrm c}/Re_\Omega)^p$ thereafter. One consequence
+follows with no added machinery: since $Re_\Omega=d^2\omega/\nu\to0$ at
+the wall, the same threshold suppresses the viscous sublayer
+automatically---there $\Gamma\to1$ is a generic near-wall limit, not a
+true instability.
+
+\textbf{The favorable-gradient cliff and rate factor $f_\lambda$.} On
+the favorable side the shape indicators saturate, so the stabilization
+can enter only through the local gradient (\S1.2), and it does so in
+two ways: the threshold rises
+exponentially with the favorable gradient, and the rate above the
+threshold is lowered algebraically. For $\lambda_p\le0$ the threshold
+sits exactly at the floor and $f_\lambda=1$, with zero derivative at
+$\lambda_p=0$, so Blasius and adverse profiles are untouched to first
+order in the gradient. The $|\mathbf u|^2$ denominator of $\lambda_p$
+vanishes at stagnation and flow-reversal points; this is harmless
+either way: a favorable-sign $\lambda_p\to+\infty$ sends
+$Re_\Omega^{\mathrm c}\to\infty$ and $f_\lambda\to0$, switching the
+local rate off (the correct no-amplification limit), while an
+adverse-sign $\lambda_p$ is clipped by the $\max(0,\lambda_p)$, and
+nothing in the rate divides by $\lambda_p$. The division of the
+favorable effect---most of the stabilization carried by the onset
+delay, a milder correction by the rate---mirrors the $e^N$ correlation:
+the critical Reynolds number rises by over an order of magnitude across
+the favorable range while the envelope growth rate falls by a factor of
+about two. $K_\lambda$ is anchored to the $e^N$ critical Reynolds
+number and $K_r$ is fixed by one point of the growth-rate map (\S3.4).
+Fig.~2 maps the assembled kernel.
+
+\textbf{The band gate $Q$} exists because amplification must be held
+off the wall of an attached layer; away from the wall there is nothing
+for it to do, so it should stand as close to fully open, $Q=1$, as
+possible. The fraction
+subtracted from $1$ has a numerator no larger than $1$, largest exactly
+on the attached-wall locus $\Gamma=1$ ($\omega d=|\mathbf u|$), and a
+denominator no smaller than $1$, so $0\le Q\le1$, with the gate most
+nearly shut where the profile looks like an attached wall and carries
+no curvature. There $Q$ collapses to $c_A\Gamma_g/(1+c_A\Gamma_g)$, and
+on the linear near-wall profile $\Gamma_g$ vanishes to high order, so
+$Q\to0$ at the wall of an attached layer---as the sixth power of wall
+distance on a zero-pressure-gradient profile. The pinch keeps the
+envelope scale-similar: without it, the thickening layer clears the
+cliff ever nearer the wall, amplification creeps inboard, and the
+envelope slope $dN/dRe_\theta$ drifts upward without bound instead of
+settling to a constant. In the opposite limit $\Gamma\to2$---an
+inflectional free-shear profile, or wherever the flow reverses---the
+numerator vanishes and $Q\to1$ exactly, so the detached shear layer
+feels the full ceiling: the gate does not dilute the free-shear anchor.
+Between the limits, the weight $c_A$ (\S3.2) sets how quickly curvature
+re-opens the gate toward its ideal; the residual throttling of attached
+mid-bands is a side effect the calibration must respect, not an
+aim. Jointly with the sigmoid, the gate also sets where a profile
+operates: with the wall shut, the gated Blasius profile amplifies most
+strongly at $\Gamma\approx0.87$---on the sigmoid's tail, far below the
+ceiling, the slowness of Tollmien--Schlichting growth relative to
+Kelvin--Helmholtz---while the separation-limit profile operates at
+$\Gamma\approx1.6$, on the saturated shoulder.
+
+Gate, sigmoid, barrier, and rate factor all read only the local mean
+flow, never $\tilde\nu$, so the amplification rate adds no
+$\tilde\nu$-dependence to the source linearization. The production
+grows $\tilde\nu$ along the flow at the local rate $a\,\omega$, so
+$\ln(\tilde\nu/\tilde\nu_\infty)$ accumulates monotonically in the
+manner of an amplification factor $N$; because $a_{\max}$ is small the
+accumulation is gentle, on the scale of the $e^N$ envelope (Figs.~3
+and~4 quantify the tracking). Transition is reached when $\tilde\nu$
+has grown to $\chi\sim1$, where the eddy viscosity becomes dynamically
+active.
+
+\subsection{One-equation blend}
+
+The handover weight $\sigma_t$ of Eq.~\eqref{w:sigma} ties the laminar
+and turbulent regimes to the single state variable through $\chi$. The
+$\max$ in Eq.~\eqref{w:blend} hands the production from amplification
+to SA at the crossover: for $\chi\le1$ ($\sigma_P=0$) it returns the
+amplification, leaving the $e^N$ growth unchanged, and once
+$\sigma_P P_\mathrm{SA}$ overtakes it just past $\chi=1$ the source
+reverts to standard SA with no laminar residue (a pressure-sensitive
+residue left past $\chi=1$ would couple the transition front to the
+outer pressure field). The destruction is not gated off but tied:
+$\sigma_D$ tracks $\sigma_P$ with slope
+$c_{b1}/(\kappa^2c_{w1})\approx0.249$ from the floor
+$(1+c_{b2})/(\sigma c_{w1})\approx0.751$, the two summing to one by the
+definition of $c_{w1}$. In standard SA the
+working variable is exactly linear, $\tilde\nu=\kappa u_\tau y$, from
+the wall through the log layer---the $f_{v2}$ construction holds
+$\tilde S=\tilde\nu/(\kappa^2d^2)$, hence $r\equiv1$ and $f_w\equiv1$,
+at every height, and the linear profile solves the full equation
+exactly---and the tie is the weighting under which that solution
+survives the gates, at every height and for any width $\tau$
+(derivation in \S3.5; the wall-layer solve returns
+$\tilde\nu=\kappa y^+$ with the intercept shift exactly zero, the
+residual deviation being roundoff). In the laminar range ($\sigma_P=0$) the destruction floor is
+inert at the disturbance's quadratic scale:
+$D/P_{\mathrm{AI}}<10^{-3}$ up to the $\chi=1$ crossing at the airfoil
+seed level (\S3.5). The limit $\sigma_t\to1$ recovers the unmodified
+SA equation and its fully turbulent calibration.
+
+Between the two limits the blend is an interpolation, and no physics is
+claimed for it. The model does not attempt to represent the
+transitional zone's internal dynamics---turbulent-spot formation,
+growth, and merging, or the intermittency distribution they
+produce---and nothing constrains what $P$ and $D$ should be
+mid-handover. The target is deliberately narrower: the transition
+location, and the macroscopic aerodynamics that follow from it. Because
+the actively transitional region is usually short on the scale of the
+geometry, the integrated quantities are insensitive to how the
+interpolation crosses it, and $\sigma_t$ is asked only to cross
+smoothly and monotonically; in flows where the transitional zone itself
+occupies a macroscopically significant extent, this economy would need
+revisiting.
+
+\subsection{Cross-stream diffusion of the laminar disturbance}
+
+The SA diffusion operator is retained in both regimes, but its
+molecular coefficient is scaled by $c_{\nu,\mathrm{ai}}<1$ in the
+diffusion term of Eq.~\eqref{w:sa} only, leaving the mean-flow
+viscosity, the SA production and destruction, and the definition
+$\chi=\tilde\nu/\nu$ (formed with the true $\nu$) untouched. Only the
+molecular coefficient is scaled: relative to it, the nonlinear
+self-diffusion and the $c_{b2}$ gradient term are both smaller by a
+factor $O(\chi)$ where $\chi\ll1$, so they remain as in baseline SA.
+The reduction is needed because, while the disturbance is sub-$O(1)$,
+the diffusion coefficient $(\nu+\tilde\nu)$ is dominated by the
+molecular part $\nu$, which does not vanish as the working variable
+does. In a thin, low-$Re_\theta$ laminar layer the amplifying band is
+narrow and abuts the $\tilde\nu=0$ wall condition, so with the full
+molecular coefficient the cross-stream smearing drains the disturbance
+as fast as the gentle rate $a\,\omega$ grows it, and transition never
+occurs. The drain is also uneven: relative to the growth it scales like
+$1/Re_\theta$, hitting thin layers hardest and bending the envelope
+away from the $e^N$ form. The value of $c_{\nu,\mathrm{ai}}$ is
+determined in \S3.2. The negative-$\tilde\nu$ safeguards carry over
+with one consistency requirement: the negative-branch diffusion factor
+$f_n$ must be formed with the scaled coefficient
+$c_{\nu,\mathrm{ai}}\,\nu$---the negative-SA construction at a rescaled
+molecular viscosity, which keeps the total diffusivity positive.
+
+\subsection{Contact with the original SA calibrations}
+
+The original model was built and calibrated in nested stages
+(\S II.2--II.5 of Spalart \& Allmaras 1994). The first two---\S II.2,
+\emph{Free shear flows}, where the molecular viscosity is excluded from
+the equation outright and $c_{b1}$, $\sigma$, $c_{b2}$ are set by
+mixing-layer and wake shear-stress levels, and \S II.3, \emph{Near-wall
+region, high Reynolds number}, where $c_{w1}$ and the $f_w$ calibration
+are set on the log layer and flat-plate skin friction with
+$\chi=\kappa y^+\gg1$---are high-Reynolds-number calibrations,
+formulated where $\chi$ is large or $\nu$ absent, and therefore
+oblivious to the $O(1)$ range of $\chi$ this model repurposes: every
+modification above is inert there, and those calibrations are
+untouched. What the modifications do touch is \S II.4, \emph{Near-wall
+region, finite Reynolds number}---the calibration that introduces
+$\chi$ itself and sets the viscous functions $f_{v1}$, $f_{v2}$ through
+the buffer layer, where $\chi$ passes through $O(1)$, the handover
+gates run partially open, and the molecular diffusion is still
+comparable to $\tilde\nu$---and \S II.5, \emph{Laminar region and trip
+term}, which they replace outright: the trip devices are dropped, and
+the laminar region becomes the model's active domain rather than a
+region to suppress. The contact with \S II.4 is managed quantitatively
+in \S3.5: the production gate vanishes for $\chi\le1$ and the
+destruction floor is inert at the disturbance's quadratic scale,
+$f_{v1}$ still switches on at the calibrated $\chi$ because $\chi$ is
+formed with the true $\nu$, and the destruction tie ensures the
+recovered log law
+is standard SA's.
+
+\subsection{Freestream seed}
+
+A higher $Tu$ is a larger seed $\chi_\infty$ and thus fewer $e$-folds
+to the handover: a case seeded with $\chi_\infty$ reaches the handover
+where its envelope crosses $N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)$.
+The map is Mack's $e^N$ critical-$N$-factor correlation, adopted
+unchanged,
+\begin{equation}
+  N_\mathrm{crit}(Tu) = -8.43 - 2.4\ln(Tu_{\mathrm{frac}}), \qquad
+  \chi_\infty = c_{v1}\,e^{-N_\mathrm{crit}} ,
+  \label{w:mack}
+\end{equation}
+with $Tu_{\mathrm{frac}}$ the rms turbulence intensity as a fraction.
+The correspondence is approximate: $e^N$ methods declare transition at a
+sharp $N_\mathrm{crit}$, while the model's threshold is smeared over the
+$\chi=1\to c_{v1}$ handover---about two $e$-folds of the envelope;
+Fig.~7 quantifies the flat-plate consequence under a stated onset
+convention.
+
+\section{Constants}
+
+Baseline SA (unchanged): $c_{b1}=0.1355$, $\sigma=2/3$, $c_{b2}=0.622$,
+$\kappa=0.41$, $c_{w1}=c_{b1}/\kappa^2+(1+c_{b2})/\sigma$, $c_{w2}=0.3$,
+$c_{w3}=2$, $c_{v1}=7.1$.
+
+SA-AI:
+\begin{center}\small
+\begin{tabular}{llll}
+\toprule
+constant & value & determination & where \\
+\midrule
+$a_{\max}$ & $0.19$ & tanh-layer temporal eigenvalue $\omega_{i,\max}/\omega_{\mathrm{peak}}=0.1897$ & \S3.1 \\
+$(Re_\Omega^{\mathrm{f}},g_c,s)$ & $(254,\,1.005,\,11)$ & three envelope conditions (\S3.1); residuals $+2.2\%,\ +0.2\%,\ 0.04\%$ & \S3.3 \\
+$c_A$ & $4$ & two-sided failure bracket, anchors re-solved per candidate & \S3.2 \\
+$p$ & $4$ & two-sided failure bracket, anchors re-solved per candidate & \S3.2 \\
+$c_{\nu,\mathrm{ai}}$ & $1/12$ & insensitivity plateau $\le 1/8$ ($\pm2\%$ over $1/24$--$1/8$) & \S3.2 \\
+$K_\lambda$ & $6.1$ & most-amplified-point self-consistency fixed point ($\approx 12.3/2.0$) & \S3.4 \\
+$K_r$ & $5.5$ & one-point fit at $\beta=0.35$ (solve $5.47$) & \S3.4 \\
+$\tau$ & $4$ & numerics bracket (handover span $\chi=1\to c_{v1}$) & \S3.5 \\
+$(A,B)$ & $(-8.43,\,2.4)$ & Mack 1977 $e^N$ correlation, wholesale & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Calibration facts}
+
+Five stages, mirroring the paper's Sec.~III: the eigenvalue piece
+($a_{\max}$, taken at face value, + the envelope conditions and
+instrument), the qualitative
+constants, the attached-layer triple, the favorable-gradient add-ons,
+and the decoupled turbulent-side pieces.
+
+\subsection{Rate ceiling and envelope conditions}
+Temporal Rayleigh problem on $U=\tanh y$:
+$\omega_{i,\max}/\omega_{\mathrm{peak}}=0.1897$ at $\alpha\delta=0.44$;
+$a_{\max}=0.19$. Instrument: disturbance transport marched on
+Falkner--Skan similarity fields
+(implicit, $c_{\nu,\mathrm{ai}}/\sigma$ diffusion, $\hat\nu_\infty=1$
+seed, wedge $\lambda_p$ in cliff and factor; no destruction, so the
+envelope stays amplitude-free---the omission is quantified in \S3.5). Conditions: Blasius
+envelope meets Drela--Giles at $N{=}1$ ($Re_\theta=338$) and $N{=}9$
+($Re_\theta=1108$); separation-limit profile ($\beta=-0.1988$,
+$H=3.98$) onset-to-transition mean rate $=$ Drela's.
+
+\subsection{Qualitative constants (anchors re-solved per candidate)}
+$c_{\nu,\mathrm{ai}}$: plateau $\le 1/8$ ($\pm2\%$ about the plateau
+mean over $1/24$--$1/8$); $1/2$ sags mid-adverse $20\%$; $1$ collapses
+$30$--$38\%$ with Blasius interior deviation doubled.
+$c_A$: at $2$, separation anchor unreachable (mean saturates $5\%$
+short, $s$ at the step bound; $Q=0.81$ at the separation-limit
+$Re_\Omega$ peak, band mean $0.65$); at $8$, near-wall $Q$ doubles and
+mid-adverse sags $29$--$36\%$.
+$p$: at $2$, mid-adverse sags $\sim25\%$; at $8$, overshoots up to
+$+19\%$.
+Gated operating points at the canonical $c_A$ ($\arg\max Q\,S$,
+$Re_\Omega\gg$ onset): Blasius $\Gamma=0.865$, $Q\,S=0.059$
+($a=0.011$); separation limit $\Gamma=1.575$, $Q\,S=0.786$.
+
+\subsection{Attached-layer triple}
+Solution $(254,1.005,11)$, residuals $(+2.2\%,+0.2\%,0.04\%)$; Blasius
+interior within $5\%$ of the correlation over $N\in[1,9]$. Solve
+valley: $(g_c,s)$ slides $(1.005,11)\!\to\!(1.020,9.9)$ within $2.2\%$
+residuals; mid-adverse interior moves $5$--$8\%$. $N{=}1$ level
+sensitivity: floor $<3\%$, operational onset $\pm0.5\%$, $(g_c,s)$
+$(0.99,12.9)\!\to\!(1.10,6.6)$ over $N_{\mathrm{low}}=0.5\!\to\!2$,
+mid-adverse $+20\%/{-25\%}$.
+
+\subsection{Favorable-gradient slopes}
+\textbf{Onset delay.}
+$K_\lambda = (d\ln Re_{\theta c}/d\beta)/(d\lambda_p^{\star}/d\beta)|_{\beta\to0}
+\approx 12.3/2.0$; self-consistent fixed point $6.1$ (most-amplified
+point $=$ rate maximum; the clearance-maximum definition gives $6.29$).
+Raw kernel (no $\lambda_p$ terms): favorable $N{=}1$ crossings sit at
+$Re_\theta=400$--$677$ over $\beta=0.05$--$1$, up to $10\times$ early of
+Drela's implied station.
+\textbf{Rate factor.} Cliff-only favorable family runs hot: mean $1.2$--$2.0\times$, late
+$1.3$--$2.4\times$ over $\beta=0.05$--$1$. Fit
+$\mathrm{mean}/\mathrm{Drela}|_{\beta=0.35}=1$ gives $K_r=5.47\to5.5$
+(quadratic rational form; $e^{-K\lambda_p}$ and $1/(1+K\lambda_p)$ are
+$C^0$ at the origin and give less flat families). Factored family:
+mean $0.84$--$1.00\times$, late $0.92$--$1.17\times$; $N{=}1$ crossing
+$1.19$--$1.27\times$ ($\beta\le0.35$), $1.06\times$ ($0.55$),
+$0.85\times$ ($1$).
+
+\subsection{Turbulent wall layer}
+Constant-stress SA wall layer: $c_{\nu,\mathrm{ai}}=1/12$ alone (gates
+held open) leaves the intercept unchanged exactly (the linear profile
+has no curvature for the molecular term to act on; residual at
+roundoff).
+Destruction tie, derived from the linear-solution balance
+($P=c_{b1}u_\tau^2$, $D=c_{w1}\kappa^2u_\tau^2$, self-diffusion
+$(1+c_{b2})\kappa^2u_\tau^2/\sigma$; $r\equiv1$, $f_w\equiv1$ by the
+$\tilde S$ identity): $\sigma_D=1-(c_{b1}/\kappa^2c_{w1})(1-\sigma_P)$;
+$\tilde\nu=\kappa y^+$ exact at every height for any $\tau$ (solve
+residual at roundoff; $\Delta B=0$ exactly). Laminar
+back-reaction of the $0.751$ floor: $D/P_{\mathrm{AI}}<10^{-3}$ below
+$\chi=1$ at $\chi_\infty=c_{v1}e^{-9}$; instrument anchors move $<1\%$
+with the floor included, the $K_r$-point mean $-2.6\%$ (mostly past
+$\chi=1$); CFD A/B: flat-plate onset $+0.8\%$ in $Re_\theta$ at
+$Tu=0.04\%$, NLF a4 and Eppler a5 fronts/forces unchanged
+(max$|\Delta C_f|\sim3\times10^{-5}$).
+
+\section{Results}
+
+Coupled RANS: Flow360, unstructured node-centered second-order finite
+volume, Roe flux, $M=0.1$. Airfoil cases: $\chi_\infty=8.76\times10^{-4}$
+($N_\mathrm{crit}=9$); two independently generated mesh families
+(all-triangular cavity, all-quadrilateral O-grid), three refinement
+levels each, four incidences per airfoil (24 cases per airfoil), plus a
+five-point Reynolds sweep. Same constants everywhere.
+
+% ---------------- analytic figures ----------------
+\begin{figure}[H]\centering
+\includegraphics[width=0.95\textwidth]{indicator_plane.pdf}
+\caption*{\textbf{Fig.~1 --- Indicator plane.} Falkner--Skan family in
+$(Re_\Omega/Re_\theta,\Gamma)$ and $(\Gamma_g,\Gamma)$. Blasius
+$\max_y Re_\Omega = 2.19\,Re_\theta$ at $y\approx0.6\,\delta_{99}$;
+noses march $2.2\to4.4\,Re_\theta$ from Blasius to the separation
+limit; attached profiles stay below $\Gamma\approx1.53$. Grey
+dash-dot: Stewartson reverse-flow branch at $\beta=-0.15$
+($f''(0)=-0.091$, $6\%$ peak backflow), reaching $\Gamma=2$ exactly at
+its interior stagnation point. Band $\Gamma_g$: $1.6$ (Blasius), $6$
+(separation limit), $O(10)$ (reverse-flow branch); vanishes to high
+order at attached walls (sixth power of wall distance at zero pressure
+gradient).}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.9\textwidth]{kernel_maps.pdf}
+\caption*{\textbf{Fig.~2 --- Rate kernel.} (a) $S(z)$ over
+$(Re_\Omega/Re_\Omega^{\mathrm{c}},\Gamma)$; universal in the
+normalized abscissa; cliff at ratio $1$. The map is $S$ alone; realized
+ceiling fraction is $Q\,S$ ($0.059$ Blasius, $0.786$ separation limit
+at their operating $\Gamma$). (b) cliff
+$Re_\Omega^{\mathrm{c}}(\lambda_p)$: floor for $\lambda_p\le0$,
+$e^{K_\lambda\lambda_p}$ for $\lambda_p>0$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.95\textwidth]{fs_nuHat_rows.pdf}
+\caption*{\textbf{Fig.~3 --- Disturbance transport on three wedges.}
+Adverse $\beta=-0.10$: $N{=}1$ at $1.4\times$ Drela's station,
+comparable late rate. Blasius: meets the correlation at $N{=}1,9$ by
+construction, within $5\%$ throughout. Favorable $\beta=+0.30$
+(cliff + factor): mean $0.99\times$, late $1.15\times$, $N{=}1$ at
+$1.21\times$ Drela's station.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{shapefactor_amplification.pdf}
+\caption*{\textbf{Fig.~4 --- Shape-factor family.} (a) rates:
+zero-to-adverse mean $0.91$--$1.02\times$, late $0.98$--$1.10\times$
+Drela; favorable cliff-only $1.2$--$2.0\times$ / $1.3$--$2.4\times$
+(open); factored $0.84$--$1.00\times$ / $0.92$--$1.17\times$ (filled);
+$K_r$ fit point $\beta=0.35$. (b) onset $Re_\theta$: Drela critical
+$Re_{\theta c}(H)$, implied $N{=}1$ station
+$Re_{\theta c}+1/(dn/dRe_\theta)$, and model $N{=}1$ crossings ---
+on station at Blasius (anchor), $1.4$--$1.7\times$ late across the
+adverse branch, favorable as in \S3.4.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.7\textwidth]{klambda_profiles.pdf}
+\caption*{\textbf{Fig.~5 --- Most-amplified (triggering) points.} Profiles at
+their Drela critical $Re_\theta$, colored by cliff clearance
+$\log_2[Re_\Omega/Re_\Omega^{\mathrm{c}}(\lambda_p)]$; stars at the
+rate maxima. Blasius nose at criticality is $2.1\times$ the floor.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.5\textwidth]{klambda_selfconsistent.pdf}
+\caption*{\textbf{Fig.~6 --- $K_\lambda$ self-consistency.} Implied vs
+used $K_\lambda$; fixed point $6.1$; $d\ln Re_{\theta c}/d\beta=12.3$.}
+\end{figure}
+
+\begin{table}[H]\centering\small
+\caption*{\textbf{Table --- Coarse-mesh robustness} (constant-stress
+wall layer; the $\tilde\nu$ transport and the velocity integration both
+discretized to second order on the coarse grid; geometric growth $1.2$
+to $y^+=1000$).}
+\begin{tabular}{cc cc cc}
+\toprule
+& & \multicolumn{2}{c}{standard SA} & \multicolumn{2}{c}{SA-AI}\\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+first-cell $y^+$ & nodes & $B$ & $|\Delta C_f/C_f|$ & $B$ & $|\Delta C_f/C_f|$\\
+\midrule
+0.25 & 38 & 5.16 & ref    & 5.16 & ref \\
+0.5  & 34 & 5.17 & 0.1\%  & 5.17 & 0.1\% \\
+1    & 31 & 5.18 & 0.2\%  & 5.18 & 0.2\% \\
+2    & 27 & 5.21 & 0.4\%  & 5.21 & 0.4\% \\
+4    & 23 & 5.26 & 0.9\%  & 5.26 & 0.9\% \\
+8    & 19 & 5.44 & 2.5\%  & 5.44 & 2.5\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ---------------- flat plate ----------------
+\begin{figure}[H]\centering
+\includegraphics[width=0.9\textwidth]{flat_plate_batch_flow360.pdf}
+\caption*{\textbf{Fig.~7 --- Flat plate, $Tu=0.04$--$0.60\%$}
+($320\times80$ grid, $Re_x\le6\times10^6$, $y^+\lesssim0.3$). At the
+$\chi{=}1$ crossing (converted via $Re_\theta=0.664\sqrt{Re_x}$) the
+onset tracks Abu-Ghannam \& Shaw within $\sim11\%$: $+5\%$, $-3$ to
+$-11\%$, $-6\%$ across the range. At the $\chi{=}c_{v1}$ crossing:
+$+13$ to $+19\%$ ($Tu\le0.30\%$), $+36\%$ ($0.60\%$).}
+\end{figure}
+
+% ---------------- NLF(1)-0416 ----------------
+\begin{figure}[H]\centering
+\includegraphics[width=0.85\textwidth]{nlf_cf_lowalpha.pdf}
+\caption*{\textbf{Fig.~8 --- NLF(1)-0416 $C_f$/$\chi$,
+$\alpha=0^\circ,4^\circ$} ($Re=4\times10^6$; both families, three
+levels). Fronts agree within $0.02\,c$ across families and levels;
+switching $K_r$ $0\to5.5$ moves every front $\le0.003\,c$. Triangles
+on the $C_f$ row: measured onsets (open = extrapolated).}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.85\textwidth]{nlf_cf_highalpha.pdf}
+\caption*{\textbf{Fig.~9 --- NLF(1)-0416 $C_f$/$\chi$,
+$\alpha=9^\circ,15^\circ$.} Near-LE upper onset at $9^\circ$ is the
+marginal case (L1$\to$L2 drift $0.03$--$0.04\,c$); at $15^\circ$ the
+upper front is at the leading edge.}
+\end{figure}
+
+\begin{table}[H]\centering\small
+\caption*{\textbf{Table --- NLF(1)-0416 transition location
+$x_\mathrm{tr}/c$} (L2; $e^9$ = mfoil, $\dagger$ = XFOIL; Exp = Somers
+TP-1861 orifices read at computed $c_l$; $\ddagger$ = extrapolated
+datum; $\partial x_\mathrm{tr}/\partial N$ = front sensitivity from
+XFOIL re-converged at $N_\mathrm{crit}=8$ and $10$, central difference,
+$c$ per unit $N$). The pinned fronts---recovery corner, suction
+peak---move $\le0.006\,c$ per unit $N$; the free fronts, lower at
+$0^\circ$ and upper at $4^\circ$, move $0.017$--$0.067\,c$.}
+\begin{tabular}{cc cccc c cccc}
+\toprule
+& & \multicolumn{4}{c}{Upper surface} & & \multicolumn{4}{c}{Lower surface}\\
+\cmidrule(lr){3-6}\cmidrule(lr){8-11}
+$\alpha$ & $c_l$ & SA-AI & $e^9$ & Exp & $\partial x_\mathrm{tr}/\partial N$ & & SA-AI & $e^9$ & Exp & $\partial x_\mathrm{tr}/\partial N$ \\
+\midrule
+$0^\circ$  & 0.49 & 0.37 & 0.43 & 0.38 & 0.006 & & 0.56 & 0.62 & 0.55 & 0.067 \\
+$4^\circ$  & 0.96 & 0.25 & 0.33 & $0.31^\ddagger$ & 0.017 & & 0.60 & 0.65 & 0.62 & 0.003 \\
+$9^\circ$  & 1.48 & 0.07 & $0.09^\dagger$ & ---  & $<$0.001 & & 0.61 & $0.67^\dagger$ & 0.64 & 0.003 \\
+$15^\circ$ & 1.95 & 0.00 & $0.00^\dagger$ & ---  & $<$0.001 & & 0.64 & $0.69^\dagger$ & $0.66^\ddagger$ & 0.004 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.6\textwidth]{nlf_polar_compare.pdf}
+\caption*{\textbf{Fig.~10 --- NLF(1)-0416 drag polar} vs Somers TP-1861
+and mfoil $e^9$. Cavity-vs-O-grid $\Delta C_d$ at L2:
+$0.62/0.66\times10^{-3}$ ($\alpha=0^\circ/4^\circ$),
+$1.39/1.04\times10^{-3}$ ($9^\circ/15^\circ$).}
+\end{figure}
+
+% ---------------- Eppler 387 ----------------
+\begin{figure}[H]\centering
+\includegraphics[width=0.85\textwidth]{eppler_cf_lowalpha.pdf}
+\caption*{\textbf{Fig.~11 --- Eppler 387 $C_f$/$\chi$/$-C_p$,
+$\alpha=0^\circ,2^\circ$} ($Re=2\times10^5$). Signed $C_f$ shows the
+laminar-separation bubble; grey band = oil-flow bubble (McGhee
+TM-4062).}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.85\textwidth]{eppler_cf_highalpha.pdf}
+\caption*{\textbf{Fig.~12 --- Eppler 387 $C_f$/$\chi$/$-C_p$,
+$\alpha=5^\circ,7^\circ$.} At $7^\circ$ reattachment computes at
+$0.42\,c$ vs measured $0.48\,c$; XFOIL at $N_\mathrm{crit}=9$ gives
+$0.40\,c$; matching $0.48\,c$ requires $N_\mathrm{crit}\approx11$
+while $5^\circ$ matches at $\approx8$--$9$ (cross-tool measure noise
+$0.01$--$0.02\,c$).}
+\end{figure}
+
+\begin{table}[H]\centering\small
+\caption*{\textbf{Table --- Eppler 387 upper-surface reattachment
+$x_R/c$} ($Re=2\times10^5$; $C_f$ recovery through $+10^{-3}$;
+$\dagger$ = XFOIL).}
+\begin{tabular}{ccccccccc}
+\toprule
+& \multicolumn{3}{c}{Unstructured cavity} & \multicolumn{3}{c}{Structured O-grid} & & \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+$\alpha$ & L0 & L1 & L2 & L0 & L1 & L2 & mfoil $e^9$ & Exp (oil flow) \\
+\midrule
+$0^\circ$ & 0.750 & 0.722 & 0.720 & 0.705 & 0.714 & 0.721 & 0.764 & 0.74 \\
+$2^\circ$ & 0.696 & 0.677 & 0.672 & 0.661 & 0.665 & 0.673 & 0.713 & 0.67 \\
+$5^\circ$ & 0.640 & 0.596 & 0.592 & 0.593 & 0.584 & 0.593 & 0.612 & 0.59 \\
+$7^\circ$ & 0.538 & 0.430 & 0.422 & 0.307 & 0.383 & 0.424 & $0.40^\dagger$ & 0.48 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.6\textwidth]{eppler_polar_compare.pdf}
+\caption*{\textbf{Fig.~13 --- Eppler 387 drag polar}
+($Re=2\times10^5$, L2). Mesh families agree to
+$\Delta C_d\lesssim3\times10^{-4}$; fully turbulent SA runs
+$39$--$51\%$ above SA-AI.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.95\textwidth]{eppler_L1compare_lowRe.pdf}
+\caption*{\textbf{Fig.~14 --- Reynolds sweep, $Re=6\times10^4$ and
+$10^5$} ($\alpha=5^\circ$, L1 both families). Open (non-reattaching)
+separation at $6\times10^4$; long bubble recovering at
+$x/c\approx0.71$ at $10^5$. In-bubble reverse $C_f$ reaches
+$\approx-0.005$ ($4$--$5\times$ the post-reattachment turbulent peak
+at $10^5$); mfoil's minimum is $-0.0006$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.95\textwidth]{eppler_L1compare_highRe.pdf}
+\caption*{\textbf{Fig.~15 --- Reynolds sweep, $Re=3\times10^5$ and
+$4.6\times10^5$.} Bubble shortens and moves forward: recovery at
+$x/c\approx0.52$--$0.54$ and $0.48$--$0.49$; computed $C_f$ only
+grazes zero.}
+\end{figure}
+
+\begin{table}[H]\centering\small
+\caption*{\textbf{Table --- Eppler 387 Reynolds sweep at
+$\alpha=5^\circ$} (L1; Exp = LTPT, TM-4062).}
+\begin{tabular}{l ccc ccc ccc ccc}
+\toprule
+& \multicolumn{3}{c}{SA-AI, structured L1} & \multicolumn{3}{c}{SA-AI, unstructured L1}
+& \multicolumn{3}{c}{$e^9$ panel} & \multicolumn{3}{c}{Exp (LTPT)}\\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}\cmidrule(lr){11-13}
+$Re$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ \\
+\midrule
+$6\!\times\!10^4$   & 0.728 & 0.0451 & $-$0.094 & 0.785 & 0.0427 & $-$0.099 & 0.889 & 0.0368 & $-$0.097 & 0.838 & 0.0439 & $-$0.114 \\
+$1\!\times\!10^5$   & 0.897 & 0.0213 & $-$0.081 & 0.914 & 0.0209 & $-$0.085 & 0.952 & 0.0213 & $-$0.087 & 0.873 & 0.0237 & $-$0.089 \\
+$2\!\times\!10^5$   & 0.926 & 0.0135 & $-$0.078 & 0.949 & 0.0131 & $-$0.084 & 0.960 & 0.0128 & $-$0.082 & 0.891 & 0.0138 & $-$0.081 \\
+$3\!\times\!10^5$   & 0.936 & 0.0115 & $-$0.079 & 0.960 & 0.0111 & $-$0.084 & 0.962 & 0.0103 & $-$0.082 & 0.901 & 0.0114 & $-$0.080 \\
+$4.6\!\times\!10^5$ & 0.943 & 0.0101 & $-$0.080 & 0.969 & 0.0096 & $-$0.086 & 0.958 & 0.0085 & $-$0.081 & 0.914 & 0.0093 & $-$0.081 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Unstructured-family $c_d$ vs experiment: within $5\%$ at
+$6\times10^4$ and $Re\ge2\times10^5$; $\sim12\%$ deficit at $10^5$,
+shared with the $e^9$ reference ($0.0209$, $0.0213$ vs measured
+$0.0237$).
+
+\clearpage
+\section*{Appendix: meshes and wall-anchored contour sheets}
+
+Figures~A1--A4 collect the mesh views for the two airfoil validation
+cases: leading- and trailing-edge close-ups of the structured O-grid
+and unstructured cavity families at the three refinement levels.
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.75\textwidth]{mesh_nlf_str.pdf}
+\caption*{\textbf{Fig.~A1 --- NLF(1)-0416 structured O-grids} (LE and TE, L0/L1/L2). All-quadrilateral; nodes $15{,}920$ / $63{,}840$ / $255{,}680$; $y^+$ 95th percentile $1.90/0.92/0.46$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.75\textwidth]{mesh_nlf_cav.pdf}
+\caption*{\textbf{Fig.~A2 --- NLF(1)-0416 unstructured cavity meshes} (LE and TE, L0/L1/L2). All-triangular; nodes $15{,}268$ / $53{,}182$ / $193{,}476$; $y^+$ 95th percentile $2.99/2.10/1.22$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.75\textwidth]{mesh_eppler_str.pdf}
+\caption*{\textbf{Fig.~A3 --- Eppler 387 structured O-grids} (LE, TE, L0/L1/L2). Nodes as NLF O-grids; $y^+$ well below unity at $Re=2\times10^5$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.75\textwidth]{mesh_eppler_cav.pdf}
+\caption*{\textbf{Fig.~A4 --- Eppler 387 unstructured cavity meshes} (LE, TE, L0/L1/L2). Nodes $15{,}219$ / $53{,}109$ / $192{,}714$.}
+\end{figure}
+
+For each airfoil case and each surface, the sheets below present the
+computed fields in the manner of the flat-plate figure (Fig.~7): line
+contours of the velocity magnitude $|\mathbf{u}|/U_\infty$ (left
+column) and of $\log_{10}\chi$ (right column; dashed contours are the
+laminar levels $\chi<1$, solid are $\chi\!=\!1$ and $c_{v1}$), on
+wall-anchored coordinates---the abscissa is the $x/c$ of the wall
+anchor, the ordinate the wall-normal distance from that anchor, so
+each wall-normal probe scan is one vertical line of the panel. Rows
+pair the two mesh families at each refinement level (cavity, then
+O-grid; L0, L1, L2). The wall-normal range is chosen to hold the
+laminar band in frame ($0.0015c$ upper and $0.0025c$ lower for the
+NLF(1)-0416, scaled with $1/\sqrt{Re}$ to $0.0067c$ and $0.0112c$ for
+the Eppler~387), letting the turbulent layer overshoot the frame top.
+The final two sheets cover the Eppler Reynolds sweep at
+$\alpha\!=\!5^\circ$: eight rows pairing the two L1 families at each
+of the four swept Reynolds numbers.
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a0_upper.pdf}
+\caption*{\textbf{Fig.~A5} --- NLF(1)-0416, $Re=4\times10^6$, $\alpha=0^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a0_lower.pdf}
+\caption*{\textbf{Fig.~A6} --- NLF(1)-0416, $Re=4\times10^6$, $\alpha=0^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a4_upper.pdf}
+\caption*{\textbf{Fig.~A7} --- NLF(1)-0416, $Re=4\times10^6$, $\alpha=4^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a4_lower.pdf}
+\caption*{\textbf{Fig.~A8} --- NLF(1)-0416, $Re=4\times10^6$, $\alpha=4^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a9_upper.pdf}
+\caption*{\textbf{Fig.~A9} --- NLF(1)-0416, $Re=4\times10^6$, $\alpha=9^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a9_lower.pdf}
+\caption*{\textbf{Fig.~A10} --- NLF(1)-0416, $Re=4\times10^6$, $\alpha=9^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a15_upper.pdf}
+\caption*{\textbf{Fig.~A11} --- NLF(1)-0416, $Re=4\times10^6$, $\alpha=15^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a15_lower.pdf}
+\caption*{\textbf{Fig.~A12} --- NLF(1)-0416, $Re=4\times10^6$, $\alpha=15^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a0_upper.pdf}
+\caption*{\textbf{Fig.~A13} --- Eppler~387, $Re=2\times10^5$, $\alpha=0^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a0_lower.pdf}
+\caption*{\textbf{Fig.~A14} --- Eppler~387, $Re=2\times10^5$, $\alpha=0^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a2_upper.pdf}
+\caption*{\textbf{Fig.~A15} --- Eppler~387, $Re=2\times10^5$, $\alpha=2^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a2_lower.pdf}
+\caption*{\textbf{Fig.~A16} --- Eppler~387, $Re=2\times10^5$, $\alpha=2^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a5_upper.pdf}
+\caption*{\textbf{Fig.~A17} --- Eppler~387, $Re=2\times10^5$, $\alpha=5^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a5_lower.pdf}
+\caption*{\textbf{Fig.~A18} --- Eppler~387, $Re=2\times10^5$, $\alpha=5^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a7_upper.pdf}
+\caption*{\textbf{Fig.~A19} --- Eppler~387, $Re=2\times10^5$, $\alpha=7^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a7_lower.pdf}
+\caption*{\textbf{Fig.~A20} --- Eppler~387, $Re=2\times10^5$, $\alpha=7^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_sweep_upper.pdf}
+\caption*{\textbf{Fig.~A21} --- Eppler~387 Reynolds sweep, $\alpha=5^\circ$, upper surface: both L1 mesh families at $Re=6\times10^4$--$4.6\times10^5$. The wall-normal range scales with $1/\sqrt{Re}$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_sweep_lower.pdf}
+\caption*{\textbf{Fig.~A22} --- Eppler~387 Reynolds sweep, $\alpha=5^\circ$, lower surface: both L1 mesh families at $Re=6\times10^4$--$4.6\times10^5$. The wall-normal range scales with $1/\sqrt{Re}$.}
+\end{figure}
+
+\end{document}
+

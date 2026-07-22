@@ -1,0 +1,75 @@
+candidate: gate=lv2 cV=4.0 floor=243.7 gc=0.9874 s=10.68
+K_lambda = 6.2008518191910325 (given), K_r = 5.802 (given)
+/home/qiqi/flexcompute/sa-ai/paper/repro/analytic/explore_lambda_v_phaseb.py:161: RuntimeWarning: overflow encountered in multiply
+  rhs = u/dx*nu + b*nu
+  [lv2] beta=-0.090 H= 2.771 Rt1=   230 mean= 0.89x late= 0.97x
+  [lv2] beta=-0.199 H= 3.982 Rt1=    74 mean= 1.01x late= 1.30x
+  [lv2] beta=+0.550 H= 2.285 Rt1=  3980 mean= 1.94x late= 2.34x
+  [lv2] beta=+0.000 H= 2.591 Rt1=   341 mean= 0.99x late= 1.07x
+  [lv2] beta=-0.150 H= 3.021 Rt1=   149 mean= 0.94x late= 1.02x
+  [lv2] beta=-0.050 H= 2.676 Rt1=   281 mean= 0.90x late= 0.97x
+  [lv2] beta=+0.200 H= 2.411 Rt1=  1932 mean= 1.88x late= 2.16x
+  [lv2] beta=+0.050 H= 2.529 Rt1=   625 mean= 1.21x late= 1.31x
+  [lv2] beta=+0.100 H= 2.481 Rt1=  1036 mean= 1.46x late= 1.61x
+  [lv2] beta=+0.050 H= 2.529 Rt1=   714 mean= 0.89x late= 0.96x
+  [lv2] beta=+0.350 H= 2.342 Rt1=  3009 mean= 2.05x late= 2.42x
+  [lv2] beta=-0.190 H= 4.922 Rt1=    55 mean= 1.09x late= 1.47x
+  [lv2] beta=-0.170 H= 6.145 Rt1=    43 mean= 1.10x late= 1.37x
+  [lv2] beta=+0.350 H= 2.342 Rt1=  3441 mean= 1.00x late= 1.17x
+  [lv2] beta=-0.150 H= 7.516 Rt1=    35 mean= 1.01x late= 1.17x
+  [lv2] beta=-0.120 H=10.632 Rt1=    25 mean= 0.78x late= 0.83x
+  [lv2] beta=+0.100 H= 2.481 Rt1=  1234 mean= 0.83x late= 0.91x
+  [lv2] beta=+0.200 H= 2.411 Rt1=  2272 mean= 0.94x late= 1.07x
+  [lv2] beta=+1.000 H= 2.216 Rt1=  5711 mean= 0.86x late= 1.04x
+  [lv2] beta=+0.550 H= 2.285 Rt1=  4468 mean= 0.94x late= 1.12x
+  [lv2] beta=+1.000 H= 2.216: march never reached N=9 (N_end=0.00) -- NaN row
+/home/qiqi/flexcompute/sa-ai/paper/repro/analytic/explore_lambda_v_phaseb.py:161: RuntimeWarning: overflow encountered in multiply
+  rhs = u/dx*nu + b*nu
+  [q4] beta=-0.150 H= 3.021 Rt1=   150 mean= 1.02x late= 1.10x
+  [q4] beta=-0.090 H= 2.771 Rt1=   231 mean= 0.92x late= 1.00x
+  [q4] beta=+0.550 H= 2.285 Rt1=  4055 mean= 1.87x late= 2.26x
+  [q4] beta=+0.000 H= 2.591 Rt1=   347 mean= 1.00x late= 1.07x
+  [q4] beta=-0.199 H= 3.982 Rt1=    74 mean= 1.01x late= 1.14x
+  [q4] beta=-0.050 H= 2.676 Rt1=   288 mean= 0.91x late= 0.98x
+/home/qiqi/flexcompute/sa-ai/paper/repro/analytic/explore_lambda_v_phaseb.py:161: RuntimeWarning: overflow encountered in add
+  rhs = u/dx*nu + b*nu
+  [q4] beta=+0.200 H= 2.411 Rt1=  1968 mean= 1.83x late= 2.10x
+  [q4] beta=+0.050 H= 2.529 Rt1=   636 mean= 1.20x late= 1.30x
+  [q4] beta=+0.100 H= 2.481 Rt1=  1055 mean= 1.44x late= 1.59x
+  [q4] beta=+0.050 H= 2.529 Rt1=   720 mean= 0.90x late= 0.97x
+  [q4] beta=+0.350 H= 2.342 Rt1=  3066 mean= 1.99x late= 2.35x
+  [q4] beta=-0.190 H= 4.922 Rt1=    55 mean= 1.15x late= 1.65x
+  [q4] beta=+1.000 H= 2.216 Rt1=  5286 mean= 1.70x late= 2.06x
+  [q4] beta=-0.170 H= 6.145 Rt1=    42 mean= 1.26x late= 1.74x
+  [q4] beta=+0.100 H= 2.481 Rt1=  1242 mean= 0.84x late= 0.92x
+  [q4] beta=+0.350 H= 2.342 Rt1=  3481 mean= 1.00x late= 1.17x
+  [q4] beta=+0.200 H= 2.411 Rt1=  2293 mean= 0.94x late= 1.07x
+  [q4] beta=-0.150 H= 7.516 Rt1=    34 mean= 1.33x late= 1.77x
+  [q4] beta=-0.120 H=10.632 Rt1=    24 mean= 1.36x late= 1.74x
+  [q4] beta=+1.000 H= 2.216 Rt1=  5785 mean= 0.86x late= 1.04x
+  [q4] beta=+0.550 H= 2.285 Rt1=  4523 mean= 0.94x late= 1.12x
+wrote /home/qiqi/flexcompute/sa-ai/paper/repro/analytic/figs_explore/lambda_v_family.png
+
+===== FAMILY SUMMARY (mean rate / Drela) =====
+ kind    beta       H |     Q4     Lv
+  att  -0.199   3.982 |   1.01   1.01
+  att  -0.150   3.021 |   1.02   0.94
+  att  -0.090   2.771 |   0.92   0.89
+  att  -0.050   2.676 |   0.91   0.90
+  att  +0.000   2.591 |   1.00   0.99
+ fav0  +0.050   2.529 |   1.20   1.21
+ fav0  +0.100   2.481 |   1.44   1.46
+ fav0  +0.200   2.411 |   1.83   1.88
+ fav0  +0.350   2.342 |   1.99   2.05
+ fav0  +0.550   2.285 |   1.87   1.94
+ fav0  +1.000   2.216 |   1.70    nan
+  fav  +0.050   2.529 |   0.90   0.89
+  fav  +0.100   2.481 |   0.84   0.83
+  fav  +0.200   2.411 |   0.94   0.94
+  fav  +0.350   2.342 |   1.00   1.00
+  fav  +0.550   2.285 |   0.94   0.94
+  fav  +1.000   2.216 |   0.86   0.86
+  low  -0.190   4.922 |   1.15   1.09
+  low  -0.170   6.145 |   1.26   1.10
+  low  -0.150   7.516 |   1.33   1.01
+  low  -0.120  10.632 |   1.36   0.78

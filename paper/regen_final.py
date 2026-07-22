@@ -3,7 +3,7 @@ interleaves the cambered NLF's surfaces aft). Updates polar.pdf, xtr_alpha.pdf, 
 import csv,os,pickle,numpy as np,vtk
 from vtk.util.numpy_support import vtk_to_numpy
 import matplotlib;matplotlib.use('Agg');import matplotlib.pyplot as plt
-B="/home/qiqi/flexcompute/aft-sa/flow360";PD="/home/qiqi/flexcompute/aft-sa/paper"
+B="/home/qiqi/flexcompute/sa-ai/flow360";PD="/home/qiqi/flexcompute/sa-ai/paper"
 ALPHAS=[-2,0,2,4,6,8];ALT=[0,2,4,6,8]
 def wd(af,mesh,model,a):
     # Paper convention: 'cavity' = unstructured L1 (108k nodes, TEprop metric);

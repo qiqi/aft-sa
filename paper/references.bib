@@ -5,7 +5,12 @@
 %% Foundational e^N entries (Smith-Gamberoni, van Ingen, Mack, Drela-Giles) are
 %% standard; re-confirm exact venue/DOI before final submission.
 
-%% ---- Eppler 387 experimental reference ----
+%% ---- Airfoil experimental references ----
+@techreport{somers_1981,
+  author      = {Somers, Dan M.},
+  title       = {Design and Experimental Results for a Natural-Laminar-Flow Airfoil for General Aviation Applications},
+  institution = {NASA Langley Research Center}, number = {NASA TP-1861}, year = {1981}}
+
 @techreport{mcghee_1988,
   author      = {McGhee, Robert J. and Walker, Betty S. and Millard, Betty F.},
   title       = {Experimental Results for the {Eppler 387} Airfoil at Low {Reynolds} Numbers in the {Langley Low-Turbulence Pressure Tunnel}},
@@ -44,10 +49,18 @@
 
 @incollection{drela_xfoil_1989,
   author    = {Drela, Mark},
-  title     = {{XFOIL}: An Analysis and Design System for Low Reynolds Number Airfoils},
-  booktitle = {Low Reynolds Number Aerodynamics}, series = {Lecture Notes in Engineering},
-  volume    = {54}, pages = {1--12}, publisher = {Springer}, year = {1989},
+  title     = {{XFOIL}: An Analysis and Design System for Low {Reynolds} Number Airfoils},
+  booktitle = {Low Reynolds Number Aerodynamics},
+  series    = {Lecture Notes in Engineering}, volume = {54},
+  publisher = {Springer}, year = {1989}, pages = {1--12},
   doi       = {10.1007/978-3-642-84010-4_1}}
+
+@article{fidkowski_mfoil_2022,
+  author  = {Fidkowski, Krzysztof J.},
+  title   = {A Coupled Inviscid--Viscous Airfoil Analysis Solver, Revisited},
+  journal = {AIAA Journal},
+  volume  = {60}, number = {4}, year = {2022},
+  doi     = {10.2514/1.J061341}}
 
 %% ---- Amplification Factor Transport (AFT) lineage ----
 @article{coder_maughmer_2014,
@@ -156,8 +169,18 @@
   author  = {Wells, C. Sinclair},
   title   = {Effects of Freestream Turbulence on Boundary-Layer Transition},
   journal = {AIAA Journal},
-  volume  = {3}, number = {1}, pages = {172--174}, year = {1967},
+  volume  = {5}, number = {1}, pages = {172--174}, year = {1967},
   doi     = {10.2514/3.3931}}
+
+%% ---- SA implementation safeguards (negative-nu_tilde, S_tilde modification) ----
+@inproceedings{allmaras_2012,
+  author    = {Allmaras, Steven R. and Johnson, Forrester T. and Spalart, Philippe R.},
+  title     = {Modifications and Clarifications for the Implementation of the
+               {Spalart--Allmaras} Turbulence Model},
+  booktitle = {Seventh International Conference on Computational Fluid
+               Dynamics (ICCFD7)},
+  address   = {Big Island, Hawaii},
+  year      = {2012}, note = {ICCFD7-1902}}
 
 %% ---- Spalart--Allmaras journal version ----
 @article{spalart_allmaras_1994,
@@ -225,3 +248,173 @@
   year    = {1964}
 }
 
+
+@article{deck_renard_2020,
+  author  = {Deck, S{\'e}bastien and Renard, Nicolas},
+  title   = {Towards an Enhanced Protection of Attached Boundary Layers in Hybrid {RANS/LES} Methods},
+  journal = {Journal of Computational Physics},
+  volume  = {400},
+  pages   = {108970},
+  year    = {2020},
+  doi     = {10.1016/j.jcp.2019.108970}
+}
+
+@techreport{obremski_1969,
+  author      = {Obremski, H. J. and Morkovin, M. V. and Landahl, M.},
+  title       = {A Portfolio of Stability Characteristics of Incompressible Boundary Layers},
+  institution = {NATO Advisory Group for Aerospace Research and Development},
+  number      = {AGARDograph 134},
+  year        = {1969}
+}
+
+@article{wazzan_1981,
+  author  = {Wazzan, A. R. and Gazley, C., Jr. and Smith, A. M. O.},
+  title   = {H-{R}x Method for Predicting Transition},
+  journal = {AIAA Journal},
+  volume  = {19},
+  number  = {6},
+  pages   = {810--812},
+  year    = {1981}
+}
+
+@article{thwaites_1949,
+  author  = {Thwaites, B.},
+  title   = {Approximate Calculation of the Laminar Boundary Layer},
+  journal = {Aeronautical Quarterly},
+  volume  = {1},
+  pages   = {245--280},
+  year    = {1949}
+}
+
+@book{white_2006,
+  author    = {White, F. M.},
+  title     = {Viscous Fluid Flow},
+  edition   = {3rd},
+  publisher = {McGraw-Hill},
+  address   = {New York},
+  year      = {2006}
+}
+
+@techreport{mack_1984,
+  author      = {Mack, Leslie M.},
+  title       = {Boundary-Layer Linear Stability Theory},
+  institution = {NATO Advisory Group for Aerospace Research and Development},
+  number      = {AGARD Report 709 (Special Course on Stability and Transition of Laminar Flow)},
+  year        = {1984}
+}
+
+@article{serrin_1967,
+  author  = {Serrin, James},
+  title   = {Asymptotic Behaviour of Velocity Profiles in the {P}randtl Boundary Layer Theory},
+  journal = {Proceedings of the Royal Society of London. Series A},
+  volume  = {299},
+  pages   = {491--507},
+  year    = {1967}
+}
+
+@article{spalart_strelets_2000,
+  author  = {Spalart, P. R. and Strelets, M. Kh.},
+  title   = {Mechanisms of transition and heat transfer in a separation bubble},
+  journal = {Journal of Fluid Mechanics},
+  volume  = {403},
+  pages   = {329--349},
+  year    = {2000}
+}
+
+@article{alam_sandham_2000,
+  author  = {Alam, M. and Sandham, N. D.},
+  title   = {Direct numerical simulation of `short' laminar separation bubbles with turbulent reattachment},
+  journal = {Journal of Fluid Mechanics},
+  volume  = {410},
+  pages   = {1--28},
+  year    = {2000}
+}
+
+@article{stewartson_1954,
+  author  = {Stewartson, K.},
+  title   = {Further solutions of the Falkner--Skan equation},
+  journal = {Mathematical Proceedings of the Cambridge Philosophical Society},
+  volume  = {50},
+  number  = {3},
+  pages   = {454--465},
+  year    = {1954}
+}
+
+@article{taghavi_wazzan_1974,
+  author  = {Taghavi, H. and Wazzan, A. R.},
+  title   = {Spatial stability of some Falkner--Skan profiles with reversed flow},
+  journal = {Physics of Fluids},
+  volume  = {17},
+  number  = {12},
+  pages   = {2181--2183},
+  year    = {1974}
+}
+
+@article{spalding_1961,
+  author  = {Spalding, D. B.},
+  title   = {A Single Formula for the ``Law of the Wall''},
+  journal = {Journal of Applied Mechanics},
+  volume  = {28},
+  number  = {3},
+  pages   = {455--458},
+  year    = {1961},
+  doi     = {10.1115/1.3641728}
+}
+
+@article{drela_daedalus_1988,
+  author  = {Drela, Mark},
+  title   = {Low-{R}eynolds-number airfoil design for the {MIT} {D}aedalus prototype: a case study},
+  journal = {Journal of Aircraft},
+  volume  = {25},
+  number  = {8},
+  pages   = {724--732},
+  year    = {1988}
+}
+
+@techreport{langford_daedalus_1988,
+  author      = {Dorsey, John and Langford, John S. and others},
+  title       = {The {D}aedalus project: a summary of lessons learned},
+  institution = {AIAA},
+  number      = {AIAA-88-4406},
+  year        = {1988}
+}
+
+@article{huerre_monkewitz_1985,
+  author  = {Huerre, P. and Monkewitz, P. A.},
+  title   = {Absolute and convective instabilities in free shear layers},
+  journal = {Journal of Fluid Mechanics},
+  volume  = {159},
+  pages   = {151--168},
+  year    = {1985}
+}
+
+@article{hammond_redekopp_1998,
+  author  = {Hammond, D. A. and Redekopp, L. G.},
+  title   = {Local and global instability properties of separation bubbles},
+  journal = {European Journal of Mechanics - B/Fluids},
+  volume  = {17},
+  number  = {2},
+  pages   = {145--164},
+  year    = {1998}
+}
+
+@article{alam_sandham_2000,
+  author  = {Alam, M. and Sandham, N. D.},
+  title   = {Direct numerical simulation of `short' laminar separation
+             bubbles with turbulent reattachment},
+  journal = {Journal of Fluid Mechanics},
+  volume  = {403},
+  pages   = {223--250},
+  year    = {2000}
+}
+
+@article{avanci_2019,
+  author  = {Avanci, M. P. and Rodr{\'i}guez, D. and Alves, L. S. de B.},
+  title   = {A geometrical criterion for absolute instability in separated
+             boundary layers},
+  journal = {Physics of Fluids},
+  volume  = {31},
+  number  = {1},
+  pages   = {014103},
+  year    = {2019}
+}

@@ -10,7 +10,7 @@ import os, csv, pickle, numpy as np
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-B = "/home/qiqi/flexcompute/aft-sa/flow360"
+B = "/home/qiqi/flexcompute/sa-ai/flow360"
 
 CONFIGS = {
     'nlf0416_Re4M':  dict(alphas=[0,4,9,15], mfoil='mfoil_nlf0416_Re4M.pkl',

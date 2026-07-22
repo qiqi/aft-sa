@@ -21,10 +21,10 @@ class PhysicsParams(NamedTuple):
     # Physical Constants
     mu_laminar: float  # 1/Re
     
-    # AFT Model Coefficients
+    # AFT Model Coefficients (committed Option-A kernel; see numerics/aft_sources.py)
     aft_gamma_coeff: float
-    aft_re_omega_scale: float
-    aft_log_divisor: float
+    aft_re_omega_floor: float
+    aft_tilt_slope: float
     aft_sigmoid_center: float
     aft_sigmoid_slope: float
     aft_rate_scale: float

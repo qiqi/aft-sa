@@ -8,8 +8,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 from src.grid.mesher import Construct2DWrapper, GridOptions
 
 def verify_wake_fanning():
-    wrapper = Construct2DWrapper('/home/qiqi/aft-sa/bin/construct2d')
-    airfoil_file = '/home/qiqi/aft-sa/data/naca0012.dat'
+    wrapper = Construct2DWrapper('/home/qiqi/flexcompute/sa-ai/bin/construct2d')
+    airfoil_file = '/home/qiqi/flexcompute/sa-ai/data/naca0012.dat'
     
     # Baseline: No fanning (wkfn=0.0)
     print("Generating baseline grid (wkfn=0.0)...")

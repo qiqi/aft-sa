@@ -14,8 +14,8 @@ from scipy.ndimage import gaussian_filter1d
 matplotlib.rcParams.update({'font.size': 10, 'axes.titlesize': 10, 'axes.labelsize': 10,
                             'xtick.labelsize': 9, 'ytick.labelsize': 9, 'legend.fontsize': 8})
 
-B  = "/home/qiqi/flexcompute/aft-sa/flow360"
-PD = "/home/qiqi/flexcompute/aft-sa/paper"
+B  = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_ai")
+PD = "/home/qiqi/flexcompute/sa-ai/paper"
 AF = 'eppler387'        # surface_fluid_<AF>.pvtu
 Z_TE_HALF = 0.000833    # half blunt-TE thickness for E387 (NASA TM 4062)
 NU = 5e-7               # Flow360 stored ν at Re=200k, M=0.1 (= muRef = M/Re)
@@ -43,6 +43,11 @@ MESH_LS = {'str': '-', 'cav': '--'}
 # Upper-surface laminar separation bubble from oil-flow visualization (Table III),
 # R=200,000: alpha -> (x_LS laminar separation, x_TR turbulent reattachment).
 EXP_LSB = {0: (0.48, 0.74), 2: (0.43, 0.67), 5: (0.38, 0.59), 7: (0.33, 0.48)}
+# EXACT tabulated experimental Cp from TM-4062 Appendix D (R=200k), keyed by surface
+# with an 'xc' grid + per-alpha-column arrays. Figure alpha -> nearest table column(s).
+import json as _json, os as _os
+EXP_CP_TAB = _json.load(open("data/exp_cp_tables.json")) if _os.path.exists("data/exp_cp_tables.json") else {}
+ALPHA_COLS = {0: ["-0.01", "0.01"], 2: ["2.04"], 5: ["5.05"], 7: ["7.01"]}
 # Section characteristics, Appendix B (RUNS 9,10,13, R=200,000): (C_D, C_L) for the
 # points with valid wake-rake drag (post-stall ****-drag rows excluded).
 EXP_POLAR = [
@@ -524,8 +529,20 @@ def find_x_at_chi(xs, chi, chi_target):
     f = (chi_target - chi[idx-1]) / (chi[idx] - chi[idx-1] + 1e-30)
     return xs[idx-1] + f * (xs[idx] - xs[idx-1])
 
-# Load mfoil reference
+# Load mfoil reference. mfoil is unreliable near stall onset at Re=200k: at
+# alpha=7 deg its C_l falls BELOW its alpha=5 value (numerical stall, C_l=0.928),
+# so for those incidences we substitute the XFOIL e^9 solution (which converges
+# cleanly, C_l=1.17) for the Cp/Cf reference -- consistent with Table~\ref{tab:eppxtr}.
+# XFOIL's dump carries no amplification envelope, so no reference N is drawn there.
 mn = pickle.load(open(f"{B}/mfoil_eppler387_Re200k.pkl", 'rb'))
+xn = pickle.load(open(f"{B}/xfoil_eppler387_Re200k.pkl", 'rb'))
+MFOIL_UNRELIABLE = {7.0}   # alpha (deg) where mfoil stalls numerically -> use XFOIL
+def ref_for(alpha):
+    """(reference dict, tag, has_N) for the viscous e^9 overlay at this alpha."""
+    a = float(alpha)
+    if a in MFOIL_UNRELIABLE and a in xn: return xn[a], 'XFOIL', False
+    if a in mn: return mn[a], 'mfoil', True
+    return None, None, False
 
 
 def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=80):
@@ -585,13 +602,14 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
                     print(f"  skip chi ({mesh}/{level}, α={alpha}): {e}"); continue
                 ax_n.semilogy(xc, mu/NU, ls=ls, lw=lw, color=UP_COLOR)
                 ax_n.semilogy(xc, ml/NU, ls=ls, lw=lw, color=LO_COLOR)
-        if float(alpha) in mn:
-            md = mn[float(alpha)]
-            ax_nN.plot(md['upper']['x'], md['upper']['n'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
-            ax_nN.plot(md['lower']['x'], md['lower']['n'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
-            ax_nN.axhline(9.0, color='gray', ls=':', lw=0.6, alpha=0.6)
-            if md.get('xtr_upper') is not None: ax_n.axvline(md['xtr_upper'], color=UP_COLOR, ls=':', lw=0.6, alpha=0.5)
-            if md.get('xtr_lower') is not None: ax_n.axvline(md['xtr_lower'], color=LO_COLOR, ls=':', lw=0.6, alpha=0.5)
+        rd, rtag, has_N = ref_for(alpha)
+        if rd is not None:
+            if has_N:                       # mfoil carries the amplification envelope
+                ax_nN.plot(rd['upper']['x'], rd['upper']['n'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
+                ax_nN.plot(rd['lower']['x'], rd['lower']['n'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
+                ax_nN.axhline(9.0, color='gray', ls=':', lw=0.6, alpha=0.6)
+            if rd.get('xtr_upper') is not None: ax_n.axvline(rd['xtr_upper'], color=UP_COLOR, ls=':', lw=0.6, alpha=0.5)
+            if rd.get('xtr_lower') is not None: ax_n.axvline(rd['xtr_lower'], color=LO_COLOR, ls=':', lw=0.6, alpha=0.5)
         ax_n.axhline(C_V1, color='gray', ls=':', lw=0.6, alpha=0.6)
         ax_n.set_ylim(CHI_LO, CHI_HI); ax_nN.set_ylim(N_LO, N_HI)
         ax_n.grid(alpha=0.3)
@@ -611,12 +629,12 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
                     ax_cf.plot(xl, cfl, ls=ls, lw=lw, color=LO_COLOR)
                 except Exception as e:
                     print(f"  skip surf ({mesh}/{level}, α={alpha}): {e}")
-        if float(alpha) in mn:
-            md = mn[float(alpha)]
-            ax_cp.plot(md['upper']['x'], -md['upper']['cp'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
-            ax_cp.plot(md['lower']['x'], -md['lower']['cp'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
-            ax_cf.plot(md['upper']['x'], md['upper']['cf'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
-            ax_cf.plot(md['lower']['x'], md['lower']['cf'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
+        rd, rtag, has_N = ref_for(alpha)
+        if rd is not None:
+            ax_cp.plot(rd['upper']['x'], -np.array(rd['upper']['cp']), ':', color=UP_COLOR, lw=1.2, alpha=0.5)
+            ax_cp.plot(rd['lower']['x'], -np.array(rd['lower']['cp']), ':', color=LO_COLOR, lw=1.2, alpha=0.5)
+            ax_cf.plot(rd['upper']['x'], np.array(rd['upper']['cf']), ':', color=UP_COLOR, lw=1.2, alpha=0.5)
+            ax_cf.plot(rd['lower']['x'], np.array(rd['lower']['cf']), ':', color=LO_COLOR, lw=1.2, alpha=0.5)
         # Experimental upper-surface LSB (oil flow, Table III, R=200k) as a grey
         # band spanning laminar-separation -> turbulent-reattachment (x/c). Shown
         # on the surface-distribution rows so it can be read against the computed
@@ -627,6 +645,15 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
                 a.axvspan(xls, xtr, color='0.55', alpha=0.32, zorder=0)
                 a.axvline(xls, color='0.35', ls=':', lw=0.8, alpha=0.8, zorder=0)
                 a.axvline(xtr, color='0.35', ls=':', lw=0.8, alpha=0.8, zorder=0)
+        # EXACT experimental Cp (TM-4062 Appendix D tables, R=200k) as open markers.
+        _tab = EXP_CP_TAB.get("200", {})
+        for _ck in ALPHA_COLS.get(int(alpha), []):
+            for _side in ('upper', 'lower'):
+                _s = _tab.get(_side, {})
+                if _ck in _s:
+                    ax_cp.plot(_s['xc'], -np.array(_s[_ck]), 'o', ms=3.0, mfc='none',
+                               mec='k', mew=0.6, zorder=6)
+        ax_cp.set_ylim(bottom=-1.0)   # -Cp >= -1 (Cp <= +1 stagnation)
         for a in [ax_reo, ax_gam, ax_n, ax_cp, ax_cf]: a.set_xlim(0, 1)
         cf_hi = 0.025 if max(alphas) > 6 else 0.012
         ax_cf.set_ylim(-0.004, cf_hi)
@@ -646,7 +673,9 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         legend_items += [Line2D([],[],color='0.3', ls='--', lw=0.8, label='L0 cav'),
                          Line2D([],[],color='0.3', ls='--', lw=1.6, label='L1 cav'),
                          Line2D([],[],color='0.3', ls='--', lw=2.4, label='L2 cav')]
-    legend_items += [Line2D([],[],color='0.3', ls=':',  lw=1.2, alpha=0.5, label='mfoil ($e^9$)'),
+    _reflab = 'mfoil / XFOIL ($e^9$)' if any(float(a) in MFOIL_UNRELIABLE for a in alphas) else 'mfoil ($e^9$)'
+    legend_items += [Line2D([],[],color='0.3', ls=':',  lw=1.2, alpha=0.5, label=_reflab),
+                     Line2D([],[],color='k', ls='none', marker='o', mfc='none', mew=0.6, ms=3, label='expt. $C_p$ (TM-4062)'),
                      Patch(facecolor='0.55', alpha=0.32, label='expt. LSB (oil flow)')]
     axs[0,-1].legend(handles=surfh, fontsize=8, frameon=False, loc='upper left')
     axs[4,-1].legend(handles=legend_items, fontsize=8, frameon=False, loc='upper right')
@@ -862,9 +891,24 @@ def make_polar_figure(out_name='eppler_polar_compare'):
     # computed curves are never covered by the reference data.
     ax.plot(ecd, ecl, '-', color='k', lw=1.4, zorder=1)
     ax.plot(ecd, ecl, 'o', mfc='none', mec='k', ms=4, zorder=1)
-    ma = [a for a in alphas if float(a) in mn]
+    # mfoil is reliable at alpha=0,2,5; at alpha=7 it is at the edge of convergence
+    # (unphysical cl), so xfoil fills that point.
+    ma = [a for a in alphas if float(a) in mn and int(a) != 7]
     ax.plot([mn[float(a)]['cd'] for a in ma], [mn[float(a)]['cl'] for a in ma],
             ls=':', color='0.4', marker='s', mfc='none', ms=5, lw=1.2, zorder=2)
+    xf = pickle.load(open(f"{B}/xfoil_eppler387_Re200k.pkl", 'rb'))
+    if 7.0 in xf:
+        ax.plot(xf[7.0]['cd'], xf[7.0]['cl'], ls='none', color='0.5',
+                marker='D', mfc='none', ms=6, mew=1.3, zorder=2)
+    # Fully-turbulent SA baseline (AI_SA=0, chi_inf=3) on the structured L2
+    # grid: the drag of losing the laminar run (run_turb_baselines.py).
+    tb_cl, tb_cd = [], []
+    for a in alphas:
+        f = converged_clcd(f"{B}/strL2prop_eppler387_Re200k_turb_a{int(a)}")
+        if f: tb_cl.append(f[0]); tb_cd.append(f[1])
+    if tb_cl:
+        ax.plot(tb_cd, tb_cl, marker='v', mfc='none', ms=5, ls='-.', lw=1.2,
+                color='0.55', zorder=2)
     # SA-AI on top: structured = circle/solid, unstructured = triangle/dashed.
     mesh_mk = {'str': 'o', 'cav': '^'}
     for mesh in ['str', 'cav']:
@@ -880,9 +924,11 @@ def make_polar_figure(out_name='eppler_polar_compare'):
     ax.set_xlabel('$C_d$'); ax.set_ylabel('$C_l$')
     ax.grid(alpha=0.3)
     handles = [Line2D([],[],color='k', ls='-', marker='o', mfc='none', ms=4, label='Experiment (LTPT)'),
-               Line2D([],[],color='0.4', ls=':', marker='s', mfc='none', ms=5, lw=1.2, label='mfoil ($e^9$)'),
+               Line2D([],[],color='0.4', ls=':', marker='s', mfc='none', ms=5, lw=1.2, label='mfoil ($e^9$, $\\alpha\\!\\leq\\!5^\\circ$)'),
+               Line2D([],[],color='0.5', ls='none', marker='D', mfc='none', ms=6, mew=1.3, label='xfoil ($e^9$, $\\alpha\\!=\\!7^\\circ$)'),
                Line2D([],[],color='C0', ls='-',  marker='o', ms=4, label='SA-AI, structured (O-grid)'),
                Line2D([],[],color='C1', ls='--', marker='^', ms=4, label='SA-AI, unstructured'),
+               Line2D([],[],color='0.55', ls='-.', marker='v', mfc='none', ms=5, lw=1.2, label='SA, fully turbulent (str L2)'),
                Line2D([],[],color='0.4', lw=LEVEL_LW['L0'], label='L0'),
                Line2D([],[],color='0.4', lw=LEVEL_LW['L1'], label='L1'),
                Line2D([],[],color='0.4', lw=LEVEL_LW['L2'], label='L2')]

@@ -1,0 +1,171 @@
+% ============================================================================
+%  DRAFT rewrite of Section II (absorbing Section III), sphere-kernel model.
+%  2026-07-20.  Figure: fig3_model.pdf (/tmp/fig3_model.png).  Not yet merged
+%  into main.tex.  Equation/figure \labels are placeholders.
+% ============================================================================
+\section{The amplification model}\label{sec:model}
+
+The model is a single algebraic source term added to the Spalart--Allmaras
+transport equation, built entirely from the local mean-velocity profile. This
+section constructs it from what it must reproduce, on a geometric picture of
+the local profile that we build up in turn.
+
+\subsection{What the kernel must reproduce}\label{sec:reproduce}
+The canonical laminar instabilities are each a self-similar analytical
+profile: the attached Falkner--Skan family, from favorable gradients through
+the Blasius layer (viscous Tollmien--Schlichting) to the incipient-separation
+limit $H\!=\!4.03$; the reversed-flow lower branch (Stewartson), i.e.\ the
+separation-bubble shear layer; and the free shear layers---mixing layer, jet,
+and wake. The constant-curvature, zero-wall-shear \emph{parabola}
+(stagnation profile) is the neutral reference. For every one of these, linear
+stability tells the kernel \emph{two} things it must get right: not only the
+growth \emph{rate}, but \emph{where}, across the layer, the disturbance
+extracts its energy---the critical layer / production core. The second is
+easy to overlook and, as we now argue, decisive.
+
+\subsection{Temporal versus spatial growth: why location matters}\label{sec:tempspatial}
+The present source is a \emph{temporal} rate: it multiplies the working
+variable, $\partial_t\tilde\nu = a\,\Omega\,\tilde\nu$ (per unit time), and is
+carried downstream by the local mean velocity,
+$u\,\partial_x\tilde\nu = a\,\Omega\,\tilde\nu$. Transition, however, is set by
+the \emph{spatial} amplification---the $N$-factor accumulated along the
+wall. The two differ by the local advection speed: the spatial growth the
+model deposits at height $y$ is $(a\,\Omega)/u(y)$. Placing the rate at the
+wrong wall-normal station therefore does not merely mis-scale the growth---%
+through the $1/u$ weighting it can \emph{over}-amplify wherever $u$ is small.
+The laminar separation bubble is the sharp case: the physical wavepacket rides
+the detached shear layer at $u\!\approx\!c\!>\!0$, but a kernel that lets
+growth slide toward the dividing streamline ($u\!\to\!0$) deposits a diverging
+spatial rate---the dead-air over-amplification that drives $N$ past $e^{9}$.
+
+This corrects a premise of the earlier drafts, which calibrated the rate as if
+only its magnitude mattered. The kernel must \emph{resolve where the
+instability grows}, not only how fast. This is what motivates a local geometry
+rich enough to separate ``which state'' the profile is in from ``how much'' it
+should amplify.
+
+\subsection{The indicator sphere}\label{sec:sphere}
+To second order about any wall-normal point, the profile is fixed by three
+velocity scales formed from the wall distance $d$: the velocity $u$, the shear
+$d\,u'$, and the curvature $\tfrac12 d^2 u''$ (the Taylor coefficients weighted
+by $d^{k}$; the $\tfrac12$ is the quadratic term's actual contribution to the
+velocity). Dividing by their common magnitude $R$ places the local state on
+the unit sphere of directions
+\begin{equation}
+  (X,Y,Z) = \big(u,\; d\,u',\; \tfrac12 d^2 u''\big)\big/R,
+  \qquad R=\sqrt{u^2+(d u')^2+(\tfrac12 d^2u'')^2}.
+  \label{eq:indicators}
+\end{equation}
+Because the growth is invariant under $u\!\to\!-u$ (a layer and its mirror are
+equally unstable), the state is a direction defined only up to sign---a point
+of the real projective plane $\mathbb{RP}^2$, the space of lines through the
+origin in $\mathbb{R}^3$.\footnote{$\mathbb{RP}^2=S^2/\{\pm\}$; the sphere
+double-covers it. We plot one hemisphere, with the antipode of any point
+understood to be identified with it.} We call $X,Y,Z$ the velocity, shear, and
+curvature indicators; the shear/velocity balance is the profile-fullness
+$\Gamma = 2Y^2/(X^2+Y^2)\in[0,2]$ used in earlier work.
+
+\subsection{Where the instabilities live}\label{sec:live}
+Tracing each analytical profile of \S\ref{sec:reproduce} as a curve on
+$\mathbb{RP}^2$, and thickening the wall-normal band where its production
+peaks, gives Fig.~\ref{fig:model}. The result is uniform: \emph{every}
+amplifying band lies on the shear-dominated side, toward the shear pole $+Y$
+($\Gamma\!\to\!2$), and away from the velocity pole (freestream) and from
+pure-curvature states. The stagnation profile sits exactly on the dividing
+curve. The region the kernel must switch on is thus bounded below by the
+parabola and, on its flanks, by the profile-fullness $\Gamma$---an empirical
+statement we now make exact.
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig3_model.pdf}
+  \caption{What the kernel must reproduce. The analytical profiles on the
+  $\mathbb{RP}^2$ indicator sphere \eqref{eq:indicators} (x-ray view down the
+  velocity$=$shear diagonal; curvature vertical, shear$-$velocity horizontal;
+  solid$=$near hemisphere, dotted$=$far). Each profile is a thin curve; the
+  \textbf{thick} band marks where its linear-stability production peaks---where
+  the disturbance actually grows. All bands lie on the shear side of the
+  parabola great circle $g=0$ (bold), toward the shear pole. The stagnation
+  (pure-parabola) profile lies on $g=0$ and is neutral.}
+  \label{fig:model}
+\end{figure}
+
+\subsection{The parabola great circle and the Rayleigh coordinate}\label{sec:parabola}
+The wall-bounded parabolas $u = By + Cy^2$ form \emph{exactly} a great circle:
+for every $B,C$ the trajectory \eqref{eq:indicators} satisfies the single
+linear relation
+\begin{equation}
+  g \;\equiv\; Y - X - Z \;=\; \text{shear} - \text{velocity} - \text{curvature} \;=\; 0 .
+  \label{eq:parabola}
+\end{equation}
+Off the parabola, $g$ has a direct meaning:
+$g(d) = -\int_0^d \tfrac12 s^2\,u'''(s)\,\mathrm{d}s$, the accumulated
+curvature reversal, a local measure of \emph{inflectional content}. A parabola
+has no inflection ($u'''\!=\!0\Rightarrow g\!=\!0$) and by Rayleigh's
+inflection theorem is inviscidly neutral; $g>0$ is the inflectional, unstable
+side. Thus $g$ is the sphere's Rayleigh coordinate and the parabola great
+circle \eqref{eq:parabola} is the neutral boundary---the lower edge of the
+amplifying region seen in Fig.~\ref{fig:model}.
+
+\subsection{The rate}\label{sec:rate}
+Two sphere functions build the rate. The production weight is the shear
+fraction
+\begin{equation}
+  \hat S \;=\; \frac{Y}{\sqrt{X^2+Y^2}} \;=\; \sqrt{\Gamma/2},
+  \label{eq:shat}
+\end{equation}
+which encodes that production scales with $|U'|$. Crucially $\hat S$ is a
+\emph{ratio}---it depends on longitude only---so it stays finite when the
+curvature indicator, carrying its $d^2$ scale, dominates far from the wall: a
+detached shear layer driven onto the curvature pole still registers through its
+$\Gamma$, and is distinguished there from a no-shear velocity extremum
+($\Gamma\!\to\!0$). The rate is
+\begin{equation}
+  a \;=\; \operatorname{clip}\big\langle \hat S\,G(g)\big\rangle_{+},
+  \qquad G(g) = g + c_{\!\sqrt{}}\sqrt{g},\quad c_{\!\sqrt{}}\!\approx\!0.13,
+  \label{eq:rate}
+\end{equation}
+with the ceiling $a_{\max}\!\approx\!0.21$ (the free-shear-layer eigenvalue,
+\S\ref{sec:calib}). The monotone shaping $G(g)$ is coined by calibration
+(Fig.~\ref{fig:calibrate}a): the physical growth-per-vorticity follows
+$\propto g$ at large $g$ but $\propto\!\sqrt{g}$ near the parabola---the
+sublinear near-neutral behavior confirmed independently by the Drela--Giles
+envelope, $\mathrm{d}N/\mathrm{d}Re_\theta\!\propto\!g^{0.66}$ with a finite
+Blasius rate. A purely linear $G(g)=g$ would under-amplify Blasius by a factor
+of two.
+
+\subsection{The onset}\label{sec:onset}
+The rate \eqref{eq:rate} is scale-free; the viscous inception is a separate,
+multiplicative gate rising smoothly from $0$ to $1$ across the neutral point,
+\begin{equation}
+  S\!\big(Re_\Omega / Re_\Omega^{\mathrm c}(g)\big),
+  \qquad Re_\Omega = d^2\Omega/\nu .
+  \label{eq:onset}
+\end{equation}
+Its threshold is a function of the sphere location: reading $Re_\Omega$ at each
+profile's neutral $Re_\theta$ (Fig.~\ref{fig:calibrate}b) collapses onto a
+monotone $Re_\Omega^{\mathrm c}(g)$, falling from $\approx\!450$ at the
+parabola (Blasius, the high viscous critical Reynolds number,
+$Re_\Omega^{\mathrm c}\!=\!2.19\,Re_\theta^{\mathrm c}$) to $\approx\!60$ for
+inflectional layers (Kelvin--Helmholtz, essentially immediate). Rate and onset
+reinforce: near the parabola, low rate \emph{and} high threshold give the late,
+slow transition of a zero-pressure-gradient layer; inflectional profiles get
+high rate \emph{and} low threshold, hence early, fast transition. The complete
+source is
+\begin{equation}
+  P_{\mathrm{AI}} \;=\; a_{\max}\,\hat S\,G(g)\;
+  S\!\big(Re_\Omega/Re_\Omega^{\mathrm c}(g)\big)\;\Omega\,\tilde\nu .
+  \label{eq:pai}
+\end{equation}
+Two sphere functions---the rate $\hat S\,G(g)$ and the onset threshold
+$Re_\Omega^{\mathrm c}(g)$---replace the four-factor construction of earlier
+drafts (gate $Q$, switch $S(z)$, favorable-rate factor $f_\lambda$, ceiling).
+Favorable-gradient suppression is no longer a separate factor: a favorable
+gradient carries the state to $g<0$, where the rate is off by construction.
+
+\subsection{Calibration}\label{sec:calib}
+[Absorbs former \S III. $a_{\max}$ from the inflectional family; $G(g)$ and the
+$\sqrt g$ coefficient from the growth-per-vorticity fit; $Re_\Omega^{\mathrm
+c}(g)$ from the neutral-point collapse; freestream-turbulence scaling of the
+onset. Figure~\ref{fig:calibrate}: (a) rate, log-log with the $\sqrt g$/$g$
+references and the Drela--Giles envelope; (b) onset collapse.]

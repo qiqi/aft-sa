@@ -1,0 +1,74 @@
+{
+ "sweep_Re460k_a5": {
+  "CL": 0.9698,
+  "CD": 0.00969,
+  "xtr_up": 0.4733,
+  "xtr_lo": 0.9968,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 5.4
+ },
+ "sweep_Re60k_a5": {
+  "CL": 0.7715,
+  "CD": 0.04459,
+  "xtr_up": 0.9928,
+  "xtr_lo": 1.0,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 5.4
+ },
+ "sweep_Re300k_a5": {
+  "CL": 0.9596,
+  "CD": 0.01167,
+  "xtr_up": 0.4954,
+  "xtr_lo": 0.9975,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 5.4
+ },
+ "sweep_Re100k_a5": {
+  "CL": 0.9011,
+  "CD": 0.02489,
+  "xtr_up": 0.5356,
+  "xtr_lo": 1.0,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 5.4
+ },
+ "sweep_str_Re100k_a5": {
+  "CL": 0.842,
+  "CD": 0.03435,
+  "xtr_up": 0.5339,
+  "xtr_lo": 1.0,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 5.2
+ },
+ "sweep_str_Re60k_a5": {
+  "CL": 0.649,
+  "CD": 0.0515,
+  "xtr_up": 0.9833,
+  "xtr_lo": 1.0,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 5.2
+ },
+ "sweep_str_Re300k_a5": {
+  "CL": 0.9349,
+  "CD": 0.01233,
+  "xtr_up": 0.4899,
+  "xtr_lo": 0.9986,
+  "steps": 24995,
+  "converged": true,
+  "dt_min": 7.7
+ },
+ "sweep_str_Re460k_a5": {
+  "CL": 0.9439,
+  "CD": 0.01008,
+  "xtr_up": 0.4653,
+  "xtr_lo": 0.9976,
+  "steps": 24995,
+  "converged": true,
+  "dt_min": 7.7
+ }
+}

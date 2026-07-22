@@ -10,7 +10,7 @@ from vtkmodules.util.numpy_support import vtk_to_numpy
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 
-B = "/home/qiqi/flexcompute/aft-sa/flow360"
+B = "/home/qiqi/flexcompute/sa-ai/flow360"
 FAMILIES = {'nlf': ('nlf0416_Re4M', 'NLF(1)-0416'),
             'eppler': ('eppler387_Re200k', 'Eppler 387')}
 MESHERS = {'str': 'structured O-grid', 'cav': 'unstructured cavity'}
@@ -74,7 +74,7 @@ def make_figure(fam_key):
                     ax.set_xlabel('$x/c$', fontsize=9)
                 print(f"  {mesh_key}{L} {fam} {name}: {len(sc)} edges")
         plt.tight_layout(rect=[0, 0, 1, 1])
-        out = f"/home/qiqi/flexcompute/aft-sa/paper/figs/mesh_{fam_key}_{mesh_key}.pdf"
+        out = f"/home/qiqi/flexcompute/sa-ai/paper/figs/mesh_{fam_key}_{mesh_key}.pdf"
         plt.savefig(out); plt.savefig(f"/tmp/mesh_{fam_key}_{mesh_key}.png", dpi=120)
         plt.close(fig); print(f"wrote {out}")
 

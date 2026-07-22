@@ -13,7 +13,7 @@ Constants match src/numerics/aft_sources.py and ModelConstants.h.
 """
 import numpy as np
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
-S_SLOPE, G_C, P, FLOOR, K_LAMBDA = 5.263, 1.572, 4.0, 100.0, 10.0
+S_SLOPE, G_C, P, FLOOR, K_LAMBDA = 11.0, 1.005, 4.0, 254.0, 6.1
 
 def S_of_ratio(r, G):
     """S(z), z = s(G - g_c) + ln(1 - (1/r)^p), for r = Re_Omega/Re_Omega^c."""
@@ -49,12 +49,12 @@ lam = np.linspace(-0.5, 1.3, 500)
 cliff = FLOOR * np.exp(K_LAMBDA * np.maximum(0.0, lam))
 axR.plot(lam, cliff, 'k-', lw=1.6)
 axR.axhline(FLOOR, color='0.6', ls=':', lw=0.9)
-axR.text(-0.47, FLOOR * 1.25, r'floor $Re_\Omega^{\mathrm{f}}$', color='0.35', fontsize=8)
+axR.text(0.4, FLOOR * 1.15, r'floor $Re_\Omega^{\mathrm{f}}=254$', color='0.35', fontsize=8)
 axR.axvline(0.0, color='0.7', ls='-', lw=0.6)
-axR.set_yscale('log'); axR.set_xlim(-0.5, 1.3); axR.set_ylim(50, 1e8)
+axR.set_yscale('log'); axR.set_xlim(-0.5, 1.3); axR.set_ylim(100, 3e6)
 axR.set_xlabel(r'$\lambda_p$'); axR.set_ylabel(r'$Re_\Omega^{\mathrm{c}}(\lambda_p)$')
 axR.text(0.03, 0.97, '(b)', transform=axR.transAxes, fontsize=11, va='top', fontweight='bold')
-axR.text(-0.46, 300, r'ZPG / adverse' '\n' r'($\lambda_p\leq0$): floor', color='0.4', fontsize=7.5, va='bottom')
+axR.text(-0.46, 900, r'ZPG / adverse' '\n' r'($\lambda_p\leq0$): floor', color='0.4', fontsize=7.5, va='bottom')
 axR.annotate('favorable ($\\lambda_p>0$):\nonset delay',
              xy=(0.85, FLOOR * np.exp(K_LAMBDA * 0.85)), xytext=(0.05, 8e4),
              color='0.4', fontsize=7.5,

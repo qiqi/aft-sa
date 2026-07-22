@@ -6,6 +6,7 @@ State vector: Q = [p, u, v, ν̃]
 JAX-based implementation with GPU acceleration.
 """
 
+import src.numerics.aft_sources as _aft
 import numpy as np
 from pathlib import Path
 from typing import Callable, Dict, Optional, Tuple, Union
@@ -85,15 +86,17 @@ class SolverConfig:
     gmres_tol: float = 1e-3     # Relative tolerance for GMRES
     newton_relaxation: float = 1.0  # Under-relaxation factor (0 < omega <= 1)
     
-    # AFT Transition Model Configuration
-    aft_gamma_coeff: float = 2.0      # Gamma formula coefficient
-    aft_re_omega_scale: float = 1000.0  # Re_Ω normalization
-    aft_log_divisor: float = 50.0     # Log term divisor
-    aft_sigmoid_center: float = 1.04  # Sigmoid activation center
-    aft_sigmoid_slope: float = 35.0   # Sigmoid steepness
-    aft_rate_scale: float = 0.2       # Maximum growth rate
-    aft_blend_threshold: float = 1.0  # nuHat threshold for transition
-    aft_blend_width: float = 4.0      # Blending smoothness
+    # AFT Transition Model Configuration. Defaults IMPORT the canonical
+    # constants (src/numerics/aft_sources.py = ModelConstants.h = paper Table);
+    # see tests/test_constants_consistency.py.
+    aft_gamma_coeff: float = _aft.AFT_GAMMA_COEFF     # Gamma formula coefficient
+    aft_re_omega_floor: float = _aft.AFT_RE_OMEGA_FLOOR  # Re_Ω cliff floor
+    aft_tilt_slope: float = _aft.AFT_TILT_SLOPE       # Γ-tilt of the cliff (disabled)
+    aft_sigmoid_center: float = _aft.AFT_SIGMOID_CENTER  # Sigmoid activation center g_c
+    aft_sigmoid_slope: float = _aft.AFT_SIGMOID_SLOPE    # Sigmoid steepness s
+    aft_rate_scale: float = _aft.AFT_RATE_SCALE       # Maximum growth rate a_max
+    aft_blend_threshold: float = 1.0  # chi threshold for transition
+    aft_blend_width: float = 4.0      # Blending smoothness tau
     
     # Jacobian Control
 
@@ -256,8 +259,8 @@ class RANSSolver:
             k4=float(self.config.jst_k4),
             mu_laminar=mu_laminar,
             aft_gamma_coeff=float(self.config.aft_gamma_coeff),
-            aft_re_omega_scale=float(self.config.aft_re_omega_scale),
-            aft_log_divisor=float(self.config.aft_log_divisor),
+            aft_re_omega_floor=float(self.config.aft_re_omega_floor),
+            aft_tilt_slope=float(self.config.aft_tilt_slope),
             aft_sigmoid_center=float(self.config.aft_sigmoid_center),
             aft_sigmoid_slope=float(self.config.aft_sigmoid_slope),
             aft_rate_scale=float(self.config.aft_rate_scale),
@@ -446,9 +449,14 @@ class RANSSolver:
             vel_mag = jnp.sqrt(Q_int[:, :, 1]**2 + Q_int[:, :, 2]**2)
             P, D, cb2_term = compute_aft_sa_source_jax(
                 nu_tilde, grad, wall_dist, vel_mag, nu,
-                params.aft_gamma_coeff, params.aft_re_omega_scale, params.aft_log_divisor,
-                params.aft_sigmoid_center, params.aft_sigmoid_slope, params.aft_rate_scale,
-                params.aft_blend_threshold, params.aft_blend_width
+                aft_gamma_coeff=params.aft_gamma_coeff,
+                aft_sigmoid_center=params.aft_sigmoid_center,
+                aft_sigmoid_slope=params.aft_sigmoid_slope,
+                aft_rate_scale=params.aft_rate_scale,
+                aft_re_omega_floor=params.aft_re_omega_floor,
+                aft_tilt_slope=params.aft_tilt_slope,
+                blend_threshold=params.aft_blend_threshold,
+                blend_width=params.aft_blend_width,
             )
             R = R.at[:, :, 3].add((P - D + cb2_term) * volume)
             return R

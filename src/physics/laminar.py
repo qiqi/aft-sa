@@ -78,4 +78,16 @@ def amplification(u: ArrayLike, dudy: ArrayLike, y: ArrayLike) -> jnp.ndarray:
     # Compute Gamma using the general formula
     # In BL: vel_mag ≈ u, omega_mag ≈ |dudy|, d = y
     Gamma = _compute_gamma(jnp.abs(dudy), u, y)
-    return compute_nondimensional_amplification_rate(Re_Omega(dudy, y), Gamma)
+    rate = compute_nondimensional_amplification_rate(Re_Omega(dudy, y), Gamma)
+    # Q4 band gate: Q4 = 1 - 2(w d)|u| / (cA A + (w d)^2 + u^2), A = (dw/dn d^2)^2,
+    # cA = 4. Wall-normal gradient by nonuniform central differences along y.
+    w = jnp.abs(dudy)
+    dy_f = jnp.diff(y)
+    dwdn_int = (w[2:] - w[:-2]) / (y[2:] - y[:-2])
+    dwdn = jnp.concatenate([(w[1:2] - w[0:1]) / dy_f[0:1],
+                            dwdn_int,
+                            (w[-1:] - w[-2:-1]) / dy_f[-1:]])
+    A4 = 4.0 * (dwdn * y * y) ** 2
+    B = (w * y) ** 2
+    q4 = 1.0 - 2.0 * w * y * jnp.abs(u) / (A4 + B + u * u + 1e-300)
+    return rate * q4

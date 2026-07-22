@@ -17,7 +17,7 @@ from vtkmodules.util.numpy_support import vtk_to_numpy
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-B = "/home/qiqi/flexcompute/aft-sa/flow360"
+B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_ai")
 NU = 1.0e-6   # Re_unit = 1e6, nu = 1/Re  (=> Re_x = x * 1e6)
 MACH = 0.1    # Flow360 stores velocity = u/c_∞; freestream u/U_∞ = Mach/Mach = 1, so divide by MACH
 # AGS-calibrated case set (Tu in S-S/AGS natural-transition range; drop the old
@@ -278,7 +278,7 @@ def main():
     ax_cf.set_xlim(200, 5000); ax_cf.set_ylim(1e-4, 1e-2)
     ax_cf.set_xlabel(r'$Re_\theta$'); ax_cf.set_ylabel(r'$C_f$')
 
-    out = "/home/qiqi/flexcompute/aft-sa/paper/figs/flat_plate_batch_flow360.pdf"
+    out = "/home/qiqi/flexcompute/sa-ai/paper/figs/flat_plate_batch_flow360.pdf"
     plt.savefig(out, bbox_inches='tight', pad_inches=0.05)
     plt.savefig('/tmp/flat_plate_batch_flow360.png', dpi=110, bbox_inches='tight')
     print(f'wrote {out}')
@@ -287,3 +287,23 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+def onset_vs_ags():
+    """chi=1-crossing onset vs AGS, converted to Re_theta through the laminar
+    relation Re_theta = 0.664 sqrt(Re_x) -- the same convention by which the
+    AGS markers are placed on the chi panel (quoted in Sec. IV)."""
+    Re_unit = 1e6
+    for tu in TU_LIST:
+        x, reth, cf, chimax, _, _ = cf_and_retheta(case_dir(tu))
+        m = np.isfinite(chimax)
+        xs, cs = x[m], chimax[m]
+        i = np.where(cs > 1.0)[0][0]
+        f = (1.0 - cs[i-1])/(cs[i] - cs[i-1])
+        rex = (xs[i-1] + f*(xs[i]-xs[i-1]))*Re_unit
+        rth = 0.664*np.sqrt(rex)
+        ags = AGS_Reth(tu)
+        print(f"Tu={tu:5.2f}%  AGS={ags:6.0f}  chi=1 onset={rth:6.0f}  "
+              f"({(rth/ags-1)*100:+5.1f}%)")
+
+if __name__ == '__main__' and os.environ.get('ONSET_DIAG'):
+    onset_vs_ags()

@@ -21,7 +21,10 @@ class BatchFlowConditions:
     n_batch: int
     alpha_deg: np.ndarray      # Angle of attack in degrees
     reynolds: np.ndarray       # Reynolds number
-    chi_inf: float = 3.0       # Initial/farfield turbulent viscosity ratio (ν̃/ν)
+    chi_inf: float = 3.0       # Initial/farfield turbulent viscosity ratio (ν̃/ν).
+                               # 3.0 = fully-turbulent SA standard (TMR); SA-AI
+                               # transition runs override with the Mack seed
+                               # c_v1*e^-N_crit (scripts/calibrate_kernel.py).
     
     # Derived quantities (computed from above)
     p_inf: np.ndarray = field(init=False)
@@ -592,8 +595,8 @@ def compute_sa_source_batch(nuHat_batch, grad_batch, wall_dist, nu):
 
 
 def compute_aft_sa_source_batch(nuHat_batch, grad_batch, wall_dist, vel_mag_batch, nu,
-                                aft_gamma_coeff, aft_re_omega_scale, aft_log_divisor,
-                                aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale,
+                                aft_gamma_coeff, aft_sigmoid_center, aft_sigmoid_slope,
+                                aft_rate_scale, aft_re_omega_floor, aft_tilt_slope,
                                 aft_blend_threshold, aft_blend_width):
     """
     Compute SA-AI blended source terms for a batch of cases.
@@ -624,8 +627,8 @@ def compute_aft_sa_source_batch(nuHat_batch, grad_batch, wall_dist, vel_mag_batc
     """
     return _compute_aft_sa_source_batch_vmap(
         nuHat_batch, grad_batch, wall_dist, vel_mag_batch, nu,
-        aft_gamma_coeff, aft_re_omega_scale, aft_log_divisor,
-        aft_sigmoid_center, aft_sigmoid_slope, aft_rate_scale,
+        aft_gamma_coeff, aft_sigmoid_center, aft_sigmoid_slope,
+        aft_rate_scale, aft_re_omega_floor, aft_tilt_slope,
         aft_blend_threshold, aft_blend_width
     )
 

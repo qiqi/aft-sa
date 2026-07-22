@@ -8,6 +8,12 @@ across different pressure gradient parameters.
 Uses JAX versions of physics functions for consistency with GPU solvers.
 """
 
+# *** LEGACY KERNEL — NOT THE PUBLISHED MODEL ***
+# This script encodes a superseded pre-"Option A" rate kernel (double
+# sigmoid with a log10(Re_Omega) term, a_max=0.2). The committed model is
+# src/numerics/aft_sources.py / Flow360 ModelConstants.h; regenerating
+# this figure does NOT represent the published SA-AI kernel.
+
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -26,7 +32,7 @@ from src.physics.boundary_layer import solve_falkner_skan
 
 # Use JAX versions
 from src.physics.jax_config import jnp
-from src.physics.laminar import Re_Omega, compute_nondimensional_amplification_rate
+from src.physics.laminar import Re_Omega
 
 
 def run():
