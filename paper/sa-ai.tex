@@ -251,12 +251,14 @@ pass: the blended production term that lets $\tilde\nu$ amplify in the laminar
 range and revert to standard SA past handover, with each constant anchored, as
 its form is introduced, to a canonical stability limit or established
 correlation---the free-shear growth ceiling, the Blasius $e^N$ envelope, Drela's
-critical Reynolds number, the fully turbulent log law, and Mack's
-freestream-turbulence receptivity---rather than to the transition test cases.
+critical Reynolds number, and the fully turbulent log law---rather than to the
+transition test cases.
 The model is exercised across three pressure-gradient regimes, all with the same
 solver and laminar seeding.
-Section~\ref{sec:flatplate} uses a zero-pressure-gradient flat plate to verify
-the seed map against the Abu-Ghannam \& Shaw transition-onset correlation over
+Section~\ref{sec:flatplate} fixes the one input the model leaves to the
+boundary condition---the freestream seed, via Mack's receptivity
+map---and uses a zero-pressure-gradient flat plate to verify the
+resulting onsets against the Abu-Ghannam \& Shaw correlation over
 the natural-transition $Tu$ range.
 Section~\ref{sec:nlfval} uses the NLF(1)-0416 natural-laminar-flow airfoil to
 test the favorable rooftop---held laminar by $\hat S g\!\to\!0$ with no
@@ -490,7 +492,7 @@ excursion in between.
 
 
 \subsection{Where and how much the instabilities amplify}%
-\label{sec:live}\label{sec:rate}\label{sec:calib_rate}
+\label{sec:live}\label{sec:rate}\label{sec:calib_rate}\label{sec:nulamscale}
 On each of these curves we thicken the wall-normal band where the disturbance
 actually grows---the contiguous interval over which the most-unstable
 Orr--Sommerfeld mode's production density
@@ -565,15 +567,180 @@ $\tilde\nu$ along particle paths at $a_{\max}\langle \hat S g\rangle\,\omega$, a
 (\eqref{eq:pai_def}): the same temporal-to-spatial passage that connects a
 growth eigenvalue to an accumulated amplification.
 
-Viscosity never enters this rate; it enters only the onset. For the
-inviscidly-stable Blasius layer, viscosity is what lets a Tollmien--Schlichting
-wave exist and sets its critical Reynolds number; the growth rate itself stays
-inviscid, so the continuum is Reynolds-free and closed by the eigenvalue, and
-the viscous inception is carried by the separate $Re_\Omega$ gate
-(\S\ref{sec:onset}).
+How well does the closed rate hold up, quantitatively, against the
+correlation it must reproduce? The comparison can be made analytically,
+before any transport equation is solved. Hold a Falkner--Skan profile
+frozen and parallel: a disturbance riding it grows at $a(\hat S g)\,\omega$
+while it advects at the local $u$, so the growth the rate can hand the
+transport per unit length---before any viscous loss---is the pointwise
+supremum $\max_y a\,\omega/u$. Drela's envelope correlation states the
+same quantity as an explicit spatial rate, $s_{\mathrm{DG}}/\theta$ with
+$s_{\mathrm{DG}}\!=\!\tfrac{m(H)+1}{2}\,\ell(H)\,\mathrm dN/\mathrm dRe_\theta$
+($\ell$, $m$ the Falkner--Skan similarity factors of Drela's spatial
+conversion~\cite{drela_giles_1987}), so the two compare with no wave-speed
+convention on either side. Table~\ref{tab:ratelimit} lists the ratio
+across the family, and three facts read off it. Across the attached
+branch the inviscid slope rides a nearly uniform $1.30$--$1.42\times$
+above the correlation---headroom, not error, and what consumes it is the
+subject of the next paragraphs. At the separation limit and onto the
+shallow reversed-flow branch the ratio is $0.97$: where the growth turns
+inviscid, the raw kernel \emph{is} the correlation to three percent, with
+nothing fitted beyond the eigenvalue $a_{\max}$. And the deep-separated
+$0.46$ is measured against a reference that has left physics:
+extrapolated to $H\!\approx\!10.6$, the correlation's rate exceeds that
+profile's own inviscid ceiling (its wall-bounded temporal Rayleigh
+eigenvalue) threefold, while the kernel stays bounded by $a_{\max}$.
+
+\begin{table}[tp]
+  \centering
+  \small
+  \caption{The inviscid frozen-profile slope of the rate \eqref{eq:rate},
+  $\max_y a\,\omega/u$, as a ratio to the Drela--Giles spatial envelope
+  rate $s_{\mathrm{DG}}/\theta$, on six Falkner--Skan profiles (starred:
+  reversed-flow, Stewartson lower-branch solutions). The ratio is
+  independent of Reynolds number and of any diffusion: it is the most
+  growth per unit length the rate can sustain on the profile. The
+  diffusion retained by the working variable, taken up next, lowers the
+  realized slope toward and below these values at transitional Reynolds
+  numbers (Table~\ref{tab:frozeneig}).}
+  \label{tab:ratelimit}
+  \begin{tabular}{lrrc}
+    \toprule
+    profile & $\beta$ & $H$ & $\theta\,\max_y(a\,\omega/u)\;/\;s_{\mathrm{DG}}$\\
+    \midrule
+    moderate favorable & $+0.10$ & 2.48 & 1.30\\
+    Blasius & $0$ & 2.59 & 1.42\\
+    moderate adverse & $-0.10$ & 2.80 & 1.30\\
+    separation limit & $-0.1988$ & 3.98 & 0.97\\
+    separated, shallow$^\ast$ & $-0.19$ & 4.92 & 0.97\\
+    separated, deep$^\ast$ & $-0.12$ & 10.63 & 0.46\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The headroom is spent on viscosity. The working variable that carries the
+disturbance lives in the SA equation \eqref{eq:sa}, and it diffuses with
+the molecular coefficient all the while it grows. On the frozen profile
+the contest is an eigenvalue problem: growth, diffusion, and advection
+compose the generalized problem
+\begin{equation}
+  \Bigl[\,a(\hat S g)\,\omega
+  \;+\;\frac{c_{\nu,\mathrm{ai}}\,\nu}{\sigma}\,\partial_y^2\Bigr]\,v
+  \;=\; s\,u\,v,
+  \label{eq:frozeneig}
+\end{equation}
+whose leading eigenvalue $s$ is the growth per unit length the transport
+can actually realize on that profile at that Reynolds number---the
+inviscid supremum of Table~\ref{tab:ratelimit} recovered as
+$Re_\theta\!\to\!\infty$, approached like $Re_\theta^{-1/2}$ as the
+eigenfunction narrows onto its peak. Here $c_{\nu,\mathrm{ai}}$ is a
+scale on the molecular coefficient, equal to one until decided
+otherwise. Table~\ref{tab:frozeneig} carries the result. With the
+coefficient untouched ($c_{\nu,\mathrm{ai}}\!=\!1$, left half), the
+equation declines the correlation: in the decade
+$Re_\theta\!=\!200$--$1600$ where the attached profiles actually
+transition, the Blasius slope runs at half of Drela's ($0.19$--$0.94$
+across the decade, geometric mean $0.50$), and the favorable wedge is
+\emph{negative}---net decay---at $Re_\theta\!=\!200$. At full molecular
+diffusion the drain does not perturb the growth; it overwhelms it.
+
+So we let the disturbance keep less of it. The laminar viscosity in the
+SA diffusion term---and only there---is scaled by a constant factor
+$c_{\nu,\mathrm{ai}}\!<\!1$,
+\begin{equation}
+  (\nu+\tilde\nu)\;\longrightarrow\;(c_{\nu,\mathrm{ai}}\,\nu+\tilde\nu)
+  \quad\text{in the diffusion term of Eq.~\eqref{eq:sa} only,}
+  \label{eq:nulamscale}
+\end{equation}
+leaving the mean-flow viscosity, the SA production and destruction, and the
+definition $\chi=\tilde\nu/\nu$ (formed with the \emph{true} $\nu$)
+untouched. How much less, the eigenvalue decides, read against a
+constraint that pulls the other way. Sweeping the coefficient down, the
+Blasius decade mean climbs from $0.50$ through $0.78$, $0.90$, $1.05$ to
+$1.15$ at $c_{\nu,\mathrm{ai}}=1,\tfrac12,\tfrac13,\tfrac16,\tfrac1{12}$,
+and its decade spread collapses from $\times5.0$ to $\times1.4$ by
+$\tfrac16$; the other attached profiles move in step (the moderate
+adverse mean crosses unity between $\tfrac13$ and $\tfrac16$; the
+favorable wedge turns positive throughout the decade by $\tfrac12$).
+Proximity alone would keep halving the coefficient toward the inviscid
+ceiling, but the coupled solver pushes back: the molecular floor sets
+the smallest wall-normal scale the $\tilde\nu$ field can develop, the
+equilibrium band thickness scaling as $\sqrt{c_{\nu,\mathrm{ai}}}$, so
+every halving thins the disturbance band the mesh must resolve by
+$\sqrt2$. We stop at
+\begin{equation*}
+  c_{\nu,\mathrm{ai}} \;=\; \tfrac{1}{6},
+\end{equation*}
+where the attached decade centers on the correlation---Blasius $1.02$ at
+$Re_\theta\!=\!400$ and the moderate adverse $1.04$, the favorable wedge
+climbing through unity at the high-$Re_\theta$ stations where favorable
+layers actually reach transition, the separation branch holding
+$0.86$--$0.91$ (right half of Table~\ref{tab:frozeneig})---and the next
+halving would push Blasius and the adverse wedge $10$--$15\%$ past the
+correlation while thinning the band another $\sqrt2$. The
+negative-$\tilde\nu$ safeguards~\cite{allmaras_2012} carry over with one
+consistency requirement: the negative-branch factor $f_n$ is formed with
+the scaled coefficient $c_{\nu,\mathrm{ai}}\,\nu$, which keeps the total
+diffusivity positive, $c_{\nu,\mathrm{ai}}\nu + f_n\tilde\nu\!>\!0$.
+
+\begin{table}[tp]
+  \centering
+  \small
+  \caption{The frozen-profile eigenvalue of Eq.~\eqref{eq:frozeneig}---the
+  growth per unit length the transport realizes with diffusion
+  retained---as a ratio to the Drela--Giles rate $s_{\mathrm{DG}}/\theta$
+  across the transitional decade $Re_\theta=200$--$1600$, at the untouched
+  molecular coefficient ($c_{\nu,\mathrm{ai}}\!=\!1$) and at the adopted
+  $c_{\nu,\mathrm{ai}}\!=\!\tfrac16$. Each entry is one symmetric
+  tridiagonal eigenvalue ($u^{1/2}$ similarity; $v\!=\!0$ at the wall and
+  the far field; reversed-flow advection floored at $0.02\,U_e$, floors
+  $0.01$--$0.05$ moving no printed digit). Starred rows are reversed-flow
+  (Stewartson lower-branch) solutions; the $Re_\theta\!\to\!\infty$ limit
+  of every row is Table~\ref{tab:ratelimit}.}
+  \label{tab:frozeneig}
+  \begin{tabular}{lr cccc cccc}
+    \toprule
+    & & \multicolumn{4}{c}{$c_{\nu,\mathrm{ai}}=1$}
+      & \multicolumn{4}{c}{$c_{\nu,\mathrm{ai}}=1/6$}\\
+    \cmidrule(lr){3-6}\cmidrule(lr){7-10}
+    profile & $\beta$ & $200$ & $400$ & $800$ & $1600$
+                      & $200$ & $400$ & $800$ & $1600$\\
+    \midrule
+    moderate favorable & $+0.10$ & $-0.11$ & $0.10$ & $0.37$ & $0.63$
+                                 & $0.53$ & $0.76$ & $0.91$ & $1.02$\\
+    Blasius            & $0$     & $0.19$ & $0.49$ & $0.75$ & $0.94$
+                                 & $0.87$ & $1.02$ & $1.13$ & $1.21$\\
+    moderate adverse   & $-0.10$ & $0.50$ & $0.72$ & $0.87$ & $0.99$
+                                 & $0.94$ & $1.04$ & $1.11$ & $1.16$\\
+    separation limit   & $-0.1988$ & $0.64$ & $0.72$ & $0.79$ & $0.83$
+                                 & $0.82$ & $0.86$ & $0.89$ & $0.91$\\
+    separated, shallow$^\ast$ & $-0.19$ & $0.68$ & $0.75$ & $0.80$ & $0.85$
+                                 & $0.83$ & $0.87$ & $0.89$ & $0.91$\\
+    separated, deep$^\ast$    & $-0.12$ & $0.34$ & $0.37$ & $0.40$ & $0.41$
+                                 & $0.41$ & $0.42$ & $0.43$ & $0.44$\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+One caveat travels with the eigenvalue to high Reynolds number. Past the
+transitional decade the diffusion keeps vanishing and the slope keeps
+climbing toward the inviscid ceiling of Table~\ref{tab:ratelimit}, so an
+envelope run completed at $Re_\theta\!\gtrsim\!2000$ accumulates its $N$
+up to ${\sim}25$--$30\%$ early in $\Delta Re_\theta$ terms. The flows of
+this paper transition inside the decade; low-disturbance flows at
+cruise-scale Reynolds numbers, which do not, would meet this bias first,
+and we flag it rather than tune around it.
+
+What the rate and its retained diffusion do not set is where the growth
+may \emph{begin}. On the frozen profile of Eq.~\eqref{eq:frozeneig},
+growth beats the drain from $Re_\theta$ of a few tens
+($\approx\!20$ on Blasius at the adopted coefficient)---far below any
+observed inception---so the laminar regime cannot be held by the drain
+alone: the inception is a threshold of its own, and it is the subject of
+the next subsection.
 
 \subsection{The onset threshold}%
-\label{sec:onset}
+\label{sec:onset}\label{sec:calib_onset}
 The rate \eqref{eq:rate} is Reynolds-free; the viscous inception is a separate,
 multiplicative gate on the vorticity Reynolds number, rising smoothly from $0$
 to $1$,
@@ -618,9 +785,8 @@ parameter anywhere.
   (small $\hat S g$) side, an additive floor toward separation. The separated
   reversed-flow profile rides above the threshold at its own
   $Re_{\theta c}$---it ignites immediately. The compensation scale $k$ of
-  Eq.~\eqref{eq:reomc} is not set here but in
-  Sec.~\ref{sec:nulamscale}, after the diffusion of the disturbance is
-  decided.}
+  Eq.~\eqref{eq:reomc} is not set by the graze but by the march anchor
+  below.}
   \label{fig:onsetgraze}
 \end{figure}
 
@@ -652,20 +818,19 @@ of the sharpnesses tried), and they are never refit.
 
 That leaves the single scale $k$, and its role is physical. Linear theory
 knows only the profile; the working variable that must carry the
-amplification also \emph{diffuses}, with the molecular viscosity of the
-fluid, all the while it grows. The drain is felt most where inception
+amplification also \emph{diffuses}, with the retained molecular
+coefficient $c_{\nu,\mathrm{ai}}\nu$ of Sec.~\ref{sec:nulamscale}, all
+the while it grows. The drain is felt most where inception
 happens at low Reynolds number---in a thin layer the young disturbance loses
 to viscosity for a while after linear theory declares its growth begun, so
 net growth starts late. The compensation is to permit inception
 \emph{earlier} than the inviscid graze: one factor $k\!<\!1$ scales the
 whole threshold, so that the accumulated growth reaches the correlation's
-first station on time. How large the compensation must be depends on how much molecular
-diffusion the working variable retains, which is the subject of the next
-subsection.
+first station on time. Its size is not a matter for the frozen-profile
+eigenvalue, which knows nothing of a disturbance's youth; it is measured
+with the model's own equation, marched down the layer.
 
-\subsection{The diffusion of the disturbance and the onset scale}%
-\label{sec:nulamscale}\label{sec:calib_onset}
-The instrument is the model's own equation, reduced to a parabolized march:
+The instrument is that equation reduced to a parabolized march:
 in non-dimensional boundary-layer variables (length in $\nu/U_\infty$,
 velocity in $U_\infty$),
 \begin{equation}
@@ -678,8 +843,7 @@ keeping the amplification and the molecular part of the SA cross-stream
 diffusion (the $\tilde\nu\,\nabla^2\tilde\nu$ self-diffusion and $c_{b2}$
 gradient terms are $O(\chi)$ smaller in this range and are dropped; no SA
 production or destruction enters---those belong to the turbulent side,
-Sec.~\ref{sec:blend}). Here $c_{\nu,\mathrm{ai}}$ is a scale on the molecular
-coefficient, equal to one until decided otherwise. The march is seeded
+Sec.~\ref{sec:blend}). The march is seeded
 $\hat\nu_\infty\!=\!1$ at the leading edge, so $N\!=\!\ln\hat\nu$ is the
 amplification factor by construction, and its envelope can be laid directly
 against Drela--Giles~\cite{drela_giles_1987}. (The crossings quoted in this
@@ -718,60 +882,23 @@ where inception occurs.)
   \label{fig:nuhat}
 \end{figure}
 
-The effect the scale must compensate is plain when the equation is marched as
-it stands. The grey envelopes of Fig.~\ref{fig:nuhat} carry
-$c_{\nu,\mathrm{ai}}\!=\!1$ and $k\!=\!1$---the molecular coefficient
-untouched, the threshold at its inviscid graze---and the equation declines
-both tasks this section needs from it. The envelope refuses the $e^N$ form:
-on the Blasius layer the early secant of $N(Re_\theta)$ (the
-$N\!\in\![1,5]$ span) runs $24\%$ below the late one ($N\!\in\![5,9]$), where
-the envelope's own curvature---the $c_{\nu,\mathrm{ai}}\!\to\!0$ limit of the
-same march---is under $1\%$: the bend is almost entirely the molecular
-smearing, which drains the young disturbance fastest where the layer is
-thinnest. And the anchor fails outright: the Blasius $N\!=\!1$ crossing sits
-at $Re_\theta\!=\!392$ even with the threshold removed entirely
-($k\!\to\!0$)---at full molecular diffusion the inception is set by the drain, not
-by the threshold, and no value of $k$ exists. The transport is telling us
-plainly that the molecular coefficient it inherits from the mean flow is too
-strong for the sub-$O(1)$ disturbance it is asked to carry.
+The grey envelopes of Fig.~\ref{fig:nuhat} march the equation untouched
+($c_{\nu,\mathrm{ai}}\!=\!1$, $k\!=\!1$) and confirm the eigenvalue's
+verdict of Sec.~\ref{sec:nulamscale} in accumulated form: the envelope
+falls far short of the correlation, its early secant (the
+$N\!\in\![1,5]$ span of the Blasius layer) running $24\%$ below the late
+one ($N\!\in\![5,9]$), where the envelope's own curvature---the
+$c_{\nu,\mathrm{ai}}\!\to\!0$ limit of the same march---is under $1\%$.
+The march also adds what the asymptotic eigenvalue cannot see: at full
+molecular diffusion the \emph{inception} fails outright, the Blasius
+$N\!=\!1$ crossing sitting at $Re_\theta\!=\!392$ even with the threshold
+removed entirely ($k\!\to\!0$)---the drain, not the threshold, sets the
+inception, and no compensation exists. At the committed
+$c_{\nu,\mathrm{ai}}\!=\!\tfrac16$ the drain is light enough that the
+threshold is back in command, and $k$ has a value to take.
 
-We therefore let the disturbance keep less of it. The laminar viscosity in
-the SA diffusion term---and only there---is scaled by a constant factor
-$c_{\nu,\mathrm{ai}}\!<\!1$,
-\begin{equation}
-  (\nu+\tilde\nu)\;\longrightarrow\;(c_{\nu,\mathrm{ai}}\,\nu+\tilde\nu)
-  \quad\text{in the diffusion term of Eq.~\eqref{eq:sa} only,}
-  \label{eq:nulamscale}
-\end{equation}
-leaving the mean-flow viscosity, the SA production and destruction, and the
-definition $\chi=\tilde\nu/\nu$ (formed with the \emph{true} $\nu$)
-untouched. How much less is again the march's answer, read against a
-constraint that pulls the other way. Sweeping $c_{\nu,\mathrm{ai}}$ down
-from $1$, each candidate re-anchored as below, the envelope straightens
-smoothly---the Blasius bend easing from $24\%$ through $21\%$, $18\%$, and
-$17\%$ at $c_{\nu,\mathrm{ai}}=\tfrac12,\tfrac14,\tfrac16$ to $14\%$ at
-$\tfrac1{12}$---and the anchored envelope's $N\!=\!9$ prediction closes on
-Drela's station in step: $+18\%$, $+11\%$, $+7\%$, $+2\%$ over the same
-sequence. There is no knee: flatness alone would drive the coefficient to
-zero. But the coupled solver pushes back: the molecular floor sets the
-smallest wall-normal scale the $\tilde\nu$ field can develop, the
-equilibrium band thickness scaling as $\sqrt{c_{\nu,\mathrm{ai}}}$, so every
-halving of the coefficient thins the disturbance band the mesh must resolve
-by $\sqrt2$. We stop at
-\begin{equation*}
-  c_{\nu,\mathrm{ai}} \;=\; \tfrac{1}{6},
-\end{equation*}
-the largest coefficient that holds the anchored $N\!=\!9$ prediction inside
-the scatter of the $e^N$ correlations themselves ($\sim\!7\%$); the next
-halving would buy five points of $N\!=\!9$ agreement at the price of a
-$\sqrt2$-thinner band. The negative-$\tilde\nu$
-safeguards~\cite{allmaras_2012} carry over with one consistency requirement:
-the negative-branch factor $f_n$ is formed with the scaled coefficient
-$c_{\nu,\mathrm{ai}}\,\nu$, which keeps the total diffusivity positive,
-$c_{\nu,\mathrm{ai}}\nu + f_n\tilde\nu\!>\!0$.
-
-With the diffusion set, the compensation of Sec.~\ref{sec:onset} takes its
-value from a single anchor, stated operationally: $k$ is chosen so
+The compensation takes its value from a single anchor, stated
+operationally: $k$ is chosen so
 that the march \eqref{eq:transport}, on the Blasius layer at the committed
 $c_{\nu,\mathrm{ai}}\!=\!\tfrac16$, crosses $N\!=\!1$ at the Drela--Giles
 station $Re_\theta\!=\!338$; this gives $k\!=\!0.71$---the threshold
@@ -1004,7 +1131,7 @@ carries $f_w\!\approx\!0.7\,r$ with $r\!\ll\!1$ in the amplifying band,
 so its ratio to the amplification production grows like $\chi^2$ and stays
 below $10^{-3}$ up to the $\chi\!=\!1$ crossing at the airfoil seed level
 ($\chi_\infty\!=\!c_{v1}e^{-9}$). The calibration instrument of
-Sec.~\ref{sec:nulamscale} omits the term; marching with it included at that
+Sec.~\ref{sec:calib_onset} omits the term; marching with it included at that
 seed level moves the anchor and prediction stations by less than $1\%$
 (within the solve residuals) and the favorable-family stations' mean by
 $-2.6\%$, most of it accumulated past the $\chi\!=\!1$ crossing,
@@ -1088,41 +1215,6 @@ destruction floor is inert at the disturbance's quadratic scale, $f_{v1}$
 still switches on at the calibrated $\chi$ because $\chi$ is formed with
 the true $\nu$, and the destruction weight is tied so the linear
 $\tilde\nu$ wall solution---the log law included---is recovered exactly.
-
-\subsection{Freestream-turbulence receptivity}\label{sec:calib_tu}
-
-A single empirical closure remains, the one every $e^N$ method carries. A higher
-$Tu$ is a larger seed
-$\chi_\infty$ and thus fewer $e$-folds to the handover, moving transition
-upstream: a case seeded with $\chi_\infty$ reaches the handover where
-its envelope crosses
-$N_\mathrm{crit}\!=\!\ln(c_{v1}/\chi_\infty)$---the half-saturation
-threshold $\chi\!=\!c_{v1}$ at which the eddy viscosity engages. We map
-$Tu$ to the seed
-by
-\begin{equation}
-  N_\mathrm{crit}(Tu) = -8.43 - 2.4\,\ln(Tu_{\mathrm{frac}}),
-  \qquad
-  \chi_\infty = c_{v1}\,e^{-N_\mathrm{crit}},
-  \label{eq:tumap}
-\end{equation}
-with $Tu_{\mathrm{frac}}$ the rms turbulence intensity as a fraction. This is
-Mack's~\cite{mack_1977, nasa_tmr} $e^N$ critical-$N$-factor correlation,
-used unchanged: the
-amplification transport plays the role of the $e^N$ envelope and
-$N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)$ its threshold. The
-correspondence is not exact: $e^N$ methods
-declare transition at a sharp $N_\mathrm{crit}$, while the model's
-threshold is smeared over the $\chi\!=\!1\!\to\!c_{v1}$
-handover---about two $e$-folds of the envelope. Adopting Mack's map
-wholesale is therefore an approximation; its flat-plate consequence is
-quantified in Sec.~\ref{sec:flatplate} under a stated onset convention
-at the $\chi\!=\!1$ crossing.
-Sensitivity to the seed is that of any $e^N$ method: one $e$-fold in
-$\chi_\infty$ is one unit of $N_\mathrm{crit}$, which on the Blasius envelope
-($dN/dRe_\theta\!\approx\!10^{-2}$) shifts onset by
-$\Delta Re_\theta\!\approx\!100$; every airfoil computation below uses the
-single anchor $N_\mathrm{crit}\!=\!9$.
 
 \subsection{Assembled one-equation model}\label{sec:assembled}
 
@@ -1214,13 +1306,16 @@ The SA-AI constants are
     (C,\,A,\,B;\;k)&=(2600,\;175,\;2;\;0.71) &&\text{onset threshold $Re_\Omega^{\mathrm c}(\hat S g)$: shape from the LST graze (Fig.~\ref{fig:onsetgraze}, never refit); $k$ compensates the laminar drain, anchored at the Blasius $N\!=\!1$ inception (Sec.~\ref{sec:calib_onset});}\\
     w&=0.35 &&\text{onset ramp width scale;}\\
     \tau&=4 &&\text{production handover width (Sec.~\ref{sec:calib_diff});}\\
-    c_{\nu,\mathrm{ai}}&=\tfrac{1}{6} &&\text{laminar-diffusion reduction: the largest value holding the anchored $N\!=\!9$ prediction inside the $e^N$ correlations' scatter (Sec.~\ref{sec:nulamscale});}\\
-    N_\mathrm{crit}(Tu)&=-8.43-2.4\ln Tu_\mathrm{frac} &&\text{Mack $e^N$ receptivity map, Eq.~\eqref{eq:tumap}, adopted wholesale \cite{mack_1977}.}
+    c_{\nu,\mathrm{ai}}&=\tfrac{1}{6} &&\text{laminar-diffusion reduction: the largest coefficient carrying the frozen-profile growth balance onto the $e^N$ correlation across the transitional decade (Sec.~\ref{sec:nulamscale}, Table~\ref{tab:frozeneig});}\\
+    N_\mathrm{crit}(Tu)&=-8.43-2.4\ln Tu_\mathrm{frac} &&\text{Mack $e^N$ receptivity map, Eq.~\eqref{eq:tumap} (Sec.~\ref{sec:flatplate}), adopted wholesale \cite{mack_1977}.}
   \end{aligned}
 \end{equation*}
 How each constant is determined, and the ordering that keeps the
 determinations from circulating, is the subject of
-Secs.~\ref{sec:calib_rate}--\ref{sec:calib_tu}. The
+Secs.~\ref{sec:calib_rate}--\ref{sec:calib_diff}; the remaining
+freestream-turbulence map is a statement about the boundary condition
+rather than the model, and is fixed where it is first used, on the flat
+plate of Sec.~\ref{sec:flatplate}. The
 same set is used without per-geometry adjustment for the Blasius transport
 verification (Fig.~\ref{fig:nuhat}) and every coupled-RANS computation of
 Secs.~\ref{sec:flatplate}--\ref{sec:eppval}.
@@ -1232,6 +1327,43 @@ Flow360, an unstructured, node-centered, second-order finite-volume solver with
 a Roe flux; the
 freestream modified-viscosity ratio $\chi_\infty$ sets both the SA freestream value
 and the disturbance seed (Sec.~\ref{sec:calib}).
+
+\label{sec:calib_tu}%
+Setting that seed is the one empirical closure the model has left open,
+and it is a statement about the boundary condition, not the model: the
+receptivity of the layer to the freestream, the closure every $e^N$
+method carries. A higher
+$Tu$ is a larger seed
+$\chi_\infty$ and thus fewer $e$-folds to the handover, moving transition
+upstream: a case seeded with $\chi_\infty$ reaches the handover where
+its envelope crosses
+$N_\mathrm{crit}\!=\!\ln(c_{v1}/\chi_\infty)$---the half-saturation
+threshold $\chi\!=\!c_{v1}$ at which the eddy viscosity engages. We map
+$Tu$ to the seed
+by
+\begin{equation}
+  N_\mathrm{crit}(Tu) = -8.43 - 2.4\,\ln(Tu_{\mathrm{frac}}),
+  \qquad
+  \chi_\infty = c_{v1}\,e^{-N_\mathrm{crit}},
+  \label{eq:tumap}
+\end{equation}
+with $Tu_{\mathrm{frac}}$ the rms turbulence intensity as a fraction. This is
+Mack's~\cite{mack_1977, nasa_tmr} $e^N$ critical-$N$-factor correlation,
+used unchanged: the
+amplification transport plays the role of the $e^N$ envelope and
+$N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)$ its threshold. The
+correspondence is not exact: $e^N$ methods
+declare transition at a sharp $N_\mathrm{crit}$, while the model's
+threshold is smeared over the $\chi\!=\!1\!\to\!c_{v1}$
+handover---about two $e$-folds of the envelope. Adopting Mack's map
+wholesale is therefore an approximation; its consequence is quantified
+on this plate under a stated onset convention
+at the $\chi\!=\!1$ crossing.
+Sensitivity to the seed is that of any $e^N$ method: one $e$-fold in
+$\chi_\infty$ is one unit of $N_\mathrm{crit}$, which on the Blasius envelope
+($dN/dRe_\theta\!\approx\!10^{-2}$) shifts onset by
+$\Delta Re_\theta\!\approx\!100$; every airfoil computation in the
+following sections uses the single anchor $N_\mathrm{crit}\!=\!9$.
 
 One implementation note bears on reproducibility: the curvature indicator
 requires a second wall-normal derivative of the velocity, and its
@@ -1878,7 +2010,7 @@ $0.48\,c$, though its coarse grids still scatter by $\sim\!0.1\,c$ before closin
 $0.002\,c$ by L2. The lower surface runs laminar to the trailing edge at every
 incidence and has no front to move. This low-$\alpha$ over-length has the same
 origin as the separation-edge softening seen in the calibration
-(\S\ref{sec:nulamscale}, Fig.~\ref{fig:calibrate}): the linear $\hat S g$
+(\S\ref{sec:calib_onset}, Fig.~\ref{fig:calibrate}): the linear $\hat S g$
 under-amplifies the detached laminar shear layer, so transition---and with it
 reattachment---is delayed and the bubble runs long. Matching the measured bubble
 length is left to future work.

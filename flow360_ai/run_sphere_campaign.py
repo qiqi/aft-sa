@@ -30,6 +30,11 @@ SETS = {
                for a in (0, 2, 5, 7)],
     'epp_sweep': ([f"sweep_Re{Rk}k_a5" for Rk in (60, 100, 300, 460)]
                   + [f"sweep_str_Re{Rk}k_a5" for Rk in (60, 100, 300, 460)]),
+    # L0/L2 companions so the Re sweep carries the same three-level suite as
+    # the benchmark (L1 rows live in 'epp_sweep' under the legacy names).
+    'epp_sweep_levels': [f"sweep_{fam}{lvl}_Re{Rk}k_a5"
+                         for fam in ('cav', 'str') for lvl in ('L0', 'L2')
+                         for Rk in (60, 100, 300, 460)],
 }
 
 RM_GLOBS = ['*_v2.csv', '*.pvtu', '*.vtu', 'xtr_history.csv',
