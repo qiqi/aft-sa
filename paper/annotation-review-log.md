@@ -1680,3 +1680,38 @@ is re-anchored there.
 Addressed with the k-applied-to-all model change (k=0.712 uniform; family 6%
 rms) and the annotated.pdf p.9 round; item-by-item in
 agent-paper-review/2026-07-23-1050-response.md.
+
+## 2026-07-23 annotated.pdf round 2 (15:07, pp.10-13, 6 remarks)
+1. HIGHLIGHT "not error," (p.10, inviscid-limit discussion) — "remove".
+   RESOLVED: "---headroom, and what consumes it is the subject of the next
+   paragraphs."
+2. HIGHLIGHT "kernel is the correlation to three percent ... stays bounded
+   by a_max." (p.11) — "remove".
+   RESOLVED: the sentence now ends at "the ratio is 0.97."; the deep-separated
+   0.46 stays in Table 2 uncommented ("three facts" -> "two facts"; App. B's
+   temporal-units opener no longer cites the removed aside).
+3. HIGHLIGHT "the coupled solver pushes back" (p.12) — "remove".
+   RESOLVED: "...would buy nothing the correlation asks for: the molecular
+   floor sets..."
+4. HIGHLIGHT high-Re caveat paragraph ("One caveat travels ... tune around
+   it.", p.12) — "remove".
+   RESOLVED: paragraph deleted; the sweep paragraph's closing now absorbs the
+   one factual clause ("climbing toward the finite ceiling of Table 2 as the
+   diffusion keeps vanishing") instead of pointing at the deleted text.
+5. HIGHLIGHT "observed" (p.12, pivot paragraph) — "the physical -- ...one
+   sentence that 'reminds' that the start of growth as a Re_theta floor
+   should be useful in the beginning of the paragraph."
+   RESOLVED: the paragraph opens with the reminder ("A laminar layer does not
+   amplify from birth: linear theory gives each shape a floor, the critical
+   Reynolds number Re_theta0(H) ... third column of Table 3"), and
+   "far below any observed inception" -> "far below the physical floor".
+6. HIGHLIGHT "The" (p.13, start of II.D) — "This section should start by
+   describing e^N envelope theory in one or two sentences: no growth till an
+   H-dependent Re_theta, then Re_theta-independent growth."
+   RESOLVED: II.D now opens: "In the e^N envelope description a laminar layer
+   amplifies in two regimes: nothing grows until the layer reaches a
+   shape-dependent critical Reynolds number Re_theta0(H), and past it the
+   envelope earns amplification at a rate that is, to the accuracy of the
+   method, Reynolds-independent---a function of the shape alone [Drela-Giles].
+   The algebraic rate (eq:rate) carries the second regime...; the first---the
+   viscous inception---is a separate, multiplicative gate..."

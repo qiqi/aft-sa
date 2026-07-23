@@ -580,17 +580,11 @@ $s_{\mathrm{DG}}\!=\!\tfrac{m(H)+1}{2}\,\ell(H)\,\mathrm dN/\mathrm dRe_\theta$
 ($\ell$, $m$ the Falkner--Skan similarity factors of Drela's spatial
 conversion~\cite{drela_giles_1987}), so the two compare with no wave-speed
 convention on either side. Table~\ref{tab:ratelimit} lists the ratio
-across the family, and three facts read off it. Across the attached
+across the family, and two facts read off it. Across the attached
 branch the inviscid slope rides a nearly uniform $1.30$--$1.42\times$
-above the correlation---headroom, not error, and what consumes it is the
-subject of the next paragraphs. At the separation limit and onto the
-shallow reversed-flow branch the ratio is $0.97$: where the growth turns
-inviscid, the raw kernel \emph{is} the correlation to three percent, with
-nothing fitted beyond the eigenvalue $a_{\max}$. And the deep-separated
-$0.46$ is measured against a reference that has left physics:
-extrapolated to $H\!\approx\!10.6$, the correlation's rate exceeds that
-profile's own inviscid ceiling (its wall-bounded temporal Rayleigh
-eigenvalue) threefold, while the kernel stays bounded by $a_{\max}$.
+above the correlation---headroom, and what consumes it is the subject of
+the next paragraphs. At the separation limit and onto the
+shallow reversed-flow branch the ratio is $0.97$.
 
 \begin{table}[tp]
   \centering
@@ -674,7 +668,7 @@ together---the favorable wedge's lone unstable station reads $1.02$ at
 the same $\tfrac16$, and the moderate adverse crosses unity between
 $\tfrac13$ and $\tfrac16$ ($1.04$ at $Re_\theta\!=\!400$). Pressing
 further toward the inviscid ceiling would buy nothing the correlation
-asks for, and the coupled solver pushes back: the molecular floor sets
+asks for: the molecular floor sets
 the smallest wall-normal scale the $\tilde\nu$ field can develop, the
 equilibrium band thickness scaling as $\sqrt{c_{\nu,\mathrm{ai}}}$, so
 every halving thins the disturbance band the mesh must resolve by
@@ -687,7 +681,8 @@ separation branch holds $0.82$--$0.91$ (right half of
 Table~\ref{tab:frozeneig}); what remains is a mild drift above it later
 in each profile's unstable decade (Blasius $1.21$ by
 $Re_\theta\!=\!1600$, where transition on that layer is already
-complete)---the asymptotic climb the next paragraph takes up. The
+complete), climbing toward the finite ceiling of
+Table~\ref{tab:ratelimit} as the diffusion keeps vanishing. The
 negative-$\tilde\nu$ safeguards~\cite{allmaras_2012} carry over with one
 consistency requirement: the negative-branch factor $f_n$ is formed with
 the scaled coefficient $c_{\nu,\mathrm{ai}}\,\nu$, which keeps the total
@@ -736,27 +731,28 @@ diffusivity positive, $c_{\nu,\mathrm{ai}}\nu + f_n\tilde\nu\!>\!0$.
   \end{tabular}
 \end{table}
 
-One caveat travels with the eigenvalue to high Reynolds number. Past the
-transitional decade the diffusion keeps vanishing and the slope keeps
-climbing toward the inviscid ceiling of Table~\ref{tab:ratelimit}, so an
-envelope run completed at $Re_\theta\!\gtrsim\!2000$ accumulates its $N$
-up to ${\sim}25$--$30\%$ early in $\Delta Re_\theta$ terms. The flows of
-this paper transition inside the decade; low-disturbance flows at
-cruise-scale Reynolds numbers, which do not, would meet this bias first,
-and we flag it rather than tune around it.
-
 What the rate and its retained diffusion do not set is where the growth
-may \emph{begin}. On the frozen profile of Eq.~\eqref{eq:frozeneig},
+may \emph{begin}. A laminar layer does not amplify from birth: linear
+theory gives each shape a floor, the critical Reynolds number
+$Re_{\theta 0}(H)$ below which every disturbance decays (the third
+column of Table~\ref{tab:frozeneig}), and growth starts only past it.
+The frozen profile of Eq.~\eqref{eq:frozeneig} knows no such floor:
 growth beats the drain from $Re_\theta$ of a few tens
-($\approx\!20$ on Blasius at the adopted coefficient)---far below any
-observed inception---so the laminar regime cannot be held by the drain
+($\approx\!20$ on Blasius at the adopted coefficient)---far below the
+physical floor---so the laminar regime cannot be held by the drain
 alone: the inception is a threshold of its own, and it is the subject of
 the next subsection.
 
 \subsection{The onset threshold}%
 \label{sec:onset}\label{sec:calib_onset}
-The algebraic rate \eqref{eq:rate} carries no explicit Reynolds
-number; the viscous inception is a separate,
+In the $e^N$ envelope description a laminar layer amplifies in two
+regimes: nothing grows until the layer reaches a shape-dependent
+critical Reynolds number $Re_{\theta 0}(H)$, and past it the envelope
+earns amplification at a rate that is, to the accuracy of the method,
+Reynolds-independent---a function of the shape
+alone~\cite{drela_giles_1987}. The algebraic rate \eqref{eq:rate}
+carries the second regime and no explicit Reynolds number; the
+first---the viscous inception---is a separate,
 multiplicative gate on the vorticity Reynolds number, rising smoothly from $0$
 to $1$,
 \begin{equation}
@@ -2748,9 +2744,7 @@ means over the final 500 steps.
 
 \paragraph{Temporal-units conversion.} The comparisons of
 Sec.~\ref{sec:daedalus} and of this appendix's ledger between the kernel
-ceiling and the $e^N$ reference---and the inviscid-ceiling aside of
-Sec.~\ref{sec:rate} (the deep-separated row of
-Table~\ref{tab:ratelimit})---convert Drela's envelope slope into a
+ceiling and the $e^N$ reference convert Drela's envelope slope into a
 growth rate per unit time in multiples of the profile's peak vorticity,
 \begin{equation*}
   a_\mathrm{eff}
