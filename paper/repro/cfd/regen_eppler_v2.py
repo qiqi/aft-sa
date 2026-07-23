@@ -652,7 +652,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
                 ax_n.semilogy(xc, mu/NU, ls=ls, lw=lw, color=UP_COLOR)
                 ax_n.semilogy(xc, ml/NU, ls=ls, lw=lw, color=LO_COLOR)
         rd, rtag, has_N = ref_for(alpha)
-        if rd is not None:
+        if rd is not None and 'upper' in rd:
             if has_N:                       # mfoil carries the amplification envelope
                 ax_nN.plot(rd['upper']['x'], rd['upper']['n'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
                 ax_nN.plot(rd['lower']['x'], rd['lower']['n'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
@@ -679,7 +679,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
                 except Exception as e:
                     print(f"  skip surf ({mesh}/{level}, α={alpha}): {e}")
         rd, rtag, has_N = ref_for(alpha)
-        if rd is not None:
+        if rd is not None and 'upper' in rd:
             ax_cp.plot(rd['upper']['x'], -np.array(rd['upper']['cp']), ':', color=UP_COLOR, lw=1.2, alpha=0.5)
             ax_cp.plot(rd['lower']['x'], -np.array(rd['lower']['cp']), ':', color=LO_COLOR, lw=1.2, alpha=0.5)
             ax_cf.plot(rd['upper']['x'], np.array(rd['upper']['cf']), ':', color=UP_COLOR, lw=1.2, alpha=0.5)

@@ -71,7 +71,7 @@ ax.set_xlim(0,0.04); ax.set_ylim(-1.1,2.05)
 ax.set_xlabel('$C_d$'); ax.set_ylabel('$C_l$'); ax.grid(alpha=0.3)
 handles=[Line2D([],[],color='k',ls='-',marker='o',mfc='none',ms=4,label='Experiment (Somers TP-1861)'),
          Line2D([],[],color='0.4',ls=':',marker='s',mfc='none',ms=5,lw=1.2,label='mfoil ($e^9$, $\\alpha\\!\\leq\\!7^\\circ$)'),
-         Line2D([],[],color='0.5',ls='none',marker='D',mfc='none',ms=6,mew=1.3,label='xfoil ($e^9$, $\\alpha\\!\\geq\\!9^\\circ$)'),
+         Line2D([],[],color='0.5',ls='none',marker='D',mfc='none',ms=6,mew=1.3,label='FlexFoil ($e^9$, $\\alpha\\!\\geq\\!9^\\circ$)'),
          Line2D([],[],color='C0',ls='-', marker='o',ms=4,label='SA-AI, structured (O-grid)'),
          Line2D([],[],color='C1',ls='--',marker='^',ms=4,label='SA-AI, unstructured'),
          Line2D([],[],color='0.55',ls='-.',marker='v',mfc='none',ms=5,lw=1.2,label='SA, fully turbulent (str L2)'),

@@ -26,8 +26,7 @@ means quoted in the text, and the ungated neutral point (growth first
 beats drain, Re_theta ~ 20 on Blasius) that motivates the onset gate.
 
 Optional --rayleigh: each inflectional profile's inviscid temporal ceiling
-(wall-bounded Rayleigh eigenvalue, max over wavenumber), behind the text's
-claim that Drela extrapolated to H~10.6 exceeds physics threefold.
+(wall-bounded Rayleigh eigenvalue, max over wavenumber).
 
 Run from paper/: python3 repro/analytic/tab_frozen_slope.py [--rayleigh]
 """
@@ -52,8 +51,9 @@ PROFILES = [
     (-0.10,  None,  'moderate adverse'),
     (-0.1988, None, 'separation limit'),
     (-0.19,  -0.03, 'separated, shallow'),
-    (-0.12,  -0.10, 'separated, deep'),
 ]
+# Shape factors past H~5 are excluded: Drela's Orr-Sommerfeld data stop at
+# H=5.00 (1986 thesis Fig. 6.7) and no similarity profile is validated beyond.
 
 
 def build(beta, guess, N=6000):

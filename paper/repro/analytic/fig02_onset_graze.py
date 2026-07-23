@@ -23,8 +23,10 @@ from lib.correlations import Re_theta0
 
 CEIL, A_, B_, N_ = 2600.0, 175.0, 2.0, 2.0
 
-# Attached family from strong favorable through incipient separation, plus a
-# separated reversed-flow (Stewartson lower branch) profile drawn DOTTED.
+# Attached family from strong favorable through incipient separation, plus the
+# separated reversed-flow (Stewartson lower-branch) profile at beta=-0.19
+# (H~4.9) drawn DOTTED. Deeper members (H>~5) are excluded: Drela's OS data
+# stop at H=5 and no similarity family is validated beyond.
 # No legend: the betas are listed in the caption; color runs with beta.
 PROFILES = [
     (0.35,  None,  None, 'favorable'),
@@ -35,7 +37,7 @@ PROFILES = [
     (-0.10, None,  None, 'adverse'),
     (-0.15, None,  None, 'adverse'),
     (-0.1988, None, None, 'incipient separation'),
-    (-0.12, -0.10, None, 'separated (reversed)'),
+    (-0.19, -0.03, None, 'separated (reversed)'),
 ]
 
 

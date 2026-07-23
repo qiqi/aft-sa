@@ -11,7 +11,8 @@ most-amplified Orr-Sommerfeld mode's Reynolds-stress production density
 p = (alpha/2) |Im(phi' phi*)| |U'| exceeds half its peak -- where the
 disturbance actually grows (attached profiles evaluated at Re_theta = 500,
 where the favorable layer is still subcritical and so carries no band; the
-reversed-flow profile at Re_theta = 200). Grey lines: contours of the rate
+reversed-flow (Stewartson lower-branch, beta=-0.19, H~4.9) profile at
+Re_theta = 200). Grey lines: contours of the rate
 coordinate S_hat*g at {0.025, 0.2, 0.4, 0.6, 0.8, 1.0}; the lowest hugs the
 neutral locus S_hat*g = 0 (the parabola great circle g = 0 plus the
 shear-free meridian).
@@ -32,7 +33,7 @@ PROFILES = [
     (0.0,    None,  'C2', 'Blasius',              500.0),
     (-0.10,  None,  'C1', 'adverse',              500.0),
     (-0.1988, None, 'C3', 'incipient separation', 500.0),
-    (-0.12, -0.10,  'C4', 'separated (reversed)', 200.0),
+    (-0.19, -0.03,  'C4', 'separated (reversed)', 200.0),
 ]
 
 LEVELS = [0.025, 0.2, 0.4, 0.6, 0.8, 1.0]

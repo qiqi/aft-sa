@@ -600,7 +600,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
                 xd = xf[float(alpha)]
                 if xd.get('xtr_upper') is not None: ax_n.axvline(xd['xtr_upper'], color=UP_COLOR, ls='-.', lw=0.7, alpha=0.6)
                 if xd.get('xtr_lower') is not None: ax_n.axvline(xd['xtr_lower'], color=LO_COLOR, ls='-.', lw=0.7, alpha=0.6)
-        elif _xfoil_fill(alpha):
+        elif _xfoil_fill(alpha) and 'upper' in xf.get(float(alpha), {}):
             xd = xf[float(alpha)]
             if xd.get('xtr_upper') is not None: ax_n.axvline(xd['xtr_upper'], color=UP_COLOR, ls='-.', lw=0.7, alpha=0.6)
             if xd.get('xtr_lower') is not None: ax_n.axvline(xd['xtr_lower'], color=LO_COLOR, ls='-.', lw=0.7, alpha=0.6)
@@ -629,7 +629,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
             ax_cp.plot(md['lower']['x'], -md['lower']['cp'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
             ax_cf.plot(md['upper']['x'], md['upper']['cf'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
             ax_cf.plot(md['lower']['x'], md['lower']['cf'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
-        elif _xfoil_fill(alpha):
+        elif _xfoil_fill(alpha) and 'upper' in xf.get(float(alpha), {}):
             xd = xf[float(alpha)]
             ax_cp.plot(xd['upper']['x'], -np.asarray(xd['upper']['cp']), '-.', color=UP_COLOR, lw=1.1, alpha=0.6)
             ax_cp.plot(xd['lower']['x'], -np.asarray(xd['lower']['cp']), '-.', color=LO_COLOR, lw=1.1, alpha=0.6)

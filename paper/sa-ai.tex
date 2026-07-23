@@ -419,13 +419,18 @@ only rotation-invariant products of the indicator vectors survive.
   sphere \eqref{eq:indicators} (orthographic x-ray view: curvature vertical,
   shear$-$velocity horizontal; near hemisphere solid, far side dotted;
   triangles mark the four visible poles---velocity left, shear right,
-  $\pm$curvature top and bottom). Five representative profiles run as thin
-  curves from the wall (center) toward the freestream: a favorable-gradient
-  layer (blue), the Blasius layer (green), a moderate adverse-gradient layer
-  (orange), the incipient-separation profile (red), and a separated
-  reversed-flow shear layer (purple). The \textbf{thick} segment on each marks
-  the wall-normal band where its linear-stability production peaks---where the
-  disturbance actually grows. Gray lines are contours of the rate coordinate
+  $\pm$curvature top and bottom). Five Falkner--Skan profiles run as thin
+  curves from the wall (center) toward the freestream: favorable
+  ($\beta\!=\!+0.30$, blue), Blasius ($\beta\!=\!0$, green), moderate adverse
+  ($\beta\!=\!-0.10$, orange), incipient separation ($\beta\!=\!-0.1988$,
+  red), and a separated reversed-flow shear layer---the Stewartson
+  lower-branch solution at $\beta\!=\!-0.19$, $H\!\approx\!4.9$ (purple).
+  The \textbf{thick} segment on each marks
+  the wall-normal band where its linear-stability (Orr--Sommerfeld
+  Reynolds-stress production) density exceeds half its peak---where the
+  disturbance actually grows; the attached profiles are evaluated at
+  $Re_\theta\!=\!500$ (the favorable layer is still subcritical there and
+  carries no band), the reversed-flow profile at $Re_\theta\!=\!200$. Gray lines are contours of the rate coordinate
   $\hat S g$ at $\{0.025,0.2,0.4,0.6,0.8,1.0\}$; the lowest ($\hat S g=0.025$) hugs
   the neutral locus $\hat S g=0$---the parabola great circle $g=0$ together with the
   shear-free meridian.
@@ -591,8 +596,12 @@ shallow reversed-flow branch the ratio is $0.97$.
   \small
   \caption{The inviscid frozen-profile slope of the rate \eqref{eq:rate},
   $\max_y a\,\omega/u$, as a ratio to the Drela--Giles spatial envelope
-  rate $s_{\mathrm{DG}}/\theta$, on six Falkner--Skan profiles (starred:
-  reversed-flow, Stewartson lower-branch solutions). The ratio is
+  rate $s_{\mathrm{DG}}/\theta$, on five Falkner--Skan profiles (starred:
+  the reversed-flow, Stewartson lower-branch solution of the same
+  $\beta$). Shape factors past $H\!\approx\!5$ are excluded throughout
+  Sec.~\ref{sec:model}: Drela's Orr--Sommerfeld data stop there, and
+  neither the correlation nor any similarity profile is validated
+  beyond it. The ratio is
   independent of Reynolds number and of any diffusion: it is the most
   growth per unit length the rate can sustain on the profile. The
   diffusion retained by the working variable, taken up next, lowers the
@@ -608,7 +617,6 @@ shallow reversed-flow branch the ratio is $0.97$.
     moderate adverse & $-0.10$ & 2.80 & 1.30\\
     separation limit & $-0.1988$ & 3.98 & 0.97\\
     separated, shallow$^\ast$ & $-0.19$ & 4.92 & 0.97\\
-    separated, deep$^\ast$ & $-0.12$ & 10.63 & 0.46\\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -702,9 +710,9 @@ diffusivity positive, $c_{\nu,\mathrm{ai}}\nu + f_n\tilde\nu\!>\!0$.
   correlation has no growth to compare against. Each entry is one
   symmetric tridiagonal eigenvalue ($u^{1/2}$ similarity; $v\!=\!0$ at
   the wall and the far field; reversed-flow advection floored at
-  $0.02\,U_e$, floors $0.01$--$0.05$ moving no printed digit). Starred
-  rows are reversed-flow (Stewartson lower-branch) solutions; the
-  $Re_\theta\!\to\!\infty$ limit of every row is
+  $0.02\,U_e$, floors $0.01$--$0.05$ moving no printed digit). The
+  starred row is the reversed-flow (Stewartson lower-branch) solution at
+  $\beta\!=\!-0.19$; the $Re_\theta\!\to\!\infty$ limit of every row is
   Table~\ref{tab:ratelimit}.}
   \label{tab:frozeneig}
   \begin{tabular}{lrr cccc cccc}
@@ -725,8 +733,6 @@ diffusivity positive, $c_{\nu,\mathrm{ai}}\nu + f_n\tilde\nu\!>\!0$.
                                  & $0.82$ & $0.86$ & $0.89$ & $0.91$\\
     separated, shallow$^\ast$ & $-0.19$ & $26$ & $0.68$ & $0.75$ & $0.80$ & $0.85$
                                  & $0.83$ & $0.87$ & $0.89$ & $0.91$\\
-    separated, deep$^\ast$    & $-0.12$ & $13$ & $0.34$ & $0.37$ & $0.40$ & $0.41$
-                                 & $0.41$ & $0.42$ & $0.43$ & $0.44$\\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -763,7 +769,18 @@ to $1$,
 \end{equation}
 with $w$ the onset ramp width scale and
 its threshold a function of the \emph{same} product $\hat S g$ (the form
-\eqref{eq:reomc}, fixed below). Rate and onset reinforce: near the
+\eqref{eq:reomc}, fixed below). The width is not a fitted quantity. We
+set $w\!=\!0.35$---the gate runs from $12\%$ to $88\%$ open as
+$Re_\Omega$ crosses from $0.65$ to $1.35$ of its threshold---and the
+model barely notices: along a growing layer the vorticity Reynolds
+number sweeps through the ramp quickly ($Re_\Omega$ grows like
+$Re_\theta^2$ at fixed shape), so the marched $N\!=\!1$ stations of the
+family (Sec.~\ref{sec:calib_onset}) move by under $1\%$ when $w$ is
+halved and under $2.5\%$ when it is doubled, shifts the anchor absorbs.
+A smooth ramp of finite width is still the right form: linear onset is
+itself not sharp (the graze scatter below is $6$--$14\%$), and a
+near-discontinuous source is hostile to the coupled solver's meshes and
+Newton convergence. Rate and onset reinforce: near the
 parabola a low rate \emph{and} a high threshold give the late, slow transition
 of a zero-pressure-gradient layer; inflectional profiles get a high rate
 \emph{and} a low threshold, hence early, fast transition. The complete source
@@ -787,15 +804,19 @@ parameter anywhere.
   solid, colored blue to red with decreasing $\beta$, the attached family
   $\beta = +0.35$, $+0.15$, $+0.05$, $0$ (Blasius), $-0.05$, $-0.10$,
   $-0.15$, $-0.1988$ (incipient separation); dotted, a separated
-  reversed-flow (Stewartson lower branch) profile. The attached family
+  reversed-flow profile, the Stewartson lower-branch solution at
+  $\beta\!=\!-0.19$ ($H\!\approx\!4.9$). The attached family
   shares the dashed outer envelope, which each member grazes at its marked
   closest-approach point: graze ratios $0.93$--$1.14$ (root-mean-square
   $\sim\!6\%$) from incipient separation through $\beta=+0.15$, rising to
   $\sim\!1.3$ at the strongly favorable $\beta=+0.35$ edge. The soft-min
   shape of Eq.~\eqref{eq:reomc}, at $k\!=\!1$, is that envelope: a ceiling on the favorable
   (small $\hat S g$) side, an additive floor toward separation. The separated
-  reversed-flow profile rides above the threshold at its own
-  $Re_{\theta c}$---it ignites immediately. The compensation scale $k$ of
+  reversed-flow profile continues the family's graze (closest approach
+  $0.91$ at its own, very low $Re_{\theta c}\!\approx\!26$); at the
+  Reynolds numbers a separation bubble actually reaches,
+  $Re_\Omega\!\propto\!Re_\theta$ carries it far above the floor and it
+  ignites at once. The compensation scale $k$ of
   Eq.~\eqref{eq:reomc} is not set by the graze but by the march anchor
   below.}
   \label{fig:onsetgraze}
@@ -813,8 +834,12 @@ graze collapses the family onto one monotone shape. On the favorable side the
 threshold saturates toward a ceiling---an accelerated layer must grow thicker
 before any point of it turns critical, but not indefinitely so---while near
 separation it flattens onto an additive floor, inception becoming essentially
-immediate; the separated reversed-flow profile rides \emph{above} the
-threshold at its critical Reynolds number, igniting at once, as it should.
+immediate. The collapse does not stop at the separation limit: the
+reversed-flow profile grazes the same envelope at its own critical
+Reynolds number, and because that critical value is tiny
+($Re_{\theta c}\!\approx\!26$), at any Reynolds number a bubble actually
+reaches the profile rides far above the floor and ignites at once, as it
+should.
 We represent the shape by a soft minimum of the two limits,
 \begin{equation}
   Re_\Omega^{\mathrm c}(\hat S g) \;=\; k\,\operatorname{softmin}_2\!\Big(C,\;

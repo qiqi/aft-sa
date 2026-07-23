@@ -22,7 +22,10 @@ with data: 100k, 200k, 300k). Experimental Cp (TM-4062 App. D tables,
 nearest-5deg column) as open circles.
 -> figs/eppler_resweep_lowRe.pdf, figs/eppler_resweep_highRe.pdf
 """
-import sys, os; sys.path.insert(0, '.')
+import sys, os
+_HERE = os.path.dirname(os.path.abspath(__file__))
+PD = os.path.abspath(os.path.join(_HERE, '..', '..'))    # paper/
+sys.path.insert(0, _HERE)
 import numpy as np, matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
@@ -44,7 +47,7 @@ XFOIL = pickle.load(open(_xf, 'rb')) if os.path.exists(_xf) else {}
 _ff = f"{B}/flexfoil_eppler387_sweep_a5.pkl"
 FLEXN = pickle.load(open(_ff, 'rb')) if os.path.exists(_ff) else {}
 import json as _json
-_ct = "data/exp_cp_tables.json"
+_ct = f"{PD}/data/exp_cp_tables.json"
 EXP_CP_TAB = _json.load(open(_ct)) if os.path.exists(_ct) else {}
 RE_COL = {60: "4.99", 100: "5.01", 200: "5.05", 300: "5.00", 460: "5.01"}
 
@@ -107,7 +110,8 @@ def make_fig(re_list, out):
         # the primary reference (no amplification envelope there).
         XFOIL_PRIMARY = {60}
         mf = None if Rk in XFOIL_PRIMARY else MFOIL.get(Rk)
-        nsrc = FLEXN.get(Rk) if (mf is None or 'n' not in mf['upper']) else mf
+        nsrc = (FLEXN.get(Rk) if (mf is None or 'upper' not in mf
+                          or 'n' not in mf['upper']) else mf)
         if nsrc is not None and 'n' in nsrc['upper']:
             ax_N.plot(nsrc['upper']['x'], nsrc['upper']['n'], ':', color=UP, lw=1.4, alpha=0.8)
             ax_N.plot(nsrc['lower']['x'], nsrc['lower']['n'], ':', color=LO, lw=1.4, alpha=0.8)
@@ -143,7 +147,9 @@ def make_fig(re_list, out):
         # mfoil (or xfoil fallback) reference Cp/Cf
         use_xf = Rk in XFOIL_PRIMARY and Rk in XFOIL
         ref = (XFOIL.get(Rk) if use_xf else None) or MFOIL.get(Rk) or XFOIL.get(Rk)
-        if ref is not None:
+        if ref is not None and 'upper' not in ref:
+            ref = XFOIL.get(Rk)
+        if ref is not None and 'upper' in ref:
             for side, c in [('upper', UP), ('lower', LO)]:
                 s = ref[side]
                 ax_cp.plot(s['x'], -np.asarray(s['cp']), ':', color=c, lw=1.4, alpha=0.8, zorder=4)
@@ -181,5 +187,5 @@ def make_fig(re_list, out):
     print("wrote", out)
 
 
-make_fig([60, 100], "figs/eppler_resweep_lowRe.pdf")
-make_fig([300, 460], "figs/eppler_resweep_highRe.pdf")
+make_fig([60, 100], f"{PD}/figs/eppler_resweep_lowRe.pdf")
+make_fig([300, 460], f"{PD}/figs/eppler_resweep_highRe.pdf")
