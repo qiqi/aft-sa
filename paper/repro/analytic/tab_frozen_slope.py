@@ -38,7 +38,7 @@ from scipy.linalg import eigh_tridiagonal
 import _saai  # noqa: F401
 from _saai import A_MAX
 from lib.boundary_layer import FalknerSkanWedge
-from lib.correlations import dN_dRe_theta
+from lib.correlations import dN_dRe_theta, Re_theta0
 
 SIGMA_SA = 2.0/3.0
 C_CANON = 1.0/6.0
@@ -73,7 +73,8 @@ def build(beta, guess, N=6000):
     ell = (6.54*H - 14.07)/H**2
     m = (0.058*(H - 4.0)**2/(H - 1.0) - 0.068)/ell
     sDG = float(dN_dRe_theta(H))*0.5*(m + 1.0)*ell
-    return dict(y=y, h=y[1] - y[0], u=u, up=up, b=b, I_th=I_th, H=H, sDG=sDG)
+    return dict(y=y, h=y[1] - y[0], u=u, up=up, b=b, I_th=I_th, H=H, sDG=sDG,
+                Rt0=float(np.asarray(Re_theta0(H))))
 
 
 def s_ratio(pr, Re_theta, cnu):
@@ -140,25 +141,32 @@ def main():
     for pr, beta, lab in prs:
         print(f"{lab:>20} {beta:+8.4f} {pr['H']:6.2f} {s_limit_ratio(pr):7.2f}")
 
-    print("\ntab:frozeneig (ratio to Drela at Rt=200/400/800/1600):")
-    print(f"{'profile':>20} | {'c_nu,ai = 1':>27} | {'c_nu,ai = 1/6':>27}")
-    blas = {}
+    print("\ntab:frozeneig (ratio to Drela; -- where the profile is STABLE,")
+    print("Rt < Re_theta0(H), and the correlation has no growth to compare):")
+    print(f"{'profile':>20} {'Rt0':>5} | {'c_nu,ai = 1':>27} | {'c_nu,ai = 1/6':>27}")
+    blas = fav = None
     for pr, beta, lab in prs:
-        r1 = [s_ratio(pr, r, 1.0) for r in RTS]
-        rc = [s_ratio(pr, r, C_CANON) for r in RTS]
+        def cell(r, c):
+            return f"{s_ratio(pr, r, c):+6.2f}" if r > pr['Rt0'] else "    --"
+        r1 = " ".join(cell(r, 1.0) for r in RTS)
+        rc = " ".join(cell(r, C_CANON) for r in RTS)
         if lab == 'Blasius':
-            blas = dict(r1=r1, rc=rc)
-        print(f"{lab:>20} | " + " ".join(f"{v:+6.2f}" for v in r1) +
-              " | " + " ".join(f"{v:+6.2f}" for v in rc))
-    assert abs(blas['rc'][1] - 1.02) < 0.015, blas['rc']
+            blas = pr
+        if lab == 'moderate favorable':
+            fav = pr
+        print(f"{lab:>20} {pr['Rt0']:5.0f} | {r1} | {rc}")
+    assert abs(s_ratio(blas, 400.0, C_CANON) - 1.02) < 0.015
+    assert abs(s_ratio(fav, 1600.0, C_CANON) - 1.02) < 0.015
 
-    print("\nc_nu,ai sweep, Blasius decade geometric mean (text quotes "
-          "0.50/0.78/0.90/1.05/1.15):")
-    pr = next(p for p, b, l in prs if l == 'Blasius')
+    print("\nc_nu,ai ladder at the just-past-critical Blasius station Rt=400")
+    print("(text quotes 0.49/0.75/0.87/1.02/1.13) and unstable-station means")
+    print("(text quotes Blasius 0.70/0.91/1.00/1.12/1.20):")
+    rts_u = [r for r in RTS if r > blas['Rt0']]
     for c in (1.0, 0.5, 1.0/3.0, C_CANON, 1.0/12.0):
-        row = [s_ratio(pr, r, c) for r in RTS]
+        v400 = s_ratio(blas, 400.0, c)
+        row = [s_ratio(blas, r, c) for r in rts_u]
         gm = float(np.exp(np.mean(np.log(np.maximum(row, 1e-9)))))
-        print(f"  c = {c:6.4f}: mean {gm:5.2f}, spread x{max(row)/min(row):4.1f}")
+        print(f"  c = {c:6.4f}: Rt400 {v400:5.2f}, unstable-mean {gm:5.2f}")
 
     print("\nungated neutral point at c=1/6 (text: ~20 on Blasius):")
     for pr, beta, lab in prs[:3]:

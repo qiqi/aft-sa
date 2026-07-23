@@ -641,13 +641,17 @@ one symmetric tridiagonal eigenvalue; on the reversed-flow profiles the
 advection is floored at $0.02\,U_e$, to which the result is insensitive
 (floors $0.01$--$0.05\,U_e$ move no printed digit). Here
 $c_{\nu,\mathrm{ai}}$ is a scale on the molecular coefficient, equal to
-one until decided otherwise. Table~\ref{tab:frozeneig} carries the result. With the
+one until decided otherwise. Table~\ref{tab:frozeneig} carries the
+result, at the stations where each profile is unstable by the
+Drela--Giles criterion ($Re_\theta\!>\!Re_{\theta 0}(H)$, third column):
+below its critical Reynolds number a profile earns no envelope growth,
+and there is nothing to compare against. With the
 coefficient untouched ($c_{\nu,\mathrm{ai}}\!=\!1$, left half), the
-equation declines the correlation: in the decade
-$Re_\theta\!=\!200$--$1600$ where the attached profiles actually
-transition, the Blasius slope runs at half of Drela's ($0.19$--$0.94$
-across the decade, geometric mean $0.50$), and the favorable wedge is
-\emph{negative}---net decay---at $Re_\theta\!=\!200$. At full molecular
+equation declines the correlation everywhere the family grows: half of
+Drela's slope just past the Blasius critical station ($0.49$ at
+$Re_\theta\!=\!400$), $0.63$ at the favorable wedge's lone unstable
+station, and $0.64$--$0.85$ even on the separation branch, where
+diffusion should matter least. At full molecular
 diffusion the drain does not perturb the growth; it overwhelms it.
 
 So we let the disturbance keep less of it. The laminar viscosity in the
@@ -661,15 +665,16 @@ $c_{\nu,\mathrm{ai}}\!<\!1$,
 leaving the mean-flow viscosity, the SA production and destruction, and the
 definition $\chi=\tilde\nu/\nu$ (formed with the \emph{true} $\nu$)
 untouched. How much less, the eigenvalue decides, read against a
-constraint that pulls the other way. Sweeping the coefficient down, the
-Blasius decade mean climbs from $0.50$ through $0.78$, $0.90$, $1.05$ to
-$1.15$ at $c_{\nu,\mathrm{ai}}=1,\tfrac12,\tfrac13,\tfrac16,\tfrac1{12}$,
-and its decade spread collapses from $\times5.0$ to $\times1.4$ by
-$\tfrac16$; the other attached profiles move in step (the moderate
-adverse mean crosses unity between $\tfrac13$ and $\tfrac16$; the
-favorable wedge turns positive throughout the decade by $\tfrac12$).
-Proximity alone would keep halving the coefficient toward the inviscid
-ceiling, but the coupled solver pushes back: the molecular floor sets
+constraint that pulls the other way. Halving the coefficient down the
+ladder $c_{\nu,\mathrm{ai}}=1,\tfrac12,\tfrac13,\tfrac16,\tfrac1{12}$,
+the station just past the Blasius critical ($Re_\theta\!=\!400$) climbs
+$0.49$, $0.75$, $0.87$, $1.02$, $1.13$: the growth arrives on the
+correlation at $\tfrac16$ and overshoots past it. The family arrives
+together---the favorable wedge's lone unstable station reads $1.02$ at
+the same $\tfrac16$, and the moderate adverse crosses unity between
+$\tfrac13$ and $\tfrac16$ ($1.04$ at $Re_\theta\!=\!400$). Pressing
+further toward the inviscid ceiling would buy nothing the correlation
+asks for, and the coupled solver pushes back: the molecular floor sets
 the smallest wall-normal scale the $\tilde\nu$ field can develop, the
 equilibrium band thickness scaling as $\sqrt{c_{\nu,\mathrm{ai}}}$, so
 every halving thins the disturbance band the mesh must resolve by
@@ -677,14 +682,12 @@ $\sqrt2$. We stop at
 \begin{equation*}
   c_{\nu,\mathrm{ai}} \;=\; \tfrac{1}{6},
 \end{equation*}
-where the attached decade centers on the correlation---Blasius $1.02$ at
-$Re_\theta\!=\!400$ and the moderate adverse $1.04$, the favorable wedge
-climbing through unity at the high-$Re_\theta$ stations where favorable
-layers actually reach transition, the separation branch holding
-$0.82$--$0.91$ across the decade (right half of
-Table~\ref{tab:frozeneig})---and the next
-halving would push Blasius and the adverse wedge $10$--$15\%$ past the
-correlation while thinning the band another $\sqrt2$. The
+where the just-past-critical stations sit on the correlation and the
+separation branch holds $0.82$--$0.91$ (right half of
+Table~\ref{tab:frozeneig}); what remains is a mild drift above it later
+in each profile's unstable decade (Blasius $1.21$ by
+$Re_\theta\!=\!1600$, where transition on that layer is already
+complete)---the asymptotic climb the next paragraph takes up. The
 negative-$\tilde\nu$ safeguards~\cite{allmaras_2012} carry over with one
 consistency requirement: the negative-branch factor $f_n$ is formed with
 the scaled coefficient $c_{\nu,\mathrm{ai}}\,\nu$, which keeps the total
@@ -698,32 +701,36 @@ diffusivity positive, $c_{\nu,\mathrm{ai}}\nu + f_n\tilde\nu\!>\!0$.
   retained---as a ratio to the Drela--Giles rate $s_{\mathrm{DG}}/\theta$
   across the transitional decade $Re_\theta=200$--$1600$, at the untouched
   molecular coefficient ($c_{\nu,\mathrm{ai}}\!=\!1$) and at the adopted
-  $c_{\nu,\mathrm{ai}}\!=\!\tfrac16$. Each entry is one symmetric
-  tridiagonal eigenvalue ($u^{1/2}$ similarity; $v\!=\!0$ at the wall and
-  the far field; reversed-flow advection floored at $0.02\,U_e$, floors
-  $0.01$--$0.05$ moving no printed digit). Starred rows are reversed-flow
-  (Stewartson lower-branch) solutions; the $Re_\theta\!\to\!\infty$ limit
-  of every row is Table~\ref{tab:ratelimit}.}
+  $c_{\nu,\mathrm{ai}}\!=\!\tfrac16$. Entries appear only at stations
+  above the profile's Drela--Giles critical Reynolds number
+  $Re_{\theta 0}(H)$ (third column): where the profile is stable, the
+  correlation has no growth to compare against. Each entry is one
+  symmetric tridiagonal eigenvalue ($u^{1/2}$ similarity; $v\!=\!0$ at
+  the wall and the far field; reversed-flow advection floored at
+  $0.02\,U_e$, floors $0.01$--$0.05$ moving no printed digit). Starred
+  rows are reversed-flow (Stewartson lower-branch) solutions; the
+  $Re_\theta\!\to\!\infty$ limit of every row is
+  Table~\ref{tab:ratelimit}.}
   \label{tab:frozeneig}
-  \begin{tabular}{lr cccc cccc}
+  \begin{tabular}{lrr cccc cccc}
     \toprule
-    & & \multicolumn{4}{c}{$c_{\nu,\mathrm{ai}}=1$}
+    & & & \multicolumn{4}{c}{$c_{\nu,\mathrm{ai}}=1$}
       & \multicolumn{4}{c}{$c_{\nu,\mathrm{ai}}=1/6$}\\
-    \cmidrule(lr){3-6}\cmidrule(lr){7-10}
-    profile & $\beta$ & $200$ & $400$ & $800$ & $1600$
+    \cmidrule(lr){4-7}\cmidrule(lr){8-11}
+    profile & $\beta$ & $Re_{\theta 0}$ & $200$ & $400$ & $800$ & $1600$
                       & $200$ & $400$ & $800$ & $1600$\\
     \midrule
-    moderate favorable & $+0.10$ & $-0.11$ & $0.10$ & $0.37$ & $0.63$
-                                 & $0.53$ & $0.76$ & $0.91$ & $1.02$\\
-    Blasius            & $0$     & $0.19$ & $0.49$ & $0.75$ & $0.94$
-                                 & $0.87$ & $1.02$ & $1.13$ & $1.21$\\
-    moderate adverse   & $-0.10$ & $0.50$ & $0.72$ & $0.87$ & $0.99$
+    moderate favorable & $+0.10$ & $827$ & -- & -- & -- & $0.63$
+                                 & -- & -- & -- & $1.02$\\
+    Blasius            & $0$     & $242$ & -- & $0.49$ & $0.75$ & $0.94$
+                                 & -- & $1.02$ & $1.13$ & $1.21$\\
+    moderate adverse   & $-0.10$ & $97$ & $0.50$ & $0.72$ & $0.87$ & $0.99$
                                  & $0.94$ & $1.04$ & $1.11$ & $1.16$\\
-    separation limit   & $-0.1988$ & $0.64$ & $0.72$ & $0.79$ & $0.83$
+    separation limit   & $-0.1988$ & $36$ & $0.64$ & $0.72$ & $0.79$ & $0.83$
                                  & $0.82$ & $0.86$ & $0.89$ & $0.91$\\
-    separated, shallow$^\ast$ & $-0.19$ & $0.68$ & $0.75$ & $0.80$ & $0.85$
+    separated, shallow$^\ast$ & $-0.19$ & $26$ & $0.68$ & $0.75$ & $0.80$ & $0.85$
                                  & $0.83$ & $0.87$ & $0.89$ & $0.91$\\
-    separated, deep$^\ast$    & $-0.12$ & $0.34$ & $0.37$ & $0.40$ & $0.41$
+    separated, deep$^\ast$    & $-0.12$ & $13$ & $0.34$ & $0.37$ & $0.40$ & $0.41$
                                  & $0.41$ & $0.42$ & $0.43$ & $0.44$\\
     \bottomrule
   \end{tabular}
