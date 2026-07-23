@@ -573,8 +573,8 @@ inviscid, so the continuum is Reynolds-free and closed by the eigenvalue, and
 the viscous inception is carried by the separate $Re_\Omega$ gate
 (\S\ref{sec:onset}).
 
-\subsection{The onset threshold and the diffusion of the disturbance}%
-\label{sec:onset}\label{sec:calib_onset}\label{sec:nulamscale}
+\subsection{The onset threshold}%
+\label{sec:onset}
 The rate \eqref{eq:rate} is Reynolds-free; the viscous inception is a separate,
 multiplicative gate on the vorticity Reynolds number, rising smoothly from $0$
 to $1$,
@@ -615,8 +615,9 @@ parameter anywhere.
   $\hat S g$) side, an additive floor toward separation. The separated
   reversed-flow profile rides above the threshold at its own
   $Re_{\theta c}$---it ignites immediately. The compensation scale $k$ of
-  Eq.~\eqref{eq:reomc} is not set here but by the Blasius $N\!=\!1$ anchor,
-  after the diffusion of the disturbance is decided.}
+  Eq.~\eqref{eq:reomc} is not set here but in
+  Sec.~\ref{sec:nulamscale}, after the diffusion of the disturbance is
+  decided.}
   \label{fig:onsetgraze}
 \end{figure}
 
@@ -641,14 +642,27 @@ We represent the shape by a soft minimum of the two limits,
   \qquad (C,\,A,\,B) \;=\; (2600,\;175,\;2),
   \label{eq:reomc}
 \end{equation}
-with $\operatorname{softmin}_2(x_1,x_2)\!=\!x_1 x_2/\sqrt{x_1^2+x_2^2}$. The
+with $\operatorname{softmin}_2(x_1,x_2)\!=\!x_1 x_2/\sqrt{x_1^2+x_2^2}$; the
 graze fixes the three shape constants (the soft-min exponent $2$ is the best
-of the sharpnesses tried), and they are never refit. What remains is the
-single scale $k$, and it cannot be set from the profiles alone: it depends on
-how strongly the working variable diffuses \emph{while} it amplifies---a
-property of the transport equation, not of the profiles. So we stop
-prescribing, and let the transport equation show what it needs.
+of the sharpnesses tried), and they are never refit.
 
+That leaves the single scale $k$, and its role is physical. Linear theory
+knows only the profile; the working variable that must carry the
+amplification also \emph{diffuses}, with the molecular viscosity of the
+fluid, all the while it grows. Relative to the growth the drain scales like
+$1/Re_\theta$ per $e$-fold, so it is felt precisely where the threshold sits
+low---thin layers, inception at small $Re_\theta$---and fades to nothing at
+the favorable-side ceiling, where a layer is thick before it may ignite. On
+the low branch, then, an amplification that linear theory declares begun is,
+for a while, still losing to viscosity: net growth starts late. The
+compensation is to permit inception \emph{earlier} than the inviscid graze by
+one factor $k\!<\!1$ on the low branch alone---the ceiling keeps its inviscid
+value---so that net growth begins where linear theory says it should. How
+large the compensation must be depends on how much molecular diffusion the
+working variable retains, which is the subject of the next subsection.
+
+\subsection{The diffusion of the disturbance and the onset scale}%
+\label{sec:nulamscale}\label{sec:calib_onset}
 The instrument is the model's own equation, reduced to a parabolized march:
 in non-dimensional boundary-layer variables (length in $\nu/U_\infty$,
 velocity in $U_\infty$),
@@ -663,29 +677,60 @@ diffusion (the $\tilde\nu\,\nabla^2\tilde\nu$ self-diffusion and $c_{b2}$
 gradient terms are $O(\chi)$ smaller in this range and are dropped; no SA
 production or destruction enters---those belong to the turbulent side,
 Sec.~\ref{sec:blend}). Here $c_{\nu,\mathrm{ai}}$ is a scale on the molecular
-coefficient whose value---including whether it can simply remain
-unity---is decided next. The march is seeded $\hat\nu_\infty\!=\!1$ at the
-leading edge, so $N\!=\!\ln\hat\nu$ is the amplification factor by
-construction, and its envelope can be laid directly against
-Drela--Giles~\cite{drela_giles_1987}.
+coefficient, equal to one until decided otherwise. The march is seeded
+$\hat\nu_\infty\!=\!1$ at the leading edge, so $N\!=\!\ln\hat\nu$ is the
+amplification factor by construction, and its envelope can be laid directly
+against Drela--Giles~\cite{drela_giles_1987}. (The crossings quoted in this
+subsection are grid-converged values of the march; the $N\!=\!1$ crossing in
+particular demands a fine wall-normal grid, the amplifying band being thin
+where inception occurs.)
 
-Marched as it stands ($c_{\nu,\mathrm{ai}}\!=\!1$), the equation declines both
-tasks this subsection needs from it. First, the envelope refuses the $e^N$
-form: on the Blasius layer the early secant of $N(Re_\theta)$
-(the $N\!\in\![1,5]$ span) runs $24\%$ below the late one
-($N\!\in\![5,9]$), where the envelope's own curvature---the $c_{\nu,
-\mathrm{ai}}\!\to\!0$ limit of the same march---is under $1\%$: the bend is
-almost entirely the molecular smearing, which drains the young disturbance
-fastest where the layer is thinnest and bends the envelope away from the
-very correlation the rate was built on. Second, the anchor fails outright:
-the Blasius $N\!=\!1$ crossing sits at $Re_\theta\!=\!392$ even with the low
-branch of the threshold removed entirely---at full molecular diffusion the
-inception is set by the drain, not by the threshold, and no value of $k$
-exists. The transport is telling us plainly that the molecular coefficient it
-inherits from the mean flow is too strong for the sub-$O(1)$ disturbance it
-is asked to carry. (The crossings quoted here and below are grid-converged
-values of the march; the $N\!=\!1$ crossing in particular demands a fine
-wall-normal grid, the amplifying band being thin where inception occurs.)
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.99\textwidth]{fs_nuHat_rows.pdf}
+  \caption{The disturbance transport \eqref{eq:transport} on three wedge
+  flows---adverse ($\beta\!=\!-0.10$, top), Blasius ($\beta\!=\!0$, middle:
+  the calibration anchor), and favorable ($\beta\!=\!+0.30$, bottom)---seeded
+  $\hat\nu_\infty\!=\!1$, $a_{\max}=0.19$.
+  \textbf{Left column} (a,c,e): contours of $N\!=\!\ln\hat\nu$ (canonical
+  model) in the local-Reynolds plane, concentrated between the overlaid
+  momentum thickness $\theta$ (dashed) and edge thickness $\delta_{99}$
+  (solid) where the amplifying band sits. \textbf{Right column} (b,d,f): two
+  marched envelopes $\max_y\hat\nu$ vs $Re_\theta$ (log left axis; $N$ linear
+  right axis) against each profile's Drela--Giles
+  envelope~\cite{drela_giles_1987} (red dashed): the \emph{untouched}
+  equation ($c_{\nu,\mathrm{ai}}\!=\!1$, $k\!=\!1$; grey), whose envelope
+  falls far short of the correlation---the molecular drain both bends the
+  growth and delays inception---and the canonical model
+  ($c_{\nu,\mathrm{ai}}\!=\!1/6$, $k\!=\!0.71$; black). On the anchor (d) the
+  canonical envelope meets the correlation at $N\!=\!1$ by construction
+  (Sec.~\ref{sec:calib_onset}); its $N\!=\!9$ crossing is an untuned
+  prediction, $7\%$ past Drela's. The adverse wedge (b) ignites earlier and
+  grows faster. The favorable wedge (f) has $\hat S g\!\to\!0$: the rate all
+  but vanishes and transition is pushed an order of magnitude past the
+  Blasius $Re_\theta$, approaching the vanishing favorable growth the Drela
+  envelope requires---with no pressure-gradient parameter anywhere. A
+  physical case seeded with $\chi_\infty$ hands over where its envelope
+  crosses $N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)$ ($\chi\!=\!c_{v1}$).}
+  \label{fig:nuhat}
+\end{figure}
+
+The effect the scale must compensate is plain when the equation is marched as
+it stands. The grey envelopes of Fig.~\ref{fig:nuhat} carry
+$c_{\nu,\mathrm{ai}}\!=\!1$ and $k\!=\!1$---the molecular coefficient
+untouched, the threshold at its inviscid graze---and the equation declines
+both tasks this section needs from it. The envelope refuses the $e^N$ form:
+on the Blasius layer the early secant of $N(Re_\theta)$ (the
+$N\!\in\![1,5]$ span) runs $24\%$ below the late one ($N\!\in\![5,9]$), where
+the envelope's own curvature---the $c_{\nu,\mathrm{ai}}\!\to\!0$ limit of the
+same march---is under $1\%$: the bend is almost entirely the molecular
+smearing, which drains the young disturbance fastest where the layer is
+thinnest. And the anchor fails outright: the Blasius $N\!=\!1$ crossing sits
+at $Re_\theta\!=\!392$ even with the low branch of the threshold removed
+entirely---at full molecular diffusion the inception is set by the drain, not
+by the threshold, and no value of $k$ exists. The transport is telling us
+plainly that the molecular coefficient it inherits from the mean flow is too
+strong for the sub-$O(1)$ disturbance it is asked to carry.
 
 We therefore let the disturbance keep less of it. The laminar viscosity in
 the SA diffusion term---and only there---is scaled by a constant factor
@@ -716,22 +761,15 @@ by $\sqrt2$. We stop at
 the largest coefficient that holds the anchored $N\!=\!9$ prediction inside
 the scatter of the $e^N$ correlations themselves ($\sim\!7\%$); the next
 halving would buy four points of $N\!=\!9$ agreement at the price of a
-$\sqrt2$-thinner band. The negative-$\tilde\nu$ safeguards~\cite{allmaras_2012}
-carry over with one consistency requirement: the negative-branch factor
-$f_n$ is formed with the scaled coefficient $c_{\nu,\mathrm{ai}}\,\nu$, which
-keeps the total diffusivity positive,
+$\sqrt2$-thinner band. The negative-$\tilde\nu$
+safeguards~\cite{allmaras_2012} carry over with one consistency requirement:
+the negative-branch factor $f_n$ is formed with the scaled coefficient
+$c_{\nu,\mathrm{ai}}\,\nu$, which keeps the total diffusivity positive,
 $c_{\nu,\mathrm{ai}}\nu + f_n\tilde\nu\!>\!0$.
 
-With the diffusion set, the threshold asks for its compensation, and the
-drain's own structure says where. Relative to the growth, the molecular
-drain scales like $1/Re_\theta$ per $e$-fold: it burdens the thin-layer side
-of the threshold---the additive floor, where inception happens at low
-$Re_\theta$---and fades to nothing at the favorable-side ceiling, where the
-layer is thick before it may ignite. The compensation factor $k$ in
-Eq.~\eqref{eq:reomc} therefore multiplies the low branch alone and leaves the
-ceiling at its inviscid graze value. Its magnitude comes from the same single
-anchor as before, stated operationally: $k$ is chosen so that the march
-\eqref{eq:transport}, on the Blasius layer at the committed
+With the diffusion set, the compensation of Sec.~\ref{sec:onset} takes its
+value from the same single anchor, stated operationally: $k$ is chosen so
+that the march \eqref{eq:transport}, on the Blasius layer at the committed
 $c_{\nu,\mathrm{ai}}\!=\!\tfrac16$, crosses $N\!=\!1$ at the Drela--Giles
 station $Re_\theta\!=\!338$; this gives $k\!=\!0.71$---the threshold
 permitting inception $29\%$ earlier than the inviscid graze, the drain
@@ -750,20 +788,22 @@ one point, carrying the family's two-decade threshold variation.
 \begin{figure}[tp]
   \centering
   \includegraphics[width=\textwidth]{model_calibrate.pdf}
-  \caption{The model compared with the Drela--Giles envelope across the full
-  Falkner--Skan family, from the stagnation profile ($H\!\approx\!2.2$) through
-  Blasius ($H\!\approx\!2.59$) and the separation limit ($H\!=\!4.03$, dotted)
-  onto the reversed-flow (Stewartson lower) branch ($H\!\approx\!10.6$;
-  separated region shaded). (a)~model rate $\mathrm dN/\mathrm dRe_\theta$ as an
-  early ($N\!\in\![1,5]$) and a late ($N\!\in\![5,9]$) secant, band shaded---set
-  entirely by the fixed eigenvalue $a_{\max}\!=\!0.19$, with nothing tuned to
-  this curve. (b)~model onset $Re_\theta$ (the $N\!=\!1$ crossing), reflecting
-  the one calibrated function, the threshold $Re_\Omega^{\mathrm c}(\hat S g)$
-  \eqref{eq:reomc}: anchored at Blasius, tracking the Drela--Giles stations
-  within ${\sim}\pm15\%$ across the attached family. Both axes span the Drela
-  range only, so the strongly favorable profiles---where the rate falls faster
-  than Drela's and the onset rises above the critical Reynolds number---run
-  off the panel edges.}
+  \caption{The calibrated model compared with the Drela--Giles envelope
+  across the full Falkner--Skan family, from the stagnation profile
+  ($H\!\approx\!2.2$) through Blasius ($H\!\approx\!2.59$) and the separation
+  limit ($H\!=\!4.03$, dotted) onto the reversed-flow (Stewartson lower)
+  branch ($H\!\approx\!10.6$; separated region shaded). (a)~model rate
+  $\mathrm dN/\mathrm dRe_\theta$ as an early ($N\!\in\![1,5]$) and a late
+  ($N\!\in\![5,9]$) secant, band shaded---set entirely by the fixed
+  eigenvalue $a_{\max}\!=\!0.19$, with nothing tuned to this curve.
+  (b)~model onset $Re_\theta$ (the $N\!=\!1$ crossing) against the
+  Drela--Giles $N\!=\!1$ station $Re_{\theta 0}+1/(dN/dRe_\theta)$,
+  reflecting the one calibrated function, the threshold
+  $Re_\Omega^{\mathrm c}(\hat S g)$ \eqref{eq:reomc}: anchored at Blasius,
+  tracking the stations within ${\sim}\pm10\%$ across the attached family.
+  Both vertical axes extend slightly past the Drela range to show the
+  favorable-regime departure---the rate falling below, the onset rising
+  above---before the curves leave the panels.}
   \label{fig:calibrate}
 \end{figure}
 
@@ -784,31 +824,6 @@ past the Blasius $Re_\theta$. The linear $\hat S g$ has no
 near-neutral floor to hold the small favorable growth Drela's envelope keeps;
 matching the favorable branch is left to future work.
 
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.99\textwidth]{fs_nuHat_rows.pdf}
-  \caption{The disturbance transport \eqref{eq:transport} with the sphere kernel
-  on three wedge flows---adverse ($\beta\!=\!-0.10$, top), Blasius
-  ($\beta\!=\!0$, middle: the calibration anchor), and favorable
-  ($\beta\!=\!+0.30$, bottom)---seeded $\hat\nu_\infty\!=\!1$, $a_{\max}=0.19$,
-  $c_{\nu,\mathrm{ai}}\!=\!1/6$.
-  \textbf{Left column} (a,c,e): contours of $N\!=\!\ln\hat\nu$ in the
-  local-Reynolds plane, concentrated between the overlaid momentum thickness
-  $\theta$ (dashed) and edge thickness $\delta_{99}$ (solid) where the
-  amplifying band sits. \textbf{Right column} (b,d,f): the envelopes
-  $\max_y\hat\nu$ vs $Re_\theta$ (log left axis; $N$ linear right axis) against
-  each profile's Drela--Giles envelope~\cite{drela_giles_1987} (red dashed).
-  On the anchor (d) the envelope meets the correlation at $N\!=\!1$ by
-  construction (the onset anchor of Sec.~\ref{sec:calib_onset}); its $N\!=\!9$
-  crossing is an untuned prediction, $7\%$ past Drela's. The
-  adverse wedge (b) ignites earlier and grows faster. The favorable wedge (f)
-  has $\hat S g\!\to\!0$: the rate all but vanishes and transition is pushed an
-  order of magnitude past the Blasius $Re_\theta$, approaching the vanishing
-  favorable growth the Drela envelope requires---with no pressure-gradient
-  parameter anywhere. A physical case seeded with $\chi_\infty$ hands over where its
-  envelope crosses $N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)$ ($\chi\!=\!c_{v1}$).}
-  \label{fig:nuhat}
-\end{figure}
 \subsection{The blend and its handover}\label{sec:blend}\label{sec:calib_diff}
 A handover weight ties the laminar and turbulent regimes to the single state
 variable through $\chi$,
@@ -1195,7 +1210,7 @@ The SA-AI constants are
     (C,\,A,\,B;\;k)&=(2600,\;175,\;2;\;0.71) &&\text{onset threshold $Re_\Omega^{\mathrm c}(\hat S g)$: shape from the LST graze (Fig.~\ref{fig:onsetgraze}, never refit); $k$ compensates the laminar drain on the low branch, anchored at the Blasius $N\!=\!1$ inception (Sec.~\ref{sec:calib_onset});}\\
     w&=0.35 &&\text{onset ramp width scale;}\\
     \tau&=4 &&\text{production handover width (Sec.~\ref{sec:calib_diff});}\\
-    c_{\nu,\mathrm{ai}}&=\tfrac{1}{6} &&\text{laminar-diffusion reduction: the largest value whose added envelope bend does not exceed the envelope's intrinsic curvature (Sec.~\ref{sec:nulamscale});}\\
+    c_{\nu,\mathrm{ai}}&=\tfrac{1}{6} &&\text{laminar-diffusion reduction: the largest value holding the anchored $N\!=\!9$ prediction inside the $e^N$ correlations' scatter (Sec.~\ref{sec:nulamscale});}\\
     N_\mathrm{crit}(Tu)&=-8.43-2.4\ln Tu_\mathrm{frac} &&\text{Mack $e^N$ receptivity map, Eq.~\eqref{eq:tumap}, adopted wholesale \cite{mack_1977}.}
   \end{aligned}
 \end{equation*}

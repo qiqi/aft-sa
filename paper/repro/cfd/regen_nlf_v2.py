@@ -472,7 +472,10 @@ def find_x_at_chi(xs, chi, chi_target):
     return xs[idx-1] + f * (xs[idx] - xs[idx-1])
 
 # Load mfoil reference
-mn = pickle.load(open(f"{B}/mfoil_nlf0416_Re4M.pkl", 'rb'))
+try:
+    mn = pickle.load(open(f"{B}/mfoil_nlf0416_Re4M.pkl", 'rb'))
+except FileNotFoundError:   # reference pickle absent (fresh case tree);
+    mn = {}                  # figure overlays degrade, campaign helpers unaffected
 
 _ffn_path = "/home/qiqi/flexcompute/sa-ai/flow360_ai/flexfoil_nlf0416_Re4M.pkl"
 ffn = pickle.load(open(_ffn_path, 'rb')) if os.path.exists(_ffn_path) else {}

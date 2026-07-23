@@ -1,13 +1,15 @@
 """Sphere-kernel airfoil campaign: fresh-converge each canonical case IN PLACE
-in flow360_fr (reuse existing meshes; figures read SAAI_CFD_ROOT=flow360_fr),
-4 concurrent on GPUs 0-3 ONLY (agent on 4-7).
+in flow360_fr (reuse existing meshes; figures read SAAI_CFD_ROOT=flow360_fr).
 
 Per case: reset solution state (keep mesh) -> converge_by_xtr (current sphere
-binary, AI_SA=1, AI_LAMINAR_SLOWDOWN=0.01, default c_nu,ai=1/12) -> record
-CL/CD/x_tr -> delete solver.log to stay light on disk. Post-proc
-(add_derived_to_slice) and figure regen are done separately.
+binary, AI_SA=1, AI_LAMINAR_SLOWDOWN=0.01; kernel constants = the compiled
+canonical defaults, c_nu,ai=1/6 + softmin_2(2600, 0.708*[175+2/(Sg)^2]),
+echoed into ai_constants.log per case for provenance) -> record CL/CD/x_tr ->
+delete solver.log to stay light on disk. Post-proc (add_derived_to_slice) and
+figure regen are done separately.
 
-Usage: python3 run_sphere_campaign.py <set>   set in {nlf, eppler, epp_sweep}
+Usage: python3 run_sphere_campaign.py <set> [gpus]
+  set in {nlf, eppler, epp_sweep}; gpus a comma list (default 0,1,2,3).
 """
 import os, sys, json, shutil, subprocess, threading, queue, time, glob, csv
 
@@ -15,8 +17,9 @@ FR = "/home/qiqi/flexcompute/sa-ai/flow360_fr"
 AI = "/home/qiqi/flexcompute/sa-ai/flow360_ai"
 PP = ("/home/qiqi/flexcompute/sa-ai/paper/repro/cfd:"
       "/home/qiqi/flexcompute/sa-ai/paper/repro:"
-      "/home/qiqi/flexcompute/sa-ai/paper")
-GPUS = [0, 1, 2, 3]
+      "/home/qiqi/flexcompute/sa-ai/paper:"
+      "/home/qiqi/flexcompute/flexfoil/rans")
+GPUS = [0, 1, 2, 3]   # default; override with argv[2] as e.g. 4,5,6,7
 
 SETS = {
     'nlf': [f"{m}{L}prop_nlf0416_Re4M_a{a}"
@@ -92,7 +95,7 @@ def worker(gpu, q, results, lock):
         reset(d)
         log = open(f"/tmp/camp_{name}.log", "w")
         rc = subprocess.run(
-            ['python3', f"{AI}/converge_by_xtr.py", d,
+            ['python3', '/home/qiqi/flexcompute/sa-ai/paper/repro/driver/converge_by_xtr.py', d,
              '--batch', '5000', '--gpu', str(gpu),
              '--max-batches', '16', '--min-batches', '2', '--tol', '0.01'],
             env=env, stdout=log, stderr=subprocess.STDOUT).returncode
@@ -101,6 +104,15 @@ def worker(gpu, q, results, lock):
         r = parse(d)
         r['converged'] = conv
         r['dt_min'] = round((time.time() - t0) / 60, 1)
+        # preserve the resolved-constants echo before dropping solver.log
+        try:
+            lines = open(f"{d}/solver.log", errors='ignore').readlines()
+            i = next((j for j, l in enumerate(lines)
+                      if 'SA-AI transition constants' in l), None)
+            if i is not None:
+                open(f"{d}/ai_constants.log", 'w').writelines(lines[i:i + 16])
+        except OSError:
+            pass
         # stay light on disk: solver.log can be ~100 MB
         for f in glob.glob(f"{d}/solver.log"):
             try:
@@ -115,6 +127,9 @@ def worker(gpu, q, results, lock):
 
 def main():
     which = sys.argv[1] if len(sys.argv) > 1 else 'nlf'
+    global GPUS
+    if len(sys.argv) > 2:
+        GPUS = [int(g) for g in sys.argv[2].split(',')]
     cases = SETS[which]
     print(f"=== campaign '{which}': {len(cases)} cases on GPUs {GPUS} ===", flush=True)
     q = queue.Queue()

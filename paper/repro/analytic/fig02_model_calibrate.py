@@ -88,17 +88,23 @@ def main():
                  label=r'model early ($N\!\in\![1,5]$)')
     axa.semilogy(H[m], sl[m], '-^', color='C0', ms=4.5, lw=1.3,
                  label=r'model late ($N\!\in\![5,9]$)')
-    style(axa, r'$dN/dRe_\theta$', (drela_g.min(), drela_g.max()))
+    # y extended below the Drela range to show the favorable-regime shortfall
+    style(axa, r'$dN/dRe_\theta$', (drela_g.min()/12.0, drela_g.max()*1.3))
     axa.legend(fontsize=8.0, loc='upper left')
     axa.text(0.96, 0.06, '(a)', transform=axa.transAxes, fontsize=12,
              fontweight='bold', ha='right')
 
     # ---- (b) onset Re_theta (N=1) vs H, single color ----
-    axb.semilogy(Hg, Rtc_g, 'k--', lw=1.8, label=r'Drela critical $Re_{\theta 0}$')
+    N1_g = Rtc_g + 1.0/drela_g   # Drela-Giles N=1 station: critical + 1/(dN/dRe_theta)
+    axb.semilogy(Hg, Rtc_g, '--', color='0.55', lw=1.4,
+                 label=r'Drela critical $Re_{\theta 0}$')
+    axb.semilogy(Hg, N1_g, 'k--', lw=1.8,
+                 label=r'Drela--Giles $N\!=\!1$ station')
     m = np.isfinite(R)
     axb.semilogy(H[m], R[m], '-o', color='C0', ms=4.5, lw=1.3, mfc='white',
-                 label='model onset')
-    style(axb, r'onset $Re_\theta$', (Rtc_g.min(), Rtc_g.max()))
+                 label=r'model $N\!=\!1$ crossing')
+    # y extended past the Drela range to show the favorable-regime overshoot
+    style(axb, r'onset $Re_\theta$', (Rtc_g.min(), N1_g.max()*4.0))
     axb.legend(fontsize=8.0, loc='upper right')
     axb.text(0.96, 0.06, '(b)', transform=axb.transAxes, fontsize=12,
              fontweight='bold', ha='right')

@@ -576,8 +576,11 @@ def find_x_at_chi(xs, chi, chi_target):
 # so for those incidences we substitute the XFOIL e^9 solution (which converges
 # cleanly, C_l=1.17) for the Cp/Cf reference -- consistent with Table~\ref{tab:eppxtr}.
 # XFOIL's dump carries no amplification envelope, so no reference N is drawn there.
-mn = pickle.load(open(f"{B}/mfoil_eppler387_Re200k.pkl", 'rb'))
-xn = pickle.load(open(f"{B}/xfoil_eppler387_Re200k.pkl", 'rb'))
+try:
+    mn = pickle.load(open(f"{B}/mfoil_eppler387_Re200k.pkl", 'rb'))
+    xn = pickle.load(open(f"{B}/xfoil_eppler387_Re200k.pkl", 'rb'))
+except FileNotFoundError:   # reference pickles absent (fresh case tree);
+    mn, xn = {}, {}          # figure overlays degrade, campaign helpers unaffected
 MFOIL_UNRELIABLE = {7.0}   # alpha (deg) where mfoil stalls numerically -> use XFOIL
 def ref_for(alpha):
     """(reference dict, tag, has_N) for the viscous e^9 overlay at this alpha."""
