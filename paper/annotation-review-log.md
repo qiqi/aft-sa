@@ -1652,3 +1652,12 @@ Addressed this round: **M3** (N=9 is an untuned prediction; Fig. 4 caption + Con
 Deferred (handled separately): M1, M2 (Daedalus Q1/Q2 / predecessor-kernel evidence), M4 (N=1 anchor operational definition), M7 (signed-vs-magnitude 3D), M12 (onset-collapse figure), M13 (Fig. 1 PDF on other machine), M16 (section reordering), M17 (Sec6/AppB numbers), M18a (literature table), M18c (flat-plate grid statement), minors 13, 17, 20.
 
 Side effect: removed the duplicate `alam_sandham_2000` bib entry (it aborted bibtex before the new entries); kept the correct JFM 410, 1–28 copy. Build clean except the known missing `figs/indicator_sphere.pdf`.
+
+## 2026-07-23 agent-review round 2 (agent-paper-review/2026-07-23-0807.md)
+Addressed alongside the Section II restructure (II.D onset+diffusion, II.E
+handover). All 6 new majors and 12 of 13 new minors resolved; item-by-item in
+agent-paper-review/2026-07-23-0910-response.md. Pass-1 M1/M2/M7/M17/M18a/M18c
+remain owed. NOTE: review pass 2 indirectly exposed a real defect — the
+marched N=1/N=9 crossings were wall-normal-resolution sensitive; all quoted
+crossings now come from the grid-converged instrument and the onset scale k
+is re-anchored there.

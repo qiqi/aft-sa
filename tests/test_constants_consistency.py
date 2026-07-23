@@ -23,22 +23,23 @@ from pathlib import Path
 
 # ---------------------------------------------------------------------------
 # THE canonical set: sphere kernel, compute/ModelConstants.h (explore-lambda-v).
-# Onset shape from the LST neutral-point graze of the Falkner-Skan family at
-# (2600, 175, 2) with n=2; one scale k=0.64 anchored at the marched Blasius
-# N=1 crossing (Drela Re_theta=338); constants below are the absorbed k*(...).
+# Onset shape (2600, 175, 2) from the LST neutral-point graze, n=2; the
+# drain-compensation scale k=0.708 (at c_nu,ai=1/6) multiplies the LOW BRANCH
+# only (ceiling unscaled), anchored at the GRID-CONVERGED Blasius N=1
+# crossing (Drela Re_theta=338).
 # Edit here only when the model changes; every other source must match.
 # ---------------------------------------------------------------------------
 CANON = {
     "a_max":        0.19,       # Michalke free-shear (tanh-layer) eigenvalue 0.1897
-    "reOmCeil":     1670.0,     # onset soft-min ceiling (favorable side)
-    "reOmA":        112.0,      # onset near-separation additive floor
-    "reOmB":        1.28,       # onset inverse-square coefficient
+    "reOmCeil":     2600.0,     # onset ceiling = unscaled LST-graze value
+    "reOmA":        123.9,      # onset floor = k*175, k=0.708 (drain compensation)
+    "reOmB":        1.416,      # inverse-square coefficient = k*2
     "rampWidth":    0.35,       # onset tanh ramp half-width
     "tau":          4.0,        # production handover width (ai_switchWidth)
     "switchCenter": 1.0,        # chi at laminar->turbulent handover
     "sigmaDTie":    1.0,        # destruction tie ON: sigma_D = 1 - (cb1/kap^2 cw1)(1-sigma_P)
     "switchWidthD": 1.36,       # legacy tau_D (used only when sigmaDTie=0)
-    "nuLamScale":   1.0 / 12.0, # c_nu,ai laminar-diffusion reduction
+    "nuLamScale":   1.0 / 6.0,  # c_nu,ai laminar-diffusion reduction
     "maxBlend":     1.0,        # gated-max production blend
     # Mack (1977) e^N receptivity + SA c_v1
     "A_TU":        -8.43,

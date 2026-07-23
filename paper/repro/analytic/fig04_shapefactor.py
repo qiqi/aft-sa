@@ -8,7 +8,7 @@ branch is amplified weakly / held near-laminar by the definite product P<~0,
 so only ONE favorable curve is shown. Also exports march()/profile_ints()/
 drela/sphere_rate for fig02 and fig03."""
 import _saai
-from _saai import C_NU_AI, SIGMA_SA, K_R
+from _saai import SIGMA_SA, K_R
 import numpy as np
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 import scipy.sparse as sp
@@ -25,13 +25,29 @@ from lib.aft_sources import (compute_aft_amplification_rate,
 # Rayleigh coordinate; the definite product P=Shat*g drives both the linear
 # rate (ceiling a_max at P>=1) and the onset scale Re_Omega,crit(P).
 A_MAX = 0.19          # Michalke free-shear eigenvalue (fixed)
-# Onset threshold Re_Omega,crit(P) = softmin_n(CEIL, A + B*P^-2): a ceiling on the
-# favorable side (critical Re saturates), an additive floor near separation, and a
-# -2 power between.  Grazes the FS family favorable->incipient-separation (~7%).
-REOM_CEIL = 2600.0    # favorable-saturation ceiling
-REOM_A    = 175.0     # near-separation floor
-REOM_B    = 2.0       # inverse-square coefficient
-REOM_N    = 4.0       # soft-min sharpness
+# CANONICAL MODEL CONSTANTS (paper Sec. II.D, 2026-07-23 canon).
+# Laminar-diffusion reduction: c=1 is excluded structurally (the Blasius
+# inception is diffusion-limited past the Drela N=1 station: unanchorable);
+# below that, flatness improves smoothly as c falls while the resolvable
+# nuHat band thins as sqrt(c). c = 1/6 keeps the N=9 prediction within ~7%
+# of Drela at twice the molecular floor of the previous 1/12.
+C_NU_AI = 1.0/6.0
+# Onset threshold Re_Omega,crit = softmin_2(CEIL, k*[A + B*(Sg)^-2]):
+# shape (CEIL, A, B) = (2600, 175, 2) fixed by the LST neutral-point graze
+# (fig02_onset_graze.py, NEVER refit); the single scale k compensates the
+# residual laminar diffusion (which drains the young disturbance ~1/Re_theta
+# per e-fold, so it acts on the thin-layer branch and vanishes at the
+# ceiling) and is anchored by the Blasius N=1 crossing at Drela's
+# Re_theta = 338, computed with the GRID-CONVERGED instrument (nx=3200,
+# ny=2400: the N=1 crossing is wall-normal-resolution sensitive; ny=600
+# under-resolves the thin early layer, and the short-domain marches of
+# explore_k_anchor.py / explore_reomc_retune.py are worse -- treat their
+# outputs as superseded). k = 0.708 at c_nu,ai = 1/6.
+K_ANCHOR  = 0.708
+REOM_CEIL = 2600.0            # favorable-saturation ceiling (unscaled)
+REOM_A    = 175.0*K_ANCHOR    # near-separation floor (drain-compensated)
+REOM_B    = 2.0*K_ANCHOR      # inverse-square coefficient (drain-compensated)
+REOM_N    = 2.0               # soft-min sharpness
 RAMP_W = 0.35         # onset ramp half-width
 
 def sphere_rate(u, dudy, yc):
@@ -52,7 +68,7 @@ def drela(H):
     """Drela-Giles envelope amplification rate (imported from src.correlations)."""
     return np.asarray(dN_dRe_theta(H))
 
-def march(fs, x_max, nx=800, ny=600, y_top=None, seed=1.0, beta=None, k_r=K_R,
+def march(fs, x_max, nx=1600, ny=1200, y_top=None, seed=1.0, beta=None, k_r=K_R,
           ufrac=0.0):
     """March the disturbance transport on the FS field; return x, N(x). If beta is
     given, feed the wedge's own lambda_p(x,y) into the kernel (onset-delay cliff +

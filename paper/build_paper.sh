@@ -7,10 +7,10 @@
 # SPHERE-KERNEL NOTE (2026-07-23): the self-contained model figures that
 # sa-ai.tex references are indicator_sphere, onset_graze, model_calibrate,
 # fs_nuHat_rows, and shapefactor_amplification (the pre-sphere kernel_maps /
-# indicator_plane / klambda* are no longer referenced). CAVEAT:
-#   - fig02_model_calibrate/fig04_shapefactor still embed the softmin_4
-#     (2600, 175, 2.0) onset variant; onset_graze and the paper text use the
-#     softmin_2 shape -- final constants pending the II.D c_nu,ai decision.
+# indicator_plane / klambda* are no longer referenced). The canonical kernel
+# constants live in repro/analytic/fig04_shapefactor.py (c_nu,ai = 1/6,
+# onset softmin_2(2600, k*[175 + 2/(Sg)^2]), k = 0.708), pinned against the
+# solver by tests/test_constants_consistency.py.
 set -euo pipefail
 cd /home/qiqi/flexcompute/sa-ai/paper
 # the model-figure scripts need jax -> system python3 (the compute venv lacks jax).

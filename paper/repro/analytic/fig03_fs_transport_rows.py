@@ -5,7 +5,8 @@ favorable +0.30): N=ln(nuHat) contours + envelope vs Drela-Giles. Uses the
 sphere kernel (sphere_rate, imported from fig04); the favorable row stays
 near-laminar. Kernel + c_nu,ai imported via fig04."""
 import _saai
-from _saai import C_NU_AI, SIGMA_SA
+from _saai import SIGMA_SA
+from fig04_shapefactor import C_NU_AI  # canonical c_nu,ai (paper Sec. II.D)
 import numpy as np
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 import scipy.sparse as sp
@@ -15,7 +16,7 @@ from lib.aft_sources import (compute_aft_amplification_rate,
                              compute_composite_gate)
 from fig04_shapefactor import profile_ints, drela, Re_theta0, sphere_rate
 
-def march_field(fs, x_max, nx=800, ny=600, beta=0.0):
+def march_field(fs, x_max, nx=1600, ny=1200, beta=0.0):
     """As fig04.march but stores the full nuHat field; wedge lambda_p(x,y) in the cliff."""
     m = beta/(2.0 - beta)
     eta99 = np.interp(0.99, fs.u, fs.eta)
@@ -55,7 +56,7 @@ def main():
     for irow, (beta, x0, ylimL) in enumerate(ROWS):
         fs = FalknerSkanWedge(beta); I_th, H = profile_ints(fs)
         eta99 = np.interp(0.99, fs.u, fs.eta)
-        x_max = 4.0e6 if beta == 0.0 else size_domain(fs, x0, beta)
+        x_max = 6.5e6 if beta == 0.0 else size_domain(fs, x0, beta)
         xs, yc, fld = march_field(fs, x_max, beta=beta)
         Ue = fs.inviscid_at(np.maximum(xs, 1e-12)); Rt = I_th*np.sqrt(xs*Ue)
         N2d = np.log(np.maximum(fld, 1e-30))
