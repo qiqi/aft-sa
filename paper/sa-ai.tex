@@ -47,7 +47,8 @@ shear fraction and an inflectional (Rayleigh) coordinate---with no
 pressure-gradient parameter anywhere, and
 is anchored to canonical stability limits: the free-shear growth
 eigenvalue, the linear-stability onset of the Falkner--Skan family, the
-Blasius $e^N$ envelope, and Mack's freestream-turbulence receptivity. The
+Blasius $e^N$ envelope; its freestream seed is set by Mack's
+receptivity correlation. The
 model is tested on three cases spanning zero, favorable, and adverse
 pressure gradients---a flat plate, the NLF(1)-0416 airfoil at
 $Re\!=\!4\!\times\!10^6$, and the Eppler 387 at
@@ -89,7 +90,7 @@ dimensions on the wing of the Daedalus human-powered aircraft.
   $a,\;a_{\max}$ \> laminar amplification rate and its free-shear ceiling ($0.19$) \\
   $Re_\Omega^{\mathrm{c}}(\hat S g)$ \> vorticity-Reynolds onset threshold, Eq.~\eqref{eq:reomc} \\
   $C,\;A,\;B,\;k$ \> onset-threshold shape constants and scale, Eq.~\eqref{eq:reomc} \\
-  $w$ \> onset-gate ramp width scale, Eq.~\eqref{eq:onset} \\
+  $w$ \> onset ramp width scale, Eq.~\eqref{eq:onset} \\
   $\sigma_P,\sigma_D;\;\tau$ \> production and destruction handover weights and the production width, Eq.~\eqref{eq:blend} \\
   $N,\;N_\mathrm{crit}$ \> amplification factor and its critical value ($e^N$ method) \\
   $Tu$ \> freestream turbulence intensity \\
@@ -246,8 +247,8 @@ closure driven by freestream turbulence energy; Sec.~\ref{sec:flatplate}),
 crossflow transition on swept geometries, and compressible/transonic regimes lie
 outside the present formulation and are left to future work; the validation here is
 incompressible ($M\!=\!0.1$).
-Section~\ref{sec:model} formulates the model and fixes its constants in one
-pass: the blended production term that lets $\tilde\nu$ amplify in the laminar
+Section~\ref{sec:model} formulates the model and fixes all its constants
+but the freestream seed in one pass: the blended production term that lets $\tilde\nu$ amplify in the laminar
 range and revert to standard SA past handover, with each constant anchored, as
 its form is introduced, to a canonical stability limit or established
 correlation---the free-shear growth ceiling, the Blasius $e^N$ envelope, Drela's
@@ -562,7 +563,7 @@ the velocity and thickness normalization, so
   a_{\max} \;=\; \omega_{i,\max}/\omega_{\mathrm{peak}} \;=\; 0.19 ,
 \end{equation*}
 an eigenvalue---the head of the continuum. The model grows
-$\tilde\nu$ along particle paths at $a_{\max}\langle \hat S g\rangle\,\omega$, a
+$\tilde\nu$ along particle paths at $a(\hat S g)\,\omega$, a
 \emph{temporal} rate that convection lays down as the spatial $N$-factor
 (\eqref{eq:pai_def}): the same temporal-to-spatial passage that connects a
 growth eigenvalue to an accumulated amplification.
@@ -633,9 +634,14 @@ whose leading eigenvalue $s$ is the growth per unit length the transport
 can actually realize on that profile at that Reynolds number---the
 inviscid supremum of Table~\ref{tab:ratelimit} recovered as
 $Re_\theta\!\to\!\infty$, approached like $Re_\theta^{-1/2}$ as the
-eigenfunction narrows onto its peak. Here $c_{\nu,\mathrm{ai}}$ is a
-scale on the molecular coefficient, equal to one until decided
-otherwise. Table~\ref{tab:frozeneig} carries the result. With the
+eigenfunction narrows onto its peak. The problem is well posed and cheap:
+with $v\!=\!0$ at the wall and the far field, the substitution
+$v\!\to\!u^{-1/2}v$ makes the operator symmetric, so each entry below is
+one symmetric tridiagonal eigenvalue; on the reversed-flow profiles the
+advection is floored at $0.02\,U_e$, to which the result is insensitive
+(floors $0.01$--$0.05\,U_e$ move no printed digit). Here
+$c_{\nu,\mathrm{ai}}$ is a scale on the molecular coefficient, equal to
+one until decided otherwise. Table~\ref{tab:frozeneig} carries the result. With the
 coefficient untouched ($c_{\nu,\mathrm{ai}}\!=\!1$, left half), the
 equation declines the correlation: in the decade
 $Re_\theta\!=\!200$--$1600$ where the attached profiles actually
@@ -675,7 +681,8 @@ where the attached decade centers on the correlation---Blasius $1.02$ at
 $Re_\theta\!=\!400$ and the moderate adverse $1.04$, the favorable wedge
 climbing through unity at the high-$Re_\theta$ stations where favorable
 layers actually reach transition, the separation branch holding
-$0.86$--$0.91$ (right half of Table~\ref{tab:frozeneig})---and the next
+$0.82$--$0.91$ across the decade (right half of
+Table~\ref{tab:frozeneig})---and the next
 halving would push Blasius and the adverse wedge $10$--$15\%$ past the
 correlation while thinning the band another $\sqrt2$. The
 negative-$\tilde\nu$ safeguards~\cite{allmaras_2012} carry over with one
@@ -741,7 +748,8 @@ the next subsection.
 
 \subsection{The onset threshold}%
 \label{sec:onset}\label{sec:calib_onset}
-The rate \eqref{eq:rate} is Reynolds-free; the viscous inception is a separate,
+The algebraic rate \eqref{eq:rate} carries no explicit Reynolds
+number; the viscous inception is a separate,
 multiplicative gate on the vorticity Reynolds number, rising smoothly from $0$
 to $1$,
 \begin{equation}
@@ -750,7 +758,7 @@ to $1$,
   \qquad Re_\Omega = d^2\omega/\nu ,
   \label{eq:onset}
 \end{equation}
-with $w$ the ramp width scale and
+with $w$ the onset ramp width scale and
 its threshold a function of the \emph{same} product $\hat S g$ (the form
 \eqref{eq:reomc}, fixed below). Rate and onset reinforce: near the
 parabola a low rate \emph{and} a high threshold give the late, slow transition
@@ -881,7 +889,8 @@ where inception occurs.)
   Blasius $Re_\theta$, approaching the vanishing favorable growth the Drela
   envelope requires---with no pressure-gradient parameter anywhere. A
   physical case seeded with $\chi_\infty$ hands over where its envelope
-  crosses $N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)$ ($\chi\!=\!c_{v1}$).}
+  crosses $N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)$ ($\chi\!=\!c_{v1}$; the
+  seed convention of Sec.~\ref{sec:flatplate}).}
   \label{fig:nuhat}
 \end{figure}
 
@@ -924,7 +933,7 @@ one point, carrying the family's two-decade threshold variation.
   \caption{The calibrated model compared with the Drela--Giles envelope
   across the full Falkner--Skan family, from the stagnation profile
   ($H\!\approx\!2.2$) through Blasius ($H\!\approx\!2.59$) and the separation
-  limit ($H\!=\!4.03$, dotted) onto the reversed-flow (Stewartson lower)
+  limit ($H\!=\!3.98$, dotted) onto the reversed-flow (Stewartson lower)
   branch ($H\!\approx\!10.6$; separated region shaded). (a)~model rate
   $\mathrm dN/\mathrm dRe_\theta$ as an early ($N\!\in\![1,5]$) and a late
   ($N\!\in\![5,9]$) secant, band shaded---set entirely by the fixed
@@ -1134,7 +1143,8 @@ disturbance's scale: $D_\mathrm{SA}$ is quadratic in $\tilde\nu$ and
 carries $f_w\!\approx\!0.7\,r$ with $r\!\ll\!1$ in the amplifying band,
 so its ratio to the amplification production grows like $\chi^2$ and stays
 below $10^{-3}$ up to the $\chi\!=\!1$ crossing at the airfoil seed level
-($\chi_\infty\!=\!c_{v1}e^{-9}$). The calibration instrument of
+($\chi_\infty\!=\!c_{v1}e^{-9}$, the $N_\mathrm{crit}\!=\!9$ seed of
+Sec.~\ref{sec:flatplate}). The calibration instrument of
 Sec.~\ref{sec:calib_onset} omits the term; marching with it included at that
 seed level moves the anchor and prediction stations by less than $1\%$
 (within the solve residuals) and the favorable-family stations' mean by
@@ -1464,7 +1474,7 @@ $Tu\!=\!1\%$ the map
 \eqref{eq:tumap} leaves only $N_\mathrm{crit}\!\approx\!2.6$---a seed already
 within a few $e$-folds of handover---and by $Tu\!\approx\!3\%$ the seed
 $\chi_\infty$ exceeds $c_{v1}$ outright, no longer a meaningful kinematic
-parametrisation of bypass transition. We therefore do not present T3A/T3B
+parametrization of bypass transition. We therefore do not present T3A/T3B
 comparisons.
 
 \begin{figure}[tp]
@@ -2202,7 +2212,7 @@ $\alpha\!\in\!\{4^\circ,5^\circ,6^\circ\}$ spanning
 $C_L\!\approx\!1.02$--$1.23$ about the design lift, with the flight-quiet
 freestream seed $\chi_\infty\!=\!8.76\!\times\!10^{-6}$
 ($N_\mathrm{crit}\!\approx\!13.6$ by the map of
-Sec.~\ref{sec:calib}, the flight-environment amplification level of the
+Sec.~\ref{sec:calib_tu}, the flight-environment amplification level of the
 Daedalus design work~\cite{drela_daedalus_1988}). The solver is that of the airfoil studies; the
 computations of this section predate the second gate pinch and carry
 the predecessor kernel---the $Q_1$-only gate with its own three-anchor
@@ -2364,10 +2374,10 @@ beyond separation, at $1.3$--$1.8\times$ across $H\!=\!4.9$--$10.6$: a
 just-separated layer is wall-damped, its instability approaching the
 free-shear rate only as it lifts several $\theta$ off the surface, while
 the ungated kernel applied the full ceiling from the separation point
-on, and---as the frozen-profile analysis of Sec.~\ref{sec:model} showed
-in temporal units---the transported $\tilde\nu$ peak rode below the
+on, and---as the frozen-profile ledger of Appendix~B measures in
+temporal units---the transported $\tilde\nu$ peak rode below the
 physical critical layer at roughly half its convection speed, banking
-nearly twice the $e$-folds per unit length (Appendix~B). This excess is intrinsic to a temporal rate advected by the
+nearly twice the $e$-folds per unit length. This excess is intrinsic to a temporal rate advected by the
 local velocity (\S\ref{sec:reproduce}); on the reversed-flow branch the
 resolved amplifying band keeps it within $\sim\!30\%$ of the correlation
 (Fig.~\ref{fig:calibrate}a), and on the two-dimensional Eppler
@@ -2730,8 +2740,10 @@ means over the final 500 steps.
 \end{table}
 
 \paragraph{Temporal-units conversion.} The comparisons of
-Secs.~\ref{sec:nulamscale} and~\ref{sec:daedalus} between the kernel
-ceiling and the $e^N$ reference convert Drela's envelope slope into a
+Sec.~\ref{sec:daedalus} and of this appendix's ledger between the kernel
+ceiling and the $e^N$ reference---and the inviscid-ceiling aside of
+Sec.~\ref{sec:rate} (the deep-separated row of
+Table~\ref{tab:ratelimit})---convert Drela's envelope slope into a
 growth rate per unit time in multiples of the profile's peak vorticity,
 \begin{equation*}
   a_\mathrm{eff}

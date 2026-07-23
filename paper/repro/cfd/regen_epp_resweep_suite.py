@@ -12,8 +12,11 @@ Rows top-to-bottom:
 Line conventions match the benchmark figures: upper blue / lower red,
 str solid / cav dashed, L0/L1/L2 by thickness (LEVEL_LW).
 Case dirs: Re=200k uses the benchmark {fam}{lvl}prop cases; L1 at other Re
-uses the legacy sweep_[str_]Re{Rk}k_a5 names; L0/L2 use
-sweep_{fam}{lvl}_Re{Rk}k_a5 (build_eppler_resweep_levels.py).
+uses the legacy sweep_[str_]Re{Rk}k_a5 names -- LEGACY NAMES ONLY: those 8
+cases were re-converged at the committed whole-equation canon by
+run_sphere_campaign.py epp_sweep (2026-07-23), same kernel as every other
+curve here; L0/L2 use sweep_{fam}{lvl}_Re{Rk}k_a5
+(build_eppler_resweep_levels.py).
 Grey band = experimental LSB (McGhee TM-4062 Table III oil flow; only at Re
 with data: 100k, 200k, 300k). Experimental Cp (TM-4062 App. D tables,
 nearest-5deg column) as open circles.
