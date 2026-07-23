@@ -34,7 +34,7 @@ CANON = {
     "reOmCeil":     1851.2,     # k*2600 (whole-equation drain compensation, k=0.712)
     "reOmA":        124.6,      # k*175
     "reOmB":        1.424,      # k*2
-    "rampWidth":    0.35,       # onset tanh ramp half-width
+    "rampWidth":    0.35,       # onset tanh ramp width scale
     "tau":          4.0,        # production handover width (ai_switchWidth)
     "switchCenter": 1.0,        # chi at laminar->turbulent handover
     "sigmaDTie":    1.0,        # destruction tie ON: sigma_D = 1 - (cb1/kap^2 cw1)(1-sigma_P)

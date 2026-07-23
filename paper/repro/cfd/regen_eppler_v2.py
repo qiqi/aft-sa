@@ -41,6 +41,8 @@ UP_COLOR = 'C0'
 LO_COLOR = 'C3'
 # Per-level line THICKNESS (L0 thin, L1 medium, L2 thick).
 LEVEL_LW = {'L0': 0.8, 'L1': 1.6, 'L2': 2.4}
+# Polar figures use a geometric ladder so the finest level is clearly thickest.
+POLAR_LW = {'L0': 0.8, 'L1': 1.6, 'L2': 3.2}
 # Per-mesh line STYLE (str = solid, cav = dashed).
 MESH_LS = {'str': '-', 'cav': '--'}
 
@@ -966,7 +968,7 @@ def make_polar_figure(out_name='eppler_polar_compare'):
                 if f: cl.append(f[0]); cd.append(f[1])
             if cl:
                 ax.plot(cd, cl, marker=mesh_mk[mesh], ms=4, ls=MESH_LS[mesh],
-                        lw=LEVEL_LW[level], color=mesh_col[mesh], zorder=3)
+                        lw=POLAR_LW[level], color=mesh_col[mesh], zorder=3)
     ax.set_xlim(0.0, 0.05); ax.set_ylim(0.0, 1.25)
     ax.set_xlabel('$C_d$'); ax.set_ylabel('$C_l$')
     ax.grid(alpha=0.3)
@@ -976,9 +978,9 @@ def make_polar_figure(out_name='eppler_polar_compare'):
                Line2D([],[],color='C0', ls='-',  marker='o', ms=4, label='SA-AI, structured (O-grid)'),
                Line2D([],[],color='C1', ls='--', marker='^', ms=4, label='SA-AI, unstructured'),
                Line2D([],[],color='0.55', ls='-.', marker='v', mfc='none', ms=5, lw=1.2, label='SA, fully turbulent (str L2)'),
-               Line2D([],[],color='0.4', lw=LEVEL_LW['L0'], label='L0'),
-               Line2D([],[],color='0.4', lw=LEVEL_LW['L1'], label='L1'),
-               Line2D([],[],color='0.4', lw=LEVEL_LW['L2'], label='L2')]
+               Line2D([],[],color='0.4', lw=POLAR_LW['L0'], label='L0'),
+               Line2D([],[],color='0.4', lw=POLAR_LW['L1'], label='L1'),
+               Line2D([],[],color='0.4', lw=POLAR_LW['L2'], label='L2')]
     ax.legend(handles=handles, fontsize=8, loc='lower right')
     plt.tight_layout()
     plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=140)

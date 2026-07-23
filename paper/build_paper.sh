@@ -9,8 +9,10 @@
 # fs_nuHat_rows, and shapefactor_amplification (the pre-sphere kernel_maps /
 # indicator_plane / klambda* are no longer referenced). The canonical kernel
 # constants live in repro/analytic/fig04_shapefactor.py (c_nu,ai = 1/6,
-# onset softmin_2(2600, k*[175 + 2/(Sg)^2]), k = 0.708), pinned against the
-# solver by tests/test_constants_consistency.py.
+# onset k*softmin_2(2600, 175 + 2/(Sg)^2) with the WHOLE-EQUATION k = 0.712),
+# pinned against the solver by tests/test_constants_consistency.py.
+# tab_frozen_slope.py regenerates the Sec.-II.C tables and ASSERTS the
+# quoted numbers -- it doubles as a consistency check.
 set -euo pipefail
 cd /home/qiqi/flexcompute/sa-ai/paper
 # the model-figure scripts need jax -> system python3 (the compute venv lacks jax).
@@ -22,6 +24,7 @@ $PY repro/analytic/fig02_onset_graze.py 2>&1 | tail -1
 $PY repro/analytic/fig02_model_calibrate.py 2>&1 | tail -1
 $PY repro/analytic/fig03_fs_transport_rows.py 2>&1 | tail -1
 $PY repro/analytic/fig04_shapefactor.py 2>&1 | tail -1
+$PY repro/analytic/tab_frozen_slope.py 2>&1 | tail -3
 
 echo "=== figure timestamps ==="
 ls -la --time-style=+%m-%d_%H:%M figs/indicator_sphere.pdf figs/onset_graze.pdf \

@@ -5,7 +5,8 @@ vertical, shear-minus-velocity horizontal (velocity pole left, shear pole
 right, +/- curvature poles top and bottom). Five representative profiles run
 as thin curves from the wall point (centre, X=Y, Z=0) toward the freestream
 (velocity pole); the near hemisphere is drawn solid, the far side dotted
-(x-ray). The THICK segment on each curve marks the wall-normal band where the
+(x-ray); NO in-figure text (all identification lives in the caption:
+poles by triangle markers, profiles by color). The THICK segment on each curve marks the wall-normal band where the
 most-amplified Orr-Sommerfeld mode's Reynolds-stress production density
 p = (alpha/2) |Im(phi' phi*)| |U'| exceeds half its peak -- where the
 disturbance actually grows (attached profiles evaluated at Re_theta = 500,
@@ -92,12 +93,6 @@ def main():
     ax.plot([+1/SQ2], [0], marker='>', color='0.3', ms=9, zorder=6)
     ax.plot([0], [+1], marker='^', color='0.3', ms=9, zorder=6)
     ax.plot([0], [-1], marker='v', color='0.3', ms=9, zorder=6)
-    ax.annotate('velocity', (-1/SQ2, 0), (-1/SQ2 - 0.03, 0.06), fontsize=8,
-                color='0.3', ha='right')
-    ax.annotate('shear', (1/SQ2, 0), (1/SQ2 + 0.03, 0.06), fontsize=8,
-                color='0.3', ha='left')
-    ax.annotate('$+$curvature', (0, 1), (0.04, 1.03), fontsize=8, color='0.3')
-    ax.annotate('$-$curvature', (0, -1), (0.04, -1.08), fontsize=8, color='0.3')
 
     # grey S_hat*g contours over the near hemisphere
     hg = np.linspace(-0.999, 0.999, 601)
@@ -111,7 +106,6 @@ def main():
     Psg = np.where(disk, Shat*G, np.nan)
     cs = ax.contour(Hm, Vm, Psg, levels=LEVELS, colors='0.6', linewidths=0.8,
                     zorder=2)
-    ax.clabel(cs, levels=[0.2, 0.6, 1.0], fmt='%.3g', fontsize=6.5)
 
     for beta, guess, col, lab, Re_th in PROFILES:
         pr = build_profile(beta, guess)
@@ -122,19 +116,8 @@ def main():
         print(f"beta={beta:+.3f} ({lab}): H={pr['H']:.2f}, "
               f"band={'%.2f-%.2f theta-units' % band if band else 'none (stable)'}",
               flush=True)
-        # label at the bottom of each profile's curvature dip (they separate
-        # there); the reversed-flow profile at its far-right excursion
-        if guess is not None:
-            j = int(np.argmax(h))
-            ax.annotate(lab, (h[j], v[j]), (h[j] - 0.02, v[j] + 0.06),
-                        fontsize=8, color=col, ha='right')
-        else:
-            j = int(np.argmin(v))
-            ax.annotate(lab, (h[j], v[j]), (h[j] - 0.04, v[j] - 0.075),
-                        fontsize=8, color=col, ha='center')
 
     ax.plot([0], [0], 'k.', ms=5, zorder=6)
-    ax.annotate('wall point', (0, 0), (0.03, -0.09), fontsize=8, color='k')
     ax.set_aspect('equal'); ax.set_xlim(-1.25, 1.25); ax.set_ylim(-1.2, 1.15)
     ax.axis('off')
     plt.tight_layout()

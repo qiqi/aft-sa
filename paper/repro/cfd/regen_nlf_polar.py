@@ -6,7 +6,7 @@ import csv, os, pickle, numpy as np
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 B=os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr"); PD="/home/qiqi/flexcompute/sa-ai/paper"
-LEVEL_LW={'L0':0.8,'L1':1.6,'L2':2.4}; MESH_LS={'str':'-','cav':'--'}
+LEVEL_LW={'L0':0.8,'L1':1.6,'L2':3.2}; MESH_LS={'str':'-','cav':'--'}  # geometric ladder: finest clearly thickest
 MESH_COL={'str':'C0','cav':'C1'}; MESH_MK={'str':'o','cav':'^'}
 
 # Digitized section characteristics, Somers NASA TP-1861 Fig 11(d), R=4e6: (C_d, C_l).

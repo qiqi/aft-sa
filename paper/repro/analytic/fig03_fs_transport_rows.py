@@ -8,7 +8,7 @@ onset retuning are needed) and the canonical model (c_nu,ai=1/6, calibrated
 k). Kernel + c_nu,ai imported via fig04."""
 import _saai
 from _saai import SIGMA_SA
-from fig04_shapefactor import C_NU_AI  # canonical c_nu,ai (paper Sec. II.D)
+from fig04_shapefactor import C_NU_AI  # canonical c_nu,ai (paper Sec. II.C)
 import numpy as np
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 import scipy.sparse as sp
@@ -54,7 +54,7 @@ def size_domain(fs, x0, beta):
 
 
 def main():
-    ROWS = [(-0.10, 1.2e6, 8000), (0.0, 4.0e6, 10000), (0.30, 3e5, 40000)]
+    ROWS = [(-0.10, 1.2e6, 8000), (0.0, 4.0e6, 12000), (0.30, 3e5, 120000)]
     fig, axs = plt.subplots(3, 2, figsize=(11.2, 8.4), layout='constrained')
     for irow, (beta, x0, ylimL) in enumerate(ROWS):
         fs = FalknerSkanWedge(beta); I_th, H = profile_ints(fs)
@@ -99,7 +99,7 @@ def main():
         axR.text(0.02, 0.95, f'({chr(98+2*irow)})', transform=axR.transAxes, fontsize=11, va='top', fontweight='bold')
         if irow == 0:
             axR.legend([r'untouched equation ($c_{\nu,\mathrm{ai}}\!=\!1$, $k\!=\!1$)',
-                        r'canonical model ($c_{\nu,\mathrm{ai}}\!=\!1/6$, $k\!=\!0.71$)',
+                        r'canonical model ($c_{\nu,\mathrm{ai}}\!=\!1/6$, $k\!=\!0.712$)',
                         'Drela--Giles envelope'], fontsize=7.5, loc='lower right')
         print(f'beta={beta:+.2f} H={H:.2f}: x_max={x_max:.2e}, N_end={np.log(env[-1]):.1f}, '
               f'Rt_end={Rt[-1]:.0f}, Rtc={Rtc:.0f}', flush=True)

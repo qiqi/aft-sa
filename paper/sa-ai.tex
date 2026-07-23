@@ -419,12 +419,12 @@ only rotation-invariant products of the indicator vectors survive.
   shear$-$velocity horizontal; near hemisphere solid, far side dotted;
   triangles mark the four visible poles---velocity left, shear right,
   $\pm$curvature top and bottom). Five representative profiles run as thin
-  curves from the wall (centre) toward the freestream: a favorable-gradient
+  curves from the wall (center) toward the freestream: a favorable-gradient
   layer (blue), the Blasius layer (green), a moderate adverse-gradient layer
   (orange), the incipient-separation profile (red), and a separated
   reversed-flow shear layer (purple). The \textbf{thick} segment on each marks
   the wall-normal band where its linear-stability production peaks---where the
-  disturbance actually grows. Grey lines are contours of the rate coordinate
+  disturbance actually grows. Gray lines are contours of the rate coordinate
   $\hat S g$ at $\{0.025,0.2,0.4,0.6,0.8,1.0\}$; the lowest ($\hat S g=0.025$) hugs
   the neutral locus $\hat S g=0$---the parabola great circle $g=0$ together with the
   shear-free meridian.
@@ -781,7 +781,7 @@ parameter anywhere.
   closest-approach point: graze ratios $0.93$--$1.14$ (root-mean-square
   $\sim\!6\%$) from incipient separation through $\beta=+0.15$, rising to
   $\sim\!1.3$ at the strongly favorable $\beta=+0.35$ edge. The soft-min
-  shape of Eq.~\eqref{eq:reomc} is that envelope: a ceiling on the favorable
+  shape of Eq.~\eqref{eq:reomc}, at $k\!=\!1$, is that envelope: a ceiling on the favorable
   (small $\hat S g$) side, an additive floor toward separation. The separated
   reversed-flow profile rides above the threshold at its own
   $Re_{\theta c}$---it ignites immediately. The compensation scale $k$ of
@@ -813,8 +813,11 @@ We represent the shape by a soft minimum of the two limits,
 \end{equation}
 with $\operatorname{softmin}_2(x_1,x_2)\!=\!x_1 x_2/\sqrt{x_1^2+x_2^2}$; the
 graze fixes the three shape constants to a root-mean-square graze error of
-$\sim\!6\%$ over the attached family (the soft-min exponent $2$ is the best
-of the sharpnesses tried), and they are never refit.
+$\sim\!6\%$ from incipient separation through $\beta\!=\!+0.15$ (the
+soft-min exponent $2$ is the best of the sharpnesses tried), and they are
+never refit; the strongly favorable $\beta\!=\!+0.35$ member grazes
+$\sim\!1.3$ high, consistent with the favorable-branch departure the
+calibration will meet below.
 
 That leaves the single scale $k$, and its role is physical. Linear theory
 knows only the profile; the working variable that must carry the
@@ -859,17 +862,17 @@ where inception occurs.)
   the calibration anchor), and favorable ($\beta\!=\!+0.30$, bottom)---seeded
   $\hat\nu_\infty\!=\!1$, $a_{\max}=0.19$.
   \textbf{Left column} (a,c,e): contours of $N\!=\!\ln\hat\nu$ at the
-  canonical $(c_{\nu,\mathrm{ai}},k)=(\tfrac16,\,0.71)$ in the
+  canonical $(c_{\nu,\mathrm{ai}},k)=(\tfrac16,\,0.712)$ in the
   local-Reynolds plane, concentrated between the overlaid
   momentum thickness $\theta$ (dashed) and edge thickness $\delta_{99}$
   (solid) where the amplifying band sits. \textbf{Right column} (b,d,f): two
   marched envelopes $\max_y\hat\nu$ vs $Re_\theta$ (log left axis; $N$ linear
   right axis) against each profile's Drela--Giles
   envelope~\cite{drela_giles_1987} (red dashed): the \emph{untouched}
-  equation ($c_{\nu,\mathrm{ai}}\!=\!1$, $k\!=\!1$; grey), whose envelope
+  equation ($c_{\nu,\mathrm{ai}}\!=\!1$, $k\!=\!1$; gray), whose envelope
   falls far short of the correlation---the molecular drain both bends the
   growth and delays inception---and the canonical model
-  ($c_{\nu,\mathrm{ai}}\!=\!1/6$, $k\!=\!0.71$; black). On the anchor (d) the
+  ($c_{\nu,\mathrm{ai}}\!=\!1/6$, $k\!=\!0.712$; black). On the anchor (d) the
   canonical envelope meets the correlation at $N\!=\!1$ by construction
   (Sec.~\ref{sec:calib_onset}); its $N\!=\!9$ crossing is an untuned
   prediction, $7\%$ past Drela's. The adverse wedge (b) ignites earlier and
@@ -882,7 +885,7 @@ where inception occurs.)
   \label{fig:nuhat}
 \end{figure}
 
-The grey envelopes of Fig.~\ref{fig:nuhat} march the equation untouched
+The gray envelopes of Fig.~\ref{fig:nuhat} march the equation untouched
 ($c_{\nu,\mathrm{ai}}\!=\!1$, $k\!=\!1$) and confirm the eigenvalue's
 verdict of Sec.~\ref{sec:nulamscale} in accumulated form: the envelope
 falls far short of the correlation, its early secant (the
@@ -901,7 +904,7 @@ The compensation takes its value from a single anchor, stated
 operationally: $k$ is chosen so
 that the march \eqref{eq:transport}, on the Blasius layer at the committed
 $c_{\nu,\mathrm{ai}}\!=\!\tfrac16$, crosses $N\!=\!1$ at the Drela--Giles
-station $Re_\theta\!=\!338$; this gives $k\!=\!0.71$---the threshold
+station $Re_\theta\!=\!338$; this gives $k\!=\!0.712$---the threshold
 permitting inception $29\%$ earlier than the inviscid graze, the drain
 consuming the difference.
 
@@ -946,9 +949,10 @@ favorable branch is the model's weak point: as $\hat S g\!\to\!0$ the rate falls
 than Drela's and the onset rises above Drela's critical Reynolds number. At
 $\beta\!\approx\!0.35$ ($H\!\approx\!2.34$) the rate is
 $\approx\!0.1\times$ Drela and the onset $\approx\!3\times$ its critical
-$Re_\theta$; by $\beta\!\approx\!0.55$ transition has retreated beyond any
-station of practical relevance, and stronger favorable wedges are suppressed
-outright. The moderate case is the bottom row of Fig.~\ref{fig:nuhat}:
+$Re_\theta$; by $\beta\!\approx\!0.45$ transition has retreated beyond any
+station of practical relevance (the marched $N\!=\!1$ station past
+$Re_\theta\!\sim\!5\!\times\!10^5$), and stronger favorable wedges are
+suppressed outright. The moderate case is the bottom row of Fig.~\ref{fig:nuhat}:
 at $\beta\!=\!+0.30$ transition survives but is pushed an order of magnitude
 past the Blasius $Re_\theta$. The linear $\hat S g$ has no
 near-neutral floor to hold the small favorable growth Drela's envelope keeps;
@@ -1042,7 +1046,7 @@ region-by-region partition confirms:
   imperceptible, and spreading rates and the outer velocity deficit are
   unchanged.
   \item \emph{Viscous sublayer (exact zero-curvature).} At the wall $\tilde\nu$
-  is linear, $\tilde\nu\!\to\!a\,y$; the SA constant
+  is linear in the wall distance, $\tilde\nu\!\propto\!y$; the SA constant
   $c_{w1}\!=\!c_{b1}/\kappa^2+(1+c_{b2})/\sigma$ balances the quadratic
   production, destruction, and self-diffusion so that the \emph{linear} molecular
   diffusion is the surviving near-wall constraint,
@@ -1303,7 +1307,7 @@ The SA-AI constants are
 \begin{equation*}
   \begin{aligned}
     a_{\max}&=0.19 &\quad&\text{free-shear ceiling: the tanh-layer eigenvalue $\omega_{i,\max}/\omega_{\mathrm{peak}}\!=\!0.1897$ \cite{michalke_1964};}\\
-    (C,\,A,\,B;\;k)&=(2600,\;175,\;2;\;0.71) &&\text{onset threshold $Re_\Omega^{\mathrm c}(\hat S g)$: shape from the LST graze (Fig.~\ref{fig:onsetgraze}, never refit); $k$ compensates the laminar drain, anchored at the Blasius $N\!=\!1$ inception (Sec.~\ref{sec:calib_onset});}\\
+    (C,\,A,\,B;\;k)&=(2600,\;175,\;2;\;0.712) &&\text{onset threshold $Re_\Omega^{\mathrm c}(\hat S g)$: shape from the LST graze (Fig.~\ref{fig:onsetgraze}, never refit); $k$ compensates the laminar drain, anchored at the Blasius $N\!=\!1$ inception (Sec.~\ref{sec:calib_onset});}\\
     w&=0.35 &&\text{onset ramp width scale;}\\
     \tau&=4 &&\text{production handover width (Sec.~\ref{sec:calib_diff});}\\
     c_{\nu,\mathrm{ai}}&=\tfrac{1}{6} &&\text{laminar-diffusion reduction: the largest coefficient carrying the frozen-profile growth balance onto the $e^N$ correlation across the transitional decade (Sec.~\ref{sec:nulamscale}, Table~\ref{tab:frozeneig});}\\
@@ -1557,7 +1561,7 @@ quantitatively.
   \caption{NLF(1)-0416 mesh ladder: size, wall-tangential and wall-normal
   resolution, and resulting $y^+$. Tangential spacing $\Delta s/c$ is measured on
   the upper surface; the wall-normal first-cell height $h_0$ and the cell size
-  $0.5c$ off the wall are read from the centre-span slice; the $y^+$ percentiles
+  $0.5c$ off the wall are read from the center-span slice; the $y^+$ percentiles
   aggregate the four incidences ($\alpha\!=\!0^\circ,4^\circ,9^\circ,15^\circ$).
   The cavity meshes are all-triangular, the structured O-grids all-quadrilateral.}
   \label{tab:nlfmesh}
@@ -1623,11 +1627,11 @@ family (Table~\ref{tab:nlftrans}).
   refinement levels) at $\alpha\!\in\!\{0^\circ,4^\circ,9^\circ,15^\circ\}$
   overlaid on the digitized experimental section characteristics (Somers, NASA
   TP-1861, Fig.~11d~\cite{somers_1981}) and the mfoil $e^9$ reference. Mesh family
-  sets the colour (blue = O-grid, orange = unstructured); refinement sets the line
-  weight (L0 thin $\to$ L2 thick). The mfoil reference (grey squares) is shown
+  sets the color (blue = O-grid, orange = unstructured); refinement sets the line
+  weight (L0 thin $\to$ L2 thick). The mfoil reference (gray squares) is shown
   where its coupled solve converges to an attached solution ($\alpha\!\le\!7^\circ$);
   at $\alpha\!=\!9^\circ$ and $15^\circ$, where mfoil fails, the $e^9$ reference is
-  XFOIL's (grey diamonds), which converges there. The grey dash-dot curve is
+  XFOIL's (gray diamonds), which converges there. The gray dash-dot curve is
   fully turbulent SA ($\chi_\infty\!=\!3$, same solver, structured L2 grid):
   without the laminar run the drag sits $56$--$77\%$ above the bucket.}
   \label{fig:nlfpolar}
@@ -1857,7 +1861,7 @@ and Table~\ref{tab:eppmesh} lists their resolution quantitatively.
   Tunnel (McGhee et al., NASA TM-4062, App.~B, $R\!=\!2\!\times\!10^5$) and the
   mfoil $e^9$ reference. The computed points track the low-drag laminar bucket;
   the two mesh families agree to within $\Delta C_d\!\lesssim\!5\times10^{-4}$.
-  The grey dash-dot curve is fully turbulent SA ($\chi_\infty\!=\!3$, same
+  The gray dash-dot curve is fully turbulent SA ($\chi_\infty\!=\!3$, same
   solver, structured L2 grid), $14$--$39\%$ above the SA-AI drag.}
   \label{fig:epppolar}
 \end{figure}
@@ -1973,7 +1977,7 @@ rate negligible; transition is set in the adverse recovery over the bubble.
   signed $C_f$ crosses back into positive (the physical return of attached flow aft
   of the bubble), and take the same measure from mfoil's signed $C_f$. \emph{Exp}
   is the oil-flow turbulent reattachment (McGhee et al., NASA TM 4062, Table~III),
-  i.e.\ the aft edge of the grey band on the $C_f$ rows of
+  i.e.\ the aft edge of the gray band on the $C_f$ rows of
   Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}. The lower surface stays attached
   and laminar to the trailing edge at every incidence.}
   \label{tab:eppxtr}
@@ -2148,19 +2152,20 @@ transition, reattachment, and the forces that follow.
 
 \begin{figure}[tp]
   \centering
-  \includegraphics[width=\textwidth]{eppler_L1compare_lowRe.pdf}
+  \includegraphics[width=\textwidth]{eppler_resweep_lowRe.pdf}
   \caption{Eppler 387 at $\alpha\!=\!5^\circ$, $Re\!=\!6\!\times\!10^4$ (left) and
-  $1\!\times\!10^5$ (right): the near-wall $\max\chi$ (log, left axis) with the
-  mfoil amplification factor $N$ (linear, right axis) where mfoil data exist (top
-  row), $-C_p$ (middle row) and signed $C_f$ (bottom row) on the
-  L1 grids of both mesh families---unstructured cavity (solid) and structured
-  O-grid (dashed), upper surface blue / lower red. Dotted: the $e^9$
+  $1\!\times\!10^5$ (right), with the same five-row suite and line
+  conventions as the benchmark figures (rows: $\max Re_\Omega$,
+  $\max\hat S g$, $\max\chi$ with the $e^9$ $N$ envelope, $-C_p$, signed
+  $C_f$)---both mesh families at all three refinement levels, structured
+  O-grid solid / unstructured cavity dashed, L0--L2 by line thickness,
+  upper surface blue / lower red. Dotted: the $e^9$
   reference---XFOIL at $6\!\times\!10^4$ (the condition where the $e^9$
   implementations visibly differ, Table~\ref{tab:eppresweep}), mfoil at
-  $10^5$; the $N$ envelope at $6\!\times\!10^4$ (top row) is FlexFoil's,
+  $10^5$; the $N$ envelope at $6\!\times\!10^4$ ($\chi$ row) is FlexFoil's,
   which sides with XFOIL there.
   Open circles: exact experimental surface pressures (NASA TM-4062 Appendix~D,
-  column with the nearest angle of attack). Grey band: experimental laminar-separation-bubble
+  column with the nearest angle of attack). Gray band: experimental laminar-separation-bubble
   extent from the oil-flow visualization (TM-4062 Table~III), which exists only at
   $10^5$ among these two; no oil-flow bubble data were taken at $6\!\times\!10^4$.
   At $6\!\times\!10^4$ the upper-surface separation does not reattach ahead of the
@@ -2172,7 +2177,7 @@ transition, reattachment, and the forces that follow.
 
 \begin{figure}[tp]
   \centering
-  \includegraphics[width=\textwidth]{eppler_L1compare_highRe.pdf}
+  \includegraphics[width=\textwidth]{eppler_resweep_highRe.pdf}
   \caption{As Fig.~\ref{fig:eppresweep_low}, at $Re\!=\!3\!\times\!10^5$ (left) and
   $4.6\!\times\!10^5$ (right). The bubble is short and moves forward with Reynolds
   number, recovering near $x/c\!\approx\!0.52$--$0.54$ at $3\!\times\!10^5$ and
@@ -2180,7 +2185,7 @@ transition, reattachment, and the forces that follow.
   numbers the computed $C_f$ only grazes zero). The mfoil $e^9$ panel solver converges at
   $3\!\times\!10^5$ but diverges on the thin bubble at $4.6\!\times\!10^5$, where
   XFOIL supplies the $e^9$ $C_p$/$C_f$ reference (dotted) and FlexFoil the
-  $N$ envelope (top row) instead. The oil-flow bubble band is available at
+  $N$ envelope ($\chi$ row) instead. The oil-flow bubble band is available at
   $3\!\times\!10^5$ only.}
   \label{fig:eppresweep_high}
 \end{figure}
@@ -2266,7 +2271,7 @@ section conditions (Sec.~\ref{sec:eppresweep}). Eighteen converged RANS solution
   \centering
   \includegraphics[width=0.99\textwidth]{daedalus_polar_sectional.pdf}
   \caption{The macroscopic comparison. \textbf{(a)} Wing polar: both
-  mesh families at all three refinement levels (colour = family, line
+  mesh families at all three refinement levels (color = family, line
   weight = level) against the AVL$+$XFOIL (vortex-lattice $+$ section
   polars) reference at
   matched $N_\mathrm{crit}$. \textbf{(b)} Sectional lift on the finest
@@ -2776,7 +2781,7 @@ $\max\tilde\nu/\nu$ over a band extending $5\%$ of local chord from
 the wall, each volume node scatter-reduced to its nearest wall node;
 the $e^N$ strip rows of the same figures use FlexFoil at each
 station's AVL $c_l$ and chord Reynolds number, its amplification drawn
-as $\chi_\infty e^{N}$ through the identical colour map so the two
+as $\chi_\infty e^{N}$ through the identical color map so the two
 transition contours ($\chi\!=\!1$ and $N\!=\!N_\mathrm{crit}$) are
 directly comparable.
 

@@ -48,7 +48,7 @@ REOM_CEIL = 2600.0*K_ANCHOR   # favorable-saturation ceiling
 REOM_A    = 175.0*K_ANCHOR    # near-separation floor
 REOM_B    = 2.0*K_ANCHOR      # inverse-square coefficient
 REOM_N    = 2.0               # soft-min sharpness
-RAMP_W = 0.35         # onset ramp half-width
+RAMP_W = 0.35         # onset ramp width scale
 
 def sphere_rate(u, dudy, yc):
     d2u = np.gradient(dudy, yc)
