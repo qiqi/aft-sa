@@ -54,7 +54,9 @@ def size_domain(fs, x0, beta):
 
 
 def main():
-    ROWS = [(-0.10, 1.2e6, 8000), (0.0, 4.0e6, 12000), (0.30, 3e5, 120000)]
+    # (beta, x0 domain guess, ylim; None = tune so the N=1 contour just
+    # reaches the upper-right corner)
+    ROWS = [(-0.10, 1.2e6, 8000), (0.0, 4.0e6, 12000), (0.10, 3e6, None)]
     fig, axs = plt.subplots(3, 2, figsize=(11.2, 8.4), layout='constrained')
     for irow, (beta, x0, ylimL) in enumerate(ROWS):
         fs = FalknerSkanWedge(beta); I_th, H = profile_ints(fs)
@@ -67,6 +69,15 @@ def main():
         Rex = xs*Ue; ReyScale = Ue
         X = np.repeat(Rex[:, None], len(yc), 1); Y = yc[None, :]*ReyScale[:, None]
         lev = np.arange(1, 15, 1)
+        if ylimL is None:
+            # place the N=1 contour just at the upper-right corner: highest
+            # Re_y anywhere on the N>=1 region's upper edge
+            tops = []
+            for i in range(len(xs)):
+                j = np.where(N2d[i] >= 1.0)[0]
+                if len(j):
+                    tops.append(yc[j[-1]]*ReyScale[i])
+            ylimL = 1.05*float(max(tops))
         cs = axL.contour(X, Y, N2d, levels=lev, colors='k', linewidths=0.7)
         axL.clabel(cs, levels=lev[::2], fmt='%d', fontsize=6.5, inline_spacing=2)
         th = I_th*np.sqrt(xs/np.maximum(Ue, 1e-30)); d99 = eta99*np.sqrt(xs/np.maximum(Ue, 1e-30))
@@ -74,7 +85,13 @@ def main():
         axL.set_ylim(0, ylimL); axL.set_xlim(0, Rex.max())
         axL.annotate(r'$\delta_{99}$', (0.86*Rex.max(), 1.12*float(np.interp(0.86*Rex.max(), Rex, d99*ReyScale))), color='0.35', fontsize=9)
         axL.annotate(r'$\theta$', (0.9*Rex.max(), 0.55*float(np.interp(0.9*Rex.max(), Rex, th*ReyScale))), color='0.35', fontsize=9)
-        axL.set_ylabel(fr'$\beta={beta:+.2f}$ ($H={H:.2f}$)''\n'r'$Re_y$')
+        upp0 = np.gradient(fs.dudeta, fs.eta)
+        Xk, Yk = fs.u, fs.eta*fs.dudeta
+        Zk = 0.5*fs.eta**2*upp0
+        Rk = np.sqrt(Xk*Xk + Yk*Yk + Zk*Zk) + 1e-30
+        msg = float(np.max((Yk/np.sqrt(Xk*Xk + Yk*Yk + 1e-30))*(Yk - Xk - Zk)/Rk))
+        axL.set_ylabel(fr'$\beta={beta:+.2f}$ ($H={H:.2f}$, '
+                       fr'$\max\hat S g={msg:.3f}$)''\n'r'$Re_y$')
         if irow == 2: axL.set_xlabel(r'$Re_x$')
         axL.text(0.02, 0.95, f'({chr(97+2*irow)})', transform=axL.transAxes, fontsize=11, va='top', fontweight='bold')
         env = fld.max(axis=1)

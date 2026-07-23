@@ -89,6 +89,14 @@ def s_ratio(pr, Re_theta, cnu):
     return float(w[0])*pr['I_th']/pr['sDG']
 
 
+def max_shg(pr):
+    y, u, up = pr['y'], pr['u'], pr['up']
+    upp = np.gradient(up, y)
+    X, Y, Z = u, y*up, 0.5*y**2*upp
+    R = np.sqrt(X*X + Y*Y + Z*Z) + 1e-30
+    return float(np.max((Y/np.sqrt(X*X + Y*Y + 1e-30))*(Y - X - Z)/R))
+
+
 def s_limit_ratio(pr):
     """Re -> infinity: pointwise sup of growth over advection, over Drela."""
     return float(np.max(pr['b']/np.maximum(pr['u'], UFLOOR)))*pr['I_th']/pr['sDG']
@@ -137,9 +145,10 @@ def main():
     prs = [(build(b, g), b, lab) for b, g, lab in PROFILES]
 
     print("tab:ratelimit (inviscid limit, any c_nu,ai):")
-    print(f"{'profile':>20} {'beta':>8} {'H':>6} {'limit':>7}")
+    print(f"{'profile':>20} {'beta':>8} {'H':>6} {'maxShg':>7} {'limit':>7}")
     for pr, beta, lab in prs:
-        print(f"{lab:>20} {beta:+8.4f} {pr['H']:6.2f} {s_limit_ratio(pr):7.2f}")
+        print(f"{lab:>20} {beta:+8.4f} {pr['H']:6.2f} {max_shg(pr):7.3f} "
+              f"{s_limit_ratio(pr):7.2f}")
 
     print("\ntab:frozeneig (ratio to Drela; -- where the profile is STABLE,")
     print("Rt < Re_theta0(H), and the correlation has no growth to compare):")

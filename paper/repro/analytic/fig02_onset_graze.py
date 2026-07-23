@@ -23,19 +23,21 @@ from lib.correlations import Re_theta0
 
 CEIL, A_, B_, N_ = 2600.0, 175.0, 2.0, 2.0
 
-# Attached family from strong favorable through incipient separation, plus the
+# Attached family (10 members, +0.35..-0.1988) through incipient separation, plus the
 # separated reversed-flow (Stewartson lower-branch) profile at beta=-0.19
 # (H~4.9) drawn DOTTED. Deeper members (H>~5) are excluded: Drela's OS data
 # stop at H=5 and no similarity family is validated beyond.
 # No legend: the betas are listed in the caption; color runs with beta.
 PROFILES = [
     (0.35,  None,  None, 'favorable'),
+    (0.25,  None,  None, 'favorable'),
     (0.15,  None,  None, 'favorable'),
     (0.05,  None,  None, 'favorable'),
     (0.0,   None,  None, 'Blasius'),
     (-0.05, None,  None, 'adverse'),
     (-0.10, None,  None, 'adverse'),
     (-0.15, None,  None, 'adverse'),
+    (-0.17, None,  None, 'adverse'),
     (-0.1988, None, None, 'incipient separation'),
     (-0.19, -0.03, None, 'separated (reversed)'),
 ]
@@ -68,6 +70,10 @@ def main():
     fig, ax = plt.subplots(figsize=(6.4, 4.6))
     Pg = np.geomspace(3e-3, 1.2, 400)
     ax.loglog(Pg, softmin(Pg), 'k--', lw=2.0, zorder=5)
+    # the model threshold: the same shape scaled by the calibrated k
+    # (anchored by the march, Sec. II.D), shifted down by 29%
+    from fig04_shapefactor import K_ANCHOR
+    ax.loglog(Pg, K_ANCHOR*softmin(Pg), 'k-.', lw=1.4, zorder=5)
     cmap = plt.cm.coolwarm
     natt = sum(1 for p in PROFILES if p[1] is None)
     j = 0

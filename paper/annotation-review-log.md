@@ -1737,3 +1737,37 @@ Previous request (extra profile between Blasius and beta=-0.1) was
 mistaken and is reverted; the added member is now beta=-0.15 (red-orange)
 between beta=-0.1 and the separation limit, per the corrected instruction.
 Caption lists it exactly.
+
+## 2026-07-23 annotated.pdf round 4 (20:27, pp.10-16, 13 remarks)
+1. "inflectional" (rate paragraph) -> rigorous: "keeps the profile's
+   curvature single-signed---the accumulated curvature reversal that
+   carries a layer across the neutral circle never builds".
+2. eq:nulamscale aftermath -> added "Doing so barely disturbs the original
+   SA calibration... quantified in Sec. II.E" forward pointer.
+3. "buy nothing the correlation asks for" -> "demand ever more grid
+   resolution".
+4. max S_hat*g columns added to Tables 2-3 (Table 3's beta column REPLACED
+   by max S_hat*g; Table 2 carries both to establish the map); generator
+   prints the column; captions note the airfoil-visualization calibration
+   purpose.
+5. Graze figure: beta=+0.25 and -0.17 added (10 attached members; +0.25
+   also grazes ~1.3, so "the strongly favorable edge (beta>=+0.25)");
+   the calibrated-k model threshold added as dash-dot.
+6. Graze caption: separated-profile ignition sentence and the k-provenance
+   sentence removed (body retains both stories).
+7. k-size sentence -> "Its size has to be measured, with the model's own
+   equation marched down the layer."
+8. "after linear theory declares its growth begun" -> "after the model
+   first lets its growth rate turn positive".
+9. "The simplest such instrument is a parabolized march"; classical
+   parabolized-BL reference (White) added after "are dropped".
+10. "belong to the turbulent side" -> "switched off where chi<<1 by the
+    handover weights of Sec. II.E".
+11. Seed made rigorous: one unit of an arbitrary infinitesimal; linearity
+    cancels the magnitude; N measured in that unit.
+12. Fig 3 bottom row: beta=+0.30 -> +0.10; left-column ylim auto-tuned so
+    the N=1 contour just reaches the upper-right corner; each row label
+    carries its max S_hat*g.
+13. Favorable-branch paragraph now grades the degradation in max S_hat*g
+    (0.04: ~11% early; holds to 0.02; 2e-3: rate 0.1x/onset 3x; beta~0.45
+    suppressed), pointing at Figs. 3-4.

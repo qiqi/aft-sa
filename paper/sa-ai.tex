@@ -541,8 +541,10 @@ below), reached where $\hat S g\!\ge\!1$ at the shear pole ($\hat S\!\to\!1$, th
 free-shear-layer limit). No
 near-neutral shaping is needed: measured against the Drela--Giles envelope,
 the linear rate tracks it across the attached shape-factor family, softening
-only at the separation edge (below). Because a favorable gradient collapses the
-inflectional content, $\hat S g\!\to\!0$ there and the rate vanishes with it---no
+only at the separation edge (below). Because a favorable gradient keeps the profile's curvature
+single-signed---the accumulated curvature reversal that carries a layer
+across the neutral circle never builds---$\hat S g\!\to\!0$ there and the
+rate vanishes with it---no
 separate suppression term is needed.
 
 The prefactor $a_{\max}$ is a natural physical limit, set by the structure of
@@ -599,22 +601,24 @@ shallow reversed-flow branch the ratio is $0.97$.
   $\max_y a\,\omega/u$, as a ratio to the Drela--Giles spatial envelope
   rate $s_{\mathrm{DG}}/\theta$, on five Falkner--Skan profiles (starred:
   the reversed-flow, Stewartson lower-branch solution of the same
-  $\beta$). The ratio is
+  $\beta$). $\max_y\hat S g$ is each profile's peak rate coordinate---the
+  scale the airfoil visualizations of
+  Secs.~\ref{sec:nlfval}--\ref{sec:eppval} are read against. The ratio is
   independent of Reynolds number and of any diffusion: it is the most
   growth per unit length the rate can sustain on the profile. The
   diffusion retained by the working variable, taken up next, lowers the
   realized slope toward and below these values at transitional Reynolds
   numbers (Table~\ref{tab:frozeneig}).}
   \label{tab:ratelimit}
-  \begin{tabular}{lrrc}
+  \begin{tabular}{lrrrc}
     \toprule
-    profile & $\beta$ & $H$ & $\theta\,\max_y(a\,\omega/u)\;/\;s_{\mathrm{DG}}$\\
+    profile & $\beta$ & $H$ & $\max_y \hat S g$ & $\theta\,\max_y(a\,\omega/u)\;/\;s_{\mathrm{DG}}$\\
     \midrule
-    moderate favorable & $+0.10$ & 2.48 & 1.30\\
-    Blasius & $0$ & 2.59 & 1.42\\
-    moderate adverse & $-0.10$ & 2.80 & 1.30\\
-    separation limit & $-0.1988$ & 3.98 & 0.97\\
-    separated, shallow$^\ast$ & $-0.19$ & 4.92 & 0.97\\
+    moderate favorable & $+0.10$ & 2.48 & 0.037 & 1.30\\
+    Blasius & $0$ & 2.59 & 0.078 & 1.42\\
+    moderate adverse & $-0.10$ & 2.80 & 0.162 & 1.30\\
+    separation limit & $-0.1988$ & 3.98 & 0.510 & 0.97\\
+    separated, shallow$^\ast$ & $-0.19$ & 4.92 & 0.657 & 0.97\\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -664,7 +668,10 @@ $c_{\nu,\mathrm{ai}}\!<\!1$,
 \end{equation}
 leaving the mean-flow viscosity, the SA production and destruction, and the
 definition $\chi=\tilde\nu/\nu$ (formed with the \emph{true} $\nu$)
-untouched. How much less, the eigenvalue decides, read against a
+untouched. Doing so barely disturbs the original SA calibration---the
+scaling multiplies a term that is negligible or exactly zero wherever
+that calibration acts, quantified in Sec.~\ref{sec:calib_diff}. How much
+less, the eigenvalue decides, read against a
 constraint that pulls the other way. Halving the coefficient down the
 ladder $c_{\nu,\mathrm{ai}}=1,\tfrac12,\tfrac13,\tfrac16,\tfrac1{12}$,
 the station just past the Blasius critical station ($Re_\theta\!=\!400$) climbs
@@ -673,8 +680,8 @@ correlation at $\tfrac16$ and overshoots past it. The family arrives
 together---the favorable wedge's lone unstable station reads $1.02$ at
 the same $\tfrac16$, and the moderate adverse crosses unity between
 $\tfrac13$ and $\tfrac16$ ($1.04$ at $Re_\theta\!=\!400$). Pressing
-further toward the inviscid ceiling would buy nothing the correlation
-asks for: the molecular floor sets
+further toward the inviscid ceiling would demand ever more grid
+resolution: the molecular floor sets
 the smallest wall-normal scale the $\tilde\nu$ field can develop, the
 equilibrium band thickness scaling as $\sqrt{c_{\nu,\mathrm{ai}}}$, so
 every halving thins the disturbance band the mesh must resolve by
@@ -702,7 +709,9 @@ diffusivity positive, $c_{\nu,\mathrm{ai}}\nu + f_n\tilde\nu\!>\!0$.
   retained---as a ratio to the Drela--Giles rate $s_{\mathrm{DG}}/\theta$
   across the transitional decade $Re_\theta=200$--$1600$, at the untouched
   molecular coefficient ($c_{\nu,\mathrm{ai}}\!=\!1$) and at the adopted
-  $c_{\nu,\mathrm{ai}}\!=\!\tfrac16$. Entries appear only at stations
+  $c_{\nu,\mathrm{ai}}\!=\!\tfrac16$. Profiles are identified by their
+  peak rate coordinate $\max_y\hat S g$ (the $\beta$ map is
+  Table~\ref{tab:ratelimit}). Entries appear only at stations
   above the profile's Drela--Giles critical Reynolds number
   $Re_{\theta 0}(H)$ (third column): where the profile is stable, the
   correlation has no growth to compare against. Each entry is one
@@ -718,18 +727,18 @@ diffusivity positive, $c_{\nu,\mathrm{ai}}\nu + f_n\tilde\nu\!>\!0$.
     & & & \multicolumn{4}{c}{$c_{\nu,\mathrm{ai}}=1$}
       & \multicolumn{4}{c}{$c_{\nu,\mathrm{ai}}=1/6$}\\
     \cmidrule(lr){4-7}\cmidrule(lr){8-11}
-    profile & $\beta$ & $Re_{\theta 0}$ & $200$ & $400$ & $800$ & $1600$
+    profile & $\max_y \hat S g$ & $Re_{\theta 0}$ & $200$ & $400$ & $800$ & $1600$
                       & $200$ & $400$ & $800$ & $1600$\\
     \midrule
-    moderate favorable & $+0.10$ & $827$ & -- & -- & -- & $0.63$
+    moderate favorable & $0.037$ & $827$ & -- & -- & -- & $0.63$
                                  & -- & -- & -- & $1.02$\\
-    Blasius            & $0$     & $242$ & -- & $0.49$ & $0.75$ & $0.94$
+    Blasius            & $0.078$ & $242$ & -- & $0.49$ & $0.75$ & $0.94$
                                  & -- & $1.02$ & $1.13$ & $1.21$\\
-    moderate adverse   & $-0.10$ & $97$ & $0.50$ & $0.72$ & $0.87$ & $0.99$
+    moderate adverse   & $0.162$ & $97$ & $0.50$ & $0.72$ & $0.87$ & $0.99$
                                  & $0.94$ & $1.04$ & $1.11$ & $1.16$\\
-    separation limit   & $-0.1988$ & $36$ & $0.64$ & $0.72$ & $0.79$ & $0.83$
+    separation limit   & $0.510$ & $36$ & $0.64$ & $0.72$ & $0.79$ & $0.83$
                                  & $0.82$ & $0.86$ & $0.89$ & $0.91$\\
-    separated, shallow$^\ast$ & $-0.19$ & $26$ & $0.68$ & $0.75$ & $0.80$ & $0.85$
+    separated, shallow$^\ast$ & $0.657$ & $26$ & $0.68$ & $0.75$ & $0.80$ & $0.85$
                                  & $0.83$ & $0.87$ & $0.89$ & $0.91$\\
     \bottomrule
   \end{tabular}
@@ -800,23 +809,19 @@ parameter anywhere.
   Falkner--Skan profile, at its Drela--Giles critical Reynolds number
   $Re_{\theta 0}(H)$, traces a curve in the $(\hat S g,\,Re_\Omega)$ plane:
   solid, colored blue to red with decreasing $\beta$, the attached family
-  $\beta = +0.35$, $+0.15$, $+0.05$, $0$ (Blasius), $-0.05$, $-0.10$,
-  $-0.15$, $-0.1988$ (incipient separation); dotted, a separated
-  reversed-flow profile, the Stewartson lower-branch solution at
+  $\beta = +0.35$, $+0.25$, $+0.15$, $+0.05$, $0$ (Blasius), $-0.05$,
+  $-0.10$, $-0.15$, $-0.17$, $-0.1988$ (incipient separation); dotted, a
+  separated reversed-flow profile, the Stewartson lower-branch solution at
   $\beta\!=\!-0.19$ ($H\!\approx\!4.9$). The attached family
   shares the dashed outer envelope, which each member grazes at its marked
   closest-approach point: graze ratios $0.93$--$1.14$ (root-mean-square
   $\sim\!6\%$) from incipient separation through $\beta=+0.15$, rising to
-  $\sim\!1.3$ at the strongly favorable $\beta=+0.35$ edge. The soft-min
+  $\sim\!1.3$ at the strongly favorable edge ($\beta\!\geq\!+0.25$). The
+  soft-min
   shape of Eq.~\eqref{eq:reomc}, at $k\!=\!1$, is that envelope: a ceiling on the favorable
-  (small $\hat S g$) side, an additive floor toward separation. The separated
-  reversed-flow profile continues the family's graze (closest approach
-  $0.91$ at its own, very low $Re_{\theta 0}\!\approx\!26$); at the
-  Reynolds numbers a separation bubble actually reaches,
-  $Re_\Omega\!\propto\!Re_\theta$ carries it far above the floor and it
-  ignites at once. The compensation scale $k$ of
-  Eq.~\eqref{eq:reomc} is not set by the graze but by the march anchor
-  below.}
+  (small $\hat S g$) side, an additive floor toward separation; dash-dot,
+  the model threshold---the same shape scaled by the calibrated
+  $k\!=\!0.712$ of the march anchor below.}
   \label{fig:onsetgraze}
 \end{figure}
 
@@ -849,7 +854,7 @@ with $\operatorname{softmin}_2(x_1,x_2)\!=\!x_1 x_2/\sqrt{x_1^2+x_2^2}$; the
 graze fixes the three shape constants to a root-mean-square graze error of
 $\sim\!6\%$ from incipient separation through $\beta\!=\!+0.15$ (the
 soft-min exponent $2$ is the best of the sharpnesses tried), and they are
-never refit; the strongly favorable $\beta\!=\!+0.35$ member grazes
+never refit; the strongly favorable members ($\beta\!\geq\!+0.25$) graze
 $\sim\!1.3$ high, consistent with the favorable-branch departure the
 calibration will meet below.
 
@@ -859,15 +864,15 @@ amplification also \emph{diffuses}, with the retained molecular
 coefficient $c_{\nu,\mathrm{ai}}\nu$ of Sec.~\ref{sec:nulamscale}, all
 the while it grows. The drain is felt most where inception
 happens at low Reynolds number---in a thin layer the young disturbance loses
-to viscosity for a while after linear theory declares its growth begun, so
+to viscosity for a while after the model first lets its growth rate turn
+positive, so
 net growth starts late. The compensation is to permit inception
 \emph{earlier} than the inviscid graze: one factor $k\!<\!1$ scales the
 whole threshold, so that the accumulated growth reaches the correlation's
-first station on time. Its size is not a matter for the frozen-profile
-eigenvalue, which knows nothing of a disturbance's youth; it is measured
-with the model's own equation, marched down the layer.
+first station on time. Its size has to be measured, with the model's
+own equation marched down the layer.
 
-The instrument is that equation reduced to a parabolized march:
+The simplest such instrument is a parabolized march of that equation:
 in non-dimensional boundary-layer variables (length in $\nu/U_\infty$,
 velocity in $U_\infty$),
 \begin{equation}
@@ -878,10 +883,16 @@ velocity in $U_\infty$),
 \end{equation}
 keeping the amplification and the molecular part of the SA cross-stream
 diffusion (the $\tilde\nu\,\nabla^2\tilde\nu$ self-diffusion and $c_{b2}$
-gradient terms are $O(\chi)$ smaller in this range and are dropped; no SA
-production or destruction enters---those belong to the turbulent side,
-Sec.~\ref{sec:blend}). The march is seeded
-$\hat\nu_\infty\!=\!1$ at the leading edge, so $N\!=\!\ln\hat\nu$ is the
+gradient terms are $O(\chi)$ smaller in this range and are dropped,
+in the manner of the classical parabolized boundary-layer
+equations~\cite{white_2006}; no SA
+production or destruction enters---those are switched off where
+$\chi\!\ll\!1$ by the handover weights of Sec.~\ref{sec:blend}). The
+march is seeded
+at the leading edge with one unit of an arbitrary infinitesimal: the
+equation is linear in $\hat\nu$, so the seed's magnitude cancels from
+every ratio and only the accumulated growth is meaningful. Measured in
+that unit, $N\!=\!\ln\hat\nu$ is the
 amplification factor by construction, and its envelope can be laid directly
 against Drela--Giles~\cite{drela_giles_1987}. (The crossings quoted in this
 subsection are grid-converged values of the march; the $N\!=\!1$ crossing in
@@ -893,7 +904,8 @@ where inception occurs.)
   \includegraphics[width=0.99\textwidth]{fs_nuHat_rows.pdf}
   \caption{The disturbance transport \eqref{eq:transport} on three wedge
   flows---adverse ($\beta\!=\!-0.10$, top), Blasius ($\beta\!=\!0$, middle:
-  the calibration anchor), and favorable ($\beta\!=\!+0.30$, bottom)---seeded
+  the calibration anchor), and mildly favorable ($\beta\!=\!+0.10$,
+  bottom)---seeded
   $\hat\nu_\infty\!=\!1$, $a_{\max}=0.19$.
   \textbf{Left column} (a,c,e): contours of $N\!=\!\ln\hat\nu$ at the
   canonical $(c_{\nu,\mathrm{ai}},k)=(\tfrac16,\,0.712)$ in the
@@ -910,10 +922,11 @@ where inception occurs.)
   canonical envelope meets the correlation at $N\!=\!1$ by construction
   (Sec.~\ref{sec:calib_onset}); its $N\!=\!9$ crossing is an untuned
   prediction, $7\%$ past Drela's. The adverse wedge (b) ignites earlier and
-  grows faster. The favorable wedge (f) has $\hat S g\!\to\!0$: the rate all
-  but vanishes and transition is pushed an order of magnitude past the
-  Blasius $Re_\theta$, approaching the vanishing favorable growth the Drela
-  envelope requires---with no pressure-gradient parameter anywhere. A
+  grows faster. The mildly favorable wedge (f) stays close to the
+  correlation---its $N\!=\!1$ station lands ${\sim}11\%$ early---with the
+  suppressed rate stretching the growth over a run nearly three times
+  Blasius's, and no pressure-gradient parameter anywhere. Each row's
+  $\max_y\hat S g$ is listed at its left edge. A
   physical case seeded with $\chi_\infty$ hands over where its envelope
   crosses $N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)$ ($\chi\!=\!c_{v1}$; the
   seed convention of Sec.~\ref{sec:flatplate}).}
@@ -980,18 +993,22 @@ Drela--Giles across the attached family and softens through the separation limit
 onto the reversed-flow branch (Fig.~\ref{fig:calibrate}a); the softening is
 structural---the amplifying band thins as the profile approaches full
 inflection, so the integrated envelope falls below the pointwise rate. The
-favorable branch is the model's weak point: as $\hat S g\!\to\!0$ the rate falls faster
-than Drela's and the onset rises above Drela's critical Reynolds number. At
-$\beta\!\approx\!0.35$ ($H\!\approx\!2.34$) the rate is
+favorable branch is where the model degrades, and the rate coordinate
+grades the degradation (Fig.~\ref{fig:calibrate}). At
+$\max_y\hat S g\!\approx\!0.04$ ($\beta\!=\!+0.10$, the bottom row of
+Fig.~\ref{fig:nuhat}) the model is still roughly right, the marched
+$N\!=\!1$ station ${\sim}11\%$ early; the family holds that level through
+$\max_y\hat S g\!\approx\!0.02$ ($\beta\!=\!+0.15$). Beyond, the rate falls
+faster than Drela's and the onset climbs above the critical Reynolds
+number: by $\max_y\hat S g\!\approx\!2\!\times\!10^{-3}$
+($\beta\!=\!+0.35$, $H\!\approx\!2.34$) the rate is
 $\approx\!0.1\times$ Drela and the onset $\approx\!3\times$ its critical
 $Re_\theta$; by $\beta\!\approx\!0.45$ transition has retreated beyond any
 station of practical relevance (the marched $N\!=\!1$ station past
 $Re_\theta\!\sim\!5\!\times\!10^5$), and stronger favorable wedges are
-suppressed outright. The moderate case is the bottom row of Fig.~\ref{fig:nuhat}:
-at $\beta\!=\!+0.30$ transition survives but is pushed an order of magnitude
-past the Blasius $Re_\theta$. The linear $\hat S g$ has no
+suppressed outright. The linear $\hat S g$ has no
 near-neutral floor to hold the small favorable growth Drela's envelope keeps;
-matching the favorable branch is left to future work.
+matching the strongly favorable branch is left to future work.
 
 \subsection{The blend and its handover}\label{sec:blend}\label{sec:calib_diff}
 A handover weight ties the laminar and turbulent regimes to the single state
