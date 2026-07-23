@@ -1,39 +1,39 @@
 {
  "sweep_cavL0_Re60k_a5": {
-  "CL": 0.8227,
-  "CD": 0.05915,
-  "xtr_up": 1.0,
+  "CL": 0.8311,
+  "CD": 0.03676,
+  "xtr_up": 0.9981,
   "xtr_lo": 1.0,
   "steps": 19996,
   "converged": true,
-  "dt_min": 2.5
+  "dt_min": 2.6
  },
  "sweep_cavL0_Re460k_a5": {
-  "CL": 0.9475,
-  "CD": 0.03559,
-  "xtr_up": 0.3457,
-  "xtr_lo": 1.0,
+  "CL": 0.9449,
+  "CD": 0.01156,
+  "xtr_up": 0.451,
+  "xtr_lo": 0.9964,
   "steps": 19996,
   "converged": true,
-  "dt_min": 2.5
+  "dt_min": 2.6
  },
  "sweep_cavL0_Re100k_a5": {
-  "CL": 0.8765,
-  "CD": 0.04983,
-  "xtr_up": 0.4637,
+  "CL": 0.8906,
+  "CD": 0.02408,
+  "xtr_up": 0.5262,
   "xtr_lo": 1.0,
   "steps": 19996,
   "converged": true,
-  "dt_min": 2.5
+  "dt_min": 2.6
  },
  "sweep_cavL0_Re300k_a5": {
-  "CL": 0.9367,
-  "CD": 0.0377,
-  "xtr_up": 0.3941,
-  "xtr_lo": 1.0,
+  "CL": 0.9361,
+  "CD": 0.01352,
+  "xtr_up": 0.4764,
+  "xtr_lo": 0.9974,
   "steps": 19996,
   "converged": true,
-  "dt_min": 2.5
+  "dt_min": 2.6
  },
  "sweep_strL0_Re60k_a5": {
   "CL": 0.6449,
@@ -72,31 +72,31 @@
   "dt_min": 2.3
  },
  "sweep_cavL2_Re100k_a5": {
-  "CL": 0.8227,
-  "CD": 0.03676,
-  "xtr_up": 0.5384,
-  "xtr_lo": 1.0,
+  "CL": 0.8594,
+  "CD": 0.0341,
+  "xtr_up": 0.5467,
+  "xtr_lo": 0.9994,
   "steps": 24995,
   "converged": true,
-  "dt_min": 21.6
+  "dt_min": 23.4
  },
  "sweep_cavL2_Re300k_a5": {
-  "CL": 0.9178,
-  "CD": 0.01285,
-  "xtr_up": 0.5051,
-  "xtr_lo": 1.0,
+  "CL": 0.9491,
+  "CD": 0.01118,
+  "xtr_up": 0.5104,
+  "xtr_lo": 0.9976,
   "steps": 24995,
   "converged": true,
-  "dt_min": 21.8
+  "dt_min": 23.4
  },
  "sweep_cavL2_Re60k_a5": {
-  "CL": 0.6697,
-  "CD": 0.0526,
-  "xtr_up": 0.9805,
-  "xtr_lo": 1.0,
+  "CL": 0.6949,
+  "CD": 0.05216,
+  "xtr_up": 0.9878,
+  "xtr_lo": 0.9999,
   "steps": 24995,
   "converged": true,
-  "dt_min": 21.9
+  "dt_min": 23.4
  },
  "sweep_strL2_Re60k_a5": {
   "CL": 0.6205,
@@ -108,13 +108,13 @@
   "dt_min": 24.2
  },
  "sweep_cavL2_Re460k_a5": {
-  "CL": 0.922,
-  "CD": 0.01063,
-  "xtr_up": 0.4757,
-  "xtr_lo": 1.0,
+  "CL": 0.9583,
+  "CD": 0.00897,
+  "xtr_up": 0.4781,
+  "xtr_lo": 0.9969,
   "steps": 29994,
   "converged": true,
-  "dt_min": 30.2
+  "dt_min": 32.0
  },
  "sweep_strL2_Re100k_a5": {
   "CL": 0.7687,

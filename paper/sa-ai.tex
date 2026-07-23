@@ -1670,16 +1670,17 @@ curvature term $\tfrac12 d^2\nabla^2u$) are all \emph{local} and gradient-based,
 so sliver-induced errors in the least-squares gradients feed
 straight into the amplification rate. That the cavity and O-grid families
 nevertheless predict the same transition---agreeing in drag to within
-$\Delta C_d\!\approx\!0.6$--$0.7\!\times\!10^{-3}$ through
-$\alpha\!=\!4^\circ$ (rising to $1.0$--$1.4\!\times\!10^{-3}$ at
+$\Delta C_d\!\approx\!0.4\!\times\!10^{-3}$ through
+$\alpha\!=\!4^\circ$ (rising to $1.1\!\times\!10^{-3}$ at
 $\alpha\!=\!9^\circ$--$15^\circ$, the $9^\circ$ gap set by the marginal
 cavity near-LE onset) at L2---measures something a refinement ladder
 alone does not: the two discretizations share no meshing decisions, so
 their agreement, where it occurs, is robustness to the discretization
 rather than to refinement; the
-transition fronts of the two finest meshes agree to $0.01\,c$ on every
-front, with the coarser levels scattering by up to $0.03\,c$
-(Table~\ref{tab:nlftrans}).
+transition fronts of the two finest meshes agree to $0.02\,c$ on every
+front and the L1 pair to $0.04\,c$, while the coarsest grids scatter by
+up to $0.1\,c$ at incidence and lose the marginal high-$\alpha$ lower
+front altogether (Table~\ref{tab:nlftrans}).
 
 \begin{figure}[tp]
   \centering
@@ -1930,7 +1931,9 @@ and Table~\ref{tab:eppmesh} lists their resolution quantitatively.
   experimental section characteristics from the Langley Low-Turbulence Pressure
   Tunnel (McGhee et al., NASA TM-4062, App.~B, $R\!=\!2\!\times\!10^5$) and the
   mfoil $e^9$ reference. The computed points track the low-drag laminar bucket;
-  the two mesh families agree to within $\Delta C_d\!\lesssim\!5\times10^{-4}$.
+  the two mesh families agree to within
+  $\Delta C_d\!\lesssim\!7\times10^{-4}$ ($0.1$--$0.7\!\times\!10^{-3}$
+  across the four incidences).
   The gray dash-dot curve is fully turbulent SA ($\chi_\infty\!=\!3$, same
   solver, structured L2 grid), $66$--$87\%$ above the SA-AI drag in the
   bucket and $+149\%$ at $\alpha\!=\!7^\circ$.}
@@ -2060,10 +2063,10 @@ rate negligible; transition is set in the adverse recovery over the bubble.
     \cmidrule(lr){2-4} \cmidrule(lr){5-7}
     $\alpha$ & L0 & L1 & L2 & L0 & L1 & L2 & mfoil $e^9$ & Exp (oil flow) \\
     \midrule
-    $0^\circ$ & 0.712 & 0.729 & 0.760 & 0.719 & 0.764 & 0.778 & 0.741 & 0.74 \\
-    $2^\circ$ & 0.649 & 0.683 & 0.710 & 0.656 & 0.714 & 0.726 & 0.691 & 0.67 \\
-    $5^\circ$ & 0.559 & 0.600 & 0.627 & 0.568 & 0.624 & 0.643 & 0.592 & 0.59 \\
-    $7^\circ$ & 0.458 & 0.449 & 0.447 & 0.344 & 0.414 & 0.449 & $0.40^\dagger$ & 0.48 \\
+    $0^\circ$ & 0.711 & 0.737 & 0.768 & 0.735 & 0.778 & 0.788 & 0.741 & 0.74 \\
+    $2^\circ$ & 0.649 & 0.682 & 0.718 & 0.672 & 0.721 & 0.737 & 0.691 & 0.67 \\
+    $5^\circ$ & 0.573 & 0.607 & 0.634 & 0.587 & 0.633 & 0.655 & 0.592 & 0.59 \\
+    $7^\circ$ & 0.459 & 0.435 & 0.444 & 0.324 & 0.414 & 0.449 & $0.40^\dagger$ & 0.48 \\
     \bottomrule
   \end{tabular}
   \\[2pt]{\footnotesize $^\dagger$mfoil at $\alpha\!=\!7^\circ$ is unreliable
@@ -2076,15 +2079,15 @@ rate negligible; transition is set in the adverse recovery over the bubble.
 The reattachment---the bubble's aft end, set by the post-transition turbulent
 recovery---is the quantity this test hinges on, and it is where the sphere
 kernel shows its cost. At $\alpha\!\le\!5^\circ$ the model reattaches
-systematically \emph{late}: $0.78\,c$ at $\alpha\!=\!0^\circ$ against the
-measured $0.74\,c$, $0.73\,c$ vs $0.67\,c$ at $2^\circ$, and $0.64\,c$ vs
-$0.59\,c$ at $5^\circ$---a bubble $0.04$--$0.06\,c$ too long, grid-converged (the
+systematically \emph{late}: $0.79\,c$ at $\alpha\!=\!0^\circ$ against the
+measured $0.74\,c$, $0.74\,c$ vs $0.67\,c$ at $2^\circ$, and $0.66\,c$ vs
+$0.59\,c$ at $5^\circ$---a bubble $0.05$--$0.07\,c$ too long, grid-converged (the
 two mesh families agree to within $0.02\,c$ at L2, and the $e^9$ panel
 reference likewise sits within $0.02\,c$ of the data over the same range). The
 near-stall $\alpha\!=\!7^\circ$ case, where the adverse gradient is strongest, is
 the exception: it reattaches at $0.45\,c$, $0.03\,c$ \emph{ahead} of the measured
-$0.48\,c$, though its coarse grids still scatter by $\sim\!0.1\,c$ before closing to
-$0.002\,c$ by L2. The lower surface runs laminar to the trailing edge at every
+$0.48\,c$, though its coarse grids still scatter by $\sim\!0.14\,c$ before closing
+to $0.005\,c$ by L2. The lower surface runs laminar to the trailing edge at every
 incidence and has no front to move. This low-$\alpha$ over-length has the same
 origin as the separation-edge softening seen in the calibration
 (\S\ref{sec:calib_onset}, Fig.~\ref{fig:calibrate}): the linear $\hat S g$
@@ -2101,15 +2104,20 @@ $\alpha\!=\!5^\circ$ and the freestream seed at
 $\chi_\infty\!=\!8.76\!\times\!10^{-4}$ and sweep the four other tabulated
 Reynolds numbers,
 $Re\!\in\!\{6\!\times\!10^4,\,1\!\times\!10^5,\,3\!\times\!10^5,\,4.6\!\times\!10^5\}$,
-reusing the L1 grids of both mesh families from the $Re\!=\!2\!\times\!10^5$
-study unchanged (only the reference viscosity changes).
+reusing the grids of both mesh families at all three refinement levels
+from the $Re\!=\!2\!\times\!10^5$
+study unchanged (only the reference viscosity changes)---$24$ solutions
+in all.
 Figures~\ref{fig:eppresweep_low} and~\ref{fig:eppresweep_high} show the resulting
 $-C_p$ and signed $C_f$, overlaid with the exact experimental surface pressures
 (open circles, from the NASA TM-4062 Appendix~D tables at the column with the
 nearest angle of attack) and the mfoil/XFOIL $e^9$ reference where it converges.
-All eight solutions are steady and fully converged---the force
-coefficients are flat to $\Delta C_l,\Delta C_d\!<\!3\!\times\!10^{-6}$
-over the final $2000$ iterations, i.e.\ no bubble limit cycle.
+Twenty-three of the $24$ solutions are steady---force coefficients flat
+to $\Delta C_l,\Delta C_d\!<\!5\!\times\!10^{-5}$
+over the final $2000$ iterations; the structured L1 solution at $10^5$
+alone carries a bubble limit cycle of amplitude
+$\Delta C\!\approx\!0.01$, the near-bursting condition discussed below
+(its tabulated forces are medians over the cycle).
 
 \begin{table}[tp]
   \centering
@@ -2117,8 +2125,12 @@ over the final $2000$ iterations, i.e.\ no bubble limit cycle.
   \setlength{\tabcolsep}{4.5pt}
   \caption{Section coefficients for the Eppler 387 at $\alpha\!=\!5^\circ$
   across the Reynolds sweep: lift, drag, and quarter-chord pitching moment from
-  the two L1 mesh families (the same grids as the $Re\!=\!2\!\times\!10^5$
-  study), the $e^9$ panel reference (mfoil; XFOIL at $6\!\times\!10^4$,
+  the two mesh families' middle (L1) grids (the same grids as the
+  $Re\!=\!2\!\times\!10^5$ study; the L0/L2 companions appear in
+  Figs.~\ref{fig:eppresweep_low}--\ref{fig:eppresweep_high}, their L2
+  pairs agreeing to $0.1$--$0.2\!\times\!10^{-3}$ in $c_d$ at
+  $3$--$4.6\!\times\!10^5$ and diverging at $10^5$ as described in the
+  text), the $e^9$ panel reference (mfoil; XFOIL at $6\!\times\!10^4$,
   where the two implementations visibly differ, and at
   $Re\!=\!4.6\!\times\!10^5$, where mfoil's stagnation-point iteration
   diverges on the thin high-$Re$ bubble), and the LTPT measurement
@@ -2138,10 +2150,10 @@ over the final $2000$ iterations, i.e.\ no bubble limit cycle.
     \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}\cmidrule(lr){11-13}
     $Re$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ \\
     \midrule
-    $6\!\times\!10^4$   & 0.649 & 0.0515 & $-$0.095 & 0.772 & 0.0446 & $-$0.100 & 0.869$^\ddagger$ & 0.0411$^\ddagger$ & $-$0.102$^\ddagger$ & 0.838 & 0.0439 & $-$0.114 \\
-    $1\!\times\!10^5$   & 0.832 & 0.0342 & $-$0.093 & 0.901 & 0.0249 & $-$0.089 & 0.952 & 0.0213 & $-$0.087 & 0.873 & 0.0237 & $-$0.089 \\
-    $2\!\times\!10^5$   & 0.922 & 0.0158 & $-$0.081 & 0.947 & 0.0145 & $-$0.085 & 0.960 & 0.0128 & $-$0.082 & 0.891 & 0.0138 & $-$0.081 \\
-    $3\!\times\!10^5$   & 0.935 & 0.0123 & $-$0.080 & 0.960 & 0.0117 & $-$0.085 & 0.962 & 0.0103 & $-$0.082 & 0.901 & 0.0114 & $-$0.080 \\
+    $6\!\times\!10^4$   & 0.646 & 0.0517 & $-$0.095 & 0.766 & 0.0453 & $-$0.101 & 0.869$^\ddagger$ & 0.0411$^\ddagger$ & $-$0.102$^\ddagger$ & 0.838 & 0.0439 & $-$0.114 \\
+    $1\!\times\!10^5$   & 0.818 & 0.0364 & $-$0.095 & 0.899 & 0.0253 & $-$0.090 & 0.952 & 0.0213 & $-$0.087 & 0.873 & 0.0237 & $-$0.089 \\
+    $2\!\times\!10^5$   & 0.921 & 0.0162 & $-$0.081 & 0.946 & 0.0146 & $-$0.085 & 0.960 & 0.0128 & $-$0.082 & 0.891 & 0.0138 & $-$0.081 \\
+    $3\!\times\!10^5$   & 0.935 & 0.0124 & $-$0.080 & 0.960 & 0.0117 & $-$0.085 & 0.962 & 0.0103 & $-$0.082 & 0.901 & 0.0114 & $-$0.080 \\
     $4.6\!\times\!10^5$ & 0.944 & 0.0101 & $-$0.080 & 0.970 & 0.0097 & $-$0.086 & 0.966 & 0.0086 & $-$0.082 & 0.914 & 0.0093 & $-$0.081 \\
     \bottomrule
   \end{tabular}
@@ -2174,18 +2186,27 @@ $Re\!=\!6\!\times\!10^4$, where mfoil visibly departs from the other
 two; XFOIL---whose forces also sit closest to the measurement---is
 presented as the reference there, in the table (mfoil in the footnote)
 and in Fig.~\ref{fig:eppresweep_low}. The one
-systematic entry is a drag \emph{excess} at low Reynolds number---$\sim\!5\%$ on
-the unstructured grid at $Re\!=\!10^5$ and larger on the structured---consistent
-in sign with the over-predicted bubble length (\S\ref{sec:calib_rate}), whose
-extended laminar separation adds pressure drag. The measured pressures confirm the computed
-bubble structure directly: the suction-side plateau of the separated shear
-layer appears in the open-circle data at $10^5$ and $3\!\times\!10^5$
-exactly where the computed $C_p$ flattens.
+systematic failure is at $Re\!=\!10^5$, where the computation sits past
+the model's bursting boundary: on every grid the upper-surface recovery
+is incomplete---the signed $C_f$ regains zero only within $0.04\,c$ of
+the trailing edge, against the measured oil-flow reattachment near
+$0.67\,c$---and the drag runs from $+7\%$ above the measurement
+(unstructured L1) to $+44$--$87\%$ at L2, refinement pushing both
+families toward the burst state rather than the measured short bubble.
+The overshoot is the extreme of the over-predicted bubble length
+(\S\ref{sec:calib_rate}): at this Reynolds number the model's extended
+laminar separation fails to close at all. The measured pressures confirm
+the computed bubble structure where the bubble does close: the
+suction-side plateau of the separated shear layer appears in the
+open-circle data at $3\!\times\!10^5$ exactly where the computed $C_p$
+flattens, and at $10^5$ over the bubble's front half, before the
+computed and measured recoveries part company.
 
 The solution is markedly more mesh-sensitive at $6\!\times\!10^4$ than at
 the higher Reynolds numbers: the open separation gives
 $C_l\!=\!0.77$ unstructured vs.\ $0.65$ structured, against
-$\Delta C_d\!\lesssim\!6\!\times\!10^{-4}$ at $3$--$4.6\!\times\!10^5$.
+$\Delta C_d\!\leq\!7\!\times\!10^{-4}$ (L1) and
+$2\!\times\!10^{-4}$ (L2) at $3$--$4.6\!\times\!10^5$.
 The experiment itself is bistable there: in the TM-4062 listing at
 $Re\!=\!6\!\times\!10^4$, three consecutive repeat points at
 $\alpha\!=\!4.00^\circ$ give $c_l\!=\!0.643$, $0.697$, and $0.721$
@@ -2203,13 +2224,14 @@ the Reynolds number rises the transition front moves forward and the
 laminar-separation bubble shortens. The upper-surface $C_f$ shows an open,
 non-reattaching separation at $Re\!=\!6\!\times\!10^4$---the flow separates near
 $x/c\!\approx\!0.35$ and does not recover ahead of the trailing edge, the
-low-$Re$ bubble-bursting limit---then a long bubble whose $C_f$ regains zero
-near $x/c\!\approx\!0.71$, with a
-shallow turbulent recovery, at $10^5$, and progressively shorter and
-shallower bubbles---at the two highest Reynolds numbers the computed $C_f$
+low-$Re$ bubble-bursting limit---then an incompletely closing
+separation at $10^5$, the $C_f$ regaining zero only within $0.04\,c$ of
+the trailing edge on every grid (the model carries the bursting regime
+one Reynolds step past the measurement), and then short, shallow
+bubbles---the computed $C_f$
 only grazes zero---recovering at
-$x/c\!\approx\!0.52$--$0.54$ ($3\!\times\!10^5$) and
-$x/c\!\approx\!0.48$--$0.49$
+$x/c\!\approx\!0.56$--$0.57$ ($3\!\times\!10^5$) and
+$x/c\!\approx\!0.50$
 ($4.6\!\times\!10^5$).
 
 The deep reverse-$C_f$ surge inside the long bubbles at
@@ -2243,9 +2265,9 @@ transition, reattachment, and the forces that follow.
   extent from the oil-flow visualization (TM-4062 Table~III), which exists only at
   $10^5$ among these two; no oil-flow bubble data were taken at $6\!\times\!10^4$.
   At $6\!\times\!10^4$ the upper-surface separation does not reattach ahead of the
-  trailing edge (bubble bursting); at $10^5$ the $C_f$ regains zero near
-  $x/c\!\approx\!0.71$, with a shallow
-  recovery.}
+  trailing edge (bubble bursting); at $10^5$ the recovery is incomplete
+  on every grid, the $C_f$ regaining zero only within $0.04\,c$ of the
+  trailing edge (see text).}
   \label{fig:eppresweep_low}
 \end{figure}
 
@@ -2254,8 +2276,8 @@ transition, reattachment, and the forces that follow.
   \includegraphics[width=\textwidth]{eppler_resweep_highRe.pdf}
   \caption{As Fig.~\ref{fig:eppresweep_low}, at $Re\!=\!3\!\times\!10^5$ (left) and
   $4.6\!\times\!10^5$ (right). The bubble is short and moves forward with Reynolds
-  number, recovering near $x/c\!\approx\!0.52$--$0.54$ at $3\!\times\!10^5$ and
-  $\approx\!0.48$--$0.49$ at $4.6\!\times\!10^5$ (at these two Reynolds
+  number, recovering near $x/c\!\approx\!0.56$--$0.57$ at $3\!\times\!10^5$ and
+  $\approx\!0.50$ at $4.6\!\times\!10^5$ (at these two Reynolds
   numbers the computed $C_f$ only grazes zero). The mfoil $e^9$ panel solver converges at
   $3\!\times\!10^5$ but diverges on the thin bubble at $4.6\!\times\!10^5$, where
   XFOIL supplies the $e^9$ $C_p$/$C_f$ reference (dotted) and FlexFoil the
@@ -2493,9 +2515,11 @@ weight is tied to the production weight by a wall-layer identity, so the
 linear $\tilde\nu$ wall solution---and with it the log law---is exactly
 standard SA's. On a zero-pressure-gradient flat plate (Sec.~\ref{sec:flatplate}) the Mack
 closure places transition onset (at the stated $\chi\!=\!1$ convention)
-within $\sim\!17\%$ of the Abu-Ghannam \& Shaw
-correlation over the natural-transition range (exact at the lowest disturbance
-level, running early as $Tu$ rises), verifying the Blasius envelope. On
+within $\pm10\%$ of the Abu-Ghannam \& Shaw
+correlation over the natural-transition range ($10\%$ late at the lowest
+disturbance level---the retained-drain footprint---essentially exact at
+$Tu\!=\!0.08\%$, and $7$--$10\%$ early as $Tu$ rises), verifying the
+Blasius envelope. On
 the NLF(1)-0416 at $Re\!=\!4\!\times\!10^6$ (Sec.~\ref{sec:nlfval}) the
 model holds the designed laminar rooftop---the favorable run held by
 $\hat S g\!\to\!0$ with no pressure-gradient term---and ignites at each recovery,
@@ -2508,18 +2532,18 @@ $Re\!=\!2\!\times\!10^5$ (Sec.~\ref{sec:eppval}) the
 model resolved the adverse-gradient, laminar-separation-bubble regime---the signed
 skin friction shows the recirculation directly---across another twenty-four cases
 on the same two-family ladder, though it reattaches systematically late at low
-incidence---$0.04$--$0.06\,c$ aft of the measured oil-flow reattachment at
-$\alpha\!\le\!5^\circ$ ($0.78$ vs $0.74\,c$, $0.73$ vs $0.67\,c$, $0.64$ vs
+incidence---$0.05$--$0.07\,c$ aft of the measured oil-flow reattachment at
+$\alpha\!\le\!5^\circ$ ($0.79$ vs $0.74\,c$, $0.74$ vs $0.67\,c$, $0.66$ vs
 $0.59\,c$), and $0.03\,c$ early at $7^\circ$
 (\S\ref{sec:calib_rate}); an $\alpha\!=\!5^\circ$ sweep across five Reynolds numbers,
 $Re\!=\!6\!\times\!10^4$ to $4.6\!\times\!10^5$, follows the bubble's march and
 shortening. The same constants (Sec.~\ref{sec:assembled}) were used
 throughout. Across both airfoils the L1$\to$L2 transition-location drift is at
-or below $0.02\,c$ away from the marginal cases (the near-LE onset at
+or below $0.03\,c$ away from the marginal cases (the near-LE onset at
 $\alpha\!=\!9^\circ$ and the near-stall Eppler $\alpha\!=\!7^\circ$, which
 reach $0.03$--$0.04\,c$), and the two independently-generated mesh families
 agree to within $0.02\,c$ of chord on every transition front and to
-$0.002$--$0.018\,c$ on the Eppler reattachment at L2.
+$0.005$--$0.021\,c$ on the Eppler reattachment at L2.
 
 Several extensions follow. The clearest limitation is the linear rate's
 under-amplification of strongly favorable and strongly separated profiles---the

@@ -1,39 +1,39 @@
 {
  "sweep_Re100k_a5": {
-  "CL": 0.8497,
-  "CD": 0.03275,
-  "xtr_up": 0.5142,
+  "CL": 0.8993,
+  "CD": 0.02532,
+  "xtr_up": 0.5354,
   "xtr_lo": 1.0,
   "steps": 19996,
   "converged": true,
-  "dt_min": 5.1
+  "dt_min": 5.5
  },
  "sweep_Re60k_a5": {
-  "CL": 0.7351,
-  "CD": 0.05012,
-  "xtr_up": 0.9911,
+  "CL": 0.7663,
+  "CD": 0.04526,
+  "xtr_up": 0.9926,
   "xtr_lo": 1.0,
   "steps": 19996,
   "converged": true,
-  "dt_min": 5.2
+  "dt_min": 5.5
  },
  "sweep_Re300k_a5": {
-  "CL": 0.8939,
-  "CD": 0.01772,
-  "xtr_up": 0.4769,
-  "xtr_lo": 1.0,
+  "CL": 0.9596,
+  "CD": 0.01168,
+  "xtr_up": 0.4965,
+  "xtr_lo": 0.9975,
   "steps": 19996,
   "converged": true,
-  "dt_min": 5.1
+  "dt_min": 5.5
  },
  "sweep_Re460k_a5": {
-  "CL": 0.8966,
-  "CD": 0.01551,
-  "xtr_up": 0.4503,
-  "xtr_lo": 1.0,
+  "CL": 0.9698,
+  "CD": 0.00969,
+  "xtr_up": 0.4731,
+  "xtr_lo": 0.9968,
   "steps": 19996,
   "converged": true,
-  "dt_min": 5.1
+  "dt_min": 5.5
  },
  "sweep_str_Re60k_a5": {
   "CL": 0.6456,
