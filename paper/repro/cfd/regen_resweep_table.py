@@ -68,9 +68,13 @@ def mfoil_point(Re):
     m = M.mfoil(coords=np.array(coords).T)
     m.setoper(alpha=ALPHA, Re=Re * 1000.0, Ma=0.1)
     m.param.ncrit = 9.0
-    with open(os.devnull, 'w') as nf:
-        with redirect_stdout(nf), redirect_stderr(nf):
-            m.solve()
+    try:
+        with open(os.devnull, 'w') as nf:
+            with redirect_stdout(nf), redirect_stderr(nf):
+                m.solve()
+    except Exception as e:   # documented divergence at Re=460k (thin bubble)
+        print(f"    mfoil diverged: {e}")
+        return float('nan'), float('nan'), float('nan'), False
     return float(m.post.cl), float(m.post.cd), float(m.post.cm), bool(m.glob.conv)
 
 def xfoil_point(Re_k):

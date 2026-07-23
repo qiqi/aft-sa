@@ -159,8 +159,8 @@ def main():
     assert abs(s_ratio(fav, 1600.0, C_CANON) - 1.02) < 0.015
 
     print("\nc_nu,ai ladder at the just-past-critical Blasius station Rt=400")
-    print("(text quotes 0.49/0.75/0.87/1.02/1.13) and unstable-station means")
-    print("(text quotes Blasius 0.70/0.91/1.00/1.12/1.20):")
+    print("(text quotes 0.49/0.75/0.87/1.02/1.13; unstable-station means")
+    print("printed for reference, not quoted in the paper):")
     rts_u = [r for r in RTS if r > blas['Rt0']]
     for c in (1.0, 0.5, 1.0/3.0, C_CANON, 1.0/12.0):
         v400 = s_ratio(blas, 400.0, c)

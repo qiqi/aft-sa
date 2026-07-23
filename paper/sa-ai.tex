@@ -46,8 +46,8 @@ flow---a vorticity Reynolds number and two profile-shape indicators, a
 shear fraction and an inflectional (Rayleigh) coordinate---with no
 pressure-gradient parameter anywhere, and
 is anchored to canonical stability limits: the free-shear growth
-eigenvalue, the linear-stability onset of the Falkner--Skan family, the
-Blasius $e^N$ envelope; its freestream seed is set by Mack's
+eigenvalue, the linear-stability onset of the Falkner--Skan family, and
+the Blasius $e^N$ envelope; the freestream seed is set by Mack's
 receptivity correlation. The
 model is tested on three cases spanning zero, favorable, and adverse
 pressure gradients---a flat plate, the NLF(1)-0416 airfoil at
@@ -90,6 +90,7 @@ dimensions on the wing of the Daedalus human-powered aircraft.
   $a,\;a_{\max}$ \> laminar amplification rate and its free-shear ceiling ($0.19$) \\
   $Re_\Omega^{\mathrm{c}}(\hat S g)$ \> vorticity-Reynolds onset threshold, Eq.~\eqref{eq:reomc} \\
   $C,\;A,\;B,\;k$ \> onset-threshold shape constants and scale, Eq.~\eqref{eq:reomc} \\
+  $Re_{\theta 0}(H)$ \> Drela--Giles critical (first-instability) momentum-thickness Reynolds number \\
   $w$ \> onset ramp width scale, Eq.~\eqref{eq:onset} \\
   $\sigma_P,\sigma_D;\;\tau$ \> production and destruction handover weights and the production width, Eq.~\eqref{eq:blend} \\
   $N,\;N_\mathrm{crit}$ \> amplification factor and its critical value ($e^N$ method) \\
@@ -598,10 +599,21 @@ shallow reversed-flow branch the ratio is $0.97$.
   $\max_y a\,\omega/u$, as a ratio to the Drela--Giles spatial envelope
   rate $s_{\mathrm{DG}}/\theta$, on five Falkner--Skan profiles (starred:
   the reversed-flow, Stewartson lower-branch solution of the same
-  $\beta$). Shape factors past $H\!\approx\!5$ are excluded throughout
-  Sec.~\ref{sec:model}: Drela's Orr--Sommerfeld data stop there, and
-  neither the correlation nor any similarity profile is validated
-  beyond it. The ratio is
+  $\beta$). Shape factors past $H\!\approx\!5$ are excluded from the
+  frozen-profile comparisons of this and the following table: Drela's
+  Orr--Sommerfeld data stop there (the correlation extrapolates linearly
+  in $H$ beyond), and no similarity profile is validated against
+  measured bubble profiles past it. Where the deeper branch appears
+  elsewhere (the marched family of Fig.~\ref{fig:calibrate},
+  Sec.~\ref{sec:daedalus}), the honest reference is an Orr--Sommerfeld
+  computation on realistic reversed profiles: on the wall-bounded tanh
+  family of Dini et al.~\cite{dini_selig_maughmer_1992} (their stand-in
+  for Green's profiles~\cite{green_1966}, the family bubble
+  measurements support), the computed rates saturate with depth and side
+  with the kernel---at $H\!\approx\!13$ the kernel's inviscid limit
+  matches the Orr--Sommerfeld rate while the extrapolated correlation is
+  ${\sim}2\times$ above both
+  (\texttt{repro/analytic/explore\_green\_tanh\_family.py}). The ratio is
   independent of Reynolds number and of any diffusion: it is the most
   growth per unit length the rate can sustain on the profile. The
   diffusion retained by the working variable, taken up next, lowers the
@@ -637,11 +649,11 @@ can actually realize on that profile at that Reynolds number---the
 inviscid supremum of Table~\ref{tab:ratelimit} recovered as
 $Re_\theta\!\to\!\infty$, approached like $Re_\theta^{-1/2}$ as the
 eigenfunction narrows onto its peak. The problem is well posed and cheap:
-with $v\!=\!0$ at the wall and the far field, the substitution
-$v\!\to\!u^{-1/2}v$ makes the operator symmetric, so each entry below is
-one symmetric tridiagonal eigenvalue; on the reversed-flow profiles the
-advection is floored at $0.02\,U_e$, to which the result is insensitive
-(floors $0.01$--$0.05\,U_e$ move no printed digit). Here
+$v\!=\!0$ at the wall and the far field, the reversed-flow advection
+floored at $0.02\,U_e$ (a choice the result is insensitive to: floors
+$0.01$--$0.05\,U_e$ move no printed digit), and the substitution
+$v\!\to\!u^{-1/2}v$ then makes the operator symmetric, so each entry
+below is one symmetric tridiagonal eigenvalue. Here
 $c_{\nu,\mathrm{ai}}$ is a scale on the molecular coefficient, equal to
 one until decided otherwise. Table~\ref{tab:frozeneig} carries the
 result, at the stations where each profile is unstable by the
@@ -669,7 +681,7 @@ definition $\chi=\tilde\nu/\nu$ (formed with the \emph{true} $\nu$)
 untouched. How much less, the eigenvalue decides, read against a
 constraint that pulls the other way. Halving the coefficient down the
 ladder $c_{\nu,\mathrm{ai}}=1,\tfrac12,\tfrac13,\tfrac16,\tfrac1{12}$,
-the station just past the Blasius critical ($Re_\theta\!=\!400$) climbs
+the station just past the Blasius critical station ($Re_\theta\!=\!400$) climbs
 $0.49$, $0.75$, $0.87$, $1.02$, $1.13$: the growth arrives on the
 correlation at $\tfrac16$ and overshoots past it. The family arrives
 together---the favorable wedge's lone unstable station reads $1.02$ at
@@ -777,8 +789,8 @@ number sweeps through the ramp quickly ($Re_\Omega$ grows like
 $Re_\theta^2$ at fixed shape), so the marched $N\!=\!1$ stations of the
 family (Sec.~\ref{sec:calib_onset}) move by under $1\%$ when $w$ is
 halved and under $2.5\%$ when it is doubled, shifts the anchor absorbs.
-A smooth ramp of finite width is still the right form: linear onset is
-itself not sharp (the graze scatter below is $6$--$14\%$), and a
+A smooth ramp of finite width is still the right form: linear-stability
+onset is itself not sharp (the graze scatter below is $6$--$14\%$), and a
 near-discontinuous source is hostile to the coupled solver's meshes and
 Newton convergence. Rate and onset reinforce: near the
 parabola a low rate \emph{and} a high threshold give the late, slow transition
@@ -800,7 +812,7 @@ parameter anywhere.
   \includegraphics[width=0.62\textwidth]{onset_graze.pdf}
   \caption{The onset threshold's shape from the linear-stability graze. Each
   Falkner--Skan profile, at its Drela--Giles critical Reynolds number
-  $Re_{\theta c}(H)$, traces a curve in the $(\hat S g,\,Re_\Omega)$ plane:
+  $Re_{\theta 0}(H)$, traces a curve in the $(\hat S g,\,Re_\Omega)$ plane:
   solid, colored blue to red with decreasing $\beta$, the attached family
   $\beta = +0.35$, $+0.15$, $+0.05$, $0$ (Blasius), $-0.05$, $-0.10$,
   $-0.15$, $-0.1988$ (incipient separation); dotted, a separated
@@ -813,7 +825,7 @@ parameter anywhere.
   shape of Eq.~\eqref{eq:reomc}, at $k\!=\!1$, is that envelope: a ceiling on the favorable
   (small $\hat S g$) side, an additive floor toward separation. The separated
   reversed-flow profile continues the family's graze (closest approach
-  $0.91$ at its own, very low $Re_{\theta c}\!\approx\!26$); at the
+  $0.91$ at its own, very low $Re_{\theta 0}\!\approx\!26$); at the
   Reynolds numbers a separation bubble actually reaches,
   $Re_\Omega\!\propto\!Re_\theta$ carries it far above the floor and it
   ignites at once. The compensation scale $k$ of
@@ -826,7 +838,7 @@ The one free function is the onset threshold $Re_\Omega^{\mathrm c}(\hat S g)$ o
 gate \eqref{eq:onset}, and its \emph{shape} follows from linear theory.
 Figure~\ref{fig:onsetgraze} makes the construction concrete. Each attached
 Falkner--Skan profile, evaluated at its Drela--Giles critical Reynolds number
-$Re_{\theta c}(H)$---the station where the layer first turns linearly
+$Re_{\theta 0}(H)$---the station where the layer first turns linearly
 unstable---traces a curve in the $(\hat S g,\,Re_\Omega)$ plane, and the family
 shares a common outer envelope: a threshold curve that each profile
 \emph{grazes}, touching without crossing, at its own most-critical point. The
@@ -837,7 +849,7 @@ separation it flattens onto an additive floor, inception becoming essentially
 immediate. The collapse does not stop at the separation limit: the
 reversed-flow profile grazes the same envelope at its own critical
 Reynolds number, and because that critical value is tiny
-($Re_{\theta c}\!\approx\!26$), at any Reynolds number a bubble actually
+($Re_{\theta 0}\!\approx\!26$), at any Reynolds number a bubble actually
 reaches the profile rides far above the floor and ignites at once, as it
 should.
 We represent the shape by a soft minimum of the two limits,
@@ -1346,9 +1358,9 @@ The SA-AI constants are
   \begin{aligned}
     a_{\max}&=0.19 &\quad&\text{free-shear ceiling: the tanh-layer eigenvalue $\omega_{i,\max}/\omega_{\mathrm{peak}}\!=\!0.1897$ \cite{michalke_1964};}\\
     (C,\,A,\,B;\;k)&=(2600,\;175,\;2;\;0.712) &&\text{onset threshold $Re_\Omega^{\mathrm c}(\hat S g)$: shape from the LST graze (Fig.~\ref{fig:onsetgraze}, never refit); $k$ compensates the laminar drain, anchored at the Blasius $N\!=\!1$ inception (Sec.~\ref{sec:calib_onset});}\\
-    w&=0.35 &&\text{onset ramp width scale;}\\
+    w&=0.35 &&\text{onset ramp width scale: not fitted---the marched stations are insensitive (Sec.~\ref{sec:onset});}\\
     \tau&=4 &&\text{production handover width (Sec.~\ref{sec:calib_diff});}\\
-    c_{\nu,\mathrm{ai}}&=\tfrac{1}{6} &&\text{laminar-diffusion reduction: the largest coefficient carrying the frozen-profile growth balance onto the $e^N$ correlation across the transitional decade (Sec.~\ref{sec:nulamscale}, Table~\ref{tab:frozeneig});}\\
+    c_{\nu,\mathrm{ai}}&=\tfrac{1}{6} &&\text{laminar-diffusion reduction: the largest coefficient carrying the frozen-profile growth balance onto the $e^N$ correlation at the just-past-critical stations (Sec.~\ref{sec:nulamscale}, Table~\ref{tab:frozeneig});}\\
     N_\mathrm{crit}(Tu)&=-8.43-2.4\ln Tu_\mathrm{frac} &&\text{Mack $e^N$ receptivity map, Eq.~\eqref{eq:tumap} (Sec.~\ref{sec:flatplate}), adopted wholesale \cite{mack_1977}.}
   \end{aligned}
 \end{equation*}
@@ -1486,14 +1498,21 @@ against AGS requires choosing a crossing, and the comparison depends on
 the choice; we state the convention and give both readings. At the
 $\chi\!=\!1$ crossing---converted to $Re_\theta$ through the
 laminar relation $Re_\theta\!=\!0.664\sqrt{Re_x}$, the same convention that places
-the AGS markers---the model is essentially exact at the lowest disturbance level
-($-1\%$ at $Tu\!=\!0.04\%$) and runs $9$--$17\%$ early over the rest of the range
-(largest, $-17\%$, at $Tu\!=\!0.30\%$). At the alternative $\chi\!=\!c_{v1}$
+the AGS markers---the model brackets the correlation within $\pm10\%$
+across the range: $+10\%$ late at the lowest disturbance level
+($Tu\!=\!0.04\%$), essentially exact at $0.08\%$ ($+0.6\%$), and
+$7$--$10\%$ early over $Tu\!=\!0.16$--$0.60\%$. At the alternative
+$\chi\!=\!c_{v1}$
 crossing---the band's turbulent end---the model sits systematically above AGS:
-$+8$ to $+14\%$ over $Tu\!=\!0.04$--$0.30\%$ and $+32\%$ at $0.60\%$. The early
-bias at higher $Tu$ traces to the receptivity map \eqref{eq:tumap}, taken from
-Mack's $e^N$ correlation without adjustment here; tightening it is left to
-future work.
+$+14$ to $+23\%$ over $Tu\!=\!0.04$--$0.30\%$ and $+36\%$ at $0.60\%$. The
+two residuals have different roots: the late bias at low $Tu$ is the
+retained-drain footprint of the calibration (the marched Blasius
+envelope runs $7\%$ past Drela's station by $N\!=\!9$,
+Sec.~\ref{sec:calib_onset}, and the low-$Tu$ seeds hand over near that
+depth), while the early bias at higher $Tu$ traces to the receptivity
+map \eqref{eq:tumap}, taken from
+Mack's $e^N$ correlation without adjustment here; tightening either is
+left to future work.
 
 Strongly bypass-dominated
 conditions ($Tu\!\gtrsim\!1\%$, e.g. the ERCOFTAC T3A and T3B test cases at
@@ -1525,8 +1544,9 @@ comparisons.
   Shaw~\cite{abu_ghannam_shaw_1980} transition-onset reference, and the
   bottom-right adds the digitized Schubauer--Skramstad
   Fig.~7 band (faint bars) for context. With the receptivity taken from Mack's
-  $e^N$ correlation, the model's $\chi\!=\!1$ onset is exact at $Tu\!=\!0.04\%$
-  and runs up to $\sim\!17\%$ early at higher $Tu$; the
+  $e^N$ correlation, the model's $\chi\!=\!1$ onset brackets AGS within
+  $\pm10\%$ across the range---late at the lowest $Tu$, early at the
+  highest; the
   $C_f$ follows the laminar branch then recovers the turbulent correlation
   (baseline SA, with no laminar branch, does not produce this).}
   \label{fig:flatplate_batch}
@@ -1560,12 +1580,12 @@ from the recovery and marches forward through a gently adverse stretch
 ($\lambda_p\!\sim\!-0.1$ to $-2$) under slow Tollmien--Schlichting
 accumulation: there the location is free, it is what moves the polar's
 upper knee, and it is where the present model and the $e^9$ reference
-disagree most ($0.24c$ vs $0.33c$). The lower surface at low incidence
+disagree most ($0.25c$ vs $0.33c$). The lower surface at low incidence
 is the other free front: a long, gently adverse plateau
 ($\lambda_p\!\approx\!-0.2$ to $-0.5$ over $0.3$--$0.55c$) along which
 the envelope accumulates to ignition just ahead of the recovery wall.
 A finite difference of the $e^N$ reference makes the pinned/free
-distinction quantitative: re-converging XFOIL at
+distinction quantitative: re-converging the $e^9$ reference at
 $N_\mathrm{crit}\!=\!8$ and $10$
 (the $\partial x_\mathrm{tr}/\partial N$ column of
 Table~\ref{tab:nlftrans}) moves each pinned front by at most $0.006c$
@@ -1654,8 +1674,9 @@ cavity near-LE onset) at L2---measures something a refinement ladder
 alone does not: the two discretizations share no meshing decisions, so
 their agreement, where it occurs, is robustness to the discretization
 rather than to refinement; the
-transition fronts sit within $0.02\,c$ across the
-family (Table~\ref{tab:nlftrans}).
+transition fronts of the two finest meshes agree to $0.01\,c$ on every
+front, with the coarser levels scattering by up to $0.03\,c$
+(Table~\ref{tab:nlftrans}).
 
 \begin{figure}[tp]
   \centering
@@ -1669,9 +1690,12 @@ family (Table~\ref{tab:nlftrans}).
   weight (L0 thin $\to$ L2 thick). The mfoil reference (gray squares) is shown
   where its coupled solve converges to an attached solution ($\alpha\!\le\!7^\circ$);
   at $\alpha\!=\!9^\circ$ and $15^\circ$, where mfoil fails, the $e^9$ reference is
-  XFOIL's (gray diamonds), which converges there. The gray dash-dot curve is
+  FlexFoil's (gray diamonds; the independent implementation of XFOIL's
+  method introduced in Table~\ref{tab:nlftrans}). The gray dash-dot curve is
   fully turbulent SA ($\chi_\infty\!=\!3$, same solver, structured L2 grid):
-  without the laminar run the drag sits $56$--$77\%$ above the bucket.}
+  without the laminar run the drag sits $1.6$--$2.5\times$ above the
+  SA-AI polar ($+142$/$+147\%$ in the bucket at $\alpha\!=\!0^\circ$/$4^\circ$,
+  $+64$/$+71\%$ at $9^\circ$/$15^\circ$).}
   \label{fig:nlfpolar}
 \end{figure}
 
@@ -1682,11 +1706,12 @@ computation does not capture three-dimensional stall and returns a higher
 $C_l$ at elevated drag; and the coarse L0 mesh over-predicts drag at
 $\alpha\!\ge\!9^\circ$ (under-resolved transition front). The absence of an
 mfoil reference above $\alpha\!=\!7^\circ$ is a solver failure, not a
-method-class limit: XFOIL converges at the identical conditions
-($C_l\!=\!1.52$ at $\alpha\!=\!9^\circ$, consistent with the present RANS),
+method-class limit: FlexFoil converges at the identical conditions
+($C_l\!=\!1.51$ at $\alpha\!=\!9^\circ$, consistent with the present RANS),
 so the fault appears to lie in mfoil's Newton globalization. The fully turbulent SA
 polar on the same structured L2 grid closes on SA-AI only as the laminar
-run shrinks ($+26\%$ at $9^\circ$, $+11\%$ at $15^\circ$).
+run shrinks ($+142\%$ at $0^\circ$ narrowing to $+64$--$71\%$ at
+$9^\circ$--$15^\circ$).
 
 The airfoil surface distributions are presented as five-row figures
 (Figs.~\ref{fig:nlfcflow}--\ref{fig:nlfcfhigh} here and
@@ -1729,10 +1754,10 @@ region.
   the measured onsets of Table~\ref{tab:nlftrans}, open where
   extrapolated). At $\alpha\!=\!0^\circ$ both
   surfaces run laminar past a third of the chord (upper
-  $x/c\!\approx\!0.37$--$0.38$, lower $0.56$--$0.57$), recovering the
+  $x/c\!\approx\!0.38$--$0.39$, lower $0.56$--$0.57$), recovering the
   low-drag
   bucket; at $\alpha\!=\!4^\circ$ the upper-surface transition has marched
-  forward to $x/c\!\approx\!0.24$ while the lower stays near design. The
+  forward to $x/c\!\approx\!0.25$ while the lower stays near design. The
   stall-and-dip of the L0 $\chi$ curves over the last two cells before
   transition is a purely numerical artifact of the under-resolved
   laminar--turbulent jump ($\sigma_t$ is not involved: $\chi\!<\!1$ there).
@@ -1751,12 +1776,12 @@ region.
   The upper-surface transition has marched to $x/c\!\lesssim\!0.05$ at
   $\alpha\!=\!9^\circ$ and is at the LE by $\alpha\!=\!15^\circ$, while the
   lower transition remains aft of mid-chord. mfoil does not converge at
-  $\alpha\!=\!9^\circ$ and stalls at $15^\circ$, so the $e^9$ overlay here is
-  XFOIL's~\cite{drela_xfoil_1989} (dash-dot: $C_p$, $C_f$, and transition
-  location), and the continuous amplification envelope $N(x)$ (row~3,
-  dotted) is FlexFoil's---an independently written implementation of the
-  XFOIL closure set whose envelopes match mfoil's where both exist
-  (Sec.~\ref{sec:eppresweep}). The L0 unstructured under-resolves
+  $\alpha\!=\!9^\circ$ and stalls at $15^\circ$, so both the $e^9$ overlay
+  (dash-dot: $C_p$, $C_f$, and transition location) and the continuous
+  amplification envelope $N(x)$ (row~3, dotted) are FlexFoil's---an
+  independently written implementation of the XFOIL closure
+  set~\cite{drela_xfoil_1989} whose envelopes match mfoil's where both
+  exist (Sec.~\ref{sec:eppresweep}). The L0 unstructured under-resolves
   the LE suction peak by $\sim\!1$ in $-C_p$ at $\alpha\!=\!15^\circ$ (thin
   dashed blue); L1/L2 collapse on both grids. The high-incidence cases test
   the amplification model under a strong adverse gradient:
@@ -1784,24 +1809,25 @@ whole $c_l$ range, SA-AI reproduces the mild aft-ward march of the measured
 front as the lift rises, while the $e^9$ panel solver sits systematically
 downstream of both. The $\alpha\!=\!0^\circ$
 lower front is also where the two $e^9$ implementations separate:
-mfoil ignites at $0.62\,c$, XFOIL at $0.52\,c$, straddling the
-measured $0.55\,c$ (SA-AI: $0.51\,c$). On this front
+both $e^9$ implementations ignite at $0.62\,c$, $0.07\,c$ aft of the
+measured $0.55\,c$; SA-AI reads $0.57\,c$, $0.02\,c$ aft of the
+measurement. On this front
 $\partial x_\mathrm{tr}/\partial N\!=\!0.067\,c$ per unit $N$
-(Table~\ref{tab:nlftrans}), so the $0.10\,c$ spread between the two
-codes corresponds to about $1.5$ units of accumulated amplification. On the upper surface the model
+(Table~\ref{tab:nlftrans}), so these offsets correspond to about one
+unit and a third of a unit of accumulated amplification, respectively. On the upper surface the model
 recovers the measured onset at $\alpha\!=\!0^\circ$ and marches
 the front forward with incidence. The experimental entry at $4^\circ$ is an
 extrapolation, not a located front: the published orifice data record the
 upper-surface $x_\mathrm{tr}(c_l)$ only up to $c_l\!\approx\!0.68$ (Somers'
 Fig.~9d), and the $\approx\!0.31\,c$ datum extends that trend to the
-computed $c_l\!=\!0.95$ ($\ddagger$ in Table~\ref{tab:nlftrans}); against
-it the computation reads $0.07\,c$ forward. At higher incidence the upper onset moves too far forward
+computed $c_l\!=\!0.98$ ($\ddagger$ in Table~\ref{tab:nlftrans}); against
+it the computation reads $0.06\,c$ forward. At higher incidence the upper onset moves too far forward
 for the orifices to locate. The $Re\!=\!2\!\times\!10^6$ oil-flow
 photographs (Somers' Fig.~7) independently show the same forward march, from a
 laminar-separation bubble near mid-chord at $\alpha\!=\!0^\circ$ ($c_l\!=\!0.4$)
 to roughly a third-chord by $\alpha\!=\!8^\circ$ ($c_l\!=\!1.3$). mfoil fails to
 converge at $\alpha\!=\!9^\circ$ and
-stalls at $15^\circ$; XFOIL~\cite{drela_xfoil_1989}, the reference $e^9$ solver,
+stalls at $15^\circ$; FlexFoil
 supplies the $e^9$ comparison there
 (Table~\ref{tab:nlftrans}).
 
@@ -1819,8 +1845,10 @@ and the fronts are set.
   model on the finest structured O-grid (L2), with onset defined as the first
   station where the near-wall maximum $\chi$ crosses unity (the start of the
   $\sigma_t$ blend, Sec.~\ref{sec:flatplate}). \emph{$e^9$}: coupled viscous--inviscid
-  panel solvers---mfoil~\cite{fidkowski_mfoil_2022}, or
-  XFOIL~\cite{drela_xfoil_1989} where marked~$^\dagger$. \emph{Exp}: Somers
+  panel solvers---mfoil~\cite{fidkowski_mfoil_2022}, or, where
+  marked~$^\dagger$, FlexFoil (an independent implementation of XFOIL's
+  viscous--inviscid $e^9$ method~\cite{drela_xfoil_1989}, cross-checked
+  against mfoil and XFOIL to $<\!1\%$ where all three converge). \emph{Exp}: Somers
   (NASA TP-1861, Fig.~9d), transition orifices (open laminar / solid turbulent)
   read as $x_\mathrm{tr}(c_l)$ and mapped through the computed section $c_l$; the
   upper onset at $\alpha\!\geq\!9^\circ$ marches too far forward for the orifices
@@ -1829,10 +1857,11 @@ and the fronts are set.
   $\alpha\!=\!4^\circ$ (orifice data recorded only up to
   $c_l\!\approx\!0.68$) and the lower front at $\alpha\!=\!15^\circ$ (along the
   nearly flat lower branch, beyond the measured $c_{l,\max}\!\approx\!1.68$).
-  $^\dagger$From XFOIL: mfoil fails at these incidences.
+  $^\dagger$From FlexFoil: mfoil fails at these incidences.
   $\partial x_\mathrm{tr}/\partial N$: sensitivity of each front to the
-  critical amplification factor, from XFOIL re-converged at
-  $N_\mathrm{crit}\!=\!8$ and $10$ (central difference; $c$ per unit $N$).}
+  critical amplification factor, from the $e^9$ reference re-converged at
+  $N_\mathrm{crit}\!=\!8$ and $10$ (central difference; $c$ per unit $N$;
+  computed with XFOIL at the original study's conditions).}
   \label{tab:nlftrans}
   \begin{tabular}{cc cccc c cccc}
     \toprule
@@ -1842,10 +1871,10 @@ and the fronts are set.
     \cmidrule(lr){3-5}\cmidrule(lr){8-10}
     $\alpha$ & $c_l$ & SA-AI & $e^9$ & Exp & $\dfrac{\partial x_\mathrm{tr}}{\partial N}$ & & SA-AI & $e^9$ & Exp & $\dfrac{\partial x_\mathrm{tr}}{\partial N}$ \\
     \midrule
-    $0^\circ$  & 0.49 & 0.38 & 0.43 & 0.38 & 0.006 & & 0.51 & 0.62 & 0.55 & 0.067 \\
-    $4^\circ$  & 0.95 & 0.24 & 0.33 & $0.31^\ddagger$ & 0.017 & & 0.61 & 0.65 & 0.62 & 0.003 \\
-    $9^\circ$  & 1.48 & 0.07 & $0.09^\dagger$ & ---  & $<$0.001 & & 0.63 & $0.67^\dagger$ & 0.64 & 0.003 \\
-    $15^\circ$ & 1.96 & 0.00 & $0.00^\dagger$ & ---  & $<$0.001 & & 0.66 & $0.69^\dagger$ & $0.66^\ddagger$ & 0.004 \\
+    $0^\circ$  & 0.51 & 0.38 & 0.43 & 0.38 & 0.006 & & 0.57 & 0.62 & 0.55 & 0.067 \\
+    $4^\circ$  & 0.98 & 0.25 & 0.33 & $0.31^\ddagger$ & 0.017 & & 0.61 & 0.65 & 0.62 & 0.003 \\
+    $9^\circ$  & 1.51 & 0.07 & $0.09^\dagger$ & ---  & $<$0.001 & & 0.63 & $0.67^\dagger$ & 0.64 & 0.003 \\
+    $15^\circ$ & 2.00 & 0.00 & $0.00^\dagger$ & ---  & $<$0.001 & & 0.66 & $0.69^\dagger$ & $0.66^\ddagger$ & 0.004 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -1900,14 +1929,16 @@ and Table~\ref{tab:eppmesh} lists their resolution quantitatively.
   mfoil $e^9$ reference. The computed points track the low-drag laminar bucket;
   the two mesh families agree to within $\Delta C_d\!\lesssim\!5\times10^{-4}$.
   The gray dash-dot curve is fully turbulent SA ($\chi_\infty\!=\!3$, same
-  solver, structured L2 grid), $14$--$39\%$ above the SA-AI drag.}
+  solver, structured L2 grid), $66$--$87\%$ above the SA-AI drag in the
+  bucket and $+149\%$ at $\alpha\!=\!7^\circ$.}
   \label{fig:epppolar}
 \end{figure}
 
 On the finest grids the SA-AI polar (Fig.~\ref{fig:epppolar}) tracks the
-measured low-drag bucket to within a few percent across the range: the drag runs
-marginally \emph{below} the data at the bucket edges ($\alpha\!\le\!2^\circ$ and
-$\alpha\!=\!7^\circ$) and \emph{over}-predicts by up to $\sim\!7\%$ near
+measured low-drag bucket across the range: on the structured family the
+drag sits within $\pm3\%$ of the data at the bucket edges ($-1\%$ at
+$\alpha\!=\!0^\circ$, $+1\%$ at $2^\circ$, $-3\%$ at $7^\circ$) and
+\emph{over}-predicts by $\sim\!11\%$ near
 $\alpha\!=\!5^\circ$---the pressure-drag footprint of the slightly over-long
 laminar-separation bubble (\S\ref{sec:calib_rate}). The coarsest grid (L0)
 over-predicts drag markedly; refinement is essential in this bubble-dominated
@@ -1979,9 +2010,10 @@ regime.
   lower-surface boundary layer remains attached and laminar to
   $x/c\!\approx\!0.99$ across the entire $\alpha$ range, matching the
   $e^9$ prediction that the lower transition lies aft of the airfoil. At
-  $\alpha\!=\!7^\circ$ the dotted reference is XFOIL rather than mfoil, which
-  stalls numerically there (Table~\ref{tab:eppxtr}); XFOIL provides $C_p$ and
-  $C_f$ only, so the $N$ curve (row~3) is absent at $7^\circ$.}
+  $\alpha\!=\!7^\circ$ the dotted reference is FlexFoil rather than mfoil,
+  which stalls numerically there (Table~\ref{tab:eppxtr}; XFOIL's forces
+  agree, $C_l\!=\!1.17$); the surface distributions carry no $N$ curve, so
+  row~3 shows no envelope at $7^\circ$.}
   \label{fig:eppcfhigh}
 \end{figure}
 
@@ -2122,9 +2154,10 @@ over the final $2000$ iterations, i.e.\ no bubble limit cycle.
   incidences, the higher Reynolds numbers, and the wing sections of
   Sec.~\ref{sec:daedalus}) all three agree to better than $1\%$ in
   $c_l$ and $c_d$, and to $0.005\,c$ in $x_\mathrm{tr}$ with one
-  exception: the NLF $\alpha\!=\!0^\circ$ lower-surface front, where the
-  near-flat envelope lets mfoil ($0.62\,c$) and XFOIL ($0.52\,c$)
-  separate by $0.10\,c$ (Sec.~\ref{sec:nlfval}).}
+  exception: the NLF $\alpha\!=\!0^\circ$ lower-surface front, whose
+  near-flat envelope amplifies implementation differences---mfoil and
+  FlexFoil both read $0.62\,c$, while an XFOIL run of the original study
+  read $0.52\,c$ (Sec.~\ref{sec:nlfval}).}
 \end{table}
 
 The section lift, drag, and quarter-chord pitching-moment

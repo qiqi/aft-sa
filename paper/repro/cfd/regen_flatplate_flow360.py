@@ -44,7 +44,7 @@ PLATE_END_X = 6.0
 OUTLET_MARGIN = 0.5         # ignore data within this distance of outlet
 CONTOUR_X_MAX = 4.0
 
-PREFIX = os.environ.get("SAAI_CASE_PREFIX", "flatplate_ags")  # sphere runs: flatplate_sphere
+PREFIX = os.environ.get("SAAI_CASE_PREFIX", "flatplate_sphere")  # current sphere-canon cases
 
 def case_dir(tu):
     return f"{B}/{PREFIX}_Tu{int(round(tu*1000)):04d}"
