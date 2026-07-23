@@ -2,7 +2,7 @@
 eta=0.30 section of all six wing meshes: tangential spacing Delta-s/c at
 LE / 0.05c / 0.25c / 0.98c / TE (upper surface), first off-wall spacing
 h0/c, and off-wall cell size at 0.001c and 0.5c above the 0.25c point.
-Prints a table; values are hand-copied into main.tex."""
+Prints a table; values are hand-copied into sa-ai.tex."""
 import os
 import sys
 import numpy as np

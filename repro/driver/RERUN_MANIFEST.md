@@ -69,7 +69,7 @@ Feeds **Fig. `flat_plate_batch_flow360.pdf`** (`\label{fig:flatplate_batch}`),
 from `paper/regen_flatplate_flow360.py` (`B=flow360_g4`).
 Common: geometry `flatplate`, M=0.1, unit Reynolds (Re_x = x·10⁶), model SA-AI,
 slowdown 0.01. `chi_inf` from the Mack Tu→chi map; the values below match the
-paper text (main.tex L1230-1231).
+paper text (sa-ai.tex L1230-1231).
 
 | case dir (under flow360_g4/) | Tu % | chi_inf | fig |
 |---|---|---|---|
@@ -85,7 +85,7 @@ paper text (main.tex L1230-1231).
 
 Feeds **`nlf_cf_lowalpha.pdf`, `nlf_cf_highalpha.pdf`** (`regen_nlf_v2.py`) and
 **`nlf_polar_compare.pdf`** (`regen_nlf_polar.py`).
-Common: geometry `nlf0416`, Re=4e6, M=0.1 (main.tex L1296).
+Common: geometry `nlf0416`, Re=4e6, M=0.1 (sa-ai.tex L1296).
 
 ### B1 — SA-AI ladder (24): chi_inf=8.76e-4 (= c_v1·e⁻⁹), slowdown 0.01
 
@@ -116,7 +116,7 @@ Only the polar figure uses these (`regen_nlf_polar.py`, "SA, fully turbulent (st
 Feeds **`eppler_cf_lowalpha.pdf`, `eppler_cf_highalpha.pdf`,
 `eppler_polar_compare.pdf`** (`regen_eppler_v2.py`) and **Table `tab:eppxtr`**
 (reattachment, `regen_epp_reattach.py`, uses cav/str × L0/L1/L2 at alpha {0,2,5,7}).
-Common: geometry `eppler387`, Re=2e5, M=0.1 (main.tex L1656).
+Common: geometry `eppler387`, Re=2e5, M=0.1 (sa-ai.tex L1656).
 
 ### C1 — SA-AI ladder (24): chi_inf=8.76e-4, slowdown 0.01
 
@@ -185,7 +185,7 @@ Re list; those are the same `sweep_str_*` dirs listed above (200k = `strL1prop..
 ## UNCONFIRMED / flagged values — confirm before GPU re-run
 
 Everything below was confirmed directly from a regen script, a `run_*.py`
-builder, main.tex, or the shipped `Flow360.json`. Items 1–2 were verified by
+builder, sa-ai.tex, or the shipped `Flow360.json`. Items 1–2 were verified by
 reading the case JSONs and are noted for transparency; items 3–4 are the genuine
 open questions for the human before a GPU re-run.
 
@@ -225,6 +225,6 @@ open questions for the human before a GPU re-run.
 6. **NACA0012 is intentionally EXCLUDED.** `paper/regen_figs.py` builds NACA0012
    (and NLF) figures from `flow360/run10k_*`, but the figure filenames it writes
    (`naca0012_cf.pdf`, `convergence.pdf`, `polar.pdf`, `xtr_alpha.pdf`) do **not**
-   appear in `main.tex`. It is a superseded script; NACA0012 is not a paper CFD
-   case. If a later main.tex revision reintroduces NACA0012, add
+   appear in `sa-ai.tex`. It is a superseded script; NACA0012 is not a paper CFD
+   case. If a later sa-ai.tex revision reintroduces NACA0012, add
    `run10k_{aftsa,turb}_naca0012_a{-2,0,2,4,6,8}` (Re=1e6 per `naca0012_re1m.json`).

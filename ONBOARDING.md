@@ -18,12 +18,20 @@ and the mistakes we already made so you don't repeat them.
 The SA working variable `ν̃`, in its sub-O(1) range (`χ = ν̃/ν ≲ 1`), is repurposed
 as an e^N-style amplification factor for laminar instability. The **same** transport
 equation handles both laminar TS amplification and turbulent SA via a blended
-production `P = max[(1−σ_t)·P_AI, σ_t·P_SA]`, with `σ_t` a handover function of `χ`
-and `P_AI = a(Re_Ω, Γ, λ_p)·ω·ν̃` a Drela-style local amplification rate. **No extra
-transport equation** (unlike Coder AFT, Langtry–Menter γ–Re_θ, or the algebraic
-Bas–Çakmakçıoğlu SA-BCM). Freestream turbulence enters as the freestream seed
-`χ_∞ = c_v1·e^−N_crit ≈ 8.76e-4` at `N_crit=9`. Onset delay in favorable pressure
-gradient is a cliff `Re_Ω^c(λ_p)`.
+production `P = max[(1−σ_P)·P_AI, σ_P·P_SA]` (destruction tied:
+`σ_D = 1 − (c_b1/κ²c_w1)(1−σ_P)`), with `σ_P` a handover function of `χ` and
+`P_AI = a·ω·ν̃`. **The rate is the SPHERE KERNEL (model v3)**: three local
+indicators `(X,Y,Z) = (|u|, ωd, ½d²u″)/R` on the projective sphere, shear fraction
+`Ŝ = Y/√(X²+Y²)`, Rayleigh coordinate `g = (Y−X−Z)/R` (the parabola great circle
+`g = 0` is neutral), and `a = a_max·clip⟨Ŝg⟩₀¹·S(Re_Ω/Re_Ω^c)` with
+`a_max = 0.19` (Michalke eigenvalue) and the soft-min onset threshold
+`Re_Ω^c = softmin₂(1670, 112 + 1.28/P²)`. Favorable pressure gradient gives
+`P = Ŝg ≤ 0` → no amplification, **geometrically** — there is no λ_p, no Γ sigmoid,
+no sigma_FPG in the live model (those are retired v2 machinery). `u″` is evaluated
+by the ring-averaged compact velocity Laplacian (a viscous-flux-style pre-pass).
+**No extra transport equation** (unlike Coder AFT, Langtry–Menter γ–Re_θ, or the
+algebraic Bas–Çakmakçıoğlu SA-BCM). Freestream turbulence enters as the freestream
+seed `χ_∞ = c_v1·e^−N_crit ≈ 8.76e-4` at `N_crit=9` (Mack's e^N map).
 
 ---
 
@@ -33,7 +41,7 @@ gradient is a cliff `Re_Ω^c(λ_p)`.
 sa-ai/                         (formerly aft-sa/; all script paths now point here)
 ├── ONBOARDING.md              ← you are here
 ├── paper/                     ← the LaTeX paper + all figure-generation
-│   ├── main.tex               single self-contained source (no \input); ~42 pp
+│   ├── sa-ai.tex               single self-contained source (no \input); ~42 pp
 │   ├── new-aiaa.cls/.bst      AIAA journal class
 │   ├── build_paper.sh         canonical: regen key figures + 3× pdflatex + bibtex
 │   ├── references/            cited PDFs (Coder, Langtry, Mack, Drela, ...)
@@ -87,15 +95,15 @@ cd paper
 ./build_paper.sh          # regen a few figures + 3× pdflatex + bibtex; reports LaTeX errors
 ```
 
-Or manually after editing `main.tex`:
+Or manually after editing `sa-ai.tex`:
 ```bash
 cd paper
-pdflatex -interaction=nonstopmode -halt-on-error main.tex
-bibtex main
+pdflatex -interaction=nonstopmode -halt-on-error sa-ai.tex
+bibtex sa-ai
 pdflatex ... ; pdflatex ...    # 3 total passes to settle refs/citations
 ```
-Sanity checks: `python3 -c "import fitz; print(fitz.open('main.pdf').page_count)"`
-and `grep -ci undefined main.log` (want 0 undefined refs/citations). The bibtex
+Sanity checks: `python3 -c "import fitz; print(fitz.open('sa-ai.pdf').page_count)"`
+and `grep -ci undefined sa-ai.log` (want 0 undefined refs/citations). The bibtex
 "empty pages / no volume" warnings are pre-existing bib-entry noise, not errors.
 
 To eyeball a figure in context without a PDF viewer: render a page with `fitz`
@@ -105,20 +113,19 @@ To eyeball a figure in context without a PDF viewer: render a page with `fitz`
 
 ## 5. Figures: what generates what, and what is reproducible
 
-**Every `\includegraphics` figure in `main.tex` → its generator.** To re-derive this
+**Every `\includegraphics` figure in `sa-ai.tex` → its generator.** To re-derive this
 map (or find a new figure's generator), grep the basename across the source dirs:
 `grep -rl "eppler_polar_compare" paper/*.py flow360/*.py scripts/**/*.py`.
 
 | Figure PDF | Generator (dir/script) | Data needed |
 |------------|------------------------|-------------|
-| `blasius_nuHat_solution` | `scripts/models/run_blasius_transport.py` | self-contained (ODE) |
-| `kernel_maps` | `paper/regen_kernel_maps.py` | self-contained (model) |
-| `klambda_profiles` | `paper/regen_klambda.py` | self-contained (model) |
-| `shapefactor_amplification` | `paper/repro/analytic/fig04_shapefactor.py` (incl. reversed-flow lower branch, H>4) | self-contained (model) |
+| `indicator_sphere` | `paper/repro/analytic/fig01_indicator_sphere.py` (RP² x-ray view; OS-production bands via explore_wavepacket_regions machinery) | self-contained (model) |
+| `onset_graze` | `paper/repro/analytic/fig02_onset_graze.py` (LST neutral-point graze fixing the soft-min onset shape) | self-contained (model) |
+| `model_calibrate` | `paper/repro/analytic/fig02_model_calibrate.py` (⚠️ still the softmin_4(2600,175,2) onset variant, pending unification with the solver's softmin_2(1670,112,1.28)) | self-contained (model) |
+| `fs_nuHat_rows` | `paper/repro/analytic/fig03_fs_transport_rows.py` (sphere kernel; NOT the stale v2 `paper/regen_fs_transport_rows.py`) | self-contained (model) |
+| `shapefactor_amplification` | `paper/repro/analytic/fig04_shapefactor.py` (incl. reversed-flow lower branch, H>4; same onset caveat as fig02) | self-contained (model) |
 | `daedalus_polar_sectional` | `paper/regen_daedalus_polar_sectional.py` | **Daedalus case tree** + AVL |
 | `daedalus_surface_a{4,5,6}` | `paper/regen_daedalus_surface_maps.py` (strips cache: `regen_daedalus_strips_cache.py`, needs FlexFoil + AVL) | **Daedalus case tree** |
-| `wall_layer` | `paper/regen_wall_layer.py` | self-contained (model) |
-| `indicator_plane` | `paper/regen_indicator_plane.py` | self-contained (model) |
 | `eppler_cf_lowalpha`, `eppler_cf_highalpha` | `paper/regen_eppler_v2.py` (`make_cf_figure`; run `python regen_eppler_v2.py {low\|high\|polar\|all}`) | **CFD tree** + mfoil/xfoil pkl |
 | `eppler_polar_compare` | `paper/regen_eppler_v2.py` (`make_polar_figure`) | **CFD tree** + mfoil pkl |
 | `eppler_L1compare_lowRe`, `_highRe` | `paper/repro/cfd/regen_epp_L1compare.py` | **CFD tree** + mfoil/xfoil/flexfoil pkl |
@@ -176,10 +183,11 @@ So **`AI_SA=0` → classical fully-turbulent SA** (baseline comparisons); anythi
 |---------|---------|---------|
 | `AI_SA` | on | `0` = classical SA |
 | `AI_LAMINAR_SLOWDOWN` | 1.0 (off) | `fSlow`: pseudo-time slowdown of laminar `ν̃`; **0.01** damps the natural-transition limit cycle. See §7. |
-| `AI_SIGMA_FPG` | 0.0 (off) | enable favorable-PG rate suppression `σ_FPG(λ_p)`. Verified **no-op** on adverse-PG cases (σ_FPG→1); the cliff carries FPG. |
-| `AI_LAMBDA_STAR` / `AI_LAMBDA_SLOPE` | 0.64 / 4.56 | σ_FPG sigmoid center/slope |
-| `AI_CLIFF_LAMBDA_SLOPE` | — | FPG onset-delay cliff `Re_Ω^c = floor·exp(K_λ·max(0,λ_p))` |
-| `AI_REOMEGA_FLOOR`,`AI_RATESCALE`,`AI_GCRIT`,`AI_BARRIER_M`,`AI_MAXBLEND`, … | see `ModelConstants.h` | kernel calibration; **the paper's calibration = the defaults**, don't change without re-validating. |
+| `AI_RATESCALE` | 0.19 | `a_max`, the Michalke free-shear eigenvalue |
+| `AI_REOMC_CEIL` / `AI_REOMC_A` / `AI_REOMC_B` | 1670 / 112 / 1.28 | soft-min onset threshold `Re_Ω^c = softmin₂(CEIL, A + B/P²)` |
+| `AI_RAMPWIDTH` | 0.35 | onset tanh ramp half-width |
+| `AI_MAXBLEND` / `AI_SIGMAD_TIE` / `AI_SWITCHWIDTH` / `AI_NULAMSCALE` | 1 / 1 / 4 / (1/12) | blend + handover + laminar-diffusion structure; **the paper's calibration = the defaults**, don't change without re-validating. |
+| `AI_VG_GATE*`, `AI_GCRIT`, `AI_SIGMOIDSLOPE`, `AI_REOMEGA_FLOOR`, `AI_CLIFF_LAMBDA_SLOPE`, `AI_FPG_RATE_SLOPE`, `AI_SIGMA_FPG`, `AI_LAMBDA_*`, `AI_BARRIER_M`, `AI_TILTSLOPE` | — | **DEAD in the sphere kernel** (qGate ≡ 1; no λ_p, no Γ sigmoid). Retained for pre-sphere replay only. |
 
 > ⚠️ **Memory may say `AFT_SA`** — that was renamed. Everything is `AI_*` now, and
 > SA-AI is default-on (it used to be opt-in). Trust the source, not old memory.

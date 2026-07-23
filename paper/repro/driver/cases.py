@@ -17,7 +17,7 @@ IMPORTANT -- base directory
     -- *_ai/_vg/_q4/_tauD suffixes, run10k_*, sweep_*_ai -- that no paper figure
     references. ``paper/regen_figs.py`` targets flow360/run10k_* and NACA0012 but
     writes figure names (naca0012_cf.pdf, polar.pdf, ...) that do NOT appear in
-    main.tex; it is superseded. NACA0012 is therefore NOT a paper CFD case.)
+    sa-ai.tex; it is superseded. NACA0012 is therefore NOT a paper CFD case.)
 
 Because the shipped Flow360 cases are already meshed, EVERY paper case here is
 run by cloning its pre-meshed ``base_case_dir`` (absolute path into flow360_g4)
@@ -26,7 +26,7 @@ and patching the freestream chi seed -- none are re-meshed from a base JSON.
 ABSOLUTE base_case_dir overrides that root (pathlib ``Path('/x') / '/abs'`` ==
 '/abs'), so pointing at flow360_g4 needs no change to config.py / case.py.
 
-Four families (see the paper sections around main.tex L1190-1978):
+Four families (see the paper sections around sa-ai.tex L1190-1978):
   A. flat-plate natural-transition Tu sweep   (Sec. flatplate; Fig flatplate_batch)
        Tu = {0.04,0.08,0.16,0.30,0.60}%, M=0.1, Re_unit=1e6, slowdown=0.01;
        seed = chi_inf_from_Tu_pct(Tu).  5 cases.
@@ -92,7 +92,7 @@ def _flatplate(Tu: float) -> CaseConfig:
 # ---- B. NLF(1)-0416 refinement ladder, Re=4e6 ------------------------------
 # regen_nlf_v2.py / regen_nlf_polar.py: case_dir = {mesh}{level}prop_nlf0416_Re4M_a{a}
 # with mesh in {cav,str}, level in {L0,L1,L2}, alpha in {0,4,9,15}.
-# main.tex L1296-1304: Re=4e6, M=0.1, chi_inf=c_v1*e^-9~8.76e-4, "twenty-four
+# sa-ai.tex L1296-1304: Re=4e6, M=0.1, chi_inf=c_v1*e^-9~8.76e-4, "twenty-four
 # cases total". Fully-turbulent SA baselines: strL2prop_nlf0416_Re4M_turb_a{a}
 # (run_turb_baselines.py: AI_SA=0, chi=3, alpha {0,4,9,15}).
 _NLF_ALPHAS = [0, 4, 9, 15]
@@ -130,7 +130,7 @@ def _nlf0416_turb(alpha: int) -> CaseConfig:
 # ---- C. Eppler 387 refinement ladder, Re=2e5 -------------------------------
 # regen_eppler_v2.py: case_dir = {mesh}{level}prop_eppler387_Re200k_a{a},
 # mesh {cav,str}, level {L0,L1,L2}, alpha {0,2,5,7} (low={0,2}, high={5,7},
-# polar={0,2,5,7}). main.tex L1656-1657: Re=2e5, M=0.1. chi_inf=8.76e-4 (same
+# polar={0,2,5,7}). sa-ai.tex L1656-1657: Re=2e5, M=0.1. chi_inf=8.76e-4 (same
 # N_crit=9 anchor as NLF). Fully-turbulent baselines strL2prop_eppler387_Re200k_turb_a{a}.
 _EPP_ALPHAS = [0, 2, 5, 7]
 

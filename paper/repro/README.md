@@ -55,7 +55,7 @@ Read each script alongside the passage it backs; `regenerate_all.py` and
 | §V NLF | nlf_cf figures | `cfd/regen_nlf_v2.py` |
 | §V NLF | tab:nlftrans | `cfd/regen_nlf_transition.py` |
 | §V/§VI | dx_tr/dN sensitivity column of tab:nlftrans + Sec. VI onset numbers (needs xfoil + xvfb-run, on demand) | `cfd/xtr_sensitivity.py` |
-| §V NLF | L0-artifact narrative (diagnostic; figure not in main.tex) | `cfd/regen_l0_artifact.py` |
+| §V NLF | L0-artifact narrative (diagnostic; figure not in sa-ai.tex) | `cfd/regen_l0_artifact.py` |
 | §V NLF | fig:nlfpolar | `cfd/regen_nlf_polar.py` |
 | §VI Eppler | eppler_cf figures, fig:epppolar | `cfd/regen_eppler_v2.py` |
 | §VI Eppler | tab:eppxtr | `cfd/regen_epp_reattach.py` |

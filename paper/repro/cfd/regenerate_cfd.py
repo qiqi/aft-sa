@@ -6,7 +6,7 @@ by ``SAAI_CFD_ROOT`` (default: the shipped ``sa-ai/flow360_fr``). Run
 
     SAAI_CFD_ROOT=/path/to/tree python3 regenerate_cfd.py
 
-Figures land in ``sa-ai/paper/figs/`` under the exact names main.tex includes;
+Figures land in ``sa-ai/paper/figs/`` under the exact names sa-ai.tex includes;
 table generators print their LaTeX rows to stdout.
 """
 import os
@@ -26,7 +26,7 @@ SCRIPTS = [  # (script, paper floats/passages it feeds)
     # Sec. V -- NLF(1)-0416
     ("regen_nlf_v2.py",            "fig nlf_cf_lowalpha/highalpha"),
     ("regen_nlf_transition.py",    "tab:nlftrans (printed rows)"),
-    ("regen_l0_artifact.py",       "Sec. V L0-artifact narrative (diagnostic; figure not in main.tex)"),
+    ("regen_l0_artifact.py",       "Sec. V L0-artifact narrative (diagnostic; figure not in sa-ai.tex)"),
     ("regen_nlf_polar.py",         "fig:nlfpolar"),
     # Sec. VI -- Eppler 387
     ("regen_eppler_v2.py",         "fig eppler_cf_lowalpha/highalpha, fig:epppolar"),

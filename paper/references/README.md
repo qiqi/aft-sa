@@ -1,6 +1,6 @@
-# Reference PDFs for `main.tex`
+# Reference PDFs for `sa-ai.tex`
 
-Downloaded 2026-06-30. Source of truth = the `\cite{...}` keys in `main.tex`
+Downloaded 2026-06-30. Source of truth = the `\cite{...}` keys in `sa-ai.tex`
 (26 unique). The `.bbl` was stale, so it was not used.
 Only legitimate open-access sources were used (NASA NTRS, institutional
 repositories, author/lab pages, open-access publisher copies). No
@@ -56,4 +56,4 @@ sources by the same authors containing the identical model formulation.
 | `smith_gamberoni_1956` | Smith & Gamberoni 1956, Douglas ES 26388 | No digital copy known (not in NTRS/DTIC/archive.org); alt. version: Proc. 9th Int. Congress Applied Mechanics, Brussels 1957, Vol. 4, 234–244 |
 
 > Note: `references.bib` also contains `coupland_1990` and `savill_1993`, which
-> are **not** `\cite`d in `main.tex`, so they were not downloaded.
+> are **not** `\cite`d in `sa-ai.tex`, so they were not downloaded.

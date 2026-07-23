@@ -1,17 +1,21 @@
 """Single source of truth for the canonical SA-AI transition-model environment.
 
 Every SA-AI CFD run in the paper is pinned to ONE model configuration: the
-"v2" variant (FINAL composite two-pinch band gate ``AI_VG_GATE=7``) from
-``sa-ai/flow360/run_vg_all.py``. The C++ Flow360 solver reads the KERNEL
-constants (AI_RATESCALE, AI_GCRIT, ...) from the process environment, so the
-entire job of this module is to construct that environment dict in exactly ONE
-place. (Freestream chi is the exception -- see the caveat below.)
+SPHERE KERNEL (model v3, compute branch explore-lambda-v):
+    rate  a = a_max * clip<S_hat*g>_0^1 * S(Re_Omega / Re_Omega_crit(P)),
+    Re_Omega_crit(P) = softmin_2(reOmCeil, reOmA + reOmB / P^2).
+The C++ Flow360 solver reads the KERNEL constants from the process
+environment, so the entire job of this module is to construct that environment
+dict in exactly ONE place. (Freestream chi is the exception -- see the caveat
+below.)
 
-The numeric kernel constants are IMPORTED from
-``sa-ai/scripts/calibrate_kernel.py`` (the paper's single source of truth,
-identical to Flow360 ``ModelConstants.h`` and the JAX
-``src/numerics/aft_sources.py``). We do NOT re-type them here -- if the kernel
-is recalibrated, editing ``calibrate_kernel.py`` flows through automatically.
+The numeric kernel constants are the compiled defaults of Flow360
+``ModelConstants.h`` (the authoritative source for the sphere kernel), pinned
+textually by ``sa-ai/tests/test_constants_consistency.py``; we export them
+explicitly anyway so every case records its kernel even if the compiled
+defaults later change. NOTE: ``lib/calibrate_kernel.py`` still carries the
+retired v2 gate kernel (pending sphere migration) -- only its Tu<->chi_inf
+Mack map (unchanged in v3) is imported here.
 
 Freestream chi -- how it ACTUALLY reaches the solver (verified against
 compute/src/Flow360Core):
@@ -37,43 +41,48 @@ _REPRO = Path(__file__).resolve().parent.parent
 if str(_REPRO) not in sys.path:
     sys.path.insert(0, str(_REPRO))
 
-from lib import calibrate_kernel as _kernel  # noqa: E402  (single source of truth)
-from lib import aft_sources as _aft          # noqa: E402  (gate constants c_V, c_2)
+from lib import calibrate_kernel as _kernel  # noqa: E402  (Mack Tu<->chi map only; see docstring)
 
 # Re-export the Tu -> chi_inf map so callers use ONE definition (Mack 1977 e^N).
 chi_inf_from_Tu_pct = _kernel.chi_inf_from_Tu_pct
 Tu_pct_from_chi_inf = _kernel.Tu_pct_from_chi_inf
 
+# Sphere-kernel constants = the compiled defaults of Flow360 ModelConstants.h
+# (explore-lambda-v). Pinned against that header by
+# sa-ai/tests/test_constants_consistency.py::CANON -- edit BOTH together.
+_SPHERE = {
+    "A_MAX":     0.19,    # Michalke free-shear (tanh-layer) eigenvalue
+    "REOM_CEIL": 1670.0,  # onset soft-min ceiling (favorable side)
+    "REOM_A":    112.0,   # onset near-separation additive floor
+    "REOM_B":    1.28,    # onset inverse-square coefficient
+    "RAMP_W":    0.35,    # onset tanh ramp half-width
+}
+
 
 def canonical_ai_env() -> dict[str, str]:
-    """The canonical SA-AI (VARIANT='a3') model env, built from calibrate_kernel.
+    """The canonical SA-AI (sphere kernel) model env.
 
     These are the model constants that define the transition kernel; they are
     identical for every SA-AI run in the paper. Per-case quantities (chi_inf,
     laminar slowdown) are added separately by ``canonical_env()``.
 
-    Mapping to calibrate_kernel constants:
-        AI_RATESCALE       <- A_MAX          (Michalke free-shear ceiling a_max)
-        AI_GCRIT           <- SIGMOID_CENTER (attached-asymptote center g_c)
-        AI_SIGMOIDSLOPE    <- SIGMOID_SLOPE  (sigmoid slope s)
-        AI_REOMEGA_FLOOR   <- RE_OMEGA_FLOOR (cliff floor)
-        AI_CLIFF_LAMBDA_SLOPE <- K_LAMBDA    (favorable-PG onset-delay slope)
-        AI_FPG_RATE_SLOPE  <- FPG_RATE_SLOPE (favorable-PG rate-factor slope K_r)
-    Fixed structural switches (not calibrated numbers): AI_SA=1 turns the model
-    on; AI_VG_GATE=7 selects the FINAL composite band gate (smooth Lambda_v
-    Q1 x parabola-loop Q2; weight c_V and softness c_2 from lib.aft_sources).
+    They coincide with the compiled ModelConstants.h defaults, so exporting
+    them is redundant TODAY -- it is done anyway so the solver log's resolved-
+    constants echo and the case env both prove which kernel a run used, and so
+    a future default change cannot silently reinterpret old case dirs.
+
+    The v2 gate env vars (AI_VG_GATE*, AI_GCRIT, AI_SIGMOIDSLOPE,
+    AI_REOMEGA_FLOOR, AI_CLIFF_LAMBDA_SLOPE, AI_FPG_RATE_SLOPE) are DEAD in the
+    sphere kernel (qGate is hardcoded 1.0; no lambda_p anywhere) and are no
+    longer exported.
     """
     return {
-        "AI_SA": "1",                                        # SA-AI model ON
-        "AI_VG_GATE": "7",                                   # FINAL composite band gate (paper v2)
-        "AI_VG_GATE_WEIGHT": repr(_aft.AFT_LV_CV),           # 4.0 (c_V)
-        "AI_VG_GATE_C2": repr(_aft.AFT_Q2_C2),               # 8.0 (c_2)
-        "AI_RATESCALE": repr(_kernel.A_MAX),                 # 0.19
-        "AI_GCRIT": repr(_kernel.SIGMOID_CENTER),            # 0.9874
-        "AI_SIGMOIDSLOPE": repr(_kernel.SIGMOID_SLOPE),      # 10.68
-        "AI_REOMEGA_FLOOR": repr(_kernel.RE_OMEGA_FLOOR),    # 243.7
-        "AI_CLIFF_LAMBDA_SLOPE": repr(_kernel.K_LAMBDA),     # 6.20
-        "AI_FPG_RATE_SLOPE": repr(_kernel.FPG_RATE_SLOPE),   # 5.80
+        "AI_SA": "1",                              # SA-AI model ON
+        "AI_RATESCALE": repr(_SPHERE["A_MAX"]),    # 0.19
+        "AI_REOMC_CEIL": repr(_SPHERE["REOM_CEIL"]),  # 1670.0
+        "AI_REOMC_A": repr(_SPHERE["REOM_A"]),     # 112.0
+        "AI_REOMC_B": repr(_SPHERE["REOM_B"]),     # 1.28
+        "AI_RAMPWIDTH": repr(_SPHERE["RAMP_W"]),   # 0.35
     }
 
 

@@ -6,7 +6,7 @@ by ``SAAI_CFD_ROOT`` (default: the shipped ``sa-ai/flow360_a3``). Run
 
     SAAI_CFD_ROOT=/path/to/tree python3 regenerate_cfd.py
 
-Figures land in ``sa-ai/paper/figs/`` under the exact names main.tex includes;
+Figures land in ``sa-ai/paper/figs/`` under the exact names sa-ai.tex includes;
 table generators print their LaTeX rows to stdout.
 """
 import os
@@ -26,7 +26,7 @@ SCRIPTS = [  # (script, paper floats it feeds)
     ("regen_epp_reattach.py",      "tab:eppxtr (printed rows)"),
     ("regen_epp_L1compare.py",     "fig:eppresweep_low, fig:eppresweep_high"),
     ("regen_resweep_table.py",     "tab:eppresweep (printed LaTeX rows)"),
-    ("regen_l0_artifact.py",       "(diagnostic; not included in main.tex)"),
+    ("regen_l0_artifact.py",       "(diagnostic; not included in sa-ai.tex)"),
 ]
 
 

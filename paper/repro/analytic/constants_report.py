@@ -6,7 +6,7 @@ from _saai import (A_MAX, G_C, S_SLOPE, FLOOR, K_LAMBDA, K_R, P, C_V, C_2,
                    TAU, R_TIE, C_NU_AI, A_TU, B_TU, C_V1)
 from lib.aft_sources import AFT_GAMMA_COEFF
 
-# Paper Table (main.tex) target values -- the ONLY place numbers are written here.
+# Paper Table (sa-ai.tex) target values -- the ONLY place numbers are written here.
 PAPER = {
     "a_max": 0.19, "g_c": 0.9874, "s": 10.68, "reOmegaFloor": 243.7,
     "K_lambda": 6.2, "K_r": 5.8, "p": 4.0, "c_V": 4.0, "c_2": 8.0,

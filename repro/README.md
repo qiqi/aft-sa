@@ -21,7 +21,7 @@ python3 sa-ai/repro/analytic/constants_report.py # constant audit against paper 
 ```
 
 Figures are written into `sa-ai/paper/figs/` at the exact `\includegraphics`
-filenames `main.tex` expects, so the paper picks them up directly. JAX is pulled
+filenames `sa-ai.tex` expects, so the paper picks them up directly. JAX is pulled
 in transitively by the `src` imports (expected); a `.jax_cache/` dir may appear
 under `sa-ai/paper/`.
 
@@ -84,7 +84,7 @@ Everything else pre-Flow360 is covered above.
 
 **Figure identity (analytic set).** `regenerate_all.py`: 9/9 pass. The ported
 scripts' printed diagnostics are digit-for-digit identical to the last-good
-`paper/regen_*` runs the shipped `main.pdf` was built from -- fig04's full
+`paper/regen_*` runs the shipped `sa-ai.pdf` was built from -- fig04's full
 14-beta mean/late table (Blasius mean 1.0427e-2 = 1.00x Drela, late 1.1157e-2 =
 1.07x), fig03's three rows (N_end 18.9 / 11.6 / 17.5 at the same x_max), the
 K_lambda fixed point 5.90, and fig07's wall-layer footprint (peak 0.80% at
