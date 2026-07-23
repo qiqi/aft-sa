@@ -1715,3 +1715,25 @@ agent-paper-review/2026-07-23-1050-response.md.
    method, Reynolds-independent---a function of the shape alone [Drela-Giles].
    The algebraic rate (eq:rate) carries the second regime...; the first---the
    viscous inception---is a separate, multiplicative gate..."
+
+## 2026-07-23 annotated.pdf round 3 (19:31, pp.8+11, 2 remarks)
+1. HIGHLIGHT Fig-1 caption tail ("the lowest hugs the neutral locus ...
+   Every amplifying band lies on the positive (shear) side ... has none")
+   — "remove. Similarly remove descriptions in the caption of things
+   that's obvious in the figure."
+   RESOLVED: caption now ends at the contour-level list; the neutral-locus
+   and band-side interpretation lives only in the body.
+2. HIGHLIGHT Table-2 caption block (H<=5 justification + Green/tanh
+   instrument sentence) — "remove".
+   RESOLVED: caption reduced to the profile/ratio definition; a one-line
+   cap rationale moved into the body sentence introducing the table
+   ("...which stops at H~5, where Drela's OS data end and no similarity
+   profile remains validated against measured bubble profiles"); the
+   Green/tanh sentence relocated to App. B beside the 0.9-1.9x ledger,
+   where the deep-branch comparison actually lives.
+
+## 2026-07-23 Fig-1 family correction (author, 19:4x)
+Previous request (extra profile between Blasius and beta=-0.1) was
+mistaken and is reverted; the added member is now beta=-0.15 (red-orange)
+between beta=-0.1 and the separation limit, per the corrected instruction.
+Caption lists it exactly.

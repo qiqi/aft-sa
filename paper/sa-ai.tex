@@ -422,10 +422,11 @@ only rotation-invariant products of the indicator vectors survive.
   triangles mark the four visible poles---velocity left, shear right,
   $\pm$curvature top and bottom). Six Falkner--Skan profiles run as thin
   curves from the wall (center) toward the freestream: favorable
-  ($\beta\!=\!+0.30$, blue), Blasius ($\beta\!=\!0$, green), mildly adverse
-  ($\beta\!=\!-0.05$, olive), moderate adverse
-  ($\beta\!=\!-0.10$, orange), incipient separation ($\beta\!=\!-0.1988$,
-  red), and a separated reversed-flow shear layer---the Stewartson
+  ($\beta\!=\!+0.30$, blue), Blasius ($\beta\!=\!0$, green), moderate
+  adverse ($\beta\!=\!-0.10$, orange), strongly adverse
+  ($\beta\!=\!-0.15$, red-orange), incipient separation
+  ($\beta\!=\!-0.1988$, red), and a separated reversed-flow shear
+  layer---the Stewartson
   lower-branch solution at $\beta\!=\!-0.19$, $H\!\approx\!4.9$ (purple).
   The \textbf{thick} segment on each marks
   the wall-normal band where its linear-stability (Orr--Sommerfeld
@@ -433,11 +434,7 @@ only rotation-invariant products of the indicator vectors survive.
   disturbance actually grows; the attached profiles are evaluated at
   $Re_\theta\!=\!500$ (the favorable layer is still subcritical there and
   carries no band), the reversed-flow profile at $Re_\theta\!=\!200$. Gray lines are contours of the rate coordinate
-  $\hat S g$ at $\{0.025,0.2,0.4,0.6,0.8,1.0\}$; the lowest ($\hat S g=0.025$) hugs
-  the neutral locus $\hat S g=0$---the parabola great circle $g=0$ together with the
-  shear-free meridian.
-  Every amplifying band lies on the positive (shear) side; the favorable layer,
-  carried across the neutral circle, has none.}
+  $\hat S g$ at $\{0.025,0.2,0.4,0.6,0.8,1.0\}$.}
   \label{fig:model}
 \end{figure}
 
@@ -587,7 +584,9 @@ $s_{\mathrm{DG}}\!=\!\tfrac{m(H)+1}{2}\,\ell(H)\,\mathrm dN/\mathrm dRe_\theta$
 ($\ell$, $m$ the Falkner--Skan similarity factors of Drela's spatial
 conversion~\cite{drela_giles_1987}), so the two compare with no wave-speed
 convention on either side. Table~\ref{tab:ratelimit} lists the ratio
-across the family, and two facts read off it. Across the attached
+across the family---which stops at $H\!\approx\!5$, where Drela's
+Orr--Sommerfeld data end and no similarity profile remains validated
+against measured bubble profiles---and two facts read off it. Across the attached
 branch the inviscid slope rides a nearly uniform $1.30$--$1.42\times$
 above the correlation---headroom, and what consumes it is the subject of
 the next paragraphs. At the separation limit and onto the
@@ -600,21 +599,7 @@ shallow reversed-flow branch the ratio is $0.97$.
   $\max_y a\,\omega/u$, as a ratio to the Drela--Giles spatial envelope
   rate $s_{\mathrm{DG}}/\theta$, on five Falkner--Skan profiles (starred:
   the reversed-flow, Stewartson lower-branch solution of the same
-  $\beta$). Shape factors past $H\!\approx\!5$ are excluded from the
-  frozen-profile comparisons of this and the following table: Drela's
-  Orr--Sommerfeld data stop there (the correlation extrapolates linearly
-  in $H$ beyond), and no similarity profile is validated against
-  measured bubble profiles past it. Where the deeper branch appears
-  elsewhere (the marched family of Fig.~\ref{fig:calibrate},
-  Sec.~\ref{sec:daedalus}), the honest reference is an Orr--Sommerfeld
-  computation on realistic reversed profiles: on the wall-bounded tanh
-  family of Dini et al.~\cite{dini_selig_maughmer_1992} (their stand-in
-  for Green's profiles~\cite{green_1966}, the family bubble
-  measurements support), the computed rates saturate with depth and side
-  with the kernel---at $H\!\approx\!13$ the kernel's inviscid limit
-  matches the Orr--Sommerfeld rate while the extrapolated correlation is
-  ${\sim}2\times$ above both
-  (\texttt{repro/analytic/explore\_green\_tanh\_family.py}). The ratio is
+  $\beta$). The ratio is
   independent of Reynolds number and of any diffusion: it is the most
   growth per unit length the rate can sustain on the profile. The
   diffusion retained by the working variable, taken up next, lowers the
@@ -2837,7 +2822,15 @@ below the physical critical layer at half its convection speed). This
 ledger, measured on the predecessor kernel these wing computations carry,
 is the in-place excess intrinsic to the advected temporal rate
 (\S\ref{sec:reproduce}); on frozen separated profiles the resolved band
-returns the spatial growth to $0.9$--$1.9\times$ the correlation.
+returns the spatial growth to $0.9$--$1.9\times$ the correlation. The
+correlation itself is the weaker reference at these depths:
+Orr--Sommerfeld rates computed on the wall-bounded tanh family of Dini
+et al.~\cite{dini_selig_maughmer_1992} (their stand-in for Green's
+profiles~\cite{green_1966}, the family bubble measurements support)
+saturate with depth and side with the kernel---at $H\!\approx\!13$ the
+kernel's inviscid limit matches the Orr--Sommerfeld rate while the
+linearly extrapolated correlation is ${\sim}2\times$ above both
+(\texttt{repro/analytic/explore\_green\_tanh\_family.py}).
 
 \paragraph{Vortex-lattice $+$ section-polar reference and diagnostics.} The AVL model uses
 $12\times40$ cosine-spaced vortex-lattice panels per semispan with the
