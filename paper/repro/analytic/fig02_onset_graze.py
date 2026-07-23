@@ -23,12 +23,19 @@ from lib.correlations import Re_theta0
 
 CEIL, A_, B_, N_ = 2600.0, 175.0, 2.0, 2.0
 
+# Attached family from strong favorable through incipient separation, plus a
+# separated reversed-flow (Stewartson lower branch) profile drawn DOTTED.
+# No legend: the betas are listed in the caption; color runs with beta.
 PROFILES = [
-    (0.15,  None,  'C0', r'favorable $\beta=+0.15$'),
-    (0.0,   None,  'C2', r'Blasius $\beta=0$'),
-    (-0.10, None,  'C1', r'adverse $\beta=-0.10$'),
-    (-0.1988, None, 'C3', r'incipient separation'),
-    (-0.12, -0.10, 'C4', r'separated (reversed flow)'),
+    (0.35,  None,  None, 'favorable'),
+    (0.15,  None,  None, 'favorable'),
+    (0.05,  None,  None, 'favorable'),
+    (0.0,   None,  None, 'Blasius'),
+    (-0.05, None,  None, 'adverse'),
+    (-0.10, None,  None, 'adverse'),
+    (-0.15, None,  None, 'adverse'),
+    (-0.1988, None, None, 'incipient separation'),
+    (-0.12, -0.10, None, 'separated (reversed)'),
 ]
 
 
@@ -58,22 +65,27 @@ def softmin(P):
 def main():
     fig, ax = plt.subplots(figsize=(6.4, 4.6))
     Pg = np.geomspace(3e-3, 1.2, 400)
-    ax.loglog(Pg, softmin(Pg), 'k--', lw=2.0, zorder=5,
-              label=r'$\mathrm{softmin}_2(2600,\ 175+2\,(\hat S g)^{-2})$')
-    for beta, guess, col, lab in PROFILES:
+    ax.loglog(Pg, softmin(Pg), 'k--', lw=2.0, zorder=5)
+    cmap = plt.cm.coolwarm
+    natt = sum(1 for p in PROFILES if p[1] is None)
+    j = 0
+    for beta, guess, _, lab in PROFILES:
         P, ReOm, H, Rtc = curve(beta, guess)
-        ax.loglog(P, ReOm, '-', color=col, lw=1.7,
-                  label=lab + fr'  ($H\!=\!{H:.2f}$, $Re_{{\theta c}}\!=\!{Rtc:.0f}$)')
+        if guess is None:
+            col = cmap(j/(natt - 1)); j += 1
+            ls = '-'
+        else:
+            col = 'purple'; ls = ':'
+        ax.loglog(P, ReOm, ls, color=col, lw=1.7)
         ratio = ReOm/softmin(P)
         i = int(np.argmax(ratio))
-        ax.plot(P[i], ReOm[i], 'o', color=col, ms=6.5, mec='k', mew=0.6, zorder=6)
+        ax.plot(P[i], ReOm[i], 'o', color=col, ms=6.0, mec='k', mew=0.6, zorder=6)
         print(f'beta={beta:+.3f} H={H:5.2f} Re_theta_c={Rtc:6.0f} '
               f'graze ratio={ratio[i]:.3f} at Shat*g={P[i]:.3f}', flush=True)
     ax.set_xlabel(r'$\hat S g$')
     ax.set_ylabel(r'$Re_\Omega = d^2\omega/\nu$ at $Re_\theta = Re_{\theta c}(H)$')
     ax.set_xlim(3e-3, 1.3); ax.set_ylim(30, 6e3)
     ax.grid(alpha=0.3, which='both')
-    ax.legend(fontsize=7.2, loc='lower left')
     plt.tight_layout()
     plt.savefig('figs/onset_graze.pdf')
     plt.savefig('repro/analytic/figs_explore/onset_graze.png', dpi=140)

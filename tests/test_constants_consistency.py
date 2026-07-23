@@ -24,16 +24,16 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # THE canonical set: sphere kernel, compute/ModelConstants.h (explore-lambda-v).
 # Onset shape (2600, 175, 2) from the LST neutral-point graze, n=2; the
-# drain-compensation scale k=0.708 (at c_nu,ai=1/6) multiplies the LOW BRANCH
-# only (ceiling unscaled), anchored at the GRID-CONVERGED Blasius N=1
-# crossing (Drela Re_theta=338).
+# WHOLE-EQUATION drain-compensation scale k=0.712 (at c_nu,ai=1/6) multiplies
+# the entire threshold (all three constants carry k), anchored at the
+# GRID-CONVERGED Blasius N=1 crossing (Drela Re_theta=338).
 # Edit here only when the model changes; every other source must match.
 # ---------------------------------------------------------------------------
 CANON = {
     "a_max":        0.19,       # Michalke free-shear (tanh-layer) eigenvalue 0.1897
-    "reOmCeil":     2600.0,     # onset ceiling = unscaled LST-graze value
-    "reOmA":        123.9,      # onset floor = k*175, k=0.708 (drain compensation)
-    "reOmB":        1.416,      # inverse-square coefficient = k*2
+    "reOmCeil":     1851.2,     # k*2600 (whole-equation drain compensation, k=0.712)
+    "reOmA":        124.6,      # k*175
+    "reOmB":        1.424,      # k*2
     "rampWidth":    0.35,       # onset tanh ramp half-width
     "tau":          4.0,        # production handover width (ai_switchWidth)
     "switchCenter": 1.0,        # chi at laminar->turbulent handover

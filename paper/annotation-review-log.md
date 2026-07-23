@@ -1661,3 +1661,22 @@ remain owed. NOTE: review pass 2 indirectly exposed a real defect — the
 marched N=1/N=9 crossings were wall-normal-resolution sensitive; all quoted
 crossings now come from the grid-converged instrument and the onset scale k
 is re-anchored there.
+
+## 2026-07-23 annotated.pdf round (10:33, p.9, 3 remarks)
+1. HIGHLIGHT "p=" — "remove, together with 'p is .. not ...' comment following."
+   RESOLVED: the Orr–Sommerfeld production density is no longer given a symbol
+   (inline expression only) and the disambiguating clause ("lower-case p ...
+   distinct from the production P") is deleted.
+2. HIGHLIGHT "not the angle of attack," — "Use a subscript on alpha instead,
+   remove the 'not angle of attack' part."
+   RESOLVED: α → α_x with a minimal parenthetical "(α_x the streamwise
+   wavenumber)"; the angle-of-attack disclaimer is gone.
+3. HIGHLIGHT "shear side, toward" — "east of the velocity pole longitude,
+   towards ..."
+   RESOLVED: "every amplifying band lies east of the velocity-pole longitude,
+   toward the shear pole +Y and away from the pure-curvature poles."
+
+## 2026-07-23 agent-review rounds 3+4 (0915, 1023) + whole-equation k change
+Addressed with the k-applied-to-all model change (k=0.712 uniform; family 6%
+rms) and the annotated.pdf p.9 round; item-by-item in
+agent-paper-review/2026-07-23-1050-response.md.

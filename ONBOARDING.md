@@ -25,8 +25,8 @@ indicators `(X,Y,Z) = (|u|, ωd, ½d²u″)/R` on the projective sphere, shear f
 `Ŝ = Y/√(X²+Y²)`, Rayleigh coordinate `g = (Y−X−Z)/R` (the parabola great circle
 `g = 0` is neutral), and `a = a_max·clip⟨Ŝg⟩₀¹·S(Re_Ω/Re_Ω^c)` with
 `a_max = 0.19` (Michalke eigenvalue) and the soft-min onset threshold
-`Re_Ω^c = softmin₂(2600, k·[175 + 2/(Ŝg)²])`, shape from the LST graze,
-`k = 0.708` (drain compensation at `c_ν,ai = 1/6`, low branch only) anchored
+`Re_Ω^c = k·softmin₂(2600, 175 + 2/(Ŝg)²)`, shape from the LST graze,
+`k = 0.712` (whole-equation drain compensation at `c_ν,ai = 1/6`) anchored
 at the grid-converged Blasius N=1 crossing (Drela Re_θ=338). Favorable pressure gradient gives
 `P = Ŝg ≤ 0` → no amplification, **geometrically** — there is no λ_p, no Γ sigmoid,
 no sigma_FPG in the live model (those are retired v2 machinery). `u″` is evaluated
@@ -186,7 +186,7 @@ So **`AI_SA=0` → classical fully-turbulent SA** (baseline comparisons); anythi
 | `AI_SA` | on | `0` = classical SA |
 | `AI_LAMINAR_SLOWDOWN` | 1.0 (off) | `fSlow`: pseudo-time slowdown of laminar `ν̃`; **0.01** damps the natural-transition limit cycle. See §7. |
 | `AI_RATESCALE` | 0.19 | `a_max`, the Michalke free-shear eigenvalue |
-| `AI_REOMC_CEIL` / `AI_REOMC_A` / `AI_REOMC_B` | 2600 / 123.9 / 1.416 | soft-min onset threshold `Re_Ω^c = softmin₂(CEIL, A + B/P²)` (A, B carry k=0.708) |
+| `AI_REOMC_CEIL` / `AI_REOMC_A` / `AI_REOMC_B` | 1851.2 / 124.6 / 1.424 | soft-min onset threshold `Re_Ω^c = softmin₂(CEIL, A + B/P²)` (all three carry k=0.712) |
 | `AI_RAMPWIDTH` | 0.35 | onset tanh ramp half-width |
 | `AI_MAXBLEND` / `AI_SIGMAD_TIE` / `AI_SWITCHWIDTH` / `AI_NULAMSCALE` | 1 / 1 / 4 / (1/6) | blend + handover + laminar-diffusion structure; **the paper's calibration = the defaults**, don't change without re-validating. |
 | `AI_VG_GATE*`, `AI_GCRIT`, `AI_SIGMOIDSLOPE`, `AI_REOMEGA_FLOOR`, `AI_CLIFF_LAMBDA_SLOPE`, `AI_FPG_RATE_SLOPE`, `AI_SIGMA_FPG`, `AI_LAMBDA_*`, `AI_BARRIER_M`, `AI_TILTSLOPE` | — | **DEAD in the sphere kernel** (qGate ≡ 1; no λ_p, no Γ sigmoid). Retained for pre-sphere replay only. |

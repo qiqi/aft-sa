@@ -80,11 +80,12 @@ def main():
         env = fld.max(axis=1)
         # untouched-equation envelope (c_nu,ai = 1, k = 1) on the SAME domain:
         # falls far short of the correlation -- the case for the reduction.
-        _save = (globals()['C_NU_AI'], f4.REOM_A, f4.REOM_B)
+        _save = (globals()['C_NU_AI'], f4.REOM_CEIL, f4.REOM_A, f4.REOM_B)
         globals()['C_NU_AI'] = 1.0
-        f4.REOM_A, f4.REOM_B = 175.0, 2.0
+        f4.REOM_CEIL, f4.REOM_A, f4.REOM_B = 2600.0, 175.0, 2.0
         _, _, fld1 = march_field(fs, x_max, beta=beta)
-        globals()['C_NU_AI'], f4.REOM_A, f4.REOM_B = _save[0], _save[1], _save[2]
+        (globals()['C_NU_AI'], f4.REOM_CEIL, f4.REOM_A,
+         f4.REOM_B) = _save
         env1 = fld1.max(axis=1)
         axR.semilogy(Rt, env1, '-', color='0.6', lw=1.5)
         axR.semilogy(Rt, env, 'k-', lw=1.8)

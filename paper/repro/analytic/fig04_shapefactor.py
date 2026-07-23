@@ -32,21 +32,21 @@ A_MAX = 0.19          # Michalke free-shear eigenvalue (fixed)
 # nuHat band thins as sqrt(c). c = 1/6 keeps the N=9 prediction within ~7%
 # of Drela at twice the molecular floor of the previous 1/12.
 C_NU_AI = 1.0/6.0
-# Onset threshold Re_Omega,crit = softmin_2(CEIL, k*[A + B*(Sg)^-2]):
+# Onset threshold Re_Omega,crit = k * softmin_2(CEIL, A + B*(Sg)^-2):
 # shape (CEIL, A, B) = (2600, 175, 2) fixed by the LST neutral-point graze
-# (fig02_onset_graze.py, NEVER refit); the single scale k compensates the
-# residual laminar diffusion (which drains the young disturbance ~1/Re_theta
-# per e-fold, so it acts on the thin-layer branch and vanishes at the
-# ceiling) and is anchored by the Blasius N=1 crossing at Drela's
+# (fig02_onset_graze.py, NEVER refit); the single WHOLE-EQUATION scale k
+# compensates the residual laminar diffusion (the young disturbance loses to
+# the drain for a while after linear theory declares growth begun) and is
+# anchored by the Blasius N=1 crossing at Drela's
 # Re_theta = 338, computed with the GRID-CONVERGED instrument (nx=3200,
 # ny=2400: the N=1 crossing is wall-normal-resolution sensitive; ny=600
 # under-resolves the thin early layer, and the short-domain marches of
 # explore_k_anchor.py / explore_reomc_retune.py are worse -- treat their
 # outputs as superseded). k = 0.708 at c_nu,ai = 1/6.
-K_ANCHOR  = 0.708
-REOM_CEIL = 2600.0            # favorable-saturation ceiling (unscaled)
-REOM_A    = 175.0*K_ANCHOR    # near-separation floor (drain-compensated)
-REOM_B    = 2.0*K_ANCHOR      # inverse-square coefficient (drain-compensated)
+K_ANCHOR  = 0.712             # whole-equation scale, anchored (converged march)
+REOM_CEIL = 2600.0*K_ANCHOR   # favorable-saturation ceiling
+REOM_A    = 175.0*K_ANCHOR    # near-separation floor
+REOM_B    = 2.0*K_ANCHOR      # inverse-square coefficient
 REOM_N    = 2.0               # soft-min sharpness
 RAMP_W = 0.35         # onset ramp half-width
 

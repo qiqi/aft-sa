@@ -52,9 +52,9 @@ Tu_pct_from_chi_inf = _kernel.Tu_pct_from_chi_inf
 # sa-ai/tests/test_constants_consistency.py::CANON -- edit BOTH together.
 _SPHERE = {
     "A_MAX":     0.19,    # Michalke free-shear (tanh-layer) eigenvalue
-    "REOM_CEIL": 2600.0,  # onset ceiling = unscaled LST-graze value
-    "REOM_A":    123.9,   # onset floor = k*175, k=0.708 (drain compensation, c=1/6)
-    "REOM_B":    1.416,   # inverse-square coefficient = k*2
+    "REOM_CEIL": 1851.2,  # k*2600 (whole-equation drain compensation, k=0.712, c=1/6)
+    "REOM_A":    124.6,   # k*175
+    "REOM_B":    1.424,   # k*2
     "RAMP_W":    0.35,    # onset tanh ramp width scale
 }
 
@@ -79,9 +79,9 @@ def canonical_ai_env() -> dict[str, str]:
     return {
         "AI_SA": "1",                              # SA-AI model ON
         "AI_RATESCALE": repr(_SPHERE["A_MAX"]),    # 0.19
-        "AI_REOMC_CEIL": repr(_SPHERE["REOM_CEIL"]),  # 2600.0
-        "AI_REOMC_A": repr(_SPHERE["REOM_A"]),     # 123.9
-        "AI_REOMC_B": repr(_SPHERE["REOM_B"]),     # 1.416
+        "AI_REOMC_CEIL": repr(_SPHERE["REOM_CEIL"]),  # 1851.2
+        "AI_REOMC_A": repr(_SPHERE["REOM_A"]),     # 124.6
+        "AI_REOMC_B": repr(_SPHERE["REOM_B"]),     # 1.424
         "AI_RAMPWIDTH": repr(_SPHERE["RAMP_W"]),   # 0.35
     }
 

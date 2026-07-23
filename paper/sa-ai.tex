@@ -75,7 +75,8 @@ dimensions on the wing of the Daedalus human-powered aircraft.
   $c_{v1},\;f_{v1}$ \> SA near-wall constant and function \\
   $P,\;D$ \> production and destruction of $\tilde\nu$ \\
   $P_\mathrm{SA},\;P_\mathrm{AI}$ \> turbulent (SA) and laminar-amplification production terms \\
-  $c_{\nu,\mathrm{ai}}$ \> laminar-viscosity scale in the SA diffusion term only ($1/12$) \\
+  $c_{\nu,\mathrm{ai}}$ \> laminar-viscosity scale in the SA diffusion term only ($1/6$) \\
+  $\hat\nu$ \> disturbance field of the parabolized march, Eq.~\eqref{eq:transport} \\
   $\chi,\;\chi_\infty$ \> $\tilde\nu/\nu$ and its freestream value \\
   $d$ \> distance to the nearest wall \\
   $\omega$ \> vorticity magnitude \\
@@ -86,9 +87,9 @@ dimensions on the wing of the Daedalus human-powered aircraft.
   $\hat S g$ \> amplifying (rate) coordinate: the even product of shear fraction and Rayleigh coordinate, Eq.~\eqref{eq:rate} \\
   $\hat{\mathbf{n}}$ \> unit wall-normal direction (gradient of $d$) \\
   $a,\;a_{\max}$ \> laminar amplification rate and its free-shear ceiling ($0.19$) \\
-  $Re_\Omega^{\mathrm{c}}(\hat S g)$ \> vorticity-Reynolds onset threshold, Eq.~\eqref{eq:onset} \\
+  $Re_\Omega^{\mathrm{c}}(\hat S g)$ \> vorticity-Reynolds onset threshold, Eq.~\eqref{eq:reomc} \\
   $C,\;A,\;B,\;k$ \> onset-threshold shape constants and scale, Eq.~\eqref{eq:reomc} \\
-  $w$ \> onset-gate ramp half-width, Eq.~\eqref{eq:onset} \\
+  $w$ \> onset-gate ramp width scale, Eq.~\eqref{eq:onset} \\
   $\sigma_P,\sigma_D;\;\tau$ \> production and destruction handover weights and the production width, Eq.~\eqref{eq:blend} \\
   $N,\;N_\mathrm{crit}$ \> amplification factor and its critical value ($e^N$ method) \\
   $Tu$ \> freestream turbulence intensity \\
@@ -493,14 +494,12 @@ excursion in between.
 On each of these curves we thicken the wall-normal band where the disturbance
 actually grows---the contiguous interval over which the most-unstable
 Orr--Sommerfeld mode's production density
-$p=\tfrac{\alpha}{2}\,|\mathrm{Im}(\phi'\phi^{*})|\,|U'|$ stays above half its
-peak (the thick segments in Fig.~\ref{fig:model}); here $\alpha$ is locally the
-streamwise wavenumber, not the angle of attack, and the lower-case $p$ is this
-Orr--Sommerfeld density, distinct from the production $P$. Two facts then read straight
+$\tfrac{\alpha_x}{2}\,|\mathrm{Im}(\phi'\phi^{*})|\,|U'|$ ($\alpha_x$ the
+streamwise wavenumber) stays above half its
+peak (the thick segments in Fig.~\ref{fig:model}). Two facts then read straight
 off the plot. First,
-\emph{every} amplifying band lies on the shear side, toward the shear pole
-$+Y$, and away from both the velocity pole (the freestream) and the
-pure-curvature poles. Second, the amplifying region is bounded below by exactly
+\emph{every} amplifying band lies east of the velocity-pole longitude,
+toward the shear pole $+Y$ and away from the pure-curvature poles. Second, the amplifying region is bounded below by exactly
 the parabola great circle $g=0$ of \eqref{eq:parabola}: a parabola being
 inviscidly neutral by Rayleigh's theorem, $g=0$ is the neutral boundary and
 every band sits on the inflectional $g>0$ side identified in
@@ -606,13 +605,17 @@ parameter anywhere.
   \includegraphics[width=0.62\textwidth]{onset_graze.pdf}
   \caption{The onset threshold's shape from the linear-stability graze. Each
   Falkner--Skan profile, at its Drela--Giles critical Reynolds number
-  $Re_{\theta c}(H)$, traces a curve in the $(\hat S g,\,Re_\Omega)$ plane;
-  the attached family---favorable through incipient separation---shares the
-  dashed outer envelope, which each member grazes at its marked
-  closest-approach point (graze ratios $0.93$--$1.04$, root-mean-square graze
-  error $\sim\!5\%$). The soft-min shape of
-  Eq.~\eqref{eq:reomc} is that envelope: a ceiling on the favorable (small
-  $\hat S g$) side, an additive floor toward separation. The separated
+  $Re_{\theta c}(H)$, traces a curve in the $(\hat S g,\,Re_\Omega)$ plane:
+  solid, colored blue to red with decreasing $\beta$, the attached family
+  $\beta = +0.35$, $+0.15$, $+0.05$, $0$ (Blasius), $-0.05$, $-0.10$,
+  $-0.15$, $-0.1988$ (incipient separation); dotted, a separated
+  reversed-flow (Stewartson lower branch) profile. The attached family
+  shares the dashed outer envelope, which each member grazes at its marked
+  closest-approach point: graze ratios $0.93$--$1.14$ (root-mean-square
+  $\sim\!6\%$) from incipient separation through $\beta=+0.15$, rising to
+  $\sim\!1.3$ at the strongly favorable $\beta=+0.35$ edge. The soft-min
+  shape of Eq.~\eqref{eq:reomc} is that envelope: a ceiling on the favorable
+  (small $\hat S g$) side, an additive floor toward separation. The separated
   reversed-flow profile rides above the threshold at its own
   $Re_{\theta c}$---it ignites immediately. The compensation scale $k$ of
   Eq.~\eqref{eq:reomc} is not set here but in
@@ -637,29 +640,28 @@ immediate; the separated reversed-flow profile rides \emph{above} the
 threshold at its critical Reynolds number, igniting at once, as it should.
 We represent the shape by a soft minimum of the two limits,
 \begin{equation}
-  Re_\Omega^{\mathrm c}(\hat S g) \;=\; \operatorname{softmin}_2\!\Big(C,\;
-      k\,\big[A + B\,(\hat S g)^{-2}\big]\Big),
+  Re_\Omega^{\mathrm c}(\hat S g) \;=\; k\,\operatorname{softmin}_2\!\Big(C,\;
+      A + B\,(\hat S g)^{-2}\Big),
   \qquad (C,\,A,\,B) \;=\; (2600,\;175,\;2),
   \label{eq:reomc}
 \end{equation}
 with $\operatorname{softmin}_2(x_1,x_2)\!=\!x_1 x_2/\sqrt{x_1^2+x_2^2}$; the
-graze fixes the three shape constants (the soft-min exponent $2$ is the best
+graze fixes the three shape constants to a root-mean-square graze error of
+$\sim\!6\%$ over the attached family (the soft-min exponent $2$ is the best
 of the sharpnesses tried), and they are never refit.
 
 That leaves the single scale $k$, and its role is physical. Linear theory
 knows only the profile; the working variable that must carry the
 amplification also \emph{diffuses}, with the molecular viscosity of the
-fluid, all the while it grows. Relative to the growth the drain scales like
-$1/Re_\theta$ per $e$-fold, so it is felt precisely where the threshold sits
-low---thin layers, inception at small $Re_\theta$---and fades to nothing at
-the favorable-side ceiling, where a layer is thick before it may ignite. On
-the low branch, then, an amplification that linear theory declares begun is,
-for a while, still losing to viscosity: net growth starts late. The
-compensation is to permit inception \emph{earlier} than the inviscid graze by
-one factor $k\!<\!1$ on the low branch alone---the ceiling keeps its inviscid
-value---so that net growth begins where linear theory says it should. How
-large the compensation must be depends on how much molecular diffusion the
-working variable retains, which is the subject of the next subsection.
+fluid, all the while it grows. The drain is felt most where inception
+happens at low Reynolds number---in a thin layer the young disturbance loses
+to viscosity for a while after linear theory declares its growth begun, so
+net growth starts late. The compensation is to permit inception
+\emph{earlier} than the inviscid graze: one factor $k\!<\!1$ scales the
+whole threshold, so that the accumulated growth reaches the correlation's
+first station on time. How large the compensation must be depends on how much molecular
+diffusion the working variable retains, which is the subject of the next
+subsection.
 
 \subsection{The diffusion of the disturbance and the onset scale}%
 \label{sec:nulamscale}\label{sec:calib_onset}
@@ -669,7 +671,7 @@ velocity in $U_\infty$),
 \begin{equation}
   u\,\frac{\partial\hat\nu}{\partial x} + v\,\frac{\partial\hat\nu}{\partial y}
   = \frac{c_{\nu,\mathrm{ai}}}{\sigma}\,\frac{\partial^2\hat\nu}{\partial y^2}
-    + a(\hat S g)\,\omega\,\hat\nu,
+    + a(\hat S g)\,S\!\big(Re_\Omega/Re_\Omega^{\mathrm c}(\hat S g)\big)\,\omega\,\hat\nu,
   \label{eq:transport}
 \end{equation}
 keeping the amplification and the molecular part of the SA cross-stream
@@ -692,8 +694,9 @@ where inception occurs.)
   flows---adverse ($\beta\!=\!-0.10$, top), Blasius ($\beta\!=\!0$, middle:
   the calibration anchor), and favorable ($\beta\!=\!+0.30$, bottom)---seeded
   $\hat\nu_\infty\!=\!1$, $a_{\max}=0.19$.
-  \textbf{Left column} (a,c,e): contours of $N\!=\!\ln\hat\nu$ (canonical
-  model) in the local-Reynolds plane, concentrated between the overlaid
+  \textbf{Left column} (a,c,e): contours of $N\!=\!\ln\hat\nu$ at the
+  canonical $(c_{\nu,\mathrm{ai}},k)=(\tfrac16,\,0.71)$ in the
+  local-Reynolds plane, concentrated between the overlaid
   momentum thickness $\theta$ (dashed) and edge thickness $\delta_{99}$
   (solid) where the amplifying band sits. \textbf{Right column} (b,d,f): two
   marched envelopes $\max_y\hat\nu$ vs $Re_\theta$ (log left axis; $N$ linear
@@ -726,8 +729,8 @@ the envelope's own curvature---the $c_{\nu,\mathrm{ai}}\!\to\!0$ limit of the
 same march---is under $1\%$: the bend is almost entirely the molecular
 smearing, which drains the young disturbance fastest where the layer is
 thinnest. And the anchor fails outright: the Blasius $N\!=\!1$ crossing sits
-at $Re_\theta\!=\!392$ even with the low branch of the threshold removed
-entirely---at full molecular diffusion the inception is set by the drain, not
+at $Re_\theta\!=\!392$ even with the threshold removed entirely
+($k\!\to\!0$)---at full molecular diffusion the inception is set by the drain, not
 by the threshold, and no value of $k$ exists. The transport is telling us
 plainly that the molecular coefficient it inherits from the mean flow is too
 strong for the sub-$O(1)$ disturbance it is asked to carry.
@@ -760,7 +763,7 @@ by $\sqrt2$. We stop at
 \end{equation*}
 the largest coefficient that holds the anchored $N\!=\!9$ prediction inside
 the scatter of the $e^N$ correlations themselves ($\sim\!7\%$); the next
-halving would buy four points of $N\!=\!9$ agreement at the price of a
+halving would buy five points of $N\!=\!9$ agreement at the price of a
 $\sqrt2$-thinner band. The negative-$\tilde\nu$
 safeguards~\cite{allmaras_2012} carry over with one consistency requirement:
 the negative-branch factor $f_n$ is formed with the scaled coefficient
@@ -768,7 +771,7 @@ $c_{\nu,\mathrm{ai}}\,\nu$, which keeps the total diffusivity positive,
 $c_{\nu,\mathrm{ai}}\nu + f_n\tilde\nu\!>\!0$.
 
 With the diffusion set, the compensation of Sec.~\ref{sec:onset} takes its
-value from the same single anchor, stated operationally: $k$ is chosen so
+value from a single anchor, stated operationally: $k$ is chosen so
 that the march \eqref{eq:transport}, on the Blasius layer at the committed
 $c_{\nu,\mathrm{ai}}\!=\!\tfrac16$, crosses $N\!=\!1$ at the Drela--Giles
 station $Re_\theta\!=\!338$; this gives $k\!=\!0.71$---the threshold
@@ -776,13 +779,13 @@ permitting inception $29\%$ earlier than the inviscid graze, the drain
 consuming the difference.
 
 Everything after that anchor is prediction. The marched Blasius envelope's
-$N\!=\!9$ crossing lands at $Re_\theta\!=\!1185$, $7\%$ past Drela's
+$N\!=\!9$ crossing lands at $Re_\theta\!=\!1181$, $7\%$ past Drela's
 $1108$---the residual footprint of the retained diffusion (the late-envelope
 slope itself matches Drela's to a fraction of a percent; the offset is
 accumulated in the early, drain-affected span). Across the attached family
-the $N\!=\!1$ stations land on the Drela--Giles stations to $5\%$
+the $N\!=\!1$ stations land on the Drela--Giles stations to $6\%$
 root-mean-square: the adverse wedges within $\pm4\%$, the favorable pair
-$7$--$10\%$ early (Fig.~\ref{fig:calibrate}b)---the graze shape, anchored at
+$11$--$12\%$ early (Fig.~\ref{fig:calibrate}b)---the graze shape, anchored at
 one point, carrying the family's two-decade threshold variation.
 
 \begin{figure}[tp]
@@ -800,7 +803,7 @@ one point, carrying the family's two-decade threshold variation.
   Drela--Giles $N\!=\!1$ station $Re_{\theta 0}+1/(dN/dRe_\theta)$,
   reflecting the one calibrated function, the threshold
   $Re_\Omega^{\mathrm c}(\hat S g)$ \eqref{eq:reomc}: anchored at Blasius,
-  tracking the stations within ${\sim}\pm10\%$ across the attached family.
+  tracking the stations within ${\sim}\pm12\%$ across the attached family.
   Both vertical axes extend slightly past the Drela range to show the
   favorable-regime departure---the rate falling below, the onset rising
   above---before the curves leave the panels.}
@@ -1001,9 +1004,10 @@ carries $f_w\!\approx\!0.7\,r$ with $r\!\ll\!1$ in the amplifying band,
 so its ratio to the amplification production grows like $\chi^2$ and stays
 below $10^{-3}$ up to the $\chi\!=\!1$ crossing at the airfoil seed level
 ($\chi_\infty\!=\!c_{v1}e^{-9}$). The calibration instrument of
-Sec.~\ref{sec:calib_rate} omits the term; marching with it included at that
-seed level moves the three anchor stations by less than $1\%$ (within the
-solve residuals) and the assembled favorable family's mean by $-2.6\%$, most of it accumulated past the $\chi\!=\!1$ crossing,
+Sec.~\ref{sec:nulamscale} omits the term; marching with it included at that
+seed level moves the anchor and prediction stations by less than $1\%$
+(within the solve residuals) and the favorable-family stations' mean by
+$-2.6\%$, most of it accumulated past the $\chi\!=\!1$ crossing,
 where the coupled model has already handed production over to SA. The
 coupled computations bound the end effect: switching the tie on moves the
 flat-plate onset by $+0.8\%$ in $Re_\theta$ at the lowest $Tu$ and the
@@ -1113,7 +1117,7 @@ threshold is smeared over the $\chi\!=\!1\!\to\!c_{v1}$
 handover---about two $e$-folds of the envelope. Adopting Mack's map
 wholesale is therefore an approximation; its flat-plate consequence is
 quantified in Sec.~\ref{sec:flatplate} under a stated onset convention
-(within $\sim\!11\%$ of AGS at the $\chi\!=\!1$ crossing).
+at the $\chi\!=\!1$ crossing.
 Sensitivity to the seed is that of any $e^N$ method: one $e$-fold in
 $\chi_\infty$ is one unit of $N_\mathrm{crit}$, which on the Blasius envelope
 ($dN/dRe_\theta\!\approx\!10^{-2}$) shifts onset by
@@ -1191,8 +1195,8 @@ Eq.~\eqref{eq:rate}) and its onset gate $S$ (as in Eq.~\eqref{eq:onset}) are
   a = a_{\max}\,\operatorname{clip}\langle \hat S g\rangle_0^1, \qquad
   S = S\!\big(Re_\Omega/Re_\Omega^{\mathrm c}(\hat S g)\big), \qquad
   S(\zeta) = \tfrac12\big[1+\tanh\!\big((\zeta-1)/w\big)\big], \\[3pt]
-  Re_\Omega^{\mathrm c}(\hat S g) = \operatorname{softmin}_2\!\big(C,\;
-      k\,[A + B\,\langle \hat S g\rangle_+^{-2}]\big),
+  Re_\Omega^{\mathrm c}(\hat S g) = k\,\operatorname{softmin}_2\!\big(C,\;
+      A + B\,\langle \hat S g\rangle_+^{-2}\big),
   \qquad \operatorname{softmin}_2(x_1,x_2) = \frac{x_1 x_2}{\sqrt{x_1^2+x_2^2}},
 \end{gather*}
 with $\langle x\rangle_+ = \max(x,0)$.
@@ -1207,7 +1211,7 @@ The SA-AI constants are
 \begin{equation*}
   \begin{aligned}
     a_{\max}&=0.19 &\quad&\text{free-shear ceiling: the tanh-layer eigenvalue $\omega_{i,\max}/\omega_{\mathrm{peak}}\!=\!0.1897$ \cite{michalke_1964};}\\
-    (C,\,A,\,B;\;k)&=(2600,\;175,\;2;\;0.71) &&\text{onset threshold $Re_\Omega^{\mathrm c}(\hat S g)$: shape from the LST graze (Fig.~\ref{fig:onsetgraze}, never refit); $k$ compensates the laminar drain on the low branch, anchored at the Blasius $N\!=\!1$ inception (Sec.~\ref{sec:calib_onset});}\\
+    (C,\,A,\,B;\;k)&=(2600,\;175,\;2;\;0.71) &&\text{onset threshold $Re_\Omega^{\mathrm c}(\hat S g)$: shape from the LST graze (Fig.~\ref{fig:onsetgraze}, never refit); $k$ compensates the laminar drain, anchored at the Blasius $N\!=\!1$ inception (Sec.~\ref{sec:calib_onset});}\\
     w&=0.35 &&\text{onset ramp width scale;}\\
     \tau&=4 &&\text{production handover width (Sec.~\ref{sec:calib_diff});}\\
     c_{\nu,\mathrm{ai}}&=\tfrac{1}{6} &&\text{laminar-diffusion reduction: the largest value holding the anchored $N\!=\!9$ prediction inside the $e^N$ correlations' scatter (Sec.~\ref{sec:nulamscale});}\\
@@ -1874,7 +1878,7 @@ $0.48\,c$, though its coarse grids still scatter by $\sim\!0.1\,c$ before closin
 $0.002\,c$ by L2. The lower surface runs laminar to the trailing edge at every
 incidence and has no front to move. This low-$\alpha$ over-length has the same
 origin as the separation-edge softening seen in the calibration
-(\S\ref{sec:calib_rate}, Fig.~\ref{fig:calibrate}): the linear $\hat S g$
+(\S\ref{sec:nulamscale}, Fig.~\ref{fig:calibrate}): the linear $\hat S g$
 under-amplifies the detached laminar shear layer, so transition---and with it
 reattachment---is delayed and the bubble runs long. Matching the measured bubble
 length is left to future work.
@@ -2589,7 +2593,7 @@ means over the final 500 steps.
 \end{table}
 
 \paragraph{Temporal-units conversion.} The comparisons of
-Secs.~\ref{sec:calib_rate} and~\ref{sec:daedalus} between the kernel
+Secs.~\ref{sec:nulamscale} and~\ref{sec:daedalus} between the kernel
 ceiling and the $e^N$ reference convert Drela's envelope slope into a
 growth rate per unit time in multiples of the profile's peak vorticity,
 \begin{equation*}
@@ -2605,7 +2609,8 @@ profile ($H\!=\!3.98$: $\theta/\delta_s\!=\!0.585$,
 $f''_{\max}\!=\!0.361$, hence
 $\omega_\mathrm{peak}\theta/U_e\!=\!0.212$, $c\!=\!0.503\,U_e$) this
 gives $a_\mathrm{eff}\!=\!0.066\!=\!0.35\,a_{\max}$: the anchor
-condition of Sec.~\ref{sec:calib_rate} pins the sigmoid's flank at a
+condition of the \emph{predecessor} kernel (a shaped, sigmoidal rate;
+cf.\ the linear clip of Eq.~\eqref{eq:rate}) pinned its sigmoid's flank at a
 third of the ceiling. Profiles extracted from the wing's bubble
 (structured L2, $\eta\!=\!0.31$, $\alpha\!=\!5^\circ$,
 $x/c\!=\!0.48$--$0.53$) measure
