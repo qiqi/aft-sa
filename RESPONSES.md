@@ -339,3 +339,199 @@ favoring low Re:
    5–18), never approached at high Re (chi~1e-3).
 Paper (Sec. epphandover) and measure_lsb_reseeding.py updated with the
 rear-third evidence and the three controls.
+
+============================================================
+## 2026-07-24 ~22:15 — DETAILED RESTATEMENT of tonight's LSB physics thread
+(The earlier entries above compressed these into digests; full prose below,
+as delivered in chat, actions omitted.)
+
+### 1. Who is closer to truth inside the LSB: e^N or SA-AI?
+e^N is closer on both halves, and SA-AI's reattachment agreement is a
+compensated error whose cancellation we have already watched fail at low
+Re.
+
+Why SA-AI over-amplifies inside the bubble — the original two-mechanism
+answer (later refined, see §3 below):
+(1) Ledger speed: the model banks e-folds along particle paths — dN/dx =
+a·ω/u_conv, where u_conv is the speed of the fluid carrying ν̃. The
+transported ν̃ peak sits low in the separated shear layer, in slow (even
+reversed) fluid at roughly half the physical packet speed (the real
+instability travels at the critical-layer phase speed, ~0.4–0.5 U_e).
+Half the convection speed = twice the e-folds per unit length. This is
+intrinsic to any local one-equation transport: we cannot advect N at the
+phase speed without an auxiliary field.
+(2) Rate ceiling: once the layer lifts, Ŝg saturates and the rate rides
+at a_max = 0.19 — the eigenvalue of a fully detached tanh layer. A
+shallow-bubble shear layer a few θ off the wall is still partially
+wall-damped and grows slower. The final kernel's in-bubble onset arm
+fixes the just-separated zone (the predecessor's 1.3–1.8× excess), but
+past onset the resolved band still runs 0.9–1.9× the Drela–Giles
+envelope — biased high.
+
+Why reattachment agrees anyway: the model's other economy runs in the
+opposite direction. e^N declares transition at N_crit and the physical
+breakdown is genuinely fast (spot/roll saturation within a few δ —
+Alam–Sandham-type DNS supports the reattaches-in-a-few-BL-thicknesses
+picture), while SA-AI must climb χ = 1 → c_v1 → ~30 and then let eddy
+viscosity diffuse to closing strength. So: too-fast climb + too-slow
+commit ≈ true climb + instant commit. The calibration effectively
+accepted this cancellation — it is why the anchors work.
+
+The tell that it is compensation, not correctness: the two errors scale
+differently with Reynolds number. The climb excess is a fixed FACTOR
+(~1.5–2× in e-folds per length), but the handover lag is a fixed E-FOLD
+COUNT whose physical length grows as Re drops. At 4.6e5 both are small
+against the bubble; at 1e5–6e4 the handover lag outgrows the climb
+surplus, the cancellation breaks, and the bubble starves — that IS the
+bursting-boundary displacement of Sec. VI. The fv1-bypass experiment is
+the complementary demonstration: fixing only the commit side (instant
+eddy viscosity) while keeping the over-amplification closed the 1e5
+bubble but landed CL ≈ 0.93 vs the measured 0.873 — transition now
+effectively early, because the climb excess is no longer being absorbed
+by the handover lag.
+
+Implication: a truthful model has to move both dials together — rate
+down toward the LST envelope inside the bubble AND commitment faster
+(spot-closure on σ_t, or the fv1-bypass with proper guards). Either
+alone breaks the agreement the current pairing buys.
+
+### 2. Your Re-trend objection and the calibration objection — how they
+### cornered the real mechanism
+Your observation (at high Re SA-AI does NOT over-amplify vs e^N; the
+discrepancy grows as Re falls) discriminates between the two mechanisms
+above and acquits the rate ceiling: if a_max-on-saturated-Ŝg were the
+culprit, the excess factor would be Re-independent and high-Re bubbles
+would over-amplify just as visibly.
+
+Your second objection then killed the pure advection-speed story too:
+the calibration instrument is the same transport equation marched with
+its own advection on frozen profiles, reversed branch included, and it
+shows only 0.9–1.9× — so anything the march captures is already priced
+into the anchors. The mechanism had to be something a parabolic,
+one-pass march cannot represent.
+
+That corner leaves closed-streamline re-seeding: in the elliptic
+solution the bubble is a closed cell — ν̃ produced in the shear layer
+diffuses across into the reversed stream, is carried BACK upstream to
+the separation region, and re-enters the amplifying band already
+elevated. The envelope at a station is then not ∫ a·ω/u dx from the
+attachment of the layer, but amplification along a spiral path with
+recirculating dwell.
+
+Measured on the Eppler strL2 α=5 sweep (median χ in the reversed dead
+air, first third of bubble, vs max incoming-envelope χ just upstream of
+separation): 60k: 16× ABOVE; 100k: 29× ABOVE; 300k: 0.03× (quiet);
+460k: 0.01× (quiet). The flip sits exactly at the bursting boundary.
+At 300k/460k the recirculation is QUIETER than the arriving envelope —
+one-pass behavior, exactly what the frozen-profile calibration assumes.
+
+Production check (sphere indicators + onset gate evaluated on the
+slices): the kernel's effective rate in the dead air is onset-gated to
+essentially zero at every swept Re (median < 1e-9 a_max; Ŝg>0 at about
+half the dead-air nodes but Re_Ω sits under the threshold). The
+reservoir is purely advection–diffusion fed — your contour reading
+("pretty sure it's not amplification driven") verified.
+
+Physical nuance: real bubbles do develop feedback — absolute/global
+instability when peak reversal exceeds roughly 15–20% of U_e
+(Rist/Maucher) — so the model's recirculating reservoir is a caricature
+of something real. But the model's version is unconditional
+diffusion-driven leakage, not a criterion-gated instability, and it
+switches on far too early on the Re axis.
+
+### 3. How did Coder solve the local advection speed? (He didn't.)
+He never placed the amplifying region at the wavepacket. The kernel puts
+production wherever Ŝg > 0 — a profile-geometry statement (the Rayleigh
+coordinate between neutral-circle crossings) — and production ∝ ω peaks
+low in the layer, well below the critical layer (the Appendix-D ledger
+measured the ν̃ peak at 2.4θ moving at 0.22 U_e vs the physical packet
+at 3.5θ, 0.45 U_e). What made this survivable: the calibration is the
+same transport equation marched on frozen profiles, and for the attached
+Falkner–Skan family the band's convection speed is a roughly
+family-stable fraction of U_e — so the single Blasius N=1 anchor (the k
+of the onset threshold) silently absorbs the speed ratio along with the
+laminar drain. It is an absorbed bias, not a solved problem: it holds
+while the speed ratio is universal (attached family, tracked within
+±12%), degrades on the reversed branch (0.9–1.9×, checked but never
+re-anchored), and offers no defense at all against re-seeding — which
+is not a profile property, so no local rate calibration can absorb it.
+
+### 4. How did Coder get his model to "match LSB"? (He didn't either.)
+He matched the two things that are cheap to match — transition FRONTS
+(his χ=1 contour sat the same ~0.1c ahead of the strips as ours) and
+integrated FORCES (few counts, 0.02–0.03c of front) — while the bubble
+LENGTHS were wrong the whole time (3–4× too short on the wing:
+0.04–0.06c vs the strips' 0.2c, the compressed-bubble systematic the old
+section carried as an unexplained disclosure). Front + forces are
+exactly the observables that tolerate large internal-structure errors,
+because they are set by the SUM of climb and commit, not by either one.
+
+His sum was the same cancellation in stronger doses: his ungated rate
+ran the free-shear ceiling from the separation point on — 1.3–1.8× the
+correlation immediately beyond separation — an even faster climb than
+ours, against the same slow σ_t handover. Faster climb + same lag = the
+handover costs less DISTANCE → bubbles too short, fronts right-ish,
+forces fine at moderate Re. The final kernel's in-bubble arm slowed the
+climb toward the correlation, which is precisely what lengthened the
+wing bubble onto the strips — and simultaneously exposed the low-Re
+starvation, because with a truthful climb there is nothing left to hide
+the lag behind.
+
+His ν̃ recirculates identically (re-seeding is a property of the
+transport topology plus the elliptic solver, not of the kernel) and SA's
+anemia (χ_eq ≈ 0.08 Re_τ) is kernel-independent. Neither ever showed in
+his record because his validation set lived where both are off: wing
+sections at Re ≈ 5e5 and Eppler at 2e5 — and the re-seeding flip sits
+between 1e5 and 3e5. He never ran 1e5 or 6e4. Did anyone investigate
+whether the agreement was fortuitous? No — the audit trail is: the
+compressed bubble was flagged as a systematic in the predecessor-era
+draft; the frozen-profile ledger (this thread) decomposed the excess
+into 1.45× temporal rate × 2.05× ledger speed; the sustainment floor and
+re-seeding measurements are from this week. The cancellation was never
+identified as such before.
+
+### 5. The completed mechanism: why re-seeding is Re-selective
+The missing half (why high-Re bubbles see no recirculation effect) has a
+clean answer, and the punchline is that re-seeding is not an independent
+defect — it is a corollary of the handover defect.
+
+Decisive measurement: the REAR third of the reversed region is loaded at
+EVERY Reynolds number — 19.5× the incoming envelope at 300k, 2.9× at
+460k — so pickup is universal. What discriminates the regimes is whether
+the load CONDUCTS TO THE FRONT. Three controls, all favoring low Re:
+
+(1) The hot-over-reversed overlap that feeds the conveyor is created by
+the starved handover itself. Re-seeding needs a reversed conveyor below
+and a hot (high-χ) layer above it simultaneously. At high Re, transition
+sits near the bubble's end and closure follows within the (short)
+handover length — the reversed flow ends almost as soon as the layer
+gets hot; the overlap is only the handover length itself, a sliver. At
+low Re the starved handover prevents closure, so the reversed conveyor
+persists under a layer that keeps amplifying — half a chord of
+continuously-loading fetch. The "two canceling errors" are therefore ONE
+CAUSAL CHAIN: slow handover → no closure → long hot-over-reversed
+overlap → reservoir loads → front re-seeds. This is also why the flip in
+the measurement (and in the contour character: cold front, bottom-led χ
+at 60k/100k; warm front, top-led at 300k+) is sharp at the bursting
+boundary rather than a smooth trend — the overlap inherits the fold from
+the closure failure.
+
+(2) The reservoir's only sink is the destruction floor, which goes as
+(ν̃/d)². The high-Re bubble is thin — the reversed region lives at small
+wall distance, and any ν̃ that leaks down is eaten during the return
+transit. The low-Re bubble is thick: d is an order larger, the 1/d²
+floor two orders weaker, and the conveyor runs essentially lossless.
+
+(3) The pickup has a nonlinear switch. Cross-layer loading per unit
+fetch scales as D·t/θ² with D ∝ ν(c_ν,ai/6 + χ): while the reservoir
+sits at χ ≪ 1 its diffusivity is the reduced molecular trickle, but once
+any of it crosses χ ~ 1 the ν̃ SELF-diffusion switches on and the
+reservoir spreads itself — crossed by the 60k/100k reservoirs (medians
+0.03–0.08, maxima 5–18), never approached at 300k/460k (χ ~ 1e-3).
+
+All of this is now in Sec. epphandover (with the honest-caution
+paragraph: genuine physics at 2–4.6e5; below ~1e5 correct bubbles and
+gross aerodynamics are the sum of canceling errors, not resolved
+transition physics), in the Conclusion, and reproducible via
+repro/cfd/measure_lsb_reseeding.py.
+============================================================
