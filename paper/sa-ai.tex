@@ -2450,6 +2450,56 @@ mixing-layer saturation level, in place of the molecular-units
 $\chi$ ladder) combined with the transported memory of breakdown that
 spot-growth and intermittency models carry.
 
+The starved handover is one of \emph{two} low-Reynolds defects, and
+the second runs in the opposite direction: inside the low-$Re$
+bubbles the amplification the model books outpaces the $e^N$
+envelope, increasingly so as the Reynolds number falls. The mechanism
+is not the rate---the kernel's production in the reversed ``dead
+air'' is onset-gated to zero (median effective rate below
+$10^{-9}\,a_{\max}$ at every swept $Re$)---but the topology of the
+transport: in the elliptic solution the bubble is a closed cell, and
+$\tilde\nu$ produced in the shear layer diffuses across it into the
+reversed stream, convects \emph{back upstream}, and re-enters the
+amplifying band already elevated. Measured on the structured-L2 sweep
+(\texttt{repro/cfd/measure\_lsb\_reseeding.py}): the median $\chi$
+in the reversed region over the bubble's first third sits $16\times$
+and $29\times$ \emph{above} the incoming-envelope level just
+upstream of separation at $Re\!=\!6\!\times\!10^4$ and $10^5$,
+but $30$--$100\times$ \emph{below} it at $3$--$4.6\times10^5$: the
+flip coincides with the bursting boundary. The signature is readable
+directly in the $\chi$ sheets of Appendix~C
+(Figs.~\ref{fig:sheet_eppler387_Re60k_upper}
+and~\ref{fig:sheet_eppler387_Re460k_upper}): at low $Re$ the
+$\chi$ front is bottom-led---a cold front, the reversed flow carrying
+$\chi$ upstream along the wall---while at high $Re$ it is
+top-led, a warm front riding the outer layer. No profile-based
+calibration can see this defect: the frozen-profile instrument of
+Sec.~\ref{sec:calib_rate} marches one-way by construction, and its
+reversed-flow check ($0.9$--$1.9\times$ the correlation) prices the
+band's slow convection but not the spiral ledger path of a closed
+cell. (Deeply reversed physical bubbles do develop closed-loop
+feedback of their own---but as a thresholded instability of the
+recirculation, not an unconditional diffusive leak.)
+
+The two defects meet, at the lowest Reynolds numbers, in a fortunate
+cancellation, and the honest reading of this section is worth stating
+plainly. At $2$--$4.6\times10^5$ both defects are small and the model
+is genuine to the physics: the booked amplification tracks the $e^N$
+envelope through bubbles and attached recoveries alike, and the
+handover is short on the bubble's scale. At $Re\!\lesssim\!10^5$
+the model can still predict the bubble and the gross
+aerodynamics---but it does so because the re-seeded, too-fast climb
+places the $\chi\!=\!1$ front roughly where the physical envelope
+would, while the over-long handover---compounded by standard SA's own
+low-$Re$ anemia: in a constant-stress layer the equilibrium
+$\tilde\nu$ supports only $\chi\!\approx\!0.08\,Re_\tau$
+(\texttt{repro/analytic/sa\_sustain.py}), so at the bubble shear
+layer's $Re_\theta\!\approx\!220$--$330$ the reattached turbulence
+equilibrates near $\chi\!\sim\!c_{v1}$ with $f_{v1}$ only half
+active---withholds the closure that front promises. Bubbles computed
+in this range should be read as the sum of two canceling errors, not
+as resolved transition physics.
+
 \begin{table}[tp]
   \centering
   \small
@@ -2798,7 +2848,11 @@ and carries no counterpart of the two-state structure the experiment
 shows at $6\!\times\!10^4$---traced quantitatively to the length of the
 deliberately unmodeled transition zone, which at these Reynolds numbers
 grows to a macroscopic fraction of the chord and starves the bubble of
-eddy viscosity (Sec.~\ref{sec:epphandover}). In three dimensions, on
+eddy viscosity---and to a second, opposite-signed defect it partially
+cancels against, the closed-cell re-seeding of the amplification by
+$\tilde\nu$ recirculating under the bubble's shear layer; low-$Re$
+bubbles the model gets right are the sum of these canceling errors
+(Sec.~\ref{sec:epphandover}). In three dimensions, on
 the Daedalus wing at flight conditions, the completed runs of the
 final-kernel campaign put the mid-span bubble's separation within
 $0.02\,c$ and its reattachment within $0.01\,c$ of the strip-theory

@@ -300,3 +300,20 @@ diffusion vs convection strengthens as Re drops -> your observed trend.
 - Rig note: single-sweep FLARE marching can't reproduce this; multi-sweep
   windward (Davis-Carter/ALESEP style) can — rig #2 design should keep
   the multi-sweep reversed-layer convection for exactly this reason.
+
+## 2026-07-24 ~21:45 — re-seeding mechanism written into the paper; rig #2 cancelled
+- Dead-air production check (both Re): onset-gated to ~zero (median rate
+  <1e-9 a_max) → the low-Re reservoir is ADVECTION-DIFFUSION fed, exactly
+  the contour reading (cold front = bottom-led chi at 60k/100k; warm front
+  = top-led at 300k/460k, App C sheets).
+- New passage in Sec. epphandover: the two opposite-signed low-Re defects
+  (closed-cell re-seeding vs starved handover + SA anemia chi_eq~0.08
+  Re_tau), the measured 16x/29x vs 0.03x/0.01x flip at the bursting
+  boundary, the cold/warm-front contour signature, why no profile-based
+  calibration can see it (one-way march), and the honest-caution paragraph:
+  at 2-4.6e5 the model is genuine to the physics; at Re<~1e5 correct
+  bubbles/gross aero are the sum of two canceling errors, not resolved
+  transition physics. Conclusion updated to match.
+- repro/cfd/measure_lsb_reseeding.py committed (surplus + production
+  tables). Rig #2 cancelled (memory updated): a parabolic march is
+  structurally blind to the mechanism that matters.
