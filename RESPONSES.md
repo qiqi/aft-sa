@@ -598,3 +598,41 @@ blend paragraph's pointer changed from "(quantified in Sec. II.F)" to
 "(quantified below)". II.F now runs intro -> high-Re stages -> inner
 layer/tie derivation -> linearity/discrete exactness -> Appendix E
 pointer, purely about preservation.
+
+## 2026-07-24 ~23:20 — review pass 18 addressed (commit cbec5f7)
+Pass 18 verified the entire re-seeding/cancellation analysis by rerunning
+the measurement script (every number reproduced digit-for-digit), added
+its own 2e5 measurement (front 0.09x, rear 58x, rate 0 — flip lands
+square on the bursting boundary), rendered the App C sheets to confirm
+the cold-front/warm-front signature is visible as claimed, and confirmed
+the plotting round (canvas rescale is height-preserving; e^N truncation
+works). Its four majors were all real:
+1. My cancellation clause said the re-seeded front lands "roughly where
+   the physical envelope would" — falsified by our own data: the chi=1
+   front is 0.16c AHEAD of the envelope's equivalent station (0.41 vs
+   0.57c at 1e5; 0.44 vs 0.60c at 6e4, vs mfoil at N=ln(1/chi_inf)).
+   And the cancellation logic NEEDS the front early (a head start the
+   over-long handover spends; if the front were right the two errors
+   would add on the reattachment side). Rewritten to the measured
+   statement.
+2. The "below 1e-9 a_max" production bound was exceeded ~40x by the 1e5
+   median (7.3e-9 absolute = 3.9e-8 a_max). Bound now 1e-7 a_max +
+   95th-percentile framing; conclusion (advection-diffusion fed)
+   unaffected.
+3. "Can still predict the bubble" contradicted "never closes" two pages
+   earlier. Scoped to what compensation delivers: separation + front +
+   lift within 2–12% family-dependently.
+4. The Daedalus front offset had been re-badged as "the compensation of
+   Sec VI seen in 3D" — but at wing Re (5e5) the re-seeding half is
+   measured OFF (0.01x). Restored the seed-convention arithmetic
+   (chi=1 = 11.7 e-folds vs N_crit 13.6, ~2 e-folds per 0.09c) as the
+   reason the front is early there, keeping only the commit half
+   (handover spending the rest of the bubble) as shared with Sec VI.
+Minors: 200k added to the committed script table; monotonicity claim
+dropped (29x at 1e5 > 16x at 6e4 — both burst, geometry differs);
+chi_eq now 0.09 Re_tau (the committed script's number) with Re_tau
+defined; Re_theta 220–330 scoped to 6e4 with "would equilibrate";
+median-vs-peak statistic convention stated in text; house-style times;
+README rows for both new scripts; 28 side-effect figure regenerations +
+lsb-zoom exploration committed. Reviewer also suggested (uncounted) an
+abstract amendment to mention the second defect — left for your call.
