@@ -732,3 +732,23 @@ Caution: bit-identical in 2D, different in 3D => a model revision, not a
 refactor. Proposal: implement behind AI_INVARIANT_KERNEL alongside the
 current form, verify 2D bit-identity, and run both on the spheroid
 alpha-ladder.
+
+## 2026-07-25 ~00:40 — Daedalus ogrid L2 a6 landed; section refreshed (all-L2 structured set)
+case_ogrid_L2_saai_a6 finished (rc=0, 22:00): CL 1.2279 / CD 0.02509.
+- Matched-lift reference refreshed (target now the L2 lift): trim 6.555°,
+  CD_ref 0.02530 → RANS 2.1 counts (0.8%) BELOW. Full L2 drag ladder vs
+  strip theory: −6.0% / −3.1% / −0.8% at α=4/5/6 — deficit shrinking with
+  incidence, now measured on the finest grids at all three points.
+- Bubble at η=0.31, α=6°: RANS 0.458–0.630 vs strips 0.458–0.631 —
+  separation exact, reattachment within 0.001c. The "separation to 0.02c,
+  reattachment under 0.01c" statement now holds at every incidence.
+- Front: 0.522 vs strips' N_crit 0.617 (~0.095c ahead — same convention
+  offset as a4/a5).
+- Paper updated: nine solutions (pending set = three unstructured L2);
+  ledger drag numbers; tab:daetotals a6-L2 + refreshed AVL row; bubble
+  sentence extended to 6°; the a6 surface figure re-added (str L2 + e^N
+  rows) with the Figs. 4–6 range refs restored; polar figure regenerated
+  with the full structured-L2 line.
+Campaign remainder: cavity L2 a4 started 22:00 on all 8 GPUs (then a5,
+a6) — the unstructured-L2 rows and figure panels will slot in the same
+way when they land (generators are availability-driven).

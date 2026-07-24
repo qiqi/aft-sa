@@ -29,7 +29,7 @@ CASES = {(fam, lv): [f'case_{FAM_DIR[fam]}_L{lv}_saai_a{a}' for a in (4, 5, 6)]
 # level), CD = Trefftz CDff at trim + XFOIL profile drag at the trimmed
 # strip loading. a6 entry uses the L1 lift target until the L2 run lands --
 # rerun avl_fixed_cl_reference.py and refresh these three tuples then.
-AVL_XFOIL = {4: (1.0282, 0.02125), 5: (1.1289, 0.02315), 6: (1.2317, 0.02539)}
+AVL_XFOIL = {4: (1.0282, 0.02125), 5: (1.1289, 0.02315), 6: (1.2279, 0.02530)}
 ALPHAS = [4.0, 5.0, 6.0]
 COL = {'str': 'C0', 'cav': 'C1'}
 LW = {0: 0.8, 1: 1.6, 2: 2.4}
