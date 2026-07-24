@@ -561,3 +561,19 @@ in as a parenthetical amplifier, and the sharp flip at the bursting
 boundary explained as the overlap inheriting the fold from the closure
 failure. The destruction-floor argument is dropped from paper and
 measurement-script docstring both.
+
+## 2026-07-24 ~22:45 — Daedalus anatomy recast as the Sec-VI compensation
+Per your instruction, the Daedalus chi-map paragraph no longer dresses the
+mid-bubble front as "the expected convention offset" (the 11.7-vs-13.6
+e-fold arithmetic is dropped). It now says plainly what the maps show:
+the bubble's EXTENT matches the strips station by station, but the
+model's transition front (chi=1) sits near mid-bubble, ~0.09c ahead of
+the strips' N_crit contour, which sits just ahead of reattachment — the
+compensation of Sec. epphandover seen in three dimensions. The model
+books its e-folds early and spends the remainder of the bubble bringing
+eddy viscosity to closing strength; the e^N reference climbs to the
+bubble's rear and commits at once. At this chord Reynolds number (5e5)
+both halves of the compensation are small enough that the sum —
+separation to reattachment — lands on the reference. (The predecessor
+paragraph that follows is untouched: same fronts, bubble 3-4x short =
+same compensation at a stronger climb.)
