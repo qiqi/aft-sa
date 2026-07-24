@@ -1627,8 +1627,9 @@ Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh} for the Eppler 387) with a
 common layout: \emph{row 1} the wall-normal-probe maximum of $Re_\Omega$
 (log, the onset gate); \emph{row 2} the wall-normal-probe maximum of the sphere
 rate coordinate $\hat S g$ (Eq.~\eqref{eq:rate})---the amplifying inflectional
-coordinate the kernel acts on, with $\hat S g\!>\!0$ (above the dotted reference) the
-amplifying, inflectional side and the rate
+coordinate the kernel acts on, on a log axis spanning the amplifying
+decades (suppressed and favorable stations, $\hat S g\!\le\!0$,
+fall below the plotted range), with the rate
 $a_{\max}\operatorname{clip}\langle \hat S g\rangle$; \emph{row 3} the in-BL maximum
 $\chi\!=\!\max_y\tilde\nu/\nu$ on a log axis with the amplification factor $N$ from
 mfoil~\cite{fidkowski_mfoil_2022}, a coupled viscous--inviscid $e^N$ panel solver,
@@ -2451,25 +2452,29 @@ $\chi$ ladder) combined with the transported memory of breakdown that
 spot-growth and intermittency models carry.
 
 The starved handover is one of \emph{two} low-Reynolds defects, and
-the second runs in the opposite direction: inside the low-$Re$
-bubbles the amplification the model books outpaces the $e^N$
-envelope, increasingly so as the Reynolds number falls. The mechanism
+the second runs in the opposite direction: below the bursting
+boundary the amplification the model books inside the bubble outpaces
+the $e^N$ envelope. The mechanism
 is not the rate---the kernel's production in the reversed ``dead
-air'' is onset-gated to zero (median effective rate below
-$10^{-9}\,a_{\max}$ at every swept $Re$)---but the topology of the
+air'' is onset-gated to effective zero (median rate below
+$10^{-7}\,a_{\max}$ at every swept $Re$, and four orders below the
+free-shear ceiling even at the 95th percentile)---but the topology of the
 transport: in the elliptic solution the bubble is a closed cell, and
 $\tilde\nu$ produced in the shear layer diffuses across it into the
 reversed stream, convects \emph{back upstream}, and re-enters the
 amplifying band already elevated. Measured on the structured-L2 sweep
-(\texttt{repro/cfd/measure\_lsb\_reseeding.py}): the median $\chi$
+(\texttt{repro/cfd/measure\_lsb\_reseeding.py}; the statistic
+compares the reversed region's \emph{median} $\chi$ against the
+incoming envelope's \emph{peak}, conservative for the low-$Re$
+claims): the median $\chi$
 in the reversed region over the bubble's first third sits $16\times$
 and $29\times$ \emph{above} the incoming-envelope level just
 upstream of separation at $Re\!=\!6\!\times\!10^4$ and $10^5$,
-but $30$--$100\times$ \emph{below} it at $3$--$4.6\times10^5$: the
+but $30$--$100\times$ \emph{below} it at $3$--$4.6\!\times\!10^5$: the
 flip coincides with the bursting boundary. The discriminator is not
 the pickup---the \emph{rear} third of the reversed region is loaded
 at every Reynolds number ($19\times$ the incoming level even at
-$3\times10^5$, $2.9\times$ at $4.6\times10^5$)---but whether the
+$3\!\times\!10^5$, $2.9\times$ at $4.6\!\times\!10^5$)---but whether the
 load conducts to the front, and the control is the length of the
 hot-over-reversed overlap, which is itself created by the starved
 handover: at high $Re$ closure follows transition within the short
@@ -2498,20 +2503,27 @@ recirculation, not an unconditional diffusive leak.)
 
 The two defects meet, at the lowest Reynolds numbers, in a fortunate
 cancellation, and the honest reading of this section is worth stating
-plainly. At $2$--$4.6\times10^5$ both defects are small and the model
+plainly. At $2$--$4.6\!\times\!10^5$ both defects are small and the model
 is genuine to the physics: the booked amplification tracks the $e^N$
 envelope through bubbles and attached recoveries alike, and the
 handover is short on the bubble's scale. At $Re\!\lesssim\!10^5$
-the model can still predict the bubble and the gross
-aerodynamics---but it does so because the re-seeded, too-fast climb
-places the $\chi\!=\!1$ front roughly where the physical envelope
-would, while the over-long handover---compounded by standard SA's own
+the model still places separation and the transition front, and lands
+within $2$--$12\%$ (family-dependently) on lift---but by
+compensation: the re-seeded climb fires the $\chi\!=\!1$ front
+$\sim\!0.16\,c$ \emph{ahead} of the physical envelope's equivalent
+station (measured against the mfoil envelope at
+$N\!=\!\ln(1/\chi_\infty)$: $0.41$ vs $0.57\,c$ at $10^5$,
+$0.44$ vs $0.60\,c$ at $6\!\times\!10^4$), a head start that the
+over-long handover then spends---and, below the boundary,
+overspends---compounded by standard SA's own
 low-$Re$ anemia: in a constant-stress layer the equilibrium
-$\tilde\nu$ supports only $\chi\!\approx\!0.08\,Re_\tau$
-(\texttt{repro/analytic/sa\_sustain.py}), so at the bubble shear
+$\tilde\nu$ supports only $\chi\!\approx\!0.09\,Re_\tau$
+(the friction-velocity Reynolds number;
+\texttt{repro/analytic/sa\_sustain.py}), so at the $6\!\times\!10^4$
+bubble shear
 layer's $Re_\theta\!\approx\!220$--$330$ the reattached turbulence
-equilibrates near $\chi\!\sim\!c_{v1}$ with $f_{v1}$ only half
-active---withholds the closure that front promises. Bubbles computed
+would equilibrate near $\chi\!\sim\!c_{v1}$ with $f_{v1}$ only half
+active. Low-$Re$ solutions
 in this range should be read as the sum of two canceling errors, not
 as resolved transition physics.
 
@@ -2749,17 +2761,22 @@ reattachment to under $0.01\,c$. The reattachment is also the quantity
 still moving under refinement---$0.63$ at L1 to $0.66$ at L2 against
 the strips' $0.66$---while separation and the $\chi$ field are
 level-converged, and the two families agree at L1 to $0.02\,c$ on
-both edges. The $\chi$ maps show the interior anatomy, and it is the
-compensation of Sec.~\ref{sec:epphandover} seen in three dimensions:
-the bubble's \emph{extent} matches the strips' station by station,
-but the model's transition front ($\chi\!=\!1$, bold in the figure)
-sits near mid-bubble, $\sim\!0.09\,c$ ahead of the strips'
-$N_\mathrm{crit}$ contour, which sits just ahead of reattachment. The
-model books its $e$-folds early and spends the remainder of the bubble
-bringing the eddy viscosity to closing strength; the $e^N$ reference
-climbs to the bubble's rear and commits at once. At this chord
-Reynolds number both halves of the compensation are small enough that
-the sum---separation to reattachment---lands on the reference.
+both edges. The $\chi$ maps show the interior anatomy: the bubble's
+\emph{extent} matches the strips' station by station, but the model's
+transition front ($\chi\!=\!1$, bold in the figure) sits near
+mid-bubble, $\sim\!0.09\,c$ ahead of the strips' $N_\mathrm{crit}$
+contour, which sits just ahead of reattachment. At this chord Reynolds
+number the early front is the seed convention, not the low-$Re$ defect
+pair of Sec.~\ref{sec:epphandover} (whose re-seeding measurement is
+quiet at these $Re$): $\chi\!=\!1$ sits
+$\ln(1/\chi_\infty)\!=\!11.7$ $e$-folds up the same envelope
+against the strips' $N_\mathrm{crit}\!=\!13.6$, and the in-bubble
+envelope climbs $\sim\!2$ $e$-folds per $0.09\,c$. What the wing
+does share with Sec.~\ref{sec:epphandover} is the commit half: the
+model spends the remainder of the bubble bringing the eddy viscosity
+to closing strength where the $e^N$ reference commits at once---both
+halves short enough here that the sum, separation to reattachment,
+lands on the reference.
 
 This bubble length is the final kernel's correction at work: the
 predecessor-kernel campaign on the same grids returned the same

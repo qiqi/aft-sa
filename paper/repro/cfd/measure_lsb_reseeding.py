@@ -18,7 +18,7 @@ universal; what discriminates is conduction to the front, controlled by
 the hot-over-reversed overlap that the starved handover itself creates
 (one causal chain; the chi~1 self-diffusion crossing acts as an
 amplifier within it). Dead-air production
-is onset-gated to ~zero everywhere (median effective rate <= 1e-10), so
+is onset-gated to ~zero everywhere (median effective rate <= 1e-8), so
 the reservoir is advection-diffusion fed, not amplification fed.
 Contour signature: at low Re the chi front is bottom-led (cold front,
 reversed flow carries chi upstream along the wall); at high Re top-led
@@ -56,7 +56,9 @@ def grad(g0, field, name):
 
 
 def measure(Rk):
-    case = f"{FR}/sweep_strL2_Re{Rk}k_a5"
+    # the 2e5 benchmark lives under its own (non-sweep) directory name
+    case = (f"{FR}/strL2prop_eppler387_Re200k_a5" if Rk == 200
+            else f"{FR}/sweep_strL2_Re{Rk}k_a5")
     g0 = load(f"{case}/slice_centerSpan.pvtu")
     pd = g0.GetPointData()
     pts = vtk_to_numpy(g0.GetPoints().GetData())
@@ -96,7 +98,7 @@ def measure(Rk):
 if __name__ == '__main__':
     print(f"{'Re':>6} {'x_sep':>6} {'x_rev_end':>9} {'front surplus':>14} "
           f"{'rear surplus':>13} {'dead-air rate med':>18} {'95th':>10}")
-    for Rk in (60, 100, 300, 460):
+    for Rk in (60, 100, 200, 300, 460):
         xs, xe, s, sr, rm, r95 = measure(Rk)
         print(f"{Rk:>5}k {xs:>6.3f} {xe:>9.3f} {s:>13.2f}x {sr:>12.2f}x "
               f"{rm:>18.2e} {r95:>10.2e}")
