@@ -7,8 +7,11 @@ warm-started from the previous step's end-of-run restart dump
 survives a slow descent further than the direct 2e5->1e5 / 2e5->6e4 forks.
 
 Up-ladder: start from the cold-start (burst) 6e4 solution and raise Re
-slowly (80k -> 100k). Tests whether the burst branch persists upward into
-the model's bistable band, i.e. hysteresis in Re.
+slowly (80k -> 100k). Tested whether the burst branch persists upward,
+i.e. hysteresis in Re. RESULT: monostable -- every path converged to one
+family-specific state at 1e5 after 40k-iteration extensions (Sec. V.A);
+these runs are the initialization-independence evidence, not a bistable
+band.
 
 One family per invocation (they run in parallel on different GPUs):
   python3 run_continuation_ladders.py str 6

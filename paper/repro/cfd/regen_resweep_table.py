@@ -135,12 +135,10 @@ def main():
               f"& {f3(c[0])} & {f4(c[1])} & {f4(c[2])} "
               f"& {f3(e9[0])} & {f4(e9[1])} & {f4(e9[2])} "
               f"& {f3(e[1])} & {f4(e[2])} & {f4(e[3])} \\\\")
-    if LEVEL == 'L2':
-        # the warm-started second branch at 1e5 (run_bistability_forks.py)
-        fs = cfd_forces(f"{B}/fork_strL2_Re100k_a5")
-        fc = cfd_forces(f"{B}/fork_cavL2_Re100k_a5")
-        print(f"    $100$k warm & {f3(fs[0])} & {f4(fs[1])} & {f4(fs[2])} "
-              f"& {f3(fc[0])} & {f4(fc[1])} & {f4(fc[2])} & & & & & & \\\\")
+    # The warm-started 1e5 row was DROPPED (pass-13 minor 6): the 20k-step
+    # fork values were transients; the converged 60k-step histories live in
+    # tab:eppfork (run_fork_extensions.py), so the sweep table stays
+    # cold-start-only.
 
 if __name__ == '__main__':
     main()

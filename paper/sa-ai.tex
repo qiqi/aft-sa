@@ -2535,7 +2535,8 @@ transients are enormous---the direct fork first gains lift, suffers a
 bursting excursion, and recovers; the climb from the burst side
 overshoots to $c_l\!=\!0.89$ (the unstructured family) before
 settling back---and convergence takes
-$4$--$6\!\times\!10^4$ iterations, an order of magnitude longer than
+$3$--$4.5\!\times\!10^4$ iterations (rolling-$2000$-iteration range
+below $10^{-3}$), an order of magnitude longer than
 anywhere else in the sweep, with excursions of $\pm0.06$ in $c_l$
 along the way. The model sits close to a fold at $10^5$ without
 crossing it: slow dynamics, a single attractor. The experiment's
@@ -2556,8 +2557,8 @@ measured flow reattaches at $0.67\,c$.
   $6\!\times\!10^4$ burst state through $8\!\times\!10^4$---each warm
   path extended $40\,000$ iterations beyond its arrival (medians over
   the final $20\%$; residual drift $\le\!3\!\times\!10^{-4}$).
-  At $6\!\times\!10^4$ (lower block) every warm start returns to the
-  cold (burst) state within $20\,000$ iterations. The $6\!\times\!10^4$
+  At $6\!\times\!10^4$ (lower block) every warm start collapses onto
+  the burst branch within $20\,000$ iterations. The $6\!\times\!10^4$
   Exp column quotes the \emph{reattaching}-branch measurement
   (Table~B1 at $\alpha\!=\!4.99^\circ$); on the non-reattaching branch
   the measured lift is $\approx\!0.64$ ($\alpha\!=\!5.51^\circ$), on
@@ -2573,7 +2574,7 @@ measured flow reattaches at $0.67\,c$.
     \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}\cmidrule(lr){11-12}
     $Re$ & family & $c_l$ & $c_d$ & $c_l$ & $c_d$ & $c_l$ & $c_d$ & $c_l$ & $c_d$ & $c_l$ & $c_d$ \\
     \midrule
-    $10^5$ & unstructured & 0.859 & 0.0341 & 0.860 & 0.0341 & 0.860 & 0.0341 & 0.859 & 0.0341 & 0.873 & 0.0237 \\
+    $10^5$ & unstructured & 0.860 & 0.0341 & 0.860 & 0.0341 & 0.860 & 0.0341 & 0.859 & 0.0341 & 0.873 & 0.0237 \\
            & structured   & 0.769 & 0.0444 & 0.764 & 0.0449 & 0.765 & 0.0447 & 0.769 & 0.0444 & & \\
     $6\!\times\!10^4$ & unstructured & 0.695 & 0.0522 & 0.694 & 0.0521 & 0.694 & 0.0522 & --- & --- & 0.838 & 0.0439 \\
            & structured   & 0.621 & 0.0541 & 0.607 & 0.0535 & 0.619 & 0.0541 & --- & --- & & \\

@@ -22,7 +22,7 @@ run_solver(wd, find, env, gpu=gpu, timeout=28800)
 write_ai_constants(wd)
 r = forces(wd); r.update(history_diag(wd))
 p = f"{FR}/fork_extension_results.json"
-m = json.load(open(p)) if os.path.exists(p) else {}
+m = json.load(open(p)) if os.path.exists(p) else {}   # read-merge-write
 m[tag] = r
 json.dump(m, open(p, "w"), indent=1)
 print(f"DONE {tag}: {r}", flush=True)

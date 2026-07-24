@@ -29,8 +29,9 @@ def history_diag(wd):
     q = [float(np.median(c)) for c in np.array_split(cl, 4)]
     n = len(cl)
     a, b = np.polyfit(np.arange(n - n//10, n), cl[-(n//10):], 1)
+    # rows log every 10 iterations: slope/row * 100 = slope per 1000 it
     return dict(quartiles=[round(v, 4) for v in q],
-                end_slope_per_1000it=round(float(a)*100*10, 6))
+                end_slope_per_1000it=round(float(a)*100, 7))
 
 
 def main():
@@ -59,7 +60,10 @@ def main():
         except Exception as e:
             results[tag] = dict(err=str(e)[:160])
             print(f"FAIL {tag}: {e}", flush=True)
-        json.dump(results, open(res_path, "w"), indent=1)
+        # read-merge-write: concurrent family runners share this file
+        merged = json.load(open(res_path)) if os.path.exists(res_path) else {}
+        merged.update(results)
+        json.dump(merged, open(res_path, "w"), indent=1)
     print(f"EXT-{fam.upper()}-DONE", flush=True)
 
 
