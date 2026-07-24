@@ -535,3 +535,29 @@ gross aerodynamics are the sum of canceling errors, not resolved
 transition physics), in the Conclusion, and reproducible via
 repro/cfd/measure_lsb_reseeding.py.
 ============================================================
+
+## 2026-07-24 ~22:30 — mechanism trimmed to (1) in the paper, per your call
+You judged that of the three controls only (1) — the hot-over-reversed
+overlap created by the starved handover — is strong enough for the paper;
+(2) and (3) can be argued the other way or are neutral, and (3) is part
+of (1). On reflection I agree, and (2) has a specific problem beyond
+arguability: it is in tension with the paper's own earlier claim that the
+destruction floor is inert at the disturbance's scale (f_w ≈ 0.7 r with
+r ≪ 1 in the laminar range — the same smallness that makes the floor
+harmless under the amplifying band makes it a weak sink in the reversed
+cell), and its transit-time counterargument (the thin high-Re cell's
+return leg is also SHORTER, so exposure to the floor shrinks along with
+d) leaves the net effect ambiguous. (3) only fires because the reservoir
+is already loaded — the χ~1 self-diffusion crossing happens BECAUSE the
+fetch is long — so it is an amplifier inside mechanism (1), not an
+independent discriminator.
+
+The paper passage now carries only the causal-chain mechanism: pickup is
+universal (rear-third 19×/2.9× at 300k/460k), conduction to the front is
+controlled by the overlap length, the overlap is created by the starved
+handover (slow handover → no closure → long hot-over-reversed fetch →
+loaded reservoir → re-seeded front), the self-diffusion crossing folded
+in as a parenthetical amplifier, and the sharp flip at the bursting
+boundary explained as the overlap inheriting the fold from the closure
+failure. The destruction-floor argument is dropped from paper and
+measurement-script docstring both.

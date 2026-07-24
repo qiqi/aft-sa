@@ -14,9 +14,10 @@ Two measurements per Reynolds number (structured L2, alpha=5 sweep):
 RESULT (2026-07-24): FRONT-third surplus 16x/29x at Re=60k/100k,
 0.03x/0.01x at 300k/460k -- the flip sits at the bursting boundary. The
 REAR third is loaded at every Re (19x at 300k, 2.9x at 460k): pickup is
-universal; what discriminates is conduction to the front (overlap fetch
-created by the un-closed bubble; the (nuHat/d)^2 floor eating the thin
-cell's return leg; the chi~1 self-diffusion switch). Dead-air production
+universal; what discriminates is conduction to the front, controlled by
+the hot-over-reversed overlap that the starved handover itself creates
+(one causal chain; the chi~1 self-diffusion crossing acts as an
+amplifier within it). Dead-air production
 is onset-gated to ~zero everywhere (median effective rate <= 1e-10), so
 the reservoir is advection-diffusion fed, not amplification fed.
 Contour signature: at low Re the chi front is bottom-led (cold front,
