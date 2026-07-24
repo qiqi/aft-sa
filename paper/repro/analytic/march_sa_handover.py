@@ -66,12 +66,15 @@ def march_sa(fs, x_max, nx=1200, ny=800, seed=SEED, gate_c=0.0, ufrac=0.0,
         R = np.sqrt(X*X + Y*Y + Z*Z) + 1e-30
         Sh = Y/np.sqrt(X*X + Y*Y + 1e-30)
         gco = (Y - X - Z)/R
-        h = np.sign(Sh)*np.maximum(0.0, np.abs(Sh) - SQ2I)
-        # v4 COLUMN gate: the chi peak sits at the shear layer's outer edge,
-        # OUTSIDE the pointwise Shat>1/sqrt2 locus (v1-v3 falsified by this
-        # rig) -- key the gate to the wall-normal MAX of the indicator along
-        # the profile (nonlocal like SA's own wall distance), faded by chi.
-        A = np.exp(-chi/CHI_A)*float(np.max(np.clip(h*gco, 0.0, 1.0)))
+        # v4 COLUMN gate, hinge form: the shear surplus <Y-X>_+ (= omega*d
+        # exceeding |u|; identical zero set to |Shat|>1/sqrt2 for the
+        # non-negative implemented indicators) times the Rayleigh coordinate
+        # g -- both vanish at the wall state (X=Y, Z=0), so the gate is
+        # quadratically insensitive to sublayer noise and exactly zero in
+        # the log layer. Column max: the chi peak detaches from the
+        # amplifying locus (v1-v3 falsified by this rig); faded by chi.
+        Xn, Yn = X/R, Y/R
+        A = np.exp(-chi/CHI_A)*float(np.max(np.clip(np.maximum(Yn - Xn, 0.0)*gco, 0.0, 1.0)))
         susp = np.exp(-gate_c*A)
         # SA pieces (lagged in chi)
         fv1 = chi**3/(chi**3 + CV1**3)
