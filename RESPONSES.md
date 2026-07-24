@@ -153,3 +153,62 @@ and moved after the implementation note; "within 3.5 counts (≈1.5%)";
 Re_Ω/P_AI wordings tightened; round-off claim now "below 1e-10" (what the
 scripts print); repro README + verify docstring updated; tracked
 avl_compare.py de-bugged (CDff); NaN stated plainly.
+
+## 2026-07-24 ~21:05 — DLR spheroid: α coverage and TS-vs-crossflow sectors (verified)
+Answers to the two questions:
+- BETWEEN 0 and 10: YES. Natural-transition hot-film front maps exist at
+  α=5° (Re 1.5e6 AND 6.5e6), plus 10° (both Re), 15/20/24° (6.5e6), 30°
+  (1.5–8.5e6). Tunnel Tu=0.1–0.2%. Primary: DFVLR IB 22-84 A 33 (Kreplin,
+  Vollmers, Meier 1985); all fronts REPRODUCED in Krimmelbein's 2021 DLR
+  dissertation (OPEN PDF, elib.dlr.de) — digitization source solved.
+- AT α=10°: NOT all crossflow — it is sectored (φ from windward):
+  φ≲30° pure TS; 30–60° TS/CF interaction; 60–140/160° CF-dominated;
+  leeward tangled in 3D separation (Krimmelbein & Krumbein 2010; Boiko
+  2021; Stock 2006).
+- THE KEY FACT for us: at Re=1.5e6 the transition is PURE TS at ALL
+  incidences (per Krimmelbein) — a full α-ladder (5°→30°) of genuinely
+  3D, skewed-boundary-layer transition entirely within SA-AI's scope.
+  At α=5°, Re=6.5e6 the CF N-factors are sub-critical (<3.5) — front still
+  TS-driven, CF only shapes its curvature.
+- Bonus: α=5/10/15° at Re=6.5e6 is AIAA Transition Modeling Workshop
+  Case 3 (M=0.13, Tu=0.15%) — community-standard comparison, open case
+  definition.
+- Profile data at incidence exist (hot-wire surveys at α=10°/6.5e6 with
+  natural transition, DFVLR IB 222-84/A10; wall-shear VECTOR maps give
+  laminar wall skew everywhere).
+⇒ Proposed campaign (addresses the "downgrade" concern): the Re=1.5e6
+  incidence ladder — nonzero AoA, twisted 3D profiles, new territory for
+  the Ŝg/Re_Ω indicators, yet in-scope so misses are genuine model
+  findings; then α=5/10° at 6.5e6 (workshop case) where the measured front
+  kink at φ≈30° localizes the model's crossflow boundary on one plot.
+
+## 2026-07-24 ~21:20 — spheroid campaign cost estimate (matched L0/L1/L2 quality)
+Meshes (meridional x circumferential-half x normal): L0 ~0.4M, L1 ~2-3M,
+L2 ~12-15M nodes (vs Daedalus 0.7/5.1/36.7M — compact body, no 37:1 span).
+Wall spacing at Re_L=6.5e6 tightens to h0/L ~ 1-2e-6 (y+<0.5), +~20% normal
+nodes; 1.5e6 ladder milder (5e-6). GPU cost from measured Daedalus
+throughput (L2 24 GPU-h): spheroid L2 ~8-12 GPU-h/case, L1 1-2. Program =
+ladder at anchor (a10/1.5e6) + L2 at a5/a30 (1.5e6) + a5/a10 (6.5e6
+workshop) ≈ 60-80 GPU-h ≈ one Daedalus-L2-phase; a day on the 6-GPU pool.
+Schedule items: mesh generator adaptation (~a day; two pole closeouts,
+symmetry plane through incidence plane), digitizing Kreplin fronts from
+Krimmelbein's open dissertation, a30 leeward may be unsteady (ladder to
+10-15 deg safely steady).
+
+## 2026-07-24 ~21:50 — AVL CL question resolved: thin-airfoil truncation, with numbers
+How the sequence runs (confirmed): AVL solves the CAMBER-surface lattice at
+α → CLtot + Trefftz CDff + cl(y); XFOIL/FlexFoil then runs sections at
+MATCHED local cl for profile cd. So the reference CL is purely inviscid
+thin-camber — and your intuition is right that proper inviscid should sit
+HIGH. Station ledger at η=0.31, α=4° (α_eff≈3.5°), DAE-11 at Re 5e5:
+  AVL camber-only strip      cl = 1.011
+  thick-section INVISCID 2D  cl = 1.119   (+10.7%: thickness; slope 6.92/rad)
+  viscous 2D (N=13.6)        cl = 1.053   (−5.9%: decambering)
+  RANS strip (canon L2)      cl = 1.066   (+1.2% vs viscous 2D)
+⇒ The +5% wing offset = thickness (+11%) minus viscosity (−6%). AVL's
+  camber-only CL is the LOW outlier by construction; RANS agrees with
+  viscous 2D to ~1%. Lift-curve check: AVL slope 5.73/rad, α0L −5.77°;
+  RANS slope 5.84/rad, α0L −6.1° — offset, not slope anomaly. Paper text
+  updated with the four-number decomposition.
+  (Tools note: mfoil viscous diverges on DAE-11 @5e5; FlexFoil
+  faithful-viscous plateaus unconverged but repeatable — treated as ±1%.)

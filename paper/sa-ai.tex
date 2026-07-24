@@ -2600,9 +2600,15 @@ $0.6$--$0.8\%$ in $C_L$ and $0.9$--$1.8\%$ in $C_D$, and the polars
 land on the AVL$+$XFOIL reference in drag---within $3.5$ counts
 ($\approx\!1.5\%$) at L2 and $11$ at L1---while running $\sim\!5\%$ above it
 in lift, the excess a vortex lattice built on camber lines alone would
-be expected to miss (section thickness raises the two-dimensional lift
-slope by more than the viscous decambering takes back at these
-conditions). Domain confinement does not explain the lift excess: the
+be expected to miss. A single-station decomposition makes it
+quantitative: at $\eta\!=\!0.31$, $\alpha\!=\!4^\circ$
+($\alpha_\mathrm{eff}\!\approx\!3.5^\circ$), the camber-only AVL
+strip carries $c_l\!=\!1.011$, a thick-section inviscid panel solution
+of the same DAE-11 gives $1.119$ ($+11\%$: thickness), viscous
+FlexFoil at $N_\mathrm{crit}\!=\!13.6$ gives $1.053$ ($-6\%$:
+decambering), and the RANS strip reads $1.066$---the wing's $5\%$
+excess over the reference is the thin-airfoil truncation of the
+vortex lattice, not a RANS surplus. Domain confinement does not explain the lift excess: the
 two families' far fields differ by a factor of $\sim\!20$---the
 O-grid's boundary is a cylinder of radius $100$ root chords,
 $2.7$ spans for this wing, against the unstructured octree's
