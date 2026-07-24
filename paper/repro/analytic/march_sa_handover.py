@@ -74,7 +74,10 @@ def march_sa(fs, x_max, nx=1200, ny=800, seed=SEED, gate_c=0.0, ufrac=0.0,
         # the log layer. Column max: the chi peak detaches from the
         # amplifying locus (v1-v3 falsified by this rig); faded by chi.
         Xn, Yn = X/R, Y/R
-        A = np.exp(-chi/CHI_A)*float(np.max(np.clip(np.maximum(Yn - Xn, 0.0)*gco, 0.0, 1.0)))
+        # v5: POINTWISE hinge gate, LARGE c -- the stalled peak's gate value
+        # is ~0.05 (small, not zero: measured on the sphere locus), and the
+        # safety zeros are exact/quadratic, so c is free to be large.
+        A = np.exp(-chi/CHI_A)*np.clip(np.maximum(Yn - Xn, 0.0)*gco, 0.0, 1.0)
         susp = np.exp(-gate_c*A)
         # SA pieces (lagged in chi)
         fv1 = chi**3/(chi**3 + CV1**3)
@@ -152,12 +155,12 @@ def main():
         # fetch: enough for ~15 e-folds at the amplification rate
         print(f"== PARALLEL separated (H=3.98), pinned max Re_Omega = {ReOm:.0f} ==",
               flush=True)
-        cs = (0.0, 5.0, 10.0, 15.0, 20.0, 30.0) if ReOm < 200 else (0.0, 15.0)
+        cs = (0.0, 30.0, 100.0, 300.0) if ReOm < 200 else (0.0, 100.0)
         for c in cs:
             xs, Rt, ch = march_sa(sep, 40*x0, gate_c=c, ufrac=0.02, x_freeze=x0)
             diagnose(Rt*0 + xs/x0, ch, f"gate c={c:4.0f} (x/x0 units)")
     print("== Blasius guard (growing layer; must be identical) ==", flush=True)
-    for c in (0.0, 15.0):
+    for c in (0.0, 100.0):
         xs, Rt, ch = march_sa(FalknerSkanWedge(beta=0.0), 8e6, gate_c=c)
         diagnose(Rt, ch, f"gate c={c:4.0f}")
 
