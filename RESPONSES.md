@@ -700,3 +700,35 @@ Four items, all on the back-reaction paragraph (now in II.E):
 - The instrument re-march sentence (anchors <1%, favorable mean -2.6%)
   stays — it measures a different thing (station shifts with the term
   included) and now follows the ratio table.
+
+## 2026-07-25 ~00:25 — elegant vector-calculus form of Shat*g in 3D
+The kernel only ever needs EVEN pairwise products of the signed
+indicators, and each has a coordinate-free realization (n_hat = grad d,
+u wall-relative):
+  Shat*g = (Y^2 - XY - YZ) / (sqrt(X^2+Y^2) R)
+  Y^2 = d^2 (omega . omega)
+  XY  = d   u . (omega x n_hat)         [omega x n_hat IS the signed
+                                          shear direction; = u' x_hat on
+                                          a parallel layer]
+  YZ  = (1/2) d^3 (lap u) . (omega x n_hat)
+  X^2 = |u|^2 ; Z^2 = (1/4) d^4 ((lap u).u_hat)^2   [norms, even anyway]
+Consequences:
+1. The mixed-sign-layer caveat dissolves: every term is even under the
+   global mirror (u,omega)->(-u,-omega), so the antipodal identification
+   is realized EXACTLY everywhere, including between the backflow
+   extremum and the velocity zero where the magnitude triple deviates.
+   The paper's half-page sign-algebra discussion would collapse to the
+   table above.
+2. Same ingredients (omega, lap u = -curl omega, grad d), no new
+   operators or cost — a re-wiring, not new machinery.
+3. NOT just elegance: on skewed 3D layers (shear direction rotating with
+   height) the current form pairs |omega| with the flow direction
+   blindly, while u.(omega x n_hat) picks the shear component aligned
+   with the local velocity. The two coincide on parallel layers (all 2D
+   validation + the high-AR wing) and differ exactly on twisted
+   profiles — the spheroid-at-incidence territory. The spheroid campaign
+   could double as the discriminating test between the two 3D closures.
+Caution: bit-identical in 2D, different in 3D => a model revision, not a
+refactor. Proposal: implement behind AI_INVARIANT_KERNEL alongside the
+current form, verify 2D bit-identity, and run both on the spheroid
+alpha-ladder.
