@@ -67,10 +67,11 @@ def march_sa(fs, x_max, nx=1200, ny=800, seed=SEED, gate_c=0.0, ufrac=0.0,
         Sh = Y/np.sqrt(X*X + Y*Y + 1e-30)
         gco = (Y - X - Z)/R
         h = np.sign(Sh)*np.maximum(0.0, np.abs(Sh) - SQ2I)
-        # amplitude fade exp(-chi/CHI_A), NOT (1-sigma_P): the latter disarms
-        # the gate exactly in the chi 5-30 window where the brakes bite
-        # (found by this rig, 2026-07-24). Turbulent flow has chi >~ 1e3.
-        A = np.exp(-chi/CHI_A)*np.clip(h*gco, 0.0, 1.0)
+        # v4 COLUMN gate: the chi peak sits at the shear layer's outer edge,
+        # OUTSIDE the pointwise Shat>1/sqrt2 locus (v1-v3 falsified by this
+        # rig) -- key the gate to the wall-normal MAX of the indicator along
+        # the profile (nonlocal like SA's own wall distance), faded by chi.
+        A = np.exp(-chi/CHI_A)*float(np.max(np.clip(h*gco, 0.0, 1.0)))
         susp = np.exp(-gate_c*A)
         # SA pieces (lagged in chi)
         fv1 = chi**3/(chi**3 + CV1**3)
