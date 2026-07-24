@@ -84,7 +84,9 @@ QUIT
                        cwd=WORK, timeout=300)
     ft = open(f'{WORK}/ft.txt').read()
     cl = float(re.search(r'CLtot\s*=\s*([\d.eE+-]+)', ft).group(1))
-    cdi = float(re.search(r'CDind\s*=\s*([\d.eE+-]+)', ft).group(1))
+    # Trefftz CDff, not near-field CDind (single-precision CDind is a
+    # small-difference-of-large-terms casualty at this AR; see Appendix D)
+    cdi = float(re.search(r'CDff\s*=\s*([\d.eE+-]+)', ft).group(1))
     e_osw = re.search(r'e =\s*([\d.eE+-]+)', ft)
     # strip data: columns j Yle Chord Area c_cl ai cl_norm cl cd ...
     strips = []

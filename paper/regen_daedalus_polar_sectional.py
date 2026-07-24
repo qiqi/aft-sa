@@ -6,7 +6,7 @@ reference. Right: sectional lift on the finest available grids at the three
 incidences against the AVL distribution. Reads the CANON case tree at
 sa-ai/daedalus (final whole-equation kernel, 2026-07 recomputation) and the
 AVL work dir built by avl_compare.py. Cases whose runs have not completed
-(no total_forces_v2.csv) are skipped, so the figure fills in automatically
+(no complete 20k-step force history) are skipped, so the figure fills in automatically
 as the campaign finishes."""
 import os
 import sys

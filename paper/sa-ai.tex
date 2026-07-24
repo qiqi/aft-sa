@@ -1131,10 +1131,12 @@ That calibration rests on a single flow: the constant-stress inner
 layer (sublayer, buffer layer, log layer), on which SA's solution is
 the linear profile $\tilde\nu\!=\!\kappa u_\tau y$. Through the
 handover band ($\chi\!=\!1$--$20$, $y^+\!\approx\!2$--$50$) the
-amplification branch $P_\mathrm{AI}$ is identically zero---the
-near-wall profile is nearly parabolic, so $\hat S g\!\to\!0$ and the
-onset threshold $Re_\Omega^{\mathrm c}$ rises far above the local
-$Re_\Omega\!=\!y^+\!/\kappa$---so what runs there is standard SA with
+amplification branch $P_\mathrm{AI}$ is negligible---the
+near-wall profile is nearly parabolic, so $\hat S g\!\le\!0$ over
+most of the band (where the clip returns exactly zero) and the onset
+threshold $Re_\Omega^{\mathrm c}$ sits far above the local
+$Re_\Omega$, which stays below $\sim\!10^2$ across the band---so
+what runs there is standard SA with
 both sources reduced, $\sigma_P P_\mathrm{SA}$ and
 $\sigma_D D_\mathrm{SA}$. On the linear solution Spalart's $\tilde S$
 construction holds $\tilde S\!=\!\tilde\nu/(\kappa^2d^2)$---hence
@@ -1179,8 +1181,7 @@ SA's to round-off independent of the numerical scheme and resolution
 discretizations---a second-order finite-difference solve on grids with
 first-cell $y^+$ from $0.25$ to $8$, and a fourth-order collocation
 BVP solve: both return the linear profile and identical log-law
-intercepts for both models, deviations at solver tolerance,
-$10^{-9}$--$10^{-12}$).
+intercepts for both models, deviations below $10^{-10}$).
 
 The tie's one back-reaction is on the laminar range, where the destruction
 now runs at its floor instead of vanishing. The floor is inert at the
@@ -1250,7 +1251,42 @@ $\chi_\infty$ is one unit of $N_\mathrm{crit}$, which on the Blasius envelope
 $\Delta Re_\theta\!\approx\!100$; every airfoil computation in the
 following sections uses the single anchor $N_\mathrm{crit}\!=\!9$.
 
-How these magnitude-based components realize the signed algebra of
+One implementation note bears on reproducibility: the curvature indicator
+requires a second wall-normal derivative of the velocity, and its
+discretization must be chosen with care on stretched, imperfect cells. Forming
+it as a derivative of a derivative---least-squares gradients of a vorticity
+magnitude itself reconstructed from least-squares velocity gradients---admits
+mesh-scale (odd--even) modes: on the near-degenerate anisotropic triangles of
+the cavity meshes (Sec.~\ref{sec:nlfval}) a row-staggering oscillation of the
+resolved boundary layer, well under a percent of $u_\tau$, carries a spurious
+curvature exceeding the physical $U/\delta^2$. We therefore evaluate
+$u''=(\nabla^2\mathbf{u})\cdot\hat{\mathbf{u}}$ (exact for a parallel layer,
+where $\nabla^2\mathbf{u}=-\nabla\times\boldsymbol\omega$) with a compact,
+viscous-flux-style Laplacian: at each dual face the averaged nodal gradients
+have their edge-aligned component replaced by the two-point velocity
+difference, and the dual-cell divergence of these face gradients is then
+averaged, dual-volume weighted, over the node and its one-ring. On smooth
+fields the ring average is second-order benign; sign-alternating mesh-scale
+noise cancels across the ring, and the filter's failure mode is
+underestimation of the curvature---conservative, since an underestimated $|Z|$
+leaves the state nearer the neutral circle. This evaluation reduced the
+cavity-versus-O-grid spread of the NLF transition fronts by more than a factor
+of three across the grid ladder. The remaining indicators need no special
+treatment: $\hat S$ is regularized only against the simultaneous vanishing of
+velocity and shear at the wall, where the onset gate is effectively closed
+($Re_\Omega\to0$, and the clipped rate vanishes with $\hat S g$). Because the rate depends on the frozen mean flow and never
+on $\tilde\nu$, the production's $\tilde\nu$-derivative is analytic---the
+handover derivative is its only stiff piece---and it is treated implicitly
+with the same clipping as the baseline SA production; the added cost is one
+Laplacian pre-pass per turbulence-equation evaluation.
+
+The solver evaluates the indicators from magnitudes---$|\mathbf u|$
+(taken relative to the nearest wall point, which makes the triple
+Galilean invariant; for the static walls of this paper, the absolute
+velocity), $\omega d$, and the projected curvature above---rather
+than from the signed profile derivatives of Eq.~\eqref{eq:indicators}
+(the assembled forms are collected in Appendix~E). How these
+magnitude-based components realize the signed algebra of
 Sec.~\ref{sec:model} is worth stating precisely. On a parallel layer the
 implemented triple is
 $\big(\operatorname{sign}(u)\,u,\;\operatorname{sign}(u')\,d\,u',\;
@@ -1281,35 +1317,6 @@ to a bounded, near-inflection-small step confined to the measure-zero
 velocity-zero surface inside the recirculation, whose $Re_\Omega$ sits at or
 below the onset floor: the same tolerance the curvature-pole discussion of
 Sec.~\ref{sec:model} already grants.
-
-One implementation note bears on reproducibility: the curvature indicator
-requires a second wall-normal derivative of the velocity, and its
-discretization must be chosen with care on stretched, imperfect cells. Forming
-it as a derivative of a derivative---least-squares gradients of a vorticity
-magnitude itself reconstructed from least-squares velocity gradients---admits
-mesh-scale (odd--even) modes: on the near-degenerate anisotropic triangles of
-the cavity meshes (Sec.~\ref{sec:nlfval}) a row-staggering oscillation of the
-resolved boundary layer, well under a percent of $u_\tau$, carries a spurious
-curvature exceeding the physical $U/\delta^2$. We therefore evaluate
-$u''=(\nabla^2\mathbf{u})\cdot\hat{\mathbf{u}}$ (exact for a parallel layer,
-where $\nabla^2\mathbf{u}=-\nabla\times\boldsymbol\omega$) with a compact,
-viscous-flux-style Laplacian: at each dual face the averaged nodal gradients
-have their edge-aligned component replaced by the two-point velocity
-difference, and the dual-cell divergence of these face gradients is then
-averaged, dual-volume weighted, over the node and its one-ring. On smooth
-fields the ring average is second-order benign; sign-alternating mesh-scale
-noise cancels across the ring, and the filter's failure mode is
-underestimation of the curvature---conservative, since an underestimated $|Z|$
-leaves the state nearer the neutral circle. This evaluation reduced the
-cavity-versus-O-grid spread of the NLF transition fronts by more than a factor
-of three across the grid ladder. The remaining indicators need no special
-treatment: $\hat S$ is regularized only against the simultaneous vanishing of
-velocity and shear at the wall, where the onset gate is effectively closed
-($Re_\Omega\to0$, and the clipped rate vanishes with $\hat S g$). Because the rate depends on the frozen mean flow and never
-on $\tilde\nu$, the production's $\tilde\nu$-derivative is analytic---the
-handover derivative is its only stiff piece---and it is treated implicitly
-with the same clipping as the baseline SA production; the added cost is one
-Laplacian pre-pass per turbulence-equation evaluation.
 
 Figure~\ref{fig:flatplate_batch} computes the model on the flat plate at five
 freestream-turbulence levels spanning the natural-transition
@@ -2590,8 +2597,8 @@ The macroscopic ledger comes first (Fig.~\ref{fig:daepolar}; the
 per-level coefficients are tabulated in Appendix~D,
 Table~\ref{tab:daetotals}). The two families agree at L1 to
 $0.6$--$0.8\%$ in $C_L$ and $0.9$--$1.8\%$ in $C_D$, and the polars
-land on the AVL$+$XFOIL reference in drag---within $\pm3$ counts
-($1.5\%$) at L2 and $\pm11$ at L1---while running $\sim\!5\%$ above it
+land on the AVL$+$XFOIL reference in drag---within $3.5$ counts
+($\approx\!1.5\%$) at L2 and $11$ at L1---while running $\sim\!5\%$ above it
 in lift, the excess a vortex lattice built on camber lines alone would
 be expected to miss (section thickness raises the two-dimensional lift
 slope by more than the viscous decambering takes back at these
@@ -2600,18 +2607,19 @@ two families' far fields differ by a factor of $\sim\!20$---the
 O-grid's boundary is a cylinder of radius $100$ root chords,
 $2.7$ spans for this wing, against the unstructured octree's
 $\pm2$~km ($60$ spans)---yet their lifts agree to $0.7\%$. A
-classical wall-interference estimate confirms the bound with room to
-spare: treating the O-grid's outer boundary as a closed test section
+classical wall-interference estimate confirms the inference with room
+to spare: treating the O-grid's outer boundary as a closed test section
 of cross-section $C\!\approx\!4\!\times\!10^{4}$~m$^2$, the
 upwash correction
 $\Delta\alpha\!=\!\delta\,(S/C)\,C_L$ with
 $\delta\!\approx\!0.12$ gives $\Delta C_L/C_L\!\sim\!0.06\%$
 at these conditions---an order of magnitude below the families'
 $0.7\%$ gap, which is therefore ordinary discretization difference,
-not confinement. (The predecessor-kernel
-campaign sat $11$--$17$ counts below the same reference; the final
-kernel's longer bubble---see below---returned $6$--$14$ counts of the
-missing bubble drag.) Sectional lift on the finest
+not confinement. (Against the same reference the predecessor-kernel campaign sat
+$12$--$17$ counts below at $\alpha\!=\!4^\circ$, $4$--$11$ below at
+$5^\circ$, and essentially on it at $6^\circ$; like-for-like on each
+case, the final kernel's longer bubble---see below---returned
+$6$--$14$ counts of bubble drag.) Sectional lift on the finest
 completed grids
 (Fig.~\ref{fig:daepolar}b) matches the vortex-lattice distribution
 inboard to $\sim\!1\%$ and reproduces, identically on both families,
@@ -3198,10 +3206,15 @@ linearly extrapolated correlation is ${\sim}2\times$ above both
 \paragraph{Vortex-lattice $+$ section-polar reference and diagnostics.} The AVL model uses
 $12\times40$ cosine-spaced vortex-lattice panels per semispan with the
 blended sections at five stations; induced drag is taken from the
-Trefftz-plane total, distributed as $c_l\alpha_i$ (the near-field
-sums are the numerically fragile ones: doubling the lattice to
-$24\times80$ moves the Trefftz $C_{D\mathrm{ff}}$ by $0.2\%$ and
-$C_{L\mathrm{ff}}$ by $0.04\%$ while the near-field totals degrade),
+Trefftz-plane total, distributed as $c_l\alpha_i$. (The near-field
+induced-drag total is a small difference of large terms at this aspect
+ratio and demands double precision: the single-precision AVL build
+returned $C_{D\mathrm{ind}}$ $31\%$ above $C_{D\mathrm{ff}}$ on the
+$12\times40$ lattice and NaN on $24\times80$, while a double-precision
+rebuild returns $C_{D\mathrm{ind}}\!=\!C_{D\mathrm{ff}}$ to four
+digits at every lattice; $C_{D\mathrm{ff}}$ itself is insensitive to
+both precision and lattice, moving $0.2\%$ from $12\times40$ to
+$24\times80$.)
 and profile drag is
 XFOIL at each station's local $c_l$, chord Reynolds number, and
 $N_\mathrm{crit}\!=\!13.6$, integrated over span. RANS transition

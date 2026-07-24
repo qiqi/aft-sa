@@ -1,4 +1,4 @@
-"""Verification (paper Sec. III.E): wall-layer exactness of the sigma_D tie.
+"""Verification (paper Sec. II.E): wall-layer exactness of the sigma_D tie.
 
 Constant-stress SA vs SA-AI wall layer (chi=kappa*y+) under
 sigma_D = 1 - R_TIE*(1 - sigma_P): both solutions coincide with the linear
@@ -65,7 +65,7 @@ def main():
     yp = np.logspace(np.log10(E0), np.log10(EMAX), 900)
     B0, nut0, up0 = intercept(sol0, yp)
     B1, nut1, up1 = intercept(sol1, yp)
-    # EXACTNESS of the tie (paper Sec. III.E): the linear profile solves the
+    # EXACTNESS of the tie (paper Sec. II.E): the linear profile solves the
     # gated equation at every height, so both solutions ARE kappa*y+ and the
     # footprint is identically zero -- asserted, not calibrated.
     lin = kap*yp

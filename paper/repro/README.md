@@ -48,7 +48,7 @@ Read each script alongside the passage it backs; `regenerate_all.py` and
 | §III.D K_λ | fig:worstpoint, fig:klambda_sc (eq:klambda fixed point) | `analytic/fig05_06_klambda.py` |
 | §III.D K_r | eq:kr one-point fit at β=0.35 (asserted; `--forms` = E/R1/R2 selection study) | `analytic/fit_fpg_rate_slope.py` |
 | §III.E handover | tie exactness: linear nuHat and dB = 0 to roundoff (asserted) | `analytic/verify_wall_layer_tie.py` |
-| §III.E coarse mesh | tab:yplus | `analytic/tab02_yplus.py` |
+| §II.E round-off claim (FD half; its former table tab:yplus was dropped) | -- | `analytic/tab02_yplus.py` |
 | §III.F receptivity | eq:tumap | `analytic/tu_map.py` |
 | §III.G assembled | constants block (asserted vs paper Table) | `analytic/constants_report.py` |
 | §IV flat plate | fig:flatplate_batch; `ONSET_DIAG=1` prints the quoted AGS onset numbers (both conventions) | `cfd/regen_flatplate_flow360.py` |
