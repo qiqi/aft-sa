@@ -810,3 +810,17 @@ The section is restructured around the transition-location figure:
   (now "computed gradients"), and "triangulates" ->
   "Delaunay-triangulates".
 Build clean.
+
+## 2026-07-25 ~02:00 — review pass 20 addressed
+Pass 20 audited the NLF restructure deletion-by-deletion (and reran both
+figure generators — content-identical). Real catches, all fixed:
+the cavity-L1 15° non-convergence disclosure (the only converged:false
+case of 24) had been deleted while the same commit plotted that case in
+the new headline figure — restored in the fig:nlfaft caption with the
+L0-artifact note; the polar caption now describes the two AFT curves
+(+ provenance + the cd=0.025 source-axis truncation); and my
+"FlexFoil and XFOIL both converge" over-reached the committed evidence
+(the pkl is source=flexfoil throughout; packaged xfoil SIGFPEs on this
+input — reviewer reproduced it) — scoped to "as does XFOIL in the
+N_crit sweep of Table 5", preserving the annotation's intent. Plus the
+adversarial-mesh payoff sentence, README row, whitespace.
