@@ -44,5 +44,8 @@ for tag in [f"fork_{f}L2_Re{Rk}k_a5" for f in FAMS for Rk in (100, 60)]:
     except Exception as e:
         results[tag] = dict(err=str(e)[:120])
         print(f"FAIL {tag}: {e}", flush=True)
-    json.dump(results, open(results_path, "w"), indent=1)
+    # reload-merge-write: the two family processes share this file
+    merged = json.load(open(results_path)) if os.path.exists(results_path) else {}
+    merged.update({k: v for k, v in results.items()})
+    json.dump(merged, open(results_path, "w"), indent=1)
 print("FORKS-DONE", flush=True)

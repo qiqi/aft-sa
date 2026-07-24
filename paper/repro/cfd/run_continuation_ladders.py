@@ -104,12 +104,17 @@ def main():
         ('up', f"{FR}/sweep_{fam}L2_Re60k_a5", (80, 100)),
     ]
     res_path = f"{FR}/ladder_{fam}_results.json"
-    results = {}
+    results = json.load(open(res_path)) if os.path.exists(res_path) else {}
     for direction, seed, res in ladders:
         src = seed
         for Rk in res:
             tag = f"ladder_{direction}_{fam}L2_Re{Rk}k_a5"
             wd = f"{FR}/{tag}"
+            dmp = f"{wd}/restartOutput/restart_rank_1_of_1.dmp"
+            if tag in results and 'CL' in results[tag] and os.path.exists(dmp):
+                print(f"SKIP {tag} (complete: {results[tag]})", flush=True)
+                src = wd
+                continue
             print(f"START {tag} (seed {os.path.basename(src)})", flush=True)
             t0 = time.time()
             try:

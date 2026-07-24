@@ -2137,7 +2137,60 @@ near-stall $\alpha\!=\!7^\circ$ case, where the adverse gradient is strongest, i
 the exception: it reattaches at $0.45\,c$, $0.03\,c$ \emph{ahead} of the measured
 $0.48\,c$, though its coarse grids still scatter by $\sim\!0.14\,c$ before closing
 to $0.005\,c$ by L2. The lower surface runs laminar to the trailing edge at every
-incidence and has no front to move. This low-$\alpha$ over-length has the same
+incidence and has no front to move.
+
+The same benchmark condition has published results from the other
+local-correlation transition models, and Table~\ref{tab:epplit} places
+this work among them. The comparison is read from the cited sources'
+figures (none tabulate the values numerically; the stated uncertainties
+are the axis-calibrated read-off error), so it supports one-significant-
+figure conclusions only: the transported-intermittency
+$\gamma$--$Re_\theta$ overpredicts the matched-lift drag by
+${\sim}45\%$ where SA-AI carries $+11\%$; the algebraic SA-BC model,
+whose intermittency was calibrated partly on this very airfoil,
+essentially reproduces the measured polar; and the one-equation
+$\gamma$--SA of D'Alessandro et al.\ lands within a few counts. All
+models, this one included, place the $\alpha\!=\!5^\circ$ bubble within
+a few percent of chord of the oil flow. The AFT family---the model
+closest in spirit to SA-AI---published its Eppler~387 validation at
+this Reynolds number in Refs.~\cite{coder_maughmer_2014}, but no openly
+accessible version tabulates the values, so that row is cited without
+numbers.
+
+\begin{table}[tp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \caption{Published transition-model results for the Eppler 387 at
+  $Re\!=\!2\!\times\!10^5$ near $\alpha\!=\!5^\circ$, against this work
+  and the LTPT measurement. Literature values are figure-read from the
+  cited open sources (uncertainties are the read-off error); the only
+  text-stated literature numbers are Ref.~\cite{shahjahan_2024}'s
+  average bubble-station errors ($4.6/3.7/5.4\%$ of chord for
+  $\gamma$--$Re_\theta$ at this Reynolds number). $c_d$ is at matched
+  $c_l\!=\!0.891$ where the source provides a polar (SA-AI: interpolated
+  on the computed polar, the $+11\%$ of the bucket-tracking comparison
+  above; at $\alpha\!=\!5^\circ$ itself SA-AI computes
+  $0.0155/0.0148$ str/cav with $c_l\!=\!0.925/0.937$). Bubble stations
+  are laminar separation~/ transition~/ turbulent reattachment at
+  $\alpha\!=\!5^\circ$; the oil flow tabulates separation and
+  reattachment only.}
+  \label{tab:epplit}
+  \begin{tabular}{l l l c c c}
+    \toprule
+    Model & Code (source) & $Tu$ & $c_l(5^\circ)$ & $c_d$ @ $c_l\!=\!0.89$ & bubble ($x/c$) \\
+    \midrule
+    Experiment (LTPT) & --- & 0.06--0.16\% & 0.891 & 0.0138 & 0.38/---/0.59 \\
+    SA-AI (this work, L2) & Flow360 & $\chi_\infty\!=\!c_{v1}e^{-9}$ & 0.925--0.937 & ${\approx}0.0153$ & 0.40/0.53/0.66 \\
+    $\gamma$--$Re_\theta$ \cite{shahjahan_2024} & OpenFOAM & 0.1\% & --- & $0.0200\pm0.0005$ & 0.41/0.58/0.60 \\
+    SA-BC \cite{cakmakcioglu_2017, shahjahan_2024} & SU2 & 0.1\% & $0.93\pm0.02$ & $0.0142\pm0.0008$ & 0.39/0.57/0.63 \\
+    $\gamma$--SA \cite{dalessandro_2025} & foam-extend & 0.07\% & $0.91\pm0.02$ & 0.0133--0.0140 & --- \\
+    AFT \cite{coder_maughmer_2014} & OVERFLOW & \multicolumn{4}{l}{validated on this case; values not openly tabulated} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+This low-$\alpha$ over-length has the same
 origin as the separation-edge softening seen in the calibration
 (\S\ref{sec:calib_onset}, Fig.~\ref{fig:calibrate}): the linear $\hat S g$
 under-amplifies the detached laminar shear layer, so transition---and with it
