@@ -1059,7 +1059,10 @@ transitional region is usually short on the scale of the geometry, the
 integrated quantities are insensitive to how the interpolation crosses
 it, and $\sigma_t$ is asked only to cross smoothly and monotonically;
 in flows where the transitional zone itself occupies a macroscopically
-significant extent, this economy would need revisiting.
+significant extent, this economy would need revisiting
+(Sec.~\ref{sec:epphandover} meets exactly such a flow: on the Eppler
+387 at $Re\!\leq\!10^5$ the handover zone grows to a large fraction of
+the chord and sets the model's bubble-bursting boundary).
 
 
 What remains is the turbulent side: the reduced diffusion
@@ -1375,7 +1378,7 @@ rather than the model, and is fixed where it is first used, on the flat
 plate of Sec.~\ref{sec:flatplate}. The
 same set is used without per-geometry adjustment for the Blasius transport
 verification (Fig.~\ref{fig:nuhat}) and every coupled-RANS computation of
-Secs.~\ref{sec:flatplate}--\ref{sec:eppval}.
+Secs.~\ref{sec:flatplate}--\ref{sec:eppresweep}.
 
 \section{Zero pressure gradient: the Blasius flat plate}\label{sec:flatplate}
 
@@ -2092,14 +2095,17 @@ incidence and has no front to move. This low-$\alpha$ over-length has the same
 origin as the separation-edge softening seen in the calibration
 (\S\ref{sec:calib_onset}, Fig.~\ref{fig:calibrate}): the linear $\hat S g$
 under-amplifies the detached laminar shear layer, so transition---and with it
-reattachment---is delayed and the bubble runs long. Matching the measured bubble
-length is left to future work.
+reattachment---is delayed and the bubble runs long. Where that over-length
+leads as the Reynolds number falls---to a bursting boundary, and to a
+bistable band the experiment also shows---is the subject of the next
+section.
 
 
-\subsection{Reynolds-number dependence at $\alpha\!=\!5^\circ$}\label{sec:eppresweep}
+\section{Reynolds-number study of the Eppler 387 at $\alpha\!=\!5^\circ$}\label{sec:eppresweep}
 
 To assess whether the same constants follow the bubble across the
-Reynolds-number range of the McGhee experiment, we hold the incidence at
+Reynolds-number range of the McGhee experiment, we hold everything of
+Sec.~\ref{sec:eppval}'s study fixed---the incidence at
 $\alpha\!=\!5^\circ$ and the freestream seed at
 $\chi_\infty\!=\!8.76\!\times\!10^{-4}$ and sweep the four other tabulated
 Reynolds numbers,
@@ -2185,9 +2191,30 @@ three implementations agree to better than $1\%$ everywhere except
 $Re\!=\!6\!\times\!10^4$, where mfoil visibly departs from the other
 two; XFOIL---whose forces also sit closest to the measurement---is
 presented as the reference there, in the table (mfoil in the footnote)
-and in Fig.~\ref{fig:eppresweep_low}. The one
+and in Fig.~\ref{fig:eppresweep_low}. \begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{eppler_resweep_forces.pdf}
+  \caption{Section lift (top) and drag (bottom, log) against Reynolds
+  number for the $\alpha\!=\!5^\circ$ sweep: all $24$ SA-AI solutions
+  (line conventions as in the polars---structured O-grid solid blue,
+  unstructured cavity dashed orange, L0--L2 by line thickness), the $e^9$
+  panel reference (mfoil squares at $1$--$3\!\times\!10^5$; XFOIL diamonds
+  at the two ends, as in Table~\ref{tab:eppresweep}), and the LTPT
+  measurement (black circles, with the repeat scatter of the
+  Table~\ref{tab:eppresweep} caption as error bars: $\pm0.006$ in $c_l$
+  and $\pm0.0003$ in $c_d$ at $Re\!\geq\!10^5$, an order of magnitude
+  larger at the bistable $6\!\times\!10^4$). The refinement fan closes
+  onto the measurement at $2$--$4.6\!\times\!10^5$ and \emph{opens} at
+  $10^5$---the model's bursting boundary
+  (Sec.~\ref{sec:epphandover})---where refinement drives both families
+  away from the measured short-bubble state.}
+  \label{fig:eppresweepforces}
+\end{figure}
+
+The one
 systematic failure is at $Re\!=\!10^5$, where the computation sits past
-the model's bursting boundary: on every grid the upper-surface recovery
+the model's bursting boundary (the opening fan of
+Fig.~\ref{fig:eppresweepforces}): on every grid the upper-surface recovery
 is incomplete---the signed $C_f$ regains zero only within $0.04\,c$ of
 the trailing edge, against the measured oil-flow reattachment near
 $0.67\,c$---and the drag runs from $+7\%$ above the measurement
@@ -2195,7 +2222,10 @@ $0.67\,c$---and the drag runs from $+7\%$ above the measurement
 families toward the burst state rather than the measured short bubble.
 The overshoot is the extreme of the over-predicted bubble length
 (\S\ref{sec:calib_rate}): at this Reynolds number the model's extended
-laminar separation fails to close at all. The measured pressures confirm
+laminar separation fails to close at all. Sections~\ref{sec:eppbistab}
+and~\ref{sec:epphandover} take this failure apart: the flow here has two
+branches, in the computation as in the experiment, and what selects the
+burst branch is the length of the model's transition zone. The measured pressures confirm
 the computed bubble structure where the bubble does close: the
 suction-side plateau of the separated shear layer appears in the
 open-circle data at $3\!\times\!10^5$ exactly where the computed $C_p$
@@ -2285,6 +2315,135 @@ transition, reattachment, and the forces that follow.
   $3\!\times\!10^5$ only.}
   \label{fig:eppresweep_high}
 \end{figure}
+
+\subsection{Two branches: the bistable band}\label{sec:eppbistab}
+
+The experiment itself says the $10^5$-and-below regime is not
+single-valued. At $R\!=\!6\!\times\!10^4$ the LTPT observed \emph{two}
+flow states at the same angle of attack over
+$\alpha\!\approx\!3^\circ$--$7^\circ$: laminar separation with and
+without turbulent reattachment (McGhee et al.'s Fig.~11(a); runs at
+$p_t\!=\!5$~psi, $M\!=\!0.05$, $Tu\!\approx\!0.16\%$), the reattaching
+branch carrying the higher lift and lower drag. The selection was
+environmental: at the slightly noisier tunnel condition ($p_t\!=\!3$~psi,
+$M\!=\!0.09$, $Tu\!\approx\!0.20\%$) the flow always failed to reattach,
+and only at $\alpha\!=\!7.5^\circ$ did both conditions reattach
+consistently. Repeat polars at the same nominal condition scatter by an
+order of magnitude more than at any higher Reynolds number
+(Table~\ref{tab:eppresweep}).
+
+Whether the \emph{model} has two branches is a question about
+initial conditions, and the sweep provides the natural probe: fork each
+converged $Re\!=\!2\!\times\!10^5$ solution---attached flow with a short,
+closed bubble---to a lower Reynolds number by changing only the
+reference viscosity, and let the solver relax. If the model is
+bistable, the warm start should hold a reattaching state that the
+cold (freestream) start misses. Table~\ref{tab:eppfork} shows the
+outcome on the two finest grids. At $10^5$ it does: both families
+retain a higher-lift, lower-drag state than their cold starts---the
+unstructured fork's lift lands on the measured value---though the
+drag stays well above the measurement and the structured fork has not
+fully settled after $20\,000$ further iterations (a slow
+$\Delta C\!\approx\!6\!\times\!10^{-3}$ cycle). At $6\!\times\!10^4$ the
+memory of the attached state is lost within the run and both forks
+return to the burst branch: the model is bistable near $10^5$ and
+monostable at $6\!\times\!10^4$, where the experiment is bistable. The
+band exists in the model, one Reynolds step above where the experiment
+puts it.
+
+\begin{table}[tp]
+  \centering
+  \small
+  \caption{Initialization forks at $\alpha\!=\!5^\circ$ on the two finest
+  (L2) grids: each case restarted from its family's converged
+  $Re\!=\!2\!\times\!10^5$ solution with only the reference viscosity
+  changed, versus the freestream-initialized (cold) solution of the
+  sweep and the LTPT measurement. At $10^5$ the fork holds a distinct,
+  higher-lift branch ($^\ast$the structured fork retains a slow
+  $\Delta C\!\approx\!6\!\times\!10^{-3}$ limit cycle after $20\,000$
+  iterations; values are medians); at $6\!\times\!10^4$ both forks
+  return to the burst branch.
+  (Repro: \texttt{repro/cfd/run\_bistability\_forks.py}.)}
+  \label{tab:eppfork}
+  \begin{tabular}{ll cc cc cc}
+    \toprule
+    & & \multicolumn{2}{c}{cold start} & \multicolumn{2}{c}{forked from $2\!\times\!10^5$} & \multicolumn{2}{c}{Exp (LTPT)}\\
+    \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
+    $Re$ & family & $c_l$ & $c_d$ & $c_l$ & $c_d$ & $c_l$ & $c_d$ \\
+    \midrule
+    $10^5$ & unstructured & 0.859 & 0.0341 & 0.877 & 0.0318 & 0.873 & 0.0237 \\
+           & structured   & 0.769 & 0.0444 & $0.819^\ast$ & $0.0400^\ast$ & & \\
+    $6\!\times\!10^4$ & unstructured & 0.695 & 0.0522 & 0.701 & 0.0516 & 0.838 & 0.0439 \\
+           & structured   & 0.621 & 0.0541 & 0.625 & 0.0536 & & \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{The unmodeled transition zone sets the bursting boundary}\label{sec:epphandover}
+
+Why does the model's band sit high? The blend of
+Sec.~\ref{sec:blend} deliberately represents no transition physics: the
+handover from amplification to SA production is an interpolation in
+$\chi$, adopted on the grounds that the actively transitional region is
+usually short on the scale of the geometry---with the stated caveat
+that flows where it is not would need the economy revisited. The
+Reynolds sweep is that flow, and the failure is quantitative.
+The number of $e$-folds $\chi$ must climb through the handover is fixed
+by the model: $\ln c_{v1}\!\approx\!2.0$ from the $\chi\!=\!1$ crossing
+to the eddy-viscosity half-saturation, and another
+$\approx\!1.4$ to $\chi\!\approx\!30$, where the production weight
+$\sigma_P$ and $f_{v1}$ are effectively complete. The length those
+$e$-folds occupy is not fixed: each costs roughly
+$u_\mathrm{conv}/(a\,\omega)$, and the shear layer's
+$\omega\!\sim\!U_e/\delta$ weakens as the layers thicken, so the
+handover stretches like $\delta/c\!\propto\!Re^{-1/2}$ and faster once
+the bubble grows. Table~\ref{tab:epphandover} measures it on the
+computed solutions. At $2$--$4.6\!\times\!10^5$ the half-saturation
+length is $0.05$--$0.08\,c$ and the bubble closes $0.06$--$0.17\,c$
+past the crossing. At $10^5$ the half-saturation alone costs
+$0.08$--$0.10\,c$, full production is not reached until
+$0.2$--$0.6\,c$ downstream, and the bubble never closes; at
+$6\!\times\!10^4$ full production is never reached on the airfoil. The
+$e^9$ reference---whose closure switches to fully turbulent \emph{at}
+the transition point---reattaches within $0.05\,c$ of its transition
+station at $10^5$, on the measured reattachment; spot-driven breakdown
+in bubble DNS is similarly abrupt~\cite{alam_sandham_2000,
+spalart_strelets_2000}. The conclusion is specific: it is not the onset
+placement but the \emph{length of the modeled transition zone}---the
+deliberately unphysical $\sigma_t$ interpolation---that starves the
+bubble of eddy viscosity, selects the burst branch, and pushes the
+bursting boundary and the bistable band one Reynolds step above the
+measurement. A transition-zone closure with physical content (a
+spot-growth or intermittency model replacing the fixed-$\chi$-width
+interpolation) is the identified remedy, left to future work.
+
+\begin{table}[tp]
+  \centering
+  \small
+  \caption{The handover length against the room the bubble has, on the
+  structured L2 grids (upper surface, $\alpha\!=\!5^\circ$): distance
+  from the $\chi\!=\!1$ crossing to eddy-viscosity half-saturation
+  ($\chi\!=\!c_{v1}$), to effectively full SA production
+  ($\chi\!=\!30$), and to turbulent reattachment $x_R$, with the $e^9$
+  reference's transition-to-reattachment distance where its bubble
+  closes. The unstructured family agrees on the half-saturation
+  lengths to $0.05\,c$; at $10^5$ its full-production station differs
+  strongly ($0.20$ vs $0.55\,c$)---itself a signature of the bistable
+  regime. (Repro: \texttt{repro/cfd/analyze\_handover\_length.py}.)}
+  \label{tab:epphandover}
+  \begin{tabular}{l cccc}
+    \toprule
+    $Re$ & $\Delta x(\chi\!:\!1\!\to\!c_{v1})$ & $\Delta x(\chi\!:\!1\!\to\!30)$
+    & $\Delta x(\chi\!=\!1\to x_R)$ & $e^9$: $x_R - x_\mathrm{tr}$ \\
+    \midrule
+    $6\!\times\!10^4$   & 0.20 & never & no closure & no closure \\
+    $1\!\times\!10^5$   & 0.10 & 0.55 & no closure & 0.05 \\
+    $2\!\times\!10^5$   & 0.05 & 0.10 & 0.17 & 0.02 \\
+    $3\!\times\!10^5$   & 0.08 & 0.13 & 0.11 & 0.01 \\
+    $4.6\!\times\!10^5$ & 0.05 & 0.23 & 0.06 & --- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \section{Three-dimensional deployment: the Daedalus wing}\label{sec:daedalus}
 
@@ -2543,13 +2702,25 @@ or below $0.03\,c$ away from the marginal cases (the near-LE onset at
 $\alpha\!=\!9^\circ$ and the near-stall Eppler $\alpha\!=\!7^\circ$, which
 reach $0.03$--$0.04\,c$), and the two independently-generated mesh families
 agree to within $0.02\,c$ of chord on every transition front and to
-$0.005$--$0.021\,c$ on the Eppler reattachment at L2.
+$0.005$--$0.021\,c$ on the Eppler reattachment at L2. The Reynolds sweep
+also locates the model's low-$Re$ boundary: the Eppler bubble fails to
+close at $10^5$ on every grid, and initialization forks show the model
+carries the experiment's bistable band (reattaching and burst branches
+at the same condition) one Reynolds step above the measured
+$6\!\times\!10^4$---traced quantitatively to the length of the
+deliberately unmodeled transition zone, which at these Reynolds numbers
+grows to a macroscopic fraction of the chord and starves the bubble of
+eddy viscosity (Sec.~\ref{sec:epphandover}).
 
 Several extensions follow. The clearest limitation is the linear rate's
 under-amplification of strongly favorable and strongly separated profiles---the
 favorable envelope of Fig.~\ref{fig:calibrate} and the over-long Eppler bubble
 both trace to it---so a shaped rate that restores the near-neutral floor without
-a pressure-gradient parameter is the natural refinement. A calibration against
+a pressure-gradient parameter is the natural refinement. The second is
+the transition zone itself: a spot-growth or intermittency closure for
+$\sigma_t$, replacing the fixed-$\chi$-width interpolation, would move
+the bursting boundary toward the measured one
+(Sec.~\ref{sec:epphandover}). A calibration against
 linear-stability and $e^N$ databases beyond the anchors used here---and a
 direct comparison with the algebraic SA-BCM model on community-standard
 benchmarks---would establish accuracy beyond the present demonstration.

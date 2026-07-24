@@ -1,7 +1,7 @@
-"""PREVIEW: Eppler-387 alpha=5 Reynolds-sweep section forces as a figure.
+"""fig:eppresweepforces -> paper/figs/eppler_resweep_forces.pdf.
 
-Proposed replacement/companion for tab:eppresweep now that the sweep
-carries the full L0/L1/L2 suite (24 solutions): c_l (top) and c_d (bottom,
+Eppler-387 alpha=5 Reynolds-sweep section forces across the full
+L0/L1/L2 suite (24 solutions): c_l (top) and c_d (bottom,
 log) versus Re (log), with the paper's established conventions --
 structured O-grid solid blue / unstructured cavity dashed orange, L0/L1/L2
 by geometric line thickness (POLAR_LW), the e^9 panel reference dotted
@@ -15,7 +15,7 @@ refinement at 2-4.6e5 and OPENS at 1e5, where the computation sits past
 the model's bursting boundary and refinement drives both families away
 from the measurement.
 
--> figs_explore preview only (not wired into the paper).
+Run from paper/: python3 repro/cfd/regen_epp_resweep_forces.py
 """
 import os, json, pickle
 import numpy as np
@@ -24,8 +24,9 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
 B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                   '..', 'analytic', 'figs_explore')
+_HERE = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.abspath(os.path.join(_HERE, '..', '..', 'figs'))
+PREV = os.path.abspath(os.path.join(_HERE, '..', 'analytic', 'figs_explore'))
 POLAR_LW = {'L0': 0.8, 'L1': 1.6, 'L2': 3.2}
 FAM = {'str': dict(color='C0', ls='-'), 'cav': dict(color='C1', ls='--')}
 RES = [60, 100, 200, 300, 460]
@@ -85,6 +86,13 @@ axl.set_ylabel('$c_l$'); axd.set_ylabel('$c_d$'); axd.set_xlabel('$Re$')
 axl.grid(alpha=0.3, which='both'); axd.grid(alpha=0.3, which='both')
 axl.set_xlim(4.5e4, 5.6e5); axd.set_xlim(4.5e4, 5.6e5)
 axl.set_ylim(0.55, 1.02)
+import matplotlib.ticker as mticker
+for ax in (axl, axd):
+    ax.xaxis.set_major_locator(mticker.FixedLocator([6e4, 1e5, 2e5, 3e5, 4.6e5]))
+    ax.xaxis.set_minor_locator(mticker.NullLocator())
+    ax.xaxis.set_major_formatter(mticker.FixedFormatter(
+        ['$0.6$', '$1$', '$2$', '$3$', '$4.6$']))
+axd.set_xlabel(r'$Re\ (\times 10^5)$')
 axd.annotate('bursting boundary', xy=(1.0e5, 0.034), xytext=(1.6e5, 0.042),
              fontsize=8.5, color='0.3',
              arrowprops=dict(arrowstyle='->', color='0.3', lw=0.8))
@@ -104,7 +112,7 @@ handles = [Line2D([], [], color='k', marker='o', ls='none', ms=5,
 fig.legend(handles=handles, fontsize=8, ncol=3, frameon=False,
            loc='lower center', bbox_to_anchor=(0.5, 0.0))
 plt.tight_layout(rect=(0, 0.08, 1, 1))
-os.makedirs(OUT, exist_ok=True)
-for ext in ('png', 'pdf'):
-    plt.savefig(f'{OUT}/epp_resweep_forces.{ext}', dpi=140 if ext == 'png' else None)
-print('wrote', f'{OUT}/epp_resweep_forces.png')
+os.makedirs(PREV, exist_ok=True)
+plt.savefig(f'{OUT}/eppler_resweep_forces.pdf')
+plt.savefig(f'{PREV}/epp_resweep_forces.png', dpi=140)
+print('wrote', f'{OUT}/eppler_resweep_forces.pdf')
