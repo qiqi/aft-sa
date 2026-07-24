@@ -824,3 +824,25 @@ L0-artifact note; the polar caption now describes the two AFT curves
 input — reviewer reproduced it) — scoped to "as does XFOIL in the
 N_crit sweep of Table 5", preserving the annotation's intent. Plus the
 adversarial-mesh payoff sentence, README row, whitespace.
+
+## 2026-07-25 ~02:20 — invariant kernel: compactness & cancellation retained?
+YES on both, by construction:
+1. Compactness: the invariant branch consumes lapVecAi = the SAME
+   ring-summed, dual-volume-weighted output of the VelocityLaplacianRaw
+   pre-pass (per-dual-face compact stencil with the edge-aligned gradient
+   component replaced by the two-point difference). No new
+   second-derivative discretization anywhere — only the projection
+   direction changed (u_hat -> s_hat).
+2. Cancellation: the odd–even mesh-scale cancellation lives in the
+   one-ring average of the Laplacian VECTOR, applied before any
+   projection — identical in both forms.
+NEW sensitivity (the honest caveat): s_hat = (omega x n_out)/|.| uses the
+NODAL vorticity direction (least-squares gradient, not ring-averaged),
+where u_hat used the smooth velocity. Protections: where the kernel acts
+(shear-dominated) omega's direction is as robust as the shear itself;
+where omega is small (BL edge/freestream) Y = d|omega x n| -> 0 kills the
+rate via Shat->0 before direction noise matters. Watch-item: cavity
+sliver triangles mid-BL — a cavity-family NLF case added to the 2D
+verification battery to measure it; if family scatter grows, the cheap
+fix is ring-averaging omega with the same dual-volume weights before
+forming s_hat.

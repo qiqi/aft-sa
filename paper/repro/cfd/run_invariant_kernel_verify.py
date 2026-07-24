@@ -29,6 +29,12 @@ JOBS = [
      "canon: see nlf polar record"),
     ("invk_eppler387_Re200k_a5", f"{FR}/strL2prop_eppler387_Re200k_a5", 200,
      "canon: tab:eppresweep 2e5 row"),
+    # cavity family: probes the one new discretization sensitivity of the
+    # invariant form -- the nodal-omega DIRECTION in s_hat (the compact
+    # Laplacian + ring average are shared with the standard kernel, but
+    # s_hat is not ring-averaged) -- on the sliver-prone triangulation
+    ("invk_cav_nlf0416_Re4M_a4", f"{FR}/cavL2prop_nlf0416_Re4M_a4",    4000,
+     "canon: cavity nlf record"),
 ]
 for tag, src, Rk, note in JOBS:
     wd = f"{FR}/{tag}"
