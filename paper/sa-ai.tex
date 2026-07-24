@@ -2152,10 +2152,11 @@ essentially reproduces the measured polar; and the one-equation
 $\gamma$--SA of D'Alessandro et al.\ lands within a few counts. All
 models, this one included, place the $\alpha\!=\!5^\circ$ bubble within
 a few percent of chord of the oil flow. The AFT family---the model
-closest in spirit to SA-AI---published its Eppler~387 validation at
-this Reynolds number in Refs.~\cite{coder_maughmer_2014}, but no openly
-accessible version tabulates the values, so that row is cited without
-numbers.
+closest in spirit to SA-AI---offers no comparison at this condition:
+its journal validation set is the flat plate, a winglet section, and
+the slotted S414, all at $Re\!\approx\!10^6$~\cite{coder_maughmer_2014},
+and we found no openly accessible AFT Eppler~387 data at
+$2\!\times\!10^5$; the table row records that absence.
 
 \begin{table}[tp]
   \centering
@@ -2185,7 +2186,7 @@ numbers.
     $\gamma$--$Re_\theta$ \cite{shahjahan_2024} & OpenFOAM & 0.1\% & --- & $0.0200\pm0.0005$ & 0.41/0.58/0.60 \\
     SA-BC \cite{cakmakcioglu_2017, shahjahan_2024} & SU2 & 0.1\% & $0.93\pm0.02$ & $0.0142\pm0.0008$ & 0.39/0.57/0.63 \\
     $\gamma$--SA \cite{dalessandro_2025} & foam-extend & 0.07\% & $0.91\pm0.02$ & 0.0133--0.0140 & --- \\
-    AFT \cite{coder_maughmer_2014} & OVERFLOW & \multicolumn{4}{l}{validated on this case; values not openly tabulated} \\
+    AFT \cite{coder_maughmer_2014} & OVERFLOW & \multicolumn{4}{l}{no published data at this condition (journal cases: flat plate, winglet section, S414 at $Re\!\approx\!10^6$)} \\
     \bottomrule
   \end{tabular}
 \end{table}
