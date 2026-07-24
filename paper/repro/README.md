@@ -51,6 +51,7 @@ Read each script alongside the passage it backs; `regenerate_all.py` and
 | §II.E round-off claim (FD half; its former table tab:yplus was dropped) | -- | `analytic/tab02_yplus.py` |
 | §VI re-seeding measurement (front/rear surplus + gated dead-air rate) | -- | `cfd/measure_lsb_reseeding.py` |
 | §VI SA low-Re sustainment floor (chi_eq ~ 0.09 Re_tau) | -- | `analytic/sa_sustain.py` |
+| §II.E destruction-floor back-reaction ratios (3 wedges x 3 seeds) | -- | `analytic/floor_backreaction_table.py` |
 | §III.F receptivity | eq:tumap | `analytic/tu_map.py` |
 | §III.G assembled | constants block (asserted vs paper Table) | `analytic/constants_report.py` |
 | §IV flat plate | fig:flatplate_batch; `ONSET_DIAG=1` prints the quoted AGS onset numbers (both conventions) | `cfd/regen_flatplate_flow360.py` |
