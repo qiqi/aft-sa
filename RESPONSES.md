@@ -752,3 +752,25 @@ case_ogrid_L2_saai_a6 finished (rc=0, 22:00): CL 1.2279 / CD 0.02509.
 Campaign remainder: cavity L2 a4 started 22:00 on all 8 GPUs (then a5,
 a6) — the unstructured-L2 rows and figure panels will slot in the same
 way when they land (generators are availability-driven).
+
+## 2026-07-25 ~01:00 — invariant kernel implemented (2D-verify-first plan)
+Per your revised plan (verify both forms agree on 2D — one NLF + one
+Eppler — then run only the verified invariant form on the spheroid):
+- Solver: __aiRateInvariant added to SAAiTransition.h — the triple is
+  built through the shear direction s_hat = (omega x n_out)/|omega x
+  n_out|: X = u.s_hat, Y = d|omega x n_out|, Z = (1/2)d^2 (lap u).s_hat,
+  then the shared __aiRateFromXYZ tail (Shat, g, P, clip, onset — now
+  factored out and used by both forms). Re_Omega keeps full |omega|.
+  Where tangential vorticity vanishes, Y->0 and the rate extinguishes
+  through Shat->0, as in the standard form.
+- Wiring: ai_invariantKernel constant, env AI_INVARIANT_KERNEL,
+  constants-echo line, rateOverride parameter threaded through
+  __aiSaProduction (Jacobian property unchanged: rate independent of
+  nuHat); the debug rawRate output uses the override when active.
+- Clean rebuild running (BUILD_CONSISTENCY SOP; headers changed).
+- Verification runner staged: paper/repro/cfd/run_invariant_kernel_verify.py
+  — NLF a4 Re4M strL2 (attached: expect agreement to solver noise; the
+  two forms are algebraically identical on parallel layers) + Eppler a5
+  Re2e5 strL2 (bubble: differences confined to the mixed-sign
+  recirculation layer, expected within line widths). Cold starts, canon
+  env + flag. GPU-gated: all 8 GPUs are on cavity-L2 until ~02:00.
