@@ -2617,9 +2617,20 @@ bubble of eddy viscosity, makes the model's unique state the burst
 one, and pushes the
 bursting boundary one Reynolds step above the
 measurement---while erasing the two-state structure the experiment
-shows at $6\!\times\!10^4$. A transition-zone closure with physical content (a
-spot-growth or intermittency model replacing the fixed-$\chi$-width
-interpolation) is the identified remedy, left to future work.
+shows at $6\!\times\!10^4$. Narrowing the interpolation is not the
+remedy: at $\tau\!=\!1$ (a four-times-narrower ramp) the handover
+becomes a relaxation oscillator---production closes the bubble, closure
+destroys the amplification fetch that fired the gate, and the bubble
+reopens---with $\Delta C_l\!\approx\!0.3$ at $10^5$ and
+$\approx\!0.08$ even at the otherwise steady $2\!\times\!10^5$
+benchmark (cases \texttt{tautest\_strL2\_Re\{100,200\}k\_a5\_tau1}).
+The gate is memoryless where breakdown is irreversible. The identified
+remedy, left to future work, is therefore a transition-zone closure
+with physical content: an outer-scaled breakdown trigger (a
+Reynolds-stress proxy such as $\tilde\nu\omega/U^2$ reaching a
+mixing-layer saturation level, in place of the molecular-units
+$\chi$ ladder) combined with the transported memory of breakdown that
+spot-growth and intermittency models carry.
 
 \begin{table}[tp]
   \centering
@@ -2941,8 +2952,11 @@ under-amplification of strongly favorable and strongly separated profiles---the
 favorable envelope of Fig.~\ref{fig:calibrate} and the over-long Eppler bubble
 both trace to it---so a shaped rate that restores the near-neutral floor without
 a pressure-gradient parameter is the natural refinement. The second is
-the transition zone itself: a spot-growth or intermittency closure for
-$\sigma_t$, replacing the fixed-$\chi$-width interpolation, would move
+the transition zone itself: an outer-scaled, memory-carrying closure
+for
+$\sigma_t$---a spot-growth or intermittency treatment replacing the
+memoryless fixed-$\chi$-width interpolation, whose narrowing alone only
+trades the bias for a relaxation oscillation---would move
 the bursting boundary toward the measured one
 (Sec.~\ref{sec:epphandover}). A calibration against
 linear-stability and $e^N$ databases beyond the anchors used here---and a
