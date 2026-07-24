@@ -876,3 +876,34 @@ low-Re RE-SEEDING TONGUE — near-wall chi contours running upstream
 along the wall to x~0.15, the cold-front signature — is now directly
 readable in the L2 rows, giving the Sec. VI mechanism its visual
 counterpart in the appendix. Build clean.
+
+## 2026-07-25 ~03:15 — Coder + Eppler 387: verified answer (search agent, sources checked)
+DID CODER RUN E387? NO — not with AFT, ever. Verified against his full
+146-page dissertation (downloaded; case list: flat plate, PSU 94-097,
+S805, S414, NLF(1)-0416, Discus 2cx, CRM, DLR-F11 — zero E387
+computations; "Eppler" appears only as the Eppler transition CRITERION),
+his AIAA J. 2014 paper, the AFT-2017/2019 papers, and his 2017 NAS talk.
+His two E387 publications (Maughmer & Coder, Army TR 10-D-106 2010;
+J. Aircraft 51(1) 2014) used LANGTRY–MENTER, not AFT — E387 at Re=3e5.
+The 1st Transition Modeling Workshop did NOT include E387 (cases: flat
+plate, NLF(1)-0416, spheroid, CRM-NLF).
+THE ONLY PUBLISHED AFT-ON-E387: Lopes, Eça & Vaz (IST/MARIN, ReFRESCO),
+ASME J. Fluids Eng. 142(5):051503 (2020) — E387 at two incidences
+(almost certainly Re=3e5, α=1° and 7°; paywalled), AFT predicts the
+separation-induced transition with higher numerical uncertainty.
+Open companion: NuTTS'18 (ResearchGate, login-gated).
+BEST OPEN E387 BENCHMARK (no AFT, but quality-controlled): Eça et al.,
+34th Symp. Naval Hydrodynamics 2022 — NTRS open PDF, E387 Re=3e5
+α=1/7 vs McGhee, multi-code with numerical-uncertainty estimates, PURE
+VECTOR figures (trivially digitizable).
+DOWNLOADS (saved to sa-ai/references/): coder_diss.pdf (dissertation,
+via Wayback mirror — PSU eTDA blocks scripts), snh34.pdf (NTRS),
+coder_ams2017.pdf, nutts2019_lopes.pdf, koning_ja.pdf. DTIC Army report:
+https://apps.dtic.mil/sti/tr/pdf/ADA532502.pdf (browser only).
+COMPARISON OPTIONS: (a) honest framing "AFT as implemented by Lopes et
+al., Re=3e5" — one Reynolds point, two incidences; (b) the SNH-34
+multi-code γ-family band at Re=3e5 as a community reference envelope on
+our sweep's 3e5 station; (c) email Rui Lopes (now Chalmers) for his IST
+thesis, which likely has fuller E387/AFT polars. Nearest Coder-authored
+low-Re LSB case if we want HIS model on a bubble: PSU 94-097 at
+Re=2.4e5 in the dissertation (polars + fronts, mixed raster/vector).
