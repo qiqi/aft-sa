@@ -31,16 +31,21 @@ MACH = 0.1
 
 AF_SETUP = {
     'nlf0416':   dict(casetag='nlf0416_Re4M',    Re=4e6, L_up=0.0015, L_lo=0.0025),
-    'eppler387': dict(casetag='eppler387_Re200k', Re=2e5, L_up=0.0067, L_lo=0.0112),
+    'eppler387': dict(casetag='eppler387_Re200k', Re=2e5, L_up=0.0335, L_lo=0.0112),
+    # eppler upper L_up raised 5x (0.0067 -> 0.0335) to show the transition
+    # handover above the bubble shear layer (annotated request 2026-07-25)
 }
 ROWS = [('cavL0prop', 'cavity L0'), ('strL0prop', 'O-grid L0'),
         ('cavL1prop', 'cavity L1'), ('strL1prop', 'O-grid L1'),
         ('cavL2prop', 'cavity L2'), ('strL2prop', 'O-grid L2')]
 ALPHAS = {'nlf0416': (0, 4, 9, 15), 'eppler387': (0, 2, 5, 7)}
 
-CHI_MAJOR = [-3, -2, -1, 0, np.log10(C_V1)]
+# levels beyond c_v1 show the HANDOVER dynamics: sigma_P is 97% complete
+# and f_v1 90% by chi ~ 30; chi ~ 100 marks the fully turbulent interior
+CHI_MAJOR = [-3, -2, -1, 0, np.log10(C_V1), np.log10(30.0), 2.0]
 CHI_MINOR = [-2.5, -1.5, -0.5]
-CHI_FMT = {-3: '-3', -2: '-2', -1: '-1', 0: r'$\chi{=}1$', np.log10(C_V1): r'$c_{v1}$'}
+CHI_FMT = {-3: '-3', -2: '-2', -1: '-1', 0: r'$\chi{=}1$', np.log10(C_V1): r'$c_{v1}$',
+           np.log10(30.0): '30', 2.0: r'$10^2$'}
 U_LEV = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99, 1.1, 1.3]
 U_LABEL = [0.1, 0.3, 0.5, 0.7, 0.9, 0.99, 1.1, 1.3]
 
@@ -53,7 +58,7 @@ def _mod(af):
     return m
 
 
-def scan(m, af, case_d, side, L_probe, n_probe=140):
+def scan(m, af, case_d, side, L_probe, n_probe=320):
     """(x_anchors, dists, chi[n,M], umag[n,M]) probed along outward normals."""
     Xm, Zm, up_idx, lo_idx = m.walk_contour_xz(case_d)
     idx = up_idx if side == 'upper' else lo_idx

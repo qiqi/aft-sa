@@ -1514,7 +1514,7 @@ itself. SA-AI's fronts, computed with the untuned $N\!=\!9$-class seed
 on the measurements where the recalibrated AFT lands, on both
 surfaces and both mesh families. We do not read the untuned agreement
 as a ranking, because it may be partly compensatory: the model's
-handover is least decisive at low $Re_\theta$
+laminar-to-turbulent handover is least decisive at low $Re_\theta$
 (Sec.~\ref{sec:epphandover}), the $c_{v1}$-based $N_\mathrm{crit}$
 convention was anchored on flat-plate transition at lower $Re_\theta$
 than these fronts, and at the NLF's higher-$Re_\theta$ fronts the
@@ -1536,8 +1536,10 @@ place their empiricism differently; this case cannot separate them.
   weight (L0 thin $\to$ L2 thick). The mfoil reference (gray squares) is shown
   where its coupled solve converges to an attached solution ($\alpha\!\le\!7^\circ$);
   at $\alpha\!=\!9^\circ$ and $15^\circ$, where mfoil fails, the $e^9$ reference is
-  FlexFoil's (gray diamonds; the independent implementation of XFOIL's
-  method introduced in Table~\ref{tab:nlftrans}). The two gray AFT (OVERFLOW) polars are digitized from the same
+  FlexFoil's (gray diamonds; FlexFoil is an independent implementation
+  of XFOIL's viscous--inviscid $e^9$
+  method~\cite{drela_xfoil_1989}, cross-checked against mfoil and
+  XFOIL to $<\!1\%$ where all three converge). The two gray AFT (OVERFLOW) polars are digitized from the same
   dissertation source as Fig.~\ref{fig:nlfaft} (dashed:
   $N_\mathrm{crit}\!=\!10.07$; solid: the recalibrated $7.18$); they
   end mid-plot because the source figure's axis stops at
@@ -1558,8 +1560,8 @@ $\alpha\!\ge\!9^\circ$ (under-resolved transition front). The absence of an
 mfoil reference above $\alpha\!=\!7^\circ$ is a solver failure, not a
 method-class limit: FlexFoil converges at the identical conditions
 ($C_l\!=\!1.51$ at $\alpha\!=\!9^\circ$, consistent with the present
-RANS), as does XFOIL in the $N_\mathrm{crit}$ sweep of
-Table~\ref{tab:nlftrans}. The fully turbulent SA
+RANS), as does XFOIL (its digitized $e^9$ curve in
+Fig.~\ref{fig:nlfaft} spans these incidences). The fully turbulent SA
 polar on the same structured L2 grid closes on SA-AI only as the laminar
 run shrinks ($+142\%$ at $0^\circ$ narrowing to $+64$--$71\%$ at
 $9^\circ$--$15^\circ$).
@@ -1590,8 +1592,9 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
   with mfoil $N$, row~4 $-C_p$,
   row~5 $C_f$; upper blue / lower red, O-grid solid / cavity dashed,
   L0--L2 by thickness, mfoil $e^9$ dotted; triangles on the $C_f$ row mark
-  the measured onsets of Table~\ref{tab:nlftrans}, open where
-  extrapolated). At $\alpha\!=\!0^\circ$ both
+  the measured onsets---Somers's transition orifices read at the
+  computed section $c_l$---open where extrapolated beyond the recorded
+  data). At $\alpha\!=\!0^\circ$ both
   surfaces run laminar past a third of the chord (upper
   $x/c\!\approx\!0.38$--$0.39$, lower $0.56$--$0.57$), recovering the
   low-drag
@@ -1632,85 +1635,12 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
 \end{figure}
 
 
-Table~\ref{tab:nlftrans} places the computed onset locations against the
-wind-tunnel
-measurements of Somers~\cite{somers_1981}, whose surface transition orifices
-(open where the flow is laminar, solid where turbulent) locate the front on each
-surface as a function of $c_l$; we read that curve at the computed section
-$c_l$. On the lower surface, where the experiment resolves the front across the
-whole $c_l$ range, SA-AI reproduces the mild aft-ward march of the measured
-front as the lift rises, while the $e^9$ panel solver sits systematically
-downstream of both. The $\alpha\!=\!0^\circ$
-lower front is also where the two $e^9$ implementations separate:
-both $e^9$ implementations ignite at $0.62\,c$, $0.07\,c$ aft of the
-measured $0.55\,c$; SA-AI reads $0.57\,c$, $0.02\,c$ aft of the
-measurement. On this front
-$\partial x_\mathrm{tr}/\partial N\!=\!0.067\,c$ per unit $N$
-(Table~\ref{tab:nlftrans}), so these offsets correspond to about one
-unit and a third of a unit of accumulated amplification, respectively. On the upper surface the model
-recovers the measured onset at $\alpha\!=\!0^\circ$ and marches
-the front forward with incidence. The experimental entry at $4^\circ$ is an
-extrapolation, not a located front: the published orifice data record the
-upper-surface $x_\mathrm{tr}(c_l)$ only up to $c_l\!\approx\!0.68$ (Somers'
-Fig.~9d), and the $\approx\!0.31\,c$ datum extends that trend to the
-computed $c_l\!=\!0.98$ ($\ddagger$ in Table~\ref{tab:nlftrans}); against
-it the computation reads $0.06\,c$ forward. At higher incidence the upper onset moves too far forward
-for the orifices to locate. The $Re\!=\!2\!\times\!10^6$ oil-flow
-photographs (Somers' Fig.~7) independently show the same forward march, from a
-laminar-separation bubble near mid-chord at $\alpha\!=\!0^\circ$ ($c_l\!=\!0.4$)
-to roughly a third-chord by $\alpha\!=\!8^\circ$ ($c_l\!=\!1.3$). mfoil fails to
-converge at $\alpha\!=\!9^\circ$ and
-stalls at $15^\circ$; FlexFoil
-supplies the $e^9$ comparison there
-(Table~\ref{tab:nlftrans}).
-
 Because a favorable gradient keeps the profile's curvature single-signed
 ($\hat S g\!\to\!0$), the model holds the favorable rooftop laminar with no
 pressure-gradient parameter anywhere: amplification is confined to the
 recovery stretch, where the profile turns inflectional ($\hat S g\!>\!0$)
 and the fronts are set.
 
-\begin{table}[tp]
-  \centering
-  \small
-  \caption{Transition location $x_\mathrm{tr}/c$ on the NLF(1)-0416 at
-  $Re\!=\!4\!\times\!10^6$, by surface and incidence. \emph{SA-AI}: present
-  model on the finest structured O-grid (L2), with onset defined as the first
-  station where the near-wall maximum $\chi$ crosses unity (the start of the
-  $\sigma_t$ blend, Sec.~\ref{sec:flatplate}). \emph{$e^9$}: coupled viscous--inviscid
-  panel solvers---mfoil~\cite{fidkowski_mfoil_2022}, or, where
-  marked~$^\dagger$, FlexFoil (an independent implementation of XFOIL's
-  viscous--inviscid $e^9$ method~\cite{drela_xfoil_1989}, cross-checked
-  against mfoil and XFOIL to $<\!1\%$ where all three converge). \emph{Exp}: Somers
-  (NASA TP-1861, Fig.~9d), transition orifices (open laminar / solid turbulent)
-  read as $x_\mathrm{tr}(c_l)$ and mapped through the computed section $c_l$; the
-  upper onset at $\alpha\!\geq\!9^\circ$ marches too far forward for the orifices
-  to locate (---). $^\ddagger$Extrapolated beyond the recorded
-  $x_\mathrm{tr}(c_l)$ data of Somers' Fig.~9d: the upper front at
-  $\alpha\!=\!4^\circ$ (orifice data recorded only up to
-  $c_l\!\approx\!0.68$) and the lower front at $\alpha\!=\!15^\circ$ (along the
-  nearly flat lower branch, beyond the measured $c_{l,\max}\!\approx\!1.68$).
-  $^\dagger$From FlexFoil: mfoil fails at these incidences.
-  $\partial x_\mathrm{tr}/\partial N$: sensitivity of each front to the
-  critical amplification factor, from the $e^9$ reference re-converged at
-  $N_\mathrm{crit}\!=\!8$ and $10$ (central difference; $c$ per unit $N$;
-  computed with XFOIL at the original study's conditions).}
-  \label{tab:nlftrans}
-  \begin{tabular}{cc cccc c cccc}
-    \toprule
-    & & \multicolumn{4}{c}{Upper surface} & & \multicolumn{4}{c}{Lower surface}\\
-    \cmidrule(lr){3-6}\cmidrule(lr){8-11}
-    & & \multicolumn{3}{c}{$x_\mathrm{tr}/c$} & & & \multicolumn{3}{c}{$x_\mathrm{tr}/c$} & \\
-    \cmidrule(lr){3-5}\cmidrule(lr){8-10}
-    $\alpha$ & $c_l$ & SA-AI & $e^9$ & Exp & $\dfrac{\partial x_\mathrm{tr}}{\partial N}$ & & SA-AI & $e^9$ & Exp & $\dfrac{\partial x_\mathrm{tr}}{\partial N}$ \\
-    \midrule
-    $0^\circ$  & 0.51 & 0.38 & 0.43 & 0.38 & 0.006 & & 0.57 & 0.62 & 0.55 & 0.067 \\
-    $4^\circ$  & 0.98 & 0.25 & 0.33 & $0.31^\ddagger$ & 0.017 & & 0.61 & 0.65 & 0.62 & 0.003 \\
-    $9^\circ$  & 1.51 & 0.07 & $0.09^\dagger$ & ---  & $<$0.001 & & 0.63 & $0.67^\dagger$ & 0.64 & 0.003 \\
-    $15^\circ$ & 2.00 & 0.00 & $0.00^\dagger$ & ---  & $<$0.001 & & 0.66 & $0.69^\dagger$ & $0.66^\ddagger$ & 0.004 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
 
 \section{The Eppler 387 low-Reynolds-number airfoil}\label{sec:eppval}
 

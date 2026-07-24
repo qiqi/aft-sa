@@ -846,3 +846,24 @@ sliver triangles mid-BL — a cavity-family NLF case added to the 2D
 verification battery to measure it; if family scatter grows, the cheap
 fix is ring-averaging omega with the same dual-volume weights before
 forming s_hat.
+
+## 2026-07-25 ~02:45 — annotated round 5 (NLF): tab:nlftrans deleted; sheets upgraded
+- "handover" -> "laminar-to-turbulent handover" at the AFT-paragraph use;
+  the closing aphorism ("The two closures place their empiricism
+  differently; this case cannot separate them.") deleted per strikeout.
+- tab:nlftrans AND its comparison paragraph deleted ("with Fig 7 added
+  these are no longer necessary"). Dependents rewired: FlexFoil's
+  introduction (independent XFOIL-method implementation, <1%
+  cross-check) moved into the polar caption where it first appears; the
+  XFOIL-converges claim now points at the digitized e9 curve of
+  fig:nlfaft (spans 9/15 deg); the cf-caption onset triangles now cite
+  Somers's orifices read at computed cl directly (open = extrapolated
+  beyond recorded data). Zero dangling refs; build clean.
+- Appendix chi sheets (both the alpha-matrix and Re-sweep sets):
+  contour levels EXTENDED beyond c_v1 (chi = 30 — where sigma_P is 97%
+  complete and f_v1 90% — and chi = 100, the turbulent interior) to show
+  the handover dynamics; Eppler UPPER-surface probe range raised 5x
+  (L_up 0.0067 -> 0.0335, inherited by the Re-sweep sheets through
+  their sqrt(2e5/Re) scaling) so the handover above the bubble shear
+  layer stays in frame; probe resolution 140 -> 320 points to keep
+  near-wall sampling. All 16 sheets regenerating in the background.
