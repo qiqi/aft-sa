@@ -53,7 +53,9 @@ EXP_LSB = {0: (0.48, 0.74), 2: (0.43, 0.67), 5: (0.38, 0.59), 7: (0.33, 0.48)}
 # EXACT tabulated experimental Cp from TM-4062 Appendix D (R=200k), keyed by surface
 # with an 'xc' grid + per-alpha-column arrays. Figure alpha -> nearest table column(s).
 import json as _json, os as _os
-EXP_CP_TAB = _json.load(open("data/exp_cp_tables.json")) if _os.path.exists("data/exp_cp_tables.json") else {}
+_CPT = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
+                     "..", "..", "data", "exp_cp_tables.json")
+EXP_CP_TAB = _json.load(open(_CPT)) if _os.path.exists(_CPT) else {}
 ALPHA_COLS = {0: ["-0.01", "0.01"], 2: ["2.04"], 5: ["5.05"], 7: ["7.01"]}
 # Section characteristics, Appendix B (RUNS 9,10,13, R=200,000): (C_D, C_L) for the
 # points with valid wake-rake drag (post-stall ****-drag rows excluded).
