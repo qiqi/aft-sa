@@ -1731,6 +1731,40 @@ final batch's), while the coarsest grids scatter by
 up to $0.1\,c$ at incidence; the structured L0 loses the marginal
 high-$\alpha$ lower fronts altogether (Table~\ref{tab:nlftrans}).
 
+This case also permits the paper's one direct comparison with the AFT
+model, whose dissertation-stage validation ran the same airfoil at the
+same Reynolds number in OVERFLOW~\cite{coder_thesis_2014}.
+Figure~\ref{fig:nlfaft} overlays the two (the AFT, XFOIL, and
+measurement curves are vector-exact extractions from the source's
+figures). At its nominal tunnel calibration
+($N_\mathrm{crit}\!=\!10.07$) the AFT fronts sit systematically
+downstream of the microphone measurements, and the source closes the
+gap by recalibrating to $N_\mathrm{crit}\!=\!7.18$
+($Tu\!=\!0.15\%$), chosen from the transition-location discrepancy
+itself. SA-AI's fronts, computed with the untuned $N\!=\!9$-class seed
+($\chi_\infty\!=\!c_{v1}e^{-9}$) fixed once for the whole paper, land
+on the measurements where the recalibrated AFT lands---on both
+surfaces and on both mesh families---without a per-case constant to
+choose.
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=\textwidth]{nlf_aft_transition.pdf}
+  \caption{NLF(1)-0416 at $Re\!=\!4\!\times\!10^6$: transition location
+  against lift coefficient, upper (left) and lower (right) surfaces.
+  Circles: LTPT microphone measurements. Gray curves: the AFT model in
+  OVERFLOW from Coder's dissertation~\cite{coder_thesis_2014} at its
+  nominal $N_\mathrm{crit}\!=\!10.07$ (dashed) and after the
+  source's recalibration to $N_\mathrm{crit}\!=\!7.18$ (solid), with
+  its XFOIL reference (dotted); all extracted vector-exact from the
+  source figures
+  (\texttt{data/aft\_nlf0416\_digitized.json}). Open squares/triangles:
+  SA-AI on the two L2 mesh families at
+  $\alpha\!=\!0^\circ,4^\circ,9^\circ,15^\circ$, at the paper-wide
+  untuned seed.}
+  \label{fig:nlfaft}
+\end{figure}
+
 \begin{figure}[tp]
   \centering
   \includegraphics[width=0.62\textwidth]{nlf_polar_compare.pdf}
@@ -2196,8 +2230,9 @@ origin as the separation-edge softening seen in the calibration
 (\S\ref{sec:calib_onset}, Fig.~\ref{fig:calibrate}): the linear $\hat S g$
 under-amplifies the detached laminar shear layer, so transition---and with it
 reattachment---is delayed and the bubble runs long. Where that over-length
-leads as the Reynolds number falls---to a bursting boundary, and to a
-bistable band the experiment also shows---is the subject of the next
+leads as the Reynolds number falls---to a bursting boundary, and to the
+loss of the two-state structure the experiment shows---is the subject
+of the next
 section.
 
 
@@ -2340,11 +2375,11 @@ and the stretching handover zone of Sec.~\ref{sec:epphandover}, which
 takes over as the Reynolds number falls: at this Reynolds number the
 model's extended laminar separation fails to close at all.
 Sections~\ref{sec:eppbistab}
-and~\ref{sec:epphandover} take this failure apart: in the computation
-the flow here admits two states (the experiment at $10^5$ is
-single-branched; its two branches appear at $6\!\times\!10^4$), and what
-selects the
-burst state is the length of the model's transition zone. The measured pressures confirm
+and~\ref{sec:epphandover} take this failure apart: the computed state
+is unique---every initialization converges to it, on relaxation times
+an order of magnitude longer than anywhere else in the sweep---and
+what makes that unique state the burst one is the length of the
+model's transition zone. The measured pressures confirm
 the computed bubble structure where the bubble does close: the
 suction-side plateau of the separated shear layer appears in the
 open-circle data at $3\!\times\!10^5$ exactly where the computed $C_p$
@@ -2451,7 +2486,7 @@ transition, reattachment, and the forces that follow.
   \label{fig:eppresweep_high}
 \end{figure}
 
-\subsection{Two branches: the bistable band}\label{sec:eppbistab}
+\subsection{Initialization independence: one state, slowly found}\label{sec:eppbistab}
 
 The experiment itself says the $6\!\times\!10^4$ condition is not
 single-valued. There the LTPT observed \emph{two}
@@ -2479,60 +2514,79 @@ pressures at $\alpha\!\approx\!5^\circ$ that coincide to repeat
 accuracy.
 
 Whether the \emph{model} has two branches is a question about
-initial conditions, and the sweep provides the natural probe: fork the
-two converged L2 solutions at
-$Re\!=\!2\!\times\!10^5$---attached flow with a short,
-closed bubble---to a lower Reynolds number by changing only the
-reference viscosity, and let the solver relax. If the model is
-bistable, the warm start should hold a reattaching state that the
-cold (freestream) start misses. Table~\ref{tab:eppfork} shows the
-outcome on the two finest grids. At $10^5$ it does: both families
-retain a higher-lift, lower-drag state than their cold starts---the
-unstructured fork's lift lands on the measured value---though the
-drag stays well above the measurement and the structured fork has not
-fully settled after $20\,000$ further iterations (a slow
-$\Delta C\!\approx\!6\!\times\!10^{-3}$ cycle). At $6\!\times\!10^4$ the
-memory of the attached state is lost within the run and both forks
-return to the burst branch: the model is bistable near $10^5$ and
-monostable at $6\!\times\!10^4$, where the experiment is bistable. The
-band exists in the model, one Reynolds step above where the experiment
-puts it.
+initial conditions, and we probed it exhaustively on the two finest
+grids: a direct fork of each family's converged
+$Re\!=\!2\!\times\!10^5$ solution---attached flow with a short, closed
+bubble---to $10^5$ and to $6\!\times\!10^4$ (only the reference
+viscosity changed); a slow descent that lowers the Reynolds number one
+tabulated step at a time
+($2\!\times\!10^5\!\to\!1.5\!\times\!10^5\!\to\!10^5\!\to\!
+8\!\times\!10^4\!\to\!6\!\times\!10^4$, each step warm-started from
+the last); a slow climb from the $6\!\times\!10^4$ burst state up
+through $8\!\times\!10^4$ to $10^5$; and $40\,000$-iteration
+extensions of every $10^5$ endpoint. Table~\ref{tab:eppfork} shows
+the outcome. At $10^5$ every path converges to one family-specific
+state---lift agreeing to $\le\!0.005$ and drag to
+$\le\!5\!\times\!10^{-4}$ across cold, forked, descended, and climbed
+initializations---and at $6\!\times\!10^4$ the memory of the attached
+state is lost within $20\,000$ iterations on every path. \emph{The
+model is monostable throughout the sweep.} What the initialization
+studies expose instead is the relaxation time: at $10^5$ the
+transients are enormous---the direct fork first gains lift, suffers a
+bursting excursion, and recovers; the climb from the burst side
+overshoots to $c_l\!=\!0.89$ (the unstructured family) before
+settling back---and convergence takes
+$4$--$6\!\times\!10^4$ iterations, an order of magnitude longer than
+anywhere else in the sweep, with excursions of $\pm0.06$ in $c_l$
+along the way. The model sits close to a fold at $10^5$ without
+crossing it: slow dynamics, a single attractor. The experiment's
+two-state structure at $6\!\times\!10^4$ therefore has \emph{no
+counterpart in the model}: where the measurement is bistable the model
+is monostable on the burst branch, and at $10^5$, where both are
+single-state, the model's state is the non-closing one while the
+measured flow reattaches at $0.67\,c$.
 
 \begin{table}[tp]
   \centering
   \small
-  \caption{Initialization forks at $\alpha\!=\!5^\circ$ on the two finest
-  (L2) grids: each case restarted from its family's converged
-  $Re\!=\!2\!\times\!10^5$ solution with only the reference viscosity
-  changed, versus the freestream-initialized (cold) solution of the
-  sweep and the LTPT measurement. At $10^5$ the fork holds a distinct,
-  higher-lift branch ($^\ast$the structured fork retains a slow
-  $\Delta C\!\approx\!6\!\times\!10^{-3}$ limit cycle after $20\,000$
-  iterations; values are medians); at $6\!\times\!10^4$ both forks
-  return to the burst branch. The $6\!\times\!10^4$ Exp column quotes
-  the \emph{reattaching}-branch measurement (Table~B1 at
-  $\alpha\!=\!4.99^\circ$); on the non-reattaching branch the measured
-  lift is $\approx\!0.64$ ($\alpha\!=\!5.51^\circ$), on top of the
-  computed values.
-  (Repro: \texttt{repro/cfd/run\_bistability\_forks.py}.)}
+  \caption{Initialization independence at $\alpha\!=\!5^\circ$,
+  $Re\!=\!10^5$, on the two finest (L2) grids: the converged state
+  reached from four initializations---freestream (cold), a direct fork
+  of the family's converged $2\!\times\!10^5$ solution, a slow descent
+  through $1.5\!\times\!10^5$, and a slow climb from the
+  $6\!\times\!10^4$ burst state through $8\!\times\!10^4$---each warm
+  path extended $40\,000$ iterations beyond its arrival (medians over
+  the final $20\%$; residual drift $\le\!2\!\times\!10^{-4}$;
+  $^\ast$the slow-descent entries are $20\,000$-iteration arrival
+  values, mid-relaxation, their extensions still running).
+  At $6\!\times\!10^4$ (lower block) every warm start returns to the
+  cold (burst) state within $20\,000$ iterations. The $6\!\times\!10^4$
+  Exp column quotes the \emph{reattaching}-branch measurement
+  (Table~B1 at $\alpha\!=\!4.99^\circ$); on the non-reattaching branch
+  the measured lift is $\approx\!0.64$ ($\alpha\!=\!5.51^\circ$), on
+  top of the computed values.
+  (Repro: \texttt{repro/cfd/run\_bistability\_forks.py},
+  \texttt{run\_continuation\_ladders.py}, \texttt{run\_fork\_extensions.py},
+  \texttt{run\_dn\_extensions.py}.)}
   \label{tab:eppfork}
-  \begin{tabular}{ll cc cc cc}
+  \begin{tabular}{ll cc cc cc cc cc}
     \toprule
-    & & \multicolumn{2}{c}{cold start} & \multicolumn{2}{c}{forked from $2\!\times\!10^5$} & \multicolumn{2}{c}{Exp (LTPT)}\\
-    \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
-    $Re$ & family & $c_l$ & $c_d$ & $c_l$ & $c_d$ & $c_l$ & $c_d$ \\
+    & & \multicolumn{2}{c}{cold} & \multicolumn{2}{c}{fork $2\!\times\!10^5$}
+    & \multicolumn{2}{c}{slow descent} & \multicolumn{2}{c}{slow climb} & \multicolumn{2}{c}{Exp (LTPT)}\\
+    \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}\cmidrule(lr){11-12}
+    $Re$ & family & $c_l$ & $c_d$ & $c_l$ & $c_d$ & $c_l$ & $c_d$ & $c_l$ & $c_d$ & $c_l$ & $c_d$ \\
     \midrule
-    $10^5$ & unstructured & 0.859 & 0.0341 & 0.877 & 0.0318 & 0.873 & 0.0237 \\
-           & structured   & 0.769 & 0.0444 & $0.819^\ast$ & $0.0400^\ast$ & & \\
-    $6\!\times\!10^4$ & unstructured & 0.695 & 0.0522 & 0.701 & 0.0516 & 0.838 & 0.0439 \\
-           & structured   & 0.621 & 0.0541 & 0.625 & 0.0536 & & \\
+    $10^5$ & unstructured & 0.859 & 0.0341 & 0.860 & 0.0341 & $0.832^\ast$ & $0.0367^\ast$ & 0.859 & 0.0341 & 0.873 & 0.0237 \\
+           & structured   & 0.769 & 0.0444 & 0.764 & 0.0449 & $0.739^\ast$ & $0.0463^\ast$ & 0.769 & 0.0444 & & \\
+    $6\!\times\!10^4$ & unstructured & 0.695 & 0.0522 & 0.694 & 0.0521 & 0.694 & 0.0522 & --- & --- & 0.838 & 0.0439 \\
+           & structured   & 0.621 & 0.0541 & 0.607 & 0.0535 & 0.619 & 0.0541 & --- & --- & & \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 \subsection{The unmodeled transition zone sets the bursting boundary}\label{sec:epphandover}
 
-Why does the model's band sit high? The blend of
+Why does the model burst where the measurement reattaches? The blend of
 Sec.~\ref{sec:blend} deliberately represents no transition physics: the
 handover from amplification to SA production is an interpolation in
 $\chi$, adopted on the grounds that the actively transitional region is
@@ -2562,9 +2616,11 @@ in bubble DNS is similarly abrupt~\cite{alam_sandham_2000,
 spalart_strelets_2000}. The conclusion is specific: it is not the onset
 placement but the \emph{length of the modeled transition zone}---the
 deliberately unphysical $\sigma_t$ interpolation---that starves the
-bubble of eddy viscosity, selects the burst branch, and pushes the
-bursting boundary and the bistable band one Reynolds step above the
-measurement. A transition-zone closure with physical content (a
+bubble of eddy viscosity, makes the model's unique state the burst
+one, and pushes the
+bursting boundary one Reynolds step above the
+measurement---while erasing the two-state structure the experiment
+shows at $6\!\times\!10^4$. A transition-zone closure with physical content (a
 spot-growth or intermittency model replacing the fixed-$\chi$-width
 interpolation) is the identified remedy, left to future work.
 
@@ -2593,8 +2649,8 @@ interpolation) is the identified remedy, left to future work.
   half-saturation column). The unstructured family agrees on the
   half-saturation
   lengths to $0.05\,c$; at $10^5$ its full-production station differs
-  strongly ($0.20$ vs $0.55\,c$)---itself a signature of the bistable
-  regime. (Repro: \texttt{repro/cfd/analyze\_handover\_length.py}.)}
+  strongly ($0.20$ vs $0.55\,c$)---itself a mark of the near-fold
+  sensitivity of this condition. (Repro: \texttt{repro/cfd/analyze\_handover\_length.py}.)}
   \label{tab:epphandover}
   \begin{tabular}{l cccc}
     \toprule
@@ -2872,10 +2928,13 @@ reattachment), and the two independently-generated mesh families
 agree to within $0.02\,c$ of chord on every transition front and to
 $0.005$--$0.021\,c$ on the Eppler reattachment at L2. The Reynolds sweep
 also locates the model's low-$Re$ boundary: the Eppler bubble fails to
-close at $10^5$ on every grid, and initialization forks show the model
-carries the experiment's bistable band (reattaching and burst branches
-at the same condition) one Reynolds step above the measured
-$6\!\times\!10^4$---traced quantitatively to the length of the
+close at $10^5$ on every grid, and an exhaustive initialization study
+(cold starts, Reynolds-number forks, slow continuation in both
+directions, each endpoint extended to convergence) shows the computed
+state is \emph{unique} at every swept Reynolds number---the model
+places its bursting boundary one Reynolds step above the measurement
+and carries no counterpart of the two-state structure the experiment
+shows at $6\!\times\!10^4$---traced quantitatively to the length of the
 deliberately unmodeled transition zone, which at these Reynolds numbers
 grows to a macroscopic fraction of the chord and starves the bubble of
 eddy viscosity (Sec.~\ref{sec:epphandover}).
