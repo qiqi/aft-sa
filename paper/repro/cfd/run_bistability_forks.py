@@ -1,24 +1,38 @@
 """Bistability probe: warm-start Eppler a5 L2 cases at lower Re from the
-converged Re=200k (short-bubble) solutions, GPU 7, sequential."""
+converged Re=200k (short-bubble) solutions, GPU 7, sequential.
+
+Fork construction is run_continuation_ladders.clone(): copy the solver
+inputs from the family's {fam}L2prop Re=200k case, seed with its end-of-run
+restart (restartOutput/restart_rank_*.dmp + restart.json), and edit
+Flow360.json to muRef=0.1/Re, restart=true, maxPseudoSteps=20000. The env
+is the campaign canon incl. AI_LAMINAR_SLOWDOWN=0.01 (load-bearing: the
+copied JSON seed is slowdown-compensated -- see canon_env()).
+
+Usage: python3 run_bistability_forks.py [fam gpu]   (default: both, GPU 7)
+"""
 import sys, os, json, csv
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, "/home/qiqi/flexcompute/flexfoil/rans")
 sys.path.insert(0, "/home/qiqi/flexcompute/sa-ai/paper/repro")
 sys.path.insert(0, "/home/qiqi/flexcompute/sa-ai/paper/repro/driver")
-from rans.env import make_env
 from rans.solve import run_solver
-import saai_env
+from run_continuation_ladders import clone, canon_env, write_ai_constants
 import numpy as np
 
 FR = "/home/qiqi/flexcompute/sa-ai/flow360_fr"
-results = {}
-for tag in ("fork_strL2_Re100k_a5", "fork_cavL2_Re100k_a5",
-            "fork_strL2_Re60k_a5", "fork_cavL2_Re60k_a5"):
+FAMS = (sys.argv[1],) if len(sys.argv) > 2 else ('str', 'cav')
+GPU = int(sys.argv[2]) if len(sys.argv) > 2 else 7
+results_path = f"{FR}/fork_bistability_results.json"
+results = json.load(open(results_path)) if os.path.exists(results_path) else {}
+for tag in [f"fork_{f}L2_Re{Rk}k_a5" for f in FAMS for Rk in (100, 60)]:
     wd = f"{FR}/{tag}"
-    env, find = make_env()
-    env.update(saai_env.canonical_ai_env())
+    fam, Rk = tag.split('_')[1][:3], int(tag.split('_Re')[1].split('k')[0])
+    clone(f"{FR}/{fam}L2prop_eppler387_Re200k_a5", wd, Rk)
+    env, find = canon_env()
     print(f"START {tag}", flush=True)
     try:
-        run_solver(wd, find, env, gpu=7, timeout=14400)
+        run_solver(wd, find, env, gpu=GPU, timeout=14400)
+        write_ai_constants(wd)
         rows = [r for r in list(csv.reader(open(f"{wd}/total_forces_v2.csv")))[1:] if len(r) > 3]
         t = rows[int(0.8*len(rows)):]
         cl = float(np.median([float(r[2]) for r in t]))
@@ -30,5 +44,5 @@ for tag in ("fork_strL2_Re100k_a5", "fork_cavL2_Re100k_a5",
     except Exception as e:
         results[tag] = dict(err=str(e)[:120])
         print(f"FAIL {tag}: {e}", flush=True)
-json.dump(results, open(f"{FR}/fork_bistability_results.json", "w"), indent=1)
+    json.dump(results, open(results_path, "w"), indent=1)
 print("FORKS-DONE", flush=True)

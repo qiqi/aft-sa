@@ -27,6 +27,32 @@ import numpy as np
 FR = "/home/qiqi/flexcompute/sa-ai/flow360_fr"
 MACH = 0.1
 STEPS = 20000
+
+
+def canon_env():
+    """The campaign env: canonical kernel constants + the laminar pseudo-time
+    slowdown (AI_LAMINAR_SLOWDOWN=0.01). The slowdown scales the freestream-BC
+    enforcement too, so the campaign case JSONs carry a pre-compensated seed
+    (modifiedTurbulentViscosityRatio = 0.01 * chi_inf); every clone made here
+    copies that JSON, so the slowdown env var is LOAD-BEARING -- without it
+    the effective freestream seed is 100x low."""
+    env, find = make_env()
+    env.update(saai_env.canonical_ai_env())
+    env["AI_LAMINAR_SLOWDOWN"] = "0.01"
+    return env, find
+
+
+def write_ai_constants(wd):
+    """Extract the solver's resolved-constants echo into ai_constants.log
+    (same per-case provenance record as the campaign runner)."""
+    try:
+        lines = open(f"{wd}/solver.log", errors='ignore').read().splitlines(keepends=True)
+        i = next((k for k, l in enumerate(lines)
+                  if 'SA-AI transition constants' in l), None)
+        if i is not None:
+            open(f"{wd}/ai_constants.log", 'w').writelines(lines[i:i + 16])
+    except OSError:
+        pass
 # outputs never copied into a clone (everything else is a solver input)
 OUT_PAT = ('.csv', '.log', '.vtu', '.pvtu', '.gltf', '.sock')
 OUT_NAMES = {'restartOutput', 'ipc_data', 'progress.csv', 'timer.json',
@@ -88,9 +114,9 @@ def main():
             t0 = time.time()
             try:
                 clone(src, wd, Rk)
-                env, find = make_env()
-                env.update(saai_env.canonical_ai_env())
+                env, find = canon_env()
                 run_solver(wd, find, env, gpu=gpu, timeout=14400)
+                write_ai_constants(wd)
                 dmp = f"{wd}/restartOutput/restart_rank_1_of_1.dmp"
                 assert os.path.getmtime(dmp) > t0, "no fresh restart dump"
                 results[tag] = forces(wd)

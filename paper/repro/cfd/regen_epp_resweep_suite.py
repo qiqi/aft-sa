@@ -182,7 +182,7 @@ def make_fig(re_list, out):
             for a in (ax_chi, ax_cp, ax_cf):
                 a.axvspan(xls, xtr, color='0.55', alpha=0.30, zorder=0)
         else:
-            ax_cp.text(0.03, 0.05, "no exp. bubble/$C_p$ data", transform=ax_cp.transAxes,
+            ax_cp.text(0.03, 0.05, "no oil-flow bubble data", transform=ax_cp.transAxes,
                        ha='left', va='bottom', fontsize=8, color='0.4', style='italic')
         # mfoil (or xfoil fallback) reference Cp/Cf
         use_xf = Rk in XFOIL_PRIMARY and Rk in XFOIL

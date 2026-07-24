@@ -33,8 +33,10 @@ RES = [60, 100, 200, 300, 460]
 
 EXP = {60: (0.838, 0.0439), 100: (0.873, 0.0237), 200: (0.891, 0.0138),
        300: (0.901, 0.0114), 460: (0.914, 0.0093)}
-# repeat scatter: caption of tab:eppresweep (order of magnitude larger at 60k)
-EXP_ERR = {Rk: (0.006, 0.0003) if Rk >= 100 else (0.05, 0.004) for Rk in RES}
+# repeat scatter: +-0.006/0.0003 at >=1e5 (tab:eppresweep caption); at the
+# bistable 60k, the half-spread of the three consecutive alpha=4.00 repeats
+# (cl 0.643/0.697/0.721, cd 0.0431/0.0386/0.0400)
+EXP_ERR = {Rk: (0.006, 0.0003) if Rk >= 100 else (0.039, 0.0023) for Rk in RES}
 
 bench = json.load(open(f'{B}/sphere_campaign_eppler_results.json'))
 swp = json.load(open(f'{B}/sphere_campaign_epp_sweep_results.json'))

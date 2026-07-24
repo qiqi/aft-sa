@@ -1,7 +1,7 @@
 """fig:nuhat -> paper/figs/fs_nuHat_rows.pdf.
 
 Disturbance transport on three Falkner-Skan layers (adverse -0.10, Blasius 0,
-favorable +0.30): N=ln(nuHat) contours (canonical model) + envelopes vs
+favorable +0.10): N=ln(nuHat) contours (canonical model) + envelopes vs
 Drela-Giles. Each right panel shows TWO marched envelopes: the untouched
 equation (c_nu,ai=1, k=1 -- the demonstration of why the reduction and the
 onset retuning are needed) and the canonical model (c_nu,ai=1/6, calibrated
@@ -77,7 +77,7 @@ def main():
                 j = np.where(N2d[i] >= 1.0)[0]
                 if len(j):
                     tops.append(yc[j[-1]]*ReyScale[i])
-            ylimL = 1.05*float(max(tops))
+            ylimL = 1.05*float(max(tops)) if tops else float(yc[-1]*ReyScale.max())
         cs = axL.contour(X, Y, N2d, levels=lev, colors='k', linewidths=0.7)
         axL.clabel(cs, levels=lev[::2], fmt='%d', fontsize=6.5, inline_spacing=2)
         th = I_th*np.sqrt(xs/np.maximum(Ue, 1e-30)); d99 = eta99*np.sqrt(xs/np.maximum(Ue, 1e-30))
