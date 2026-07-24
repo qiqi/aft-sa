@@ -518,6 +518,17 @@ EXP_XTR = {0: {'upper': (0.38, False), 'lower': (0.55, False)},
            15: {'upper': None,         'lower': (0.66, True)}}
 
 
+def _n_pre_transition(x, n):
+    """e^N envelope up to its transition point: past transition the
+    reference resets N to zero -- an artifact, not an envelope."""
+    import numpy as _np
+    x = _np.asarray(x, float); n = _np.asarray(n, float)
+    if not _np.isfinite(n).any():
+        return x, n
+    i = int(_np.nanargmax(n))
+    return x[:i + 1], n[:i + 1]
+
+
 def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=80):
     """5 rows × len(alphas) cols. Rows top-to-bottom:
        (1) max Re_Omega along 0.01c wall-normal probe (purely kinematic);
@@ -537,7 +548,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
     any_mfoil = any(float(a) in mn and _mfoil_usable(mn[float(a)]) for a in alphas)
     any_xfoil = any(_xfoil_fill(a) for a in alphas)
     any_ff = any(_ff_fill(a) for a in alphas)
-    fig, axs = plt.subplots(5, len(alphas), figsize=(5*len(alphas), 13), sharex=True)
+    fig, axs = plt.subplots(5, len(alphas), figsize=(5.76*len(alphas), 13), sharex=True)
     if len(alphas) == 1: axs = axs[:, None]
     for col, alpha in enumerate(alphas):
         ax_reo = axs[0, col]; ax_P = axs[1, col]
@@ -569,9 +580,11 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         if col == 0: ax_reo.set_ylabel(r'$\max Re_\Omega$ (log)')
         # max P = Shat*g, the sphere rate coordinate: P>0 (above the dotted line)
         # is the amplifying, inflectional side; the rate is a_max clip<P>.
-        ax_P.axhline(0.0, color='gray', ls=':', lw=0.6, alpha=0.5)
-        ax_P.set_ylim(-0.3, 1.0); ax_P.grid(alpha=0.3)
-        if col == 0: ax_P.set_ylabel(r'$\max \hat S g$')
+        # log scale, same Shat*g range as the onset-threshold figure
+        # (fig02_onset_graze); suppressed/favorable values <= 0 drop below
+        ax_P.set_yscale('log')
+        ax_P.set_ylim(3e-3, 1.3); ax_P.grid(alpha=0.3, which='both')
+        if col == 0: ax_P.set_ylabel(r'$\max \hat S g$ (log)')
         # ROW 3: chi + N
         for mesh in meshes:
             for level in LEVELS_CF:  # configurable level set
@@ -586,15 +599,15 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
                 ax_n.semilogy(xc, ml/NU, ls=ls, lw=lw, color=LO_COLOR)
         if float(alpha) in mn and _mfoil_usable(mn[float(alpha)]):
             md = mn[float(alpha)]
-            ax_nN.plot(md['upper']['x'], md['upper']['n'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
-            ax_nN.plot(md['lower']['x'], md['lower']['n'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
+            ax_nN.plot(*_n_pre_transition(md['upper']['x'], md['upper']['n']), ':', color=UP_COLOR, lw=1.2, alpha=0.5)
+            ax_nN.plot(*_n_pre_transition(md['lower']['x'], md['lower']['n']), ':', color=LO_COLOR, lw=1.2, alpha=0.5)
             ax_nN.axhline(9.0, color='gray', ls=':', lw=0.6, alpha=0.6)
             if md.get('xtr_upper') is not None: ax_n.axvline(md['xtr_upper'], color=UP_COLOR, ls=':', lw=0.6, alpha=0.5)
             if md.get('xtr_lower') is not None: ax_n.axvline(md['xtr_lower'], color=LO_COLOR, ls=':', lw=0.6, alpha=0.5)
         elif _ff_fill(alpha):
             fd = ffn[float(alpha)]
-            ax_nN.plot(fd['upper']['x'], fd['upper']['n'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
-            ax_nN.plot(fd['lower']['x'], fd['lower']['n'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
+            ax_nN.plot(*_n_pre_transition(fd['upper']['x'], fd['upper']['n']), ':', color=UP_COLOR, lw=1.2, alpha=0.5)
+            ax_nN.plot(*_n_pre_transition(fd['lower']['x'], fd['lower']['n']), ':', color=LO_COLOR, lw=1.2, alpha=0.5)
             ax_nN.axhline(9.0, color='gray', ls=':', lw=0.6, alpha=0.6)
             if _xfoil_fill(alpha):
                 xd = xf[float(alpha)]

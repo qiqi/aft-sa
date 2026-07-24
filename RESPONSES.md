@@ -228,3 +228,50 @@ growth is all induced. Predecessor sat 15–26 counts below this reference.
 Paper (ledger paragraph, fig caption, tab:daetotals, Appendix D) updated;
 the a6 reference refreshes when the L2 run lands (script picks up the
 finest completed case automatically).
+
+## 2026-07-24 ~22:40 — spheroid mesher built & validated (agent)
+spheroid/ogrid_spheroid.py: 6:1 prolate spheroid half-model O-grid reusing
+the Daedalus machinery (growth solver, pole treatment as prisms instead of
+the wing's slit-merge, Gmsh->CGNS via the flexfoil/rans pipeline).
+Symmetry plane y=0 (incidence in x-z), far field = sphere R=30L.
+L0 generated: 372,771 nodes, min Jacobian positive, wall/farfield/symmetry
+areas within 0.06% of analytic, volume closure 0.12%. L1: 2,204,111 nodes,
+areas within 0.02%. L2 projects 12.63M (not generated yet). Wall-spacing
+ladder: --h0 5e-6 halving per level (Daedalus convention), --h0-fixed and
+1.5e-6 flag for the Re=6.5e6 cases.
+Commands: python3 spheroid/ogrid_spheroid.py L0|L1|L2 [--h0 ...] [--summary]
+Next: L2 generation + a Flow360 case template (BCs, Mach 0.13/0.1, chi_inf
+from Tu=0.15% via Mack), then the alpha=10/Re=1.5e6 anchor ladder.
+
+## 2026-07-24 ~22:40 — plotting changes in flight
+(1) Four Cf-distribution figures (nlf/eppler low/high-alpha) widened
+    5->5.76 in/column, tex 0.86->0.99\textwidth — same rendered height,
+    near-full page width. Regenerating.
+(2) max(Shat*g) row now log scale, ylim 3e-3..1.3 (same range as the
+    onset-threshold figure); favorable/suppressed values drop below axis.
+(3) e^N envelopes now truncated at their transition point (the
+    post-transition reset to N=0 was an artifact of the reference dump,
+    not an envelope).
+
+## 2026-07-24 ~23:00 — who is closer to truth inside the LSB: e^N or SA-AI?
+Answer: e^N, on both halves — and SA-AI's reattachment agreement is a
+compensated error.
+- SA-AI over-amplifies inside the bubble via (1) LEDGER SPEED: nuHat peak
+  advects at ~half the physical packet (critical-layer) speed → ~2x e-folds
+  per unit length (intrinsic to local transport; Appendix-D frozen-profile
+  measurement), and (2) RATE CEILING: Shat*g saturates → a_max = detached-
+  tanh KH eigenvalue, while a shallow-bubble layer is still wall-damped
+  (resolved band 0.9–1.9x Drela–Giles). The in-bubble onset arm fixes only
+  the just-separated zone.
+- e^N + instant breakdown is closer to DNS truth (linear growth matches
+  LST; spot/roll breakdown within a few delta).
+- The agreement: too-fast climb + too-slow commit ≈ true climb + instant
+  commit. Compensation is Re-dependent: climb excess is a fixed FACTOR,
+  handover lag a fixed E-FOLD COUNT whose length grows as Re drops → the
+  cancellation breaks at 1e5/6e4 = the bursting-boundary displacement of
+  Sec. VI. fv1-bypass corroborates: fixing only the commit side closed the
+  1e5 bubble but CL 0.93 vs exp 0.873 (transition effectively early once
+  the climb excess is no longer absorbed).
+- Implication: truthful fix moves BOTH dials (rate down toward LST in the
+  bubble + faster commitment); either alone breaks the pairing. Sharper
+  framing of the "model the transition zone" future-work item.

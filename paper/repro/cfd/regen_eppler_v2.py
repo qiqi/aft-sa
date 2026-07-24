@@ -594,6 +594,17 @@ def ref_for(alpha):
     return None, None, False
 
 
+def _n_pre_transition(x, n):
+    """e^N envelope up to its transition point: past transition the
+    reference resets N to zero -- an artifact, not an envelope."""
+    import numpy as _np
+    x = _np.asarray(x, float); n = _np.asarray(n, float)
+    if not _np.isfinite(n).any():
+        return x, n
+    i = int(_np.nanargmax(n))
+    return x[:i + 1], n[:i + 1]
+
+
 def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=80):
     """5 rows × len(alphas) cols. Rows top-to-bottom:
        (1) max Re_Omega along 0.01c wall-normal probe (purely kinematic);
@@ -606,7 +617,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
     or pass e.g. ['str'] / ['cav'] for a single-family figure.
     """
     if meshes is None: meshes = ['cav','str']
-    fig, axs = plt.subplots(5, len(alphas), figsize=(5*len(alphas), 13), sharex=True)
+    fig, axs = plt.subplots(5, len(alphas), figsize=(5.76*len(alphas), 13), sharex=True)
     if len(alphas) == 1: axs = axs[:, None]
     for col, alpha in enumerate(alphas):
         ax_reo = axs[0, col]; ax_P = axs[1, col]
@@ -638,9 +649,11 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         if col == 0: ax_reo.set_ylabel(r'$\max Re_\Omega$ (log)')
         # max P = Shat*g, the sphere rate coordinate: P>0 (above the dotted line)
         # is the amplifying, inflectional side; the rate is a_max clip<P>.
-        ax_P.axhline(0.0, color='gray', ls=':', lw=0.6, alpha=0.5)
-        ax_P.set_ylim(-0.3, 1.0); ax_P.grid(alpha=0.3)
-        if col == 0: ax_P.set_ylabel(r'$\max \hat S g$')
+        # log scale, same Shat*g range as the onset-threshold figure
+        # (fig02_onset_graze); suppressed/favorable values <= 0 drop below
+        ax_P.set_yscale('log')
+        ax_P.set_ylim(3e-3, 1.3); ax_P.grid(alpha=0.3, which='both')
+        if col == 0: ax_P.set_ylabel(r'$\max \hat S g$ (log)')
         # ROW 3: chi + N
         for mesh in meshes:
             for level in ['L0', 'L1', 'L2']:  # all levels now current
@@ -656,8 +669,8 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         rd, rtag, has_N = ref_for(alpha)
         if rd is not None and 'upper' in rd:
             if has_N:                       # mfoil carries the amplification envelope
-                ax_nN.plot(rd['upper']['x'], rd['upper']['n'], ':', color=UP_COLOR, lw=1.2, alpha=0.5)
-                ax_nN.plot(rd['lower']['x'], rd['lower']['n'], ':', color=LO_COLOR, lw=1.2, alpha=0.5)
+                ax_nN.plot(*_n_pre_transition(rd['upper']['x'], rd['upper']['n']), ':', color=UP_COLOR, lw=1.2, alpha=0.5)
+                ax_nN.plot(*_n_pre_transition(rd['lower']['x'], rd['lower']['n']), ':', color=LO_COLOR, lw=1.2, alpha=0.5)
                 ax_nN.axhline(9.0, color='gray', ls=':', lw=0.6, alpha=0.6)
             if rd.get('xtr_upper') is not None: ax_n.axvline(rd['xtr_upper'], color=UP_COLOR, ls=':', lw=0.6, alpha=0.5)
             if rd.get('xtr_lower') is not None: ax_n.axvline(rd['xtr_lower'], color=LO_COLOR, ls=':', lw=0.6, alpha=0.5)
