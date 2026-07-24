@@ -867,3 +867,12 @@ forming s_hat.
   their sqrt(2e5/Re) scaling) so the handover above the bubble shear
   layer stays in frame; probe resolution 140 -> 320 points to keep
   near-wall sampling. All 16 sheets regenerating in the background.
+
+## 2026-07-25 ~03:00 — chi sheets committed (70ec237)
+All 16 sheets regenerated with the new levels (chi = 30 and 100 past
+c_v1) and the 5x Eppler upper range. Visual check (Re=1e5 upper): the
+handover fan above the bubble shear layer is fully in frame, and the
+low-Re RE-SEEDING TONGUE — near-wall chi contours running upstream
+along the wall to x~0.15, the cold-front signature — is now directly
+readable in the L2 rows, giving the Sec. VI mechanism its visual
+counterpart in the appendix. Build clean.
