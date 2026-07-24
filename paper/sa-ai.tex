@@ -2688,25 +2688,27 @@ $C_L\!\approx\!1.02$--$1.23$ about the design lift, with the flight-quiet
 freestream seed $\chi_\infty\!=\!8.76\!\times\!10^{-6}$
 ($N_\mathrm{crit}\!\approx\!13.6$ by the map of
 Sec.~\ref{sec:calib_tu}, the flight-environment amplification level of the
-Daedalus design work~\cite{drela_daedalus_1988}). The solver is that of the airfoil studies; the
-computations of this section predate the second gate pinch and carry
-the predecessor kernel---the $Q_1$-only gate with its own three-anchor
-constants---so the sole modeling difference from
-Secs.~\ref{sec:flatplate}--\ref{sec:eppval} is the in-bubble
-amplification that $Q_2$ regulates, which on two-dimensional sections
-in this wing's Reynolds range shifts bubble transition by at most
-$0.02\,c$ (Sec.~\ref{sec:eppval}); a re-computation with the final
-kernel is planned. Two mesh families are used: a structured O-grid
+Daedalus design work~\cite{drela_daedalus_1988}). The solver and
+kernel are exactly those of the airfoil studies: an earlier campaign
+with the predecessor kernel (the $Q_1$-only gate with its own
+three-anchor constants) exposed the compressed-bubble deficiency
+discussed below, and this section reports the recomputation with the
+final model. Two mesh families are used: a structured O-grid
 stacked spanwise and pinched to a line at the tip, and a classical
 three-dimensional unstructured mesh---anisotropic boundary-layer
 prisms at the wall, hexahedra in the far field, and tetrahedra joining
-the two---at three refinement levels each
-(Table~\ref{tab:daemesh}; construction in Appendix~D); the reference
+the two---at the L1 and L2 refinement levels of
+Table~\ref{tab:daemesh} (construction in Appendix~D); the reference
 is the same $e^N$ framework
 used throughout---a vortex-lattice model (AVL~\cite{drela_youngren_avl}) with strip-wise XFOIL
 section polars at matched
 local $c_l$ and $N_\mathrm{crit}$, and FlexFoil amplification envelopes at
-section conditions (Sec.~\ref{sec:eppresweep}). Eighteen converged RANS solutions underlie the comparison.
+section conditions (Sec.~\ref{sec:eppresweep}). Eight converged RANS
+solutions underlie the comparison---both families at L1 at all three
+incidences, plus the structured family at L2 for
+$\alpha\!=\!4^\circ,5^\circ$; the remaining finest-grid runs
+(structured L2 at $6^\circ$, unstructured L2 at all three) are still
+in progress and are excluded from the figures and tables that follow.
 
 \begin{table}[tp]
   \centering
@@ -2720,7 +2722,8 @@ section conditions (Sec.~\ref{sec:eppresweep}). Eighteen converged RANS solution
   the exact station spacings. The around-the-section rows are measured
   at the $\eta\!=\!0.30$ section as in Tables~\ref{tab:nlfmesh}
   and~\ref{tab:eppmesh}; the $y^+$ percentiles are from the
-  $\alpha\!=\!5^\circ$ solutions.}
+  $\alpha\!=\!5^\circ$ solutions (for levels whose final-kernel run is
+  pending, from the predecessor-kernel campaign on the same meshes).}
   \label{tab:daemesh}
   \begin{tabular}{l ccc ccc}
     \toprule
@@ -2756,11 +2759,12 @@ section conditions (Sec.~\ref{sec:eppresweep}). Eighteen converged RANS solution
   \centering
   \includegraphics[width=0.99\textwidth]{daedalus_polar_sectional.pdf}
   \caption{The macroscopic comparison. \textbf{(a)} Wing polar: both
-  mesh families at all three refinement levels (color = family, line
+  mesh families at L1 and, where completed, L2 (color = family, line
   weight = level) against the AVL$+$XFOIL (vortex-lattice $+$ section
   polars) reference at
   matched $N_\mathrm{crit}$. \textbf{(b)} Sectional lift on the finest
-  (L2) grids at $\alpha\!=\!4^\circ,5^\circ,6^\circ$ against the AVL
+  completed grids (structured L2 at $\alpha\!=\!4^\circ,5^\circ$,
+  otherwise L1) against the AVL
   distribution (dotted), with sectional drag on the right axis (thin
   lines; the dotted reference is AVL induced drag, Trefftz-rescaled,
   plus the FlexFoil section profile drag): the loading agrees inboard
@@ -2771,13 +2775,15 @@ section conditions (Sec.~\ref{sec:eppresweep}). Eighteen converged RANS solution
 
 The macroscopic ledger comes first (Fig.~\ref{fig:daepolar}; the
 per-level coefficients are tabulated in Appendix~D,
-Table~\ref{tab:daetotals}). The two families' total $C_D$, apart by
-$9.6\%$ on the coarse grids (the unstructured family's prism-to-tet
-transition dominates its L0 drag), close to $1.1\%$ at L2 with $C_L$
-agreeing to $0.5\%$, and both polars run parallel to the AVL$+$XFOIL
-reference---$\sim\!5\%$ above it in lift and $40$--$50$ drag counts
-below, the sign expected from the under-predicted bubble length of
-the predecessor kernel these computations carry (see below). Sectional lift on the finest grids
+Table~\ref{tab:daetotals}). The two families agree at L1 to
+$0.6$--$0.8\%$ in $C_L$ and $0.9$--$1.8\%$ in $C_D$, and both polars
+run parallel to the AVL$+$XFOIL reference---$\sim\!5\%$ above it in
+lift and $30$--$36$ drag counts below. (The predecessor-kernel
+campaign sat $40$--$50$ counts below the same reference; the final
+kernel's longer bubble---see below---returns $6$--$14$ counts of the
+missing bubble drag, and the refinement step L1$\to$L2 adds another
+$3$--$4$ counts toward the reference.) Sectional lift on the finest
+completed grids
 (Fig.~\ref{fig:daepolar}b) matches the vortex-lattice distribution
 inboard to $\sim\!1\%$ and reproduces, identically on both families,
 the dip--recovery structure at the taper break that the vortex lattice
@@ -2787,17 +2793,18 @@ smooths over.
   \centering
   \includegraphics[width=0.99\textwidth]{daedalus_surface_a4.pdf}
   \caption{Daedalus wing upper surface at $\alpha\!=\!4^\circ$, finest
-  grids only, chord horizontal and span vertical (contour lines):
+  completed grids, chord horizontal and span vertical (contour lines):
   $-C_p$ (left), streamwise skin friction $C_{f,x}$ (middle; the
   laminar separation bubble is bounded by the bold $C_{f,x}\!=\!0$
   contour), and the near-wall amplification $\max_n\chi$ in decade
   contours (right; bold: the model's transition front
-  $\chi\!=\!1$). Rows: structured O-grid L2, unstructured L2, and the
+  $\chi\!=\!1$). Rows: structured O-grid L2 and the
   section-by-section $e^N$ reference---FlexFoil at each station's AVL
   $c_l$, local chord Reynolds number, and
   $N_\mathrm{crit}\!=\!13.6$, its $C_p$ from the Karman--Tsien-corrected
   edge velocity and its amplification drawn as $\chi_\infty e^{N}$ at
-  the same decade levels (bold: $N\!=\!N_\mathrm{crit}$).}
+  the same decade levels (bold: $N\!=\!N_\mathrm{crit}$). The
+  unstructured-L2 row will be added when that run completes.}
   \label{fig:daesurf4}
 \end{figure}
 
@@ -2808,77 +2815,65 @@ smooths over.
   \label{fig:daesurf5}
 \end{figure}
 
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.99\textwidth]{daedalus_surface_a6.pdf}
-  \caption{As Fig.~\ref{fig:daesurf4}, at $\alpha\!=\!6^\circ$.}
-  \label{fig:daesurf6}
-\end{figure}
 
 The flow itself is read from the surface maps of
-Figs.~\ref{fig:daesurf4}--\ref{fig:daesurf6}: the two finest RANS
-solutions against the $e^N$ strips, column by column. The $-C_p$ maps
-agree between all three rows on the loading and carry the bubble's
+Figs.~\ref{fig:daesurf4} and~\ref{fig:daesurf5}: the finest completed
+RANS solution against the $e^N$ strips, column by column. The $-C_p$
+maps
+agree on the loading and carry the bubble's
 pressure plateau at mid-chord. The $C_{f,x}$ maps carry the bubble
-itself: a spanwise-uniform
-negative band on both RANS families whose front edge (laminar
-separation) coincides with the strips' to $\sim\!0.01\,c$, but which
-closes three to four times sooner---the RANS bubble spans
-$0.04$--$0.06\,c$ against the strips' $\sim\!0.2\,c$. The $\chi$ maps
-show why: the transported amplification crosses $\chi\!=\!1$ (bold in
-the figure)
-$\sim\!0.1\,c$ ahead of the strips' $N_\mathrm{crit}$ contour, so
-turbulence closes the bubble almost immediately after separation. On
-the coarser grids (not shown) the bubble is suppressed outright---at L0
-it survives at only $2$ of $36$ spanwise stations---and the front
-marches aft under refinement,
-$0.565\!\to\!0.589\!\to\!0.613$ at $\alpha\!=\!4^\circ$ on the
-structured family against the reference's $0.628$, the families
-agreeing to $\sim\!0.01\,c$ at L2. The converged answer is bubble
-transition, agreeing with the $e^N$ description on type and to
-$0.02$--$0.03\,c$ on front location; the compressed bubble is the one
-systematic difference.
+itself: a spanwise-uniform negative band whose extent now matches the
+strips' station by station---at $\eta\!=\!0.31$,
+$\alpha\!=\!4^\circ$ the RANS bubble spans $0.49$--$0.66\,c$ against
+the strips' $0.47$--$0.66\,c$, and at $5^\circ$ $0.47$--$0.65\,c$
+against $0.47$--$0.65\,c$: separation agrees to $0.02\,c$ and
+reattachment to under $0.01\,c$. The reattachment is also the quantity
+still moving under refinement---$0.63$ at L1 to $0.66$ at L2 against
+the strips' $0.66$---while separation and the $\chi$ field are
+level-converged, and the two families agree at L1 to $0.01\,c$ on
+both edges. The $\chi$ maps show the anatomy: the transported
+amplification crosses $\chi\!=\!1$ (bold in the figure)
+$\sim\!0.09\,c$ ahead of the strips' $N_\mathrm{crit}$ contour---the
+expected offset, since $\chi\!=\!1$ sits $\ln(1/\chi_\infty)\!=\!11.7$
+$e$-folds up the same envelope against the strips'
+$N_\mathrm{crit}\!=\!13.6$, and the in-bubble envelope climbs
+$\sim\!2$ $e$-folds per $0.09\,c$---but the eddy viscosity behind
+that front takes the remainder of the strips' bubble length to reach
+closing strength, exactly the handover anatomy measured in two
+dimensions in Sec.~\ref{sec:eppresweep}.
 
-The blind spot this exposes is one the predecessor kernel of these
-computations carries, and it is the blind spot the final model's second
-gate pinch was built to close. On the predecessor kernel the
-reversed-flow branch of the calibration's own instrument (the same
-march as Fig.~\ref{fig:calibrate}, run with that kernel; not shown)
-ran above the Drela--Giles correlation immediately
-beyond separation, at $1.3$--$1.8\times$ across $H\!=\!4.9$--$10.6$: a
-just-separated layer is wall-damped, its instability approaching the
-free-shear rate only as it lifts several $\theta$ off the surface, while
-the ungated kernel applied the full ceiling from the separation point
-on, and---as the frozen-profile ledger of Appendix~D measures in
-temporal units---the transported $\tilde\nu$ peak rode below the
-physical critical layer at roughly half its convection speed, banking
-nearly twice the $e$-folds per unit length. This excess is intrinsic to a temporal rate advected by the
-local velocity (\S\ref{sec:reproduce}); on frozen reversed-flow
-profiles the resolved amplifying band returns the spatial growth to
-$0.9$--$1.9\times$ the correlation (Fig.~\ref{fig:calibrate}a and the
-Appendix~D ledger---against a correlation whose own validity fades at
-those depths), and on the two-dimensional Eppler
-sections the in-bubble amplification it regulates moves transition by at
-most $0.02\,c$ (Sec.~\ref{sec:eppval}). The compressed wing bubble is
-therefore expected to lengthen toward the strips under the final kernel;
-a re-computation is planned. At force level the present penalty is
-small---$0.02$--$0.03\,c$ of front position and a few counts of section
-drag---which is why the predecessor-kernel results are reported here as
-a faithful three-dimensional deployment while the corrected bubble
-lengths await the re-run.
+This bubble length is the final kernel's correction at work: the
+predecessor-kernel campaign on the same grids returned the same
+fronts but closed the bubble three to four times sooner
+($0.04$--$0.06\,c$). That kernel applied the free-shear ceiling from
+the separation point on, while a just-separated layer is still
+wall-damped---its instability approaches the free-shear rate only as
+it lifts several $\theta$ off the surface---and, as the frozen-profile
+ledger of Appendix~D measures in temporal units, its transported
+$\tilde\nu$ peak rode below the physical critical layer at roughly
+half its convection speed, banking nearly twice the $e$-folds per unit
+length (an excess intrinsic to a temporal rate advected by the local
+velocity, \S\ref{sec:reproduce}). The second gate pinch was built to
+close exactly this blind spot, and the recomputation confirms it
+does: the wing bubble lengthened from $0.04$--$0.06\,c$ to the
+strips' $\sim\!0.2\,c$, and the $6$--$14$ counts of bubble drag that
+the predecessor was missing returned to the polar.
 
 Two spanwise phenomena, invisible to any sectional diagnostic, close
 the study; both are read directly off the maps of
-Figs.~\ref{fig:daesurf4}--\ref{fig:daesurf6}. Outboard of the taper
-break the falling chord Reynolds number drives the front aft to
-$x/c\!\approx\!0.95$---the outer wing runs laminar, the $\chi$ and
-$C_{f,x}$ bands bending aft in unison on both families and on the
-strips. And over the last two percent of span the tip vortex trips the
-boundary layer, pulling transition to the leading edge in a compact
-patch at the tip (the bright sliver at the top of the RANS $\chi$
-maps): a genuinely three-dimensional transition mechanism, captured by
-the transported amplification with no special treatment---and absent,
-necessarily, from the sectional $e^N$ row.
+Figs.~\ref{fig:daesurf4} and~\ref{fig:daesurf5}. Outboard of the taper
+break the falling chord Reynolds number stretches the bubble toward
+the trailing edge---at $\alpha\!=\!4^\circ$ its reattachment retreats
+from $0.66\,c$ at $\eta\!=\!0.31$ to $0.79\,c$ at $\eta\!=\!0.92$ and
+$0.95\,c$ at $\eta\!=\!0.97$, mirroring the strips'
+$0.66\!\to\!0.74\!\to\!0.84$, the $C_{f,x}$ bands bending aft in
+unison. And over the last half-percent of span the tip vortex trips
+the boundary layer, pulling transition to the leading edge in a
+compact patch at the tip ($\chi$ exceeds unity from the leading edge
+for $\eta\!\gtrsim\!0.995$; the bright sliver at the top of the RANS
+$\chi$ maps): a genuinely three-dimensional transition mechanism,
+captured by the transported amplification with no special
+treatment---and absent, necessarily, from the sectional $e^N$ row.
 
 \section{Conclusion}
 
@@ -2946,7 +2941,13 @@ and carries no counterpart of the two-state structure the experiment
 shows at $6\!\times\!10^4$---traced quantitatively to the length of the
 deliberately unmodeled transition zone, which at these Reynolds numbers
 grows to a macroscopic fraction of the chord and starves the bubble of
-eddy viscosity (Sec.~\ref{sec:epphandover}).
+eddy viscosity (Sec.~\ref{sec:epphandover}). In three dimensions, on
+the Daedalus wing at flight conditions, the completed runs of the
+final-kernel campaign put the mid-span bubble's separation within
+$0.02\,c$ and its reattachment within $0.01\,c$ of the strip-theory
+$e^N$ reference, and capture two spanwise mechanisms no sectional
+method sees---the outboard bubble stretch past the taper break and the
+tip-vortex trip (Sec.~\ref{sec:daedalus}).
 
 Several extensions follow. The clearest limitation is the linear rate's
 under-amplification of strongly favorable and strongly separated profiles---the
@@ -3274,11 +3275,12 @@ size at the interface seeded from the area-equivalent edge length of
 the surface triangles and the prism stack terminated where its height
 reaches the local isotropic scale. Sizes, spanwise-station and
 around-the-section resolution are tabulated in the main text
-(Table~\ref{tab:daemesh}). All eighteen solutions use the
-airfoil-study solver settings with the predecessor kernel (see the note
-opening Sec.~\ref{sec:daedalus}) and are converged to
-steady or small-limit-cycle force histories; tabulated coefficients are
-means over the final 500 steps.
+(Table~\ref{tab:daemesh}). All solutions use the airfoil-study solver
+settings with the final kernel (the recomputation noted at the opening
+of Sec.~\ref{sec:daedalus}; the completed set is both families at L1
+and the structured family at L2, $\alpha\!=\!4^\circ,5^\circ$) and are
+converged to steady or small-limit-cycle force histories; tabulated
+coefficients are means over the final 500 steps.
 
 \begin{table}[tp]
   \centering
@@ -3286,7 +3288,8 @@ means over the final 500 steps.
   \caption{Daedalus wing totals by grid level: SA-AI on both mesh
   families against the AVL$+$XFOIL reference (vortex-lattice induced drag by the
   Trefftz plane; XFOIL profile drag at matched local $c_l$ and
-  $N_\mathrm{crit}\!=\!13.6$, integrated over span).}
+  $N_\mathrm{crit}\!=\!13.6$, integrated over span). Dashes: runs of
+  the final-kernel recomputation still in progress.}
   \label{tab:daetotals}
   \begin{tabular}{cl cc cc}
     \toprule
@@ -3294,19 +3297,16 @@ means over the final 500 steps.
     \cmidrule(lr){3-4}\cmidrule(lr){5-6}
     $\alpha$ & level & $C_L$ & $C_D$ & $C_L$ & $C_D$\\
     \midrule
-    $4^\circ$ & L0 & 1.0253 & 0.01915 & 1.0177 & 0.02098\\
-              & L1 & 1.0321 & 0.01864 & 1.0240 & 0.01907\\
-              & L2 & 1.0300 & 0.01861 & 1.0260 & 0.01878\\
+    $4^\circ$ & L1 & 1.0278 & 0.01957 & 1.0211 & 0.01975\\
+              & L2 & 1.0282 & 0.01997 & --- & ---\\
               & AVL$+$XFOIL & 0.9758 & 0.02318 & &\\
     \midrule
-    $5^\circ$ & L0 & 1.1268 & 0.02178 & 1.1173 & 0.02387\\
-              & L1 & 1.1346 & 0.02110 & 1.1253 & 0.02170\\
-              & L2 & 1.1315 & 0.02105 & 1.1279 & 0.02131\\
+    $5^\circ$ & L1 & 1.1300 & 0.02212 & 1.1225 & 0.02235\\
+              & L2 & 1.1289 & 0.02243 & --- & ---\\
               & AVL$+$XFOIL & 1.0746 & 0.02565 & &\\
     \midrule
-    $6^\circ$ & L0 & 1.2259 & 0.02473 & 1.2150 & 0.02711\\
-              & L1 & 1.2358 & 0.02390 & 1.2249 & 0.02464\\
-              & L2 & 1.2298 & 0.02389 & 1.2282 & 0.02412\\
+    $6^\circ$ & L1 & 1.2317 & 0.02479 & 1.2227 & 0.02523\\
+              & L2 & --- & --- & --- & ---\\
               & AVL$+$XFOIL & 1.1730 & 0.02837 & &\\
     \bottomrule
   \end{tabular}
@@ -3367,7 +3367,7 @@ XFOIL at each station's local $c_l$, chord Reynolds number, and
 $N_\mathrm{crit}\!=\!13.6$, integrated over span. RANS transition
 fronts are read per spanwise strip as the $C_f$-rise location, and
 bubbles as intervals of negative streamwise $C_f$. The $\chi$ columns
-of Figs.~\ref{fig:daesurf4}--\ref{fig:daesurf6} map
+of Figs.~\ref{fig:daesurf4} and~\ref{fig:daesurf5} map
 $\max\tilde\nu/\nu$ over a band extending $5\%$ of local chord from
 the wall, each volume node scatter-reduced to its nearest wall node;
 the $e^N$ strip rows of the same figures use FlexFoil at each

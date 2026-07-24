@@ -19,7 +19,7 @@ import matplotlib.tri as mtri
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy
 
-D = '/home/qiqi/flexcompute/sa-ai/scripts/daedalus'
+D = '/home/qiqi/flexcompute/sa-ai/daedalus'
 sys.path.insert(0, D)
 import sectional_compare as SC                      # noqa: E402
 from wing_geometry import chord, HALF_SPAN, XQC     # noqa: E402
@@ -92,9 +92,25 @@ def e9_row(a):
     return X, Y, -CP, CF, logchi_eq, N
 
 
+def rans_rows_available(a):
+    """Families whose L2 case at this incidence has completed (forces +
+    surface + chi map present) -- incomplete campaign runs are skipped."""
+    fams = []
+    for fam, case in (('str', CASES[a][0]), ('cav', CASES[a][1])):
+        if all(os.path.exists(f'{D}/{case}/{f}') for f in
+               ('total_forces_v2.csv', SURF[fam], 'chi_surface.npz')):
+            fams.append(fam)
+    return fams
+
+
 def make_fig(a, out):
-    fig, axs = plt.subplots(3, 3, figsize=(7.6, 9.4), sharex=True, sharey=True,
-                            layout='constrained')
+    fams = rans_rows_available(a)
+    if not fams:
+        print(f'SKIP alpha={a:.0f}: no completed L2 case yet')
+        return
+    nrow = len(fams) + 1
+    fig, axs = plt.subplots(nrow, 3, figsize=(7.6, 3.2 * nrow + 0.3),
+                            sharex=True, sharey=True, layout='constrained')
 
     def chi_panel_tri(ax, tri, logchi):
         cs = ax.tricontour(tri, logchi, levels=LEV_CHI, colors='k',
@@ -110,28 +126,30 @@ def make_fig(a, out):
         if bold_zero:
             ax.tricontour(tri, v, levels=[0.0], colors='k', linewidths=1.5)
 
-    for row, fam in enumerate(('str', 'cav')):
-        tri, cfm, cfx, logchi = rans_row(CASES[a][row], SURF[fam])
+    for row, fam in enumerate(fams):
+        case = CASES[a][0] if fam == 'str' else CASES[a][1]
+        tri, cfm, cfx, logchi = rans_row(case, SURF[fam])
         cf_panel_tri(axs[row, 0], tri, cfm, [-l for l in LEV_CP[::-1]])
         cf_panel_tri(axs[row, 1], tri, cfx, LEV_CFX, bold_zero=True)
         chi_panel_tri(axs[row, 2], tri, logchi)
         axs[row, 0].set_ylabel(f'{ROW_LAB[fam]}\n$y$ [m]', fontsize=9)
 
+    erow = len(fams)
     X, Y, cfm, cfx, logchi_eq, N = e9_row(a)
     ok = np.isfinite(cfm)
     levcp = [-l for l in LEV_CP[::-1]]
-    cs = axs[2, 0].contour(X, Y, np.where(ok, cfm, np.nan), levels=levcp,
+    cs = axs[erow, 0].contour(X, Y, np.where(ok, cfm, np.nan), levels=levcp,
                            colors='k', linewidths=0.5)
-    axs[2, 0].clabel(cs, levcp[::2], fmt='%.2f', fontsize=5.5)
-    cs = axs[2, 1].contour(X, Y, np.where(ok, cfx, np.nan), levels=LEV_CFX,
+    axs[erow, 0].clabel(cs, levcp[::2], fmt='%.2f', fontsize=5.5)
+    cs = axs[erow, 1].contour(X, Y, np.where(ok, cfx, np.nan), levels=LEV_CFX,
                            colors='k', linewidths=0.5)
-    axs[2, 1].clabel(cs, LEV_CFX[::2], fmt='%.3f', fontsize=5.5)
-    axs[2, 1].contour(X, Y, np.where(ok, cfx, np.nan), levels=[0.0],
+    axs[erow, 1].clabel(cs, LEV_CFX[::2], fmt='%.3f', fontsize=5.5)
+    axs[erow, 1].contour(X, Y, np.where(ok, cfx, np.nan), levels=[0.0],
                       colors='k', linewidths=1.5)
     with np.errstate(invalid='ignore'):
-        cs = axs[2, 2].contour(X, Y, logchi_eq, levels=LEV_CHI, colors='k',
+        cs = axs[erow, 2].contour(X, Y, logchi_eq, levels=LEV_CHI, colors='k',
                                linewidths=0.5)
-        axs[2, 2].clabel(cs, LEV_CHI[::2], fmt=lambda v: f'$10^{{{int(v)}}}$',
+        axs[erow, 2].clabel(cs, LEV_CHI[::2], fmt=lambda v: f'$10^{{{int(v)}}}$',
                          fontsize=5.5)
     # bold transition line: N is NaN past transition, so the N_crit contour
     # sits on the NaN boundary and marching squares drops it -- draw the
@@ -151,8 +169,8 @@ def make_fig(a, out):
                 cl_ = float(chord(eta))
                 xt.append((XQC - 0.25 * cl_) + xcf[j] * cl_)
                 yt.append(eta * HALF_SPAN)
-    axs[2, 2].plot(xt, yt, 'k-', lw=1.5)
-    axs[2, 0].set_ylabel(f'{ROW_LAB["e9"]}\n$y$ [m]', fontsize=9)
+    axs[erow, 2].plot(xt, yt, 'k-', lw=1.5)
+    axs[erow, 0].set_ylabel(f'{ROW_LAB["e9"]}\n$y$ [m]', fontsize=9)
 
     # wing planform outline on every panel
     ee = np.linspace(0, 1, 200)
@@ -165,7 +183,7 @@ def make_fig(a, out):
         ax.plot([xle[-1], xte[-1]], [HALF_SPAN, HALF_SPAN], 'k-', lw=0.8)
         ax.set_xlim(-0.02, 0.95)
         ax.set_ylim(0, HALF_SPAN * 1.005)
-    for ax in axs[2]:
+    for ax in axs[erow]:
         ax.set_xlabel('$x$ [m]')
     titles = [r'$-C_p$', r'$C_{f,x}$ (bold: $C_{f,x}=0$)',
               r'$\max_n\chi$ (bold: transition)']
