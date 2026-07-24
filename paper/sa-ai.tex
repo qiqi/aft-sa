@@ -426,11 +426,12 @@ only rotation-invariant products of the indicator vectors survive.
   sphere \eqref{eq:indicators} (orthographic x-ray view: curvature vertical,
   shear$-$velocity horizontal; near hemisphere solid, far side dotted;
   triangles mark the four visible poles---velocity left, shear right,
-  $\pm$curvature top and bottom). Six Falkner--Skan profiles run as thin
+  $\pm$curvature top and bottom). Seven Falkner--Skan profiles run as thin
   curves from the wall (center) toward the freestream: favorable
   ($\beta\!=\!+0.30$, blue), Blasius ($\beta\!=\!0$, green), moderate
   adverse ($\beta\!=\!-0.10$, orange), strongly adverse
-  ($\beta\!=\!-0.15$, red-orange), incipient separation
+  ($\beta\!=\!-0.16$, red-orange), near-separation attached
+  ($\beta\!=\!-0.19$, gold), incipient separation
   ($\beta\!=\!-0.1988$, red), and a separated reversed-flow shear
   layer---the Stewartson
   lower-branch solution at $\beta\!=\!-0.19$, $H\!\approx\!4.9$ (purple).
@@ -816,14 +817,13 @@ parameter anywhere.
   Falkner--Skan profile, at its Drela--Giles critical Reynolds number
   $Re_{\theta 0}(H)$, traces a curve in the $(\hat S g,\,Re_\Omega)$ plane:
   solid, colored blue to red with decreasing $\beta$, the attached family
-  $\beta = +0.35$, $+0.25$, $+0.15$, $+0.05$, $0$ (Blasius), $-0.05$,
-  $-0.10$, $-0.15$, $-0.17$, $-0.1988$ (incipient separation); dotted, a
+  $\beta = +0.15$, $+0.10$, $+0.05$, $0$ (Blasius), $-0.05$,
+  $-0.10$, $-0.15$, $-0.19$, $-0.1988$ (incipient separation); dotted, a
   separated reversed-flow profile, the Stewartson lower-branch solution at
   $\beta\!=\!-0.19$ ($H\!\approx\!4.9$). The attached family
   shares the dashed outer envelope, which each member grazes at its marked
   closest-approach point: graze ratios $0.93$--$1.14$ (root-mean-square
-  $\sim\!6\%$) from incipient separation through $\beta=+0.15$, grazing
-  $1.27$--$1.34$ high for $\beta\!\geq\!+0.25$. The
+  $\sim\!6\%$) from incipient separation through $\beta=+0.15$. The
   soft-min
   shape of Eq.~\eqref{eq:reomc}, at $k\!=\!1$, is that envelope: a ceiling on the favorable
   (small $\hat S g$) side, an additive floor toward separation; dash-dot,
@@ -861,7 +861,8 @@ with $\operatorname{softmin}_2(x_1,x_2)\!=\!x_1 x_2/\sqrt{x_1^2+x_2^2}$; the
 graze fixes the three shape constants to a root-mean-square graze error of
 $\sim\!6\%$ from incipient separation through $\beta\!=\!+0.15$ (the
 soft-min exponent $2$ is the best of the sharpnesses tried), and they are
-never refit; the strongly favorable members ($\beta\!\geq\!+0.25$) graze
+never refit; strongly favorable members ($\beta\!\geq\!+0.25$, beyond
+the plotted family) graze
 $1.27$--$1.34$ high, consistent with the favorable-branch departure the
 calibration will meet below.
 
@@ -889,14 +890,14 @@ velocity in $U_\infty$),
   \label{eq:transport}
 \end{equation}
 keeping the amplification and the molecular part of the SA cross-stream
-diffusion (the $\tilde\nu\,\nabla^2\tilde\nu$ self-diffusion and $c_{b2}$
+diffusion. The $\tilde\nu\,\nabla^2\tilde\nu$ self-diffusion and $c_{b2}$
 gradient terms are $O(\chi)$ smaller in this range and are dropped,
 in the manner of the classical parabolized boundary-layer
-equations~\cite{white_2006}; no SA
-production or destruction enters---production is switched off outright
+equations~\cite{white_2006}. No SA
+production or destruction enters: production is switched off outright
 where $\chi\!\le\!1$ ($\sigma_P\!=\!0$, Sec.~\ref{sec:blend}), and the
 tied destruction floor is inert at the disturbance's scale ($<10^{-3}$
-of the amplification, same section)). The
+of the amplification, same section). The
 march is seeded
 at the leading edge with one unit of an arbitrary infinitesimal: the
 equation is linear in $\hat\nu$, so the seed's magnitude cancels from
@@ -914,20 +915,19 @@ where inception occurs.)
   \caption{The disturbance transport \eqref{eq:transport} on three wedge
   flows---adverse ($\beta\!=\!-0.10$, top), Blasius ($\beta\!=\!0$, middle:
   the calibration anchor), and mildly favorable ($\beta\!=\!+0.10$,
-  bottom)---seeded
+  bottom; $\max_y\hat S g=0.162$, $0.078$, and $0.037$,
+  respectively)---seeded
   $\hat\nu_\infty\!=\!1$, $a_{\max}=0.19$.
   \textbf{Left column} (a,c,e): contours of $N\!=\!\ln\hat\nu$ at the
   canonical $(c_{\nu,\mathrm{ai}},k)=(\tfrac16,\,0.712)$ in the
   local-Reynolds plane, concentrated between the overlaid
   momentum thickness $\theta$ (dashed) and edge thickness $\delta_{99}$
-  (solid) where the amplifying band sits. \textbf{Right column} (b,d,f): two
-  marched envelopes $\max_y\hat\nu$ vs $Re_\theta$ (log left axis; $N$ linear
-  right axis) against each profile's Drela--Giles
-  envelope~\cite{drela_giles_1987} (red dashed): the \emph{untouched}
-  equation ($c_{\nu,\mathrm{ai}}\!=\!1$, $k\!=\!1$; gray), whose envelope
-  falls far short of the correlation---the molecular drain both bends the
-  growth and delays inception---and the canonical model
-  ($c_{\nu,\mathrm{ai}}\!=\!1/6$, $k\!=\!0.712$; black). On the anchor (d) the
+  (solid) where the amplifying band sits. \textbf{Right column} (b,d,f): the
+  marched envelope $\max_y\hat\nu$ vs $Re_\theta$ (log left axis; $N$ linear
+  right axis) at the canonical
+  $(c_{\nu,\mathrm{ai}},k)=(\tfrac16,\,0.712)$ (black), against each
+  profile's Drela--Giles
+  envelope~\cite{drela_giles_1987} (red dashed). On the anchor (d) the
   canonical envelope meets the correlation at $N\!=\!1$ by construction
   (Sec.~\ref{sec:calib_onset}); its $N\!=\!9$ crossing is an untuned
   prediction, $7\%$ past Drela's. The adverse wedge (b) ignites earlier and
@@ -935,17 +935,18 @@ where inception occurs.)
   correlation---its $N\!=\!1$ station lands ${\sim}11\%$ early---with the
   suppressed rate stretching the growth over a run nearly twice
   Blasius's in $Re_\theta$ (over four times in $Re_x$), and no
-  pressure-gradient parameter anywhere. Each row's
-  $\max_y\hat S g$ is listed at its left edge. A
+  pressure-gradient parameter anywhere. A
   physical case seeded with $\chi_\infty$ hands over where its envelope
   crosses $N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)$ ($\chi\!=\!c_{v1}$; the
   seed convention of Sec.~\ref{sec:flatplate}).}
   \label{fig:nuhat}
 \end{figure}
 
-The gray envelopes of Fig.~\ref{fig:nuhat} march the equation untouched
-($c_{\nu,\mathrm{ai}}\!=\!1$, $k\!=\!1$) and confirm the eigenvalue's
-verdict of Sec.~\ref{sec:nulamscale} in accumulated form: the envelope
+Marching the equation untouched
+($c_{\nu,\mathrm{ai}}\!=\!1$, $k\!=\!1$) on the wedges of
+Fig.~\ref{fig:nuhat} confirms the eigenvalue's
+verdict of Sec.~\ref{sec:nulamscale} in accumulated form (not
+plotted): the envelope
 falls far short of the correlation, its early secant (the
 $N\!\in\![1,5]$ span of the Blasius layer) running $24\%$ below the late
 one ($N\!\in\![5,9]$), where the envelope's own curvature---the
@@ -986,12 +987,14 @@ one point, carrying the family's two-decade threshold variation.
   branch ($H\!\approx\!10.6$; separated region shaded). (a)~model rate
   $\mathrm dN/\mathrm dRe_\theta$ as an early ($N\!\in\![1,5]$) and a late
   ($N\!\in\![5,9]$) secant, band shaded---set entirely by the fixed
-  eigenvalue $a_{\max}\!=\!0.19$, with nothing tuned to this curve.
+  eigenvalue $a_{\max}\!=\!0.19$ and $c_{\nu,\mathrm{ai}}\!=\!1/6$, with
+  nothing tuned to this curve.
   (b)~model onset $Re_\theta$ (the $N\!=\!1$ crossing) against the
-  Drela--Giles $N\!=\!1$ station $Re_{\theta 0}+1/(dN/dRe_\theta)$,
-  reflecting the one calibrated function, the threshold
-  $Re_\Omega^{\mathrm c}(\hat S g)$ \eqref{eq:reomc}: anchored at Blasius,
-  tracking the stations within ${\sim}\pm12\%$ across the attached family.
+  Drela--Giles $N\!=\!1$ station $Re_{\theta 0}+1/(dN/dRe_\theta)$:
+  anchored at Blasius,
+  tracking the stations within ${\sim}\pm12\%$ across the attached
+  family, from $H\!=\!2.44$ ($\beta\!=\!+0.15$) to $H\!=\!3.98$ (the
+  separation limit).
   Both vertical axes extend slightly past the Drela range to show the
   favorable-regime departure---the rate falling below, the onset rising
   above---before the curves leave the panels.}
@@ -1013,7 +1016,8 @@ faster than Drela's and the onset climbs above the critical Reynolds
 number: by $\max_y\hat S g\!\approx\!2\!\times\!10^{-3}$
 ($\beta\!=\!+0.35$, $H\!\approx\!2.34$) the rate is
 $\approx\!0.1\times$ Drela and the onset $\approx\!3\times$ its critical
-$Re_\theta$; by $\beta\!\approx\!0.45$ transition has retreated beyond any
+$Re_\theta$; by $\beta\!\approx\!0.45$
+($\max_y\hat S g\!\approx\!5\!\times\!10^{-4}$) transition has retreated beyond any
 station of practical relevance (the marched $N\!=\!1$ station past
 $Re_\theta\!\sim\!5\!\times\!10^5$), and stronger favorable wedges are
 suppressed outright. The linear $\hat S g$ has no

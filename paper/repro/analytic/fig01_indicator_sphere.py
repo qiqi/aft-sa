@@ -32,7 +32,8 @@ PROFILES = [
     (0.30,   None,  'C0', 'favorable',            500.0),
     (0.0,    None,  'C2', 'Blasius',              500.0),
     (-0.10,  None,  'C1', 'adverse',              500.0),
-    (-0.15,  None,  'orangered', 'strong adverse',  500.0),
+    (-0.16,  None,  'orangered', 'strong adverse',  500.0),
+    (-0.19,  None,  'goldenrod', 'near-separation (attached)', 500.0),
     (-0.1988, None, 'C3', 'incipient separation', 500.0),
     (-0.19, -0.03,  'C4', 'separated (reversed)', 200.0),
 ]

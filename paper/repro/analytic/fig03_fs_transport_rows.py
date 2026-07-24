@@ -2,10 +2,9 @@
 
 Disturbance transport on three Falkner-Skan layers (adverse -0.10, Blasius 0,
 favorable +0.10): N=ln(nuHat) contours (canonical model) + envelopes vs
-Drela-Giles. Each right panel shows TWO marched envelopes: the untouched
-equation (c_nu,ai=1, k=1 -- the demonstration of why the reduction and the
-onset retuning are needed) and the canonical model (c_nu,ai=1/6, calibrated
-k). Kernel + c_nu,ai imported via fig04."""
+Drela-Giles. Each right panel shows the canonical model's marched envelope
+(c_nu,ai=1/6, calibrated k); each row's max Shat*g is printed for the
+caption. Kernel + c_nu,ai imported via fig04."""
 import _saai
 from _saai import SIGMA_SA
 from fig04_shapefactor import C_NU_AI  # canonical c_nu,ai (paper Sec. II.C)
@@ -90,21 +89,12 @@ def main():
         Zk = 0.5*fs.eta**2*upp0
         Rk = np.sqrt(Xk*Xk + Yk*Yk + Zk*Zk) + 1e-30
         msg = float(np.max((Yk/np.sqrt(Xk*Xk + Yk*Yk + 1e-30))*(Yk - Xk - Zk)/Rk))
-        axL.set_ylabel(fr'$\beta={beta:+.2f}$ ($H={H:.2f}$, '
-                       fr'$\max\hat S g={msg:.3f}$)''\n'r'$Re_y$')
+        # max Shat*g is listed in the CAPTION, not in the panel (annotated
+        # round 5); it is printed below for the caption's numbers.
+        axL.set_ylabel(fr'$\beta={beta:+.2f}$ ($H={H:.2f}$)''\n'r'$Re_y$')
         if irow == 2: axL.set_xlabel(r'$Re_x$')
         axL.text(0.02, 0.95, f'({chr(97+2*irow)})', transform=axL.transAxes, fontsize=11, va='top', fontweight='bold')
         env = fld.max(axis=1)
-        # untouched-equation envelope (c_nu,ai = 1, k = 1) on the SAME domain:
-        # falls far short of the correlation -- the case for the reduction.
-        _save = (globals()['C_NU_AI'], f4.REOM_CEIL, f4.REOM_A, f4.REOM_B)
-        globals()['C_NU_AI'] = 1.0
-        f4.REOM_CEIL, f4.REOM_A, f4.REOM_B = 2600.0, 175.0, 2.0
-        _, _, fld1 = march_field(fs, x_max, beta=beta)
-        (globals()['C_NU_AI'], f4.REOM_CEIL, f4.REOM_A,
-         f4.REOM_B) = _save
-        env1 = fld1.max(axis=1)
-        axR.semilogy(Rt, env1, '-', color='0.6', lw=1.5)
         axR.semilogy(Rt, env, 'k-', lw=1.8)
         Rtc = float(Re_theta0(H)); dr = float(drela(H))
         RtD = np.linspace(0, Rt.max(), 300); ND = np.where(RtD > Rtc, dr*(RtD - Rtc), 0.0)
@@ -115,10 +105,10 @@ def main():
         axR.grid(alpha=0.3, which='both')
         axR.text(0.02, 0.95, f'({chr(98+2*irow)})', transform=axR.transAxes, fontsize=11, va='top', fontweight='bold')
         if irow == 0:
-            axR.legend([r'untouched equation ($c_{\nu,\mathrm{ai}}\!=\!1$, $k\!=\!1$)',
-                        r'canonical model ($c_{\nu,\mathrm{ai}}\!=\!1/6$, $k\!=\!0.712$)',
+            axR.legend([r'canonical model ($c_{\nu,\mathrm{ai}}\!=\!1/6$, $k\!=\!0.712$)',
                         'Drela--Giles envelope'], fontsize=7.5, loc='lower right')
-        print(f'beta={beta:+.2f} H={H:.2f}: x_max={x_max:.2e}, N_end={np.log(env[-1]):.1f}, '
+        print(f'beta={beta:+.2f} H={H:.2f}: max Shat*g = {msg:.3f}, '
+              f'x_max={x_max:.2e}, N_end={np.log(env[-1]):.1f}, '
               f'Rt_end={Rt[-1]:.0f}, Rtc={Rtc:.0f}', flush=True)
     plt.savefig('figs/fs_nuHat_rows.pdf')
     print('wrote figs/fs_nuHat_rows.pdf')

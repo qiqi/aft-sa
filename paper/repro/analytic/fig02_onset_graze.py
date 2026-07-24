@@ -29,15 +29,14 @@ CEIL, A_, B_, N_ = 2600.0, 175.0, 2.0, 2.0
 # stop at H=5 and no similarity family is validated beyond.
 # No legend: the betas are listed in the caption; color runs with beta.
 PROFILES = [
-    (0.35,  None,  None, 'favorable'),
-    (0.25,  None,  None, 'favorable'),
     (0.15,  None,  None, 'favorable'),
+    (0.10,  None,  None, 'favorable'),
     (0.05,  None,  None, 'favorable'),
     (0.0,   None,  None, 'Blasius'),
     (-0.05, None,  None, 'adverse'),
     (-0.10, None,  None, 'adverse'),
     (-0.15, None,  None, 'adverse'),
-    (-0.17, None,  None, 'adverse'),
+    (-0.19, None,  None, 'adverse'),
     (-0.1988, None, None, 'incipient separation'),
     (-0.19, -0.03, None, 'separated (reversed)'),
 ]
