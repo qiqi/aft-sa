@@ -677,3 +677,26 @@ numbers, quoted in Sec. III + fig caption + Conclusion:
   extension is the single source of truth, run via ONSET_DIAG=1.)
 10: Fig. 5 (flat-plate batch) moved to right after the Sec. III opening
 paragraph.
+
+## 2026-07-25 ~00:15 — annotated.pdf round 3: floor back-reaction quantified on the march
+Four items, all on the back-reaction paragraph (now in II.E):
+- The coupled-computation bounds sentence is REMOVED per instruction and
+  replaced by the prescribed march quantification
+  (repro/analytic/floor_backreaction_table.py): D_floor/P_AI at the nuHat
+  peak of the frozen-profile marches, for beta = +0.10 / Blasius /
+  separation limit (-0.1988) and N_crit = 7/9/11:
+    chi=0.1 : 3e-6 – 1.2e-5
+    chi=1   : (2–8)e-4  — below 1e-3 for EVERY wedge and seed
+    chi=c_v1: (0.9–2.3)e-2, and at most 1.4% of the sigma_P-weighted SA
+              production it is tied against (largest at the separation
+              limit)
+- This also answers "why specific to airfoil seed?": it isn't — the
+  ratio at fixed chi depends on the seed only through Re_Omega at the
+  crossing (lower N_crit -> smaller Re_Omega -> larger ratio), and the
+  bound holds across N_crit 7–11 generally; the airfoil-seed phrasing is
+  gone.
+- "has already handed production over" -> "starts handing production
+  over" (at chi=1 the handover begins, not completes).
+- The instrument re-march sentence (anchors <1%, favorable mean -2.6%)
+  stays — it measures a different thing (station shifts with the term
+  included) and now follows the ratio table.
