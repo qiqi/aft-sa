@@ -583,3 +583,18 @@ same compensation at a stronger climb.)
 Spalart–Allmaras calibration" — matches what the subsection actually
 proves (each calibration stage preserved exactly) and reads as the
 respectful claim it is. No residual "contact" phrasing in the body.
+
+## 2026-07-24 ~22:55 — back-reaction paragraph moved II.F -> II.E
+The destruction-floor back-reaction quantification (ratio < 1e-3 to the
+crossing at the N_crit=9 seed; instrument re-march with the term: anchors
+<1%, favorable mean -2.6% mostly past the crossing; coupled bounds:
+flat-plate onset +0.8% at lowest Tu, airfoil fronts/forces under line
+widths, peak |dCf| 3e-5) now sits in II.E directly after the paragraph
+that introduces the tie and claims the floor's inertness — where the
+claim is made, not two subsections later. Opening adapted ("The floor's
+inertness deserves its numbers, since it is the tie's one back-reaction
+on the laminar branch") to avoid repeating the claim sentence; the
+blend paragraph's pointer changed from "(quantified in Sec. II.F)" to
+"(quantified below)". II.F now runs intro -> high-Re stages -> inner
+layer/tie derivation -> linearity/discrete exactness -> Appendix E
+pointer, purely about preservation.

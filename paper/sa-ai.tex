@@ -1068,7 +1068,7 @@ the laminar range ($\sigma_P\!=\!0$) the destruction now runs at its
 floor instead of vanishing, but the floor is inert below the crossing:
 $D_\mathrm{SA}$ is quadratic in $\tilde\nu$, and its
 ratio to the amplification production stays below $10^{-3}$ up to
-$\chi\!=\!1$ (quantified in Sec.~\ref{sec:calib_diff}), so the $e^N$
+$\chi\!=\!1$ (quantified below), so the $e^N$
 growth \emph{to} the crossing is untouched. Past the crossing the
 retained SA terms are no longer passive---they pace the growth of
 $\chi$ through the handover, and at low Reynolds numbers, where the
@@ -1076,6 +1076,26 @@ handover occupies a macroscopic streamwise extent, that pacing becomes
 dynamically significant (Sec.~\ref{sec:epphandover}). The limit
 $\sigma_t\!\to\!1$ recovers the unmodified SA
 equation and its fully turbulent calibration.
+
+The floor's inertness deserves its numbers, since it is the tie's one
+back-reaction on the laminar branch. $D_\mathrm{SA}$ is quadratic in
+$\tilde\nu$ and
+carries $f_w\!\approx\!0.7\,r$ with $r\!\ll\!1$ in the amplifying band,
+so its ratio to the amplification production grows like $\chi^2$ and stays
+below $10^{-3}$ up to the $\chi\!=\!1$ crossing at the airfoil seed level
+($\chi_\infty\!=\!c_{v1}e^{-9}$, the $N_\mathrm{crit}\!=\!9$ seed of
+Sec.~\ref{sec:flatplate}). The calibration instrument of
+Sec.~\ref{sec:calib_onset} omits the term; marching with it included at that
+seed level moves the anchor and prediction stations by less than $1\%$
+(within the solve residuals) and the favorable-family stations' mean by
+$-2.6\%$, most of it accumulated past the $\chi\!=\!1$ crossing,
+where the coupled model has already handed production over to SA. The
+coupled computations bound the end effect: switching the tie on moves the
+flat-plate onset by $+0.8\%$ in $Re_\theta$ at the lowest $Tu$ and the
+airfoil fronts and forces by less than the line widths of their figures
+(verified on the NLF(1)-0416 rooftop case, $\alpha\!=\!4^\circ$, and the
+Eppler~387 bubble case, $\alpha\!=\!5^\circ$: peak $|\Delta C_f|$ of
+$3\!\times\!10^{-5}$, forces to four digits).
 
 Between its $\sigma_t\!=\!0$ and $\sigma_t\!=\!1$ limits the blend is
 an interpolation, and we claim no
@@ -1182,26 +1202,6 @@ discretizations---a second-order finite-difference solve on grids with
 first-cell $y^+$ from $0.25$ to $8$, and a fourth-order collocation
 BVP solve: both return the linear profile and identical log-law
 intercepts for both models, deviations below $10^{-10}$).
-
-The tie's one back-reaction is on the laminar range, where the destruction
-now runs at its floor instead of vanishing. The floor is inert at the
-disturbance's scale: $D_\mathrm{SA}$ is quadratic in $\tilde\nu$ and
-carries $f_w\!\approx\!0.7\,r$ with $r\!\ll\!1$ in the amplifying band,
-so its ratio to the amplification production grows like $\chi^2$ and stays
-below $10^{-3}$ up to the $\chi\!=\!1$ crossing at the airfoil seed level
-($\chi_\infty\!=\!c_{v1}e^{-9}$, the $N_\mathrm{crit}\!=\!9$ seed of
-Sec.~\ref{sec:flatplate}). The calibration instrument of
-Sec.~\ref{sec:calib_onset} omits the term; marching with it included at that
-seed level moves the anchor and prediction stations by less than $1\%$
-(within the solve residuals) and the favorable-family stations' mean by
-$-2.6\%$, most of it accumulated past the $\chi\!=\!1$ crossing,
-where the coupled model has already handed production over to SA. The
-coupled computations bound the end effect: switching the tie on moves the
-flat-plate onset by $+0.8\%$ in $Re_\theta$ at the lowest $Tu$ and the
-airfoil fronts and forces by less than the line widths of their figures
-(verified on the NLF(1)-0416 rooftop case, $\alpha\!=\!4^\circ$, and the
-Eppler~387 bubble case, $\alpha\!=\!5^\circ$: peak $|\Delta C_f|$ of
-$3\!\times\!10^{-5}$, forces to four digits).
 
 The assembled equation, its closure functions, and the complete
 constant set are collected for reference in Appendix~E.
