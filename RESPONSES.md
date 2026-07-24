@@ -636,3 +636,44 @@ median-vs-peak statistic convention stated in text; house-style times;
 README rows for both new scripts; 28 side-effect figure regenerations +
 lsb-zoom exploration committed. Reviewer also suggested (uncounted) an
 abstract amendment to mention the second defect — left for your call.
+
+## 2026-07-24 ~23:55 — annotated.pdf round 2 (Sec. III + implementation), all 10 items
+1-6 (seed paragraph): the "one empirical closure" sentence, the "used
+unchanged / plays the role of the e^N envelope" clause, the "Adopting
+Mack's map wholesale is an approximation..." sentence, and the "every
+airfoil computation uses N_crit=9" sentence (already said in the airfoil
+sections) all deleted; the turbulence intensity is now introduced in
+words before Eq. (18) uses the Tu symbol; the handover smear is now
+"chi = 1 -> O(c_v1), several e-folds" (was "two").
+7 (implementation note): the discretization paragraph (least-squares
+double-gradient odd-even modes, viscous-flux Laplacian, ring average)
+is REPLACED by a short vector-calculus statement: X=|u| (wall-relative,
+Galilean invariant), Y=|omega|d, Z=(1/2)d^2 (lap u . u_hat) with the
+divergence-free identity lap u = -curl omega, sign(u) u'' on a parallel
+layer, Re_Omega = d^2|omega|/nu; the analytic-Jacobian sentence kept.
+The signed-algebra paragraph's antecedent updated accordingly.
+8: the "kernel is therefore exact on the sign-consistent region..."
+closing sentence deleted (paragraph now ends at the antisymmetric-layer
+zero-amplitude remark).
+9 (THE SUBSTANTIVE ONE — Re_theta by integration, "don't do this
+anymore"): onset_vs_ags() in regen_flatplate_flow360.py now interpolates
+the INTEGRATED edge-normalized Re_theta (the machinery cf_and_retheta
+already had, which even documents the freestream-overshoot trap) at the
+crossings instead of converting via 0.664 sqrt(Re_x). New honest
+numbers, quoted in Sec. III + fig caption + Conclusion:
+  chi=1 crossing: +6.1% (Tu 0.04), -3.3% (0.08), -10.5/-13.7/-11.2%
+  (0.16/0.30/0.60) => "brackets AGS within 14%" (was ±10%). Note the
+  +6% at the lowest Tu now agrees BETTER with the 7% retained-drain
+  footprint than the old +10% did.
+  c_v1 crossing: integrated Re_theta ≈ 2500 nearly uniform across the
+  sweep = 2.2-3.5x AGS — the layer is already MID-TRANSITION there; the
+  old laminar-conversion reading (+14-36%) badly understated how far
+  the layer had left the laminar branch. The text now says the c_v1
+  reading measures transitional growth, not onset placement.
+  (My first standalone attempt hit the exact trap the regen script
+  documents: integrating f(1-f) over the 50-delta-tall column picks up
+  percent-level freestream nonuniformity — delta* survives clipping but
+  theta is poisoned, H came out 10. Deleted the standalone; the regen
+  extension is the single source of truth, run via ONSET_DIAG=1.)
+10: Fig. 5 (flat-plate batch) moved to right after the Sec. III opening
+paragraph.

@@ -306,21 +306,32 @@ if __name__ == '__main__':
     main()
 
 def onset_vs_ags():
-    """chi=1-crossing onset vs AGS, converted to Re_theta through the laminar
-    relation Re_theta = 0.664 sqrt(Re_x) -- the same convention by which the
-    AGS markers are placed on the chi panel (quoted in Sec. IV)."""
+    """Onset Re_theta vs AGS at the chi=1 and chi=c_v1 crossings, with
+    Re_theta INTEGRATED from the RANS profiles (the edge-normalized theta
+    of cf_and_retheta) -- no laminar 0.664 sqrt(Re_x) conversion
+    (annotated-pdf round, 2026-07-24). The conversion is printed alongside
+    for reference; the AGS markers on the figure remain placed by it."""
     Re_unit = 1e6
+    print(f"{'Tu%':>6} {'AGS':>6} | {'chi=1: Re_th int':>16} {'dev':>7} "
+          f"{'(0.664rtRex':>11} {'dev)':>7} | {'c_v1: Re_th int':>15} {'dev':>7}")
     for tu in TU_LIST:
         x, reth, cf, chimax, _, _ = cf_and_retheta(case_dir(tu))
         m = np.isfinite(chimax)
-        xs, cs = x[m], chimax[m]
-        i = np.where(cs > 1.0)[0][0]
-        f = (1.0 - cs[i-1])/(cs[i] - cs[i-1])
-        rex = (xs[i-1] + f*(xs[i]-xs[i-1]))*Re_unit
-        rth = 0.664*np.sqrt(rex)
+        xs, cs, rs = x[m], chimax[m], reth[m]
         ags = AGS_Reth(tu)
-        print(f"Tu={tu:5.2f}%  AGS={ags:6.0f}  chi=1 onset={rth:6.0f}  "
-              f"({(rth/ags-1)*100:+5.1f}%)")
+        row = [f"Tu={tu:5.2f}% {ags:6.0f} |"]
+        for lev in (1.0, 7.1):
+            i = np.where(cs > lev)[0][0]
+            f = (lev - cs[i-1])/(cs[i] - cs[i-1])
+            xq = xs[i-1] + f*(xs[i]-xs[i-1])
+            rint = rs[i-1] + f*(rs[i]-rs[i-1])
+            if lev == 1.0:
+                rconv = 0.664*np.sqrt(xq*Re_unit)
+                row.append(f"{rint:16.0f} {(rint/ags-1)*100:+6.1f}% "
+                           f"{rconv:11.0f} {(rconv/ags-1)*100:+6.1f}% |")
+            else:
+                row.append(f"{rint:15.0f} {(rint/ags-1)*100:+6.1f}%")
+        print(' '.join(row))
 
 if __name__ == '__main__' and os.environ.get('ONSET_DIAG'):
     onset_vs_ags()

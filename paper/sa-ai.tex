@@ -1214,18 +1214,42 @@ a Roe flux; the
 freestream modified-viscosity ratio $\chi_\infty$ sets both the SA freestream value
 and the disturbance seed (Sec.~\ref{sec:calib}).
 
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.90\textwidth]{flat_plate_batch_flow360.pdf}
+  \caption{Freestream-turbulence sweep on the flat plate at five levels in the
+  natural-transition range $Tu\!=\!0.04$--$0.60\%$ (rows). \emph{Left columns}:
+  contours of $u/U_\infty$ and $\log_{10}\hat\nu$ in the $(Re_x,Re_y)$ plane
+  ($Re_x\!=\!x\!\cdot\!10^6$). \emph{Bottom-left}: in-BL maximum
+  $\chi\!=\!\tilde\nu/\nu$ vs $Re_x$, with horizontal references at $\chi\!=\!1$
+  (onset of the $\sigma_t$ blend) and $\chi\!=\!c_{v1}\!=\!7.1$ (eddy-viscosity
+  half-saturation). \emph{Bottom-right}: $C_f$ vs $Re_\theta$ with the laminar
+  ($C_f\!=\!0.441/Re_\theta$, dashed) and turbulent
+  ($C_f\!=\!2[(\ln Re_\theta)/0.38+3.7]^{-2}$, dotted) correlations. Both
+  bottom panels use black curves with one symbol per $Tu$ (legend); the
+  bottom-left panel overlays $C_f$ (gray, right axis) on the $\chi$
+  trajectories, locating each case's $C_f$ rise between its $\chi\!=\!1$
+  and $\chi\!=\!c_{v1}$ crossings; solid-gray
+  verticals and filled bottom-edge symbols mark the Abu-Ghannam \&
+  Shaw~\cite{abu_ghannam_shaw_1980} transition-onset reference, and the
+  bottom-right adds the digitized Schubauer--Skramstad
+  Fig.~7 band (faint bars) for context. With the receptivity taken from Mack's
+  $e^N$ correlation, the model's $\chi\!=\!1$ onset brackets AGS within
+  $14\%$ across the range---late at the lowest $Tu$, early at the
+  highest; the
+  $C_f$ follows the laminar branch then recovers the turbulent correlation
+  (baseline SA, with no laminar branch, does not produce this).}
+  \label{fig:flatplate_batch}
+\end{figure}
+
 \label{sec:calib_tu}%
-Setting that seed is the one empirical closure the model has left open,
-and it is a statement about the boundary condition, not the model: the
-receptivity of the layer to the freestream, the closure every $e^N$
-method carries. A higher
-$Tu$ is a larger seed
+A higher freestream turbulence intensity is a larger seed
 $\chi_\infty$ and thus fewer $e$-folds to the handover, moving transition
 upstream: a case seeded with $\chi_\infty$ reaches the handover where
 its envelope crosses
 $N_\mathrm{crit}\!=\!\ln(c_{v1}/\chi_\infty)$---the half-saturation
 threshold $\chi\!=\!c_{v1}$ at which the eddy viscosity engages. We map
-$Tu$ to the seed
+the turbulence intensity to the seed
 by
 \begin{equation}
   N_\mathrm{crit}(Tu) = -8.43 - 2.4\,\ln(Tu_{\mathrm{frac}}),
@@ -1234,60 +1258,35 @@ by
   \label{eq:tumap}
 \end{equation}
 with $Tu_{\mathrm{frac}}$ the rms turbulence intensity as a fraction. This is
-Mack's~\cite{mack_1977, nasa_tmr} $e^N$ critical-$N$-factor correlation,
-used unchanged: the
-amplification transport plays the role of the $e^N$ envelope and
-$N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)$ its threshold. The
+Mack's~\cite{mack_1977, nasa_tmr} $e^N$ critical-$N$-factor correlation. The
 correspondence is not exact: $e^N$ methods
 declare transition at a sharp $N_\mathrm{crit}$, while the model's
-threshold is smeared over the $\chi\!=\!1\!\to\!c_{v1}$
-handover---about two $e$-folds of the envelope. Adopting Mack's map
-wholesale is therefore an approximation; its consequence is quantified
-on this plate under a stated onset convention
-at the $\chi\!=\!1$ crossing.
+threshold is smeared over the $\chi\!=\!1\!\to\!O(c_{v1})$
+handover---several $e$-folds of the envelope.
 Sensitivity to the seed is that of any $e^N$ method: one $e$-fold in
 $\chi_\infty$ is one unit of $N_\mathrm{crit}$, which on the Blasius envelope
 ($dN/dRe_\theta\!\approx\!10^{-2}$) shifts onset by
-$\Delta Re_\theta\!\approx\!100$; every airfoil computation in the
-following sections uses the single anchor $N_\mathrm{crit}\!=\!9$.
+$\Delta Re_\theta\!\approx\!100$.
 
-One implementation note bears on reproducibility: the curvature indicator
-requires a second wall-normal derivative of the velocity, and its
-discretization must be chosen with care on stretched, imperfect cells. Forming
-it as a derivative of a derivative---least-squares gradients of a vorticity
-magnitude itself reconstructed from least-squares velocity gradients---admits
-mesh-scale (odd--even) modes: on the near-degenerate anisotropic triangles of
-the cavity meshes (Sec.~\ref{sec:nlfval}) a row-staggering oscillation of the
-resolved boundary layer, well under a percent of $u_\tau$, carries a spurious
-curvature exceeding the physical $U/\delta^2$. We therefore evaluate
-$u''=(\nabla^2\mathbf{u})\cdot\hat{\mathbf{u}}$ (exact for a parallel layer,
-where $\nabla^2\mathbf{u}=-\nabla\times\boldsymbol\omega$) with a compact,
-viscous-flux-style Laplacian: at each dual face the averaged nodal gradients
-have their edge-aligned component replaced by the two-point velocity
-difference, and the dual-cell divergence of these face gradients is then
-averaged, dual-volume weighted, over the node and its one-ring. On smooth
-fields the ring average is second-order benign; sign-alternating mesh-scale
-noise cancels across the ring, and the filter's failure mode is
-underestimation of the curvature---conservative, since an underestimated $|Z|$
-leaves the state nearer the neutral circle. This evaluation reduced the
-cavity-versus-O-grid spread of the NLF transition fronts by more than a factor
-of three across the grid ladder. The remaining indicators need no special
-treatment: $\hat S$ is regularized only against the simultaneous vanishing of
-velocity and shear at the wall, where the onset gate is effectively closed
-($Re_\Omega\to0$, and the clipped rate vanishes with $\hat S g$). Because the rate depends on the frozen mean flow and never
-on $\tilde\nu$, the production's $\tilde\nu$-derivative is analytic---the
-handover derivative is its only stiff piece---and it is treated implicitly
-with the same clipping as the baseline SA production; the added cost is one
-Laplacian pre-pass per turbulence-equation evaluation.
+In the solver the indicator triple is assembled from vector-calculus
+objects: $X\!=\!|\mathbf u|$ (velocity taken relative to the nearest
+wall point, which makes the triple Galilean invariant; for the static
+walls of this paper, the absolute velocity), $Y\!=\!|\boldsymbol\omega|\,d$,
+and the curvature
+$Z\!=\!\tfrac12 d^2\,(\nabla^2\mathbf u)\cdot\hat{\mathbf u}$,
+where the divergence-free identity
+$\nabla^2\mathbf u=-\nabla\times\boldsymbol\omega$ supplies the
+second derivative and on a parallel layer
+$(\nabla^2\mathbf{u})\cdot\hat{\mathbf{u}}=\operatorname{sign}(u)\,u''$;
+the onset gate's $Re_\Omega\!=\!d^2|\boldsymbol\omega|/\nu$
+completes the set. Because the rate depends on the frozen mean flow and
+never on $\tilde\nu$, the production's $\tilde\nu$-derivative is
+analytic---the handover derivative is its only stiff piece---and it is
+treated implicitly with the same clipping as the baseline SA production.
 
-The solver evaluates the indicators from magnitudes---$|\mathbf u|$
-(taken relative to the nearest wall point, which makes the triple
-Galilean invariant; for the static walls of this paper, the absolute
-velocity), $\omega d$, and the projected curvature above---rather
-than from the signed profile derivatives of Eq.~\eqref{eq:indicators}
-(the assembled forms are collected in Appendix~E). How these
-magnitude-based components realize the signed algebra of
-Sec.~\ref{sec:model} is worth stating precisely. On a parallel layer the
+How these magnitude-based components realize the signed algebra of
+Sec.~\ref{sec:model} (whose indicators, Eq.~\eqref{eq:indicators},
+are signed profile derivatives) is worth stating precisely. On a parallel layer the
 implemented triple is
 $\big(\operatorname{sign}(u)\,u,\;\operatorname{sign}(u')\,d\,u',\;
 \operatorname{sign}(u)\,\tfrac12 d^2u''\big)$. Wherever the velocity and the
@@ -1309,14 +1308,7 @@ $\hat S$ remains smooth ($|\mathbf u|$ enters it only through the smooth
 $u^2$) and the curvature projection changes sign with amplitude
 $\tfrac12 d^2|u''|$---small, because the velocity zero of a free-shear-like
 reversed profile lies close to its inflection point (for the antisymmetric
-layer the two coincide and the amplitude is zero). The kernel is therefore
-exact on the sign-consistent region a profile actually visits---including
-the detached shear layer above the crossing, where the amplification the
-reversed branch of Fig.~\ref{fig:model} relies on lives---and continuous up
-to a bounded, near-inflection-small step confined to the measure-zero
-velocity-zero surface inside the recirculation, whose $Re_\Omega$ sits at or
-below the onset floor: the same tolerance the curvature-pole discussion of
-Sec.~\ref{sec:model} already grants.
+layer the two coincide and the amplitude is zero).
 
 Figure~\ref{fig:flatplate_batch} computes the model on the flat plate at five
 freestream-turbulence levels spanning the natural-transition
@@ -1365,17 +1357,20 @@ $\chi$ trajectories, and each case's rise starts at its $\chi\!=\!1$
 crossing and levels off at its $\chi\!=\!c_{v1}$ crossing. Because the
 modeled transition has finite extent, quoting a single onset number
 against AGS requires choosing a crossing, and the comparison depends on
-the choice; we state the convention and give both readings. At the
-$\chi\!=\!1$ crossing---converted to $Re_\theta$ through the
-laminar relation $Re_\theta\!=\!0.664\sqrt{Re_x}$, the same convention that places
-the AGS markers---the model brackets the correlation within $\pm10\%$
-across the range: $+10\%$ late at the lowest disturbance level
-($Tu\!=\!0.04\%$), essentially exact at $0.08\%$ ($+0.6\%$), and
-$7$--$10\%$ early over $Tu\!=\!0.16$--$0.60\%$. At the alternative
+the choice; we state the convention and give both readings, with
+$Re_\theta$ integrated from the computed profiles at the crossing
+station (edge-normalized momentum thickness, integral cut at the
+boundary-layer edge). At the
+$\chi\!=\!1$ crossing the model brackets the correlation within
+$14\%$: $+6\%$ late at the lowest disturbance level
+($Tu\!=\!0.04\%$), $-3\%$ at $0.08\%$, and
+$10$--$14\%$ early over $Tu\!=\!0.16$--$0.60\%$. At the alternative
 $\chi\!=\!c_{v1}$
-crossing---the band's turbulent end---the model sits systematically above AGS:
-$+14$ to $+23\%$ over $Tu\!=\!0.04$--$0.30\%$ and $+36\%$ at $0.60\%$. The
-two residuals have different roots: the late bias at low $Tu$ is the
+crossing---the band's turbulent end---the layer is already
+mid-transition and its integrated $Re_\theta$ ($\approx\!2500$,
+nearly uniform across the sweep, $2.2$--$3.5\times$ AGS) measures
+transitional growth rather than onset placement. The
+onset residuals have different roots: the late bias at low $Tu$ is the
 retained-drain footprint of the calibration (the marched Blasius
 envelope runs $7\%$ past Drela's station by $N\!=\!9$,
 Sec.~\ref{sec:calib_onset}, and the low-$Tu$ seeds hand over near that
@@ -1394,33 +1389,6 @@ $\chi_\infty$ exceeds $c_{v1}$ outright, no longer a meaningful kinematic
 parametrization of bypass transition. We therefore do not present T3A/T3B
 comparisons.
 
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.90\textwidth]{flat_plate_batch_flow360.pdf}
-  \caption{Freestream-turbulence sweep on the flat plate at five levels in the
-  natural-transition range $Tu\!=\!0.04$--$0.60\%$ (rows). \emph{Left columns}:
-  contours of $u/U_\infty$ and $\log_{10}\hat\nu$ in the $(Re_x,Re_y)$ plane
-  ($Re_x\!=\!x\!\cdot\!10^6$). \emph{Bottom-left}: in-BL maximum
-  $\chi\!=\!\tilde\nu/\nu$ vs $Re_x$, with horizontal references at $\chi\!=\!1$
-  (onset of the $\sigma_t$ blend) and $\chi\!=\!c_{v1}\!=\!7.1$ (eddy-viscosity
-  half-saturation). \emph{Bottom-right}: $C_f$ vs $Re_\theta$ with the laminar
-  ($C_f\!=\!0.441/Re_\theta$, dashed) and turbulent
-  ($C_f\!=\!2[(\ln Re_\theta)/0.38+3.7]^{-2}$, dotted) correlations. Both
-  bottom panels use black curves with one symbol per $Tu$ (legend); the
-  bottom-left panel overlays $C_f$ (gray, right axis) on the $\chi$
-  trajectories, locating each case's $C_f$ rise between its $\chi\!=\!1$
-  and $\chi\!=\!c_{v1}$ crossings; solid-gray
-  verticals and filled bottom-edge symbols mark the Abu-Ghannam \&
-  Shaw~\cite{abu_ghannam_shaw_1980} transition-onset reference, and the
-  bottom-right adds the digitized Schubauer--Skramstad
-  Fig.~7 band (faint bars) for context. With the receptivity taken from Mack's
-  $e^N$ correlation, the model's $\chi\!=\!1$ onset brackets AGS within
-  $\pm10\%$ across the range---late at the lowest $Tu$, early at the
-  highest; the
-  $C_f$ follows the laminar branch then recovers the turbulent correlation
-  (baseline SA, with no laminar branch, does not produce this).}
-  \label{fig:flatplate_batch}
-\end{figure}
 
 \section{The NLF(1)-0416 airfoil at $Re\!=\!4\!\times\!10^6$}\label{sec:nlfval}
 
@@ -2840,11 +2808,12 @@ closure $\chi_\infty(Tu)$ is Mack's $e^N$ correlation, and the destruction-gate
 weight is tied to the production weight by a wall-layer identity, so the
 linear $\tilde\nu$ wall solution---and with it the log law---is exactly
 standard SA's. On a zero-pressure-gradient flat plate (Sec.~\ref{sec:flatplate}) the Mack
-closure places transition onset (at the stated $\chi\!=\!1$ convention)
-within $\pm10\%$ of the Abu-Ghannam \& Shaw
-correlation over the natural-transition range ($10\%$ late at the lowest
-disturbance level---the retained-drain footprint---essentially exact at
-$Tu\!=\!0.08\%$, and $7$--$10\%$ early as $Tu$ rises), verifying the
+closure places transition onset (at the stated $\chi\!=\!1$ convention,
+$Re_\theta$ integrated from the computed profiles)
+within $14\%$ of the Abu-Ghannam \& Shaw
+correlation over the natural-transition range ($6\%$ late at the lowest
+disturbance level---the retained-drain footprint---$-3\%$ at
+$Tu\!=\!0.08\%$, and $10$--$14\%$ early as $Tu$ rises), verifying the
 Blasius envelope. On
 the NLF(1)-0416 at $Re\!=\!4\!\times\!10^6$ (Sec.~\ref{sec:nlfval}) the
 model holds the designed laminar rooftop---the favorable run held by
