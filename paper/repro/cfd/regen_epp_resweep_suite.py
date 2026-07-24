@@ -103,16 +103,6 @@ def make_fig(re_list, out):
             ax_reo.semilogy(xs_l, ReO_l, ls=ls, lw=lw, color=LO)
             ax_P.plot(xs_u, P_u, ls=ls, lw=lw, color=UP)
             ax_P.plot(xs_l, P_l, ls=ls, lw=lw, color=LO)
-        for fam, d, ls, lw in for_each_fork(Rk):
-            try:
-                xs_u, ReO_u, _, P_u = R.wallnormal_max_metrics(d, side='upper', return_P=True)
-                xs_l, ReO_l, _, P_l = R.wallnormal_max_metrics(d, side='lower', return_P=True)
-            except Exception as e:
-                print(f"Re{Rk}k fork probe {fam}: {e}"); continue
-            ax_reo.semilogy(xs_u, ReO_u, ls=ls, lw=lw, color=FORK_UP)
-            ax_reo.semilogy(xs_l, ReO_l, ls=ls, lw=lw, color=FORK_LO)
-            ax_P.plot(xs_u, P_u, ls=ls, lw=lw, color=FORK_UP)
-            ax_P.plot(xs_l, P_l, ls=ls, lw=lw, color=FORK_LO)
         ax_reo.axhline(REOMC_FLOOR, color='gray', ls='--', lw=0.6, alpha=0.5)
         ax_reo.set_ylim(1e2, 1e4); ax_reo.grid(alpha=0.3, which='both')
         ax_reo.set_title(f"Re = {Rk}k", fontsize=12)
@@ -130,13 +120,6 @@ def make_fig(re_list, out):
                 print(f"Re{Rk}k chi {fam}{lvl}: {e}"); continue
             ax_chi.semilogy(xc, mu/NU_Re, ls=ls, lw=lw, color=UP)
             ax_chi.semilogy(xc, ml/NU_Re, ls=ls, lw=lw, color=LO)
-        for fam, d, ls, lw in for_each_fork(Rk):
-            try:
-                xc, mu, ml = R.max_chi_vs_x(d)
-            except Exception as e:
-                print(f"Re{Rk}k fork chi {fam}: {e}"); continue
-            ax_chi.semilogy(xc, mu/NU_Re, ls=ls, lw=lw, color=FORK_UP)
-            ax_chi.semilogy(xc, ml/NU_Re, ls=ls, lw=lw, color=FORK_LO)
         # At Re=60k the two e^9 implementations visibly differ and XFOIL is
         # the primary reference (no amplification envelope there).
         XFOIL_PRIMARY = {60}
@@ -167,15 +150,6 @@ def make_fig(re_list, out):
             ax_cp.plot(xl, -cpl, ls=ls, lw=lw, color=LO)
             ax_cf.plot(xu, cfu, ls=ls, lw=lw, color=UP)
             ax_cf.plot(xl, cfl, ls=ls, lw=lw, color=LO)
-        for fam, d, ls, lw in for_each_fork(Rk):
-            try:
-                (xu, cfu, cpu), (xl, cfl, cpl) = R.airfoil_walk_contour(d)
-            except Exception as e:
-                print(f"Re{Rk}k fork surf {fam}: {e}"); continue
-            ax_cp.plot(xu, -cpu, ls=ls, lw=lw, color=FORK_UP)
-            ax_cp.plot(xl, -cpl, ls=ls, lw=lw, color=FORK_LO)
-            ax_cf.plot(xu, cfu, ls=ls, lw=lw, color=FORK_UP)
-            ax_cf.plot(xl, cfl, ls=ls, lw=lw, color=FORK_LO)
         # experimental bubble band (only where oil-flow data exist)
         if Rk in EXP_LSB_RE:
             xls, xtr = EXP_LSB_RE[Rk]
@@ -231,10 +205,6 @@ def make_fig(re_list, out):
                Line2D([], [], color='0.3', lw=R.LEVEL_LW['L1'], label='L1'),
                Line2D([], [], color='0.3', lw=R.LEVEL_LW['L2'], label='L2'),
                Patch(facecolor='0.55', alpha=0.30, label='exp. LSB (TM-4062 oil flow)')]
-    if 100 in re_list:
-        handles[-1:-1] = [
-            Line2D([], [], color=FORK_UP, lw=2, label='upper, warm-start L2 ($10^5$)'),
-            Line2D([], [], color=FORK_LO, lw=2, label='lower, warm-start L2 ($10^5$)')]
     if MFOIL or XFOIL:
         handles.append(Line2D([], [], color='0.3', ls=':', lw=1.4, label='mfoil/xfoil ($e^9$)'))
     if EXP_CP_TAB:

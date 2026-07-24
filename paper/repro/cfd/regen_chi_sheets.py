@@ -158,7 +158,7 @@ def sweep_re_sheet(retag, Re, relabel, side):
                              sharex=True, sharey=True)
     for r, (fam, lvl, glabel) in enumerate(rows + forks):
         case = (_sweep_case(fam, lvl, retag) if lvl != 'fork'
-                else f"{B}/fork_{fam}L2_{retag}_a5")
+                else f"{B}/ext_fork_{fam}L2_{retag}_a5")
         if not os.path.exists(f"{case}/slice_centerSpan.pvtu"):
             raise FileNotFoundError(case)
         x, d, chi, um = scan(m, 'eppler387', case, side, L)
