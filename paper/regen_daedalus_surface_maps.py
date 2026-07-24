@@ -1,13 +1,15 @@
 """figs/daedalus_surface_a{4,5,6}.pdf -- one page-filling figure per incidence.
 
-3x3 panels, upper surface only, chord (physical x) horizontal and span (y)
-vertical: rows = structured O-grid L2, unstructured L2, e^9 strip theory
-(FlexFoil at AVL local cl / local Re / N_crit=13.6, from
-flow360_ai/flexfoil_daedalus_strips.pkl); columns = |C_f| (left),
--Cp (left), streamwise C_fx (middle; the bubble is bounded by the bold
-C_fx=0 contour), and the near-wall amplification max chi (right, decade
-contours, bold at the transition front). The e^9 row's Cp comes from
-Karman-Tsien-corrected u_e and its amplification is chi_inf e^N."""
+Nx3 panels, upper surface only, chord (physical x) horizontal and span (y)
+vertical. Rows: each COMPLETED L2 family (forces + surface pvtu +
+chi_surface.npz present -- incomplete campaign runs are skipped, and an
+incidence with no completed L2 case is skipped entirely), then the e^N
+strip reference (FlexFoil at AVL local cl / local Re / N_crit=13.6, from
+flow360_ai/flexfoil_daedalus_strips.pkl). Columns: -Cp (left), streamwise
+C_fx (middle; the bubble is bounded by the bold C_fx=0 contour), and the
+near-wall amplification max chi (right, decade contours, bold at the
+transition front chi=1). The e^N row's Cp comes from Karman-Tsien-corrected
+u_e and its amplification is drawn as chi_inf e^N."""
 import os
 import pickle
 import sys
@@ -128,8 +130,8 @@ def make_fig(a, out):
 
     for row, fam in enumerate(fams):
         case = CASES[a][0] if fam == 'str' else CASES[a][1]
-        tri, cfm, cfx, logchi = rans_row(case, SURF[fam])
-        cf_panel_tri(axs[row, 0], tri, cfm, [-l for l in LEV_CP[::-1]])
+        tri, cpn, cfx, logchi = rans_row(case, SURF[fam])   # cpn = -Cp
+        cf_panel_tri(axs[row, 0], tri, cpn, [-l for l in LEV_CP[::-1]])
         cf_panel_tri(axs[row, 1], tri, cfx, LEV_CFX, bold_zero=True)
         chi_panel_tri(axs[row, 2], tri, logchi)
         axs[row, 0].set_ylabel(f'{ROW_LAB[fam]}\n$y$ [m]', fontsize=9)

@@ -1,0 +1,95 @@
+{
+ "case_ogrid_L1_saai_a4": {
+  "CL": 1.0278,
+  "CD": 0.01957,
+  "front_eta031": 0.549,
+  "bubble_eta031": [
+   0.489,
+   0.63
+  ]
+ },
+ "case_ogrid_L1_saai_a5": {
+  "CL": 1.13,
+  "CD": 0.02212,
+  "front_eta031": 0.538,
+  "bubble_eta031": [
+   0.465,
+   0.622
+  ]
+ },
+ "case_ogrid_L1_saai_a6": {
+  "CL": 1.2317,
+  "CD": 0.02479,
+  "front_eta031": 0.524,
+  "bubble_eta031": [
+   0.45,
+   0.606
+  ]
+ },
+ "case_ogrid_L2_saai_a4": {
+  "CL": 1.0282,
+  "CD": 0.01997,
+  "front_eta031": 0.551,
+  "bubble_eta031": [
+   0.489,
+   0.661
+  ]
+ },
+ "case_ogrid_L2_saai_a5": {
+  "CL": 1.1289,
+  "CD": 0.02243,
+  "front_eta031": 0.54,
+  "bubble_eta031": [
+   0.465,
+   0.645
+  ]
+ },
+ "case_cavity_L1_saai_a4": {
+  "CL": 1.0211,
+  "CD": 0.01975,
+  "front_eta031": 0.542,
+  "bubble_eta031": [
+   0.497,
+   0.63
+  ]
+ },
+ "case_cavity_L1_saai_a5": {
+  "CL": 1.1225,
+  "CD": 0.02235,
+  "front_eta031": 0.529,
+  "bubble_eta031": [
+   0.481,
+   0.614
+  ]
+ },
+ "case_cavity_L1_saai_a6": {
+  "CL": 1.2227,
+  "CD": 0.02523,
+  "front_eta031": 0.522,
+  "bubble_eta031": [
+   0.465,
+   0.591
+  ]
+ },
+ "eN_strips_a4": {
+  "front_eta031": 0.646,
+  "bubble_eta031": [
+   0.472,
+   0.66
+  ]
+ },
+ "eN_strips_a5": {
+  "front_eta031": 0.631,
+  "bubble_eta031": [
+   0.472,
+   0.646
+  ]
+ },
+ "eN_strips_a6": {
+  "front_eta031": 0.617,
+  "bubble_eta031": [
+   0.458,
+   0.631
+  ]
+ }
+}

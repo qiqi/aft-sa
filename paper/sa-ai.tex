@@ -2500,8 +2500,10 @@ freestream seed $\chi_\infty\!=\!8.76\!\times\!10^{-6}$
 Sec.~\ref{sec:calib_tu}, the flight-environment amplification level of the
 Daedalus design work~\cite{drela_daedalus_1988}). The solver and
 kernel are exactly those of the airfoil studies: an earlier campaign
-with the predecessor kernel (the $Q_1$-only gate with its own
-three-anchor constants) exposed the compressed-bubble deficiency
+with a predecessor kernel (a shaped-rate variant whose onset threshold
+lacked the in-bubble $B/\langle\hat S g\rangle_+^{2}$ arm of
+Eq.~\eqref{eq:reomc}, with its own three-anchor constants) exposed the
+compressed-bubble deficiency
 discussed below, and this section reports the recomputation with the
 final model. Two mesh families are used: a structured O-grid
 stacked spanwise and pinched to a line at the tip, and a classical
@@ -2532,8 +2534,9 @@ in progress and are excluded from the figures and tables that follow.
   the exact station spacings. The around-the-section rows are measured
   at the $\eta\!=\!0.30$ section as in Tables~\ref{tab:nlfmesh}
   and~\ref{tab:eppmesh}; the $y^+$ percentiles are from the
-  $\alpha\!=\!5^\circ$ solutions (for levels whose final-kernel run is
-  pending, from the predecessor-kernel campaign on the same meshes).}
+  predecessor-kernel campaign's $\alpha\!=\!5^\circ$ solutions on
+  these same meshes (a mesh-resolution property, insensitive to the
+  kernel revision).}
   \label{tab:daemesh}
   \begin{tabular}{l ccc ccc}
     \toprule
@@ -2596,9 +2599,16 @@ conditions). Domain confinement does not explain the lift excess: the
 two families' far fields differ by a factor of $\sim\!20$---the
 O-grid's boundary is a cylinder of radius $100$ root chords,
 $2.7$ spans for this wing, against the unstructured octree's
-$\pm2$~km ($60$ spans)---yet their lifts agree to $0.7\%$, with the
-confined O-grid the higher, bounding any blockage bias below one
-percent. (The predecessor-kernel
+$\pm2$~km ($60$ spans)---yet their lifts agree to $0.7\%$. A
+classical wall-interference estimate confirms the bound with room to
+spare: treating the O-grid's outer boundary as a closed test section
+of cross-section $C\!\approx\!4\!\times\!10^{4}$~m$^2$, the
+upwash correction
+$\Delta\alpha\!=\!\delta\,(S/C)\,C_L$ with
+$\delta\!\approx\!0.12$ gives $\Delta C_L/C_L\!\sim\!0.06\%$
+at these conditions---an order of magnitude below the families'
+$0.7\%$ gap, which is therefore ordinary discretization difference,
+not confinement. (The predecessor-kernel
 campaign sat $11$--$17$ counts below the same reference; the final
 kernel's longer bubble---see below---returned $6$--$14$ counts of the
 missing bubble drag.) Sectional lift on the finest
@@ -2649,7 +2659,7 @@ against $0.47$--$0.65\,c$: separation agrees to $0.02\,c$ and
 reattachment to under $0.01\,c$. The reattachment is also the quantity
 still moving under refinement---$0.63$ at L1 to $0.66$ at L2 against
 the strips' $0.66$---while separation and the $\chi$ field are
-level-converged, and the two families agree at L1 to $0.01\,c$ on
+level-converged, and the two families agree at L1 to $0.02\,c$ on
 both edges. The $\chi$ maps show the anatomy: the transported
 amplification crosses $\chi\!=\!1$ (bold in the figure)
 $\sim\!0.09\,c$ ahead of the strips' $N_\mathrm{crit}$ contour---the
@@ -2663,8 +2673,9 @@ dimensions in Sec.~\ref{sec:eppresweep}.
 
 This bubble length is the final kernel's correction at work: the
 predecessor-kernel campaign on the same grids returned the same
-fronts but closed the bubble three to four times sooner
-($0.04$--$0.06\,c$). That kernel applied the free-shear ceiling from
+fronts---its $\chi\!=\!1$ contour sat the same $\sim\!0.1\,c$
+ahead of the strips' $N_\mathrm{crit}$ contour---but closed the bubble
+three to four times sooner ($0.04$--$0.06\,c$). That kernel applied the free-shear ceiling from
 the separation point on, while a just-separated layer is still
 wall-damped---its instability approaches the free-shear rate only as
 it lifts several $\theta$ off the surface---and, as the frozen-profile
@@ -2672,7 +2683,10 @@ ledger of Appendix~D measures in temporal units, its transported
 $\tilde\nu$ peak rode below the physical critical layer at roughly
 half its convection speed, banking nearly twice the $e$-folds per unit
 length (an excess intrinsic to a temporal rate advected by the local
-velocity, \S\ref{sec:reproduce}). The second gate pinch was built to
+velocity, \S\ref{sec:reproduce}). The in-bubble arm of the final
+onset threshold (the $B/\langle\hat S g\rangle_+^{2}$ branch of
+Eq.~\eqref{eq:reomc}, which suppresses the rate while the separated
+layer is still wall-damped) was built to
 close exactly this blind spot, and the recomputation confirms it
 does: the wing bubble lengthened from $0.04$--$0.06\,c$ to the
 strips' $\sim\!0.2\,c$, and the $6$--$14$ counts of bubble drag that
@@ -3151,8 +3165,10 @@ gives $a_\mathrm{eff}\!=\!0.066\!=\!0.35\,a_{\max}$: the anchor
 condition of the \emph{predecessor} kernel (a shaped, sigmoidal rate;
 cf.\ the linear clip of Eq.~\eqref{eq:rate}) pinned its sigmoid's flank at a
 third of the ceiling. Profiles extracted from the wing's bubble
-(structured L2, $\eta\!=\!0.31$, $\alpha\!=\!5^\circ$,
-$x/c\!=\!0.48$--$0.53$) measure
+(the \emph{predecessor-kernel} campaign's structured L2,
+$\eta\!=\!0.31$, $\alpha\!=\!5^\circ$,
+$x/c\!=\!0.48$--$0.53$---that kernel's whole bubble; the final-kernel
+bubble at the same station spans $0.47$--$0.65\,c$) measure
 $\omega_\mathrm{peak}\theta/U_e\!=\!0.212$---unchanged from the
 attached value; a marginal bubble has not de-concentrated its
 vorticity---with the shear-layer center near $3.5\,\theta$ at
@@ -3164,7 +3180,9 @@ $a\!\approx\!0.13$: the factor-of-three spatial excess decomposes into
 $1.45\times$ in temporal rate (saturated sigmoid versus wall-damped
 mode) and $2.05\times$ in ledger speed (the $\tilde\nu$ peak rides
 below the physical critical layer at half its convection speed). This
-ledger, measured on the predecessor kernel these wing computations carry,
+ledger, measured on the predecessor-kernel campaign (the final-kernel
+recomputation of Sec.~\ref{sec:daedalus} supersedes those solutions
+but not this diagnostic, which is a property of the ungated rate),
 is the in-place excess intrinsic to the advected temporal rate
 (\S\ref{sec:reproduce}); on frozen separated profiles the resolved band
 returns the spatial growth to $0.9$--$1.9\times$ the correlation. The
@@ -3180,8 +3198,11 @@ linearly extrapolated correlation is ${\sim}2\times$ above both
 \paragraph{Vortex-lattice $+$ section-polar reference and diagnostics.} The AVL model uses
 $12\times40$ cosine-spaced vortex-lattice panels per semispan with the
 blended sections at five stations; induced drag is taken from the
-Trefftz-plane total, distributed as $c_l\alpha_i$ (the per-strip
-near-field drag column is numerically noisy), and profile drag is
+Trefftz-plane total, distributed as $c_l\alpha_i$ (the near-field
+sums are the numerically fragile ones: doubling the lattice to
+$24\times80$ moves the Trefftz $C_{D\mathrm{ff}}$ by $0.2\%$ and
+$C_{L\mathrm{ff}}$ by $0.04\%$ while the near-field totals degrade),
+and profile drag is
 XFOIL at each station's local $c_l$, chord Reynolds number, and
 $N_\mathrm{crit}\!=\!13.6$, integrated over span. RANS transition
 fronts are read per spanwise strip as the $C_f$-rise location, and

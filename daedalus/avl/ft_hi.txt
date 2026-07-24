@@ -1,0 +1,31 @@
+ ---------------------------------------------------------------
+ Vortex Lattice Output -- Total Forces
+
+ Configuration: Daedalus approximate wing                                   
+     # Surfaces =   2
+     # Strips   = 160
+     # Vortices =3840
+
+  Sref =  30.840       Cref = 0.90300       Bref =  34.140    
+  Xref = 0.22925       Yref =  0.0000       Zref =  0.0000    
+
+ Standard axis orientation,  X fwd, Z down         
+
+ Run case:  -unnamed-                              
+
+  Alpha =   4.00000     pb/2V =  -0.00000     p'b/2V =  -0.00000
+  Beta  =   0.00000     qc/2V =   0.00000
+  Mach  =     0.000     rb/2V =  -0.00000     r'b/2V =  -0.00000
+
+  CXtot =       NaN     Cltot =       NaN     Cl'tot =       NaN
+  CYtot =       NaN     Cmtot =       NaN
+  CZtot =       NaN     Cntot =       NaN     Cn'tot =       NaN
+
+  CLtot =       NaN
+  CDtot =       NaN
+  CDvis =   0.00000     CDind =       NaN
+  CLff  =   0.97707     CDff  = 0.0092606    | Trefftz
+  CYff  =   0.00000         e =    0.8683    | Plane  
+
+
+ ---------------------------------------------------------------
