@@ -48,7 +48,10 @@ def run_avl(alpha):
                        cwd=WORK, timeout=300)
     ft = open(f'{WORK}/ft_a{int(alpha)}.txt').read()
     cl = float(re.search(r'CLtot\s*=\s*([\d.eE+-]+)', ft).group(1))
-    cdi = float(re.search(r'CDind\s*=\s*([\d.eE+-]+)', ft).group(1))
+    # induced drag from the TREFFTZ PLANE (CDff), not the near-field CDind:
+    # the near-field VLM value is noisy-high (CDind/CDff ~ 1.3 here) and
+    # overstated the reference drag by ~30 counts (caught 2026-07-24)
+    cdi = float(re.search(r'CDff\s*=\s*([\d.eE+-]+)', ft).group(1))
     rows = []
     for ln in open(f'{WORK}/fs_a{int(alpha)}.txt'):
         t = ln.split()

@@ -24,7 +24,9 @@ from wing_geometry import HALF_SPAN  # noqa: E402
 FAM_DIR = {'str': 'ogrid', 'cav': 'cavity'}
 CASES = {(fam, lv): [f'case_{FAM_DIR[fam]}_L{lv}_saai_a{a}' for a in (4, 5, 6)]
          for fam in ('str', 'cav') for lv in (1, 2)}
-AVL_XFOIL = {4: (0.9758, 0.02318), 5: (1.0746, 0.02565), 6: (1.1730, 0.02837)}
+# reference CD = Trefftz-plane CDff + spanwise-integrated XFOIL profile drag
+# (CDff, not the noisy-high near-field CDind -- fixed 2026-07-24)
+AVL_XFOIL = {4: (0.9758, 0.02028), 5: (1.0746, 0.02212), 6: (1.1730, 0.02414)}
 ALPHAS = [4.0, 5.0, 6.0]
 COL = {'str': 'C0', 'cav': 'C1'}
 LW = {0: 0.8, 1: 1.6, 2: 2.4}
@@ -32,7 +34,12 @@ LAB = {'str': 'structured O-grid', 'cav': 'unstructured'}
 
 
 def complete(case):
-    return os.path.exists(f'{D}/{case}/total_forces_v2.csv')
+    """Full force history present (a RUNNING case has a partial CSV)."""
+    fn = f'{D}/{case}/total_forces_v2.csv'
+    if not os.path.exists(fn):
+        return False
+    with open(fn) as f:
+        return sum(1 for _ in f) >= 2001    # 20k steps logged every 10
 
 
 def totals(case):

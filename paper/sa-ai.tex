@@ -271,7 +271,7 @@ pressure-gradient parameter---against the $e^N$ rooftop ignition, and its
 handover in the recovery.
 Section~\ref{sec:eppval} uses the Eppler 387 at low Reynolds number to test the
 adverse-pressure-gradient, laminar-separation-bubble regime. The same
-constants (collected in Sec.~\ref{sec:assembled}) are used across all three
+constants (collected in Appendix~E) are used across all three
 regimes and across the twenty-four coupled-RANS cases run for each airfoil
 (cavity unstructured $+$ structured O-grid, three refinement levels, four
 incidences). Section~\ref{sec:eppresweep} sweeps the Eppler across the
@@ -1024,7 +1024,7 @@ suppressed outright. The linear $\hat S g$ has no
 near-neutral floor to hold the small favorable growth Drela's envelope keeps;
 matching the strongly favorable branch is left to future work.
 
-\subsection{The blend and its handover}\label{sec:blend}\label{sec:calib_diff}
+\subsection{The blend and its handover}\label{sec:blend}
 A handover weight ties the laminar and turbulent regimes to the single state
 variable through $\chi$,
 \begin{equation}
@@ -1046,135 +1046,104 @@ The $\max$ hands the production from amplification to SA at the
 crossover: for $\chi\!\le\!1$ ($\sigma_P\!=\!0$) it returns $P_\mathrm{AI}$,
 leaving the $e^N$ amplification unchanged, and once $\sigma_P P_\mathrm{SA}$
 overtakes it just past $\chi\!=\!1$ the source reverts to standard SA with no
-laminar residue (a pressure-sensitive residue left past $\chi\!=\!1$ would couple
-the transition front to the outer pressure field).
-The destruction is not gated off but \emph{tied}: $\sigma_D$ tracks
+laminar residue. The production width $\tau$ is chosen for numerics
+rather than physics, and is bracketed by its failure modes: too wide
+throttles the SA production past $\chi\!=\!c_{v1}$, where the eddy
+viscosity is already dynamically active; too narrow snaps to full SA at
+$\chi\!=\!1$, compressing the transition zone into a front steeper than
+the streamwise mesh can resolve. $\tau\!=\!4$ sits between them---the
+handover is $78\%$ complete where $f_{v1}$ is half active
+($\chi\!=\!c_{v1}$) and $97\%$ complete where $f_{v1}$ reaches $90\%$
+($\chi\!\approx\!14.8$).
+The destruction is not gated off but \emph{tied}, and needs no width of
+its own: $\sigma_D$ tracks
 $\sigma_P$ with slope $c_{b1}/(\kappa^2c_{w1})\!\approx\!0.249$ from the
 floor $(1+c_{b2})/(\sigma c_{w1})\!\approx\!0.751$, the two summing to one
 by the definition of $c_{w1}$. The tie is the weighting under which
 Spalart's linear wall solution
 $\tilde\nu\!=\!\kappa u_\tau y$ survives the gates exactly, at every
-height and for any width $\tau$---derived below. In
-the laminar range ($\sigma_P\!=\!0$) the destruction floor is inert at the
-disturbance's scale: $D_\mathrm{SA}$ is quadratic in $\tilde\nu$, and its
-ratio to the amplification production stays below $10^{-3}$ up to the
-$\chi\!=\!1$ crossing (quantified below), so the $e^N$ growth is
-untouched. The limit $\sigma_t\!\to\!1$ recovers the unmodified SA
+height and for any width $\tau$---derived in
+Sec.~\ref{sec:calib_diff}. In
+the laminar range ($\sigma_P\!=\!0$) the destruction now runs at its
+floor instead of vanishing, but the floor is inert below the crossing:
+$D_\mathrm{SA}$ is quadratic in $\tilde\nu$, and its
+ratio to the amplification production stays below $10^{-3}$ up to
+$\chi\!=\!1$ (quantified in Sec.~\ref{sec:calib_diff}), so the $e^N$
+growth \emph{to} the crossing is untouched. Past the crossing the
+retained SA terms are no longer passive---they pace the growth of
+$\chi$ through the handover, and at low Reynolds numbers, where the
+handover occupies a macroscopic streamwise extent, that pacing becomes
+dynamically significant (Sec.~\ref{sec:epphandover}). The limit
+$\sigma_t\!\to\!1$ recovers the unmodified SA
 equation and its fully turbulent calibration.
 
-Between the two limits the blend is an interpolation, and we claim no
+Between its $\sigma_t\!=\!0$ and $\sigma_t\!=\!1$ limits the blend is
+an interpolation, and we claim no
 physics for it. The model does not attempt to represent the transitional
 zone's internal dynamics---turbulent-spot formation, growth, and
 merging, or the intermittency distribution they produce---and nothing
 above constrains what $\hat S g$ and $D$ should be mid-handover. The target is
 deliberately narrower: the transition \emph{location}, and the
 macroscopic aerodynamics that follow from it. Because the actively
-transitional region is usually short on the scale of the geometry, the
-integrated quantities are insensitive to how the interpolation crosses
-it, and $\sigma_t$ is asked only to cross smoothly and monotonically;
-in flows where the transitional zone itself occupies a macroscopically
-significant extent, this economy would need revisiting
-(Sec.~\ref{sec:epphandover} meets exactly such a flow: on the Eppler
-387 at $Re\!\leq\!10^5$ the handover zone grows to a large fraction of
-the chord and sets the model's bubble-bursting boundary).
+transitional region is often short on the scale of the geometry, the
+integrated quantities are often insensitive to how the interpolation crosses
+it, and $\sigma_t$ is asked only to cross smoothly and monotonically.
+The exception is a flow whose transitional zone itself occupies a
+macroscopic extent---a long laminar separation bubble may close or
+burst depending on how fast the handover completes;
+Sec.~\ref{sec:epphandover} meets exactly such a flow, on the Eppler
+387 at $Re\!\leq\!10^5$, where the handover zone grows to a large
+fraction of the chord and sets the model's bubble-bursting boundary.
 
 
-What remains is the turbulent side: the reduced diffusion
-(Eq.~\eqref{eq:nulamscale}) and the two handover gates
-(Eq.~\eqref{eq:blend}) must leave SA's calibrated behavior alone. Neither
-enters the momentum equation, which keeps the true molecular viscosity:
-$c_{\nu,\mathrm{ai}}$ rescales the molecular coefficient in the
-$\tilde\nu$-transport equation only, and the gates scale that equation's
-source terms. The velocity profile can therefore change only through the
-$\tilde\nu$ field, by way of the eddy viscosity
-$\nu_t\!=\!\rho\tilde\nu f_{v1}$, and this subsection tracks how that
-field changes under each modification: the diffusion reduction leaves it
-unchanged exactly, and the
-destruction tie of Eq.~\eqref{eq:blend} makes the gates' footprint vanish
-identically---the linear $\tilde\nu$ wall solution survives them, the
-property this subsection derives and verifies. The laminar branch stays
-decoupled: the amplification kernel is extinct in every region examined
-here, and the destruction floor's back-reaction on the laminar branch is
-quantified at the end of the subsection.
+\subsection{Contact with Spalart's calibration}\label{sec:calib_diff}
 
-The diffusion reduction rescales only the \emph{molecular} part of the
-diffusion, and the three ranges of $\chi$ fare differently: against
-$\tilde\nu$ the molecular part is negligible where $\chi$ is large, dominant
-in the sub-$O(1)$ range that SA leaves inert and the model repurposes, and
-comparable in the $O(1)$ range between---the buffer layer, which is exactly
-the contact this subsection has to manage.
-Spalart's constants ($c_{b1},c_{b2},c_{w1},\sigma,\kappa,c_{v1}$) were fixed on
-high-Reynolds turbulent flows---free-shear spreading rates and flat-plate skin
-friction---and the scaling \eqref{eq:nulamscale} leaves each intact, as a
-region-by-region partition confirms:
-\begin{enumerate}
-  \item \emph{Outer layer, wakes, and mixing layers (asymptotic dominance).}
-  Wherever these calibrations act, $\tilde\nu\!\gg\!\nu$ ($\chi\!\gtrsim\!100$),
-  so $c_{\nu,\mathrm{ai}}\nu+\tilde\nu\!\approx\!\tilde\nu\!\approx\!\nu+\tilde
-  \nu$; dividing an already sub-percent molecular contribution by six is
-  imperceptible, and spreading rates and the outer velocity deficit are
-  unchanged.
-  \item \emph{Viscous sublayer (exact zero-curvature).} At the wall $\tilde\nu$
-  is linear in the wall distance, $\tilde\nu\!\propto\!y$; the SA constant
-  $c_{w1}\!=\!c_{b1}/\kappa^2+(1+c_{b2})/\sigma$ balances the quadratic
-  production, destruction, and self-diffusion so that the \emph{linear} molecular
-  diffusion is the surviving near-wall constraint,
-  $(c_{\nu,\mathrm{ai}}\nu/\sigma)\,\partial^2\tilde\nu/\partial y^2\!=\!0$.
-  Because $c_{\nu,\mathrm{ai}}\nu$ is a nonzero constant it still enforces
-  $\partial^2\tilde\nu/\partial y^2\!=\!0$: the scaling multiplies a term that
-  evaluates to zero and cannot alter the sublayer profile.
-  \item \emph{Buffer layer (shielded by $f_{v1}$).} The lone region where
-  $\nu\!\sim\!\tilde\nu$ is the buffer layer, and there the change is a
-  $\sim\!14\%$ local reduction in diffusion (at $\chi\!\approx\!5$,
-  $(\tfrac{1}{6}+5)/(1+5)\!\approx\!0.86$). Since $\chi$ is formed with the true
-  $\nu$, the damping function $f_{v1}\!=\!\chi^3/(\chi^3+c_{v1}^3)$
-  ($c_{v1}\!=\!7.1$) still switches on the eddy viscosity at exactly the
-  calibrated $\chi$; it absorbs most of the resulting $\tilde\nu$ perturbation
-  before it reaches $\nu_t$.
-\end{enumerate}
-A constant-stress wall-layer solve makes the accounting quantitative. Integrating
-the SA transport in wall units with the reduced coefficient acting alone
-($c_{\nu,\mathrm{ai}}\!=\!1/6$, gates held at $\sigma_P\!=\!\sigma_D\!\equiv\!1$) leaves the
-computed log-law intercept unchanged exactly: the wall solution is the
-linear profile, whose vanishing curvature is all the molecular term
-multiplies, so the term contributes nothing at any coefficient---the
-$\tilde\nu$ profile, and with it $\nu_t$, is untouched by the sixfold
-reduction, and the solve's residual is roundoff.
+The reduced diffusion (Eq.~\eqref{eq:nulamscale}) and the two handover
+gates (Eq.~\eqref{eq:blend}) must leave SA's calibrated behavior alone.
+Neither enters the momentum equation, which keeps the true molecular
+viscosity: $c_{\nu,\mathrm{ai}}$ rescales the molecular coefficient in
+the $\tilde\nu$-transport equation only, and the gates scale that
+equation's source terms, so the velocity field can change only through
+the eddy viscosity $\nu_t\!=\!\rho\tilde\nu f_{v1}$. This subsection
+introduces nothing new; it walks Spalart and Allmaras's own calibration
+stages (\S II.2--II.5 of Ref.~\cite{spalart_allmaras_1994}) and shows
+each is preserved---exactly, not approximately.
 
-The handover introduces one coefficient of its own, the production
-width $\tau$ of Eq.~\eqref{eq:blend}. It is chosen for numerics rather
-than physics, and it is bracketed by its failure modes. Too wide, and the
-handover remains incomplete past $\chi\!=\!c_{v1}$, throttling the SA
-production in the range where the eddy viscosity is already dynamically
-active; too narrow, and the production snaps to full SA immediately past
-$\chi\!=\!1$, compressing the transition zone into a front steeper than
-the streamwise mesh can resolve. $\tau\!=\!4$ spans the natural
-window as a resolution compromise within that bracket: the handover begins
-at $\chi\!=\!1$, where $\tilde\nu$ starts to feed the eddy viscosity, is
-$78\%$ complete where $f_{v1}$ is half active ($\chi\!=\!c_{v1}$), and
-$97\%$ complete where $f_{v1}$ reaches $90\%$ ($\chi\!\approx\!14.8$).
-The destruction weight needs no width of its own: its tie to $\sigma_P$
-(Eq.~\eqref{eq:blend}) is derived as follows.
+The high-Reynolds-number stages are untouched by construction. \S II.2,
+\emph{Free shear flows}, fixes $c_{b1}$, $\sigma$, $c_{b2}$ on
+mixing-layer and wake spreading rates with the molecular viscosity
+excluded from the equation outright; \S II.3, \emph{Near-wall region,
+high Reynolds number}, fixes $c_{w1}$ and the $f_w$ calibration on the
+log layer and flat-plate skin friction at
+$\chi\!=\!\kappa y^+\!\gg\!1$. Both are formulated where $\chi$ is
+large or $\nu$ absent: there the gates are fully open
+($\sigma_P\!=\!\sigma_D\!=\!1$) and the molecular diffusion is at most
+a sub-percent addend to $\tilde\nu$, so neither modification acts.
+\S II.5, \emph{Laminar region and trip term}, is replaced outright:
+the trip devices are dropped and the laminar region becomes the
+model's active domain. What must be managed is \S II.4,
+\emph{Near-wall region, finite Reynolds number}---the calibration that
+introduces $\chi$ itself and sets the viscous functions $f_{v1}$,
+$f_{v2}$ through the buffer layer, where $\chi$ passes through $O(1)$
+and the gates run partially open.
 
-The region in question is the turbulent buffer layer. Across the wall
-layer $\chi\!\approx\!\kappa y^+$, and the weights $\sigma_t(\chi;\tau)$ of
-Eq.~\eqref{eq:sigma} vanish for $\chi\!\le\!1$ and approach unity only for
-$\chi\!\gtrsim\!20$: between $\chi\!=\!1$ and $\chi\!\approx\!20$
-($y^+\!\approx\!2$--$50$) the handover is under way but not complete.
-Through this band the amplification branch $P_\mathrm{AI}$ of
-Eq.~\eqref{eq:pai} is identically zero---the near-wall profile is nearly
-parabolic, so $\hat S g\!\to\!0$ and the onset threshold $Re_\Omega^{\mathrm c}(\hat S g)$
-(Eq.~\eqref{eq:onset}) rises far above the local $Re_\Omega\!=\!y^+\!/\kappa$,
-driving $a\!\to\!0$---so what runs there is standard SA with both sources
-reduced, $\sigma_P P_\mathrm{SA}$ and $\sigma_D D_\mathrm{SA}$. On the
-linear solution $\tilde\nu\!=\!\kappa u_\tau y$, Spalart's $\tilde S$
+That calibration rests on a single flow: the constant-stress inner
+layer (sublayer, buffer layer, log layer), on which SA's solution is
+the linear profile $\tilde\nu\!=\!\kappa u_\tau y$. Through the
+handover band ($\chi\!=\!1$--$20$, $y^+\!\approx\!2$--$50$) the
+amplification branch $P_\mathrm{AI}$ is identically zero---the
+near-wall profile is nearly parabolic, so $\hat S g\!\to\!0$ and the
+onset threshold $Re_\Omega^{\mathrm c}$ rises far above the local
+$Re_\Omega\!=\!y^+\!/\kappa$---so what runs there is standard SA with
+both sources reduced, $\sigma_P P_\mathrm{SA}$ and
+$\sigma_D D_\mathrm{SA}$. On the linear solution Spalart's $\tilde S$
 construction holds $\tilde S\!=\!\tilde\nu/(\kappa^2d^2)$---hence
-$r\!\equiv\!1$ and $f_w\!\equiv\!1$---at every height, so all three terms
-of the balance are height-independent: $P_\mathrm{SA}\!=\!c_{b1}u_\tau^2$,
-$D_\mathrm{SA}\!=\!c_{w1}\kappa^2u_\tau^2$, and the self-diffusion of the
-linear profile contributes $(1+c_{b2})\,\kappa^2u_\tau^2/\sigma$ (the
-molecular term vanishes with the curvature, so $c_{\nu,\mathrm{ai}}$ plays
-no part). Requiring the gated balance
+$r\!\equiv\!1$ and $f_w\!\equiv\!1$---at every height, so all three
+terms of the balance are height-independent:
+$P_\mathrm{SA}\!=\!c_{b1}u_\tau^2$,
+$D_\mathrm{SA}\!=\!c_{w1}\kappa^2u_\tau^2$, and the self-diffusion of
+the linear profile contributes $(1+c_{b2})\,\kappa^2u_\tau^2/\sigma$.
+Requiring the gated balance
 $\sigma_P P_\mathrm{SA}-\sigma_D D_\mathrm{SA}+\mathrm{diffusion}\!=\!0$
 to hold pointwise gives
 \begin{equation}
@@ -1182,20 +1151,36 @@ to hold pointwise gives
   \;=\; 1-\frac{c_{b1}}{\kappa^2c_{w1}}\,(1-\sigma_P),
   \label{eq:sigmadtie}
 \end{equation}
-the tie of Eq.~\eqref{eq:blend}: floor and slope sum to one by the
-definition of $c_{w1}$, and the floor
-$(1+c_{b2})/(\sigma c_{w1})\!\approx\!0.751$ is the fraction of the
-destruction that balances the linear profile's self-diffusion where the
-production is off. Equal-fraction weighting ($\sigma_D\!=\!\sigma_P$)
-would instead remove about four times as much destruction as
-production---on the log-law solution
-$P/D\!=\!c_{b1}/(c_{w1}\kappa^2)\!\approx\!1/4$, diffusion supplying the
-difference---and leave a spurious buffer surplus of $\tilde\nu$; the tie
-removes the two in exactly that ratio. With it,
+the tie of Eq.~\eqref{eq:blend}. (Equal-fraction weighting,
+$\sigma_D\!=\!\sigma_P$, would instead remove about four times as much
+destruction as production---on the linear solution
+$P/D\!=\!c_{b1}/(c_{w1}\kappa^2)\!\approx\!1/4$---and leave a spurious
+buffer surplus of $\tilde\nu$.) With the tie,
 $\tilde\nu\!=\!\kappa u_\tau y$ is an exact solution of the gated
-equation at every height and for any $\tau$: the wall-layer solve returns
-the linear profile with the intercept shift exactly zero, the residual
-deviation being roundoff.
+equation at every height and for any $\tau$; and because $\chi$ is
+formed with the true $\nu$, the damping function
+$f_{v1}\!=\!\chi^3/(\chi^3+c_{v1}^3)$ still switches on the eddy
+viscosity at exactly the calibrated $\chi$. The inner-layer
+$\nu_t$---and with it the velocity solution---is standard SA's.
+
+The preserved solution is \emph{linear}, and that settles the
+diffusion reduction: the molecular diffusion multiplies a curvature
+that is identically zero,
+$(c_{\nu,\mathrm{ai}}\nu/\sigma)\,\partial^2\tilde\nu/\partial y^2\!=\!0$
+at any coefficient, so $c_{\nu,\mathrm{ai}}$ does not act on the inner
+layer at all. Nowhere in SA's calibrated domain does the reduced
+coefficient multiply anything nonzero. The preservation is discrete as
+well as continuous: a linear field has exact gradients and fluxes under
+any consistent discretization and the source terms are pointwise, so
+the linear profile is an exact solution of the \emph{discretized} gated
+equation too, and SA-AI's inner-layer solution coincides with standard
+SA's to round-off independent of the numerical scheme and resolution
+(verified on the constant-stress layer with two unrelated
+discretizations---a second-order finite-difference solve on grids with
+first-cell $y^+$ from $0.25$ to $8$, and a fourth-order collocation
+BVP solve: both return the linear profile and identical log-law
+intercepts for both models, deviations at solver tolerance,
+$10^{-9}$--$10^{-12}$).
 
 The tie's one back-reaction is on the laminar range, where the destruction
 now runs at its floor instead of vanishing. The floor is inert at the
@@ -1217,215 +1202,8 @@ airfoil fronts and forces by less than the line widths of their figures
 Eppler~387 bubble case, $\alpha\!=\!5^\circ$: peak $|\Delta C_f|$ of
 $3\!\times\!10^{-5}$, forces to four digits).
 
-Does the modification change SA's tolerance to
-\emph{coarse} near-wall meshes---SA's practical advantage over two-equation models,
-which typically require $y^+\!\lesssim\!1$? Solving the same wall-layer equations on
-grids whose first node is progressively coarsened (first-cell $y^+$ from $0.25$ to
-$8$, geometric growth to the edge) answers this (Table~\ref{tab:yplus}). Both
-fields are discretized on the coarse grid---the $\tilde\nu$ transport by
-second-order differences, the velocity by second-order integration of
-$du^+\!/dy^+\!=\!1/(1+\nu_t^+)$ over the same nodes---so the tabulated $B$
-and $C_f$ carry the discretization error of both equations.
-The grid-induced skin-friction error is indistinguishable between standard SA and
-SA-AI at every resolution: both hold $C_f$ to within $0.5\%$ at first-cell
-$y^+\!=\!2$, $\sim\!1\%$ at $y^+\!=\!4$, and a few percent at
-$y^+\!=\!8$; and the recovered intercept matches standard SA's to the
-printed digit throughout. On this test, SA-AI inherits SA's coarse-mesh
-robustness.
-
-\begin{table}[tp]
-  \centering
-  \small
-  \caption{Coarse-mesh robustness. The constant-stress wall-layer equations---the
-  $\tilde\nu$ transport and the velocity integration---are both solved to second
-  order on grids whose first node sits at the listed first-cell $y^+$ (geometric
-  growth ratio $1.2$ to the edge $y^+\!=\!1000$; total node count in the second
-  column), for standard SA and SA-AI. Columns give the recovered log-law intercept $B$ and the grid-induced
-  skin-friction error $|\Delta C_f/C_f|$ relative to the finest grid. SA-AI's grid
-  sensitivity matches standard SA's at every resolution, and its intercept
-  matches standard SA's to the printed digits.}
-  \label{tab:yplus}
-  \begin{tabular}{cc cc cc}
-    \toprule
-    & & \multicolumn{2}{c}{standard SA} & \multicolumn{2}{c}{SA-AI}\\
-    \cmidrule(lr){3-4}\cmidrule(lr){5-6}
-    first-cell $y^+$ & nodes & $B$ & $|\Delta C_f/C_f|$ & $B$ & $|\Delta C_f/C_f|$\\
-    \midrule
-    0.25 & 38 & 5.16 & ref    & 5.16 & ref \\
-    0.5  & 34 & 5.17 & 0.1\%  & 5.17 & 0.1\% \\
-    1    & 31 & 5.18 & 0.2\%  & 5.18 & 0.2\% \\
-    2    & 27 & 5.21 & 0.4\%  & 5.21 & 0.4\% \\
-    4    & 23 & 5.26 & 0.9\%  & 5.26 & 0.9\% \\
-    8    & 19 & 5.44 & 2.5\%  & 5.44 & 2.5\% \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-
-Where does all of this leave Spalart and Allmaras's own calibrations?
-Their model was built and calibrated in nested stages
-(\S II.2--II.5 of Ref.~\cite{spalart_allmaras_1994}). The first
-two---\S II.2, \emph{Free shear flows}, where the molecular viscosity
-is excluded from the equation outright and $c_{b1}$, $\sigma$, $c_{b2}$
-are set by mixing-layer and wake shear-stress levels, and \S II.3,
-\emph{Near-wall region, high Reynolds number}, where $c_{w1}$ and the
-$f_w$ calibration are set on the log layer and flat-plate skin friction
-with $\chi\!=\!\kappa y^+\!\gg\!1$---are high-Reynolds-number
-calibrations, formulated where $\chi$ is large or $\nu$ absent, and
-therefore oblivious to the $O(1)$ range of $\chi$ this model
-repurposes: every modification above is inert there, and those
-calibrations are untouched. What the modifications do touch is \S II.4,
-\emph{Near-wall region, finite Reynolds number}---the calibration that
-introduces $\chi$ itself and sets the viscous functions $f_{v1}$,
-$f_{v2}$ through the buffer layer, where $\chi$ passes through $O(1)$,
-the handover gates run partially open, and the molecular diffusion is
-still comparable to $\tilde\nu$---and \S II.5, \emph{Laminar region
-and trip term}, which they replace outright: the trip devices are
-dropped, and the laminar region becomes the model's active domain
-rather than a region to suppress. The contact with \S II.4 is the one
-that must be managed, and the wall-layer analysis above took up
-quantitatively: the production gate vanishes for $\chi\!\le\!1$ and the
-destruction floor is inert at the disturbance's quadratic scale, $f_{v1}$
-still switches on at the calibrated $\chi$ because $\chi$ is formed with
-the true $\nu$, and the destruction weight is tied so the linear
-$\tilde\nu$ wall solution---the log law included---is recovered exactly.
-
-\subsection{Assembled one-equation model}\label{sec:assembled}
-
-For reference, the complete model in one place. The working variable
-$\tilde\nu$ obeys the single transport equation
-\begin{equation}
-  \frac{D\tilde\nu}{Dt} = P - D
-  + \frac{1}{\sigma}\nabla\!\cdot\!\big[(c_{\nu,\mathrm{ai}}\,\nu+\tilde\nu)\,\nabla\tilde\nu\big]
-  + \frac{c_{b2}}{\sigma}\,|\nabla\tilde\nu|^2,
-  \label{eq:aisa}
-\end{equation}
-identical in form to Spalart--Allmaras~\cite{spalart_allmaras_1992} except in
-three places---the blended production $P$ (its amplification branch built on
-$\hat S g$), the tied destruction $D$, and the
-factor $c_{\nu,\mathrm{ai}}$ on the molecular diffusion;
-$\sigma_P\!\equiv\!1$ (and with it $\sigma_D\!=\!1$),
-$c_{\nu,\mathrm{ai}}\!=\!1$ recovers baseline SA exactly.
-
-\paragraph{Terms.} The production and destruction are
-\begin{equation}
-  P = \max\!\big[\,(1-\sigma_P)\,a\,S\,\omega\,\tilde\nu,\;\;\sigma_P\,P_\mathrm{SA}\,\big],
-  \qquad
-  D = \sigma_D\,D_\mathrm{SA},
-  \label{eq:aisa_pd}
-\end{equation}
-with the handover weights and the amplification rate restated below
-(from Eqs.~\eqref{eq:indicators}--\eqref{eq:blend} and
-\eqref{eq:sigmadtie}). The baseline SA
-production, destruction, and closure functions, carried over unchanged, are
-\begin{gather}
-  P_\mathrm{SA} = c_{b1}\tilde S\,\tilde\nu, \qquad
-  D_\mathrm{SA} = c_{w1}f_w\!\left(\frac{\tilde\nu}{d}\right)^{\!2}, \qquad
-  \tilde S = \omega + \frac{\tilde\nu}{\kappa^2 d^2}\,f_{v2}, \qquad
-  f_{v2} = 1 - \frac{\chi}{1+\chi f_{v1}}, \notag\\[3pt]
-  f_{v1} = \frac{\chi^3}{\chi^3+c_{v1}^3}, \qquad
-  f_w = g_w\!\left(\frac{1+c_{w3}^6}{g_w^6+c_{w3}^6}\right)^{\!1/6}, \qquad
-  g_w = r + c_{w2}(r^6-r), \qquad
-  r = \min\!\left(\frac{\tilde\nu}{\tilde S\,\kappa^2 d^2},\,10\right),
-  \label{eq:sa_closure}
-\end{gather}
-with $\omega$ the vorticity magnitude, $\chi\!=\!\tilde\nu/\nu$, $d$ the wall
-distance, and eddy viscosity $\mu_t\!=\!\rho\tilde\nu f_{v1}$ (the wall-function
-auxiliary $g_w$ is Spalart's $g$, renamed to avoid the Rayleigh coordinate $g$
-below). We retain the
-non-negative $\tilde S$ modification and the negative-$\tilde\nu$ safeguards
-of Ref.~\cite{allmaras_2012}. The handover weights are
-\begin{gather*}
-  \sigma_P = \sigma_t(\chi;\tau), \qquad
-  \sigma_t(\chi;\tau) = \max\!\left[\,1-e^{-(\chi-1)/\tau},\;0\right], \qquad
-  \sigma_D = 1-\frac{c_{b1}}{\kappa^2c_{w1}}\,(1-\sigma_P),
-\end{gather*}
-and the amplification rate is built from the local indicators
-\begin{gather*}
-  (X,Y,Z) = \big(|\mathbf{u}|,\; \omega d,\; \tfrac12 d^{2}\,\hat{\mathbf{n}}\!\cdot\!\nabla\omega\big)\big/R,
-  \qquad R = \sqrt{|\mathbf{u}|^{2}+(\omega d)^{2}+\big(\tfrac12 d^{2}\,\hat{\mathbf{n}}\!\cdot\!\nabla\omega\big)^{2}}, \\[3pt]
-  \hat S = \frac{Y}{\sqrt{X^2+Y^2}}, \qquad
-  g = Y-X-Z, \qquad
-  Re_\Omega = \frac{d^2\,\omega}{\nu}.
-\end{gather*}
-Velocities (and $|\mathbf{u}|$) are measured relative to the nearest wall
-point, which makes the indicators Galilean invariant; for the static-wall
-cases of this paper this is simply the absolute velocity. Here
-$\hat{\mathbf{n}}\!\cdot\!\nabla\omega$ denotes the wall-normal derivative of
-the vorticity magnitude; the implementation evaluates the curvature input as
-$(\nabla^2\mathbf{u})\cdot\hat{\mathbf{u}}$, with the
-discretization described in Sec.~\ref{sec:flatplate}. On a parallel layer
-$\nabla^2\mathbf{u}=-\nabla\times\boldsymbol\omega=u''\,\hat{\mathbf{t}}$, so
-the projection reads $\operatorname{sign}(u)\,u''$.
-
-How these magnitude-based components realize the signed algebra of
-Sec.~\ref{sec:model} is worth stating precisely. On a parallel layer the
-implemented triple is
-$\big(\operatorname{sign}(u)\,u,\;\operatorname{sign}(u')\,d\,u',\;
-\operatorname{sign}(u)\,\tfrac12 d^2u''\big)$. Wherever the velocity and the
-shear share a sign---every attached profile, and all of a reversed profile
-except the layer between its backflow extremum and its velocity zero---the
-three components carry one common sign, so the triple is a legitimate
-projective representative of the signed state of Eq.~\eqref{eq:indicators},
-and every even product, $\hat S g$ included, coincides with the theory
-\emph{exactly}: the magnitudes realize the antipodal identification rather
-than break it (a globally mirrored layer lands on the identified antipode),
-which is why the calibration instruments of
-Secs.~\ref{sec:calib_rate}--\ref{sec:calib_onset}, marched on attached
-profiles, transfer to the solver unchanged. In the remaining mixed-sign
-layer the implemented direction deviates from the signed class in a single
-component's sign, and the deviation switches on and off continuously: at
-the backflow extremum the affected component $Y=\omega d$ itself vanishes,
-and at the velocity zero the state reaches the $X\!=\!0$ meridian, where
-$\hat S$ remains smooth ($|\mathbf u|$ enters it only through the smooth
-$u^2$) and the curvature projection changes sign with amplitude
-$\tfrac12 d^2|u''|$---small, because the velocity zero of a free-shear-like
-reversed profile lies close to its inflection point (for the antisymmetric
-layer the two coincide and the amplitude is zero). The kernel is therefore
-exact on the sign-consistent region a profile actually visits---including
-the detached shear layer above the crossing, where the amplification the
-reversed branch of Fig.~\ref{fig:model} relies on lives---and continuous up
-to a bounded, near-inflection-small step confined to the measure-zero
-velocity-zero surface inside the recirculation, whose $Re_\Omega$ sits at or
-below the onset floor: the same tolerance the curvature-pole discussion of
-Sec.~\ref{sec:model} already grants. The rate $a$ (as in
-Eq.~\eqref{eq:rate}) and its onset gate $S$ (as in Eq.~\eqref{eq:onset}) are
-\begin{gather*}
-  a = a_{\max}\,\operatorname{clip}\langle \hat S g\rangle_0^1, \qquad
-  S = S\!\big(Re_\Omega/Re_\Omega^{\mathrm c}(\hat S g)\big), \qquad
-  S(\zeta) = \tfrac12\big[1+\tanh\!\big((\zeta-1)/w\big)\big], \\[3pt]
-  Re_\Omega^{\mathrm c}(\hat S g) = k\,\operatorname{softmin}_2\!\big(C,\;
-      A + B\,\langle \hat S g\rangle_+^{-2}\big),
-  \qquad \operatorname{softmin}_2(x_1,x_2) = \frac{x_1 x_2}{\sqrt{x_1^2+x_2^2}},
-\end{gather*}
-with $\langle x\rangle_+ = \max(x,0)$.
-
-\paragraph{Constants.} The baseline SA constants are unchanged:
-\begin{equation*}
-  c_{b1}=0.1355,\quad \sigma=\tfrac{2}{3},\quad c_{b2}=0.622,\quad
-  \kappa=0.41,\quad c_{w1}=\frac{c_{b1}}{\kappa^2}+\frac{1+c_{b2}}{\sigma},\quad
-  c_{w2}=0.3,\quad c_{w3}=2,\quad c_{v1}=7.1 .
-\end{equation*}
-The SA-AI constants are
-\begin{equation*}
-  \begin{aligned}
-    a_{\max}&=0.19 &\quad&\text{free-shear ceiling: the tanh-layer eigenvalue $\omega_{i,\max}/\omega_{\mathrm{peak}}\!=\!0.1897$ \cite{michalke_1964};}\\
-    (C,\,A,\,B;\;k)&=(2600,\;175,\;2;\;0.712) &&\text{onset threshold $Re_\Omega^{\mathrm c}(\hat S g)$: shape from the LST graze (Fig.~\ref{fig:onsetgraze}, never refit); $k$ compensates the laminar drain, anchored at the Blasius $N\!=\!1$ inception (Sec.~\ref{sec:calib_onset});}\\
-    w&=0.35 &&\text{onset ramp width scale: not fitted---the marched stations are insensitive (Sec.~\ref{sec:onset});}\\
-    \tau&=4 &&\text{production handover width (Sec.~\ref{sec:calib_diff});}\\
-    c_{\nu,\mathrm{ai}}&=\tfrac{1}{6} &&\text{laminar-diffusion reduction: the largest coefficient carrying the frozen-profile growth balance onto the $e^N$ correlation at the just-past-critical stations (Sec.~\ref{sec:nulamscale}, Table~\ref{tab:frozeneig});}\\
-    N_\mathrm{crit}(Tu)&=-8.43-2.4\ln Tu_\mathrm{frac} &&\text{Mack $e^N$ receptivity map, Eq.~\eqref{eq:tumap} (Sec.~\ref{sec:flatplate}), adopted wholesale \cite{mack_1977}.}
-  \end{aligned}
-\end{equation*}
-How each constant is determined, and the ordering that keeps the
-determinations from circulating, is the subject of
-Secs.~\ref{sec:calib_rate}--\ref{sec:calib_diff}; the remaining
-freestream-turbulence map is a statement about the boundary condition
-rather than the model, and is fixed where it is first used, on the flat
-plate of Sec.~\ref{sec:flatplate}. The
-same set is used without per-geometry adjustment for the Blasius transport
-verification (Fig.~\ref{fig:nuhat}) and every coupled-RANS computation of
-Secs.~\ref{sec:flatplate}--\ref{sec:eppresweep}.
+The assembled equation, its closure functions, and the complete
+constant set are collected for reference in Appendix~E.
 
 \section{Zero pressure gradient: the Blasius flat plate}\label{sec:flatplate}
 
@@ -1471,6 +1249,38 @@ $\chi_\infty$ is one unit of $N_\mathrm{crit}$, which on the Blasius envelope
 ($dN/dRe_\theta\!\approx\!10^{-2}$) shifts onset by
 $\Delta Re_\theta\!\approx\!100$; every airfoil computation in the
 following sections uses the single anchor $N_\mathrm{crit}\!=\!9$.
+
+How these magnitude-based components realize the signed algebra of
+Sec.~\ref{sec:model} is worth stating precisely. On a parallel layer the
+implemented triple is
+$\big(\operatorname{sign}(u)\,u,\;\operatorname{sign}(u')\,d\,u',\;
+\operatorname{sign}(u)\,\tfrac12 d^2u''\big)$. Wherever the velocity and the
+shear share a sign---every attached profile, and all of a reversed profile
+except the layer between its backflow extremum and its velocity zero---the
+three components carry one common sign, so the triple is a legitimate
+projective representative of the signed state of Eq.~\eqref{eq:indicators},
+and every even product, $\hat S g$ included, coincides with the theory
+\emph{exactly}: the magnitudes realize the antipodal identification rather
+than break it (a globally mirrored layer lands on the identified antipode),
+which is why the calibration instruments of
+Secs.~\ref{sec:calib_rate}--\ref{sec:calib_onset}, marched on attached
+profiles, transfer to the solver unchanged. In the remaining mixed-sign
+layer the implemented direction deviates from the signed class in a single
+component's sign, and the deviation switches on and off continuously: at
+the backflow extremum the affected component $Y=\omega d$ itself vanishes,
+and at the velocity zero the state reaches the $X\!=\!0$ meridian, where
+$\hat S$ remains smooth ($|\mathbf u|$ enters it only through the smooth
+$u^2$) and the curvature projection changes sign with amplitude
+$\tfrac12 d^2|u''|$---small, because the velocity zero of a free-shear-like
+reversed profile lies close to its inflection point (for the antisymmetric
+layer the two coincide and the amplitude is zero). The kernel is therefore
+exact on the sign-consistent region a profile actually visits---including
+the detached shear layer above the crossing, where the amplification the
+reversed branch of Fig.~\ref{fig:model} relies on lives---and continuous up
+to a bounded, near-inflection-small step confined to the measure-zero
+velocity-zero surface inside the recirculation, whose $Re_\Omega$ sits at or
+below the onset floor: the same tolerance the curvature-pole discussion of
+Sec.~\ref{sec:model} already grants.
 
 One implementation note bears on reproducibility: the curvature indicator
 requires a second wall-normal derivative of the velocity, and its
@@ -2776,13 +2586,22 @@ in progress and are excluded from the figures and tables that follow.
 The macroscopic ledger comes first (Fig.~\ref{fig:daepolar}; the
 per-level coefficients are tabulated in Appendix~D,
 Table~\ref{tab:daetotals}). The two families agree at L1 to
-$0.6$--$0.8\%$ in $C_L$ and $0.9$--$1.8\%$ in $C_D$, and both polars
-run parallel to the AVL$+$XFOIL reference---$\sim\!5\%$ above it in
-lift and $30$--$36$ drag counts below. (The predecessor-kernel
-campaign sat $40$--$50$ counts below the same reference; the final
-kernel's longer bubble---see below---returns $6$--$14$ counts of the
-missing bubble drag, and the refinement step L1$\to$L2 adds another
-$3$--$4$ counts toward the reference.) Sectional lift on the finest
+$0.6$--$0.8\%$ in $C_L$ and $0.9$--$1.8\%$ in $C_D$, and the polars
+land on the AVL$+$XFOIL reference in drag---within $\pm3$ counts
+($1.5\%$) at L2 and $\pm11$ at L1---while running $\sim\!5\%$ above it
+in lift, the excess a vortex lattice built on camber lines alone would
+be expected to miss (section thickness raises the two-dimensional lift
+slope by more than the viscous decambering takes back at these
+conditions). Domain confinement does not explain the lift excess: the
+two families' far fields differ by a factor of $\sim\!20$---the
+O-grid's boundary is a cylinder of radius $100$ root chords,
+$2.7$ spans for this wing, against the unstructured octree's
+$\pm2$~km ($60$ spans)---yet their lifts agree to $0.7\%$, with the
+confined O-grid the higher, bounding any blockage bias below one
+percent. (The predecessor-kernel
+campaign sat $11$--$17$ counts below the same reference; the final
+kernel's longer bubble---see below---returned $6$--$14$ counts of the
+missing bubble drag.) Sectional lift on the finest
 completed grids
 (Fig.~\ref{fig:daepolar}b) matches the vortex-lattice distribution
 inboard to $\sim\!1\%$ and reproduces, identically on both families,
@@ -2923,7 +2742,7 @@ $\alpha\!\le\!5^\circ$ ($0.79$ vs $0.74\,c$, $0.74$ vs $0.67\,c$, $0.66$ vs
 $0.59\,c$), and $0.03\,c$ early at $7^\circ$
 (\S\ref{sec:calib_rate}); an $\alpha\!=\!5^\circ$ sweep across five Reynolds numbers,
 $Re\!=\!6\!\times\!10^4$ to $4.6\!\times\!10^5$, follows the bubble's march and
-shortening. The same constants (Sec.~\ref{sec:assembled}) were used
+shortening. The same constants (Appendix~E) were used
 throughout. Across both airfoils the L1$\to$L2 transition-location drift is at
 or below $0.03\,c$ away from the marginal cases (the near-LE onset at
 $\alpha\!=\!9^\circ$ reaches $0.031\,c$ on a transition front, and the
@@ -3299,15 +3118,15 @@ coefficients are means over the final 500 steps.
     \midrule
     $4^\circ$ & L1 & 1.0278 & 0.01957 & 1.0211 & 0.01975\\
               & L2 & 1.0282 & 0.01997 & --- & ---\\
-              & AVL$+$XFOIL & 0.9758 & 0.02318 & &\\
+              & AVL$+$XFOIL & 0.9758 & 0.02028 & &\\
     \midrule
     $5^\circ$ & L1 & 1.1300 & 0.02212 & 1.1225 & 0.02235\\
               & L2 & 1.1289 & 0.02243 & --- & ---\\
-              & AVL$+$XFOIL & 1.0746 & 0.02565 & &\\
+              & AVL$+$XFOIL & 1.0746 & 0.02212 & &\\
     \midrule
     $6^\circ$ & L1 & 1.2317 & 0.02479 & 1.2227 & 0.02523\\
               & L2 & --- & --- & --- & ---\\
-              & AVL$+$XFOIL & 1.1730 & 0.02837 & &\\
+              & AVL$+$XFOIL & 1.1730 & 0.02414 & &\\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -3375,5 +3194,108 @@ station's AVL $c_l$ and chord Reynolds number, its amplification drawn
 as $\chi_\infty e^{N}$ through the identical color map so the two
 transition contours ($\chi\!=\!1$ and $N\!=\!N_\mathrm{crit}$) are
 directly comparable.
+
+\clearpage
+\renewcommand{\thefigure}{E\arabic{figure}}
+\renewcommand{\thetable}{E\arabic{table}}
+\renewcommand{\theequation}{E\arabic{equation}}
+\setcounter{figure}{0}\setcounter{table}{0}\setcounter{equation}{0}
+\section*{Appendix E: the assembled one-equation model}\label{sec:assembled}
+
+For reference, the complete model in one place. The working variable
+$\tilde\nu$ obeys the single transport equation
+\begin{equation}
+  \frac{D\tilde\nu}{Dt} = P - D
+  + \frac{1}{\sigma}\nabla\!\cdot\!\big[(c_{\nu,\mathrm{ai}}\,\nu+\tilde\nu)\,\nabla\tilde\nu\big]
+  + \frac{c_{b2}}{\sigma}\,|\nabla\tilde\nu|^2,
+  \label{eq:aisa}
+\end{equation}
+identical in form to Spalart--Allmaras~\cite{spalart_allmaras_1992} except in
+three places---the blended production $P$ (its amplification branch built on
+$\hat S g$), the tied destruction $D$, and the
+factor $c_{\nu,\mathrm{ai}}$ on the molecular diffusion;
+$\sigma_P\!\equiv\!1$ (and with it $\sigma_D\!=\!1$),
+$c_{\nu,\mathrm{ai}}\!=\!1$ recovers baseline SA exactly.
+
+\paragraph{Terms.} The production and destruction are
+\begin{equation}
+  P = \max\!\big[\,(1-\sigma_P)\,a\,S\,\omega\,\tilde\nu,\;\;\sigma_P\,P_\mathrm{SA}\,\big],
+  \qquad
+  D = \sigma_D\,D_\mathrm{SA},
+  \label{eq:aisa_pd}
+\end{equation}
+with the handover weights and the amplification rate restated below
+(from Eqs.~\eqref{eq:indicators}--\eqref{eq:blend} and
+\eqref{eq:sigmadtie}). The baseline SA
+production, destruction, and closure functions, carried over unchanged, are
+\begin{gather}
+  P_\mathrm{SA} = c_{b1}\tilde S\,\tilde\nu, \qquad
+  D_\mathrm{SA} = c_{w1}f_w\!\left(\frac{\tilde\nu}{d}\right)^{\!2}, \qquad
+  \tilde S = \omega + \frac{\tilde\nu}{\kappa^2 d^2}\,f_{v2}, \qquad
+  f_{v2} = 1 - \frac{\chi}{1+\chi f_{v1}}, \notag\\[3pt]
+  f_{v1} = \frac{\chi^3}{\chi^3+c_{v1}^3}, \qquad
+  f_w = g_w\!\left(\frac{1+c_{w3}^6}{g_w^6+c_{w3}^6}\right)^{\!1/6}, \qquad
+  g_w = r + c_{w2}(r^6-r), \qquad
+  r = \min\!\left(\frac{\tilde\nu}{\tilde S\,\kappa^2 d^2},\,10\right),
+  \label{eq:sa_closure}
+\end{gather}
+with $\omega$ the vorticity magnitude, $\chi\!=\!\tilde\nu/\nu$, $d$ the wall
+distance, and eddy viscosity $\mu_t\!=\!\rho\tilde\nu f_{v1}$ (the wall-function
+auxiliary $g_w$ is Spalart's $g$, renamed to avoid the Rayleigh coordinate $g$
+below). We retain the
+non-negative $\tilde S$ modification and the negative-$\tilde\nu$ safeguards
+of Ref.~\cite{allmaras_2012}. The handover weights are
+\begin{gather*}
+  \sigma_P = \sigma_t(\chi;\tau), \qquad
+  \sigma_t(\chi;\tau) = \max\!\left[\,1-e^{-(\chi-1)/\tau},\;0\right], \qquad
+  \sigma_D = 1-\frac{c_{b1}}{\kappa^2c_{w1}}\,(1-\sigma_P),
+\end{gather*}
+and the amplification rate is built from the local indicators
+\begin{gather*}
+  (X,Y,Z) = \big(|\mathbf{u}|,\; \omega d,\; \tfrac12 d^{2}\,\hat{\mathbf{n}}\!\cdot\!\nabla\omega\big)\big/R,
+  \qquad R = \sqrt{|\mathbf{u}|^{2}+(\omega d)^{2}+\big(\tfrac12 d^{2}\,\hat{\mathbf{n}}\!\cdot\!\nabla\omega\big)^{2}}, \\[3pt]
+  \hat S = \frac{Y}{\sqrt{X^2+Y^2}}, \qquad
+  g = Y-X-Z, \qquad
+  Re_\Omega = \frac{d^2\,\omega}{\nu}.
+\end{gather*}
+Velocities (and $|\mathbf{u}|$) are measured relative to the nearest wall
+point, which makes the indicators Galilean invariant; for the static-wall
+cases of this paper this is simply the absolute velocity. Here
+$\hat{\mathbf{n}}\!\cdot\!\nabla\omega$ denotes the wall-normal derivative of
+the vorticity magnitude; the implementation evaluates the curvature input as
+$(\nabla^2\mathbf{u})\cdot\hat{\mathbf{u}}$, with the
+discretization described in Sec.~\ref{sec:flatplate}. On a parallel layer
+$\nabla^2\mathbf{u}=-\nabla\times\boldsymbol\omega=u''\,\hat{\mathbf{t}}$, so
+the projection reads $\operatorname{sign}(u)\,u''$.
+
+The rate $a$ (as in
+Eq.~\eqref{eq:rate}) and its onset gate $S$ (as in Eq.~\eqref{eq:onset}) are
+\begin{gather*}
+  a = a_{\max}\,\operatorname{clip}\langle \hat S g\rangle_0^1, \qquad
+  S = S\!\big(Re_\Omega/Re_\Omega^{\mathrm c}(\hat S g)\big), \qquad
+  S(\zeta) = \tfrac12\big[1+\tanh\!\big((\zeta-1)/w\big)\big], \\[3pt]
+  Re_\Omega^{\mathrm c}(\hat S g) = k\,\operatorname{softmin}_2\!\big(C,\;
+      A + B\,\langle \hat S g\rangle_+^{-2}\big),
+  \qquad \operatorname{softmin}_2(x_1,x_2) = \frac{x_1 x_2}{\sqrt{x_1^2+x_2^2}},
+\end{gather*}
+with $\langle x\rangle_+ = \max(x,0)$.
+
+\paragraph{Constants.} The baseline SA constants are unchanged:
+\begin{equation*}
+  c_{b1}=0.1355,\quad \sigma=\tfrac{2}{3},\quad c_{b2}=0.622,\quad
+  \kappa=0.41,\quad c_{w1}=\frac{c_{b1}}{\kappa^2}+\frac{1+c_{b2}}{\sigma},\quad
+  c_{w2}=0.3,\quad c_{w3}=2,\quad c_{v1}=7.1 .
+\end{equation*}
+The SA-AI constants are
+\begin{equation*}
+  a_{\max}=0.19, \qquad
+  (C,\,A,\,B;\;k)=(2600,\;175,\;2;\;0.712), \qquad
+  w=0.35, \qquad
+  \tau=4, \qquad
+  c_{\nu,\mathrm{ai}}=\tfrac{1}{6},
+\end{equation*}
+with the freestream seed set by Mack's receptivity map,
+$N_\mathrm{crit}(Tu)=-8.43-2.4\ln Tu_\mathrm{frac}$,
+$\chi_\infty=c_{v1}e^{-N_\mathrm{crit}}$ (Eq.~\eqref{eq:tumap}).
 
 \end{document}
