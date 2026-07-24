@@ -577,3 +577,9 @@ both halves of the compensation are small enough that the sum —
 separation to reattachment — lands on the reference. (The predecessor
 paragraph that follows is untouched: same fronts, bubble 3-4x short =
 same compensation at a stronger climb.)
+
+## 2026-07-24 ~22:50 — Sec. II.F retitled
+"Contact with Spalart's calibration" -> "Preservation of the
+Spalart–Allmaras calibration" — matches what the subsection actually
+proves (each calibration stage preserved exactly) and reads as the
+respectful claim it is. No residual "contact" phrasing in the body.
