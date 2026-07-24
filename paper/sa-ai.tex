@@ -1347,11 +1347,44 @@ and the amplification rate is built from the local indicators
 Velocities (and $|\mathbf{u}|$) are measured relative to the nearest wall
 point, which makes the indicators Galilean invariant; for the static-wall
 cases of this paper this is simply the absolute velocity. Here
-$\hat{\mathbf{n}}\!\cdot\!\nabla\omega$ is the wall-normal derivative of the
-vorticity magnitude; the implementation evaluates it as
-$(\nabla^2\mathbf{u})\cdot\hat{\mathbf{u}}$---identical for a parallel layer,
-where $\nabla^2\mathbf{u}=-\nabla\times\boldsymbol\omega$---with the
-discretization described in Sec.~\ref{sec:flatplate}. The rate $a$ (as in
+$\hat{\mathbf{n}}\!\cdot\!\nabla\omega$ denotes the wall-normal derivative of
+the vorticity magnitude; the implementation evaluates the curvature input as
+$(\nabla^2\mathbf{u})\cdot\hat{\mathbf{u}}$, with the
+discretization described in Sec.~\ref{sec:flatplate}. On a parallel layer
+$\nabla^2\mathbf{u}=-\nabla\times\boldsymbol\omega=u''\,\hat{\mathbf{t}}$, so
+the projection reads $\operatorname{sign}(u)\,u''$.
+
+How these magnitude-based components realize the signed algebra of
+Sec.~\ref{sec:model} is worth stating precisely. On a parallel layer the
+implemented triple is
+$\big(\operatorname{sign}(u)\,u,\;\operatorname{sign}(u')\,d\,u',\;
+\operatorname{sign}(u)\,\tfrac12 d^2u''\big)$. Wherever the velocity and the
+shear share a sign---every attached profile, and all of a reversed profile
+except the layer between its backflow extremum and its velocity zero---the
+three components carry one common sign, so the triple is a legitimate
+projective representative of the signed state of Eq.~\eqref{eq:indicators},
+and every even product, $\hat S g$ included, coincides with the theory
+\emph{exactly}: the magnitudes realize the antipodal identification rather
+than break it (a globally mirrored layer lands on the identified antipode),
+which is why the calibration instruments of
+Secs.~\ref{sec:calib_rate}--\ref{sec:calib_onset}, marched on attached
+profiles, transfer to the solver unchanged. In the remaining mixed-sign
+layer the implemented direction deviates from the signed class in a single
+component's sign, and the deviation switches on and off continuously: at
+the backflow extremum the affected component $Y=\omega d$ itself vanishes,
+and at the velocity zero the state reaches the $X\!=\!0$ meridian, where
+$\hat S$ remains smooth ($|\mathbf u|$ enters it only through the smooth
+$u^2$) and the curvature projection changes sign with amplitude
+$\tfrac12 d^2|u''|$---small, because the velocity zero of a free-shear-like
+reversed profile lies close to its inflection point (for the antisymmetric
+layer the two coincide and the amplitude is zero). The kernel is therefore
+exact on the sign-consistent region a profile actually visits---including
+the detached shear layer above the crossing, where the amplification the
+reversed branch of Fig.~\ref{fig:model} relies on lives---and continuous up
+to a bounded, near-inflection-small step confined to the measure-zero
+velocity-zero surface inside the recirculation, whose $Re_\Omega$ sits at or
+below the onset floor: the same tolerance the curvature-pole discussion of
+Sec.~\ref{sec:model} already grants. The rate $a$ (as in
 Eq.~\eqref{eq:rate}) and its onset gate $S$ (as in Eq.~\eqref{eq:onset}) are
 \begin{gather*}
   a = a_{\max}\,\operatorname{clip}\langle \hat S g\rangle_0^1, \qquad
