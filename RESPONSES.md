@@ -275,3 +275,28 @@ compensated error.
 - Implication: truthful fix moves BOTH dials (rate down toward LST in the
   bubble + faster commitment); either alone breaks the pairing. Sharper
   framing of the "model the transition zone" future-work item.
+
+## 2026-07-24 ~21:15 — LSB over-amplification mechanism FOUND: closed-streamline re-seeding
+Your two objections (Re-trend; calibration already includes advection) both
+hold and they corner the mechanism. Measured on the Eppler strL2 a5 sweep,
+median chi in the reversed "dead air" (first third of bubble) vs the max
+incoming-envelope chi just upstream of separation:
+  60k: 16x ABOVE | 100k: 29x ABOVE | 300k: 0.03x (quiet) | 460k: 0.01x
+The flip sits exactly at the bursting boundary. Mechanism: in the elliptic
+solution the bubble is a closed cell — nuHat diffuses across the layer into
+the reversed stream, convects BACK upstream, and re-enters the amplifying
+band elevated (spiral path, recirculating dwell). Absent from the parabolic
+frozen-profile calibration BY CONSTRUCTION (one-pass march). Cross-layer
+diffusion vs convection strengthens as Re drops -> your observed trend.
+- Coder question: he never solved local advection speed — the amplifying
+  band is placed by profile geometry (Shat*g>0), production peaks low in
+  the layer (nuHat peak 2.4θ @ 0.22Ue vs packet 3.5θ @ 0.45Ue); the
+  Blasius N=1 anchor absorbs the family-stable speed ratio for attached
+  profiles. Absorbed bias, not a solution; useless against re-seeding
+  (not a profile property).
+- Nuance: real bubbles DO feed back (absolute instability at ~15-20%
+  reversal, Rist/Maucher) — the model's reservoir is an unconditional,
+  diffusion-driven caricature that switches on too early in Re.
+- Rig note: single-sweep FLARE marching can't reproduce this; multi-sweep
+  windward (Davis-Carter/ALESEP style) can — rig #2 design should keep
+  the multi-sweep reversed-layer convection for exactly this reason.

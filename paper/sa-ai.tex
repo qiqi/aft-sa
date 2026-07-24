@@ -3232,11 +3232,10 @@ induced-drag total is a small difference of large terms at this aspect
 ratio and demands double precision: the single-precision AVL build
 returned $C_{D\mathrm{ind}}$ $31\%$ above $C_{D\mathrm{ff}}$ on the
 $12\times40$ lattice and NaN on $24\times80$, while a double-precision
-rebuild returns $C_{D\mathrm{ind}}\!=\!C_{D\mathrm{ff}}$ to four
-digits at every lattice; $C_{D\mathrm{ff}}$ itself is insensitive to
-both precision and lattice, moving $0.2\%$ from $12\times40$ to
-$24\times80$.)
-and profile drag is
+rebuild returns $C_{D\mathrm{ind}}\!=\!C_{D\mathrm{ff}}$ to within
+a tenth of a count at every lattice; $C_{D\mathrm{ff}}$ itself is
+insensitive to both precision and lattice, moving a quarter percent
+from $12\times40$ to $24\times80$.) Profile drag is
 XFOIL at each station's local $c_l$, chord Reynolds number, and
 $N_\mathrm{crit}\!=\!13.6$, integrated over span. RANS transition
 fronts are read per spanwise strip as the $C_f$-rise location, and

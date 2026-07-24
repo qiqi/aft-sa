@@ -155,7 +155,7 @@ def profile_drag(strips, ncrit, tripped):
 if __name__ == '__main__':
     build_model()
     cl, cdi, e_osw, strips = run_avl()
-    print(f'AVL @ alpha={ALPHA}: CLtot {cl:.4f}, CDind {cdi:.5f}, e {e_osw:.3f}, '
+    print(f'AVL @ alpha={ALPHA}: CLtot {cl:.4f}, CDff {cdi:.5f}, e {e_osw:.3f}, '
           f'{len(strips)} strips')
     print(f'-- XFOIL strips, free transition N={NCRIT}:')
     cdp_free = profile_drag(strips, NCRIT, tripped=False)
