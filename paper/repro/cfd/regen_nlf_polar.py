@@ -33,7 +33,15 @@ def converged_clcd(d):
 
 alphas=[0,4,9,15]
 mn=pickle.load(open(f"{B}/mfoil_nlf0416_Re4M.pkl",'rb'))
+import json as _json
+_aftD = _json.load(open(f"{PD}/data/aft_nlf0416_digitized.json"))['polar']
 fig,ax=plt.subplots(figsize=(5.8,5.4))
+# AFT polars from Coder's dissertation (same digitized source as fig:nlfaft):
+# nominal Ncrit=10.07 dashed, recalibrated 7.18 solid, both gray
+ax.plot(_aftD['aft_ncrit10']['cd'], _aftD['aft_ncrit10']['cl'], '--',
+        color='0.45', lw=1.3, zorder=2)
+ax.plot(_aftD['aft_ncrit718']['cd'], _aftD['aft_ncrit718']['cl'], '-',
+        color='0.45', lw=1.3, zorder=2)
 ecd=[p[0] for p in EXP_POLAR]; ecl=[p[1] for p in EXP_POLAR]
 ax.plot(ecd,ecl,'-',color='k',lw=1.4,zorder=1)
 ax.plot(ecd,ecl,'o',mfc='none',mec='k',ms=4,zorder=1)
@@ -72,6 +80,8 @@ ax.set_xlabel('$C_d$'); ax.set_ylabel('$C_l$'); ax.grid(alpha=0.3)
 handles=[Line2D([],[],color='k',ls='-',marker='o',mfc='none',ms=4,label='Experiment (Somers TP-1861)'),
          Line2D([],[],color='0.4',ls=':',marker='s',mfc='none',ms=5,lw=1.2,label='mfoil ($e^9$, $\\alpha\\!\\leq\\!7^\\circ$)'),
          Line2D([],[],color='0.5',ls='none',marker='D',mfc='none',ms=6,mew=1.3,label='FlexFoil ($e^9$, $\\alpha\\!\\geq\\!9^\\circ$)'),
+         Line2D([],[],color='0.45',ls='--',lw=1.3,label='AFT (OVERFLOW), $N_\\mathrm{crit}=10.07$'),
+         Line2D([],[],color='0.45',ls='-',lw=1.3,label='AFT (OVERFLOW), $N_\\mathrm{crit}=7.18$'),
          Line2D([],[],color='C0',ls='-', marker='o',ms=4,label='SA-AI, structured (O-grid)'),
          Line2D([],[],color='C1',ls='--',marker='^',ms=4,label='SA-AI, unstructured'),
          Line2D([],[],color='0.55',ls='-.',marker='v',mfc='none',ms=5,lw=1.2,label='SA, fully turbulent (str L2)'),

@@ -6,7 +6,8 @@ model's OVERFLOW sweeps from Coder's dissertation at its nominal tunnel
 calibration (Ncrit=10.07, Tu=0.045%) and at the recalibrated Ncrit=7.18
 (Tu=0.15%) chosen there to close the transition-location discrepancy, the
 XFOIL e^9 reference from the same source, and SA-AI's four incidences on
-both L2 mesh families (untuned N=9-class seed chi_inf = c_v1 e^-9).
+ALL SIX grids (both mesh families, L0-L2; marker size grows with
+refinement) at the untuned N=9-class seed chi_inf = c_v1 e^-9.
 
 AFT/XFOIL/experiment curves are vector-exact extractions from the
 dissertation PDF (repro: data/aft_nlf0416_digitized.json).
@@ -39,13 +40,22 @@ for ax, side, lab in ((axs[0], 'upper', 'upper surface'),
     xf = D[f'xfoil_{side}']
     ax.plot(xf['xt'], xf['cl'], ':', color='0.6', lw=1.2, label='XFOIL ($e^9$)')
     for fam, c, mk in (('str', 'C0', 's'), ('cav', 'C1', '^')):
-        cls, xts = [], []
-        for a in (0, 4, 9, 15):
-            r = camp[f'{fam}L2prop_nlf0416_Re4M_a{a}']
-            cls.append(r['CL']); xts.append(r['xtr_up' if side == 'upper' else 'xtr_lo'])
-        ax.plot(xts, cls, mk, color=c, ms=7, mfc='none', mew=1.6,
-                label=f"SA-AI L2, {'O-grid' if fam=='str' else 'unstructured'}",
-                zorder=5)
+        for lv, ms, mew, al in ((0, 3.5, 0.8, 0.5), (1, 5.2, 1.1, 0.75),
+                                (2, 7.0, 1.6, 1.0)):
+            cls, xts = [], []
+            for a in (0, 4, 9, 15):
+                r = camp.get(f'{fam}L{lv}prop_nlf0416_Re4M_a{a}')
+                if r is None:
+                    continue
+                xt = r['xtr_up' if side == 'upper' else 'xtr_lo']
+                if xt is None:
+                    continue                       # front lost on the coarse grid
+                cls.append(r['CL']); xts.append(xt)
+            ax.plot(xts, cls, mk, color=c, ms=ms, mfc='none', mew=mew,
+                    alpha=al,
+                    label=(f"SA-AI, {'O-grid' if fam=='str' else 'unstructured'}"
+                           " (L0$\to$L2 by size)") if lv == 2 else None,
+                    zorder=5)
     ax.set_xlabel('$x_t/c$'); ax.set_title(lab, fontsize=10)
     ax.grid(alpha=0.3); ax.set_xlim(0, 0.75)
 axs[0].set_ylabel('$c_l$'); axs[0].set_ylim(-0.6, 2.1)

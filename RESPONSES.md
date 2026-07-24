@@ -774,3 +774,39 @@ Eppler — then run only the verified invariant form on the spheroid):
   Re2e5 strL2 (bubble: differences confined to the mixed-sign
   recirculation layer, expected within line widths). Cold starts, canon
   env + flag. GPU-gated: all 8 GPUs are on cavity-L2 until ~02:00.
+
+## 2026-07-25 ~01:45 — annotated.pdf round 4 (NLF section), all 13 items
+The section is restructured around the transition-location figure:
+- OPENING GUTTED per the two big strikeouts: the pins-most-fronts claim,
+  the lambda_p definition and all per-alpha front narration, the
+  what-the-case-tests paragraph, and the finite-difference pinned/free
+  quantification (dx_tr/dN discussion) are deleted. The section now
+  opens with one sentence + fig:nlfaft MOVED TO THE FRONT, regenerated
+  to show ALL SIX GRIDS (L0-L2 by marker size, both families) — the
+  coarse-grid scatter is now visible honestly (e.g. the cavity-L0
+  lower-front outliers). The lambda_p nomenclature row is dropped too
+  (no remaining use).
+- AFT ADDED TO THE POLAR (Fig. 7): the digitized dissertation data
+  already contained the AFT polar curves (nominal 10.07 dashed,
+  recalibrated 7.18 solid, gray) — overlaid with legend entries.
+- EPISTEMIC REWRITE of the AFT comparison ending (your note: can't argue
+  "we are better"; may be coincidence/compensation): the text now reads
+  "We do not read the untuned agreement as a ranking, because it may be
+  partly compensatory: the model's handover is least decisive at low
+  Re_theta (Sec. VI), the c_v1-based N_crit convention was anchored on
+  flat-plate transition at lower Re_theta than these fronts, and at the
+  NLF's higher-Re_theta fronts the same convention is effectively
+  sharper — while AFT's recalibrated freestream may equally be read as
+  absorbing the tunnel's true disturbance level rather than as a
+  per-case tuning. The two closures place their empiricism differently;
+  this case cannot separate them." ("fixed once for the whole paper" and
+  "without a per-case constant to choose" deleted.)
+- Also deleted per strikeouts: the families-agree-in-drag block
+  (0.4e-3/1.1e-3 counts + L1/L0 scatter recap), the signed/unsigned Cf
+  clause + the Throughout-conventions block + the surfaces-walk detail +
+  the across-figs convergence recap (all restated in the captions), the
+  "three-dimensional" before stall, mfoil's Newton-globalization clause
+  ("FlexFoil and XFOIL both converge" per your note), "least-squares"
+  (now "computed gradients"), and "triangulates" ->
+  "Delaunay-triangulates".
+Build clean.

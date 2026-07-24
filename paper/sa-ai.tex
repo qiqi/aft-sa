@@ -101,7 +101,6 @@ dimensions on the wing of the Daedalus human-powered aircraft.
   $p,\;\rho$ \> static pressure and density \\
   $|u|$ \> velocity magnitude relative to the nearest-wall point \\
   $H$ \> boundary-layer shape factor \\
-  $\lambda_p$ \> pressure-gradient diagnostic $-d^{2}\,(\mathbf{u}\cdot\nabla p)/(\rho\,\nu\,|\mathbf{u}|^{2})$ (Sec.~\ref{sec:nlfval}; not part of the model) \\
   $\alpha$ \> angle of attack \\
   $c,\;x/c$ \> airfoil chord and chordwise coordinate \\
   $x_\mathrm{tr},\;x_R$ \> transition-onset and turbulent-reattachment locations \\
@@ -1400,43 +1399,11 @@ comparisons.
 \section{The NLF(1)-0416 airfoil at $Re\!=\!4\!\times\!10^6$}\label{sec:nlfval}
 
 The natural-laminar-flow airfoil NLF(1)-0416 demands an $e^N$-style
-instability tracker, though not primarily to locate its transition
-fronts: the design pins most of them, and the appendix sheets show
-where each sits against the pressure architecture. Pressure gradients
-are quoted here through the local Pohlhausen-type parameter
-$\lambda_p = -\,d^{2}\,(\mathbf{u}\cdot\nabla p)\big/(\rho\,\nu\,|\mathbf{u}|^{2})$
-(positive favorable, negative adverse)---a \emph{diagnostic} only, not to
-be confused with the sphere longitude $\lambda$: the model itself
-contains no pressure-gradient parameter. At
-$\alpha\!=\!0^\circ$ the upper front lands where the rooftop's mild
-adverse drift steepens into the designed recovery (the band-averaged
-$\lambda_p$ passes $-1$ near $0.35c$; the front is at $0.38c$); at
-$\alpha\!=\!9^\circ$--$15^\circ$ the upper front sits just aft of the
-suction peak, and the lower front at the $0.6c$ recovery wall behind a
-strongly favorable rooftop the model holds laminar by $\hat S g\!\to\!0$.
-What the case tests is, first, whether a model can hold those designed
-laminar runs at $Re\!=\!4\!\times\!10^6$---tens of percent of chord at
-$Re_\theta$ far above critical, part of it strongly favorable, where a
-model without credible favorable-gradient stabilization trips early and
-loses the drag bucket---and whether it then ignites promptly at each
-recovery. Second, between the pinned regimes lies a window
-($\alpha\!=\!4^\circ$ in this matrix) where the upper front detaches
-from the recovery and marches forward through a gently adverse stretch
-($\lambda_p\!\sim\!-0.1$ to $-2$) under slow Tollmien--Schlichting
-accumulation: there the location is free, it is what moves the polar's
-upper knee, and it is where the present model and the $e^9$ reference
-disagree most ($0.25c$ vs $0.33c$). The lower surface at low incidence
-is the other free front: a long, gently adverse plateau
-($\lambda_p\!\approx\!-0.2$ to $-0.5$ over $0.3$--$0.55c$) along which
-the envelope accumulates to ignition just ahead of the recovery wall.
-A finite difference of the $e^N$ reference makes the pinned/free
-distinction quantitative: re-converging the $e^9$ reference at
-$N_\mathrm{crit}\!=\!8$ and $10$
-(the $\partial x_\mathrm{tr}/\partial N$ column of
-Table~\ref{tab:nlftrans}) moves each pinned front by at most $0.006c$
-per unit $N$, the $\alpha\!=\!4^\circ$ upper front by $0.017c$, and
-the $\alpha\!=\!0^\circ$ lower front---the flattest envelope in the
-matrix---by $0.067c$. The model is evaluated at $Re\!=\!4\!\times\!10^6$, $M\!=\!0.1$,
+instability tracker.
+Figure~\ref{fig:nlfaft} tells most of the story: the computed
+transition fronts across the incidence matrix, on every grid of both
+mesh families, against the microphone measurements and the $e^N$
+references. The model is evaluated at $Re\!=\!4\!\times\!10^6$, $M\!=\!0.1$,
 $\chi_\infty\!=\!c_{v1}\,e^{-9}\!\approx\!8.76\!\times\!10^{-4}$
 (the $N_\mathrm{crit}\!=\!9$ anchor, set through the map of Sec.~\ref{sec:calib_tu}; via Mack's
 map, Eq.~\eqref{eq:tumap}, it corresponds to $Tu\!\approx\!0.07\%$, consistent
@@ -1457,6 +1424,24 @@ Figures~\ref{fig:nlfmesh_str} and~\ref{fig:nlfmesh_cav} (appendix) show the
 two mesh families at the leading and trailing edges across the three
 refinement levels, and Table~\ref{tab:nlfmesh} lists their resolution
 quantitatively.
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=\textwidth]{nlf_aft_transition.pdf}
+  \caption{NLF(1)-0416 at $Re\!=\!4\!\times\!10^6$: transition location
+  against lift coefficient, upper (left) and lower (right) surfaces.
+  Circles: LTPT microphone measurements. Gray curves: the AFT model in
+  OVERFLOW from Coder's dissertation~\cite{coder_thesis_2014} at its
+  nominal $N_\mathrm{crit}\!=\!10.07$ (dashed) and after the
+  source's recalibration to $N_\mathrm{crit}\!=\!7.18$ (solid), with
+  its XFOIL reference (dotted); all extracted vector-exact from the
+  source figures
+  (\texttt{data/aft\_nlf0416\_digitized.json}). Open squares/triangles:
+  SA-AI on all six grids (L0--L2 by marker size, both families) at
+  $\alpha\!=\!0^\circ,4^\circ,9^\circ,15^\circ$, at the paper-wide
+  untuned seed.}
+  \label{fig:nlfaft}
+\end{figure}
 
 \begin{table}[tp]
   \centering
@@ -1495,7 +1480,7 @@ quantitatively.
 
 The unstructured family is deliberately adversarial. Unlike the usual
 ``unstructured'' airfoil mesh---which grows a \emph{structured} layer of
-wall-normal quadrilaterals or prisms through the boundary layer and triangulates
+wall-normal quadrilaterals or prisms through the boundary layer and Delaunay-triangulates
 only the isotropic exterior---the cavity mesher applies the same
 constrained-Delaunay triangulation everywhere, the boundary layer
 included. There the metric is stretched by
@@ -1509,23 +1494,8 @@ the elevated peak $y^+$ of the cavity grids in Table~\ref{tab:nlfmesh}). This di
 stresses the model, whose indicators ($Re_\Omega$ and the sphere coordinate
 $\hat S g$, the latter carrying a \emph{second} velocity derivative in its
 curvature term $\tfrac12 d^2\nabla^2u$) are all \emph{local} and gradient-based,
-so sliver-induced errors in the least-squares gradients feed
-straight into the amplification rate. That the cavity and O-grid families
-nevertheless predict the same transition---agreeing in drag to within
-$\Delta C_d\!\approx\!0.4\!\times\!10^{-3}$ through
-$\alpha\!=\!4^\circ$ (rising to $1.1\!\times\!10^{-3}$ at
-$\alpha\!=\!9^\circ$--$15^\circ$, the $9^\circ$ gap set by the marginal
-cavity near-LE onset) at L2---measures something a refinement ladder
-alone does not: the two discretizations share no meshing decisions, so
-their agreement, where it occurs, is robustness to the discretization
-rather than to refinement; the
-transition fronts of the two finest meshes agree to $0.02\,c$ on every
-front and the L1 pair to $0.04\,c$ (the cavity L1 at
-$\alpha\!=\!15^\circ$ reached the iteration budget with its lower front
-still wandering over $0.65$--$0.67\,c$; the tabulated value is the
-final batch's), while the coarsest grids scatter by
-up to $0.1\,c$ at incidence; the structured L0 loses the marginal
-high-$\alpha$ lower fronts altogether (Table~\ref{tab:nlftrans}).
+so sliver-induced errors in the computed gradients feed
+straight into the amplification rate.
 
 This case also permits the paper's one direct comparison with the AFT
 model, whose dissertation-stage validation ran the same airfoil at the
@@ -1538,28 +1508,19 @@ downstream of the microphone measurements, and the source closes the
 gap by recalibrating to $N_\mathrm{crit}\!=\!7.18$
 ($Tu\!=\!0.15\%$), chosen from the transition-location discrepancy
 itself. SA-AI's fronts, computed with the untuned $N\!=\!9$-class seed
-($\chi_\infty\!=\!c_{v1}e^{-9}$) fixed once for the whole paper, land
-on the measurements where the recalibrated AFT lands---on both
-surfaces and on both mesh families---without a per-case constant to
-choose.
+($\chi_\infty\!=\!c_{v1}e^{-9}$), land
+on the measurements where the recalibrated AFT lands, on both
+surfaces and both mesh families. We do not read the untuned agreement
+as a ranking, because it may be partly compensatory: the model's
+handover is least decisive at low $Re_\theta$
+(Sec.~\ref{sec:epphandover}), the $c_{v1}$-based $N_\mathrm{crit}$
+convention was anchored on flat-plate transition at lower $Re_\theta$
+than these fronts, and at the NLF's higher-$Re_\theta$ fronts the
+same convention is effectively sharper---while AFT's recalibrated
+freestream may equally be read as absorbing the tunnel's true
+disturbance level rather than as a per-case tuning. The two closures
+place their empiricism differently; this case cannot separate them.
 
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=\textwidth]{nlf_aft_transition.pdf}
-  \caption{NLF(1)-0416 at $Re\!=\!4\!\times\!10^6$: transition location
-  against lift coefficient, upper (left) and lower (right) surfaces.
-  Circles: LTPT microphone measurements. Gray curves: the AFT model in
-  OVERFLOW from Coder's dissertation~\cite{coder_thesis_2014} at its
-  nominal $N_\mathrm{crit}\!=\!10.07$ (dashed) and after the
-  source's recalibration to $N_\mathrm{crit}\!=\!7.18$ (solid), with
-  its XFOIL reference (dotted); all extracted vector-exact from the
-  source figures
-  (\texttt{data/aft\_nlf0416\_digitized.json}). Open squares/triangles:
-  SA-AI on the two L2 mesh families at
-  $\alpha\!=\!0^\circ,4^\circ,9^\circ,15^\circ$, at the paper-wide
-  untuned seed.}
-  \label{fig:nlfaft}
-\end{figure}
 
 \begin{figure}[tp]
   \centering
@@ -1585,13 +1546,14 @@ choose.
 Two entries in the polar (Fig.~\ref{fig:nlfpolar}) need
 qualification. The $\alpha\!=\!15^\circ$ point lies beyond the measured
 stall ($C_{l,\max}\!\approx\!1.68$ in the tunnel data), where the quasi-2D
-computation does not capture three-dimensional stall and returns a higher
+computation does not capture stall and returns a higher
 $C_l$ at elevated drag; and the coarse L0 mesh over-predicts drag at
 $\alpha\!\ge\!9^\circ$ (under-resolved transition front). The absence of an
 mfoil reference above $\alpha\!=\!7^\circ$ is a solver failure, not a
-method-class limit: FlexFoil converges at the identical conditions
-($C_l\!=\!1.51$ at $\alpha\!=\!9^\circ$, consistent with the present RANS),
-so the fault appears to lie in mfoil's Newton globalization. The fully turbulent SA
+method-class limit: FlexFoil and XFOIL both converge at the identical
+conditions
+($C_l\!=\!1.51$ at $\alpha\!=\!9^\circ$, consistent with the present
+RANS). The fully turbulent SA
 polar on the same structured L2 grid closes on SA-AI only as the laminar
 run shrinks ($+142\%$ at $0^\circ$ narrowing to $+64$--$71\%$ at
 $9^\circ$--$15^\circ$).
@@ -1610,20 +1572,7 @@ $\chi\!=\!\max_y\tilde\nu/\nu$ on a log axis with the amplification factor $N$ f
 mfoil~\cite{fidkowski_mfoil_2022}, a coupled viscous--inviscid $e^N$ panel solver,
 on a linear right axis, the two linked by $N\!=\!\ln(\chi/\chi_\infty)$ so
 one unit on the right equals one $e$-fold on the left (vertical dotted lines:
-mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$---signed for
-the Eppler 387, whose bubble carries reversed near-wall flow
-(Sec.~\ref{sec:eppval}), unsigned for the NLF, whose boundary layers stay
-attached.
-Throughout, color encodes the surface (upper blue, lower red), line style the
-mesh family (structured O-grid solid, unstructured cavity dashed), and line
-thickness the refinement level (L0 thinnest, L2 thickest); dotted curves are
-the mfoil $e^9$ reference. On the NLF $C_f$ row, triangles on the abscissa
-mark the measured onsets of Table~\ref{tab:nlftrans} (open where the
-experimental entry is extrapolated beyond the recorded orifices). Surfaces are separated by walking the airfoil
-contour through the mesh connectivity and splitting at the geometric LE/TE
-extrema rather than by the sign of $z$, which is essential on the NLF because
-the reflex camber places the lower surface above the chord line over the aft
-region.
+mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
 
 \begin{figure}[tp]
   \centering
@@ -1676,12 +1625,7 @@ region.
   \label{fig:nlfcfhigh}
 \end{figure}
 
-Across Figs.~\ref{fig:nlfcflow}--\ref{fig:nlfcfhigh} the refinement series
-is converged where it matters: both mesh families place the $C_f$ rise at the
-same chordwise location at L1 and L2, and the pressure distributions are
-indistinguishable at plot scale between L1 and L2 on each grid (the one
-exception, the L0 unstructured leading-edge peak at $\alpha\!=\!15^\circ$, is
-noted in Fig.~\ref{fig:nlfcfhigh}).
+
 
 Table~\ref{tab:nlftrans} places the computed onset locations against the
 wind-tunnel
