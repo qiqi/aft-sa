@@ -84,8 +84,10 @@ def march_sa(fs, x_max, nx=1200, ny=800, seed=SEED, gate_c=0.0, ufrac=0.0,
         Dcoef = susp*sigD*CW1*fw*chi/yc**2              # implicit, per nuHat
         b_ai = sphere_rate(u, dudy, yc)*om              # onset-gated amplification
         Pcoef = (1.0 - sigP)*b_ai + sigP*CB1*St         # explicit, per nuHat
-        # variable diffusion (C_NU_AI*nu + nuHat_lagged)/SIGMA, face-averaged
-        knode = (C_NU_AI + chi)/SIGMA_SA/dy**2
+        # variable diffusion (C_NU_AI*nu + nuHat_lagged)/SIGMA, face-averaged.
+        # Gate v3: the SELF-diffusion is the measured stall brake (92% of
+        # production at chi~13, ReOm=400) -- suspend it by the gate too.
+        knode = (C_NU_AI + susp*chi)/SIGMA_SA/dy**2
         kface = 0.5*(knode[1:] + knode[:-1])
         vp = np.clip(v, 0, None)/dy
         vm = np.clip(-v, 0, None)/dy
