@@ -1,0 +1,42 @@
+{
+ "strL2prop_eppler387_Re200k_turb_a0": {
+  "CL": 0.3995,
+  "CD": 0.01992,
+  "CD_std": 0.00287
+ },
+ "strL2prop_eppler387_Re200k_turb_a2": {
+  "CL": 0.605,
+  "CD": 0.02108,
+  "CD_std": 0.00867
+ },
+ "strL2prop_eppler387_Re200k_turb_a5": {
+  "CL": 0.9386,
+  "CD": 0.02575,
+  "CD_std": 0.03819
+ },
+ "strL2prop_eppler387_Re200k_turb_a7": {
+  "CL": 1.2047,
+  "CD": 0.03586,
+  "CD_std": 0.07284
+ },
+ "strL2prop_nlf0416_Re4M_turb_a0": {
+  "CL": 0.5307,
+  "CD": 0.01377,
+  "CD_std": 0.00258
+ },
+ "strL2prop_nlf0416_Re4M_turb_a4": {
+  "CL": 0.9698,
+  "CD": 0.01827,
+  "CD_std": 0.01111
+ },
+ "strL2prop_nlf0416_Re4M_turb_a9": {
+  "CL": 1.4281,
+  "CD": 0.02075,
+  "CD_std": 0.06225
+ },
+ "strL2prop_nlf0416_Re4M_turb_a15": {
+  "CL": 1.859,
+  "CD": 0.04578,
+  "CD_std": 0.19833
+ }
+}

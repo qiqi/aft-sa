@@ -1,0 +1,32 @@
+{
+ "ladder_dn_strL2_Re150k_a5": {
+  "CL": 0.9091,
+  "CD": 0.02163,
+  "drift": 0.001708
+ },
+ "ladder_dn_strL2_Re100k_a5": {
+  "CL": 0.7971,
+  "CD": 0.04194,
+  "drift": 0.007027
+ },
+ "ladder_dn_strL2_Re80k_a5": {
+  "CL": 0.6936,
+  "CD": 0.05077,
+  "drift": 0.001619
+ },
+ "ladder_dn_strL2_Re60k_a5": {
+  "CL": 0.6216,
+  "CD": 0.05398,
+  "drift": 7.8e-05
+ },
+ "ladder_up_strL2_Re80k_a5": {
+  "CL": 0.6891,
+  "CD": 0.05102,
+  "drift": 0.000293
+ },
+ "ladder_up_strL2_Re100k_a5": {
+  "CL": 0.7624,
+  "CD": 0.04517,
+  "drift": 0.000463
+ }
+}

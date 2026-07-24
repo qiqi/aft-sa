@@ -1,0 +1,16 @@
+[26-07-23 18:47:09.828][SUPPORT]: SA-AI transition constants (resolved; sphere kernel):
+[26-07-23 18:47:09.828][SUPPORT]:     ai_rateScale:        0.190000
+[26-07-23 18:47:09.828][SUPPORT]:     ai_reOmCeil:         1851.200000
+[26-07-23 18:47:09.828][SUPPORT]:     ai_reOmA:            124.600000
+[26-07-23 18:47:09.828][SUPPORT]:     ai_reOmB:            1.424000
+[26-07-23 18:47:09.828][SUPPORT]:     ai_rampWidth:        0.350000
+[26-07-23 18:47:09.828][SUPPORT]:     ai_switchWidth:      4.000000
+[26-07-23 18:47:09.828][SUPPORT]:     ai_sigmaDTie:        1.000000
+[26-07-23 18:47:09.829][SUPPORT]:     ai_switchWidthD:     1.360000
+[26-07-23 18:47:09.829][SUPPORT]:     ai_maxBlend:         1.000000
+[26-07-23 18:47:09.829][SUPPORT]:     ai_nuLamScale:       0.166667
+[26-07-23 18:47:09.829][SUPPORT]:     ai_laminarSlowdown:  0.010000
+[26-07-23 18:47:09.829][SUPPORT]:     ai_slowdownCenter:   7.100000
+[26-07-23 18:47:09.829][SUPPORT]:     ai_slowdownWidth:    4.000000
+[26-07-23 18:47:09.829][SUPPORT]: SA Coefficients:
+[26-07-23 18:47:09.829][SUPPORT]:     C_cb1:       0.135500
