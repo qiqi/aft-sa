@@ -907,3 +907,8 @@ our sweep's 3e5 station; (c) email Rui Lopes (now Chalmers) for his IST
 thesis, which likely has fuller E387/AFT polars. Nearest Coder-authored
 low-Re LSB case if we want HIS model on a bubble: PSU 94-097 at
 Re=2.4e5 in the dissertation (polars + fronts, mixed raster/vector).
+
+## 2026-07-25 ~03:30 — AFT removed from the Eppler section; CRM-NLF answered below
+The AFT-family sentence and the tab:epplit "no published data" row are
+deleted per your instruction (the citation survives at its NLF-section
+sites). Build clean.
