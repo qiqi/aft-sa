@@ -34,6 +34,7 @@ TAU = 4.0
 SEED = CV1*np.exp(-9.0)          # 8.76e-4, the LTPT-class chi_inf
 SQ2I = 1.0/np.sqrt(2.0)
 CHI_A = 300.0                    # gate amplitude fade scale
+GATE_MODE = 'amplify'            # 'suspend' (v5) or 'amplify' (option b)
 
 
 def march_sa(fs, x_max, nx=1200, ny=800, seed=SEED, gate_c=0.0, ufrac=0.0,
@@ -78,7 +79,11 @@ def march_sa(fs, x_max, nx=1200, ny=800, seed=SEED, gate_c=0.0, ufrac=0.0,
         # is ~0.05 (small, not zero: measured on the sphere locus), and the
         # safety zeros are exact/quadratic, so c is free to be large.
         A = np.exp(-chi/CHI_A)*np.clip(np.maximum(Yn - Xn, 0.0)*gco, 0.0, 1.0)
-        susp = np.exp(-gate_c*A)
+        susp = np.exp(-gate_c*A) if GATE_MODE == 'suspend' else np.ones_like(A)
+        # option (b): keep OUR amplification live in the gated zone instead
+        # of suspending Spalart's sinks -- zero footprint on SA terms.
+        w_ai = np.maximum(1.0 - sigP, 1.0 - np.exp(-gate_c*A)) \
+            if GATE_MODE == 'amplify' else (1.0 - sigP)
         # SA pieces (lagged in chi)
         fv1 = chi**3/(chi**3 + CV1**3)
         fv2 = 1.0 - chi/(1.0 + chi*fv1)
@@ -90,7 +95,7 @@ def march_sa(fs, x_max, nx=1200, ny=800, seed=SEED, gate_c=0.0, ufrac=0.0,
         sigD = 1.0 - (CB1/(KAP**2*CW1))*(1.0 - sigP)
         Dcoef = susp*sigD*CW1*fw*chi/yc**2              # implicit, per nuHat
         b_ai = sphere_rate(u, dudy, yc)*om              # onset-gated amplification
-        Pcoef = (1.0 - sigP)*b_ai + sigP*CB1*St         # explicit, per nuHat
+        Pcoef = w_ai*b_ai + sigP*CB1*St                 # explicit, per nuHat
         # variable diffusion (C_NU_AI*nu + nuHat_lagged)/SIGMA, face-averaged.
         # Gate v3: the SELF-diffusion is the measured stall brake (92% of
         # production at chi~13, ReOm=400) -- suspend it by the gate too.
