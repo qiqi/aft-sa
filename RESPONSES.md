@@ -317,3 +317,25 @@ diffusion vs convection strengthens as Re drops -> your observed trend.
 - repro/cfd/measure_lsb_reseeding.py committed (surplus + production
   tables). Rig #2 cancelled (memory updated): a parabolic march is
   structurally blind to the mechanism that matters.
+
+## 2026-07-24 ~22:05 — the fortuitous cancellation is now COMPLETE (both halves)
+Why re-seeding is severe at low Re and absent at high Re — measured:
+the REAR third of the reversed region is loaded at EVERY Re (19x the
+incoming envelope at 300k, 2.9x at 460k) — pickup is universal. What
+discriminates is CONDUCTION TO THE FRONT, with three controls, all
+favoring low Re:
+1. The hot-over-reversed OVERLAP is created by the starved handover
+   itself: at high Re closure follows transition within the short
+   handover, ending the conveyor as soon as the layer gets hot; the
+   un-closed low-Re bubble runs its conveyor under an amplifying layer
+   for half a chord. The two defects are ONE CAUSAL CHAIN (slow handover
+   -> no closure -> long fetch -> reservoir -> re-seeded front) — which
+   is why the flip is sharp at the bursting boundary, not gradual.
+2. The only sink is the destruction floor ∝ (nuHat/d)²: thin high-Re
+   cell returns its leak at small d (floor eats it in transit); thick
+   low-Re cell is ~lossless.
+3. Loading self-accelerates past chi~1 (nuHat self-diffusion takes over
+   from the reduced molecular trickle) — crossed at 60k/100k (maxima
+   5–18), never approached at high Re (chi~1e-3).
+Paper (Sec. epphandover) and measure_lsb_reseeding.py updated with the
+rear-third evidence and the three controls.

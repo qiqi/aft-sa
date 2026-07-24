@@ -11,10 +11,14 @@ Two measurements per Reynolds number (structured L2, alpha=5 sweep):
    + onset gate evaluated from the slice), to discriminate
    amplification-driven vs advection-diffusion-driven.
 
-RESULT (2026-07-24): surplus 16x/29x at Re=60k/100k, 0.03x/0.01x at
-300k/460k -- the flip sits at the bursting boundary; dead-air production
+RESULT (2026-07-24): FRONT-third surplus 16x/29x at Re=60k/100k,
+0.03x/0.01x at 300k/460k -- the flip sits at the bursting boundary. The
+REAR third is loaded at every Re (19x at 300k, 2.9x at 460k): pickup is
+universal; what discriminates is conduction to the front (overlap fetch
+created by the un-closed bubble; the (nuHat/d)^2 floor eating the thin
+cell's return leg; the chi~1 self-diffusion switch). Dead-air production
 is onset-gated to ~zero everywhere (median effective rate <= 1e-10), so
-the low-Re reservoir is advection-diffusion fed, not amplification fed.
+the reservoir is advection-diffusion fed, not amplification fed.
 Contour signature: at low Re the chi front is bottom-led (cold front,
 reversed flow carries chi upstream along the wall); at high Re top-led
 (warm front) -- readable in the Appendix C chi sheets.
@@ -80,14 +84,18 @@ def measure(Rk):
     rev = band & (u < 0)
     xs, xe = x[rev].min(), x[rev].max()
     dead = rev & (x < xs + (xe - xs) / 3)
+    rear = rev & (x > xs + 2 * (xe - xs) / 3)
     pre = band & (x > xs - 0.06) & (x < xs - 0.02)
     surplus = float(np.median(chi[dead]) / chi[pre].max())
-    return xs, xe, surplus, float(np.median(rate[dead])), float(np.percentile(rate[dead], 95))
+    surplus_rear = float(np.median(chi[rear]) / chi[pre].max())
+    return (xs, xe, surplus, surplus_rear,
+            float(np.median(rate[dead])), float(np.percentile(rate[dead], 95)))
 
 
 if __name__ == '__main__':
-    print(f"{'Re':>6} {'x_sep':>6} {'x_rev_end':>9} {'seed surplus':>13} "
-          f"{'dead-air rate med':>18} {'95th':>10}")
+    print(f"{'Re':>6} {'x_sep':>6} {'x_rev_end':>9} {'front surplus':>14} "
+          f"{'rear surplus':>13} {'dead-air rate med':>18} {'95th':>10}")
     for Rk in (60, 100, 300, 460):
-        xs, xe, s, rm, r95 = measure(Rk)
-        print(f"{Rk:>5}k {xs:>6.3f} {xe:>9.3f} {s:>12.2f}x {rm:>18.2e} {r95:>10.2e}")
+        xs, xe, s, sr, rm, r95 = measure(Rk)
+        print(f"{Rk:>5}k {xs:>6.3f} {xe:>9.3f} {s:>13.2f}x {sr:>12.2f}x "
+              f"{rm:>18.2e} {r95:>10.2e}")
