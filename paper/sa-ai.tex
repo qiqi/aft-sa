@@ -2581,8 +2581,8 @@ in progress and are excluded from the figures and tables that follow.
   \caption{The macroscopic comparison. \textbf{(a)} Wing polar: both
   mesh families at L1 and, where completed, L2 (color = family, line
   weight = level) against the AVL$+$XFOIL (vortex-lattice $+$ section
-  polars) reference at
-  matched $N_\mathrm{crit}$. \textbf{(b)} Sectional lift on the finest
+  polars) reference at matched $N_\mathrm{crit}$, trimmed to the RANS
+  lift at each incidence (matched-lift reference). \textbf{(b)} Sectional lift on the finest
   completed grids (structured L2 at $\alpha\!=\!4^\circ,5^\circ$,
   otherwise L1) against the AVL
   distribution (dotted), with sectional drag on the right axis (thin
@@ -2596,10 +2596,20 @@ in progress and are excluded from the figures and tables that follow.
 The macroscopic ledger comes first (Fig.~\ref{fig:daepolar}; the
 per-level coefficients are tabulated in Appendix~D,
 Table~\ref{tab:daetotals}). The two families agree at L1 to
-$0.6$--$0.8\%$ in $C_L$ and $0.9$--$1.8\%$ in $C_D$, and the polars
-land on the AVL$+$XFOIL reference in drag---within $3.5$ counts
-($\approx\!1.5\%$) at L2 and $11$ at L1---while running $\sim\!5\%$ above it
-in lift, the excess a vortex lattice built on camber lines alone would
+$0.6$--$0.8\%$ in $C_L$ and $0.9$--$1.8\%$ in $C_D$. Against the
+AVL$+$XFOIL reference trimmed to the same total lift (the
+lift-consistent comparison; the vortex lattice needs
+$\sim\!0.5^\circ$ more incidence to carry the RANS $C_L$), the RANS
+drag runs $13$ counts ($6\%$) low at $\alpha\!=\!4^\circ$,
+$7$ ($3\%$) at $5^\circ$, and $6$ at $6^\circ$---the deficit
+shrinking with incidence, and entirely in the induced term's
+territory, since the reference's profile drag barely moves with the
+trim. (At matched \emph{incidence} the same reference sits $10$
+counts lower still---the lattice carries $5\%$ less lift and hence
+$\sim\!10\%$ less induced drag---which would flatter the RANS into
+coincidence; the matched-lift numbers are the honest ones.)
+At matched incidence the RANS lift runs $\sim\!5\%$ above the
+lattice's---the excess a vortex lattice built on camber lines alone would
 be expected to miss. A single-station decomposition makes it
 quantitative: at $\eta\!=\!0.31$, $\alpha\!=\!4^\circ$
 ($\alpha_\mathrm{eff}\!\approx\!3.5^\circ$), the camber-only AVL
@@ -2621,11 +2631,11 @@ $\Delta\alpha\!=\!\delta\,(S/C)\,C_L$ with
 $\delta\!\approx\!0.12$ gives $\Delta C_L/C_L\!\sim\!0.06\%$
 at these conditions---an order of magnitude below the families'
 $0.7\%$ gap, which is therefore ordinary discretization difference,
-not confinement. (Against the same reference the predecessor-kernel campaign sat
-$12$--$17$ counts below at $\alpha\!=\!4^\circ$, $4$--$11$ below at
-$5^\circ$, and essentially on it at $6^\circ$; like-for-like on each
-case, the final kernel's longer bubble---see below---returned
-$6$--$14$ counts of bubble drag.) Sectional lift on the finest
+not confinement. (Against the matched-lift reference the
+predecessor-kernel campaign sat $15$--$26$ counts below; like-for-like
+on each case, the final kernel's longer bubble---see below---returned
+$6$--$14$ counts of bubble drag, leaving the $6$--$13$-count residual
+above.) Sectional lift on the finest
 completed grids
 (Fig.~\ref{fig:daepolar}b) matches the vortex-lattice distribution
 inboard to $\sim\!1\%$ and reproduces, identically on both families,
@@ -3133,9 +3143,12 @@ coefficients are means over the final 500 steps.
   \centering
   \small
   \caption{Daedalus wing totals by grid level: SA-AI on both mesh
-  families against the AVL$+$XFOIL reference (vortex-lattice induced drag by the
-  Trefftz plane; XFOIL profile drag at matched local $c_l$ and
-  $N_\mathrm{crit}\!=\!13.6$, integrated over span). Dashes: runs of
+  families against the AVL$+$XFOIL reference trimmed to the RANS lift
+  (finest completed level) at each incidence: Trefftz-plane induced
+  drag at the trim plus XFOIL profile drag at the trimmed strip
+  loading, matched local $c_l$ and $N_\mathrm{crit}\!=\!13.6$,
+  integrated over span
+  (\texttt{daedalus/avl\_fixed\_cl\_reference.py}). Dashes: runs of
   the final-kernel recomputation still in progress.}
   \label{tab:daetotals}
   \begin{tabular}{cl cc cc}
@@ -3146,15 +3159,15 @@ coefficients are means over the final 500 steps.
     \midrule
     $4^\circ$ & L1 & 1.0278 & 0.01957 & 1.0211 & 0.01975\\
               & L2 & 1.0282 & 0.01997 & --- & ---\\
-              & AVL$+$XFOIL & 0.9758 & 0.02028 & &\\
+              & AVL$+$XFOIL & 1.0282 & 0.02125 & &\\
     \midrule
     $5^\circ$ & L1 & 1.1300 & 0.02212 & 1.1225 & 0.02235\\
               & L2 & 1.1289 & 0.02243 & --- & ---\\
-              & AVL$+$XFOIL & 1.0746 & 0.02212 & &\\
+              & AVL$+$XFOIL & 1.1289 & 0.02315 & &\\
     \midrule
     $6^\circ$ & L1 & 1.2317 & 0.02479 & 1.2227 & 0.02523\\
               & L2 & --- & --- & --- & ---\\
-              & AVL$+$XFOIL & 1.1730 & 0.02414 & &\\
+              & AVL$+$XFOIL & 1.2317 & 0.02539 & &\\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -3211,8 +3224,10 @@ linearly extrapolated correlation is ${\sim}2\times$ above both
 
 \paragraph{Vortex-lattice $+$ section-polar reference and diagnostics.} The AVL model uses
 $12\times40$ cosine-spaced vortex-lattice panels per semispan with the
-blended sections at five stations; induced drag is taken from the
-Trefftz-plane total, distributed as $c_l\alpha_i$. (The near-field
+blended sections at five stations, trimmed with AVL's fixed-lift
+constraint to the RANS $C_L$ at each incidence; induced drag is taken
+from the Trefftz-plane total at that trim, distributed as
+$c_l\alpha_i$. (The near-field
 induced-drag total is a small difference of large terms at this aspect
 ratio and demands double precision: the single-precision AVL build
 returned $C_{D\mathrm{ind}}$ $31\%$ above $C_{D\mathrm{ff}}$ on the

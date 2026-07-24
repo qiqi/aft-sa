@@ -212,3 +212,19 @@ HIGH. Station ledger at η=0.31, α=4° (α_eff≈3.5°), DAE-11 at Re 5e5:
   updated with the four-number decomposition.
   (Tools note: mfoil viscous diverges on DAE-11 @5e5; FlexFoil
   faithful-viscous plateaus unconverged but repeatable — treated as ±1%.)
+
+## 2026-07-24 ~22:15 — AVL reference moved to MATCHED-LIFT trim (your suggestion)
+New chain (daedalus/avl_fixed_cl_reference.py): AVL trimmed with 'A C <CL>'
+to the canon RANS CL (finest completed level per α), CDff at trim + XFOIL
+profile drag at the trimmed strip loading:
+   α=4: target CL 1.0282 → trim α 4.53°, CD_ref 0.02125 (RANS 0.01997: 13 cts / 6.0% low)
+   α=5: target CL 1.1289 → trim 5.55°,  CD_ref 0.02315 (RANS 0.02243:  7 cts / 3.1% low)
+   α=6: target CL 1.2317 (L1) → 6.59°,  CD_ref 0.02539 (RANS L1 0.02479: 6 cts low)
+The matched-α "lands on the reference" was flattered: the lattice carries 5%
+less lift → ~10% less induced drag. Matched-lift is the honest comparison:
+RANS 3–6% below strip theory, deficit shrinking with incidence; the
+reference's profile term barely moves with trim (0.0110→0.0108), so the
+growth is all induced. Predecessor sat 15–26 counts below this reference.
+Paper (ledger paragraph, fig caption, tab:daetotals, Appendix D) updated;
+the a6 reference refreshes when the L2 run lands (script picks up the
+finest completed case automatically).
