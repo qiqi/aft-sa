@@ -2116,8 +2116,11 @@ study unchanged (only the reference viscosity changes)---$24$ solutions
 in all.
 Figures~\ref{fig:eppresweep_low} and~\ref{fig:eppresweep_high} show the resulting
 $-C_p$ and signed $C_f$, overlaid with the exact experimental surface pressures
-(open circles, from the NASA TM-4062 Appendix~D tables at the column with the
-nearest angle of attack) and the mfoil/XFOIL $e^9$ reference where it converges.
+(open markers, from the NASA TM-4062 Appendix~D tables at the column with the
+nearest angle of attack---every repeat dataset the report holds at these
+conditions) and the mfoil/XFOIL $e^9$ reference where it converges;
+wall-anchored contour sheets for every solution of the sweep appear in
+Appendix~C.
 Twenty-three of the $24$ solutions are steady---force coefficients flat
 to $\Delta C_l,\Delta C_d\!<\!5\!\times\!10^{-5}$
 over the final $2000$ iterations; the structured L1 solution at $10^5$
@@ -2131,12 +2134,14 @@ $\Delta C\!\approx\!0.01$, the near-bursting condition discussed below
   \setlength{\tabcolsep}{4.5pt}
   \caption{Section coefficients for the Eppler 387 at $\alpha\!=\!5^\circ$
   across the Reynolds sweep: lift, drag, and quarter-chord pitching moment from
-  the two mesh families' middle (L1) grids (the same grids as the
-  $Re\!=\!2\!\times\!10^5$ study; the L0/L2 companions appear in
-  Figs.~\ref{fig:eppresweep_low}--\ref{fig:eppresweep_high}, their L2
-  pairs agreeing to $0.1$--$0.2\!\times\!10^{-3}$ in $c_d$ at
-  $3$--$4.6\!\times\!10^5$ and diverging at $10^5$ as described in the
-  text), the $e^9$ panel reference (mfoil; XFOIL at $6\!\times\!10^4$,
+  the two mesh families' finest (L2) grids (the same grids as the
+  $Re\!=\!2\!\times\!10^5$ study; the L0/L1 companions appear in
+  Figs.~\ref{fig:eppresweep_low}--\ref{fig:eppresweep_high}
+  and~\ref{fig:eppresweepforces}). The families' L2 drags agree to
+  $0.1$--$0.2\!\times\!10^{-3}$ at $2$--$4.6\!\times\!10^5$ and diverge
+  at $10^5$ as described in the text; the ``$10^5$ warm'' row is the
+  second, warm-started solution of each family at that Reynolds number
+  (Sec.~\ref{sec:eppbistab}). Also listed: the $e^9$ panel reference (mfoil; XFOIL at $6\!\times\!10^4$,
   where the two implementations visibly differ, and at
   $Re\!=\!4.6\!\times\!10^5$, where mfoil's stagnation-point iteration
   diverges on the thin high-$Re$ bubble), and the LTPT measurement
@@ -2151,16 +2156,17 @@ $\Delta C\!\approx\!0.01$, the near-bursting condition discussed below
   \label{tab:eppresweep}
   \begin{tabular}{l ccc ccc ccc ccc}
     \toprule
-    & \multicolumn{3}{c}{SA-AI, structured L1} & \multicolumn{3}{c}{SA-AI, unstructured L1}
+    & \multicolumn{3}{c}{SA-AI, structured L2} & \multicolumn{3}{c}{SA-AI, unstructured L2}
     & \multicolumn{3}{c}{$e^9$ panel} & \multicolumn{3}{c}{Exp (LTPT)}\\
     \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}\cmidrule(lr){11-13}
     $Re$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ \\
     \midrule
-    $6\!\times\!10^4$   & 0.646 & 0.0517 & $-$0.095 & 0.766 & 0.0453 & $-$0.101 & 0.869$^\ddagger$ & 0.0411$^\ddagger$ & $-$0.102$^\ddagger$ & 0.838 & 0.0439 & $-$0.114 \\
-    $1\!\times\!10^5$   & 0.818 & 0.0364 & $-$0.095 & 0.899 & 0.0253 & $-$0.090 & 0.952 & 0.0213 & $-$0.087 & 0.873 & 0.0237 & $-$0.089 \\
-    $2\!\times\!10^5$   & 0.921 & 0.0162 & $-$0.081 & 0.946 & 0.0146 & $-$0.085 & 0.960 & 0.0128 & $-$0.082 & 0.891 & 0.0138 & $-$0.081 \\
-    $3\!\times\!10^5$   & 0.935 & 0.0124 & $-$0.080 & 0.960 & 0.0117 & $-$0.085 & 0.962 & 0.0103 & $-$0.082 & 0.901 & 0.0114 & $-$0.080 \\
-    $4.6\!\times\!10^5$ & 0.944 & 0.0101 & $-$0.080 & 0.970 & 0.0097 & $-$0.086 & 0.966 & 0.0086 & $-$0.082 & 0.914 & 0.0093 & $-$0.081 \\
+    $6\!\times\!10^4$   & 0.621 & 0.0541 & $-$0.098 & 0.695 & 0.0522 & $-$0.103 & 0.869$^\ddagger$ & 0.0411$^\ddagger$ & $-$0.102$^\ddagger$ & 0.838 & 0.0439 & $-$0.114 \\
+    $1\!\times\!10^5$   & 0.769 & 0.0444 & $-$0.104 & 0.860 & 0.0341 & $-$0.099 & 0.952 & 0.0213 & $-$0.087 & 0.873 & 0.0237 & $-$0.089 \\
+    $1\!\times\!10^5$ warm & 0.819 & 0.0400 & $-$0.104 & 0.878 & 0.0318 & $-$0.098 & & & & & & \\
+    $2\!\times\!10^5$   & 0.925 & 0.0155 & $-$0.082 & 0.937 & 0.0148 & $-$0.083 & 0.960 & 0.0128 & $-$0.082 & 0.891 & 0.0138 & $-$0.081 \\
+    $3\!\times\!10^5$   & 0.940 & 0.0111 & $-$0.080 & 0.949 & 0.0112 & $-$0.082 & 0.962 & 0.0103 & $-$0.082 & 0.901 & 0.0114 & $-$0.080 \\
+    $4.6\!\times\!10^5$ & 0.949 & 0.0088 & $-$0.081 & 0.958 & 0.0090 & $-$0.083 & 0.966 & 0.0086 & $-$0.082 & 0.914 & 0.0093 & $-$0.081 \\
     \bottomrule
   \end{tabular}
   \\[2pt]{\footnotesize $^\ddagger$The only condition in this paper where
@@ -2217,9 +2223,11 @@ the model's bursting boundary (the opening fan of
 Fig.~\ref{fig:eppresweepforces}): on every grid the upper-surface recovery
 is incomplete---the signed $C_f$ regains zero only within $0.04\,c$ of
 the trailing edge, against the measured oil-flow reattachment near
-$0.67\,c$---and the drag runs from $+7\%$ above the measurement
-(unstructured L1) to $+44$--$87\%$ at L2, refinement pushing both
-families toward the burst state rather than the measured short bubble.
+$0.67\,c$---and the L2 drag sits $+44\%$ (unstructured) to $+87\%$
+(structured) above the measurement, refinement pushing both
+families toward the burst state rather than the measured short bubble
+(the coarser grids only mask the failure: the unstructured L1 lands
+$+7\%$ high).
 The overshoot is the extreme of the over-predicted bubble length
 (\S\ref{sec:calib_rate}): at this Reynolds number the model's extended
 laminar separation fails to close at all. Sections~\ref{sec:eppbistab}
@@ -2234,9 +2242,9 @@ computed and measured recoveries part company.
 
 The solution is markedly more mesh-sensitive at $6\!\times\!10^4$ than at
 the higher Reynolds numbers: the open separation gives
-$C_l\!=\!0.77$ unstructured vs.\ $0.65$ structured, against
-$\Delta C_d\!\leq\!7\!\times\!10^{-4}$ (L1) and
-$2\!\times\!10^{-4}$ (L2) at $3$--$4.6\!\times\!10^5$.
+$C_l\!=\!0.70$ unstructured vs.\ $0.62$ structured at L2, against
+$\Delta C_d\!\leq\!2\!\times\!10^{-4}$ ($7\!\times\!10^{-4}$ at L1) at
+$3$--$4.6\!\times\!10^5$.
 The experiment itself is bistable there: in the TM-4062 listing at
 $Re\!=\!6\!\times\!10^4$, three consecutive repeat points at
 $\alpha\!=\!4.00^\circ$ give $c_l\!=\!0.643$, $0.697$, and $0.721$
@@ -2290,12 +2298,25 @@ transition, reattachment, and the forces that follow.
   implementations visibly differ, Table~\ref{tab:eppresweep}), mfoil at
   $10^5$; the $N$ envelope at $6\!\times\!10^4$ ($\chi$ row) is FlexFoil's,
   which sides with XFOIL there.
-  Open circles: exact experimental surface pressures (NASA TM-4062 Appendix~D,
-  column with the nearest angle of attack). Gray band: experimental laminar-separation-bubble
-  extent from the oil-flow visualization (TM-4062 Table~III), which exists only at
-  $10^5$ among these two; no oil-flow bubble data were taken at $6\!\times\!10^4$.
+  Open markers: exact experimental surface pressures (NASA TM-4062
+  Appendix~D, column with the nearest angle of attack)---\emph{every}
+  repeat dataset the report holds at these conditions. At
+  $6\!\times\!10^4$: circles the up-sweep ($\alpha\!=\!4.99^\circ$, runs
+  27/28), squares the decreasing-$\alpha$ hysteresis branch
+  ($\alpha\!=\!5.00^\circ$, runs 31/32), whose weaker plateau and less
+  complete recovery ($C_p(0.95)\!=\!-0.13$ vs.\ $-0.04$) measure the
+  experimental branch scatter at the bistable condition
+  (Sec.~\ref{sec:eppbistab}). At $10^5$: circles, squares, and diamonds
+  are three independent tunnel conditions ($p_t\!=\!15$, $5$,
+  $10$~psi with $M\!=\!0.03$, $0.08$, $0.04$; runs 15/16, 25/26, 39),
+  which coincide to repeat accuracy---the measured flow there is
+  single-branch. Teal/violet curves at $10^5$: the second, warm-started
+  L2 solution of each family (Sec.~\ref{sec:eppbistab}), whose recovery
+  tracks the measured pressures. Gray band: experimental
+  laminar-separation-bubble extent from the oil-flow visualization
+  (TM-4062 Table~III), which exists only at $10^5$ among these two.
   At $6\!\times\!10^4$ the upper-surface separation does not reattach ahead of the
-  trailing edge (bubble bursting); at $10^5$ the recovery is incomplete
+  trailing edge (bubble bursting); at $10^5$ the cold-start recovery is incomplete
   on every grid, the $C_f$ regaining zero only within $0.04\,c$ of the
   trailing edge (see text).}
   \label{fig:eppresweep_low}
@@ -2471,7 +2492,7 @@ stacked spanwise and pinched to a line at the tip, and a classical
 three-dimensional unstructured mesh---anisotropic boundary-layer
 prisms at the wall, hexahedra in the far field, and tetrahedra joining
 the two---at three refinement levels each
-(Table~\ref{tab:daemesh}; construction in Appendix~B); the reference
+(Table~\ref{tab:daemesh}; construction in Appendix~D); the reference
 is the same $e^N$ framework
 used throughout---a vortex-lattice model (AVL~\cite{drela_youngren_avl}) with strip-wise XFOIL
 section polars at matched
@@ -2540,7 +2561,7 @@ section conditions (Sec.~\ref{sec:eppresweep}). Eighteen converged RANS solution
 \end{figure}
 
 The macroscopic ledger comes first (Fig.~\ref{fig:daepolar}; the
-per-level coefficients are tabulated in Appendix~B,
+per-level coefficients are tabulated in Appendix~D,
 Table~\ref{tab:daetotals}). The two families' total $C_D$, apart by
 $9.6\%$ on the coarse grids (the unstructured family's prism-to-tet
 transition dominates its L0 drag), close to $1.1\%$ at L2 with $C_L$
@@ -2619,7 +2640,7 @@ beyond separation, at $1.3$--$1.8\times$ across $H\!=\!4.9$--$10.6$: a
 just-separated layer is wall-damped, its instability approaching the
 free-shear rate only as it lifts several $\theta$ off the surface, while
 the ungated kernel applied the full ceiling from the separation point
-on, and---as the frozen-profile ledger of Appendix~B measures in
+on, and---as the frozen-profile ledger of Appendix~D measures in
 temporal units---the transported $\tilde\nu$ peak rode below the
 physical critical layer at roughly half its convection speed, banking
 nearly twice the $e$-folds per unit length. This excess is intrinsic to a temporal rate advected by the
@@ -2747,14 +2768,33 @@ and on the structure of the SA equation were formative.
 \appendix
 \renewcommand{\thefigure}{A\arabic{figure}}
 \setcounter{figure}{0}
-\section*{Appendix A: meshes and wall-anchored contour sheets for the
-two-dimensional cases}
+\section*{Appendix A: the NLF(1)-0416---meshes and wall-anchored
+contour sheets}
 
-Figures~\ref{fig:nlfmesh_str}--\ref{fig:eppmesh_cav} collect the mesh
-views referenced in Secs.~\ref{sec:nlfval} and~\ref{sec:eppval}:
+Each of the following appendices collects, for one main-text section,
+the mesh views and the wall-anchored contour sheets of its cases:
+Appendix~A for the NLF(1)-0416 study (Sec.~\ref{sec:nlfval}),
+Appendix~B for the Eppler~387 benchmark (Sec.~\ref{sec:eppval}),
+Appendix~C for the Eppler Reynolds sweep (Sec.~\ref{sec:eppresweep}),
+and Appendix~D for the Daedalus wing (Sec.~\ref{sec:daedalus}).
+
+Figures~\ref{fig:nlfmesh_str} and~\ref{fig:nlfmesh_cav} show the
 leading- and trailing-edge close-ups of the structured O-grid and
-unstructured cavity families at the three refinement levels, for each
-airfoil.
+unstructured cavity families at the three refinement levels.
+
+The contour sheets present the computed fields in the manner of the
+flat-plate figure (Fig.~\ref{fig:flatplate_batch}): line contours of
+the velocity magnitude $|\mathbf{u}|/U_\infty$ (left column) and of
+$\log_{10}\chi$ (right column; dashed contours are the laminar levels
+$\chi<1$, solid are $\chi\!=\!1$ and $c_{v1}$), on wall-anchored
+coordinates---the abscissa is the $x/c$ of the wall anchor, the
+ordinate the wall-normal distance from that anchor, so each wall-normal
+probe scan is one vertical line of the panel. Rows pair the two mesh
+families at each refinement level (cavity, then O-grid; L0, L1, L2).
+The wall-normal range is chosen to hold the laminar band in frame
+($0.0015c$ upper and $0.0025c$ lower for the NLF(1)-0416, scaled with
+$1/\sqrt{Re}$ for the other cases), letting the turbulent layer
+overshoot the frame top.
 
 \begin{figure}[p]
   \centering
@@ -2776,45 +2816,6 @@ airfoil.
   length scale halves per level.}
   \label{fig:nlfmesh_cav}
 \end{figure}
-
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.9\textwidth]{mesh_eppler_str.pdf}
-  \caption{Eppler 387 structured O-grid mesh at the leading edge (left column)
-  and trailing edge (right column) for the three refinement levels L0--L2
-  (rows), generated by the same recipe as the NLF grid
-  (Fig.~\ref{fig:nlfmesh_str}); every length scale halves per level. Chord
-  normalized to unity ($z$ vertical).}
-  \label{fig:eppmesh_str}
-\end{figure}
-
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.9\textwidth]{mesh_eppler_cav.pdf}
-  \caption{Eppler 387 unstructured cavity mesh (leading and trailing edges,
-  levels L0--L2), built from the same spline contour as the structured grid of
-  Fig.~\ref{fig:eppmesh_str} with an anisotropic near-wall boundary-layer
-  region; every length scale halves per level.}
-  \label{fig:eppmesh_cav}
-\end{figure}
-
-For each airfoil case and each surface, the sheets below present the
-computed fields in the manner of the flat-plate figure
-(Fig.~\ref{fig:flatplate_batch}): line contours of the velocity
-magnitude $|\mathbf{u}|/U_\infty$ (left column) and of $\log_{10}\chi$
-(right column; dashed contours are the laminar levels $\chi<1$, solid
-are $\chi\!=\!1$ and $c_{v1}$), on wall-anchored coordinates---the
-abscissa is the $x/c$ of the wall anchor, the ordinate the wall-normal
-distance from that anchor, so each wall-normal probe scan is one
-vertical line of the panel. Rows pair the two mesh families at each
-refinement level (cavity, then O-grid; L0, L1, L2). The wall-normal
-range is chosen to hold the laminar band in frame ($0.0015c$ upper and
-$0.0025c$ lower for the NLF(1)-0416, scaled with $1/\sqrt{Re}$ to
-$0.0067c$ and $0.0112c$ for the Eppler~387), letting the turbulent
-layer overshoot the frame top. Two further sheets cover the Eppler
-Reynolds sweep at $\alpha\!=\!5^\circ$: eight rows pairing the two L1
-families at each of the four swept Reynolds numbers, the wall-normal
-range again scaling with $1/\sqrt{Re}$.
 
 \begin{figure}[p]
   \centering
@@ -2870,6 +2871,39 @@ range again scaling with $1/\sqrt{Re}$.
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a15_lower.pdf}
   \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=15^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_nlf0416_a15_lower}
+\end{figure}
+
+\clearpage
+\renewcommand{\thefigure}{B\arabic{figure}}
+\setcounter{figure}{0}
+\section*{Appendix B: the Eppler 387 benchmark---meshes and contour
+sheets}
+
+Figures~\ref{fig:eppmesh_str} and~\ref{fig:eppmesh_cav} show the mesh
+close-ups for the Eppler benchmark of Sec.~\ref{sec:eppval}; the sheets
+that follow cover the $\alpha$ sweep at $Re=2\times10^5$ (wall-normal
+frames $0.0067c$ upper and $0.0112c$ lower, the NLF frames scaled by
+$\smash{\sqrt{Re_\mathrm{NLF}/Re}}$).
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.9\textwidth]{mesh_eppler_str.pdf}
+  \caption{Eppler 387 structured O-grid mesh at the leading edge (left column)
+  and trailing edge (right column) for the three refinement levels L0--L2
+  (rows), generated by the same recipe as the NLF grid
+  (Fig.~\ref{fig:nlfmesh_str}); every length scale halves per level. Chord
+  normalized to unity ($z$ vertical).}
+  \label{fig:eppmesh_str}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.9\textwidth]{mesh_eppler_cav.pdf}
+  \caption{Eppler 387 unstructured cavity mesh (leading and trailing edges,
+  levels L0--L2), built from the same spline contour as the structured grid of
+  Fig.~\ref{fig:eppmesh_str} with an anisotropic near-wall boundary-layer
+  region; every length scale halves per level.}
+  \label{fig:eppmesh_cav}
 \end{figure}
 
 \begin{figure}[p]
@@ -2928,21 +2962,82 @@ range again scaling with $1/\sqrt{Re}$.
   \label{fig:sheet_eppler387_a7_lower}
 \end{figure}
 
+\clearpage
+\renewcommand{\thefigure}{C\arabic{figure}}
+\setcounter{figure}{0}
+\section*{Appendix C: the Eppler 387 Reynolds sweep---contour sheets}
+
+One pair of sheets per swept Reynolds number of
+Sec.~\ref{sec:eppresweep} (the $Re=2\times10^5$ anchor is the
+$\alpha\!=\!5^\circ$ pair of Appendix~B), each covering the full
+L0--L2 suite on both mesh families; the wall-normal frame scales as
+$\smash{\sqrt{2\times10^5/Re}}$. At $Re=10^5$ two additional rows show
+the second, warm-started L2 solution of each family
+(Sec.~\ref{sec:eppbistab}): against the cold-start rows above them, the
+$\chi$ front moves upstream of $0.4c$ and the dividing-streamline lobe
+of the velocity panel closes.
+
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_sweep_upper.pdf}
-  \caption{Eppler~387 Reynolds sweep, $\alpha=5^\circ$, upper surface: both L1 mesh families at $Re=6\times10^4$--$4.6\times10^5$.}
-  \label{fig:sheet_eppler387_sweep_upper}
+  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re60k_upper.pdf}
+  \caption{Eppler~387, $Re=6\times10^4$, $\alpha=5^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \label{fig:sheet_eppler387_Re60k_upper}
 \end{figure}
 
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_sweep_lower.pdf}
-  \caption{Eppler~387 Reynolds sweep, $\alpha=5^\circ$, lower surface: both L1 mesh families at $Re=6\times10^4$--$4.6\times10^5$.}
-  \label{fig:sheet_eppler387_sweep_lower}
+  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re60k_lower.pdf}
+  \caption{Eppler~387, $Re=6\times10^4$, $\alpha=5^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \label{fig:sheet_eppler387_Re60k_lower}
 \end{figure}
 
-\section*{Appendix B: the Daedalus wing---definition, temporal-units
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re100k_upper.pdf}
+  \caption{Eppler~387, $Re=10^5$, $\alpha=5^\circ$, upper surface, all six
+  grids plus the two warm-started L2 solutions (bottom rows; the second
+  branch of Sec.~\ref{sec:eppbistab}).}
+  \label{fig:sheet_eppler387_Re100k_upper}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re100k_lower.pdf}
+  \caption{Eppler~387, $Re=10^5$, $\alpha=5^\circ$, lower surface, all six
+  grids plus the two warm-started L2 solutions (bottom rows).}
+  \label{fig:sheet_eppler387_Re100k_lower}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re300k_upper.pdf}
+  \caption{Eppler~387, $Re=3\times10^5$, $\alpha=5^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \label{fig:sheet_eppler387_Re300k_upper}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re300k_lower.pdf}
+  \caption{Eppler~387, $Re=3\times10^5$, $\alpha=5^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \label{fig:sheet_eppler387_Re300k_lower}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re460k_upper.pdf}
+  \caption{Eppler~387, $Re=4.6\times10^5$, $\alpha=5^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \label{fig:sheet_eppler387_Re460k_upper}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re460k_lower.pdf}
+  \caption{Eppler~387, $Re=4.6\times10^5$, $\alpha=5^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \label{fig:sheet_eppler387_Re460k_lower}
+\end{figure}
+
+\clearpage
+\section*{Appendix D: the Daedalus wing---definition, temporal-units
 conversion, and force tables}
 
 \paragraph{Geometry, meshes, and solutions.} The wing blends the
@@ -2953,7 +3048,7 @@ at the tip with a straight quarter-chord line. The structured family
 stacks two-dimensional O-grids spanwise, pinching the section to a line
 beyond the tip. The unstructured family is a classical
 three-dimensional unstructured mesh, distinct from the two-dimensional
-cavity construction of Appendix~A: anisotropic boundary-layer prisms
+cavity construction of Appendices~A and~B: anisotropic boundary-layer prisms
 are grown from the triangulated wing surface, the far field is an
 octree of hexahedra, and tetrahedra join the two, with the tetrahedron
 size at the interface seeded from the area-equivalent edge length of

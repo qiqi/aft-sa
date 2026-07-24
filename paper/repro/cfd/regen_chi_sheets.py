@@ -99,9 +99,9 @@ def sheet(af, alpha, side):
     fig, axes = plt.subplots(6, 2, figsize=(11.5, 12.5), sharex=True, sharey=True)
     for r, (gname, glabel) in enumerate(ROWS):
         case = f"{B}/{gname}_{cfg['casetag']}_a{alpha}"
-        if not os.path.exists(f"{case}/saai_result.json"):
-            # completion marker, not just the slice: a mid-run case has
-            # intermediate-checkpoint slices that would silently taint one row
+        if not os.path.exists(f"{case}/slice_centerSpan.pvtu"):
+            # the current campaign tree tracks completion in the campaign
+            # JSONs; the slice is written at the final step only
             raise FileNotFoundError(case)
         x, d, chi, um = scan(m, af, case, side, L)
         axU, axC = axes[r]
@@ -129,70 +129,55 @@ SWEEP_RE = [('Re60k', 6e4, r'$6\times10^4$'), ('Re100k', 1e5, r'$10^5$'),
             ('Re300k', 3e5, r'$3\times10^5$'), ('Re460k', 4.6e5, r'$4.6\times10^5$')]
 
 
-def sweep_sheet(side):
-    """Eppler Re-sweep sheet: 8 rows = {cavity, O-grid} L1 x 4 Reynolds numbers
-    (alpha = 5 deg; Re = 2e5 is covered by the main-matrix sheets). Wall-normal
-    range scales per row as 1/sqrt(Re) from the Re = 2e5 values."""
+def _sweep_case(fam, lvl, retag):
+    """fam in {cav, str}, lvl in {L0, L1, L2}; L1 keeps the legacy names."""
+    if lvl == 'L1':
+        return f"{B}/sweep_{'str_' if fam == 'str' else ''}{retag}_a5"
+    return f"{B}/sweep_{fam}{lvl}_{retag}_a5"
+
+
+def sweep_re_sheet(retag, Re, relabel, side):
+    """One appendix sheet per sweep Reynolds number, in the alpha-sheet
+    style: 6 rows = the six grids paired by level (Re = 2e5 is covered by
+    the main-matrix sheets). At Re = 1e5 two extra rows carry the L2
+    solutions warm-started from the converged 2e5 state (the reattaching
+    branch of the bistable band, Sec. eppbistab): both branches plotted.
+    Wall-normal range scales as 1/sqrt(Re) from the Re = 2e5 values."""
     import regen_eppler_v2 as m
     L_ref = AF_SETUP['eppler387']['L_up' if side == 'upper' else 'L_lo']
-    fig, axes = plt.subplots(8, 2, figsize=(11.5, 16.0), sharex=True)
-    r = 0
-    for retag, Re, relabel in SWEEP_RE:
-        for fam, famlabel in (('', 'cavity L1'), ('str_', 'O-grid L1')):
-            case = f"{B}/sweep_{fam}{retag}_a5"
-            if not os.path.exists(f"{case}/saai_result.json"):
-                raise FileNotFoundError(case)
-            L = L_ref * np.sqrt(2e5/Re)
-            Xm, Zm, up_idx, lo_idx = m.walk_contour_xz(case)
-            idx = up_idx if side == 'upper' else lo_idx
-            xs = Xm[idx]; zs = Zm[idx]
-            tx_raw = np.gradient(xs); tz_raw = np.gradient(zs)
-            s = np.sqrt(tx_raw**2 + tz_raw**2) + 1e-30
-            tx, tz = tx_raw/s, tz_raw/s
-            nx, nz = tz, -tx
-            if side == 'upper' and np.mean(nz) < 0:
-                nx, nz = -nx, -nz
-            elif side == 'lower' and np.mean(nz) > 0:
-                nx, nz = -nx, -nz
-            M = len(xs)
-            dists = np.linspace(1e-6, L, 140)
-            y0 = m.slice_y_plane(case)
-            pts = np.empty((M*140, 3))
-            for j, d in enumerate(dists):
-                pts[j*M:(j+1)*M, 0] = xs + d*nx
-                pts[j*M:(j+1)*M, 1] = y0
-                pts[j*M:(j+1)*M, 2] = zs + d*nz
-            vp = vtk.vtkPoints(); vp.SetData(numpy_to_vtk(pts, deep=True))
-            poly = vtk.vtkPolyData(); poly.SetPoints(vp)
-            g, _, _ = m.load_slice(case)
-            pr = vtk.vtkProbeFilter(); pr.SetInputData(poly); pr.SetSourceData(g); pr.Update()
-            pdd = pr.GetOutput().GetPointData()
-            nu = vtk_to_numpy(pdd.GetArray('nuHat')) * (Re/MACH)
-            vel = vtk_to_numpy(pdd.GetArray('velocity'))
-            umag = np.linalg.norm(vel, axis=1) / MACH
-            valid = vtk_to_numpy(pr.GetValidPoints())
-            mask = np.zeros(M*140, bool); mask[valid] = True
-            chi = np.where(mask, nu, np.nan).reshape(140, M)
-            um = np.where(mask, umag, np.nan).reshape(140, M)
-            o = np.argsort(xs)
-            x, chi, um = xs[o], chi[:, o], um[:, o]
-            axU, axC = axes[r]
-            cs = axU.contour(x, dists*Re, um, levels=U_LEV, colors='k', linewidths=0.6)
-            axU.clabel(cs, levels=U_LABEL, fmt='%g', fontsize=6.5, inline_spacing=2)
-            logchi = np.log10(np.clip(chi, 1e-8, None))
-            axC.contour(x, dists*Re, logchi, levels=CHI_MINOR, colors='k', linewidths=0.4)
-            cs = axC.contour(x, dists*Re, logchi, levels=CHI_MAJOR, colors='k', linewidths=0.8)
-            axC.clabel(cs, fmt=CHI_FMT, fontsize=6.5, inline_spacing=2)
-            for ax in (axU, axC):
-                ax.set_xlim(0, 1); ax.set_ylim(0, L*Re)
-            axU.set_ylabel(f'{famlabel}, {relabel}\n' + r'$d\,U_\infty/\nu$', fontsize=8.5)
-            print(f"  sweep_{fam}{retag}: scanned", flush=True)
-            r += 1
+    L = L_ref*np.sqrt(2e5/Re)
+    rows = [('cav', 'L0', 'cavity L0'), ('str', 'L0', 'O-grid L0'),
+            ('cav', 'L1', 'cavity L1'), ('str', 'L1', 'O-grid L1'),
+            ('cav', 'L2', 'cavity L2'), ('str', 'L2', 'O-grid L2')]
+    forks = []
+    if retag == 'Re100k':
+        forks = [('cav', 'fork', 'cavity L2, warm start'),
+                 ('str', 'fork', 'O-grid L2, warm start')]
+    nrows = len(rows) + len(forks)
+    fig, axes = plt.subplots(nrows, 2, figsize=(11.5, 2.1*nrows + 0.6),
+                             sharex=True, sharey=True)
+    for r, (fam, lvl, glabel) in enumerate(rows + forks):
+        case = (_sweep_case(fam, lvl, retag) if lvl != 'fork'
+                else f"{B}/fork_{fam}L2_{retag}_a5")
+        if not os.path.exists(f"{case}/slice_centerSpan.pvtu"):
+            raise FileNotFoundError(case)
+        x, d, chi, um = scan(m, 'eppler387', case, side, L)
+        chi = chi*(Re/2e5)   # scan() scales nuHat by the benchmark Re
+        axU, axC = axes[r]
+        cs = axU.contour(x, d*Re, um, levels=U_LEV, colors='k', linewidths=0.6)
+        axU.clabel(cs, levels=U_LABEL, fmt='%g', fontsize=6.5, inline_spacing=2)
+        logchi = np.log10(np.clip(chi, 1e-8, None))
+        axC.contour(x, d*Re, logchi, levels=CHI_MINOR, colors='k', linewidths=0.4)
+        cs = axC.contour(x, d*Re, logchi, levels=CHI_MAJOR, colors='k', linewidths=0.8)
+        axC.clabel(cs, fmt=CHI_FMT, fontsize=6.5, inline_spacing=2)
+        axU.set_xlim(0, 1); axU.set_ylim(0, L*Re)
+        axU.set_ylabel(f'{glabel}\n' + r'$d\,U_\infty/\nu$', fontsize=9)
+        print(f"  {retag} {glabel}: scanned", flush=True)
     axes[0, 0].set_title(r'$|\mathbf{u}|/U_\infty$', fontsize=10)
     axes[0, 1].set_title(r'$\log_{10}\chi$', fontsize=10)
     for c in range(2):
         axes[-1, c].set_xlabel('wall-anchor x/c')
-    out = os.path.join(FIGS, f'chi_sheet_eppler387_sweep_{side}.pdf')
+    out = os.path.join(FIGS, f'chi_sheet_eppler387_{retag}_{side}.pdf')
     plt.tight_layout()
     plt.savefig(out)
     plt.close(fig)
@@ -212,12 +197,13 @@ def main(only=None):
                     print(f"  SKIP (case incomplete): {e}", flush=True)
     if only:
         return
-    for side in ('upper', 'lower'):
-        try:
-            print(f"eppler387 Re-sweep {side}:", flush=True)
-            sweep_sheet(side)
-        except FileNotFoundError as e:
-            print(f"  SKIP (case incomplete): {e}", flush=True)
+    for retag, Re, relabel in SWEEP_RE:
+        for side in ('upper', 'lower'):
+            try:
+                print(f"eppler387 {retag} {side}:", flush=True)
+                sweep_re_sheet(retag, Re, relabel, side)
+            except FileNotFoundError as e:
+                print(f"  SKIP (case incomplete): {e}", flush=True)
 
 
 if __name__ == '__main__':

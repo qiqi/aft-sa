@@ -76,6 +76,19 @@ axl.semilogx([r*1e3 for r in xre], [xf[r]['cl'] for r in xre], ls='none',
 axd.loglog([r*1e3 for r in xre], [xf[r]['cd'] for r in xre], ls='none',
            color='0.45', marker='D', mfc='none', ms=6, mew=1.3)
 
+# warm-started second branch at 1e5 (run_bistability_forks.py): open, larger
+# family-colored markers next to the cold-start L2 points
+_fkp = f'{B}/fork_bistability_results.json'
+if os.path.exists(_fkp):
+    fk = json.load(open(_fkp))
+    for fam, mk in (('str', 'o'), ('cav', '^')):
+        r = fk.get(f'fork_{fam}L2_Re100k_a5')
+        if r:
+            kw = dict(color=FAM[fam]['color'], marker=mk, ms=8, mfc='none',
+                      mew=1.6, ls='none', zorder=5)
+            axl.plot([1e5], [r['CL']], **kw)
+            axd.plot([1e5], [r['CD']], **kw)
+
 # experiment with repeat scatter
 axl.errorbar(Re, [EXP[r][0] for r in RES], yerr=[EXP_ERR[r][0] for r in RES],
              fmt='o', color='k', ms=5, capsize=3, zorder=6)
@@ -106,6 +119,8 @@ handles = [Line2D([], [], color='k', marker='o', ls='none', ms=5,
                   label='SA-AI, structured (O-grid)'),
            Line2D([], [], color='C1', ls='--', marker='^', ms=3.5,
                   label='SA-AI, unstructured'),
+           Line2D([], [], color='0.3', ls='none', marker='o', ms=8, mfc='none',
+                  mew=1.6, label='warm start ($10^5$, L2)'),
            Line2D([], [], color='0.4', lw=POLAR_LW['L0'], label='L0'),
            Line2D([], [], color='0.4', lw=POLAR_LW['L1'], label='L1'),
            Line2D([], [], color='0.4', lw=POLAR_LW['L2'], label='L2')]

@@ -41,8 +41,14 @@ EXP = {  # Re_k: (alpha_deg, cl, cd, cm) -- TM-4062 Table B1, nearest alpha
     460: (5.02, 0.914, 0.0093, -0.0807),
 }
 
-def cav_dir(Rk): return f"{B}/cavL1prop_eppler387_Re200k_a5" if Rk == 200 else f"{B}/sweep_Re{Rk}k_a5"
-def str_dir(Rk): return f"{B}/strL1prop_eppler387_Re200k_a5" if Rk == 200 else f"{B}/sweep_str_Re{Rk}k_a5"
+LEVEL = os.environ.get('SAAI_TAB_LEVEL', 'L2')   # table quotes the finest grids
+
+def cav_dir(Rk):
+    if Rk == 200: return f"{B}/cav{LEVEL}prop_eppler387_Re200k_a5"
+    return f"{B}/sweep_Re{Rk}k_a5" if LEVEL == 'L1' else f"{B}/sweep_cav{LEVEL}_Re{Rk}k_a5"
+def str_dir(Rk):
+    if Rk == 200: return f"{B}/str{LEVEL}prop_eppler387_Re200k_a5"
+    return f"{B}/sweep_str_Re{Rk}k_a5" if LEVEL == 'L1' else f"{B}/sweep_str{LEVEL}_Re{Rk}k_a5"
 
 def cfd_forces(d):
     rows = [r for r in list(csv.reader(open(f"{d}/total_forces_v2.csv")))[1:] if len(r) > 10]
@@ -120,15 +126,21 @@ def main():
             e9 = (cl, cd, cm)
         rows[Rk] = (s, c, e9, EXP[Rk])
 
-    print("\n% ---- LaTeX rows: Re | str L1 (cl cd cm) | cav L1 | e9 | Exp ----")
+    print(f"\n% ---- LaTeX rows: Re | str {LEVEL} (cl cd cm) | cav {LEVEL} | e9 | Exp ----")
+    def f3(v): return f"{v:.3f}"
+    def f4(v): return f"{v:.4f}"
     for Rk in RES:
         s, c, e9, e = rows[Rk]
-        def f3(v): return f"{v:.3f}"
-        def f4(v): return f"{v:.4f}"
         print(f"    ${Rk}$k & {f3(s[0])} & {f4(s[1])} & {f4(s[2])} "
               f"& {f3(c[0])} & {f4(c[1])} & {f4(c[2])} "
               f"& {f3(e9[0])} & {f4(e9[1])} & {f4(e9[2])} "
               f"& {f3(e[1])} & {f4(e[2])} & {f4(e[3])} \\\\")
+    if LEVEL == 'L2':
+        # the warm-started second branch at 1e5 (run_bistability_forks.py)
+        fs = cfd_forces(f"{B}/fork_strL2_Re100k_a5")
+        fc = cfd_forces(f"{B}/fork_cavL2_Re100k_a5")
+        print(f"    $100$k warm & {f3(fs[0])} & {f4(fs[1])} & {f4(fs[2])} "
+              f"& {f3(fc[0])} & {f4(fc[1])} & {f4(fc[2])} & & & & & & \\\\")
 
 if __name__ == '__main__':
     main()

@@ -67,6 +67,20 @@ def for_each_case(Rk):
             yield fam, lvl, sweep_dir(fam, lvl, Rk), R.MESH_LS[fam], R.LEVEL_LW[lvl]
 
 
+# Warm-started (continuation) L2 solutions at Re=1e5: the second branch of
+# the bistable band (run_bistability_forks.py). Distinct hues, side-paired.
+FORK_UP, FORK_LO = 'darkcyan', 'darkviolet'
+
+
+def for_each_fork(Rk):
+    if Rk != 100:
+        return
+    for fam in FAMS:
+        d = f"{B}/fork_{fam}L2_Re100k_a5"
+        if os.path.isdir(d):
+            yield fam, d, R.MESH_LS[fam], R.LEVEL_LW['L2']
+
+
 def make_fig(re_list, out):
     fig, axs = plt.subplots(5, len(re_list), figsize=(5.2*len(re_list), 13.6),
                             sharex=True)
@@ -89,6 +103,16 @@ def make_fig(re_list, out):
             ax_reo.semilogy(xs_l, ReO_l, ls=ls, lw=lw, color=LO)
             ax_P.plot(xs_u, P_u, ls=ls, lw=lw, color=UP)
             ax_P.plot(xs_l, P_l, ls=ls, lw=lw, color=LO)
+        for fam, d, ls, lw in for_each_fork(Rk):
+            try:
+                xs_u, ReO_u, _, P_u = R.wallnormal_max_metrics(d, side='upper', return_P=True)
+                xs_l, ReO_l, _, P_l = R.wallnormal_max_metrics(d, side='lower', return_P=True)
+            except Exception as e:
+                print(f"Re{Rk}k fork probe {fam}: {e}"); continue
+            ax_reo.semilogy(xs_u, ReO_u, ls=ls, lw=lw, color=FORK_UP)
+            ax_reo.semilogy(xs_l, ReO_l, ls=ls, lw=lw, color=FORK_LO)
+            ax_P.plot(xs_u, P_u, ls=ls, lw=lw, color=FORK_UP)
+            ax_P.plot(xs_l, P_l, ls=ls, lw=lw, color=FORK_LO)
         ax_reo.axhline(REOMC_FLOOR, color='gray', ls='--', lw=0.6, alpha=0.5)
         ax_reo.set_ylim(1e2, 1e4); ax_reo.grid(alpha=0.3, which='both')
         ax_reo.set_title(f"Re = {Rk}k", fontsize=12)
@@ -106,6 +130,13 @@ def make_fig(re_list, out):
                 print(f"Re{Rk}k chi {fam}{lvl}: {e}"); continue
             ax_chi.semilogy(xc, mu/NU_Re, ls=ls, lw=lw, color=UP)
             ax_chi.semilogy(xc, ml/NU_Re, ls=ls, lw=lw, color=LO)
+        for fam, d, ls, lw in for_each_fork(Rk):
+            try:
+                xc, mu, ml = R.max_chi_vs_x(d)
+            except Exception as e:
+                print(f"Re{Rk}k fork chi {fam}: {e}"); continue
+            ax_chi.semilogy(xc, mu/NU_Re, ls=ls, lw=lw, color=FORK_UP)
+            ax_chi.semilogy(xc, ml/NU_Re, ls=ls, lw=lw, color=FORK_LO)
         # At Re=60k the two e^9 implementations visibly differ and XFOIL is
         # the primary reference (no amplification envelope there).
         XFOIL_PRIMARY = {60}
@@ -136,6 +167,15 @@ def make_fig(re_list, out):
             ax_cp.plot(xl, -cpl, ls=ls, lw=lw, color=LO)
             ax_cf.plot(xu, cfu, ls=ls, lw=lw, color=UP)
             ax_cf.plot(xl, cfl, ls=ls, lw=lw, color=LO)
+        for fam, d, ls, lw in for_each_fork(Rk):
+            try:
+                (xu, cfu, cpu), (xl, cfl, cpl) = R.airfoil_walk_contour(d)
+            except Exception as e:
+                print(f"Re{Rk}k fork surf {fam}: {e}"); continue
+            ax_cp.plot(xu, -cpu, ls=ls, lw=lw, color=FORK_UP)
+            ax_cp.plot(xl, -cpl, ls=ls, lw=lw, color=FORK_LO)
+            ax_cf.plot(xu, cfu, ls=ls, lw=lw, color=FORK_UP)
+            ax_cf.plot(xl, cfl, ls=ls, lw=lw, color=FORK_LO)
         # experimental bubble band (only where oil-flow data exist)
         if Rk in EXP_LSB_RE:
             xls, xtr = EXP_LSB_RE[Rk]
@@ -154,13 +194,29 @@ def make_fig(re_list, out):
                 s = ref[side]
                 ax_cp.plot(s['x'], -np.asarray(s['cp']), ':', color=c, lw=1.4, alpha=0.8, zorder=4)
                 ax_cf.plot(s['x'], np.asarray(s['cf']), ':', color=c, lw=1.4, alpha=0.8, zorder=4)
-        # exact experimental Cp (TM-4062 Appendix D) at nearest-5deg column
-        etab = EXP_CP_TAB.get(str(Rk)); ecol = RE_COL.get(Rk)
-        if etab is not None and ecol is not None:
-            for side, c in [('upper', UP), ('lower', LO)]:
-                if ecol in etab[side]:
-                    xcs = np.asarray(etab[side]['xc']); cps = np.asarray(etab[side][ecol])
-                    ax_cp.plot(xcs, -cps, 'o', mfc='none', mec=c, mew=1.1, ms=5, zorder=6)
+        # exact experimental Cp (TM-4062 Appendix D) at nearest-5deg column.
+        # Where the report holds repeat datasets (60k: up- AND down-sweep runs;
+        # 100k: three free-transition tunnel conditions), overlay them all --
+        # circles are the primary set (the one the RE_COL tables quote),
+        # squares/diamonds the repeats. Their spread IS the experimental
+        # branch scatter (see compare_exp_cp_datasets.py).
+        DSETS = EXP_CP_TAB.get('datasets_a5', {})
+        MULTI = {60: [('60k_up', 'o', 5.0), ('60k_dn', 's', 4.2)],
+                 100: [('100k_pt15', 'o', 5.0), ('100k_pt5', 's', 4.2),
+                       ('100k_pt10', 'D', 3.8)]}
+        if Rk in MULTI and all(k in DSETS for k, _, _ in MULTI[Rk]):
+            for key, mk, ms in MULTI[Rk]:
+                for side, c in [('upper', UP), ('lower', LO)]:
+                    s = DSETS[key][side]
+                    ax_cp.plot(s['xc'], -np.asarray(s['cp']), mk, mfc='none',
+                               mec=c, mew=1.1, ms=ms, ls='none', zorder=6)
+        else:
+            etab = EXP_CP_TAB.get(str(Rk)); ecol = RE_COL.get(Rk)
+            if etab is not None and ecol is not None:
+                for side, c in [('upper', UP), ('lower', LO)]:
+                    if ecol in etab[side]:
+                        xcs = np.asarray(etab[side]['xc']); cps = np.asarray(etab[side][ecol])
+                        ax_cp.plot(xcs, -cps, 'o', mfc='none', mec=c, mew=1.1, ms=5, zorder=6)
         if col == 0:
             ax_cp.set_ylabel(r'$-C_p$'); ax_cf.set_ylabel(r'$C_f$')
         ax_cp.grid(alpha=0.3); ax_cf.grid(alpha=0.3)
@@ -175,6 +231,10 @@ def make_fig(re_list, out):
                Line2D([], [], color='0.3', lw=R.LEVEL_LW['L1'], label='L1'),
                Line2D([], [], color='0.3', lw=R.LEVEL_LW['L2'], label='L2'),
                Patch(facecolor='0.55', alpha=0.30, label='exp. LSB (TM-4062 oil flow)')]
+    if 100 in re_list:
+        handles[-1:-1] = [
+            Line2D([], [], color=FORK_UP, lw=2, label='upper, warm-start L2 ($10^5$)'),
+            Line2D([], [], color=FORK_LO, lw=2, label='lower, warm-start L2 ($10^5$)')]
     if MFOIL or XFOIL:
         handles.append(Line2D([], [], color='0.3', ls=':', lw=1.4, label='mfoil/xfoil ($e^9$)'))
     if EXP_CP_TAB:
