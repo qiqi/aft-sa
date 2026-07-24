@@ -109,7 +109,11 @@ def march_sa(fs, x_max, nx=1200, ny=800, seed=SEED, gate_c=0.0, ufrac=0.0,
         lo = -(vp[1:] + kface)
         up = -(vm[:-1] + kface)
         main = u/dx + di + Dcoef
-        rhs = u/dx*nu + Pcoef*nu
+        # c_b2 gradient term (previously omitted -- quadratic SOURCE, zero at
+        # peaks; Spalart's c_b2<1 makes the net column diffusion brake
+        # (1-c_b2)/sigma, not 1/sigma): explicit, lagged.
+        dnudy = np.gradient(nu, dy)
+        rhs = u/dx*nu + Pcoef*nu + (CB2/SIGMA_SA)*dnudy**2
         rhs[-1] += vm[-1]*seed
         Amat = sp.diags([lo, main, up], [-1, 0, 1], format='csc')
         nu = spla.spsolve(Amat, rhs)
