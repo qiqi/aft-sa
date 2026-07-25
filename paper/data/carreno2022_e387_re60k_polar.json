@@ -1,0 +1,157 @@
+{
+ "meta": {
+  "source": "Carreno Ruiz & D'Ambrosio, 'Validation of the gamma-Re_theta transition model for airfoils operating in the very low Reynolds number regime', Flow, Turbulence and Combustion 109:279-308 (2022), Fig. 19 (p. 305). File: sa-ai/references/carreno-ruiz2022-gammaRetheta-STARCCM-e387-Re60k.pdf",
+  "condition": "Eppler 387 airfoil, Re = 60,000. gamma-Re_theta transition model in STAR-CCM+ (2D, incompressible).",
+  "legend_note": "Fig. 19's legend shows a SINGLE CFD curve labeled only 'gamma-Re_theta' -- unlike Figs. 10-13 of the same paper, this figure does NOT separate Menter vs Suluksna-Juntasaro correlation sets. The text does not state which calibration Fig. 19 uses; from Section 6 context (Fig. 17 caption: 'Suluksna-Juntasaro calibration with the s1 parameter set to 6') it is most plausibly the SJ s1=6 recalibration, and the Conclusions state that this recalibration replicates Menter's calibration closely for performance coefficients. The other legend entries are literature/experiment references: Experimental (McGhee et al. 1988, NASA TM-4062 LTPT), 2D NS (Sahin et al. 2008), 3D DNS (Sahin et al. 2008), 3D LES (Frere et al.).",
+  "method": "Figure is an embedded raster image (1418x598 px, MATLAB export) -- page.get_drawings() vector extraction not available (only clip rectangles), so the image was extracted at native resolution and digitized by MATLAB-default-color segmentation. Axes calibrated by least-squares on detected gridline pixel positions (residual < 0.5 px). Scatter markers located as bounding-box centers of color-clustered blobs (legend samples excluded by region); the gamma-Re_theta curve sampled at integer alpha via column-median of blue pixels (markers sit at integer alpha).",
+  "axis_calibration": {
+   "cl_panel": {
+    "x_px_per_deg": 46.83,
+    "x0_px_at_alpha0": 68.6,
+    "y_px_per_cl": -385.9,
+    "y0_px_at_cl0": 488.4
+   },
+   "cd_panel": {
+    "x_px_per_deg": 46.9,
+    "x0_px_at_alpha0": 806.7,
+    "y_px_per_cd": -4811.5,
+    "y0_px_at_cd0": 487.7
+   }
+  },
+  "uncertainty": "Born-digital but raster-embedded figure. Calibration residual <0.5 px; marker localization ~1-2 px. Pixel scales: 1 px = 0.021 deg alpha, 0.0026 CL, 0.00021 CD. Estimated 1-sigma digitization uncertainty: alpha +/-0.05 deg, CL +/-0.005, CD +/-0.0005.",
+  "alpha_grid_note": "All series plotted at integer alpha; alpha snapped to integers (raw centers within 0.05 deg of integers).",
+  "digitized": "2026-07-25"
+ },
+ "series": {
+  "gamma-Re_theta (STAR-CCM+)": {
+   "alpha": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "cl": [
+    0.3564,
+    0.4548,
+    0.5507,
+    0.6491,
+    0.7345,
+    0.8278,
+    0.9106,
+    0.9831,
+    1.0686,
+    1.1385,
+    1.1359,
+    1.1178,
+    1.0893
+   ],
+   "cd": [
+    0.02146,
+    0.02333,
+    0.02551,
+    0.0279,
+    0.0307,
+    0.0334,
+    0.03692,
+    0.04108,
+    0.04336,
+    0.04191,
+    0.05332,
+    0.06806,
+    0.0857
+   ]
+  },
+  "Experimental (McGhee)": {
+   "alpha": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "cl": [
+    0.3409,
+    0.4652,
+    0.5571,
+    0.6012,
+    0.6814,
+    0.6296,
+    0.6581,
+    1.0479,
+    1.145,
+    1.189,
+    1.2123,
+    1.211,
+    1.1994
+   ],
+   "cd": [
+    0.0225,
+    0.02686,
+    0.0307,
+    0.03869,
+    0.04658,
+    0.05322,
+    0.06339,
+    0.03392,
+    0.02831,
+    0.03163,
+    0.04678,
+    0.06079,
+    0.07978
+   ]
+  },
+  "2D NS (Sahin)": {
+   "alpha": [
+    6
+   ],
+   "cl": [
+    0.9637
+   ],
+   "cd": [
+    0.04118
+   ]
+  },
+  "3D DNS (Sahin)": {
+   "alpha": [
+    6
+   ],
+   "cl": [
+    0.8109
+   ],
+   "cd": [
+    0.07594
+   ]
+  },
+  "3D LES (Frere)": {
+   "alpha": [
+    4,
+    8
+   ],
+   "cl": [
+    0.7747,
+    1.1657
+   ],
+   "cd": [
+    0.04346,
+    0.03651
+   ]
+  }
+ }
+}

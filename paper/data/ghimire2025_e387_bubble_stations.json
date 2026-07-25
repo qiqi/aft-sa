@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "source": "Ghimire, S.; Ni, X.; Wang, Y. Assessment of Transitional RANS Models and Implementation of Transitional IDDES Method for Boundary Layer Transition and Separated Flows in OpenFOAM-V2312. Fluids 2025, 10, 230 (MDPI).",
+    "doi": "10.3390/fluids10090230",
+    "pdf": "references/ghimire2025-openfoam-gammaSST-e387-Re300k.pdf",
+    "conditions": {
+      "airfoil": "Eppler 387",
+      "Re": 300000,
+      "Tu_percent": 0.1,
+      "nu_t_over_nu": 10,
+      "chord_m": 1.0,
+      "solver": "OpenFOAM-v2312 simpleFOAM, 2D steady incompressible, mesh CC (344x163)"
+    },
+    "tables": {
+      "alpha_2": {"table": 6, "printed_page": 9},
+      "alpha_4": {"table": 7, "printed_page": 10},
+      "alpha_6": {"table": 8, "printed_page": 12}
+    },
+    "extraction_method": "pypdf text extraction (born-digital PDF); every row of Tables 6-8 transcribed verbatim",
+    "column_notes": "Tables give 'LS-TR Location (x/c)' as a range (laminar separation LS to turbulent reattachment TR), 'LSB Size' (TR-LS), and 'LSB Transition Point (x/c)'. Mapped here to x_sep, x_reattach, lsb_size, x_tr. Paper model names: kwSSTLM = gamma-Retheta-SST (Langtry-Menter), gamma-kwSST = gamma-SST (Menter one-equation), Kgamma-wSST = Kgamma-SST. Experiment = McGhee et al. (LTPT), as cited in the paper.",
+    "null_notes": "alpha_6 kgamma_sst: table row reads 'Absence of LSB streamlines' with '-' for LSB size, so x_sep/x_reattach/lsb_size are null; its transition point 0.470 is still reported. Experiment values at alpha=2 are given to coarse precision in the table (0.5-0.7, 0.2, 0.660)."
+  },
+  "alpha_2": {
+    "experiment": {"x_sep": 0.5, "x_tr": 0.660, "x_reattach": 0.7, "lsb_size": 0.2},
+    "gamma_retheta_sst": {"x_sep": 0.518, "x_tr": 0.646, "x_reattach": 0.676, "lsb_size": 0.158},
+    "gamma_sst": {"x_sep": 0.529, "x_tr": 0.629, "x_reattach": 0.659, "lsb_size": 0.130},
+    "kgamma_sst": {"x_sep": 0.538, "x_tr": 0.592, "x_reattach": 0.604, "lsb_size": 0.066}
+  },
+  "alpha_4": {
+    "experiment": {"x_sep": 0.4, "x_tr": 0.550, "x_reattach": 0.575, "lsb_size": 0.175},
+    "gamma_retheta_sst": {"x_sep": 0.454, "x_tr": 0.542, "x_reattach": 0.561, "lsb_size": 0.107},
+    "gamma_sst": {"x_sep": 0.452, "x_tr": 0.524, "x_reattach": 0.553, "lsb_size": 0.101},
+    "kgamma_sst": {"x_sep": 0.476, "x_tr": 0.490, "x_reattach": 0.501, "lsb_size": 0.025}
+  },
+  "alpha_6": {
+    "experiment": {"x_sep": 0.38, "x_tr": 0.46, "x_reattach": 0.46, "lsb_size": 0.08},
+    "gamma_retheta_sst": {"x_sep": 0.398, "x_tr": 0.479, "x_reattach": 0.498, "lsb_size": 0.100},
+    "gamma_sst": {"x_sep": 0.396, "x_tr": 0.474, "x_reattach": 0.500, "lsb_size": 0.104},
+    "kgamma_sst": {"x_sep": null, "x_tr": 0.470, "x_reattach": null, "lsb_size": null}
+  }
+}

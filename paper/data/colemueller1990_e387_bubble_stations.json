@@ -1,0 +1,426 @@
+{
+  "meta": {
+    "source": "Cole, G.M. and Mueller, T.J., 'Experimental Measurements of the Laminar Separation Bubble on an Eppler 387 Airfoil at Low Reynolds Numbers', University of Notre Dame, Final Report UNDAS-1419-FR, January 1990. Prepared under NASA Contract NSG 1419 for NASA Langley Research Center.",
+    "ntrs_id": "19900006064",
+    "pdf": "references/cole-mueller1990-e387-LSB-LDV-Re100k-NTRS19900006064.pdf",
+    "document_type": "raster scan (sparse OCR text layer); the station data below were read VISUALLY from a 300 dpi PyMuPDF render of the page",
+    "important_correction": "The item titled 'Summary of Laminar Separation, Transition, and Turbulent Reattachment Locations for Various Angles of Attack for the E387 Airfoil at Rc = 100,000' is NOT a numeric table in this report: it is Figure 4.37, a scatter plot (alpha vs x/c percent chord), on printed page 90 (PDF page index 102). Companion figures 4.38/4.39 (printed pages 91/92) give Re=200,000 and 300,000. The report's actual Table 4.1 'Separation Bubble Parameters' (printed page 44, PDF index 56) contains exact LDV-derived values for a single E387 case (alpha=2.0 deg) and is transcribed separately below.",
+    "figure_4_37": {
+      "printed_page": 90,
+      "pdf_page_index": 102,
+      "conditions": {
+        "airfoil": "Eppler 387",
+        "Re": 100000,
+        "chord_mm": 304.8,
+        "U_inf_mps_approx": 5.3
+      },
+      "measurement_technique": "Station locations in Fig. 4.37 were determined from the measured static pressure distributions (Figs. 4.8-4.36): laminar separation from the start of the constant-pressure plateau, transition from the plateau end / start of rapid pressure recovery, reattachment from the end of the recovery. Document states an uncertainty of +/-1% x/c. At alpha=2 they compare well with fluorescent-surface-oil flow visualization (separation 40% x/c, reattachment 80% x/c) and with LDV (Table 4.1: 39.5/76/80.5 % x/c).",
+      "text_check": "Report text (printed p.23) states for Re=100,000, alpha=2.0: 'laminar separation occurs at 40% x/c, transition at 76% x/c, and reattachment at 85% x/c' - this matches the digitized alpha=2 row exactly.",
+      "digitization": "Points read visually from zoomed crops of the 300 dpi render, calibrated against axis tick labels; readable to about +/-1 percent chord, comparable to the document's own +/-1% x/c uncertainty.",
+      "units": "raw values are percent chord as plotted; x/c values are the same divided by 100",
+      "ambiguities": [
+        "alpha=10 laminar-separation circle sits essentially on the x/c=0 axis (short leading-edge bubble); recorded as 0.5 +/- 1 %chord.",
+        "alpha=0 separation (44%) reads slightly ahead of alpha=1 separation (46%); this non-monotonic scatter is in the plot itself.",
+        "Symbols at plot-frame edges (alpha=-2 circle at 50%, alpha=-2 triangle at 90%, alpha=10 circle at 0%) appear solid/filled, most likely because they overlap the axis/frame lines.",
+        "Between alpha=8 and alpha=9 the bubble jumps from mid-chord (~28-52%) to the leading edge (~2-10%), consistent with the report text about the rapid forward movement at alpha of seven-to-eight degrees and short LE bubble formation."
+      ]
+    },
+    "tunnel_turbulence": "Notre Dame south low-speed low-turbulence wind tunnel (F.N.M. Brown design): open-circuit indraft, 0.61 m x 0.61 m test section, 24:1 contraction preceded by twelve anti-turbulence screens. The report does NOT state a numeric freestream turbulence intensity; it says tests required 'as low a turbulence intensity as possible' and refers to O'Meara (1985) for measured effects of freestream turbulence on the bubble.",
+    "figure_4_38": {
+      "printed_page": 91,
+      "pdf_page_index": 103,
+      "conditions": {
+        "airfoil": "Eppler 387",
+        "Re": 200000,
+        "chord_mm": 304.8,
+        "U_inf_mps_approx": 10.6
+      },
+      "digitization": "Points read visually from zoomed crops of a 300 dpi PyMuPDF render (page rotated 90 deg to upright), calibrated against axis tick labels; readable to about +/-1 percent chord, comparable to the document's own +/-1% x/c uncertainty.",
+      "attached_transition_note": "Report text (printed p.24): 'The locations of attached transition were taken from Eppler's program results (Eppler, 1986).' The transition-only points at alpha=7 (32%) and alpha=8 (12%) are attached transition (no separation bubble): pressure distributions Figs 4.25-4.27 show attached transition at alpha=7,8,9 for Re=200,000.",
+      "ambiguities": [
+        "alpha=7 and alpha=8 rows have a transition symbol only (attached transition from Eppler's program); no laminar-separation or reattachment symbols are plotted there. The dashed separation and reattachment curves converge toward the alpha=7 transition point.",
+        "Report text mentions attached transition at alpha=9 as well (Fig 4.27), but Figure 4.38 plots no alpha=9 symbol; the transition curve simply ends just above alpha=8.",
+        "alpha=0 has only a laminar-separation circle (48%); no transition or reattachment symbols are plotted at alpha=0, although the faired curves pass through that alpha.",
+        "alpha=-1 and alpha=-2 separation circles nearly coincide at ~54% chord (read 53.5-54.1%); both recorded as 54.",
+        "Symbols on the alpha=-2 axis line (circle 54%, triangle 82%, diamond 88%) overlap the plot frame and appear partly filled."
+      ]
+    },
+    "figure_4_39": {
+      "printed_page": 92,
+      "pdf_page_index": 104,
+      "conditions": {
+        "airfoil": "Eppler 387",
+        "Re": 300000,
+        "chord_mm": 304.8,
+        "U_inf_mps_approx": 15.9
+      },
+      "digitization": "Points read visually from zoomed crops of a 300 dpi PyMuPDF render (page rotated 90 deg to upright), calibrated against axis tick labels; readable to about +/-1 percent chord, comparable to the document's own +/-1% x/c uncertainty.",
+      "attached_transition_note": "Transition-only points at alpha=7 (40%), alpha=8 (20%), alpha=9 (5%) are attached-transition locations from Eppler's program (Eppler, 1986). Report text cites attached transition at alpha=7,8 (Figs 4.34-4.35) for Re=300,000 and a short leading-edge bubble at alpha=10 (Fig 4.36).",
+      "ambiguities": [
+        "alpha=7,8,9 rows have transition symbols only (attached transition); dashed separation/reattachment curves converge toward the alpha=7 transition point at 40%.",
+        "The topmost triangle reads alpha=9.0 at 5% chord, but the text discusses attached transition only at alpha=7,8 and a short LE bubble at alpha=10; the alpha=9 point is presumably Eppler-program attached transition. Figure 4.39 plots nothing at alpha=10.",
+        "No alpha=-1 row exists in this figure (unlike Figs 4.37/4.38); measured-bubble alphas are -2, 0, 1, 3 only.",
+        "Symbols on the alpha=-2 axis line (circle 62%, triangle 76%, diamond 82%) overlap the plot frame; the triangle appears filled.",
+        "The alpha=3 reattachment diamond at 64% is crossed by the faired curve and appears partly filled."
+      ]
+    },
+    "restructure_note": "2026-07-25: station arrays reorganized under keys re_100k / re_200k / re_300k (Figures 4.37 / 4.38 / 4.39 respectively); per-row structure identical across the three sets. Rows where the figure plots no symbol carry null and a note."
+  },
+  "re_100k": [
+    {
+      "alpha_deg": -2,
+      "raw_percent_chord": {
+        "laminar_separation": 50.0,
+        "transition": 90.0,
+        "turbulent_reattachment": 98.0
+      },
+      "x_over_c": {
+        "x_sep": 0.5,
+        "x_tr": 0.9,
+        "x_reattach": 0.98
+      }
+    },
+    {
+      "alpha_deg": -1,
+      "raw_percent_chord": {
+        "laminar_separation": 48.0,
+        "transition": 85.0,
+        "turbulent_reattachment": 90.0
+      },
+      "x_over_c": {
+        "x_sep": 0.48,
+        "x_tr": 0.85,
+        "x_reattach": 0.9
+      }
+    },
+    {
+      "alpha_deg": 0,
+      "raw_percent_chord": {
+        "laminar_separation": 44.0,
+        "transition": 85.0,
+        "turbulent_reattachment": 90.0
+      },
+      "x_over_c": {
+        "x_sep": 0.44,
+        "x_tr": 0.85,
+        "x_reattach": 0.9
+      }
+    },
+    {
+      "alpha_deg": 1,
+      "raw_percent_chord": {
+        "laminar_separation": 46.0,
+        "transition": 80.0,
+        "turbulent_reattachment": 85.0
+      },
+      "x_over_c": {
+        "x_sep": 0.46,
+        "x_tr": 0.8,
+        "x_reattach": 0.85
+      }
+    },
+    {
+      "alpha_deg": 2,
+      "raw_percent_chord": {
+        "laminar_separation": 40.0,
+        "transition": 76.0,
+        "turbulent_reattachment": 85.0
+      },
+      "x_over_c": {
+        "x_sep": 0.4,
+        "x_tr": 0.76,
+        "x_reattach": 0.85
+      }
+    },
+    {
+      "alpha_deg": 4,
+      "raw_percent_chord": {
+        "laminar_separation": 38.0,
+        "transition": 68.0,
+        "turbulent_reattachment": 78.0
+      },
+      "x_over_c": {
+        "x_sep": 0.38,
+        "x_tr": 0.68,
+        "x_reattach": 0.78
+      }
+    },
+    {
+      "alpha_deg": 6,
+      "raw_percent_chord": {
+        "laminar_separation": 38.0,
+        "transition": 60.0,
+        "turbulent_reattachment": 68.0
+      },
+      "x_over_c": {
+        "x_sep": 0.38,
+        "x_tr": 0.6,
+        "x_reattach": 0.68
+      }
+    },
+    {
+      "alpha_deg": 7,
+      "raw_percent_chord": {
+        "laminar_separation": 28.0,
+        "transition": 44.0,
+        "turbulent_reattachment": 54.0
+      },
+      "x_over_c": {
+        "x_sep": 0.28,
+        "x_tr": 0.44,
+        "x_reattach": 0.54
+      }
+    },
+    {
+      "alpha_deg": 8,
+      "raw_percent_chord": {
+        "laminar_separation": 28.0,
+        "transition": 44.0,
+        "turbulent_reattachment": 52.0
+      },
+      "x_over_c": {
+        "x_sep": 0.28,
+        "x_tr": 0.44,
+        "x_reattach": 0.52
+      }
+    },
+    {
+      "alpha_deg": 9,
+      "raw_percent_chord": {
+        "laminar_separation": 2.0,
+        "transition": 6.0,
+        "turbulent_reattachment": 10.0
+      },
+      "x_over_c": {
+        "x_sep": 0.02,
+        "x_tr": 0.06,
+        "x_reattach": 0.1
+      }
+    },
+    {
+      "alpha_deg": 10,
+      "raw_percent_chord": {
+        "laminar_separation": 0.5,
+        "transition": 6.0,
+        "turbulent_reattachment": 8.0
+      },
+      "x_over_c": {
+        "x_sep": 0.005,
+        "x_tr": 0.06,
+        "x_reattach": 0.08
+      }
+    }
+  ],
+  "re_200k": [
+    {
+      "alpha_deg": -2,
+      "raw_percent_chord": {
+        "laminar_separation": 54.0,
+        "transition": 82.0,
+        "turbulent_reattachment": 88.0
+      },
+      "x_over_c": {
+        "x_sep": 0.54,
+        "x_tr": 0.82,
+        "x_reattach": 0.88
+      }
+    },
+    {
+      "alpha_deg": -1,
+      "raw_percent_chord": {
+        "laminar_separation": 54.0,
+        "transition": 76.0,
+        "turbulent_reattachment": 80.0
+      },
+      "x_over_c": {
+        "x_sep": 0.54,
+        "x_tr": 0.76,
+        "x_reattach": 0.8
+      }
+    },
+    {
+      "alpha_deg": 0,
+      "raw_percent_chord": {
+        "laminar_separation": 48.0,
+        "transition": null,
+        "turbulent_reattachment": null
+      },
+      "x_over_c": {
+        "x_sep": 0.48,
+        "x_tr": null,
+        "x_reattach": null
+      },
+      "note": "only the laminar-separation circle is plotted at alpha=0"
+    },
+    {
+      "alpha_deg": 1,
+      "raw_percent_chord": {
+        "laminar_separation": 44.0,
+        "transition": 70.0,
+        "turbulent_reattachment": 74.0
+      },
+      "x_over_c": {
+        "x_sep": 0.44,
+        "x_tr": 0.7,
+        "x_reattach": 0.74
+      }
+    },
+    {
+      "alpha_deg": 3,
+      "raw_percent_chord": {
+        "laminar_separation": 40.0,
+        "transition": 64.0,
+        "turbulent_reattachment": 68.0
+      },
+      "x_over_c": {
+        "x_sep": 0.4,
+        "x_tr": 0.64,
+        "x_reattach": 0.68
+      }
+    },
+    {
+      "alpha_deg": 7,
+      "raw_percent_chord": {
+        "laminar_separation": null,
+        "transition": 32.0,
+        "turbulent_reattachment": null
+      },
+      "x_over_c": {
+        "x_sep": null,
+        "x_tr": 0.32,
+        "x_reattach": null
+      },
+      "note": "attached transition from Eppler's program; no bubble (separation/reattachment) symbols plotted"
+    },
+    {
+      "alpha_deg": 8,
+      "raw_percent_chord": {
+        "laminar_separation": null,
+        "transition": 12.0,
+        "turbulent_reattachment": null
+      },
+      "x_over_c": {
+        "x_sep": null,
+        "x_tr": 0.12,
+        "x_reattach": null
+      },
+      "note": "attached transition from Eppler's program; no bubble (separation/reattachment) symbols plotted"
+    }
+  ],
+  "re_300k": [
+    {
+      "alpha_deg": -2,
+      "raw_percent_chord": {
+        "laminar_separation": 62.0,
+        "transition": 76.0,
+        "turbulent_reattachment": 82.0
+      },
+      "x_over_c": {
+        "x_sep": 0.62,
+        "x_tr": 0.76,
+        "x_reattach": 0.82
+      }
+    },
+    {
+      "alpha_deg": 0,
+      "raw_percent_chord": {
+        "laminar_separation": 48.0,
+        "transition": 68.0,
+        "turbulent_reattachment": 72.0
+      },
+      "x_over_c": {
+        "x_sep": 0.48,
+        "x_tr": 0.68,
+        "x_reattach": 0.72
+      }
+    },
+    {
+      "alpha_deg": 1,
+      "raw_percent_chord": {
+        "laminar_separation": 46.0,
+        "transition": 64.0,
+        "turbulent_reattachment": 70.0
+      },
+      "x_over_c": {
+        "x_sep": 0.46,
+        "x_tr": 0.64,
+        "x_reattach": 0.7
+      }
+    },
+    {
+      "alpha_deg": 3,
+      "raw_percent_chord": {
+        "laminar_separation": 42.0,
+        "transition": 60.0,
+        "turbulent_reattachment": 64.0
+      },
+      "x_over_c": {
+        "x_sep": 0.42,
+        "x_tr": 0.6,
+        "x_reattach": 0.64
+      }
+    },
+    {
+      "alpha_deg": 7,
+      "raw_percent_chord": {
+        "laminar_separation": null,
+        "transition": 40.0,
+        "turbulent_reattachment": null
+      },
+      "x_over_c": {
+        "x_sep": null,
+        "x_tr": 0.4,
+        "x_reattach": null
+      },
+      "note": "attached transition from Eppler's program; no bubble (separation/reattachment) symbols plotted"
+    },
+    {
+      "alpha_deg": 8,
+      "raw_percent_chord": {
+        "laminar_separation": null,
+        "transition": 20.0,
+        "turbulent_reattachment": null
+      },
+      "x_over_c": {
+        "x_sep": null,
+        "x_tr": 0.2,
+        "x_reattach": null
+      },
+      "note": "attached transition from Eppler's program; no bubble (separation/reattachment) symbols plotted"
+    },
+    {
+      "alpha_deg": 9,
+      "raw_percent_chord": {
+        "laminar_separation": null,
+        "transition": 5.0,
+        "turbulent_reattachment": null
+      },
+      "x_over_c": {
+        "x_sep": null,
+        "x_tr": 0.05,
+        "x_reattach": null
+      },
+      "note": "attached transition from Eppler's program; no bubble (separation/reattachment) symbols plotted"
+    }
+  ],
+  "table_4_1_ldv_e387": {
+    "printed_page": 44,
+    "pdf_page_index": 56,
+    "note": "Exact values from the report's actual Table 4.1 'Separation Bubble Parameters' (from LDV data), E387 column only; S/T/R given in percent chord.",
+    "alpha_deg": 2.0,
+    "Re": 100000,
+    "raw_percent_chord": {
+      "S_laminar_separation": 39.5,
+      "T_transition": 76.0,
+      "R_turbulent_reattachment": 80.5
+    },
+    "x_over_c": {
+      "x_sep": 0.395,
+      "x_tr": 0.76,
+      "x_reattach": 0.805
+    },
+    "chord_mm": 304.8,
+    "U_inf_mps": 5.3,
+    "U_es_mps": 6.4
+  }
+}

@@ -56,6 +56,19 @@ ax_ls.plot([OIL[a][0] for a in oa], oa, 'o-', mfc='none', mec='k', color='k',
 ax_tr.plot([OIL[a][1] for a in oa], oa, 'o-', mfc='none', mec='k', color='k',
            ms=6, mew=1.2, lw=0.8, zorder=6)
 
+# Cole-Mueller 1990 (second experimental set at Re=2e5; pressure-plateau
+# stations corroborated by oil visualization; +-1 %chord)
+cmj = f'{PD}/data/colemueller1990_e387_bubble_stations.json'
+if os.path.exists(cmj):
+    cmd_ = json.load(open(cmj)).get('re_200k', [])
+    rows = [(r['alpha_deg'], r.get('x_over_c') or {}) for r in cmd_]
+    for ax, key in ((ax_ls, 'x_sep'), (ax_tr, 'x_reattach')):
+        pts = [(v[key], a) for a, v in rows if v.get(key) is not None]
+        if pts:
+            ax.plot([p_[0] for p_ in pts], [p_[1] for p_ in pts], 's',
+                    mfc='none', mec='0.35', color='0.35', ms=5, mew=1.1,
+                    ls='none', zorder=6)
+
 # mfoil dense sweep
 XF_DRAWN = []
 swp = f'{PD}/data/mfoil_eppler_bubble_sweep.json'
@@ -151,6 +164,9 @@ handles = [Line2D([], [], color='k', ls='-', lw=0.8, marker='o', mfc='none', ms=
                   label='Oil flow (LTPT, Table III)'),
            Line2D([], [], color='0.35', ls='none', marker='D', mfc='none', ms=3.5,
                   label='Experiment (Selig et al.)'),
+           Line2D([], [], color='0.35', ls='none', marker='s', mfc='none',
+                  ms=5, mew=1.1,
+                  label='Experiment (Cole--Mueller)'),
            Line2D([], [], color='0.5', ls=':', lw=1.4, label='mfoil ($e^9$)'),
            Line2D([], [], color='0.3', ls='-.', lw=1.0,
                   label='FlexFoil ($e^9$, $\\alpha\\leq6.5^\\circ$)'),

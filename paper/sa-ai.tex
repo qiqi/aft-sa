@@ -1302,8 +1302,8 @@ and the disturbance seed (Sec.~\ref{sec:calib}).
   bottom-right adds the digitized Schubauer--Skramstad
   Fig.~7 band (faint bars) for context. With the receptivity taken from Mack's
   $e^N$ correlation, the model's $\chi\!=\!1$ onset brackets AGS within
-  $14\%$ across the range---late at the lowest $Tu$, early at the
-  highest (markers placed via the laminar $Re_\theta$--$Re_x$
+  $9\%$ across the range---late at the lowest $Tu$, early in the
+  mid-range (markers placed via the laminar $Re_\theta$--$Re_x$
   relation; the quoted residuals use the integrated $Re_\theta$ of the
   text); the
   $C_f$ follows the laminar branch then recovers the turbulent correlation
@@ -1338,88 +1338,26 @@ $\chi_\infty$ is one unit of $N_\mathrm{crit}$, which on the Blasius envelope
 $\Delta Re_\theta\!\approx\!100$.
 
 In the solver the indicator triple is assembled from four local
-vector-calculus objects and their inner products alone: the velocity
-$\mathbf u$ (taken relative to the nearest wall point, which makes
-the triple Galilean invariant; for the static walls of this paper,
-the absolute velocity), the vorticity $\boldsymbol\omega$, the
+vector-calculus objects and their invariant pairings alone: the
+velocity $\mathbf u$ (taken relative to the nearest wall point, which
+makes the triple Galilean invariant; for the static walls of this
+paper, the absolute velocity), the vorticity $\boldsymbol\omega$, the
 wall-distance vector $\mathbf d = d\,\nabla d$, and the curvature
 vector
 $\boldsymbol\ell = \tfrac12(\mathbf d\!\cdot\!\mathbf d)\,
 \nabla^2\mathbf u$, where the divergence-free identity
 $\nabla^2\mathbf u=-\nabla\times\boldsymbol\omega$ supplies the
-second derivative. Because $\hat S$ and $g$ are homogeneous of
-degree zero in the triple, any common positive factor drops out;
-rescaling the solver's magnitude realization of
-Eq.~\eqref{eq:indicators} (below) by $|\mathbf u|$ gives the
-equivalent representative
-\begin{equation}
-  (X,\,Y,\,Z) \;\cong\;
-  \Big(\,\langle\mathbf u,\mathbf u\rangle,\;
-  \sqrt{\langle\mathbf u,\mathbf u\rangle\,
-        \langle\mathbf d,\mathbf d\rangle\,
-        \langle\boldsymbol\omega,\boldsymbol\omega\rangle},\;
-  \langle\boldsymbol\ell,\mathbf u\rangle\,\Big),
-  \label{eq:gram}
-\end{equation}
-in which every entry is an invariant pairing (with
-$|\nabla d|\!=\!1$, so $\langle\mathbf d,\mathbf d\rangle=d^2$),
-no unit vector appears, no division by a vanishing magnitude can
-occur, and the only radical sits over a non-negative product. The
-solver evaluates the equivalent ratio form
-$\big(|\mathbf u|,\,d|\boldsymbol\omega|,\,
-\tfrac12 d^2(\nabla^2\mathbf u)\!\cdot\!\hat{\mathbf u}\big)$;
-the two coincide wherever $\mathbf u\neq0$, and every number in this
-paper was produced by that arithmetic. On a parallel layer
-$(\nabla^2\mathbf{u})\cdot\hat{\mathbf{u}}=\operatorname{sign}(u)\,u''$
-and Eq.~\eqref{eq:gram} reduces to the magnitude triple
-$(|u|,\,d|u'|,\,\tfrac12 d^2 u''\operatorname{sign}(u))$ times the
-positive factor $|u|$. The onset gate's
-$Re_\Omega\!=\!d^2|\boldsymbol\omega|/\nu$ completes the set.
-The same four vectors admit two other independent pairings, recorded
-here for completeness: the signed pairing
-$\langle\boldsymbol\omega\times\mathbf d,\mathbf u\rangle$,
-whose Cauchy--Schwarz \emph{envelope} is exactly
-Eq.~\eqref{eq:gram}'s middle entry in two-dimensional flow, and its
-lower bound in three (by the Lagrange identity
-$|\boldsymbol\omega\times\mathbf d|^2=
-\langle\mathbf d,\mathbf d\rangle\langle\boldsymbol\omega,\boldsymbol\omega\rangle-
-\langle\boldsymbol\omega,\mathbf d\rangle^2$)---realizations built on the signed
-pairing itself were implemented and rejected, as they rectify
-vorticity-direction noise in weak shear---and the odd (pseudoscalar)
-pairing
-$\langle\nabla d,\mathbf u\times(\boldsymbol\omega\times\mathbf d)\rangle$,
-which vanishes identically in two-dimensional flow and measures
-crossflow; it plays no role in this paper and is taken up in the
-outlook. Because the rate depends on the frozen mean flow and
-never on $\tilde\nu$, the production's $\tilde\nu$-derivative is
-analytic---the handover derivative is its only stiff piece---and it is
-treated implicitly with the same clipping as the baseline SA production.
-
-How these magnitude-based components realize the signed algebra of
-Sec.~\ref{sec:model} (whose indicators, Eq.~\eqref{eq:indicators},
-are signed profile derivatives) is worth stating precisely. On a parallel layer the
-implemented triple is
-$\big(\operatorname{sign}(u)\,u,\;\operatorname{sign}(u')\,d\,u',\;
-\operatorname{sign}(u)\,\tfrac12 d^2u''\big)$. Wherever the velocity and the
-shear share a sign---every attached profile, and all of a reversed profile
-except the layer between its backflow extremum and its velocity zero---the
-three components carry one common sign, so the triple is a legitimate
-projective representative of the signed state of Eq.~\eqref{eq:indicators},
-and every even product, $\hat S g$ included, coincides with the theory
-\emph{exactly}: the magnitudes realize the antipodal identification rather
-than break it (a globally mirrored layer lands on the identified antipode),
-which is why the calibration instruments of
-Secs.~\ref{sec:calib_rate}--\ref{sec:calib_onset}, marched on attached
-profiles, transfer to the solver unchanged. In the remaining mixed-sign
-layer the implemented direction deviates from the signed class in a single
-component's sign, and the deviation switches on and off continuously: at
-the backflow extremum the affected component $Y=\omega d$ itself vanishes,
-and at the velocity zero the state reaches the $X\!=\!0$ meridian, where
-$\hat S$ remains smooth ($|\mathbf u|$ enters it only through the smooth
-$u^2$) and the curvature projection changes sign with amplitude
-$\tfrac12 d^2|u''|$---small, because the velocity zero of a free-shear-like
-reversed profile lies close to its inflection point (for the antisymmetric
-layer the two coincide and the amplitude is zero).
+second derivative; the onset gate's
+$Re_\Omega\!=\!d^2|\boldsymbol\omega|/\nu$ completes the set. The
+three-dimensional realization---its division-free Gram form,
+Eq.~\eqref{eq:gram}, how the magnitude-based components realize the
+signed algebra of Sec.~\ref{sec:model} exactly on all but a thin
+mixed-sign layer of reversed profiles, and the two further pairings
+the same four vectors admit---is stated in Appendix~E. Because the
+rate depends on the frozen mean flow and never on $\tilde\nu$, the
+production's $\tilde\nu$-derivative is analytic---the handover
+derivative is its only stiff piece---and it is treated implicitly with
+the same clipping as the baseline SA production.
 
 Figure~\ref{fig:flatplate_batch} computes the model on the flat plate at five
 freestream-turbulence levels spanning the natural-transition
@@ -1473,9 +1411,9 @@ $Re_\theta$ integrated from the computed profiles at the crossing
 station (edge-normalized momentum thickness, integral cut at the
 boundary-layer edge). At the
 $\chi\!=\!1$ crossing the model brackets the correlation within
-$14\%$: $+6\%$ late at the lowest disturbance level
-($Tu\!=\!0.04\%$), $-3\%$ at $0.08\%$, and
-$10$--$14\%$ early over $Tu\!=\!0.16$--$0.60\%$. At the alternative
+$9\%$: $+8\%$ late at the lowest disturbance level
+($Tu\!=\!0.04\%$), within $2\%$ at $0.08\%$ and $0.60\%$, and
+$6$--$8\%$ early over $Tu\!=\!0.16$--$0.30\%$. At the alternative
 $\chi\!=\!c_{v1}$
 crossing---the band's turbulent end---the layer is already
 mid-transition and its integrated $Re_\theta$ ($\approx\!2500$,
@@ -1485,7 +1423,7 @@ onset residuals have different roots: the late bias at low $Tu$ is the
 retained-drain footprint of the calibration (the marched Blasius
 envelope runs $7\%$ past Drela's station by $N\!=\!9$,
 Sec.~\ref{sec:calib_onset}, and the low-$Tu$ seeds hand over near that
-depth), while the early bias at higher $Tu$ traces to the receptivity
+depth), while the early bias in the mid-range traces to the receptivity
 map \eqref{eq:tumap}, taken from
 Mack's $e^N$ correlation without adjustment here; tightening either is
 left to future work.
@@ -1695,7 +1633,7 @@ disturbance level rather than as a per-case tuning.
   weight (L0 thin $\to$ L2 thick). The mfoil reference (gray squares) is shown
   where its coupled solve converges to an attached solution ($\alpha\!\le\!7^\circ$);
   at $\alpha\!=\!9^\circ$ and $15^\circ$, where mfoil fails, the $e^9$ reference is
-  FlexFoil's (gray diamonds; FlexFoil is an independent implementation
+  FlexFoil's (gray diamonds; FlexFoil is a separate implementation
   of XFOIL's viscous--inviscid $e^9$
   method~\cite{drela_xfoil_1989}, cross-checked against mfoil and
   XFOIL to $<\!1\%$ where all three converge). The two gray AFT (OVERFLOW) polars are digitized from the same
@@ -1782,8 +1720,8 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
   (dash-dot: $C_p$, $C_f$---converted from XFOIL's edge-normalized
   dump to the freestream convention, $\times u_e^2$---and transition
   location) is XFOIL's~\cite{drela_xfoil_1989}, and the continuous
-  amplification envelope $N(x)$ (row~3, dotted) is FlexFoil's---an
-  independently written implementation of the same closure set whose
+  amplification envelope $N(x)$ (row~3, dotted) is FlexFoil's---a
+  separately written implementation of the same closure set whose
   envelopes match mfoil's where both exist
   (Sec.~\ref{sec:eppresweep}). The L0 unstructured under-resolves
   the LE suction peak by $\sim\!1$ in $-C_p$ at $\alpha\!=\!15^\circ$ (thin
@@ -1986,7 +1924,7 @@ Fig.~\ref{fig:sheet_eppler387_a5_upper}.)
   beyond which it is at the edge of its convergence regime---at
   $\alpha\!=\!7^\circ$ it returns $C_l\!=\!0.928$, below its $5^\circ$
   value, while XFOIL~\cite{drela_xfoil_1989} converges there with
-  $C_l\!=\!1.17$) and FlexFoil, an independent implementation of the
+  $C_l\!=\!1.17$) and FlexFoil, a separate implementation of the
   same method (dash-dot). Past $\alpha\!=\!6.5^\circ$ the $e^9$
   closure \emph{transitions ahead of laminar separation}---its signed
   $C_f$ never crosses zero (FlexFoil and XFOIL agree, minimum
@@ -2001,7 +1939,11 @@ Fig.~\ref{fig:sheet_eppler387_a5_upper}.)
   the independent Selig et al.\ measurement, digitized with the
   $\gamma$--$Re_\theta$ and SA-BC curves from
   Ref.~\cite{shahjahan_2024}
-  (\texttt{data/lmbcm\_eppler387\_digitized.json}). Open
+  (\texttt{data/lmbcm\_eppler387\_digitized.json}). Larger gray
+  squares: the Cole--Mueller pressure-station
+  measurements~\cite{cole_mueller_1990} at the same Reynolds number
+  ($\pm1\%$ chord; their $\alpha\!\ge\!7^\circ$ entries are
+  attached-transition values and plot no bubble). Open
   squares/triangles: SA-AI on all six grids (L0--L2 by marker size,
   both families). The lower surface stays attached and laminar to the
   trailing edge at every incidence.}
@@ -2012,66 +1954,30 @@ The bubble stations are collected in Fig.~\ref{fig:eppbubble},
 against the oil flow at all nine of its tabulated incidences, the
 independent Selig et al.\ measurement, the dense-$\alpha$ mfoil
 sweep, and the two digitized transition-model references. The
-separation location---set by the inviscid pressure distribution---is
+separation location is
 reproduced by every method on the plot, SA-AI included, to a few
 percent of chord at every incidence. The reattachment---the bubble's
 aft end, set by the post-transition turbulent recovery---is the
-quantity this test hinges on, and it is where the sphere kernel shows
+quantity this test hinges on, and it is where the model shows
 its cost: at $\alpha\!\le\!5^\circ$, at grid convergence, both
-families reattach systematically late---a bubble $0.05$--$0.07\,c$
-too long--- while the
-near-stall $7^\circ$ case closes slightly early; the lower surface
-runs laminar to the trailing edge at every incidence and has no front
-to move.
+families reattach systematically late against the oil flow---a bubble
+$0.05$--$0.07\,c$ too long---while the near-stall $7^\circ$ case
+closes slightly early; the lower surface runs laminar to the trailing
+edge at every incidence and has no front to move. That margin should
+be read against the facility-to-facility spread now on the figure: the
+Cole--Mueller pressure-station measurements at the same Reynolds
+number~\cite{cole_mueller_1990} read reattachment $0.03$--$0.08\,c$
+aft of the LTPT oil flow at matched incidence, and the computed
+low-incidence reattachments fall within that spread.
 
-The same benchmark condition has published results from the other
-local-correlation transition models: Table~\ref{tab:epplit} places
-this work among them, the digitized polar curves appear on
-Fig.~\ref{fig:epppolar}, and the digitized bubble stations on
-Fig.~\ref{fig:eppbubble}.
 
-\begin{table}[tp]
-  \centering
-  \small
-  \setlength{\tabcolsep}{4pt}
-  \caption{Published transition-model results for the Eppler 387 at
-  $Re\!=\!2\!\times\!10^5$ near $\alpha\!=\!5^\circ$, against this work
-  and the LTPT measurement. Literature values are figure-read from the
-  cited open sources (uncertainties are the read-off error;
-  the Ref.~\cite{shahjahan_2024} polar values are vector-exact
-  digitizations, matched-$c_l$ interpolated); the only
-  text-stated literature numbers are Ref.~\cite{shahjahan_2024}'s
-  average bubble-station errors ($4.6/3.7/5.4\%$ of chord for
-  $\gamma$--$Re_\theta$ at this Reynolds number). $c_d$ is at matched
-  $c_l\!=\!0.891$ where the source provides a polar (SA-AI: interpolated
-  on the computed polar, the $+11\%$ of the bucket-tracking comparison
-  above; at $\alpha\!=\!5^\circ$ itself SA-AI computes
-  $0.0155/0.0148$ str/cav with $c_l\!=\!0.925/0.937$). Bubble stations
-  are laminar separation~/ transition~/ turbulent reattachment at
-  $\alpha\!=\!5^\circ$; the oil flow tabulates separation and
-  reattachment only. The SA-BC intermittency correlation was
-  calibrated in part on this airfoil~\cite{cakmakcioglu_2017}.}
-  \label{tab:epplit}
-  \begin{tabular}{l l l c c c}
-    \toprule
-    Model & Code (source) & $Tu$ & $c_l(5^\circ)$ & $c_d$ @ $c_l\!=\!0.89$ & bubble ($x/c$) \\
-    \midrule
-    Experiment (LTPT) & --- & 0.06--0.16\% & 0.891 & 0.0138 & 0.38/---/0.59 \\
-    SA-AI (this work, L2) & Flow360 & $\chi_\infty\!=\!c_{v1}e^{-9}$ & 0.925--0.937 & ${\approx}0.0153$ & 0.40/0.53/0.66 \\
-    $\gamma$--$Re_\theta$ \cite{shahjahan_2024} & OpenFOAM & 0.1\% & --- & 0.0195 & 0.41/0.58/0.60 \\
-    SA-BC \cite{cakmakcioglu_2017, shahjahan_2024} & SU2 & 0.1\% & $0.93\pm0.02$ & 0.0140 & 0.39/0.57/0.63 \\
-    $\gamma$--SA \cite{dalessandro_2025} & foam-extend & 0.07\% & $0.91\pm0.02$ & 0.0133--0.0140 & --- \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-This low-$\alpha$ over-length is not an amplification deficit. The
-amplification is on time---the $\chi\!=\!1$ front sits mid-bubble,
+This low-$\alpha$ over-length is not an amplification deficit: the
+$\chi\!=\!1$ front sits mid-bubble,
 slightly \emph{ahead} of the $e^9$ crossing
-(Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}, row~3)---and the inflectional
-profile saturates the rate coordinate ($P\!\approx\!1$) across the
+(Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}, row~3), and the inflectional
+profile saturates the rate coordinate ($\hat S g\!\approx\!1$) across the
 mid-bubble. What is slow is the \emph{transition} itself: the
-model deliberately carries no closure for the transition process, so
+model carries no closure for the transition process, so
 breakdown is represented by the transported-$\chi$ handover into SA
 production, and the handover needs a fixed number of $e$-folds of
 $\chi$ (${\approx}\ln c_{v1}$ to half commitment) whose physical
@@ -2115,67 +2021,13 @@ $\approx\!7\!\times\!10^{-5}$) and a bubble limit cycle of amplitude
 $\Delta C\!\approx\!0.01$ on the structured L1 (its tabulated forces
 are medians over the cycle).
 
-\begin{table}[tp]
-  \centering
-  \small
-  \setlength{\tabcolsep}{4.5pt}
-  \caption{Section coefficients for the Eppler 387 at $\alpha\!=\!5^\circ$
-  across the Reynolds sweep: lift, drag, and quarter-chord pitching moment from
-  the two mesh families' finest (L2) grids (the same grids as the
-  $Re\!=\!2\!\times\!10^5$ study; the L0/L1 companions appear in
-  Figs.~\ref{fig:eppresweep_low}--\ref{fig:eppresweep_high}
-  and~\ref{fig:eppresweepforces}). The families' L2 drags agree to
-  $0.1$--$0.2\!\times\!10^{-3}$ at $2$--$4.6\!\times\!10^5$ and diverge
-  at $10^5$ as described in the text; the $10^5$ states are
-  initialization-independent (Sec.~\ref{sec:eppbistab}). Also listed: the $e^9$ panel reference (mfoil; XFOIL at $6\!\times\!10^4$,
-  where the two implementations visibly differ, and at
-  $Re\!=\!4.6\!\times\!10^5$, where mfoil's stagnation-point iteration
-  diverges on the thin high-$Re$ bubble), and the LTPT measurement
-  (McGhee et al., NASA TM-4062,
-  Table~B1, read at the tabulated angle nearest $5^\circ$:
-  $\alpha\!=\!4.99^\circ$--$5.06^\circ$). The computed moment is transferred
-  from the solver's leading-edge reference to the quarter chord,
-  $c_m\!=\!c_{m,\mathrm{LE}}+\tfrac14(c_l\cos\alpha+c_d\sin\alpha)$. Repeat
-  experimental points at $Re\!\geq\!10^5$ agree to within $0.006$ in $c_l$ and
-  $0.0003$ in $c_d$; at $Re\!=\!6\!\times\!10^4$ the flow is bistable and the
-  repeat scatter is an order of magnitude larger (see text).}
-  \label{tab:eppresweep}
-  \begin{tabular}{l ccc ccc ccc ccc}
-    \toprule
-    & \multicolumn{3}{c}{SA-AI, structured L2} & \multicolumn{3}{c}{SA-AI, unstructured L2}
-    & \multicolumn{3}{c}{$e^9$ panel} & \multicolumn{3}{c}{Exp (LTPT)}\\
-    \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}\cmidrule(lr){11-13}
-    $Re$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ \\
-    \midrule
-    $6\!\times\!10^4$   & 0.621 & 0.0541 & $-$0.098 & 0.695 & 0.0522 & $-$0.103 & 0.869$^\ddagger$ & 0.0411$^\ddagger$ & $-$0.102$^\ddagger$ & 0.838 & 0.0439 & $-$0.114 \\
-    $1\!\times\!10^5$   & 0.769 & 0.0444 & $-$0.104 & 0.860 & 0.0341 & $-$0.099 & 0.952 & 0.0213 & $-$0.087 & 0.873 & 0.0237 & $-$0.089 \\
-    $2\!\times\!10^5$   & 0.925 & 0.0155 & $-$0.082 & 0.937 & 0.0148 & $-$0.083 & 0.960 & 0.0128 & $-$0.082 & 0.891 & 0.0138 & $-$0.081 \\
-    $3\!\times\!10^5$   & 0.940 & 0.0111 & $-$0.080 & 0.949 & 0.0112 & $-$0.082 & 0.962 & 0.0103 & $-$0.082 & 0.901 & 0.0114 & $-$0.080 \\
-    $4.6\!\times\!10^5$ & 0.949 & 0.0088 & $-$0.081 & 0.958 & 0.0090 & $-$0.083 & 0.966 & 0.0086 & $-$0.082 & 0.914 & 0.0093 & $-$0.081 \\
-    \bottomrule
-  \end{tabular}
-  \\[2pt]{\footnotesize $^\ddagger$The only condition in this paper where
-  the $e^9$ implementations visibly differ; XFOIL, whose forces sit
-  closer to the measurement, is quoted as the reference. mfoil gives
-  $c_l\!=\!0.889$, $c_d\!=\!0.0368$, $c_m\!=\!-0.097$---$11\%$ less
-  drag---commensurate with the bistability of the flow at this Reynolds
-  number, while a third, independently written implementation of the
-  XFOIL closure set (FlexFoil, Flexcompute's Rust reimplementation)
-  sides with XFOIL: $c_l\!=\!0.868$, $c_d\!=\!0.0406$,
-  $c_m\!=\!-0.102$. At every other condition (both airfoils, all
-  incidences, the higher Reynolds numbers, and the wing sections of
-  Sec.~\ref{sec:daedalus}) all three agree to better than $1\%$ in
-  $c_l$ and $c_d$, and to $0.005\,c$ in $x_\mathrm{tr}$ with one
-  exception: the NLF $\alpha\!=\!0^\circ$ lower-surface front, whose
-  near-flat envelope amplifies implementation differences---mfoil and
-  FlexFoil both read $0.62\,c$, while an XFOIL run of the original study
-  read $0.52\,c$ (Sec.~\ref{sec:nlfval}).}
-\end{table}
+
 
 The section lift, drag, and quarter-chord pitching-moment
-coefficients are collected in Table~\ref{tab:eppresweep} against the $e^9$
-reference and the tunnel data. The $e^9$ reference itself is
-cross-checked: XFOIL (repaneled) and FlexFoil (an independently written
+coefficients are collected in Fig.~\ref{fig:eppresweepforces}, and
+tabulated at L2 against the $e^9$ reference and the tunnel data in
+Table~\ref{tab:eppresweep} (Appendix~C). The $e^9$ reference itself is
+cross-checked: XFOIL (repaneled) and FlexFoil (a separately written
 Rust implementation of the XFOIL closure set) were run at every
 condition where mfoil serves as the reference in this paper, and the
 three implementations agree to better than $1\%$ everywhere except
@@ -2184,23 +2036,37 @@ two; XFOIL---whose forces also sit closest to the measurement---is
 presented as the reference there, in the table (mfoil in the footnote)
 and in Fig.~\ref{fig:eppresweep_low}. \begin{figure}[tp]
   \centering
-  \includegraphics[width=0.72\textwidth]{eppler_resweep_forces.pdf}
-  \caption{Section lift (top) and drag (bottom, log) against Reynolds
-  number for the $\alpha\!=\!5^\circ$ sweep: all $24$ SA-AI solutions
-  (line conventions as in the polars---structured O-grid solid blue,
-  unstructured cavity dashed orange, L0--L2 by line thickness), the $e^9$
-  panel reference (mfoil squares at $1$--$3\!\times\!10^5$; XFOIL diamonds
-  at the two ends, as in Table~\ref{tab:eppresweep}), and the LTPT
-  measurement (black circles, with the repeat scatter of the
-  Table~\ref{tab:eppresweep} caption as error bars: $\pm0.006$ in $c_l$
-  and $\pm0.0003$ in $c_d$ at $Re\!\geq\!10^5$; at the bistable
-  $6\!\times\!10^4$, the half-spread of the three consecutive
-  $\alpha\!=\!4.00^\circ$ repeats, $\pm0.04$ and
-  $\pm0.0023$). The refinement fan closes
-  onto the measurement at $2$--$4.6\!\times\!10^5$ and \emph{opens} at
-  $10^5$---the model's bursting boundary
-  (Sec.~\ref{sec:epphandover})---where refinement drives both families
-  away from the measured short-bubble state.}
+  \includegraphics[width=\textwidth]{eppler_resweep_forces.pdf}
+  \caption{The $\alpha\!=\!5^\circ$ Reynolds sweep. \emph{Top row}:
+  section lift, drag (log), and quarter-chord moment---all $24$ SA-AI
+  solutions (structured O-grid solid blue, unstructured cavity dashed
+  orange, L0--L2 by line thickness), the $e^9$ panel reference (mfoil
+  squares at $1$--$3\!\times\!10^5$, XFOIL diamonds at the two ends,
+  as in Table~\ref{tab:eppresweep}; $c_m$ from mfoil), and the LTPT
+  measurement (black circles; error bars are the repeat scatter,
+  $\pm0.006$/$\pm0.0003$ at $Re\!\geq\!10^5$ and the
+  $\alpha\!=\!4.00^\circ$ repeat half-spread $\pm0.04$/$\pm0.0023$
+  at the bistable $6\!\times\!10^4$). Small dark-gray open symbols:
+  published results at the shared conditions, read at
+  $\alpha\!=\!5^\circ$---at $6\!\times\!10^4$ the ILES and coupled
+  RANS-$e^N$ of Ref.~\cite{frere_2016}, the $\gamma$--$Re_\theta$ of
+  Ref.~\cite{carreno_ruiz_2022}, and the k-k$_L$-$\omega$ of
+  Ref.~\cite{anushka_2019}, whose transition-SST appears at $1$ and
+  $3\!\times\!10^5$ (its $6\!\times\!10^4$ series and as-plotted
+  experiment are corrupt in the source and excluded;
+  \texttt{data/ijsrp2019\_e387\_polars.json}). \emph{Bottom row}:
+  upper-surface laminar-separation and turbulent-reattachment stations
+  (SA-AI from the wall $C_f$; values pinned near $1.0$ mean no closure
+  ahead of the trailing edge), the oil flow (open black circles,
+  TM-4062 Table~III), the Cole--Mueller pressure/LDV stations at
+  $10^5$~\cite{cole_mueller_1990} ($\alpha\!=\!4^\circ/6^\circ$
+  bracket pair, connected), and the tabulated $\gamma$-variant
+  stations of Ref.~\cite{ghimire_2025} at $3\!\times\!10^5$ (same
+  bracket convention; small gray dots are that source's experiment
+  columns). The refinement fan closes onto the measurement at
+  $2$--$4.6\!\times\!10^5$ and \emph{opens} at $10^5$---the model's
+  bursting boundary (Sec.~\ref{sec:epphandover})---where refinement
+  drives both families away from the measured short-bubble state.}
   \label{fig:eppresweepforces}
 \end{figure}
 
@@ -2220,8 +2086,7 @@ shear layer of \S\ref{sec:calib_rate}, dominant at $2\!\times\!10^5$,
 and the stretching handover zone of Sec.~\ref{sec:epphandover}, which
 takes over as the Reynolds number falls: at this Reynolds number the
 model's extended laminar separation fails to close at all.
-Sections~\ref{sec:eppbistab}
-and~\ref{sec:epphandover} take this failure apart: the computed state
+The remainder of this section takes this failure apart: the computed state
 is unique---every initialization converges to it, on relaxation times
 an order of magnitude longer than anywhere else in the sweep---and
 what makes that unique state the burst one is the length of the
@@ -2245,7 +2110,7 @@ $0.838$ at $\alpha\!=\!4.99^\circ$ to $0.639$ at
 $\alpha\!=\!5.51^\circ$---run-to-run scatter of the same order as the spread
 between the two computed solutions. The condition sits near the bubble-bursting limit, where the measurement
 is bistable and the computation most mesh-sensitive
-(Sec.~\ref{sec:eppbistab} takes up the branch question); the mesh scatter
+(the branch question is taken up below); the mesh scatter
 and the offset from the
 $e^9$ reference there reflect that regime together with the model's over-long
 bubble (\S\ref{sec:calib_rate}) and the post-separation turbulent recovery, and
@@ -2279,37 +2144,25 @@ transition, reattachment, and the forces that follow.
 
 \begin{figure}[tp]
   \centering
-  \includegraphics[width=\textwidth]{eppler_resweep_lowRe.pdf}
+  \includegraphics[width=0.92\textwidth]{eppler_resweep_lowRe.pdf}
   \caption{Eppler 387 at $\alpha\!=\!5^\circ$, $Re\!=\!6\!\times\!10^4$ (left) and
-  $1\!\times\!10^5$ (right), with the same five-row suite and line
-  conventions as the benchmark figures (rows: $\max Re_\Omega$,
-  $\max\hat S g$, $\max\chi$ with the $e^9$ $N$ envelope, $-C_p$, signed
-  $C_f$)---both mesh families at all three refinement levels, structured
-  O-grid solid / unstructured cavity dashed, L0--L2 by line thickness,
-  upper surface blue / lower red. Dotted: the $e^9$
-  reference---XFOIL at $6\!\times\!10^4$ (the condition where the $e^9$
-  implementations visibly differ, Table~\ref{tab:eppresweep}), mfoil at
-  $10^5$; the $N$ envelope at $6\!\times\!10^4$ ($\chi$ row) is FlexFoil's,
-  which sides with XFOIL there.
-  Open markers: exact experimental surface pressures (NASA TM-4062
-  Appendix~D, column with the nearest angle of attack)---\emph{every}
-  repeat dataset the report holds at these conditions. At
-  $6\!\times\!10^4$: circles the up-sweep ($\alpha\!=\!4.99^\circ$, runs
-  27/28), squares the decreasing-$\alpha$ hysteresis branch
-  ($\alpha\!=\!5.00^\circ$, runs 31/32), whose weaker plateau and less
-  complete recovery ($C_p(0.95)\!=\!-0.13$ vs.\ $-0.04$) measure the
-  experimental branch scatter at the bistable condition
-  (Sec.~\ref{sec:eppbistab}). At $10^5$: circles, squares, and diamonds
-  are three independent tunnel conditions ($p_t\!=\!15$, $5$,
-  $10$~psi with $M\!=\!0.03$, $0.08$, $0.04$; runs 15/16, 25/26, 39),
-  which coincide to repeat accuracy---the measured flow there is
-  single-branch. Gray band: experimental
-  laminar-separation-bubble extent from the oil-flow visualization
-  (TM-4062 Table~III), which exists only at $10^5$ among these two.
-  At $6\!\times\!10^4$ the upper-surface separation does not reattach ahead of the
-  trailing edge (bubble bursting); at $10^5$ the cold-start recovery is incomplete
-  on every grid, the $C_f$ regaining zero only within $0.04\,c$ of the
-  trailing edge (see text).}
+  $1\!\times\!10^5$ (right): the five-row suite and line conventions of
+  the benchmark figures (rows: $\max Re_\Omega$, $\max\hat S g$,
+  $\max\chi$ with the $e^9$ $N$ envelope, $-C_p$, signed $C_f$), both
+  mesh families, L0--L2 by line thickness. Dotted: the $e^9$
+  reference---XFOIL at $6\!\times\!10^4$ (Table~\ref{tab:eppresweep}),
+  mfoil at $10^5$; the $N$ envelope at $6\!\times\!10^4$ is
+  FlexFoil's. Open markers: \emph{every} TM-4062 repeat pressure
+  dataset at these conditions. At $6\!\times\!10^4$: circles the
+  up-sweep, squares the decreasing-$\alpha$ hysteresis branch, whose
+  weaker plateau and less complete recovery measure the experimental
+  branch scatter at the bistable condition (see text). At $10^5$:
+  circles/squares/diamonds are three tunnel conditions that coincide
+  to repeat accuracy---the measured flow there is single-branch. Gray
+  band: oil-flow bubble extent (TM-4062 Table~III; exists only at
+  $10^5$ among these two). At $6\!\times\!10^4$ the computed
+  separation does not reattach ahead of the trailing edge; at $10^5$
+  the recovery is incomplete on every grid (see text).}
   \label{fig:eppresweep_low}
 \end{figure}
 
@@ -2329,203 +2182,108 @@ transition, reattachment, and the forces that follow.
   \label{fig:eppresweep_high}
 \end{figure}
 
-\subsection{Initialization independence: one state, slowly found}\label{sec:eppbistab}
+\label{sec:eppbistab}The measured flow is itself two-valued at
+$6\!\times\!10^4$: the LTPT observed laminar separation with and
+without turbulent reattachment at the same angle of attack over
+$\alpha\!\approx\!3^\circ$--$7^\circ$ (McGhee et al.'s Fig.~11(a)), the
+selection was environmental (at the slightly noisier tunnel condition
+the flow always failed to reattach), repeat polars scatter an order of
+magnitude more than at any higher Reynolds number
+(Table~\ref{tab:eppresweep}), and the decreasing-$\alpha$ hysteresis
+runs read a measurably weaker, less-recovered upper surface than the
+up-sweep at the same angle ($\Delta C_p$ rms $0.06$, four times the
+repeat scatter; squares vs.\ circles in
+Fig.~\ref{fig:eppresweep_low})---while above $6\!\times\!10^4$
+``turbulent reattachment always resulted'' and the $10^5$ repeat
+conditions coincide. The model reproduces neither the second branch
+nor the hysteresis: direct forks of each family's converged
+$2\!\times\!10^5$ solution, slow one-step Reynolds descents and
+climbs, and $40\,000$-iteration extensions of every $10^5$ endpoint
+all converge to one family-specific state at $10^5$ (lift agreeing to
+$\le\!0.005$, drag to $\le\!5\!\times\!10^{-4}$) and collapse onto the
+burst branch within $20\,000$ iterations at $6\!\times\!10^4$
+(repro: \texttt{repro/cfd/run\_bistability\_forks.py},
+\texttt{run\_continuation\_ladders.py}, \texttt{run\_fork\_extensions.py},
+\texttt{run\_dn\_extensions.py}). \emph{The model is monostable
+throughout the sweep}; the only trace of the nearby fold is the
+relaxation time at $10^5$---convergence takes
+$3$--$4.5\!\times\!10^4$ iterations, an order of magnitude longer than
+anywhere else in the sweep, with $\pm0.06$ lift excursions along the
+way---and the experiment's two-state structure, hysteresis included,
+lives at $6\!\times\!10^4$, one Reynolds step below the model's
+bistable-free burst.
 
-The experiment itself says the $6\!\times\!10^4$ condition is not
-single-valued. There the LTPT observed \emph{two}
-flow states at the same angle of attack over
-$\alpha\!\approx\!3^\circ$--$7^\circ$: laminar separation with and
-without turbulent reattachment (McGhee et al.'s Fig.~11(a); runs at
-$p_t\!=\!5$~psi, $M\!=\!0.05$, $Tu\!\approx\!0.16\%$), the reattaching
-branch carrying the higher lift and lower drag. The selection was
-environmental: at the slightly noisier tunnel condition ($p_t\!=\!3$~psi,
-$M\!=\!0.09$, $Tu\!\approx\!0.20\%$) the flow always failed to reattach,
-and only at $\alpha\!=\!7.5^\circ$ did both conditions reattach
-consistently. Repeat polars at the same nominal condition scatter by an
-order of magnitude more than at any higher Reynolds number
-(Table~\ref{tab:eppresweep}), and the report's repeat pressure
-datasets near $\alpha\!=\!5^\circ$ carry the branch signature directly:
-the decreasing-$\alpha$ hysteresis runs read a measurably weaker,
-less-recovered upper surface than the up-sweep at the same angle
-($\Delta C_p$ rms $0.06$, four times the repeat scatter;
-Fig.~\ref{fig:eppresweep_low}). \emph{Above} $6\!\times\!10^4$ the
-measurement is single-branched---``for Reynolds numbers greater than
-60\,000, when laminar separation occurred, turbulent reattachment
-always resulted''---and at $10^5$ specifically, the report's three
-free-transition tunnel conditions ($p_t\!=\!5$--$15$~psi) tabulate
-pressures at $\alpha\!\approx\!5^\circ$ that coincide to repeat
-accuracy.
-
-Whether the \emph{model} has two branches is a question about
-initial conditions, and we probed it exhaustively on the two finest
-grids: a direct fork of each family's converged
-$Re\!=\!2\!\times\!10^5$ solution---attached flow with a short, closed
-bubble---to $10^5$ and to $6\!\times\!10^4$ (only the reference
-viscosity changed); a slow descent that lowers the Reynolds number one
-tabulated step at a time
-($2\!\times\!10^5\!\to\!1.5\!\times\!10^5\!\to\!10^5\!\to\!
-8\!\times\!10^4\!\to\!6\!\times\!10^4$, each step warm-started from
-the last); a slow climb from the $6\!\times\!10^4$ burst state up
-through $8\!\times\!10^4$ to $10^5$; and $40\,000$-iteration
-extensions of every $10^5$ endpoint. Table~\ref{tab:eppfork} shows
-the outcome. At $10^5$ every path converges to one family-specific
-state---lift agreeing to $\le\!0.005$ and drag to
-$\le\!5\!\times\!10^{-4}$ across cold, forked, descended, and climbed
-initializations---and at $6\!\times\!10^4$ the memory of the attached
-state is lost within $20\,000$ iterations on every path. \emph{The
-model is monostable throughout the sweep.} What the initialization
-studies expose instead is the relaxation time: at $10^5$ the
-transients are enormous---the direct fork first gains lift, suffers a
-bursting excursion, and recovers; the climb from the burst side
-overshoots to $c_l\!=\!0.89$ (the unstructured family) before
-settling back---and convergence takes
-$3$--$4.5\!\times\!10^4$ iterations (rolling-$2000$-iteration range
-below $10^{-3}$), an order of magnitude longer than
-anywhere else in the sweep, with excursions of $\pm0.06$ in $c_l$
-along the way. The model sits close to a fold at $10^5$ without
-crossing it: slow dynamics, a single attractor. The experiment's
-two-state structure at $6\!\times\!10^4$ therefore has \emph{no
-counterpart in the model}: where the measurement is bistable the model
-is monostable on the burst branch, and at $10^5$, where both are
-single-state, the model's state is the non-closing one while the
-measured flow reattaches at $0.67\,c$.
-
-\begin{table}[tp]
-  \centering
-  \small
-  \caption{Initialization independence at $\alpha\!=\!5^\circ$,
-  $Re\!=\!10^5$, on the two finest (L2) grids: the converged state
-  reached from four initializations---freestream (cold), a direct fork
-  of the family's converged $2\!\times\!10^5$ solution, a slow descent
-  through $1.5\!\times\!10^5$, and a slow climb from the
-  $6\!\times\!10^4$ burst state through $8\!\times\!10^4$---each warm
-  path extended $40\,000$ iterations beyond its arrival (medians over
-  the final $20\%$; residual drift $\le\!3\!\times\!10^{-4}$).
-  At $6\!\times\!10^4$ (lower block) every warm start collapses onto
-  the burst branch within $20\,000$ iterations. The $6\!\times\!10^4$
-  Exp column quotes the \emph{reattaching}-branch measurement
-  (Table~B1 at $\alpha\!=\!4.99^\circ$); on the non-reattaching branch
-  the measured lift is $\approx\!0.64$ ($\alpha\!=\!5.51^\circ$), on
-  top of the computed values.
-  (Repro: \texttt{repro/cfd/run\_bistability\_forks.py},
-  \texttt{run\_continuation\_ladders.py}, \texttt{run\_fork\_extensions.py},
-  \texttt{run\_dn\_extensions.py}.)}
-  \label{tab:eppfork}
-  \begin{tabular}{ll cc cc cc cc cc}
-    \toprule
-    & & \multicolumn{2}{c}{cold} & \multicolumn{2}{c}{fork $2\!\times\!10^5$}
-    & \multicolumn{2}{c}{slow descent} & \multicolumn{2}{c}{slow climb} & \multicolumn{2}{c}{Exp (LTPT)}\\
-    \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}\cmidrule(lr){11-12}
-    $Re$ & family & $c_l$ & $c_d$ & $c_l$ & $c_d$ & $c_l$ & $c_d$ & $c_l$ & $c_d$ & $c_l$ & $c_d$ \\
-    \midrule
-    $10^5$ & unstructured & 0.860 & 0.0341 & 0.860 & 0.0341 & 0.860 & 0.0341 & 0.859 & 0.0341 & 0.873 & 0.0237 \\
-           & structured   & 0.769 & 0.0444 & 0.764 & 0.0449 & 0.765 & 0.0447 & 0.769 & 0.0444 & & \\
-    $6\!\times\!10^4$ & unstructured & 0.695 & 0.0522 & 0.694 & 0.0521 & 0.694 & 0.0522 & --- & --- & 0.838 & 0.0439 \\
-           & structured   & 0.621 & 0.0541 & 0.607 & 0.0535 & 0.619 & 0.0541 & --- & --- & & \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\subsection{The unmodeled transition zone sets the bursting boundary}\label{sec:epphandover}
-
-Why does the model burst where the measurement reattaches? The blend of
-Sec.~\ref{sec:blend} deliberately represents no transition physics: the
-handover from amplification to SA production is an interpolation in
-$\chi$, adopted on the grounds that the actively transitional region is
-usually short on the scale of the geometry---with the stated caveat
-that flows where it is not would need the economy revisited. The
-Reynolds sweep is that flow, and the failure is quantitative.
-The number of $e$-folds that $\chi$ must climb through the handover is fixed
-by the model: $\ln c_{v1}\!\approx\!2.0$ from the $\chi\!=\!1$ crossing
-to the eddy-viscosity half-saturation, and another
-$\approx\!1.4$ to $\chi\!\approx\!30$, where the production weight
-$\sigma_P$ and $f_{v1}$ are effectively complete. The length those
-$e$-folds occupy is not fixed: each costs roughly
-$u_\mathrm{conv}/(a\,\omega)$, and the shear layer's
-$\omega\!\sim\!U_e/\delta$ weakens as the layers thicken, so the
-handover stretches like $\delta/c\!\propto\!Re^{-1/2}$ and faster once
-the bubble grows. Table~\ref{tab:epphandover} measures it on the
-computed solutions. At $2$--$4.6\!\times\!10^5$ the half-saturation
-length is $0.05$--$0.08\,c$ and the bubble closes $0.06$--$0.17\,c$
-past the crossing. At $10^5$ the half-saturation alone costs
-$0.08$--$0.10\,c$, full production is not reached until
-$0.2$--$0.6\,c$ downstream, and the bubble never closes; at
-$6\!\times\!10^4$ full production is never reached on the airfoil. The
-$e^9$ reference---whose closure switches to fully turbulent \emph{at}
-the transition point---reattaches within $0.05\,c$ of its transition
-station at $10^5$, on the measured reattachment; spot-driven breakdown
-in bubble DNS is similarly abrupt~\cite{alam_sandham_2000,
-spalart_strelets_2000}. The conclusion is specific: it is not the onset
-placement but the \emph{length of the modeled transition zone}---the
-deliberately unphysical $\sigma_t$ interpolation---that starves the
-bubble of eddy viscosity, makes the model's unique state the burst
-one, and pushes the
-bursting boundary one Reynolds step above the
-measurement---while erasing the two-state structure the experiment
-shows at $6\!\times\!10^4$. Narrowing the interpolation is not the
-remedy: at $\tau\!=\!1$ (a four-times-narrower ramp) the handover
-becomes a relaxation oscillator---production closes the bubble, closure
-destroys the amplification fetch that fired the gate, and the bubble
-reopens---with $\Delta C_l\!\approx\!0.3$ at $10^5$ and
-$\approx\!0.08$ even at the otherwise steady $2\!\times\!10^5$
-benchmark (cases \texttt{tautest\_strL2\_Re\{100,200\}k\_a5\_tau1}).
-The gate is memoryless where breakdown is irreversible. The identified
-remedy, left to future work, is therefore a transition-zone closure
-with physical content: an outer-scaled breakdown trigger (a
-Reynolds-stress proxy such as $\tilde\nu\omega/U^2$ reaching a
-mixing-layer saturation level, in place of the molecular-units
-$\chi$ ladder) combined with the transported memory of breakdown that
-spot-growth and intermittency models carry.
+\label{sec:epphandover}Why does the model burst where the
+measurement reattaches? The account begun at the $2\!\times\!10^5$
+benchmark (Sec.~\ref{sec:eppval})---separation on time, the front on
+time to early, reattachment late---completes here as a length scale.
+The handover from amplification to SA production must climb a fixed
+number of $e$-folds of $\chi$: $\ln c_{v1}\!\approx\!2.0$ from the
+$\chi\!=\!1$ crossing to eddy-viscosity half-saturation, another
+$\approx\!1.4$ to effectively full production. The length one
+$e$-fold costs, roughly $u_\mathrm{conv}/(a\,\omega)$, is not fixed:
+it stretches like $\delta/c\!\propto\!Re^{-1/2}$ as the layers
+thicken, and faster once the bubble grows. Measured on the computed
+structured-L2 solutions
+(repro: \texttt{repro/cfd/analyze\_handover\_length.py}), the
+half-saturation length is $0.05$--$0.08\,c$ at $2$--$4.6\!\times\!10^5$,
+where the bubble closes $0.06$--$0.17\,c$ past the crossing; at
+$10^5$ half-saturation alone costs $0.08$--$0.10\,c$, full production
+arrives only $0.2$--$0.6\,c$ downstream, and the bubble never closes;
+at $6\!\times\!10^4$ full production is never reached on the airfoil.
+The $e^9$ reference---whose closure switches to fully turbulent
+\emph{at} the transition point---reattaches within $0.05\,c$ of its
+transition station at $10^5$, on the measured reattachment, and
+spot-driven breakdown in bubble DNS is similarly
+abrupt~\cite{alam_sandham_2000, spalart_strelets_2000}. It is
+therefore not the onset placement but the \emph{length of the modeled
+transition zone}---the deliberately unphysical $\sigma_t$
+interpolation---that starves the bubble of eddy viscosity, makes the
+model's unique state the burst one, and pushes the bursting boundary
+one Reynolds step above the measurement while erasing the two-state
+structure the experiment shows at $6\!\times\!10^4$. Narrowing the
+interpolation is not the remedy: at $\tau\!=\!1$ (a four-times-narrower
+ramp) the handover becomes a relaxation oscillator---production closes
+the bubble, closure destroys the amplification fetch that fired the
+gate, and the bubble reopens---with $\Delta C_l\!\approx\!0.3$ at
+$10^5$ and $\approx\!0.08$ even at the otherwise steady
+$2\!\times\!10^5$ benchmark (cases
+\texttt{tautest\_strL2\_Re\{100,200\}k\_a5\_tau1}). The gate is
+memoryless where breakdown is irreversible. The identified remedy,
+left to future work, is a transition-zone closure with physical
+content: an outer-scaled breakdown trigger (a Reynolds-stress proxy
+such as $\tilde\nu\omega/U^2$ reaching a mixing-layer saturation
+level, in place of the molecular-units $\chi$ ladder) combined with
+the transported memory of breakdown that spot-growth and
+intermittency models carry.
 
 The starved handover is one of \emph{two} low-Reynolds defects, and
-the second runs in the opposite direction: below the bursting
-boundary the amplification the model books inside the bubble outpaces
-the $e^N$ envelope. The mechanism
-is not the rate---the kernel's production in the reversed ``dead
-air'' is onset-gated to effective zero (median rate below
-$10^{-7}\,a_{\max}$ at every swept $Re$, and four orders below the
-free-shear ceiling even at the 95th percentile)---but the topology of the
-transport: in the elliptic solution the bubble is a closed cell, and
-$\tilde\nu$ produced in the shear layer diffuses across it into the
-reversed stream, convects \emph{back upstream}, and re-enters the
-amplifying band already elevated. Measured on the structured-L2 sweep
-(\texttt{repro/cfd/measure\_lsb\_reseeding.py}; the statistic
-compares the reversed region's \emph{median} $\chi$ against the
-incoming envelope's \emph{peak}, conservative for the low-$Re$
-claims): the median $\chi$
-in the reversed region over the bubble's first third sits $16\times$
-and $29\times$ \emph{above} the incoming-envelope level just
-upstream of separation at $Re\!=\!6\!\times\!10^4$ and $10^5$,
-but $30$--$100\times$ \emph{below} it at $3$--$4.6\!\times\!10^5$: the
-flip coincides with the bursting boundary. The discriminator is not
-the pickup---the \emph{rear} third of the reversed region is loaded
-at every Reynolds number ($19\times$ the incoming level even at
-$3\!\times\!10^5$, $2.9\times$ at $4.6\!\times\!10^5$)---but whether the
-load conducts to the front, and the control is the length of the
-hot-over-reversed overlap, which is itself created by the starved
-handover: at high $Re$ closure follows transition within the short
-handover length, ending the reversed flow almost as soon as the layer
-above it gets hot, while the un-closed low-$Re$ bubble keeps its
-conveyor running under an amplifying layer for half the chord (long
-enough for the accumulating reservoir to cross $\chi\!\sim\!1$ and
-spread by its own self-diffusion). The two defects of this subsection
-are therefore one causal chain---slow handover, no closure, long
-hot-over-reversed fetch, loaded reservoir, re-seeded front---which is
-why the flip is sharp at the bursting boundary rather than gradual:
-the overlap inherits the fold from the closure failure. The signature is readable
-directly in the $\chi$ sheets of Appendix~C
-(Figs.~\ref{fig:sheet_eppler387_Re60k_upper}
-and~\ref{fig:sheet_eppler387_Re460k_upper}): at low $Re$ the
-$\chi$ front is bottom-led---a cold front, the reversed flow carrying
-$\chi$ upstream along the wall---while at high $Re$ it is
-top-led, a warm front riding the outer layer. No profile-based
-calibration can see this defect: the frozen-profile instrument of
-Sec.~\ref{sec:calib_rate} marches one-way by construction, and its
-reversed-flow check ($0.9$--$1.9\times$ the correlation) prices the
-band's slow convection but not the spiral ledger path of a closed
-cell. (Deeply reversed physical bubbles do develop closed-loop
-feedback of their own---but as a thresholded instability of the
-recirculation, not an unconditional diffusive leak.)
+the second runs in the opposite direction: below the bursting boundary
+the amplification the model books inside the bubble outpaces the $e^N$
+envelope. The mechanism is not the rate---the kernel's production in
+the reversed ``dead air'' is onset-gated to effective zero---but the
+topology of the transport: in the elliptic solution the bubble is a
+closed cell, and $\tilde\nu$ produced in the shear layer diffuses
+across it into the reversed stream, convects \emph{back upstream}, and
+re-enters the amplifying band already elevated. Measured on the
+structured-L2 sweep (\texttt{repro/cfd/measure\_lsb\_reseeding.py}),
+the median $\chi$ in the reversed region over the bubble's first third
+sits $16$--$29\times$ \emph{above} the incoming-envelope level just
+upstream of separation at $Re\!\le\!10^5$, but $30$--$100\times$
+\emph{below} it at $3$--$4.6\!\times\!10^5$; the flip is sharp at the
+bursting boundary because the conducting overlap---an amplifying layer
+running over un-closed reversed flow for half the chord---is itself
+created by the starved handover, so the two defects are one causal
+chain. The signature is readable directly in the $\chi$ sheets of
+Appendix~C (Figs.~\ref{fig:sheet_eppler387_Re60k_upper}
+and~\ref{fig:sheet_eppler387_Re460k_upper}): at low $Re$ the $\chi$
+front is bottom-led---a cold front, the reversed flow carrying $\chi$
+upstream along the wall---while at high $Re$ it is top-led, a warm
+front riding the outer layer. No profile-based calibration can see
+this defect: the frozen-profile instrument of
+Sec.~\ref{sec:calib_rate} marches one-way by construction, and prices
+the band's slow convection but not the spiral ledger path of a closed
+cell.
 
 The two defects meet, at the lowest Reynolds numbers, in a fortunate
 cancellation, and the honest reading of this section is worth stating
@@ -2553,47 +2311,6 @@ active. Low-$Re$ solutions
 in this range should be read as the sum of two canceling errors, not
 as resolved transition physics.
 
-\begin{table}[tp]
-  \centering
-  \small
-  \caption{The handover length against the room the bubble has, on the
-  structured L2 grids (upper surface, $\alpha\!=\!5^\circ$): distance
-  from the $\chi\!=\!1$ crossing to eddy-viscosity half-saturation
-  ($\chi\!=\!c_{v1}$), to effectively full SA production
-  ($\chi\!=\!30$), and to turbulent reattachment $x_R$, with the $e^9$
-  reference's transition-to-reattachment distance. ``No closure''
-  means the last upward $C_f$ crossing sits within $0.04\,c$ of the
-  trailing edge (the text's convention; the repro script prints the raw
-  crossings, $0.996$--$0.999\,c$ here). The $e^9$ entry at
-  $6\!\times\!10^4$ spans mfoil ($0.15\,c$: transition $0.676\,c$,
-  reattachment $0.825\,c$) and XFOIL (reattachment $0.879\,c$; its
-  transition station is not stored, bounding the distance below
-  $0.2\,c$)---the $e^9$ distance also stretches as the Reynolds number
-  falls, but by far less than the model's handover. The dash at
-  $4.6\!\times\!10^5$: no stored transition station for XFOIL (the
-  reference there), whose bubble closes at $0.50\,c$. The
-  full-production column is not monotone at high $Re$: past
-  reattachment $\chi$ grows slowly in the attached turbulent layer for
-  a reason unrelated to the handover (the mechanism lives in the
-  half-saturation column). The unstructured family agrees on the
-  half-saturation
-  lengths to $0.05\,c$; at $10^5$ its full-production station differs
-  strongly ($0.20$ vs $0.55\,c$)---itself a mark of the near-fold
-  sensitivity of this condition. (Repro: \texttt{repro/cfd/analyze\_handover\_length.py}.)}
-  \label{tab:epphandover}
-  \begin{tabular}{l cccc}
-    \toprule
-    $Re$ & $\Delta x(1\!\to\!c_{v1})$ & $\Delta x(1\!\to\!30)$
-    & $\Delta x(1\!\to\!x_R)$ & $e^9$: $x_R - x_\mathrm{tr}$ \\
-    \midrule
-    $6\!\times\!10^4$   & 0.20 & never & no closure & 0.15--0.2 \\
-    $1\!\times\!10^5$   & 0.10 & 0.55 & no closure & 0.05 \\
-    $2\!\times\!10^5$   & 0.05 & 0.10 & 0.17 & 0.02 \\
-    $3\!\times\!10^5$   & 0.08 & 0.13 & 0.11 & 0.01 \\
-    $4.6\!\times\!10^5$ & 0.05 & 0.23 & 0.06 & --- \\
-    \bottomrule
-  \end{tabular}
-\end{table}
 
 \section{Three-dimensional deployment: the Daedalus wing}\label{sec:daedalus}
 
@@ -2909,11 +2626,11 @@ linear $\tilde\nu$ wall solution---and with it the log law---is exactly
 standard SA's. On a zero-pressure-gradient flat plate (Sec.~\ref{sec:flatplate}) the Mack
 closure places transition onset (at the stated $\chi\!=\!1$ convention,
 $Re_\theta$ integrated from the computed profiles)
-within $14\%$ of the Abu-Ghannam \& Shaw
-correlation over the natural-transition range ($6\%$ late at the lowest
-disturbance level---the retained-drain footprint---$-3\%$ at
-$Tu\!=\!0.08\%$, and $10$--$14\%$ early as $Tu$ rises), verifying the
-Blasius envelope. On
+within $9\%$ of the Abu-Ghannam \& Shaw
+correlation over the natural-transition range ($8\%$ late at the lowest
+disturbance level---the retained-drain footprint---within $2\%$ at
+$Tu\!=\!0.08\%$ and $0.60\%$, and $6$--$8\%$ early in between),
+verifying the Blasius envelope. On
 the NLF(1)-0416 at $Re\!=\!4\!\times\!10^6$ (Sec.~\ref{sec:nlfval}) the
 model holds the designed laminar rooftop---the favorable run held by
 $\hat S g\!\to\!0$ with no pressure-gradient term---and ignites at each recovery,
@@ -3247,6 +2964,66 @@ each family's warm-started L2 solution after its $40\,000$-iteration
 extension (Sec.~\ref{sec:eppbistab}): the fields are indistinguishable
 from the cold-start L2 rows above them---the initialization
 independence of the converged state, seen in the field variables.
+Table~\ref{tab:eppresweep} tabulates the sweep's L2 section
+coefficients against the $e^9$ reference and the tunnel data
+(discussed in Sec.~\ref{sec:eppresweep}).
+
+\begin{table}[tp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4.5pt}
+  \caption{Section coefficients for the Eppler 387 at $\alpha\!=\!5^\circ$
+  across the Reynolds sweep: lift, drag, and quarter-chord pitching moment from
+  the two mesh families' finest (L2) grids (the same grids as the
+  $Re\!=\!2\!\times\!10^5$ study; the L0/L1 companions appear in
+  Figs.~\ref{fig:eppresweep_low}--\ref{fig:eppresweep_high}
+  and~\ref{fig:eppresweepforces}). The families' L2 drags agree to
+  $0.1$--$0.2\!\times\!10^{-3}$ at $2$--$4.6\!\times\!10^5$ and diverge
+  at $10^5$ as described in the text; the $10^5$ states are
+  initialization-independent (Sec.~\ref{sec:eppbistab}). Also listed: the $e^9$ panel reference (mfoil; XFOIL at $6\!\times\!10^4$,
+  where the two implementations visibly differ, and at
+  $Re\!=\!4.6\!\times\!10^5$, where mfoil's stagnation-point iteration
+  diverges on the thin high-$Re$ bubble), and the LTPT measurement
+  (McGhee et al., NASA TM-4062,
+  Table~B1, read at the tabulated angle nearest $5^\circ$:
+  $\alpha\!=\!4.99^\circ$--$5.06^\circ$). The computed moment is transferred
+  from the solver's leading-edge reference to the quarter chord,
+  $c_m\!=\!c_{m,\mathrm{LE}}+\tfrac14(c_l\cos\alpha+c_d\sin\alpha)$. Repeat
+  experimental points at $Re\!\geq\!10^5$ agree to within $0.006$ in $c_l$ and
+  $0.0003$ in $c_d$; at $Re\!=\!6\!\times\!10^4$ the flow is bistable and the
+  repeat scatter is an order of magnitude larger (see text).}
+  \label{tab:eppresweep}
+  \begin{tabular}{l ccc ccc ccc ccc}
+    \toprule
+    & \multicolumn{3}{c}{SA-AI, structured L2} & \multicolumn{3}{c}{SA-AI, unstructured L2}
+    & \multicolumn{3}{c}{$e^9$ panel} & \multicolumn{3}{c}{Exp (LTPT)}\\
+    \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}\cmidrule(lr){11-13}
+    $Re$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ \\
+    \midrule
+    $6\!\times\!10^4$   & 0.621 & 0.0541 & $-$0.098 & 0.695 & 0.0522 & $-$0.103 & 0.869$^\ddagger$ & 0.0411$^\ddagger$ & $-$0.102$^\ddagger$ & 0.838 & 0.0439 & $-$0.114 \\
+    $1\!\times\!10^5$   & 0.769 & 0.0444 & $-$0.104 & 0.860 & 0.0341 & $-$0.099 & 0.952 & 0.0213 & $-$0.087 & 0.873 & 0.0237 & $-$0.089 \\
+    $2\!\times\!10^5$   & 0.925 & 0.0155 & $-$0.082 & 0.937 & 0.0148 & $-$0.083 & 0.960 & 0.0128 & $-$0.082 & 0.891 & 0.0138 & $-$0.081 \\
+    $3\!\times\!10^5$   & 0.940 & 0.0111 & $-$0.080 & 0.949 & 0.0112 & $-$0.082 & 0.962 & 0.0103 & $-$0.082 & 0.901 & 0.0114 & $-$0.080 \\
+    $4.6\!\times\!10^5$ & 0.949 & 0.0088 & $-$0.081 & 0.958 & 0.0090 & $-$0.083 & 0.966 & 0.0086 & $-$0.082 & 0.914 & 0.0093 & $-$0.081 \\
+    \bottomrule
+  \end{tabular}
+  \\[2pt]{\footnotesize $^\ddagger$The only condition in this paper where
+  the $e^9$ implementations visibly differ; XFOIL, whose forces sit
+  closer to the measurement, is quoted as the reference. mfoil gives
+  $c_l\!=\!0.889$, $c_d\!=\!0.0368$, $c_m\!=\!-0.097$---$11\%$ less
+  drag---commensurate with the bistability of the flow at this Reynolds
+  number, while a third, separately written implementation of the
+  XFOIL closure set (FlexFoil, Flexcompute's Rust reimplementation)
+  sides with XFOIL: $c_l\!=\!0.868$, $c_d\!=\!0.0406$,
+  $c_m\!=\!-0.102$. At every other condition (both airfoils, all
+  incidences, the higher Reynolds numbers, and the wing sections of
+  Sec.~\ref{sec:daedalus}) all three agree to better than $1\%$ in
+  $c_l$ and $c_d$, and to $0.005\,c$ in $x_\mathrm{tr}$ with one
+  exception: the NLF $\alpha\!=\!0^\circ$ lower-surface front, whose
+  near-flat envelope amplifies implementation differences---mfoil and
+  FlexFoil both read $0.62\,c$, while an XFOIL run of the original study
+  read $0.52\,c$ (Sec.~\ref{sec:nlfval}).}
+\end{table}
 
 \begin{figure}[p]
   \centering
@@ -3257,7 +3034,7 @@ independence of the converged state, seen in the field variables.
 
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re100k_upper.pdf}
+  \includegraphics[width=0.82\textwidth]{chi_sheet_eppler387_Re100k_upper.pdf}
   \caption{Eppler~387, $Re=10^5$, $\alpha=5^\circ$, upper surface, all six
   grids plus the two extended warm-started L2 solutions (bottom rows),
   indistinguishable from the cold-start L2 rows
@@ -3426,7 +3203,7 @@ Sec.~\ref{sec:daedalus}: at $\eta=0.10$, $0.75$, and $0.92$ (the last
 in the taper, at its locally reduced chord Reynolds number), columns
 $\alpha=4^\circ$, $5^\circ$, $6^\circ$, five rows per
 station---the probe-maximum $Re_\Omega$ against the onset threshold
-$Re_\Omega^c(P)$ evaluated at the local rate (dash-dotted), the
+$Re_\Omega^c(\hat S g)$ evaluated at the local rate (dash-dotted), the
 probe-maximum $\hat S g$ rate (log scale, as
 Fig.~\ref{fig:onsetgraze}), the
 near-wall $\max\chi$ with the strip's $e^{N}$ amplification, $-C_p$,
@@ -3526,26 +3303,89 @@ of Ref.~\cite{allmaras_2012}. The handover weights are
   \sigma_t(\chi;\tau) = \max\!\left[\,1-e^{-(\chi-1)/\tau},\;0\right], \qquad
   \sigma_D = 1-\frac{c_{b1}}{\kappa^2c_{w1}}\,(1-\sigma_P),
 \end{gather*}
-and the amplification rate is built from the local indicators
+and the amplification rate is built from four local vector-calculus
+objects and their invariant pairings: the velocity $\mathbf u$,
+measured relative to the nearest wall point (which makes the
+indicators Galilean invariant; the absolute velocity for the
+static-wall cases of this paper), the vorticity $\boldsymbol\omega$,
+the wall-distance vector $\mathbf d=d\,\nabla d$ (so
+$|\nabla d|\!=\!1$ and $\langle\mathbf d,\mathbf d\rangle\!=\!d^2$),
+and the curvature vector
+$\boldsymbol\ell=\tfrac12\langle\mathbf d,\mathbf d\rangle\,\nabla^2\mathbf u$,
+with the divergence-free identity
+$\nabla^2\mathbf u=-\nabla\times\boldsymbol\omega$ supplying the
+second derivative. The indicator triple is their Gram form,
+\begin{equation}
+  (X,\,Y,\,Z) \;=\;
+  \Big(\,\langle\mathbf u,\mathbf u\rangle,\;
+  \sqrt{\langle\mathbf u,\mathbf u\rangle\,
+        \langle\mathbf d,\mathbf d\rangle\,
+        \langle\boldsymbol\omega,\boldsymbol\omega\rangle},\;
+  \langle\boldsymbol\ell,\mathbf u\rangle\,\Big),
+  \label{eq:gram}
+\end{equation}
+in which every entry is an invariant pairing, no unit vector appears,
+no division by a vanishing magnitude can occur, and the only radical
+sits over a non-negative product. From the triple,
 \begin{gather*}
-  (X,Y,Z) = \big(|\mathbf{u}|,\; \omega d,\;
-  \tfrac12 d^{2}\,(\nabla^2\mathbf u)\!\cdot\!\hat{\mathbf u}\big)\big/R,
-  \qquad R = \sqrt{|\mathbf{u}|^{2}+(\omega d)^{2}+\big(\tfrac12 d^{2}\,(\nabla^2\mathbf u)\!\cdot\!\hat{\mathbf u}\big)^{2}}, \\[3pt]
   \hat S = \frac{Y}{\sqrt{X^2+Y^2}}, \qquad
-  g = Y-X-Z, \qquad
-  Re_\Omega = \frac{d^2\,\omega}{\nu}.
+  g = \frac{Y-X-Z}{\sqrt{X^2+Y^2+Z^2}}, \qquad
+  Re_\Omega = \frac{d^2\,|\boldsymbol\omega|}{\nu};
 \end{gather*}
-Velocities (and $|\mathbf{u}|$) are measured relative to the nearest wall
-point, which makes the indicators Galilean invariant; for the static-wall
-cases of this paper this is simply the absolute velocity. The curvature input uses the compact vector Laplacian with the
-discretization described in Sec.~\ref{sec:flatplate}; on a parallel
-layer
+both $\hat S$ and $g$ are homogeneous of degree zero in the triple, so
+any common positive factor drops out, and the solver's equivalent
+ratio realization
+$\big(|\mathbf u|,\,d|\boldsymbol\omega|,\,
+\tfrac12 d^2(\nabla^2\mathbf u)\!\cdot\!\hat{\mathbf u}\big)$---the
+arithmetic that produced every number in this paper---coincides with
+Eq.~\eqref{eq:gram} wherever $\mathbf u\neq0$.
+
+On a parallel layer
 $\nabla^2\mathbf{u}=-\nabla\times\boldsymbol\omega=u''\,\hat{\mathbf{t}}$,
-so the projection reads $\operatorname{sign}(u)\,u''$---the
+so the curvature projection reads $\operatorname{sign}(u)\,u''$---the
 wall-normal derivative of the vorticity magnitude,
-$\hat{\mathbf n}\!\cdot\!\nabla\omega$, in that limit. The
-division-free Gram representative of the same triple is
-Eq.~\eqref{eq:gram}.
+$\hat{\mathbf n}\!\cdot\!\nabla\omega$, in that limit---and the ratio
+triple reduces to $(|u|,\,d|u'|,\,\tfrac12 d^2 u''\operatorname{sign}(u))$.
+How these magnitude-based components realize the signed algebra of
+Sec.~\ref{sec:model} (whose indicators, Eq.~\eqref{eq:indicators}, are
+signed profile derivatives) is worth stating precisely: the
+implemented parallel-layer triple is
+$\big(\operatorname{sign}(u)\,u,\;\operatorname{sign}(u')\,d\,u',\;
+\operatorname{sign}(u)\,\tfrac12 d^2u''\big)$. Wherever the velocity
+and the shear share a sign---every attached profile, and all of a
+reversed profile except the layer between its backflow extremum and
+its velocity zero---the three components carry one common sign, so the
+triple is a legitimate projective representative of the signed state
+of Eq.~\eqref{eq:indicators}, and every even product, $\hat S g$
+included, coincides with the theory \emph{exactly}: the magnitudes
+realize the antipodal identification rather than break it (a globally
+mirrored layer lands on the identified antipode), which is why the
+calibration instruments of
+Secs.~\ref{sec:calib_rate}--\ref{sec:calib_onset}, marched on attached
+profiles, transfer to the solver unchanged. In the remaining
+mixed-sign layer the implemented direction deviates from the signed
+class in a single component's sign, and the deviation switches on and
+off continuously: at the backflow extremum the affected component $Y$
+itself vanishes, and at the velocity zero the state reaches the
+$X\!=\!0$ meridian, where $\hat S$ remains smooth and the curvature
+projection changes sign with amplitude $\tfrac12 d^2|u''|$---small,
+because the velocity zero of a free-shear-like reversed profile lies
+close to its inflection point (for the antisymmetric layer the two
+coincide and the amplitude is zero). The same four vectors admit two
+other independent pairings, recorded here for completeness: the signed
+pairing $\langle\boldsymbol\omega\times\mathbf d,\mathbf u\rangle$,
+whose Cauchy--Schwarz \emph{envelope} is exactly Eq.~\eqref{eq:gram}'s
+middle entry in two-dimensional flow, and its lower bound in three (by
+the Lagrange identity
+$|\boldsymbol\omega\times\mathbf d|^2=
+\langle\mathbf d,\mathbf d\rangle\langle\boldsymbol\omega,\boldsymbol\omega\rangle-
+\langle\boldsymbol\omega,\mathbf d\rangle^2$)---realizations built on
+the signed pairing itself were implemented and rejected, as they
+rectify vorticity-direction noise in weak shear---and the odd
+(pseudoscalar) pairing
+$\langle\nabla d,\mathbf u\times(\boldsymbol\omega\times\mathbf d)\rangle$,
+which vanishes identically in two-dimensional flow, measures
+crossflow, and is taken up in the outlook.
 
 The rate $a$ (as in
 Eq.~\eqref{eq:rate}) and its onset gate $S$ (as in Eq.~\eqref{eq:onset}) are

@@ -2111,3 +2111,41 @@ Headlines (full detail in agent-paper-review/2026-07-25-1613-response.md):
   Appendix-A conventions paragraph.
 - Status sentence made pause-proof; note the campaign is in fact
   RESUMED (skip guard) since the Gram adoption.
+
+## 2026-07-25 — E387 literature scour for comparison figures (agent)
+Downloaded to references/ (4 best, all free):
+1. frere2016-e387-ILES-DG-eN-RANS-Re60k.pdf — Frere et al., J.Phys.Conf.Ser 753:022037 (2016), open access. ILES(DG, effectively DNS) + EllipSys2D RANS coupled e^N (Ncrit 7/9) + XFOIL, E387 Re=6e4. Fig 2 CL/CD vs alpha vs 4 experiments (LTPT/Delft/Princeton/Stuttgart); Figs 4-5 Cp AND Cf at alpha=4,8 deg. Covers coupled RANS-e^N + high-fidelity anchor at the bursting Re.
+2. carreno-ruiz2022-gammaRetheta-STARCCM-e387-Re60k.pdf — Carreno Ruiz & D'Ambrosio, FTaC 109:279-308 (2022), open access. gamma-Re_theta in STAR-CCM+ (Menter vs Suluksna-Juntasaro correlations, s1 tuning); E387 Fig 19 CL+CD vs alpha at Re=6e4.
+3. ghimire2025-openfoam-gammaSST-e387-Re300k.pdf — Ghimire/Ni/Wang, Fluids 10:230 (2025), CC-BY. OpenFOAM gamma-Retheta-SST vs gamma-SST vs Kgamma-SST; E387 Re=3e5 Tu=0.1% alpha=2/4/6: Cp (Figs 3/5/7) + Tables 6-8 of LS/TR/transition x/c vs McGhee (tables — no digitization needed). IDDES at Re=1e5 alpha=11 (Fig 10 Cp).
+4. ijsrp2019-fluent-kklw-transSST-e387-polars-Re20k-300k.pdf — Anushka R et al., IJSRP 9(1) 2019. Fluent k-kL-omega + trans-SST polars (Cl-a, Cd-a, Cl-Cd) at Re=2e4/3e4/6e4/1e5/3e5 vs McGhee. Only free k-kL-omega E387 dataset spanning our sweep; low-tier journal, raster.
+Not downloaded (ranked): Lopes/Eca/Vaz NuTTS'18 "Assessment of RANS Transition Models" (SST+gamma-Retheta/gamma/AFT + kT-kL-omega Cp at Re=3e5 alpha=1, free: uni-due.de/imperia/md/content/ist/nutts_21_2018_cortona.pdf pp~118-123); Brunelli et al. FTaC 116:27 (2026) VMS-iLES Cp Re=3e5 alpha=1 (open, link.springer.com/content/pdf/10.1007/s10494-025-00727-7.pdf); Sahin/Hall/Mohseni AIAA 2008-0422 DNS Re=6e4-4.6e5 (paywalled, exact sweep match); Catalano&DeRosa AIAA 2020-2990 LES Re~1e5 (paywalled); Salimipour C&F 181:67 (2019) k-kL-omega mod E387 Re 3e4-1.3e5 (paywalled). Bonus experiment: Cole&Mueller 1990 (NTRS) LSB measurements on E387. Checked: NASA LAVA-AFT 2018 has NO E387; arXiv 2508.02547 = D'Alessandro (already held).
+
+## 2026-07-25 16:57 UTC — Eppler literature: Cole–Mueller fetched + proposed insertions
+
+Addendum to the agent's ranked list above. Fetched the bonus experimental source from NTRS:
+`references/cole-mueller1990-e387-LSB-LDV-Re100k-NTRS19900006064.pdf` (148 pp., Notre Dame
+UNDAS/NASA CR, Jan 1990). It is LDV boundary-layer velocimetry inside the E387 bubble at
+**Re = 1e5** (primary case alpha = 2 deg), and its Table 4.1 tabulates laminar-separation /
+transition / turbulent-reattachment stations vs alpha — a SECOND experimental bubble-station
+set at exactly the Reynolds number where the model's bursting boundary sits (fig:eppbubble
+currently carries only the TM-4062 oil-flow stations at 2e5). 1990 raster scan: the table
+needs visual reading (one page), not digitization software.
+
+Proposed insertions, in value order (awaiting user pick):
+(a) Frere 2016 -> fig:eppresweepforces: the 6e4 literature cluster (ILES ~ DNS-grade, coupled
+    RANS-e^N N=7/9, XFOIL N=7/9, four experiments) at the Re where our refinement fan opens —
+    lets the bursting-boundary section place truth between us, e^9, and the tunnel.
+(b) Ghimire 2025 Tables 6-8 -> fig:eppbubble at 3e5 (three gamma-variants, tabulated, no
+    digitization risk).
+(c) Carreno Ruiz 2022 (gamma-Retheta at 6e4) + IJSRP k-kL-omega polars -> resweep-forces
+    columns at 6e4/1e5/3e5.
+(d) Cole-Mueller Table 4.1 -> fig:eppbubble at 1e5 (second experimental set, at the failing Re).
+
+Campaign status at this writing: nlf set on its final four L2 high-alpha batches (a9/a15 both
+families); eppler/sweep/extension sets follow; skip-guard working (20 SKIPs logged).
+
+## 2026-07-25 — E387 polar digitization (2 reference PDFs)
+- paper/data/carreno2022_e387_re60k_polar.json — Carreno Ruiz 2022 Fig.19 (Re=60k). Legend has ONE gamma-Re_theta curve (not Menter-vs-SJ split; text implies SJ s1=6 recalibration ~= Menter), plus Experimental(McGhee), 2D NS(Sahin), 3D DNS(Sahin), 3D LES(Frere). Raster-embedded MATLAB fig; color-cluster digitization, uncertainty ~+/-0.005 CL, +/-0.0005 CD.
+- paper/data/ijsrp2019_e387_polars.json — IJSRP 2019 (Fluent). Re=60k: kklw (-8..10) + trans-SST (1..11) + Expt-as-plotted; Re=100k/300k: trans-SST ONLY (paper never ran kklw there; kklw=null). Markers are per-point image XObjects with vector bboxes + born-digital tick text => vector precision (+/-0.02 CL worst case). Paper's "EXP" does NOT faithfully duplicate McGhee TM-4062 (60k Cl wildly low; Cd high at 100k) — kept as-plotted, use real TM-4062 tables for comparisons.
+- Checks: paper/data/digitize_check_carreno2022.png, digitize_check_ijsrp2019.png.
+- alpha=5: carreno gRT CL 0.828/CD 0.0334; ijsrp 60k kklw 0.871/0.0471 (interp), transSST 0.029/0.0247 (as-plotted!); 100k transSST 0.834/0.0205 (interp); 300k transSST 0.879/0.0129 (interp).
