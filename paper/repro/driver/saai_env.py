@@ -83,6 +83,13 @@ def canonical_ai_env() -> dict[str, str]:
         "AI_REOMC_A": repr(_SPHERE["REOM_A"]),     # 124.6
         "AI_REOMC_B": repr(_SPHERE["REOM_B"]),     # 1.424
         "AI_RAMPWIDTH": repr(_SPHERE["RAMP_W"]),   # 0.35
+        # fv1 bypass in lifted transitional layers -- CANON since 2026-07-25
+        # (author decision; RESPONSES ~16:00 for the analytic case). The q
+        # gate is the parameter-free law-of-the-wall discriminator; s(chi) is
+        # a fast LINEAR smoothing ramp over (1, 2) -- deliberately faster
+        # than the sigma_t maturity ramp, which fv1 must not double-count.
+        "AI_FV1BYPASS": "1",
+        "AI_FV1_SWIDTH": "1",
     }
 
 

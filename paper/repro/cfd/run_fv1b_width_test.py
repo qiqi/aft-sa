@@ -21,10 +21,19 @@ SLOTS = [
     ("nlf_a15", "strL2prop_nlf0416_Re4M_a15", 4000),
     ("fp_Tu0040", "flatplate_sphere_Tu0040", 1000),
     ("fp_Tu0300", "flatplate_sphere_Tu0300", 1000),
+    ("epp2e5_a2",  "strL2prop_eppler387_Re200k_a2", 200),
+    ("epp2e5_a7",  "strL2prop_eppler387_Re200k_a7", 200),
+    ("epp2e5_a5cav", "cavL2prop_eppler387_Re200k_a5", 200),
+    ("epp300k_a5", "sweep_strL2_Re300k_a5",  300),
+    ("epp460k_a5", "sweep_strL2_Re460k_a5",  460),
+    ("nlf_a0",  "strL2prop_nlf0416_Re4M_a0",  4000),
+    ("nlf_a9",  "strL2prop_nlf0416_Re4M_a9",  4000),
+    ("nlf_a4cav", "cavL2prop_nlf0416_Re4M_a4", 4000),
 ]
 slot, gpu = int(sys.argv[1]), int(sys.argv[2])
 stem, src, Rk = SLOTS[slot]
-tag = f"fv1w1_{stem}"
+TAGPRE = os.environ.get("FV1B_TAGPRE", "fv1w1")
+tag = f"{TAGPRE}_{stem}"
 wd = f"{FR}/{tag}"
 clone(f"{FR}/{src}", wd, Rk)
 j = json.load(open(f"{wd}/Flow360.json"))

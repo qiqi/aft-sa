@@ -1776,3 +1776,30 @@ phenomenon: the reference family loses the bubble before the
 experiment does.
 Also queued per your directive: Eppler alpha=-2 and 8.5 canon runs
 AFTER the fv1 promotion decision (task list updated).
+
+## 2026-07-25 ~17:20 UTC — fv1 bypass IS CANON; full 2D recomputation running
+Your decision executed:
+- canonical_ai_env() now exports AI_FV1BYPASS=1 and AI_FV1_SWIDTH=1 —
+  the LINEAR s-ramp over chi in (1,2) (the original clip form; the
+  exponential width-1 probe showed even it is too soft: 0.840/0.0367
+  at 1e5 vs the linear form's closed 0.925/0.0253). Compiled defaults
+  stay bypass-OFF so classical-SA comparisons are untouched.
+- NEW campaign root flow360_fv1 (on /local_data, symlinked): 93 cases
+  staged and RUNNING on all 8 GPUs — NLF 24 + negative pair (both L2
+  fams), Eppler 24 + extension alphas (-2, 1, 3, 4, 6, 8.5 on both
+  L2s: the oil-flow range you asked for, task #28 folded in), the
+  full Re sweep 24 (uniform sweep_{fam}{L}_ names), flat plates 5.
+  Old canon flow360_fr untouched for provenance; the paper flips via
+  SAAI_CFD_ROOT when we adopt. First-case solver echo verified:
+  ai_fv1Bypass 1, ai_fv1SwitchWidth 1. ETA ~8-12 h.
+- When it lands: full old-vs-new-canon comparison tables (forces,
+  fronts, bubble stations), flat-plate onset-Re_theta check
+  (the Tu0040 -1.5 ct needs the onset location, not CD), then the
+  paper migration (constants section gains the bypass term, Appendix
+  E assembled model updated, every figure/table regenerated from the
+  new root) as its own reviewed pass. The 1e5 bistability/fork
+  studies of Sec. VII will need re-running at new canon after that.
+- NOTE the sigma_t-tied battery + exponential width probe remain on
+  disk (fv1b_*, fv1w1_*) as the promotion evidence trail; the
+  matched-protocol linear ON/OFF pairs will be pulled from the new
+  campaign vs the OFF battery.

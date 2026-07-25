@@ -13,7 +13,7 @@ Usage: python3 run_sphere_campaign.py <set> [gpus]
 """
 import os, sys, json, shutil, subprocess, threading, queue, time, glob, csv
 
-FR = "/home/qiqi/flexcompute/sa-ai/flow360_fr"
+FR = os.environ.get("SAAI_CAMPAIGN_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
 AI = "/home/qiqi/flexcompute/sa-ai/flow360_ai"
 PP = ("/home/qiqi/flexcompute/sa-ai/paper/repro/cfd:"
       "/home/qiqi/flexcompute/sa-ai/paper/repro:"
@@ -35,6 +35,13 @@ SETS = {
     'epp_sweep_levels': [f"sweep_{fam}{lvl}_Re{Rk}k_a5"
                          for fam in ('cav', 'str') for lvl in ('L0', 'L2')
                          for Rk in (60, 100, 300, 460)],
+    # fv1-canon root uses uniform L1 sweep names + the extension incidences
+    'epp_sweep_l1': [f"sweep_{fam}L1_Re{Rk}k_a5"
+                     for fam in ('cav', 'str') for Rk in (60, 100, 300, 460)],
+    'nlf_neg': [f"{m}L2prop_nlf0416_Re4M_{t}" for m in ('cav', 'str')
+                for t in ('am4', 'am8')],
+    'eppler_ext': [f"{m}L2prop_eppler387_Re200k_{t}" for m in ('cav', 'str')
+                   for t in ('am2', 'a1', 'a3', 'a4x', 'a6', 'a8p5')],
 }
 
 RM_GLOBS = ['*_v2.csv', '*.pvtu', '*.vtu', 'xtr_history.csv',
