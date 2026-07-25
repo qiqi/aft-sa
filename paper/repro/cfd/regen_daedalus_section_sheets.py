@@ -44,7 +44,8 @@ CASES = {'str': ('case_ogrid_L2_saai_a{a}', 'surface_fluid_wing.pvtu', '-'),
 SIDCOL = {'upper': 'C0', 'lower': 'C3'}
 STRIPS = pickle.load(open('/home/qiqi/flexcompute/sa-ai/flow360_ai/'
                           'flexfoil_daedalus_strips.pkl', 'rb'))
-N_ANCH, N_PROBE, L_PROBE = 130, 90, 0.01     # anchors, heights, probe depth (x c_loc)
+N_ANCH, N_PROBE, L_PROBE = 130, 90, 0.01
+c_loc_g, x_le_g = [1.0], [0.0]     # anchors, heights, probe depth (x c_loc)
 
 
 def load(p):
@@ -91,19 +92,26 @@ def sphere_rate_1d(u, dudy, yc):
 
 
 def probe_station(vol, case, contours, c_loc, x_le, nu):
+    c_loc_g[0], x_le_g[0] = c_loc, x_le
     """Probe rows 1-2 along in-plane normals; return per-side dict."""
     pr = {}
     for side, q in contours.items():
         n = len(q)
-        idx = np.linspace(2, n - 3, min(N_ANCH, n - 4)).astype(int)
+        xq = (q[:, 0] - x_le_g[0]) / c_loc_g[0]
+        ok = np.where((xq > 0.01) & (xq < 0.985))[0]
+        idx = ok[np.linspace(0, len(ok) - 1, min(N_ANCH, len(ok))).astype(int)]
         anch = q[idx]
         # in-plane tangent/normal from contour neighbors
         tan = q[np.minimum(idx + 2, n - 1)] - q[np.maximum(idx - 2, 0)]
         tan[:, 1] = 0.0
         tan /= (np.linalg.norm(tan, axis=1)[:, None] + 1e-30)
-        nrm = np.stack([-tan[:, 2], np.zeros(len(idx)), tan[:, 0]], axis=1)
-        sgn = 1.0 if side == 'upper' else -1.0
-        nrm *= sgn * np.sign(nrm[:, 2:3] * sgn + 1e-30)
+        # outward in-plane normal: up for the upper surface, down for the lower
+        if side == 'upper':
+            nrm = np.stack([-tan[:, 2], np.zeros(len(idx)), tan[:, 0]], axis=1)
+        else:
+            nrm = np.stack([tan[:, 2], np.zeros(len(idx)), -tan[:, 0]], axis=1)
+        want = 1.0 if side == 'upper' else -1.0
+        nrm[np.sign(nrm[:, 2]) != want] *= -1.0
         d = np.linspace(1e-5, L_PROBE, N_PROBE) * c_loc
         pts = (anch[:, None, :] + nrm[:, None, :] * d[None, :, None]).reshape(-1, 3)
         pd = vtk.vtkPolyData()
@@ -145,9 +153,10 @@ def surface_rows(case, surfname, contours, c_loc, x_le, mstation, mu):
         xc_all = (pb[:, 0] - x_le) / c_loc
         up = pb[:, 2] >= np.interp(np.clip(xc_all, 0, 1), SC._CAM_X, SC._CAM_Z) * c_loc
         sel = up if side == 'upper' else ~up
-        o = np.argsort(xc_all[sel])
-        rows[side] = dict(xc=xc_all[sel][o], cp=cpb[sel][o], cfx=cfb[sel][o],
-                          chi=chb[sel][o])
+        good = sel & (np.abs(cfb) < 0.1) & (xc_all > 0.005) & (xc_all < 0.995)
+        o = np.argsort(xc_all[good])
+        rows[side] = dict(xc=xc_all[good][o], cp=cpb[good][o], cfx=cfb[good][o],
+                          chi=chb[good][o])
     return rows
 
 
@@ -186,14 +195,9 @@ def make_sheet(eta_q):
                 continue
             if fam == 'cav':
                 got_cav = True
-            surf = load(f'{D}/{case}/{surfname}')
-            spts = vtk_to_numpy(surf.GetPoints().GetData())
-            contours, c_loc, x_le, mst = section_contour(spts, eta_q)
-            mu = json.load(open(f'{D}/{case}/Flow360.json'))['freestream']['muRef']
-            vol = load(f'{D}/{case}/volume.pvtu')
-            pr = probe_station(vol, case, contours, c_loc, x_le, mu)
-            del vol
-            sr = surface_rows(case, surfname, contours, c_loc, x_le, mst, mu)
+            if case not in CACHE or eta_q not in CACHE[case]:
+                continue
+            pr, sr = CACHE[case][eta_q]
             for side in ('upper', 'lower'):
                 cc = SIDCOL[side]
                 ax_reo.semilogy(pr[side]['xc'], pr[side]['reo'], ls, color=cc, lw=1.5)
@@ -215,6 +219,7 @@ def make_sheet(eta_q):
         ax_n.axhline(CV1, color='gray', ls=':', lw=0.6, alpha=0.6)
         ax_nN.set_ylim(np.log(1e-6 / CHI_INF), np.log(3e2 / CHI_INF))
         ax_cp.grid(alpha=0.3)
+        ax_cf.set_ylim(-0.004, 0.012)
         ax_cf.grid(alpha=0.3); ax_cf.axhline(0, color='gray', lw=0.5, alpha=0.6)
         ax_cf.set_xlabel('$x/c$')
         ax_cf.set_xlim(0, 1)
@@ -244,7 +249,31 @@ def make_sheet(eta_q):
     print('wrote', out, flush=True)
 
 
+CACHE = {}
+
+
+def probe_cached(case, surfname, etas, mu):
+    surf = load(f'{D}/{case}/{surfname}')
+    spts = vtk_to_numpy(surf.GetPoints().GetData())
+    vol = load(f'{D}/{case}/volume.pvtu')
+    out = {}
+    for eta_q in etas:
+        contours, c_loc, x_le, mst = section_contour(spts, eta_q)
+        pr = probe_station(vol, case, contours, c_loc, x_le, mu)
+        sr = surface_rows(case, surfname, contours, c_loc, x_le, mst, mu)
+        out[eta_q] = (pr, sr)
+    del vol
+    return out
+
+
 if __name__ == '__main__':
     etas = [float(x) for x in sys.argv[1:]] or [0.10, 0.31, 0.60]
+    for a in ALPHAS:
+        for fam, (tpl, surfname, ls) in CASES.items():
+            case = tpl.format(a=a)
+            if complete(case) and os.path.exists(f'{D}/{case}/chi_surface.npz'):
+                mu = json.load(open(f'{D}/{case}/Flow360.json'))['freestream']['muRef']
+                CACHE[case] = probe_cached(case, surfname, etas, mu)
+                print('probed', case, flush=True)
     for eta_q in etas:
         make_sheet(eta_q)

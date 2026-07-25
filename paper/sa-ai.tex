@@ -2447,12 +2447,12 @@ is the same $e^N$ framework
 used throughout---a vortex-lattice model (AVL~\cite{drela_youngren_avl}) with strip-wise XFOIL
 section polars at matched
 local $c_l$ and $N_\mathrm{crit}$, and FlexFoil amplification envelopes at
-section conditions (Sec.~\ref{sec:eppresweep}). Ten converged RANS
+section conditions (Sec.~\ref{sec:eppresweep}). Eleven converged RANS
 solutions underlie the comparison---both families at L1 at all three
 incidences, the structured family at L2 at all three, and the
-unstructured family at L2 at $4^\circ$; the remaining two
-unstructured L2 runs ($5^\circ$, $6^\circ$) are still
-in progress and are excluded from the figures and tables that follow.
+unstructured family at L2 at $4^\circ$ and $5^\circ$; the one
+remaining unstructured L2 run ($6^\circ$) is still in progress and is
+excluded from the figures and tables that follow.
 
 \begin{table}[tp]
   \centering
@@ -2521,9 +2521,9 @@ The macroscopic ledger comes first (Fig.~\ref{fig:daepolar}; the
 per-level coefficients are tabulated in Appendix~D,
 Table~\ref{tab:daetotals}). The two families agree at L1 to
 $0.6$--$0.8\%$ in $C_L$ and $0.9$--$1.8\%$ in $C_D$---and at
-$\alpha\!=\!4^\circ$, the one incidence where both finest grids
-are complete, to $0.7\%$ in $C_L$ and $0.7$ counts ($0.35\%$) in
-$C_D$ at L2. Against the
+$\alpha\!=\!4^\circ$ and $5^\circ$, the incidences where both
+finest grids are complete, to $0.6$--$0.7\%$ in $C_L$ and
+$0.7$--$1.6$ counts ($0.35$--$0.7\%$) in $C_D$ at L2. Against the
 AVL$+$XFOIL reference trimmed to the same total lift (the
 lift-consistent comparison; the vortex lattice needs
 $\sim\!0.5^\circ$ more incidence to carry the RANS $C_L$), the RANS
@@ -2536,6 +2536,29 @@ trim. (At matched \emph{incidence} the same reference sits $10$
 counts lower still---the lattice carries $5\%$ less lift and hence
 $\sim\!10\%$ less induced drag---which would flatter the RANS into
 coincidence; the matched-lift numbers are the honest ones.)
+The drag \emph{slope} disagrees more than the levels: mid-span
+sectional drag grows at $\approx\!0.018$ per unit $c_l$ in the RANS
+against the reference's $0.011$, all of whose growth is induced---the
+strips' XFOIL profile drag is flat in lift, while the RANS profile
+drag climbs $\approx\!6$ counts per $0.1$ of $c_l$. The sectional
+diagnostic sheets of Appendix~D
+(Figs.~\ref{fig:daesec10}--\ref{fig:daesec60}) locate the mechanism:
+at fixed separation and reattachment---both match the strips at every
+incidence---the model's handover-stretched pressure recovery inside
+the bubble deepens with incidence, the $-C_p$ plateau persisting
+further and recovering more gradually than the strip solution's
+abrupt-closure recovery, and the area between the two curves growing
+with $\alpha$: bubble pressure drag that an instant-transition
+closure structurally cannot produce, the same mechanism as
+Sec.~\ref{sec:epphandover} at the sections' $Re\approx6\times10^5$.
+(The $\chi\!=\!1$ lead over $N\!=\!N_\mathrm{crit}$ holds its
+$\sim\!0.09c$ convention offset at every incidence and contributes
+no slope.) Two accounting notes for reading sectional comparisons:
+the strip decomposition does not tile the wetted surface---its
+integral sits a nearly incidence-independent $9$--$10$ counts above
+the force totals, so sectional slopes are trustworthy where sectional
+levels are not---and the reference's sectional induced distribution
+is Trefftz-exact only in its integral.
 At matched incidence the RANS lift runs $\sim\!5\%$ above the
 lattice's---the excess a vortex lattice built on camber lines alone would
 be expected to miss. A single-station decomposition makes it
@@ -2592,7 +2615,8 @@ smooths over.
   \centering
   \includegraphics[width=0.99\textwidth]{daedalus_surface_a5.pdf}
   \caption{As Fig.~\ref{fig:daesurf4}, at $\alpha\!=\!5^\circ$ (the
-  unstructured-L2 row will be added when that run completes).}
+  unstructured-L2 row will be added when that run's field output is
+  regenerated).}
   \label{fig:daesurf5}
 \end{figure}
 
@@ -2911,9 +2935,10 @@ sheets}
 
 Figures~\ref{fig:eppmesh_str} and~\ref{fig:eppmesh_cav} show the mesh
 close-ups for the Eppler benchmark of Sec.~\ref{sec:eppval}; the sheets
-that follow cover the $\alpha$ sweep at $Re=2\times10^5$ (wall-normal
-frames $0.0335c$ upper---the $5\times$-raised handover frame of the
-Appendix~A conventions---and $0.0112c$ lower).
+that follow cover the $\alpha$ sweep at $Re=2\times10^5$, upper
+surface only---the lower surface stays attached and featureless
+throughout the sweep (wall-normal frame $0.0335c$, the
+$5\times$-raised handover frame of the Appendix~A conventions).
 
 \begin{figure}[p]
   \centering
@@ -2943,12 +2968,6 @@ Appendix~A conventions---and $0.0112c$ lower).
   \label{fig:sheet_eppler387_a0_upper}
 \end{figure}
 
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a0_lower.pdf}
-  \caption{Eppler~387, $Re=2\times10^5$, $\alpha=0^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
-  \label{fig:sheet_eppler387_a0_lower}
-\end{figure}
 
 \begin{figure}[p]
   \centering
@@ -2957,12 +2976,6 @@ Appendix~A conventions---and $0.0112c$ lower).
   \label{fig:sheet_eppler387_a2_upper}
 \end{figure}
 
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a2_lower.pdf}
-  \caption{Eppler~387, $Re=2\times10^5$, $\alpha=2^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
-  \label{fig:sheet_eppler387_a2_lower}
-\end{figure}
 
 \begin{figure}[p]
   \centering
@@ -2971,12 +2984,6 @@ Appendix~A conventions---and $0.0112c$ lower).
   \label{fig:sheet_eppler387_a5_upper}
 \end{figure}
 
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a5_lower.pdf}
-  \caption{Eppler~387, $Re=2\times10^5$, $\alpha=5^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
-  \label{fig:sheet_eppler387_a5_lower}
-\end{figure}
 
 \begin{figure}[p]
   \centering
@@ -2985,21 +2992,15 @@ Appendix~A conventions---and $0.0112c$ lower).
   \label{fig:sheet_eppler387_a7_upper}
 \end{figure}
 
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a7_lower.pdf}
-  \caption{Eppler~387, $Re=2\times10^5$, $\alpha=7^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
-  \label{fig:sheet_eppler387_a7_lower}
-\end{figure}
 
 \clearpage
 \renewcommand{\thefigure}{C\arabic{figure}}
 \setcounter{figure}{0}
 \section*{Appendix C: the Eppler 387 Reynolds sweep---contour sheets}
 
-One pair of sheets per swept Reynolds number of
+One upper-surface sheet per swept Reynolds number of
 Sec.~\ref{sec:eppresweep} (the $Re=2\times10^5$ anchor is the
-$\alpha\!=\!5^\circ$ pair of Appendix~B), each covering the full
+$\alpha\!=\!5^\circ$ sheet of Appendix~B), each covering the full
 L0--L2 suite on both mesh families; the wall-normal frame scales as
 $\smash{\sqrt{2\times10^5/Re}}$. At $Re=10^5$ two additional rows show
 each family's warm-started L2 solution after its $40\,000$-iteration
@@ -3014,12 +3015,6 @@ independence of the converged state, seen in the field variables.
   \label{fig:sheet_eppler387_Re60k_upper}
 \end{figure}
 
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re60k_lower.pdf}
-  \caption{Eppler~387, $Re=6\times10^4$, $\alpha=5^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
-  \label{fig:sheet_eppler387_Re60k_lower}
-\end{figure}
 
 \begin{figure}[p]
   \centering
@@ -3031,13 +3026,6 @@ independence of the converged state, seen in the field variables.
   \label{fig:sheet_eppler387_Re100k_upper}
 \end{figure}
 
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re100k_lower.pdf}
-  \caption{Eppler~387, $Re=10^5$, $\alpha=5^\circ$, lower surface, all six
-  grids plus the two extended warm-started L2 solutions (bottom rows).}
-  \label{fig:sheet_eppler387_Re100k_lower}
-\end{figure}
 
 \begin{figure}[p]
   \centering
@@ -3046,12 +3034,6 @@ independence of the converged state, seen in the field variables.
   \label{fig:sheet_eppler387_Re300k_upper}
 \end{figure}
 
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re300k_lower.pdf}
-  \caption{Eppler~387, $Re=3\times10^5$, $\alpha=5^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
-  \label{fig:sheet_eppler387_Re300k_lower}
-\end{figure}
 
 \begin{figure}[p]
   \centering
@@ -3060,12 +3042,6 @@ independence of the converged state, seen in the field variables.
   \label{fig:sheet_eppler387_Re460k_upper}
 \end{figure}
 
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re460k_lower.pdf}
-  \caption{Eppler~387, $Re=4.6\times10^5$, $\alpha=5^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
-  \label{fig:sheet_eppler387_Re460k_lower}
-\end{figure}
 
 \clearpage
 \section*{Appendix D: the Daedalus wing---definition, temporal-units
@@ -3116,7 +3092,7 @@ coefficients are means over the final 500 steps.
               & AVL$+$XFOIL & 1.0282 & 0.02125 & &\\
     \midrule
     $5^\circ$ & L1 & 1.1300 & 0.02212 & 1.1225 & 0.02235\\
-              & L2 & 1.1289 & 0.02243 & --- & ---\\
+              & L2 & 1.1289 & 0.02243 & 1.1219 & 0.02259\\
               & AVL$+$XFOIL & 1.1289 & 0.02315 & &\\
     \midrule
     $6^\circ$ & L1 & 1.2317 & 0.02479 & 1.2227 & 0.02523\\
@@ -3202,6 +3178,42 @@ station's AVL $c_l$ and chord Reynolds number, its amplification drawn
 as $\chi_\infty e^{N}$ through the identical color map so the two
 transition contours ($\chi\!=\!1$ and $N\!=\!N_\mathrm{crit}$) are
 directly comparable.
+
+\paragraph{Sectional diagnostic sheets.} Figures~\ref{fig:daesec10},
+\ref{fig:daesec31}, and~\ref{fig:daesec60} carry the section-cut
+diagnostics behind the drag-slope discussion of
+Sec.~\ref{sec:daedalus}: at $\eta=0.10$, $0.31$, and $0.60$, columns
+$\alpha=4^\circ$, $5^\circ$, $6^\circ$, five rows per
+station---the probe-maximum $Re_\Omega$ against its onset threshold,
+the probe-maximum $\hat S g$ rate (log scale, as Fig.~2), the
+near-wall $\max\chi$ with the strip's $e^{N}$ amplification, $-C_p$,
+and streamwise $C_f$. Solid lines are the structured L2 solution,
+dashed the unstructured-family L2, dotted the AVL-trimmed
+FlexFoil/XFOIL strip at the same station.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{daedalus_section_eta10.pdf}
+  \caption{Daedalus wing section cut at $\eta=0.10$, $Re_c=6.6\times10^5$:
+  sectional diagnostics on the finest grids (structured L2 solid,
+  unstructured L2 dashed) against the AVL-trimmed FlexFoil/XFOIL strip
+  (dotted) at $\alpha=4^\circ$, $5^\circ$, $6^\circ$ (columns).}
+  \label{fig:daesec10}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{daedalus_section_eta31.pdf}
+  \caption{As Fig.~\ref{fig:daesec10}, at $\eta=0.31$.}
+  \label{fig:daesec31}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{daedalus_section_eta60.pdf}
+  \caption{As Fig.~\ref{fig:daesec10}, at $\eta=0.60$.}
+  \label{fig:daesec60}
+\end{figure}
 
 \clearpage
 \renewcommand{\thefigure}{E\arabic{figure}}

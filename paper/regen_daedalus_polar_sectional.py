@@ -45,6 +45,13 @@ def complete(case):
         return sum(1 for _ in f) >= 2001    # 20k steps logged every 10
 
 
+def has_strips(case):
+    """Sectional CSV present and non-empty (the cavity-L2 a5 run finished
+    into a full disk: forces history intact, slicing CSVs zero-byte)."""
+    fn = f'{D}/{case}/Y_slicing_forceDistribution.csv'
+    return os.path.exists(fn) and os.path.getsize(fn) > 0
+
+
 def totals(case):
     fn = f'{D}/{case}/total_forces_v2.csv'
     hdr = open(fn).readline().split(',')
@@ -98,7 +105,8 @@ def main():
         for fam, ls in (('str', '-'), ('cav', '--')):
             # finest completed level for this family/incidence
             case = next((CASES[(fam, lv)][ALPHAS.index(a)] for lv in (2, 1)
-                         if complete(CASES[(fam, lv)][ALPHAS.index(a)])), None)
+                         if complete(CASES[(fam, lv)][ALPHAS.index(a)])
+                         and has_strips(CASES[(fam, lv)][ALPHAS.index(a)])), None)
             if case is None:
                 continue
             finest_used[(fam, a)] = case

@@ -1133,3 +1133,134 @@ restores provenance for the paper's historical predecessor numbers.
   the polar recovers the true L0->L2 ladder, and the predecessor lore
   (L0 suppresses the bubble at all but 2 of 36 stations) gets re-tested
   at the canon kernel.
+
+## 2026-07-25 ~09:20 UTC — LM/BCM literature: landed hours ago; recap
+You asked whether the Langtry–Menter / BCM literature search landed —
+yes (full entry above at ~04:40 UTC, "LM/BCM source matrix"; PDFs in
+references/). The short version:
+- Eppler 387, Re=2e5, BOTH models in one open source: Shahjahan et al.,
+  ICAS 2024 (references/icas2024_0327.pdf), VECTOR figures. Fig 6 =
+  drag polars for gamma-Re_theta (OpenFOAM) and SA-BC (SU2) at
+  Tu=0.1%; Fig 9 = bubble/transition stations. Backups: Cakmakcioglu
+  2017 (original BC paper, exactly Re=2e5, raster Fig 8) and
+  D'Alessandro 2025 (gamma-SA).
+- NLF(1)-0416, Re=4e6: Langtry–Menter YES — Denison et al. OVERFLOW
+  transition-workshop paper (references/overflow_tmw.pdf), Fig 11 =
+  transition x/c vs c_l for both surfaces (drops directly into
+  fig:nlfaft next to AFT). No clean cd-cl polar in it.
+- BCM on NLF: NO usable open data (Tarsia Morisco 2025 is a
+  mesh-adaptation study at one condition; the Cakmakcioglu 2020
+  candidates are paywalled). Same honest-absence verdict as
+  AFT-on-Eppler.
+Digitization plan (ready, awaiting your go): Shahjahan Fig 6 -> LM+BCM
+curves on the Eppler polar (Fig 10); Denison Fig 11 -> LM transition
+curves on fig:nlfaft; text states the BCM-on-NLF absence.
+
+## 2026-07-25 ~09:25 UTC — Daedalus drag-slope diagnosis: the section sheets' verdict
+Why does CFD sectional CD grow faster with CL than AVL+XFOIL? The
+three new five-row section sheets (eta = 0.10/0.31/0.60, columns
+alpha = 4/5/6: probe-max Re_Omega, probe-max S_hat*g, max-chi + strip
+e^N, -Cp, Cf_x) now answer it:
+- Slopes: mid-span sectional dcd/dcl is ~0.0180 (RANS) vs ~0.0109
+  (reference). ALL the reference's growth is induced — its XFOIL
+  profile drag is flat in cl. The RANS profile drag climbs ~6 counts
+  per 0.1 cl.
+- Mechanism (visible in the -Cp row): separation and reattachment both
+  match the strips at every incidence — the bubble EDGES are right —
+  but inside the bubble the model's handover-stretched pressure
+  recovery deepens with incidence: the -Cp plateau persists further
+  and recovers more gradually than the strip's abrupt-closure
+  recovery, and the area between the curves grows with alpha. That is
+  bubble pressure drag an instant-transition closure structurally
+  cannot produce — the same Sec. eppresweep handover mechanism, now at
+  Re_c ~ 6.6e5.
+- Non-mechanisms ruled out: the chi=1 lead over N=N_crit sits at its
+  ~0.09c convention offset at every incidence (no slope contribution).
+In the paper: diagnosis paragraph added to the Daedalus ledger; the
+three sheets are in the Daedalus appendix (D) as figs daesec10/31/60,
+per your directive to keep them Daedalus-focused.
+
+## 2026-07-25 ~09:25 UTC — "Sections above, total below": the reconciliation
+Your observation — SA-AI has MORE drag than the reference over most of
+the span, yet LESS in the total — decomposes into three strands:
+1) The strip integrals don't tile the wing. Integrating the sectional
+   curves gives Delta(RANS - ref) = -3.7/+1.8/+8.3 counts at
+   alpha=4/5/6, but the force totals give -12.8/-7.2/-2.1: a nearly
+   incidence-INDEPENDENT ~9-10 count offset between the two
+   accountings. The strip bins miss a root sliver and cap the tip, so
+   the strip-integrated view sits systematically high; slopes are
+   trustworthy where levels are not.
+2) The reference's sectional induced-drag SHAPE is Trefftz-exact only
+   in its integral (local cl*alpha_i is rescaled to match CDff), so
+   pointwise sectional comparisons inherit shape error.
+3) At alpha=4 there is no paradox even sectionally (RANS is below the
+   reference over most of the span); the crossover builds with
+   incidence exactly as the bubble-pressure-drag slope does.
+Both accounting notes are now stated in the paper alongside the
+diagnosis paragraph.
+
+## 2026-07-25 ~09:30 UTC — Disk-full incident: casualties and repairs
+The root filesystem hit 100% (~08:45-08:55 UTC). Full damage list:
+- cavity-L2 a6 died at launch (rc=1). Freed 182 GB by deleting
+  regenerable partitioner dumps (mesh.cgns_rank_*.dmp) from completed
+  cases; a6 relaunched 08:57 on all 8 GPUs (~5.5 h, sentinel
+  CAVITY-A6-DONE).
+- paper/sa-ai.tex was TRUNCATED TO 0 BYTES: the interrupted edit's
+  open(...,'w') succeeded, the write hit ENOSPC. Restored from git
+  HEAD (f0d93d9, 07:41 — no tex edits existed between commit and
+  truncation, so nothing was lost). Edit scripts now write to a temp
+  file and os.replace() so a failed write can never truncate again.
+- cavity-L2 a5 (finished rc=0 at 08:55, INTO the full disk): forces
+  history and volume/surface outputs intact, but both slicing CSVs
+  (X/Y_slicing_forceDistribution.csv) are zero-byte. Sectional strips
+  for cav-a5 therefore fall back to L1 in the figure (explicit
+  has_strips() gate); the CSVs can be regenerated with a short
+  restart run once GPUs free up.
+
+## 2026-07-25 ~09:30 UTC — Cavity-L2 a5 landed; paper refreshed
+CL = 1.1219, CD = 0.02259 (final-500 mean; std 4e-4/4e-5). Family
+agreement at L2 now holds at both completed incidences: alpha=4:
+0.7% CL / 0.7 counts; alpha=5: 0.6% CL / 1.6 counts (0.7%).
+ai_constants check: a5's resolved-constants block is IDENTICAL to
+a4's except one new line, ai_invariantKernel: 0.000000 — the a5 run
+used the rebuilt solver carrying the (default-off) invariant-kernel
+code. Constants verified, flag off, as intended.
+Paper: tab:daetotals a5 cell filled, "Ten"->"Eleven" solutions,
+family-agreement sentence covers both incidences, fig:daesurf5
+caption's pending-clause dropped (cavity row regenerates when the a5
+chi surface map finishes), polar figure regenerated with the cav-L2
+a5 point.
+
+## 2026-07-25 ~09:35 UTC — /local_data migration + appendix restructure + mesh line widths
+- Large data now migrates to /local_data/qiqi/sa-ai/... mirroring
+  017-v100-dev's /local_disk/qiqi convention, with symlinks left in
+  the repo so every path keeps working
+  (scripts/migrate_to_local_data.sh: rsync, verify second pass
+  transfers nothing, rm, ln -s; skips busy/running dirs). 15 Daedalus
+  case dirs (~60 GB) moved so far; paused while figure regens read
+  flow360_fr, resumes after. One lesson already paid for: the mover
+  yanked a dir mid-read under the a5 chi-map (the lsof guard raced);
+  the map was simply rerun through the symlink — data verified intact.
+- Appendices, per your directives: the three Daedalus section sheets
+  live in the Daedalus appendix (D); the eight Eppler lower-surface
+  contour sheets (App B alpha sweep + App C Re sweep) are DELETED —
+  upper-only now, prose notes the lower surface stays attached and
+  featureless. NLF lower-surface sheets kept (App A).
+- Mesh figures: they are VECTOR (matplotlib LineCollection -> PDF),
+  so thin lines stay crisp under zoom. Line widths now halve per
+  level: L0 0.175, L1 0.0875, L2 0.044 (was uniform 0.35); all four
+  mesh figures regenerating from the canonical flow360_fr a0 meshes
+  (the script had pointed at the stale flow360 tree).
+
+## 2026-07-25 ~09:45 UTC — CORRECTION: cavity-L2 a5 field output also lost
+The 09:30 entry said a5's volume/surface outputs were intact — wrong.
+volume.pvtu is zero-byte too (everything the solver wrote at shutdown
+hit the full disk): no chi surface map, no surface-map figure row, no
+section-sheet dashed lines for cav-a5 until recovery. What IS intact:
+the full forces history (the CL/CD numbers stand — they come from
+total_forces_v2.csv, written incrementally long before the disk
+filled) and the 8-rank restart dumps. Recovery plan: after a6 lands,
+a short restart run of a5 (~100 steps, force means move < the 4e-4
+history std) regenerates volume.pvtu + slicing CSVs; then chi map,
+surface-map cavity row, and section-sheet overlays follow. The
+fig:daesurf5 pending-clause is restored until then.

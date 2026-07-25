@@ -10,11 +10,14 @@ from vtkmodules.util.numpy_support import vtk_to_numpy
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 
-B = "/home/qiqi/flexcompute/sa-ai/flow360"
+B = "/home/qiqi/flexcompute/sa-ai/flow360_fr"
 FAMILIES = {'nlf': ('nlf0416_Re4M', 'NLF(1)-0416'),
             'eppler': ('eppler387_Re200k', 'Eppler 387')}
 MESHERS = {'str': 'structured O-grid', 'cav': 'unstructured cavity'}
 LEVELS = ['L0', 'L1', 'L2']
+# halve the line width per refinement level so the finer grids read as
+# structure rather than solid ink (vector output: stays crisp under zoom)
+LW = {'L0': 0.175, 'L1': 0.0875, 'L2': 0.04375}
 LE_WIN = (-0.03, 0.12, -0.07, 0.07)   # xlo,xhi,zlo,zhi
 TE_WIN = (0.88, 1.05, -0.05, 0.05)
 
@@ -63,7 +66,7 @@ def make_figure(fam_key):
             for col, (win, name) in enumerate([(LE_WIN, 'LE'), (TE_WIN, 'TE')]):
                 ax = axes[row, col]
                 sc = clip(segs, win)
-                ax.add_collection(LineCollection(sc, colors='k', linewidths=0.35))
+                ax.add_collection(LineCollection(sc, colors='k', linewidths=LW[L]))
                 ax.set_xlim(win[0], win[1]); ax.set_ylim(win[2], win[3])
                 ax.set_aspect('equal'); ax.tick_params(labelsize=7)
                 if row == 0:
