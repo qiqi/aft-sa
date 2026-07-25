@@ -178,7 +178,7 @@ LIT_MS = 6.5
 
 def lit_pt(ax_c, ax_d, Rk, cl, cd, marker, color, label=None):
     for ax, v in ((ax_c, cl), (ax_d, cd)):
-        if v is not None:
+        if ax is not None and v is not None:
             ax.plot([Rk*1e3], [v], ls='none', marker=marker, color=color,
                     ms=LIT_MS, mfc='none', mew=1.4, zorder=7, label=label)
 
@@ -198,17 +198,25 @@ if ijsrp:
             lit_pt(axl, axd, Rk, cl5, cd5, 'X', '0.25')
 if frere:
     S = frere['series']
-    for name, mk in (('iles', '*'), ('rans_eN_N7', '<'), ('rans_eN_N9', '>')):
+    # coupled URANS-e^N: exact alpha=5 points
+    for name, mk in (('rans_eN_N7', '<'), ('rans_eN_N9', '>')):
         if name in S and S[name].get('alpha'):
             cl5, cd5 = at5(S[name])
             lit_pt(axl, axd, 60, cl5, cd5, mk, '0.25')
-    for name in ('exp_delft', 'exp_princeton', 'exp_stuttgart'):
-        if name in S and S[name].get('alpha'):
-            try:
-                cl5, cd5 = at5(S[name])
-            except Exception:
-                continue
-            lit_pt(axl, axd, 60, cl5, cd5, '.', '0.55')
+    # ILES: only alpha=4 and 8, straddling the reattachment jump -- an
+    # alpha=5 interpolation is meaningless; plot the alpha=4 (pre-jump) state
+    if 'iles' in S and 4 in [int(a) for a in S['iles']['alpha']]:
+        i4 = [int(a) for a in S['iles']['alpha']].index(4)
+        lit_pt(axl, axd, 60, S['iles']['cl'][i4], S['iles']['cd'][i4],
+               '*', '0.25')
+    # facility spread at the bistable condition: exact alpha=5 lift points
+    # (Delft, Stuttgart; CD hidden by overlaps in the source at alpha=5)
+    for name in ('exp_delft', 'exp_stuttgart'):
+        pan = (S.get(name) or {}).get('cl_panel') or {}
+        aa = pan.get('alpha') or []
+        if 5.0 in [round(float(a), 1) for a in aa]:
+            i = [round(float(a), 1) for a in aa].index(5.0)
+            lit_pt(axl, None, 60, pan['cl'][i], None, '.', '0.55')
 
 # ---- literature: stations (alpha=4/6 bracket pairs, connected) ----
 
@@ -274,7 +282,9 @@ handles = [
     Line2D([], [], color='0.45', ls='none', marker='D', mfc='none', ms=5.5,
            label='XFOIL ($e^9$)'),
     Line2D([], [], color='0.25', ls='none', marker='*', mfc='none', ms=7,
-           label='ILES (Frère+)'),
+           label='ILES (Frère+, $\\alpha{=}4$)'),
+    Line2D([], [], color='0.55', ls='none', marker='.', ms=6,
+           label='other facilities / source exp.'),
     Line2D([], [], color='0.25', ls='none', marker='<', mfc='none', ms=6,
            label='RANS-$e^N$ $N{=}7$ / $\\gamma$-$SST$ (Ghimire+)'),
     Line2D([], [], color='0.25', ls='none', marker='>', mfc='none', ms=6,
@@ -290,7 +300,7 @@ handles = [
 ]
 fig.legend(handles=handles, fontsize=7.5, ncol=4, frameon=False,
            loc='lower center', bbox_to_anchor=(0.5, 0.0))
-plt.tight_layout(rect=(0, 0.115, 1, 1))
+plt.tight_layout(rect=(0, 0.155, 1, 1))
 os.makedirs(PREV, exist_ok=True)
 plt.savefig(f'{OUT}/eppler_resweep_forces.pdf')
 plt.savefig(f'{PREV}/epp_resweep_forces.png', dpi=140)
