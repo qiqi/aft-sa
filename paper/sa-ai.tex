@@ -1448,7 +1448,18 @@ quantitatively.
   $\alpha\!=\!0^\circ,4^\circ,9^\circ,15^\circ$, plus the
   negative-incidence pair $\alpha\!=\!-4^\circ$ (zero lift) and
   $-8^\circ$ (the edge of the measured range) on the finest grids,
-  all at the paper-wide untuned seed.}
+  all at the paper-wide untuned seed. At $-8^\circ$ the forces stay
+  within seven counts of the measurement but \emph{both} fronts miss:
+  the model holds the suction (lower) surface laminar to $0.89\,c$
+  against the references' leading-edge trip---the $-C_p\!\approx\!4.7$
+  spike bubble offers far less streamwise room than the $\chi$
+  handover needs, the Sec.~\ref{sec:epphandover} mechanism at its
+  extreme---and places the pressure-side front at $0.14$--$0.22\,c$
+  against the measured ${\approx}0.5\,c$, just downstream of the
+  stagnation point that has moved onto that surface. The
+  strong-negative-incidence regime lies outside the model's
+  calibration; the markers are retained as an honest boundary of
+  applicability.}
   \label{fig:nlfaft}
 \end{figure}
 
@@ -1536,7 +1547,9 @@ disturbance level rather than as a per-case tuning.
   \includegraphics[width=0.62\textwidth]{nlf_polar_compare.pdf}
   \caption{Drag polar of the NLF(1)-0416 at $Re\!=\!4\!\times\!10^6$: the present
   SA-AI prediction (structured O-grid and unstructured meshes, all three
-  refinement levels) at $\alpha\!\in\!\{0^\circ,4^\circ,9^\circ,15^\circ\}$
+  refinement levels) at $\alpha\!\in\!\{0^\circ,4^\circ,9^\circ,15^\circ\}$ (all
+  six grids), extended on the finest grids through
+  $\alpha\!=\!-4^\circ$ and $-8^\circ$ to $c_l\!\approx\!-0.48$
   overlaid on the digitized experimental section characteristics (Somers, NASA
   TP-1861, Fig.~11d~\cite{somers_1981}) and the mfoil $e^9$ reference. Mesh family
   sets the color (blue = O-grid, orange = unstructured); refinement sets the line
@@ -1810,6 +1823,10 @@ response the Eppler~387 probes: on the upper surface $\hat S g$ rises from near 
 the laminar-separation bubble (the inflectional profile), then relaxes after
 reattachment, while the lower surface stays near zero; the growth of $\hat S g$ into
 the amplifying region is what ignites transition at the bubble.
+(The conspicuous double peak the upper-surface trace shows inside the
+bubble---and the sharp notch between the two---is anatomized in
+Appendix~B against the contour sheet of
+Fig.~\ref{fig:sheet_eppler387_a5_upper}.)
 
 \begin{figure}[tp]
   \centering
@@ -1827,10 +1844,10 @@ the amplifying region is what ignites transition at the bubble.
   $\alpha\!=\!7^\circ$ it returns $C_l\!=\!0.928$, below its $5^\circ$
   value, while XFOIL~\cite{drela_xfoil_1989} converges there with
   $C_l\!=\!1.17$). Black circles: the oil-flow visualization (McGhee et
-  al., NASA TM 4062, Table~III, all nine tabulated incidences; at
-  $\alpha\!=\!8^\circ$ the report notes natural transition at
-  $0.32\,c$---no bubble---and the $8.5^\circ$ entry is the post-stall
-  leading-edge bubble), i.e.\ the edges of the gray band on the $C_f$
+  al., NASA TM 4062, Table~III; its nine tabulated incidences less
+  $\alpha\!=\!8^\circ$, where the report notes natural transition at
+  $0.32\,c$ and no bubble exists to plot---the $8.5^\circ$ point is
+  the post-stall leading-edge bubble), i.e.\ the edges of the gray band on the $C_f$
   rows of Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}. Gray diamonds:
   the independent Selig et al.\ measurement, digitized with the
   $\gamma$--$Re_\theta$ and SA-BC curves from
@@ -2965,6 +2982,31 @@ that follow cover the $\alpha$ sweep at $Re=2\times10^5$, upper
 surface only---the lower surface stays attached and featureless
 throughout the sweep (wall-normal frame $0.0335c$, the
 $5\times$-raised handover frame of the Appendix~A conventions).
+
+The $\alpha\!=\!5^\circ$ sheet
+(Fig.~\ref{fig:sheet_eppler387_a5_upper}) also resolves the anatomy
+of the double peak that the $\max_y \hat S g$ trace of
+Fig.~\ref{fig:eppcfhigh} (row~2) shows inside the bubble. The first
+peak is the \emph{lifted laminar shear layer} over the recirculation
+core: at its maximum ($x\!\approx\!0.48$) the rate-carrying layer
+has climbed to the top of the row-2 probe window ($0.01\,c$, i.e.\
+$y^+\!\approx\!420$ in the viscous units of the reattached wall,
+$u_\tau$ taken at $x\!=\!0.70$)---visible in the sheet as the
+elevated high-shear band arcing over the bubble. Between
+$x\!\approx\!0.51$ and $0.62$ the trace collapses to
+${\approx}0.14$: the handover that the layer itself ignited
+($\chi\!=\!1$ crosses at $0.47$, $c_{v1}$ at $0.52$, $30$ at
+$0.57$) diffuses exactly the inflection and concentrated shear that
+carry the outer branch---a deeper probe shows its residue dying by
+$x\!\approx\!0.55$---while the turbulent reattachment layer has not
+yet formed; the wall-normal max of one decaying and one growing
+branch necessarily notches at their crossing. The second peak, at
+$x\!=\!0.645$, is the new near-wall \emph{reattachment layer} at
+$d\!=\!0.0014\,c$ ($y^+\!\approx\!58$)---an order of magnitude
+lower than the first: concentrated shear at the low advection speed
+of the reattachment region saturates $\hat S g$ once more, before
+the attached-boundary-layer level (${\approx}0.2$) takes over
+downstream.
 
 \begin{figure}[p]
   \centering

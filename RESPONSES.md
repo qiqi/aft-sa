@@ -1621,3 +1621,51 @@ coordinate. Note this also explains why the second peak often tops
 the first: at reattachment the advection-speed X in the denominator
 of g is at its smallest. Diagnostic committed as
 paper/diag_sg_doublepeak.py.
+
+## 2026-07-25 ~13:45 UTC — fv1-bypass: s(chi) tied to sigma_t (parameter eliminated); PROMOTION battery running
+Per your approval, s(chi) in the bypass gate is no longer its own
+window: it is now the model's own sigma_t handover ramp
+(1 - exp(-(chi - switchCenter)/switchWidth), the committed (1,4)),
+so the bypass carries zero new chi parameters; the q gate keeps its
+analytic (2,4) law-of-the-wall margin. Clean rebuild done (SOP).
+Promotion criteria recorded: canon if the flat plate AND NLF are
+unaffected AND Eppler improves. The battery now covers all three:
+17 slots x (ON, OFF) at matched protocol — Eppler a0/2/5/7 + cav a5 +
+Re sweep 60k/100k/300k/460k; NLF a0/4/9/15 + cav a4; flat plate
+Tu0040/Tu0300. All 8 GPUs, ~3-4 h. Verdict table when it lands.
+
+## 2026-07-25 ~14:30 UTC — Review pass 24 + the alpha=-8 front diagnosis
+Pass 24 verified the whole pass-23 fix round and the eppbubble
+promotion bit-for-bit, and caught two real defects of mine:
+1. GHOST LEGEND: fig:eppbubble shipped with an "XFOIL (e9, a>=6.5)"
+   legend entry and NO curve (the xfoil fallback SIGFPE'd; the
+   committed branch data is all-null) — and my pass-23 response file
+   claimed the branch had landed. Fixed: legend gated on drawn data;
+   response corrected. Investigated the lost table-footnote number
+   too: XFOIL's alpha=7 Cf never crosses zero (min +2.2e-4), so the
+   old "0.40c" was a threshold crossing, not a zero-crossing
+   reattachment — it stays off the figure (convention mixing).
+2. THE ALPHA=-8 FRONTS DISAGREE WITH EVERYTHING, and the worse half
+   was invisible (clipped by xlim). Diagnosis on the am8 fields:
+   - Suction (lower) surface: a -Cp = 4.7 leading-edge spike whose
+     adverse recovery should trip transition at ~0.01c (XFOIL/AFT do).
+     SA-AI keeps the surface laminar to 0.89c: the spike bubble
+     offers ~0.01c of streamwise room while the chi handover needs
+     many times that — the paper's handover-length mechanism at its
+     most extreme. A genuinely informative failure.
+   - Pressure (upper) surface: front at 0.14-0.22c vs measured ~0.5c,
+     sitting just downstream of the stagnation point that has moved
+     onto that surface at -8 deg — the rate coordinate's
+     low-advection-speed (X->0) inflation region.
+   Decision per the reviewer's options: KEEP the markers, disclose
+   both misses in the caption, and extend xlim so the lower point is
+   visible. The forces stay within 7 counts — the polar is honest —
+   but the front misses now say out loud what they are: the boundary
+   of applicability at strong negative incidence, outside anything
+   the model was calibrated on.
+Minors: mfoil sweep now interpolates its reattachment crossing (and
+never clobbers the xfoil block); the L0 drag split lives in the
+committed diag script; nlfpolar caption covers the negative branch;
+campaign JSON schema completed; the invariant-kernel harness moved
+out of paper/repro (the paper is silent on the abandoned variant, as
+it should be).

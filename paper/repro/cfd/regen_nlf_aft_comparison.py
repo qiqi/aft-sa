@@ -68,7 +68,7 @@ for ax, side, lab in ((axs[0], 'upper', 'upper surface'),
                            " (L0$\\to$L2 by size)") if lv == 2 else None,
                     zorder=5)
     ax.set_xlabel('$x_t/c$'); ax.set_title(lab, fontsize=10)
-    ax.grid(alpha=0.3); ax.set_xlim(0, 0.75)
+    ax.grid(alpha=0.3); ax.set_xlim(0, 0.95)
 axs[0].set_ylabel('$c_l$'); axs[0].set_ylim(-0.6, 2.1)
 axs[0].legend(fontsize=7.5, loc='upper right')
 plt.tight_layout()

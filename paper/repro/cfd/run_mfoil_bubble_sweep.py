@@ -21,10 +21,17 @@ for a in np.arange(-2.0, 7.51, 0.5):
         neg = np.where(cf < 0)[0]
         if len(neg):
             rec['ls'] = float(x[neg[0]])
-            rec['tr'] = float(x[neg[-1] + 1]) if neg[-1] + 1 < len(x) else None
+            j = neg[-1]
+            if j + 1 < len(x):     # interpolate the upward zero crossing
+                f = (0.0 - cf[j]) / (cf[j + 1] - cf[j])
+                rec['tr'] = float(x[j] + f * (x[j + 1] - x[j]))
     out[f'{a:.1f}'] = rec
     print(a, rec, flush=True)
 p = f'{os.path.dirname(os.path.dirname(_H))}/data/mfoil_eppler_bubble_sweep.json'
+if os.path.exists(p):              # never clobber the xfoil block
+    old = json.load(open(p))
+    old.update(out)
+    out = old
 json.dump(out, open(p, 'w'), indent=1)
 print('wrote', p)
 

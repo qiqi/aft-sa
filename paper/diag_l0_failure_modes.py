@@ -45,3 +45,51 @@ for col, (af, zte, tag, tit) in enumerate(
 plt.tight_layout()
 plt.savefig('/tmp/l0_failure_modes.png', dpi=120)
 print('wrote /tmp/l0_failure_modes.png')
+
+
+def _canon_cd(case):
+    fn = f'{FR}/{case}/total_forces_v2.csv'
+    hdr = open(fn).readline().split(',')
+    iCD = [i for i, h in enumerate(hdr) if h.strip() == 'CD'][0]
+    f = np.genfromtxt(fn, delimiter=',', skip_header=1)
+    m = f[:, 1] >= f[-1, 1] - 500
+    return float(f[m, iCD].mean())
+
+
+def _cd_pressure(case, wall, alpha):
+    """Wind-axis pressure drag from the closed surface-Cp integral;
+    friction is the remainder against the canon force total."""
+    import vtk as _vtk
+    from vtk.util.numpy_support import vtk_to_numpy as _v2n
+    r = _vtk.vtkXMLPUnstructuredGridReader()
+    r.SetFileName(f'{FR}/{case}/surface_fluid_{wall}.pvtu'); r.Update()
+    g = r.GetOutput()
+    cp = _v2n(g.GetPointData().GetArray('Cp'))
+    pts = _v2n(g.GetPoints().GetData())
+    ids = _vtk.vtkIdList(); F = np.zeros(3)
+    for i in range(g.GetNumberOfCells()):
+        g.GetCellPoints(i, ids)
+        idx = [ids.GetId(j) for j in range(ids.GetNumberOfIds())]
+        if len(idx) < 3:
+            continue
+        P = pts[idx]; n = np.zeros(3)
+        for j in range(1, len(idx) - 1):
+            n += np.cross(P[j] - P[0], P[j + 1] - P[0]) / 2
+        F += np.mean(cp[idx], axis=0) * n
+    a = np.deg2rad(alpha); wind = np.array([np.cos(a), 0, np.sin(a)])
+    span = pts[:, 1].max() - pts[:, 1].min()
+    return abs(float(F @ wind) / span)
+
+
+print(f"{'case':34s} {'CD':>7} {'CD_p':>7} {'CD_f':>7}   (x1e4)")
+for _case, _wall, _a in (
+        ('strL0prop_nlf0416_Re4M_a4', 'nlf0416', 4),
+        ('strL2prop_nlf0416_Re4M_a4', 'nlf0416', 4),
+        ('cavL0prop_nlf0416_Re4M_a4', 'nlf0416', 4),
+        ('cavL2prop_nlf0416_Re4M_a4', 'nlf0416', 4),
+        ('strL0prop_eppler387_Re200k_a5', 'eppler387', 5),
+        ('strL2prop_eppler387_Re200k_a5', 'eppler387', 5),
+        ('cavL0prop_eppler387_Re200k_a5', 'eppler387', 5),
+        ('cavL2prop_eppler387_Re200k_a5', 'eppler387', 5)):
+    _cd = _canon_cd(_case); _cdp = _cd_pressure(_case, _wall, _a)
+    print(f'{_case:34s} {_cd*1e4:7.1f} {_cdp*1e4:7.1f} {(_cd-_cdp)*1e4:7.1f}')
