@@ -2216,3 +2216,23 @@ Final two items landed:
 
 Build clean, 87 pp., zero caption overflows. Remaining round-7 item ("get ready to revise
 the 1e5-failure prose per fv1 results") is the campaign-migration task (#27).
+
+## 2026-07-25 19:35 UTC — Review pass 29: all 3 majors + 7 minors implemented
+
+Pass 29 independently re-digitized every literature source (all committed JSONs confirmed
+faithful; Ghimire zero-mismatch; Carreno/Frere within 1-2 px) and verified the flat-plate
+new-canon numbers exactly. Its one real catch: the alpha=5 oil-flow constants in the two
+sweep scripts were partly TM-4062's alpha=4 row — at 3e5 the plotted reattachment sat
+0.03c aft of the actual alpha=5 tabulation, flattering the fan-vs-band comparison.
+Fixed to (0.34,0.67)/(0.38,0.59)/(0.39,0.55); three figures regenerated.
+
+Also: II.F status sentence now records that Sec. III is already on the recomputed model;
+SA-BC calibration caveat restored to fig:epppolar's caption; gamma-SA (D'Alessandro)
+comparison restored as prose (matched-lift vs matched-lift); frere JSON provenance title
+fixed; anushka bib completed (6 authors, pp. 204-219); flatplate regen script documents
+the SAAI_CFD_ROOT=flow360_fv1 requirement; Cole-Mueller "matched incidence" wording made
+exact; eight-vs-nine oil-flow incidences reconciled; helicity sentence scoped to
+wall-parallel vorticity; phantomsection anchors + Table C1 numbering.
+
+Full response: agent-paper-review/2026-07-25-1800-response.md. Build: 87 pp, 0 errors,
+0 undefined, 0 overflows.

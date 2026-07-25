@@ -1,6 +1,6 @@
 {
  "meta": {
-  "source": "Frere, Sorensen, Hillewaert, Winckelmans, 'Analysis of transitional flows over airfoils with LES and coupled RANS-eN methods' (TORQUE 2016), J. Phys. Conf. Ser. 753:022037 (2016), doi:10.1088/1742-6596/753/2/022037",
+  "source": "Frere, Sorensen, Hillewaert, Winckelmans, 'Discontinuous Galerkin methodology for Large-Eddy Simulations of wind turbine airfoils', J. Phys. Conf. Ser. 753:022037 (2016), Fig. 2",
   "figure": "Figure 2 (page 5 of PDF, PDF page index 4): E387 at Re=6e4, CL vs AOA (left panel) and CD vs AOA (right panel)",
   "airfoil": "Eppler 387",
   "reynolds": 60000.0,

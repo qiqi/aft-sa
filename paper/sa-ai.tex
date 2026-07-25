@@ -1181,7 +1181,9 @@ figure, table, and quoted number in those sections is from the
 bypass-inactive model, and the controlled on/off batteries (flat
 plate and NLF unchanged within $1.5$ counts, Eppler moved toward the
 measurement at every condition) bound what will shift when the
-recomputation replaces them. The recomputation will be adopted wholesale when complete.
+recomputation replaces them (Sec.~\ref{sec:flatplate} already uses
+the recomputed model; the remaining sections will be adopted wholesale
+when the campaign completes).
 
 \subsection{Preservation of the Spalart--Allmaras calibration}\label{sec:calib_diff}
 
@@ -1783,7 +1785,9 @@ and Table~\ref{tab:eppmesh} lists their resolution quantitatively.
   SA-BC (SU2) transition models at the same condition and
   $Tu\!=\!0.1\%$, digitized vector-exact from
   Ref.~\cite{shahjahan_2024}
-  (\texttt{data/lmbcm\_eppler387\_digitized.json}).}
+  (\texttt{data/lmbcm\_eppler387\_digitized.json}); the SA-BC
+  intermittency correlation was calibrated in part on this
+  airfoil~\cite{cakmakcioglu_2017}.}
   \label{fig:epppolar}
 \end{figure}
 
@@ -1793,7 +1797,13 @@ drag sits within $\pm3\%$ of the data at the bucket edges ($-1\%$ at
 $\alpha\!=\!0^\circ$, $+1\%$ at $2^\circ$, $-3\%$ at $7^\circ$) and
 \emph{over}-predicts by $\sim\!11\%$ near
 $\alpha\!=\!5^\circ$---possibly the pressure-drag footprint of the slightly over-long
-laminar-separation bubble (\S\ref{sec:calib_rate}). The coarsest grid (L0)
+laminar-separation bubble (\S\ref{sec:calib_rate}). The one published
+\emph{SA-based} transition-model result on this benchmark---the
+$\gamma$--SA coupling of Ref.~\cite{dalessandro_2025} (foam-extend,
+$Tu\!=\!0.07\%$)---reports $c_l\!=\!0.91\pm0.02$ with
+$c_d\!=\!0.0133$--$0.0140$ at matched lift, the natural family
+comparison for SA-AI's ${\approx}0.0153$ interpolated at the same
+lift. The coarsest grid (L0)
 over-predicts drag markedly; refinement is essential in this bubble-dominated
 regime.
 
@@ -1935,7 +1945,9 @@ Fig.~\ref{fig:sheet_eppler387_a5_upper}.)
 \end{figure}
 
 The bubble stations are collected in Fig.~\ref{fig:eppbubble},
-against the oil flow at all nine of its tabulated incidences, the
+against the oil flow at its eight bubble incidences (the ninth,
+$\alpha\!=\!8^\circ$, is natural transition with no bubble to
+plot), the
 independent Selig et al.\ measurement, the dense-$\alpha$ mfoil
 sweep, and the two digitized transition-model references. The
 separation location is
@@ -1951,8 +1963,10 @@ edge at every incidence and has no front to move. That margin should
 be read against the facility-to-facility spread now on the figure: the
 Cole--Mueller pressure-station measurements at the same Reynolds
 number~\cite{cole_mueller_1990} read reattachment $0.03$--$0.08\,c$
-aft of the LTPT oil flow at matched incidence, and the computed
-low-incidence reattachments fall within that spread.
+aft of the LTPT oil flow at and between its tabulated incidences
+($\alpha\!=\!-2^\circ$--$3^\circ$; the oil flow interpolated where
+the incidences do not coincide), and the computed low-incidence
+reattachments fall within that spread.
 
 
 This low-$\alpha$ over-length is not an amplification deficit: the
@@ -2169,7 +2183,7 @@ transition, reattachment, and the forces that follow.
   \label{fig:eppresweep_high}
 \end{figure}
 
-\label{sec:eppbistab}The measured flow is itself two-valued at
+\phantomsection\label{sec:eppbistab}The measured flow is itself two-valued at
 $6\!\times\!10^4$: the LTPT observed laminar separation with and
 without turbulent reattachment at the same angle of attack over
 $\alpha\!\approx\!3^\circ$--$7^\circ$ (McGhee et al.'s Fig.~11(a)), the
@@ -2200,7 +2214,7 @@ way---and the experiment's two-state structure, hysteresis included,
 lives at $6\!\times\!10^4$, one Reynolds step below the model's
 bistable-free burst.
 
-\label{sec:epphandover}Why does the model burst where the
+\phantomsection\label{sec:epphandover}Why does the model burst where the
 measurement reattaches? The account begun at the $2\!\times\!10^5$
 benchmark (Sec.~\ref{sec:eppval})---separation on time, the front on
 time to early, reattachment late---completes here as a length scale.
@@ -2685,7 +2699,8 @@ compressible transition---are the natural next steps. For crossflow
 specifically, the Gram algebra of Eq.~\eqref{eq:gram} already
 contains the natural sensor: the odd pairing
 $\langle\nabla d,\,\mathbf u\times(\boldsymbol\omega\times\mathbf d)\rangle$,
-equal to the helicity density times the layer depth, vanishing
+equal, for wall-parallel vorticity, to the helicity density times
+the layer depth, vanishing
 identically in two-dimensional flow, and measuring exactly the
 crossed shear a swept boundary layer adds---a second amplification
 channel in the same local language.
@@ -2939,7 +2954,8 @@ correlational, not causal.
 
 \clearpage
 \renewcommand{\thefigure}{C\arabic{figure}}
-\setcounter{figure}{0}
+\renewcommand{\thetable}{C\arabic{table}}
+\setcounter{figure}{0}\setcounter{table}{0}
 \section*{Appendix C: the Eppler 387 Reynolds sweep---contour sheets}
 
 One upper-surface sheet per swept Reynolds number of

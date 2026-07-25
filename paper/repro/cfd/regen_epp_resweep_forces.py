@@ -51,7 +51,7 @@ EXP = {60: (0.838, 0.0439, -0.1139), 100: (0.873, 0.0237, -0.0889),
        460: (0.914, 0.0093, -0.0807)}
 EXP_ERR = {Rk: (0.006, 0.0003) if Rk >= 100 else (0.039, 0.0023) for Rk in RES}
 # TM-4062 Table III oil flow at alpha=5 (x_sep, x_reattach)
-OIL = {100: (0.35, 0.67), 200: (0.38, 0.59), 300: (0.40, 0.58)}
+OIL = {100: (0.34, 0.67), 200: (0.38, 0.59), 300: (0.39, 0.55)}
 
 bench = json.load(open(f'{B}/sphere_campaign_eppler_results.json'))
 swp = json.load(open(f'{B}/sphere_campaign_epp_sweep_results.json'))

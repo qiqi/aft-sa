@@ -10,6 +10,10 @@ Layout (matches the archived original + new χ vs Re_θ panel):
 
 All extraction is from volume.pvtu (cell-centered → already nodal in Flow360
 output). Span direction (y) is collapsed by selecting a single y-slice.
+
+NOTE (partial canon flip, 2026-07-25): Sec. III of the paper is on the
+NEW canon -- regenerate with SAAI_CFD_ROOT=/home/qiqi/flexcompute/sa-ai/flow360_fv1
+until the global root flip; a bare run rebuilds the OLD-canon figure.
 """
 import os, sys, numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))

@@ -38,7 +38,7 @@ FAMS = ['cav', 'str']
 # Sphere-kernel onset floor k*A (pinned by tests/test_constants_consistency.py).
 REOMC_FLOOR = 124.6
 # Experimental LSB band (x_LS, x_TR) at alpha=5, oil flow, TM-4062 Table III.
-EXP_LSB_RE = {100: (0.35, 0.67), 200: (0.38, 0.59), 300: (0.40, 0.58)}
+EXP_LSB_RE = {100: (0.34, 0.67), 200: (0.38, 0.59), 300: (0.39, 0.55)}
 import pickle
 _mf = f"{B}/mfoil_eppler387_sweep_a5.pkl"
 MFOIL = pickle.load(open(_mf, 'rb')) if os.path.exists(_mf) else {}
