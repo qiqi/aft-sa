@@ -2309,3 +2309,54 @@ measured onsets. Inserted after Fig 9; fig:nlfaft caption's -8 account rewritten
 old "holds the suction surface laminar to 0.89c" claim was built on the artifact).
 regen_nlf_v2.py gains a 'neg' mode; derived slices added to the four negative case dirs.
 Old canon throughout (consistent with the rest of the paper); regenerates at migration.
+
+## 2026-07-25 20:55 UTC — The amplifying-zone gate vs the alpha=-8 defect (quantitative)
+
+User asked what the "amplifying-zone-gate candidate revision" is and how it could help
+alpha=-8. Tested its core coordinate on the am8/am4 fields (strL2, wd<0.01 probe max):
+
+  A0 = clip( max(0, Shat - 1/sqrt(2)) * g )_0    [the gate's thresholded coordinate]
+
+  strL2 am8 UPPER (the defect band):        maxP=0.048-0.077 over x=0.1-0.45, Shat at
+                                            the maxima 0.62-0.67  ->  maxA = 0 EVERYWHERE
+  strL2 am8 LOWER LE (genuine trip):        maxP=0.327, Shat=0.725  ->  maxA=0.036 (ON)
+  strL2 am4 UPPER TS band (correct front):  maxP=0.271, Shat=0.715  ->  maxA=0.023 (ON)
+
+Key structural insight: g=(Y-X-Z)/R>0 with Y<X is only possible when Z<0 — the spurious
+LE-spike-recovery amplification is CURVATURE-driven noise with the shear fraction below
+the sphere's diagonal (Y<X). The 1/sqrt(2) threshold demands genuine shear dominance
+(Y>X) and reads exactly zero through the whole band, while both genuine fronts survive.
+Caveats recorded: A << P in magnitude even where genuine (use as gate, not rate); the
+Blasius band margin is thin (0.715 vs 0.7071) so a soft threshold is safer than a hard
+one; any adoption = model revision = full battery.
+
+## 2026-07-25 21:20 UTC — CORRECTION: the alpha=-8 upper "early trip" is an UNCONVERGED
+## front (user's hypothesis confirmed); rectified-noise diagnosis RETRACTED
+
+User: "I bet alpha=-8 hasn't converged. The front is probably in the process of moving
+backwards... the structured mesh shows no such noise and it shows transition even
+earlier." — CONFIRMED directly by the fv1 rerun, which goes through converge_by_xtr
+(front-convergence batching):
+
+  cavL2 am8 (fv1) xtr_upper: 0.082@15k -> 0.137@20k -> 0.201@25k -> 0.280@30k ->
+  0.358@35k ... still marching ~0.08c/5k steps toward the references' 0.54-0.66c;
+  xtr_lower locked at 0.0104 from the first batches (the genuine suction-side LE trip).
+  cavL2 am4 (fv1): CONVERGED, 0.4529/0.1220 — on the references.
+
+The old-canon negative cases ran run_negalpha_nlf.py = run_solver with a FIXED cold-start
+budget (no front-convergence check) — their 0.13-0.19 upper fronts are snapshots of this
+march. My interim "rectified sub-hinge Shat*g noise defect" mechanism is retracted (the
+user's counterpoints were both right: max-probe/kernel don't respond to singular points,
+and the noiseless structured grid tripping "earlier" was just a different point of the
+same transient). The amplifying-zone-gate "second use case" from the 20:55 entry is void
+with it (the gate's original Eppler-handover purpose is unaffected).
+
+Paper corrections (commit to follow): fig:nlfaft -8 account now states the upper markers
+are not front-converged and will be replaced; fig:nlfnegalpha caption marks the upper
+rows a mid-march transient; NEW appendix sheets (user request) chi_sheet_nlf0416_negalpha
+_{upper,lower}.pdf — 4 rows (cav/str L2 x alpha=-4/-8) in the Appendix-A style, captions
+carrying the same caveat. All regenerate from the front-converged fv1 negatives at the
+Sec-IV migration. Protocol lesson recorded in memory: never quote a transition front from
+a fixed-budget cold start; forces flatten long before a RECEDING front settles (draining
+transient chi from a laminar side is ~100x slow under AI_LAMINAR_SLOWDOWN=0.01 —
+plausible mechanism for the slow march, unverified).

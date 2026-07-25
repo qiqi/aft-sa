@@ -1512,16 +1512,14 @@ quantitatively.
   all at the paper-wide untuned seed. At $-8^\circ$ the forces stay
   within seven counts of the measurement and the suction (lower)
   surface trips at $0.003$--$0.01\,c$, on the references'
-  leading-edge trip ($e^9$: $0.015$--$0.018\,c$); the pressure
-  (upper) surface, however, transitions early---$0.13$--$0.19\,c$
-  against the measured ${\approx}0.54\,c$ and the $e^9$
-  $0.66\,c$---the amplification booked in the recovery of that
-  surface's own leading-edge spike ($-C_p\!\approx\!2.1$), where
-  the onset threshold is already exceeded and the rate coordinate is
-  small but positive while the $e^9$ envelope books nothing
-  (Fig.~\ref{fig:nlfnegalpha}). The strong-negative-incidence regime
-  lies outside the model's calibration; the markers are retained as
-  an honest boundary of applicability.}
+  leading-edge trip ($e^9$: $0.015$--$0.018\,c$). The pressure-side
+  (upper) markers at $0.13$--$0.19\,c$ are \emph{not
+  front-converged}: these two cases ran a fixed cold-start budget,
+  and a front-convergence rerun shows the upper front still marching
+  aft at ${\approx}0.08\,c$ per $5000$ pseudo-steps at that budget,
+  toward the references' $0.54$--$0.66\,c$
+  (Fig.~\ref{fig:nlfnegalpha}); front-converged values will replace
+  these markers.}
   \label{fig:nlfaft}
 \end{figure}
 
@@ -1738,13 +1736,17 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
   triangle: measured onset at the computed lift. At $-4^\circ$ both
   fronts land on the references. At $-8^\circ$ the suction (lower)
   surface trips at $0.003$--$0.01\,c$, on the $e^9$ leading-edge
-  trip, while the pressure (upper) surface trips early
-  ($0.13$--$0.19\,c$ vs the measured $0.54$ and the $e^9$
-  $0.66\,c$): row~2 shows the low-level positive rate booked over
-  $x\!\approx\!0.02$--$0.2\,c$ in the recovery of that surface's
-  own leading-edge spike, where row~1's $Re_\Omega$ already exceeds
-  the small-rate onset ceiling while the $e^9$ envelope (row~3) books
-  nothing.}
+  trip, and locks there within the first batches of a
+  front-convergence rerun. The pressure-side (upper) state shown is a
+  \emph{transient}: at these cases' fixed cold-start budget the
+  upper front is still marching aft (${\approx}0.08\,c$ per $5000$
+  pseudo-steps in the rerun, toward the references'
+  $0.54$--$0.66\,c$), so rows~1--3 on that surface read the
+  mid-march state, not a converged prediction; the wall-anchored
+  contour sheets of the transient appear in Appendix~A
+  (Figs.~\ref{fig:sheet_nlf0416_negalpha_upper}--\ref{fig:sheet_nlf0416_negalpha_lower}).
+  Front-converged solutions replace this figure in the
+  recomputation.}
   \label{fig:nlfnegalpha}
 \end{figure}
 
@@ -2887,6 +2889,27 @@ handover above the lifted bubble shear layer stays in frame.
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a15_lower.pdf}
   \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=15^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_nlf0416_a15_lower}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_negalpha_upper.pdf}
+  \caption{NLF(1)-0416 negative-incidence pair, upper surface: rows are
+  (cavity, O-grid) L2 at $\alpha=-4^\circ$ then $-8^\circ$. At
+  $-8^\circ$ this surface's transition front is an aft-marching
+  transient at the fixed cold-start budget (see
+  Fig.~\ref{fig:nlfnegalpha}); the sheet shows that state mid-march.}
+  \label{fig:sheet_nlf0416_negalpha_upper}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_negalpha_lower.pdf}
+  \caption{As Fig.~\ref{fig:sheet_nlf0416_negalpha_upper}, lower
+  surface: laminar to ${\approx}0.07$--$0.12\,c$ at $-4^\circ$ and
+  tripped at the leading edge at $-8^\circ$ (the suction side there),
+  both front-converged.}
+  \label{fig:sheet_nlf0416_negalpha_lower}
 \end{figure}
 
 \clearpage
