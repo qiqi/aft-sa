@@ -2399,3 +2399,27 @@ Disclosure added at the five-row convention definition in the text (and the Daed
 appendix caption): "the field is neighbor-smoothed (~0.5% chord streamwise, 5% of the
 probe wall-normal) before the maximum... a raw pointwise maximum would over-report".
 Presentation only — the solver's production is untouched.
+
+## 2026-07-25 22:15 UTC — nlf_neg collision handled (campaign set vs early run)
+
+At 22:03 the main campaign reached its own nlf_neg set while the pulled-forward early run
+still held 2 of the 4 case dirs. What happened: the campaign SKIPped cav_am4 (stamped),
+its duplicate launches on cav_am8/str_am4 crashed within seconds against the held dirs
+(recorded as err entries in its results), and it legitimately claimed str_am8 on gpu3
+(not yet started by the early run). Actions: killed the early runner's PARENT (python
+run_sphere_campaign nlf_neg) so it never launches a duplicate str_am8 — its two running
+converge_by_xtr children (cav_am8 3h march on gpu7, str_am4 on gpu6) continue as orphans;
+launched scripts/babysit_nlfneg_orphans.py to stamp ai_constants.log + harvest
+forces/fronts into sphere_campaign_nlf_neg_results.json.orphan when each exits (their
+parent used to do this), with a monitor on its log.
+
+Damage audit from the campaign's pre-launch reset (deletes *_v2.csv, xtr_history.csv,
+rewrites Flow360.json): xtr_history.csv is rewritten in full from converge_by_xtr's
+in-memory list at each batch end (no loss); the nonlinear_residual/total_forces CSVs
+self-healed (Flow360 recreates them with consistent cumulative step counters — verified
+cav_am8 at 52790 and str_am4 at 23180, both matching wall-clock progress), so
+get_current_step stays truthful and no cold-restart or false-convergence materializes.
+PROCESS LESSON: never run a set ahead of the campaign queue without also removing it
+from the queued orchestrator's list (the skip-guard only protects COMPLETED cases;
+in-flight cases collide with the reset). The campaign's nlf_neg err entries for
+cav_am8/str_am4 will be repaired from the orphan harvest at migration.
