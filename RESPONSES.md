@@ -1058,3 +1058,34 @@ CORRECTIONS to my earlier entries per the pass: (i) at 4 deg the L2
 family pair is tighter than L1 in DRAG (0.35% vs 0.92%) and marginally
 LOOSER in lift (0.72% vs 0.65%) — my "tighter than L1's 0.9%" conflated
 the two; (ii) the sheet regeneration was 24 PDFs, not 16.
+
+## 2026-07-25 ~09:00 UTC — Daedalus CD-vs-CL slope: quantified; section sheets building
+Your observation quantified (ogrid L2 strips vs AVL-Trefftz-rescaled +
+FlexFoil profile):
+  eta=0.31: RANS sectional dcd/dcl = 0.0180 vs reference 0.0109 — and
+  the reference slope is PURE INDUCED (its XFOIL profile term is flat,
+  0.0122->0.0121). Excess = RANS PROFILE drag growing ~6 counts per
+  0.1 cl where XFOIL's doesn't grow at all.
+  Crossing behavior: inboard RANS goes from -7 counts (a4) to +8 (a6)
+  vs reference; outboard (eta=0.6) RANS is above at ALL alpha and
+  diverging (+7 -> +21 counts) — worst where the bubble is longest.
+Candidate mechanisms the new five-row SECTION SHEETS will separate:
+ (a) bubble pressure drag deepening with incidence (-Cp plateau depth &
+     recovery deficit vs strip Cp);
+ (b) handover post-reattachment Cf overshoot growing with alpha (Cf row
+     vs strip cf);
+ (c) incipient TE separation/thickened recovery at a6 (Cf droop at
+     tail);
+ (d) mid-bubble transition lead extending the turbulent run (chi/N row)
+     — but that offset is ~alpha-independent, so unlikely to make a
+     SLOPE.
+Prior: (a)+(b) — the stretched handover's reattachment signature grows
+with loading; XFOIL's abrupt closure doesn't.
+Generator: repro/cfd/regen_daedalus_section_sheets.py — the 2D
+five-row layout (probe-max Re_Omega / probe-max Shat*g / max-chi + strip
+N / -Cp / Cf_x) cut at eta = 0.10, 0.31, 0.60; columns alpha=4/5/6;
+O-grid L2 solid + cavity L2 dashed where complete; FlexFoil strip
+dotted. Probes the volumes along in-plane surface normals (0.01 c_loc,
+the 2D convention); chi row from the committed chi_surface.npz. Running
+now (~30 min: reloads the 37-55M-node volumes); destined for Appendix D
+with a main-text pointer from the slope discussion.
