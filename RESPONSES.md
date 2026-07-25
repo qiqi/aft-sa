@@ -989,3 +989,21 @@ realistic next step, needed by transonic-NLF. Crossflow = bigger
 new rate+threshold, two-channel combo). CRM-NLF needs BOTH at once
 (compressible swept wing, CATNLF suppresses CF leaving residual TS) =
 a genuine leap, not an increment.
+
+## 2026-07-25 ~07:35 UTC — cavity-L2 a4 landed; section refreshed (all times UTC)
+(Clarified per your question: the server clock and all quoted times are
+UTC. Cavity a5 ETA ~09:00 UTC, a6 ~14:30 UTC.)
+case_cavity_L2_saai_a4: CL 1.0208 / CD 0.02004.
+- L2 FAMILY AGREEMENT at 4 deg: dCL 0.7%, dCD 0.7 counts (0.35%) —
+  tighter than L1's 0.9%. At eta=0.31 the two finest grids put the
+  transition front 0.002c apart (0.549 vs 0.551), separation 0.008c,
+  reattachment 0.016c; cavity bubble 0.481-0.645 vs strips 0.472-0.660.
+- vs matched-lift reference (0.02125): cavity 12.1 counts below —
+  consistent with the structured family's 12.8.
+- Paper updated: totals-table cell filled; "Ten converged RANS
+  solutions" with pending = cavity L2 at 5/6 deg; ledger carries the
+  L2 agreement; the a4 surface figure now has its promised
+  unstructured-L2 row (caption updated; the pending clause moved to
+  the a5/a6 captions); bubble-edge agreement now an L2 statement at
+  4 deg; polar + sectional figures regenerated (sectional a4 cavity
+  trace now L2).

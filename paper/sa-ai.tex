@@ -2447,10 +2447,11 @@ is the same $e^N$ framework
 used throughout---a vortex-lattice model (AVL~\cite{drela_youngren_avl}) with strip-wise XFOIL
 section polars at matched
 local $c_l$ and $N_\mathrm{crit}$, and FlexFoil amplification envelopes at
-section conditions (Sec.~\ref{sec:eppresweep}). Nine converged RANS
-solutions underlie the comparison---both families at L1 and the
-structured family at L2, at all three incidences; the three
-unstructured L2 runs are still
+section conditions (Sec.~\ref{sec:eppresweep}). Ten converged RANS
+solutions underlie the comparison---both families at L1 at all three
+incidences, the structured family at L2 at all three, and the
+unstructured family at L2 at $4^\circ$; the remaining two
+unstructured L2 runs ($5^\circ$, $6^\circ$) are still
 in progress and are excluded from the figures and tables that follow.
 
 \begin{table}[tp]
@@ -2519,7 +2520,10 @@ in progress and are excluded from the figures and tables that follow.
 The macroscopic ledger comes first (Fig.~\ref{fig:daepolar}; the
 per-level coefficients are tabulated in Appendix~D,
 Table~\ref{tab:daetotals}). The two families agree at L1 to
-$0.6$--$0.8\%$ in $C_L$ and $0.9$--$1.8\%$ in $C_D$. Against the
+$0.6$--$0.8\%$ in $C_L$ and $0.9$--$1.8\%$ in $C_D$---and at
+$\alpha\!=\!4^\circ$, the one incidence where both finest grids
+are complete, to $0.7\%$ in $C_L$ and $0.7$ counts ($0.35\%$) in
+$C_D$ at L2. Against the
 AVL$+$XFOIL reference trimmed to the same total lift (the
 lift-consistent comparison; the vortex lattice needs
 $\sim\!0.5^\circ$ more incidence to carry the RANS $C_L$), the RANS
@@ -2575,27 +2579,28 @@ smooths over.
   laminar separation bubble is bounded by the bold $C_{f,x}\!=\!0$
   contour), and the near-wall amplification $\max_n\chi$ in decade
   contours (right; bold: the model's transition front
-  $\chi\!=\!1$). Rows: structured O-grid L2 and the
+  $\chi\!=\!1$). Rows: structured O-grid L2, unstructured L2, and the
   section-by-section $e^N$ reference---FlexFoil at each station's AVL
   $c_l$, local chord Reynolds number, and
   $N_\mathrm{crit}\!=\!13.6$, its $C_p$ from the Karman--Tsien-corrected
   edge velocity and its amplification drawn as $\chi_\infty e^{N}$ at
-  the same decade levels (bold: $N\!=\!N_\mathrm{crit}$). The
-  unstructured-L2 row will be added when that run completes.}
+  the same decade levels (bold: $N\!=\!N_\mathrm{crit}$).}
   \label{fig:daesurf4}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{daedalus_surface_a5.pdf}
-  \caption{As Fig.~\ref{fig:daesurf4}, at $\alpha\!=\!5^\circ$.}
+  \caption{As Fig.~\ref{fig:daesurf4}, at $\alpha\!=\!5^\circ$ (the
+  unstructured-L2 row will be added when that run completes).}
   \label{fig:daesurf5}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{daedalus_surface_a6.pdf}
-  \caption{As Fig.~\ref{fig:daesurf4}, at $\alpha\!=\!6^\circ$.}
+  \caption{As Fig.~\ref{fig:daesurf4}, at $\alpha\!=\!6^\circ$ (the
+  unstructured-L2 row will be added when that run completes).}
   \label{fig:daesurf6}
 \end{figure}
 
@@ -2615,8 +2620,10 @@ against $0.46$--$0.63\,c$: separation agrees to $0.02\,c$ and
 reattachment to under $0.01\,c$ at every incidence. The reattachment is also the quantity
 still moving under refinement---$0.63$ at L1 to $0.66$ at L2 against
 the strips' $0.66$---while separation and the $\chi$ field are
-level-converged, and the two families agree at L1 to $0.02\,c$ on
-both edges. The $\chi$ maps show the interior anatomy: the bubble's
+level-converged, and the two families agree to $0.02\,c$ on
+both edges---at L1 at every incidence, and at L2 at $4^\circ$
+(fronts $0.002\,c$ apart, separation $0.008$, reattachment
+$0.016\,c$). The $\chi$ maps show the interior anatomy: the bubble's
 \emph{extent} matches the strips' station by station, but the model's
 transition front ($\chi\!=\!1$, bold in the figure) sits near
 mid-bubble, $\sim\!0.09\,c$ ahead of the strips' $N_\mathrm{crit}$
@@ -3101,7 +3108,7 @@ coefficients are means over the final 500 steps.
     $\alpha$ & level & $C_L$ & $C_D$ & $C_L$ & $C_D$\\
     \midrule
     $4^\circ$ & L1 & 1.0278 & 0.01957 & 1.0211 & 0.01975\\
-              & L2 & 1.0282 & 0.01997 & --- & ---\\
+              & L2 & 1.0282 & 0.01997 & 1.0208 & 0.02004\\
               & AVL$+$XFOIL & 1.0282 & 0.02125 & &\\
     \midrule
     $5^\circ$ & L1 & 1.1300 & 0.02212 & 1.1225 & 0.02235\\
