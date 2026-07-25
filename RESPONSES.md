@@ -1902,3 +1902,66 @@ question. First finding, from the existing 40k fields:
 - Running now: one-step ON/OFF restart pair from the identical
   converged control state to localize the production difference
   field-by-field before implementing v2.
+
+## 2026-07-25 ~20:10 UTC — Workshop envelope IS IN THE PAPER (fig:nlfworkshop)
+Per your go: new figure after fig:nlfaft — the min-max envelope of
+all ~14 workshop submittals (transition-vs-alpha, both surfaces,
+digitized from Coder's summary deck p.22 with verification overlay
+committed), the LTPT points recoverable from under the overlay
+clusters, Piotrowski-Zingg's vector SA-LM2015 sweep, and SA-AI's
+markers. The story it tells: the envelope is 0.4-0.6 chord WIDE at
+fixed incidence (the workshop's headline scatter), and the untuned
+SA-AI fronts sit inside it, on the experiment/LM cluster, at every
+incidence — including the alpha=-4 lower-surface front, which looked
+aggressive against the experiment alone but is within the community
+scatter. Two new bib entries (coder_tmpw_summary,
+piotrowski_zingg_2021); the three workshop PDFs committed to
+references/. Commit c0f3d8f (88 pages, clean build).
+
+## 2026-07-25 ~20:15 UTC — Vector-calculus kernel: the PAIR (division-free) form
+Your reformulation adopted, and it is strictly better conditioned.
+With m = omega x d_vec (d_vec = d n_hat) and l = (d.d)/2 * lap(u):
+  A = u . m   (= [u, omega, d_vec], a signed scalar triple product)
+  B = m . m
+  C = l . m
+  S_hat = B/sqrt(A^2+B^2),  g = (B-A-C)/sqrt(A^2+B^2+C^2),  P = S_hat g.
+Divisions only by positive-definite RMS norms of the pair triple; no
+unit vector is ever manufactured (the old code's s_hat needed
+1e-30-guarded normalization and fabricated a noise DIRECTION at
+omega -> 0; here A,B,C all vanish smoothly and P -> 0). Algebraically
+identical to the s_hat form wherever omega x d != 0 (the tail is
+homogeneous degree 0 — same projective class), so the LE sign-flutter
+pathology is a property of the class, not the divisions; the guard is
+the shear-significance blend, one line in pair language:
+  A_eff = W A + (1-W) |u| sqrt(B),  W = B/(B + u.u).
+Plan: implement pair form + W-guard as AI_INVARIANT_KERNEL=2 after
+the one-step ON/OFF localization (running) confirms the mechanism.
+
+## 2026-07-25 ~21:00 UTC — Vector kernel: YOUR wall-parallel Gram form agreed and implemented
+Final form (AI_INVARIANT_KERNEL=2), exactly as you proposed:
+  m = omega x d_vec (automatically wall-parallel),
+  u_par = u - (u.n)n,  l_par = (d^2/2)[lap u - (n.lap u)n],
+  P = (<m,m> - <m,u_par> - <m,l_par>) /
+      sqrt((<m,m>+<u_par,u_par>) (<m,m>+<u_par,u_par>+<l_par,l_par>)).
+Why it wins over both my earlier drafts:
+- EXACT on parallel layers: reduces to Shat*g when the three vectors
+  are collinear — verified on the frozen NLF attached profile to
+  1.4e-6.
+- Cauchy-Schwarz makes any misalignment only SHRINK P, which kills
+  both failure sites the one-step localization found (near-wake
+  n-to-TE orthogonality; aft-BL-edge omega sign flutter) with NO
+  switch, NO W-blend, NO degenerate limit: the denominator is
+  >= <u,u> wherever there is flow (your objection to W->0 as B->0 is
+  structurally resolved).
+- In the bubble the vectors are collinear, so the signed
+  (antipodal-exact) behavior of the recirculation layer is retained;
+  the pointwise bubble deviation from the MAGNITUDE kernel is the
+  designed one, and the solver battery is the macroscopic test.
+One-step localization that motivated the guard (for the record): the
+s_hat form's instantaneous production difference concentrates at
+x=1.0-1.25 (near-wake, wallDist 0.02-0.25) and the aft BL edge; the
+LE was numerically ZERO at one step — the 40k LE chi elevation was
+downstream contamination feeding back, not a local source.
+Battery running (4 runs: str/cav NLF a4 + Eppler a5 with the new form
+vs the existing controls + a fresh Eppler control). Verdict = ON ==
+control within line widths, the bar the s_hat form failed.
