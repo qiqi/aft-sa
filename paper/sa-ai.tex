@@ -1326,18 +1326,49 @@ $\chi_\infty$ is one unit of $N_\mathrm{crit}$, which on the Blasius envelope
 ($dN/dRe_\theta\!\approx\!10^{-2}$) shifts onset by
 $\Delta Re_\theta\!\approx\!100$.
 
-In the solver the indicator triple is assembled from vector-calculus
-objects: $X\!=\!|\mathbf u|$ (velocity taken relative to the nearest
-wall point, which makes the triple Galilean invariant; for the static
-walls of this paper, the absolute velocity), $Y\!=\!|\boldsymbol\omega|\,d$,
-and the curvature
-$Z\!=\!\tfrac12 d^2\,(\nabla^2\mathbf u)\cdot\hat{\mathbf u}$,
-where the divergence-free identity
+In the solver the indicator triple is assembled from four local
+vector-calculus objects and their inner products alone: the velocity
+$\mathbf u$ (taken relative to the nearest wall point, which makes
+the triple Galilean invariant; for the static walls of this paper,
+the absolute velocity), the vorticity $\boldsymbol\omega$, the
+wall-distance vector $\mathbf d = d\,\nabla d$, and the curvature
+vector
+$\boldsymbol\ell = \tfrac12(\mathbf d\!\cdot\!\mathbf d)\,
+\nabla^2\mathbf u$, where the divergence-free identity
 $\nabla^2\mathbf u=-\nabla\times\boldsymbol\omega$ supplies the
-second derivative and on a parallel layer
-$(\nabla^2\mathbf{u})\cdot\hat{\mathbf{u}}=\operatorname{sign}(u)\,u''$;
-the onset gate's $Re_\Omega\!=\!d^2|\boldsymbol\omega|/\nu$
-completes the set. Because the rate depends on the frozen mean flow and
+second derivative. Because $\hat S$ and $g$ are homogeneous of
+degree zero in the triple, any common positive factor drops out;
+rescaling Eq.~\eqref{eq:indicators} by $|\mathbf u|$ gives the
+implemented representative
+\begin{equation}
+  (X,\,Y,\,Z) \;\cong\;
+  \Big(\,\langle\mathbf u,\mathbf u\rangle,\;
+  \sqrt{\langle\mathbf u,\mathbf u\rangle\,
+        \langle\mathbf d,\mathbf d\rangle\,
+        \langle\boldsymbol\omega,\boldsymbol\omega\rangle},\;
+  \langle\boldsymbol\ell,\mathbf u\rangle\,\Big),
+  \label{eq:gram}
+\end{equation}
+in which every entry is an invariant pairing, no unit vector is ever
+constructed, no division by a vanishing magnitude can occur, and the
+only radical sits over a non-negative product; on a parallel layer
+$(\nabla^2\mathbf{u})\cdot\hat{\mathbf{u}}=\operatorname{sign}(u)\,u''$
+and Eq.~\eqref{eq:gram} reduces to the magnitude triple
+$(|u|,\,d|u'|,\,\tfrac12 d^2 u''\operatorname{sign}(u))$ times the
+positive factor $|u|$. The onset gate's
+$Re_\Omega\!=\!d^2|\boldsymbol\omega|/\nu$ completes the set.
+The same four vectors admit two other independent pairings, recorded
+here for completeness: the signed pairing
+$\langle\boldsymbol\omega\times\mathbf d,\mathbf u\rangle$,
+whose Cauchy--Schwarz \emph{envelope} is exactly
+Eq.~\eqref{eq:gram}'s middle entry---realizations built on the signed
+pairing itself were implemented and rejected, as they rectify
+vorticity-direction noise in weak shear---and the odd (pseudoscalar)
+pairing
+$\langle\nabla d,\mathbf u\times(\boldsymbol\omega\times\mathbf d)\rangle$,
+which vanishes identically in two-dimensional flow and measures
+cross-flow; it plays no role in this paper and is taken up in the
+outlook. Because the rate depends on the frozen mean flow and
 never on $\tilde\nu$, the production's $\tilde\nu$-derivative is
 analytic---the handover derivative is its only stiff piece---and it is
 treated implicitly with the same clipping as the baseline SA production.

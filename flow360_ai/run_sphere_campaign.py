@@ -102,6 +102,13 @@ def worker(gpu, q, results, lock):
             print(f"[gpu{gpu}] SKIP {name} (no mesh)", flush=True)
             q.task_done()
             continue
+        if os.path.exists(f"{d}/ai_constants.log"):
+            print(f"[gpu{gpu}] SKIP {name} (completed: ai_constants.log present)", flush=True)
+            r = parse(d); r['converged'] = True
+            with lock:
+                results[name] = r
+            q.task_done()
+            continue
         t0 = time.time()
         print(f"[gpu{gpu}] START {name}", flush=True)
         reset(d)
