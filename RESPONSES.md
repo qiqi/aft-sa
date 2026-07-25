@@ -1803,3 +1803,45 @@ Your decision executed:
   disk (fv1b_*, fv1w1_*) as the promotion evidence trail; the
   matched-protocol linear ON/OFF pairs will be pulled from the new
   campaign vs the OFF battery.
+
+## 2026-07-25 ~18:10 UTC — Your alpha=7 catch: the e^N Cf was EDGE-normalized (real bug, 4 figures)
+You were right and it was worth chasing: in fig:eppcfhigh's alpha=7
+column the dotted e^N Cf is XFOIL's dump (mfoil stalls there), and
+XFOIL/FlexFoil dump Cf is normalized by the LOCAL EDGE dynamic
+pressure (tau / (rho ue^2 / 2)) while the CFD rows and mfoil use the
+freestream convention. On the slow pressure side (ue~0.68 at alpha=7)
+that inflates the dotted curve by 1/ue^2 ~ 2.2x — the "many times
+higher" you saw. Verified: multiplying by ue^2 (= 1 - cp) drops the
+XFOIL lower-surface curve EXACTLY onto the CFD (including the 0.008
+peak at x=0.03; overlay in scratchpad cfnorm_check.png).
+Affected and fixed (conversion at plot time; all zero-crossing
+extractions are sign-invariant and untouched):
+- fig:eppcfhigh alpha=7 (XFOIL dotted),
+- NLF five-row sheets where the XFOIL fill is used (alpha=9/15),
+- the Re-sweep sheets at 60k/460k (XFOIL-primary rows),
+- the Daedalus section sheets' strip C_f row (FlexFoil dump; xue^2
+  via the stored ue).
+mfoil-sourced overlays were always freestream-normalized and correct.
+Regens running; caption of fig:eppcfhigh now states the convention
+(and corrects "FlexFoil" -> XFOIL — the alpha=7 reference is the
+XFOIL pickle; FlexFoil supplies the N envelopes elsewhere).
+
+## 2026-07-25 ~18:15 UTC — CANON CLARIFICATION (important): NOT the invariant kernel
+To your "confirm the canon is the vector-calculus implementation +
+fv1 bypass": NO on the first half. Canon = the MAGNITUDE (standard)
+sphere kernel + fv1 bypass (linear s over (1,2), analytic q gate).
+The invariant/vector-calculus kernel FAILED its 2D verification at
+matched protocol this morning (controls reproduce old canon exactly;
+invariant +12.4/+22.3/+10.8 counts on str-NLF/cav-NLF/Eppler;
+turbulence-residual floor 5 decades high — s_hat direction flutter in
+weak shear suspected). Per your own gate (verify on 2D first), it is
+not cleared; the running 93-case campaign uses the magnitude kernel.
+The invariant form remains a debugging project (candidate fix: blend
+s_hat to the magnitude representative in weak shear) and lives in the
+extension memo, not the paper.
+Paper rewrite scope right now (fv1 bypass only): Sec. II gains the
+bypass definition + double-counting argument; Appendix E's mu_t
+assembly gains the (1-w) fv1 + w blend; the analytic q-margin
+composite-profile note goes to repro/analytic. Results
+sections/figures flip to flow360_fv1 when the campaign lands. I'll
+list every rewritten paragraph as it happens.

@@ -189,7 +189,9 @@ def strip_ref(a, eta_q):
     beta = np.sqrt(1 - 0.1**2)
     cpi = 1.0 - ue**2
     cpk = cpi / (beta + 0.1**2 / 2 * cpi / (1 + beta))
-    return dict(xn=xn, n=nn, xc=xc, cp=cpk, cf=cf)
+    # FlexFoil dump cf is EDGE-normalized; the sheets' C_f,x row is
+    # freestream-normalized -> convert by ue^2
+    return dict(xn=xn, n=nn, xc=xc, cp=cpk, cf=cf * ue**2)
 
 
 def make_sheet(eta_q):

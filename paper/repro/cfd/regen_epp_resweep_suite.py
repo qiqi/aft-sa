@@ -163,11 +163,15 @@ def make_fig(re_list, out):
         ref = (XFOIL.get(Rk) if use_xf else None) or MFOIL.get(Rk) or XFOIL.get(Rk)
         if ref is not None and 'upper' not in ref:
             ref = XFOIL.get(Rk)
+        ref_is_xfoil = ref is not None and ref is XFOIL.get(Rk)
         if ref is not None and 'upper' in ref:
             for side, c in [('upper', UP), ('lower', LO)]:
                 s = ref[side]
                 ax_cp.plot(s['x'], -np.asarray(s['cp']), ':', color=c, lw=1.4, alpha=0.8, zorder=4)
-                ax_cf.plot(s['x'], np.asarray(s['cf']), ':', color=c, lw=1.4, alpha=0.8, zorder=4)
+                _cf = np.asarray(s['cf'])
+                if ref_is_xfoil:   # XFOIL dump cf is edge-normalized
+                    _cf = _cf * np.clip(1.0 - np.asarray(s['cp']), 0.0, None)
+                ax_cf.plot(s['x'], _cf, ':', color=c, lw=1.4, alpha=0.8, zorder=4)
         # exact experimental Cp (TM-4062 Appendix D) at nearest-5deg column.
         # Where the report holds repeat datasets (60k: up- AND down-sweep runs;
         # 100k: three free-transition tunnel conditions), overlay them all --

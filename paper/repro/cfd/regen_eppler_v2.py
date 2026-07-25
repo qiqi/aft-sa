@@ -697,8 +697,16 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         if rd is not None and 'upper' in rd:
             ax_cp.plot(rd['upper']['x'], -np.array(rd['upper']['cp']), ':', color=UP_COLOR, lw=1.2, alpha=0.5)
             ax_cp.plot(rd['lower']['x'], -np.array(rd['lower']['cp']), ':', color=LO_COLOR, lw=1.2, alpha=0.5)
-            ax_cf.plot(rd['upper']['x'], np.array(rd['upper']['cf']), ':', color=UP_COLOR, lw=1.2, alpha=0.5)
-            ax_cf.plot(rd['lower']['x'], np.array(rd['lower']['cf']), ':', color=LO_COLOR, lw=1.2, alpha=0.5)
+            # XFOIL/FlexFoil dump cf is EDGE-normalized (tau/(0.5 rho ue^2));
+            # convert to the freestream convention of the CFD rows via
+            # ue^2 = 1 - cp (mfoil's cf is already freestream-normalized).
+            def _fs(sd):
+                cf = np.array(sd['cf'])
+                if rtag == 'XFOIL':
+                    cf = cf * np.clip(1.0 - np.asarray(sd['cp']), 0.0, None)
+                return cf
+            ax_cf.plot(rd['upper']['x'], _fs(rd['upper']), ':', color=UP_COLOR, lw=1.2, alpha=0.5)
+            ax_cf.plot(rd['lower']['x'], _fs(rd['lower']), ':', color=LO_COLOR, lw=1.2, alpha=0.5)
         # Experimental upper-surface LSB (oil flow, Table III, R=200k) as a grey
         # band spanning laminar-separation -> turbulent-reattachment (x/c). Shown
         # on the surface-distribution rows so it can be read against the computed

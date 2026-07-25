@@ -1117,6 +1117,55 @@ Sec.~\ref{sec:epphandover} meets exactly such a flow, on the Eppler
 387 at $Re\!\leq\!10^5$, where the handover zone grows to a large
 fraction of the chord and sets the model's bubble-bursting boundary.
 
+\subsection{The eddy-viscosity assembly in lifted transitional
+layers}\label{sec:fv1bypass}
+
+One further term acts during the handover: the near-wall damping
+$f_{v1}$ in the eddy-viscosity assembly
+$\mu_t\!=\!\rho\tilde\nu f_{v1}(\chi)$. Its derivation is the
+attached-wall-layer identity $\chi\!=\!\kappa y^+$, under which
+$f_{v1}$ enforces the $\mu_t\!\propto\!y^3$ sublayer scaling; its
+half-saturation at $\chi\!=\!c_{v1}$ \emph{is} $y^+\!\approx\!17$,
+the middle of the buffer layer, by construction. In a lifted
+transitional shear layer---the free shear layer over a laminar
+separation bubble in mid-handover---that identity is void at every
+$\chi$: there is no wall scale for $f_{v1}$ to enforce, and its
+damping is an unearned sink on exactly the young turbulence that must
+close the bubble. Whether a point is in an attached wall layer is
+decidable from the state itself, with no new constants: writing
+$y^+\!:=\!\chi/\kappa$ (exact in any SA-consistent attached layer,
+where $\tilde\nu\!=\!\kappa y u_\tau$ through buffer and log
+regions), the reconstruction
+\begin{equation}
+  q \;=\; \frac{|\mathbf u|\,d/\nu}{\,y^+\,U^+(y^+)\,},
+  \label{eq:fv1q}
+\end{equation}
+with $U^+$ the Reichardt law of the wall, equals unity identically in
+an attached equilibrium layer and is many times larger in a lifted
+layer, whose $|\mathbf u|$ and $d$ are set by the bubble geometry
+rather than the wall unit. The assembly is therefore blended,
+\begin{equation}
+  \mu_t = \big[(1-w)\,f_{v1}(\chi) + w\big]\,\rho\tilde\nu,
+  \qquad
+  w = s(\chi)\,G(q),
+  \label{eq:fv1bypass}
+\end{equation}
+where $G$ ramps on over $q\!\in\!(2,4)$---the margin covers how far
+attached layers stray from Reichardt under pressure gradient, which a
+composite log--wake profile bounds below two in the gated band---and
+$s\!=\!\mathrm{clip}(\chi-1,0,1)$ is a smoothing ramp across the
+amplification threshold. The $s$ ramp is deliberately \emph{faster}
+than the $\sigma_t$ handover: $\sigma_t$ encodes turbulence maturity
+and is already applied to the production, while $f_{v1}$ encodes wall
+proximity---gating the bypass on maturity would charge the young
+turbulence twice for the same immaturity. The construction is inert
+everywhere it should be: for $\chi\!<\!1$, $\mu_t$ is negligible
+under either assembly; for $\chi\!\gtrsim\!30$, $f_{v1}\!\to\!1$
+and the blend is the identity; and in attached layers $G$ never
+opens. Its effect is confined to lifted transitional layers, and its
+consequences are quantified with the Reynolds sweep of
+Sec.~\ref{sec:eppresweep}.
+
 \subsection{Preservation of the Spalart--Allmaras calibration}\label{sec:calib_diff}
 
 The reduced diffusion (Eq.~\eqref{eq:nulamscale}) and the two handover
@@ -1800,10 +1849,12 @@ regime.
   lower-surface boundary layer remains attached and laminar to
   $x/c\!\approx\!0.99$ across the entire $\alpha$ range, matching the
   $e^9$ prediction that the lower transition lies aft of the airfoil. At
-  $\alpha\!=\!7^\circ$ the dotted reference is FlexFoil rather than mfoil,
-  which stalls numerically there (Fig.~\ref{fig:eppbubble}; XFOIL's forces
-  agree, $C_l\!=\!1.17$); the surface distributions carry no $N$ curve, so
-  row~3 shows no envelope at $7^\circ$.}
+  $\alpha\!=\!7^\circ$ the dotted reference is XFOIL rather than mfoil,
+  which stalls numerically there (Fig.~\ref{fig:eppbubble});
+  the surface distributions carry no $N$ curve, so
+  row~3 shows no envelope at $7^\circ$. XFOIL's dumped $C_f$ is
+  edge-normalized and is converted to the freestream convention of the
+  computed rows ($\times u_e^2$).}
   \label{fig:eppcfhigh}
 \end{figure}
 
@@ -3350,7 +3401,10 @@ production, destruction, and closure functions, carried over unchanged, are
   \label{eq:sa_closure}
 \end{gather}
 with $\omega$ the vorticity magnitude, $\chi\!=\!\tilde\nu/\nu$, $d$ the wall
-distance, and eddy viscosity $\mu_t\!=\!\rho\tilde\nu f_{v1}$ (the wall-function
+distance, and eddy viscosity
+$\mu_t\!=\!\rho\tilde\nu\,[(1-w)f_{v1}+w]$ with the
+lifted-layer bypass weight $w=s(\chi)G(q)$ of
+Eqs.~\eqref{eq:fv1q}--\eqref{eq:fv1bypass} (the wall-function
 auxiliary $g_w$ is Spalart's $g$, renamed to avoid the Rayleigh coordinate $g$
 below). We retain the
 non-negative $\tilde S$ modification and the negative-$\tilde\nu$ safeguards

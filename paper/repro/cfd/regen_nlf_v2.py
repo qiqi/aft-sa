@@ -646,8 +646,11 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
             xd = xf[float(alpha)]
             ax_cp.plot(xd['upper']['x'], -np.asarray(xd['upper']['cp']), '-.', color=UP_COLOR, lw=1.1, alpha=0.6)
             ax_cp.plot(xd['lower']['x'], -np.asarray(xd['lower']['cp']), '-.', color=LO_COLOR, lw=1.1, alpha=0.6)
-            ax_cf.plot(xd['upper']['x'], xd['upper']['cf'], '-.', color=UP_COLOR, lw=1.1, alpha=0.6)
-            ax_cf.plot(xd['lower']['x'], xd['lower']['cf'], '-.', color=LO_COLOR, lw=1.1, alpha=0.6)
+            # XFOIL dump cf is edge-normalized; convert via ue^2 = 1 - cp
+            _fsu = np.asarray(xd['upper']['cf']) * np.clip(1.0 - np.asarray(xd['upper']['cp']), 0.0, None)
+            _fsl = np.asarray(xd['lower']['cf']) * np.clip(1.0 - np.asarray(xd['lower']['cp']), 0.0, None)
+            ax_cf.plot(xd['upper']['x'], _fsu, '-.', color=UP_COLOR, lw=1.1, alpha=0.6)
+            ax_cf.plot(xd['lower']['x'], _fsl, '-.', color=LO_COLOR, lw=1.1, alpha=0.6)
         # Measured onsets (Somers orifices): triangles on the x-axis of the Cf
         # row; open marker = extrapolated beyond the recorded orifices.
         for side, color in (('upper', UP_COLOR), ('lower', LO_COLOR)):
