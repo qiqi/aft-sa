@@ -1420,3 +1420,41 @@ here is alpha-native (oil flow, Fig 10a). Script:
 repro/cfd/regen_epp_bubble_figure.py; the table's definitions and the
 mfoil-at-7deg caveat move into the caption. Will replace tab:eppxtr
 once the digitization and sweep land.
+
+## 2026-07-25 ~11:40 UTC — L0 failure modes: NLF vs Eppler are DIFFERENT failures
+Your observation quantified (CD counts, canon window):
+  NLF a4:    strL0 110.7 vs strL2 74.0 (+37) | cavL0 106.3 vs cavL2 77.6 (+29)
+  Eppler a5: strL0 205.1 vs strL2 155.2 (+50) | cavL0 161.0 vs cavL2 148.1 (+13)
+Pressure/friction split (surface-integral CD_p; friction = CD - CD_p):
+  NLF a4:    strL0 63p/48f vs strL2 27p/47f  -> excess is +36 PRESSURE, friction dead-on
+             cavL0 76p/31f vs cavL2 31p/47f  -> +45 pressure MINUS 16 friction
+  Eppler a5: strL0 159p/46f vs strL2 105p/51f -> +54 pressure, friction -4
+             cavL0 109p/52f vs cavL2 94p/54f  -> +15 pressure only
+Mechanisms (diag plot: paper/diag_l0_failure_modes.py):
+1. NLF (attached, Re=4e6): NOT a transition failure. The fronts sit
+   within 0.06c of L2 on both families (str slightly early 0.22 vs
+   0.28, cav slightly late 0.36 vs 0.30) and the Cp distributions
+   overlay. The excess is the classic under-resolved-boundary-layer
+   FORM-DRAG error: the momentum deficit that should be skin friction
+   leaks into pressure drag through the smeared TE recovery. The
+   cavity shows it most nakedly — its L0 turbulent Cf is ragged and
+   HALF the resolved level (friction 16 counts low) while pressure
+   goes 45 high. Model-independent coarse-grid behavior; both
+   families converge by L1.
+2. Eppler (bubble, Re=2e5): a genuinely different, TRANSITION-ZONE
+   failure, and only the O-grid suffers it. strL0's bubble is
+   SHORTER and SHALLOWER than converged (reattach 0.587 vs 0.655,
+   min Cf -2.6e-3 vs -4.7e-3): the -Cp plateau breaks ~0.05c early
+   into a long soft recovery, and that fattened mid-chord pressure
+   loop is the +54 counts. The cavity L0 bubble is nearly canonical
+   (0.43-0.57). Why the difference: streamwise spacing exactly where
+   the bubble lives. The cos-clustered O-grid is COARSEST at
+   midchord — L0 Delta_s = 1.7-1.9%c across x=0.4-0.65 (~12 points
+   over the bubble, 3-4 over the handover) — while the cavity's
+   curvature-driven sizing gives 1.1-1.4%c there (tab:eppmesh rows).
+   The O-grid's clustering budget protects LE and TE; the bubble
+   pays.
+Irony worth noting: strL0's broken short bubble lands nearly ON the
+experimental reattachment (0.587 vs oil flow 0.59) — the right answer
+for the wrong reason, now visible as the small L0 square hugging the
+data in the new fig:eppbubble while the converged grids sit late.
