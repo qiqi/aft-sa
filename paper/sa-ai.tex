@@ -1407,7 +1407,9 @@ with the low-turbulence tunnel), across
 $\alpha\!\in\!\{0^\circ, 4^\circ, 9^\circ,
 15^\circ\}$, on a three-level isotropic refinement ladder of both mesh families
 (unstructured cavity-mesher and structured O-grid, L0--L2, twenty-four
-cases total). The unstructured mesher uses a shared NLF spline contour with
+cases total). The unstructured mesher uses a shared NLF contour (a natural cubic
+spline in arc length through the published coordinates, resampled with
+piecewise-cosine clustering) with
 blunt-trailing-edge--aware spacing ($h_\mathrm{TE}$ scales with first-cell
 height $h_0$ at every level; the TE ramp ratio $r_\mathrm{TE}$ decays from
 $2.0$ at L0 to $1.25$ at L2 so that the local cell size at fixed chord-distance
@@ -1676,7 +1678,8 @@ Mesh generation reuses the NLF recipe verbatim. The 56-point Eppler 387
 contour is read from the NASA TM 4062 Table I (design coordinates with the
 trailing edge thickened from $0$ to $0.01\,\mathrm{in}$ blended at
 $x/c\!=\!0.95$; $z_\mathrm{TE}\!=\!\pm0.000833\,c$, half the NLF
-blunt-thickness), spline-interpolated, resampled at $N\!\in\!\{200,400,800\}$
+blunt-thickness), interpolated by the same natural cubic spline in
+arc length as the NLF contour, resampled at $N\!\in\!\{200,400,800\}$
 points with piecewise-cosine clustering at the LE and TE, and fed to both the
 in-house unstructured cavity mesher and Construct2D; the far-field is fixed at
 $100\,c$. The resulting grids range
@@ -1713,7 +1716,7 @@ measured low-drag bucket across the range: on the structured family the
 drag sits within $\pm3\%$ of the data at the bucket edges ($-1\%$ at
 $\alpha\!=\!0^\circ$, $+1\%$ at $2^\circ$, $-3\%$ at $7^\circ$) and
 \emph{over}-predicts by $\sim\!11\%$ near
-$\alpha\!=\!5^\circ$---the pressure-drag footprint of the slightly over-long
+$\alpha\!=\!5^\circ$---possibly the pressure-drag footprint of the slightly over-long
 laminar-separation bubble (\S\ref{sec:calib_rate}). The coarsest grid (L0)
 over-predicts drag markedly; refinement is essential in this bubble-dominated
 regime.
@@ -1806,10 +1809,7 @@ response the Eppler~387 probes: on the upper surface $\hat S g$ rises from near 
 (the attached, near-neutral layer) into the strongly amplifying range across
 the laminar-separation bubble (the inflectional profile), then relaxes after
 reattachment, while the lower surface stays near zero; the growth of $\hat S g$ into
-the amplifying region is what ignites transition at the bubble. The favorable gradient plays little role
-here: at this low Reynolds number the airfoil carries only a short
-favorable-gradient segment near the leading edge, where $\hat S g\!\to\!0$ leaves the
-rate negligible; transition is set in the adverse recovery over the bubble.
+the amplifying region is what ignites transition at the bubble.
 
 \begin{figure}[tp]
   \centering
@@ -1851,33 +1851,17 @@ reproduced by every method on the plot, SA-AI included, to a few
 percent of chord at every incidence. The reattachment---the bubble's
 aft end, set by the post-transition turbulent recovery---is the
 quantity this test hinges on, and it is where the sphere kernel shows
-its cost. At $\alpha\!\le\!5^\circ$ the model reattaches
-systematically \emph{late}: $0.79\,c$ at $\alpha\!=\!0^\circ$ against the
-measured $0.74\,c$, $0.74\,c$ vs $0.67\,c$ at $2^\circ$, and $0.66\,c$ vs
-$0.59\,c$ at $5^\circ$---a bubble $0.05$--$0.07\,c$ too long, grid-converged (the
-two mesh families agree to within ${\approx}0.02\,c$ at L2, and the $e^9$ panel
-reference likewise sits within ${\approx}0.02\,c$ of the data over the same range). The
-near-stall $\alpha\!=\!7^\circ$ case, where the adverse gradient is strongest, is
-the exception: it reattaches at $0.45\,c$, $0.03\,c$ \emph{ahead} of the measured
-$0.48\,c$, though its coarse grids still scatter by $\sim\!0.14\,c$ before closing
-to $0.005\,c$ by L2. The lower surface runs laminar to the trailing edge at every
-incidence and has no front to move.
+its cost: at $\alpha\!\le\!5^\circ$ every converged grid reattaches
+systematically late, a bubble $0.05$--$0.07\,c$ too long, while the
+near-stall $7^\circ$ case closes slightly early; the lower surface
+runs laminar to the trailing edge at every incidence and has no front
+to move.
 
 The same benchmark condition has published results from the other
-local-correlation transition models, and Table~\ref{tab:epplit} places
-this work among them. The bubble stations and lift coefficients are
-read from the cited sources' figures (none tabulate them numerically;
-the stated uncertainties are the axis-calibrated read-off error) and
-support one-significant-figure conclusions; the polar drags are
-matched-$c_l$ interpolations of the vector-exact digitized curves of
-Fig.~\ref{fig:epppolar}: the transported-intermittency
-$\gamma$--$Re_\theta$ overpredicts the matched-lift drag by
-$41\%$ where SA-AI carries $+11\%$; the algebraic SA-BC model,
-whose intermittency was calibrated partly on this very airfoil,
-essentially reproduces the measured polar; and the one-equation
-$\gamma$--SA of D'Alessandro et al.\ lands within a few counts. All
-models, this one included, place the $\alpha\!=\!5^\circ$ bubble within
-a few percent of chord of the oil flow.
+local-correlation transition models: Table~\ref{tab:epplit} places
+this work among them, the digitized polar curves appear on
+Fig.~\ref{fig:epppolar}, and the digitized bubble stations on
+Fig.~\ref{fig:eppbubble}.
 
 \begin{table}[tp]
   \centering
@@ -1913,15 +1897,25 @@ a few percent of chord of the oil flow.
   \end{tabular}
 \end{table}
 
-This low-$\alpha$ over-length has the same
-origin as the separation-edge softening seen in the calibration
-(\S\ref{sec:calib_onset}, Fig.~\ref{fig:calibrate}): the linear $\hat S g$
-under-amplifies the detached laminar shear layer, so transition---and with it
-reattachment---is delayed and the bubble runs long. Where that over-length
-leads as the Reynolds number falls---to a bursting boundary, and to the
-loss of the two-state structure the experiment shows---is the subject
-of the next
-section.
+This low-$\alpha$ over-length is not an amplification deficit. The
+amplification is on time---the $\chi\!=\!1$ front sits mid-bubble,
+at the $e^9$ crossing to within its convention offset
+(Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}, row~3)---and at these
+Reynolds numbers the recirculating bubble, if anything, over-feeds the
+amplifying zone. What is slow is the \emph{transition} itself: the
+model deliberately carries no closure for the transition process, so
+breakdown is represented by the transported-$\chi$ handover into SA
+production, and the handover needs a fixed number of $e$-folds of
+$\chi$ (${\approx}\ln c_{v1}$ to half commitment) whose physical
+length is macroscopic at this Reynolds number. The turbulent stress
+that closes the bubble therefore arrives aft of where spot-driven
+breakdown completes in the tunnel, and reattachment---the quantity the
+oil flow measures---lands $0.05$--$0.07\,c$ late even though the
+front is placed correctly. Where that handover length leads as the
+Reynolds number falls---to a bursting boundary, and to the loss of the
+two-state structure the experiment shows---is the subject of the next
+section, which quantifies it against the room the bubble has
+(Sec.~\ref{sec:epphandover}).
 
 \section{Reynolds-number study of the Eppler 387 at $\alpha\!=\!5^\circ$}\label{sec:eppresweep}
 
@@ -2849,7 +2843,20 @@ and Appendix~D for the Daedalus wing (Sec.~\ref{sec:daedalus}).
 
 Figures~\ref{fig:nlfmesh_str} and~\ref{fig:nlfmesh_cav} show the
 leading- and trailing-edge close-ups of the structured O-grid and
-unstructured cavity families at the three refinement levels.
+unstructured cavity families at the three refinement levels. The
+cavity mesher is driven by the anisotropic metric
+\begin{equation*}
+  \mathsf M(\mathbf x)=R\,\mathrm{diag}\!\left(h_n^{-2},\,h_t^{-2}\right)R^{\mathsf T},
+  \qquad
+  h_n=\min\!\big(h_0+(\gamma-1)\,d,\;h_\infty\big),
+  \quad
+  h_t=\min\!\big(h_w+(\gamma-1)\,d,\;h_\infty\big),
+\end{equation*}
+where $d$ is the distance to the nearest wall point, $R$ rotates into
+the (wall-normal, wall-tangential) frame of that nearest point,
+$h_0$ and $h_w$ are the first-cell height and wall-tangential spacing
+of Tables~\ref{tab:nlfmesh}/\ref{tab:eppmesh}, $\gamma$ the growth
+ratio, and $h_\infty$ the isotropic far-field size.
 
 The contour sheets present the computed fields in the manner of the
 flat-plate figure (Fig.~\ref{fig:flatplate_batch}): line contours of
@@ -2884,7 +2891,7 @@ handover above the lifted bubble shear layer stays in frame.
   \centering
   \includegraphics[width=\textwidth,height=0.92\textheight,keepaspectratio]{mesh_nlf_cav.pdf}
   \caption{NLF(1)-0416 unstructured cavity mesh (leading and trailing edges,
-  levels L0--L2), built from the same spline contour as the structured grid of
+  levels L0--L2), built from the same arc-length cubic-spline contour as the structured grid of
   Fig.~\ref{fig:nlfmesh_str} with blunt-trailing-edge--aware spacing. Every
   length scale halves per level.}
   \label{fig:nlfmesh_cav}
@@ -2974,7 +2981,7 @@ $5\times$-raised handover frame of the Appendix~A conventions).
   \centering
   \includegraphics[width=\textwidth,height=0.92\textheight,keepaspectratio]{mesh_eppler_cav.pdf}
   \caption{Eppler 387 unstructured cavity mesh (leading and trailing edges,
-  levels L0--L2), built from the same spline contour as the structured grid of
+  levels L0--L2), built from the same arc-length cubic-spline contour as the structured grid of
   Fig.~\ref{fig:eppmesh_str} with an anisotropic near-wall boundary-layer
   region; every length scale halves per level.}
   \label{fig:eppmesh_cav}

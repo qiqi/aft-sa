@@ -1521,3 +1521,103 @@ surface the adverse side — SA-AI lower front 0.08-0.16 (LM's fine-grid
 lower curve says 0.18 at the same cl; the experiment sits later), upper
 0.46-0.50 (LM 0.48). Campaign JSON updated; the transition figure now
 carries the negative-branch points on the finest grids.
+
+## 2026-07-25 ~12:35 UTC — fv1-bypass: conclusion so far, and the full Eppler battery is RUNNING
+Conclusion of the disable-fv1-outside-buffer-layers exploration:
+1. It does exactly what the bursting-boundary analysis says is needed:
+   it commits the handover faster (fv1's chi^3 gate starves young
+   turbulence; bypassing it outside buffer layers removes the SA-side
+   anemia). At Re=1e5 it flips the model from the burst branch
+   (0.77/0.044) to a CLOSED bubble: CL 0.93 / CD 0.0231 against exp
+   0.873/0.0237 — drag lands ON the measurement, lift +6%.
+2. The "violent limit cycle" scare was an artifact of the laminar-
+   slowdown pseudo-time schedule, not of the bypass (fSlow=1 battery,
+   both on/off flutter equally under the schedule).
+3. At 2e5 its footprint is small but not zero: dCL -0.5%, dCD -2.8
+   counts (comparable to mesh-family spread; physically expected —
+   2e5 also has a bubble where the bypass legitimately acts).
+So: promising as the model's missing "fast transition commit" lever;
+the open question is inertness across the validated envelope. Per your
+question — yes, and it is now running: 18-run battery (bypass ON+OFF
+matched pairs, cold, fSlow=1 with seed decompensation, 40k steps) over
+str-L2 a0/2/5/7 at 2e5, cav-L2 a5, and the a5 Reynolds sweep
+60k/100k/300k/460k. The sweep rows answer the money question: does the
+bypass move the bursting boundary (60k!) without damaging the
+converged range (300k/460k)? ~2h. NOTE the OFF controls also test
+something independently interesting: the 2026-07-24 pair suggested the
+cold/fSlow=1 protocol itself moves the 2e5 state vs the canon
+continuation numbers — if confirmed, that is a second bistable-window
+symptom at 2e5 worth knowing about.
+
+## 2026-07-25 ~12:55 UTC — fv1-bypass free parameters, and the analytic answer
+The bypass blends mu_t from the fv1-damped value to nuHat with weight
+w = s(chi) * G(q), where q = Re_u / (y+ U+(y+)), y+ := chi/kappa, and
+U+ is the Reichardt law. Free parameters as implemented: the two gate
+windows — s(chi) switching on over chi in (1,2), and G(q) over q in
+(2,4). The Reichardt/kappa constants are standard, not free.
+Do we have an analytic, CFD-independent answer? Largely YES, and it is
+the reason this construction was chosen:
+1. The q gate's CENTER is analytic. SA's whole design premise is that
+   nuHat stays LINEAR through the buffer layer (nuHat = kappa y u_tau;
+   fv1 exists precisely to damp nu_t while nuHat stays linear). So in
+   any attached equilibrium wall layer, y+ = chi/kappa is exact and
+   Re_u = y+ U+(y+) identically -> q = 1 EXACTLY, parameter-free. In a
+   lifted/transitional shear layer at the same chi, d and |u| are
+   set by the bubble geometry, not the wall unit -> q >> 1 (measured
+   O(10-100) in our bubbles). The discriminator is not tuned; it is
+   law-of-the-wall self-consistency.
+2. The q gate's MARGIN (on over 2->4) must clear how far attached
+   layers stray from Reichardt. In the gated band (chi in (2,30), i.e.
+   y+ in (5,73)) the deviation is bounded by the pressure-gradient
+   distortion of the law of the wall; with a Coles log-wake composite
+   the wake contribution at y+ <= 73 stays small for any attached
+   Pi (it lives at y/delta = O(1)), and near-separation APG
+   half-power distortion reaches factor ~2 at the top of the band.
+   So q_on = 2 IS the analytic edge, and full-on at 4 is margin. This
+   can be made a one-page repro/analytic calculation (composite
+   profiles, no CFD) if we promote the bypass into the paper.
+3. The chi ramp s(chi) in (1,2) can be ELIMINATED as a parameter: tie
+   it to the model's own sigma_t handover ramp (center 1, width 4),
+   which is where turbulence formally begins. Then the bypass carries
+   ZERO new tunables beyond the q margin, which is analytic.
+Also inert by construction at both ends: chi<1 (mu_t negligible either
+way) and chi>30 (fv1 ~= 1 already) — the bypass can only act in the
+handover band, which is exactly where the bursting-boundary analysis
+says the model is too slow.
+
+## 2026-07-25 ~13:15 UTC — The max(S_hat*g) double-peak inside the bubble: investigated
+Your annotated question: row 2 shows a double peak inside the bubble
+with a sharp dip between them, roughly at the chi=1 crossing. Why?
+I probed the full y-resolved P = S_hat*g field (not just its
+wall-normal max) through the bubble on str-L2 a5 (diagnostic heat map:
+scratchpad sg_doublepeak.png; the committed row-2 curve is the
+y-max of this field). The answer: THE TWO PEAKS ARE TWO DIFFERENT
+SHEAR LAYERS, and the dip is the handover between them.
+- Peak 1 (x ~ 0.42-0.53) is the LIFTED LAMINAR shear layer over the
+  recirculation core — the inflectional profile drives P to its
+  ceiling (~1) across the mid-bubble, aided by the low advection
+  speed inside the bubble (X small).
+- The DIP (x ~ 0.55): the transition the layer itself ignited kills
+  it. Once near-wall chi crosses 1 -> c_v1 (the crossing sits at
+  0.48-0.53 here), the arriving eddy viscosity diffuses exactly the
+  quantities P is built from — the inflection (Z) and the
+  concentrated shear (Y) of the outer branch — while the TURBULENT
+  reattachment shear has not yet formed. Both branches are
+  momentarily weak; the y-max is the upper envelope of a decaying
+  curve and a growing one, and such an envelope has a sharp V at the
+  crossing — hence the narrow, deep notch (the argmax height jumps
+  discontinuously across it: branch switch confirmed numerically).
+- Peak 2 (x ~ 0.60-0.66) is the REATTACHMENT layer: the forming
+  turbulent wall jet concentrates shear (Y large) while the flow
+  near the reattachment line is slow (X small), so S_hat -> 1 and
+  g -> 1 saturate P again. Downstream, the attached turbulent BL
+  speeds up along the wall (X grows) and P relaxes to the attached
+  level (~0.2).
+So the dip tracks the chi handover CAUSALLY (the diffusion of branch
+1 is done by the handover's eddy viscosity), which is why it lines up
+with the chi=1..c_v1 crossing on row 3. It is, rather neatly, the
+model's own transition-completion marker expressed in the rate
+coordinate. Note this also explains why the second peak often tops
+the first: at reattachment the advection-speed X in the denominator
+of g is at its smallest. Diagnostic committed as
+paper/diag_sg_doublepeak.py.
