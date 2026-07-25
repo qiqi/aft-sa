@@ -1007,3 +1007,27 @@ case_cavity_L2_saai_a4: CL 1.0208 / CD 0.02004.
   the a5/a6 captions); bubble-edge agreement now an L2 statement at
   4 deg; polar + sectional figures regenerated (sectional a4 cavity
   trace now L2).
+
+## 2026-07-25 ~08:20 UTC — extension memo published (HTML artifact)
+URL: https://claude.ai/code/artifact/7431a96b-50e2-499a-ace1-e77bb5a2b472
+Detailed page covering: (1) skeleton-vs-rate-atom framing; (2)
+compressibility — Langley-curve suppression Lambda(M_c) with the
+transonic-bubble point marked (~0.85), Lees-Lin generalized inflection
+d/dy(rho du/dy)=0 as a density-weighted curvature invariant
+(1/2)d^2[div(rho grad u)].s_hat/rho, acoustic receptivity, second
+mode/shocks fenced off, and the note that Re_Omega already uses local
+nu(T); (3) crossflow — profile unstable by construction, stationary
+(roughness) vs traveling (Tu) receptivity, criteria/two-N/local-closure
+landscape, and the memo's central identity: u.omega = u^2 d/dy
+arctan(w/u) — the validated helicity indicators (Langtry-CF,
+Grabe-Krumbein) ARE the wall-normal twist rate of the invariant
+kernel's s_hat frame; indicator fully local, no edge direction needed,
+pseudoscalar parity correct; (4) one-frame-three-instabilities table
+(curvature along s_hat / density-weighted curvature / twist of s_hat);
+(5) caveats from this week's lessons (compensation risk, nodal-s_hat
+discretization -> the queued cavity verification case, roughness input
+honesty, falsifiable rate-max combination rule vs the spheroid's
+phi~30 deg front kink); (6) sequencing, incl. the cheap next step:
+evaluate the twist indicator PASSIVELY on the spheroid solutions
+(post-processing only) to check it lights the measured crossflow
+sectors before building any rate.
