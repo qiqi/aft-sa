@@ -1489,7 +1489,9 @@ quantitatively.
   source's recalibration to $N_\mathrm{crit}\!=\!7.18$ (solid), with
   its XFOIL reference (dotted); all extracted vector-exact from the
   source figures
-  (\texttt{data/aft\_nlf0416\_digitized.json}). Green: the
+  (\texttt{data/aft\_nlf0416\_digitized.json}; the community-wide
+  context---all fourteen submittals to the transition workshop's
+  incidence sweep---is Fig.~\ref{fig:nlfworkshop}). Green: the
   Langtry--Menter $\gamma$--$Re_\theta$ model in OVERFLOW (fine grid)
   from the transition-workshop exercise of
   Denison~\cite{denison_2021_overflow}, digitized from its Fig.~11
@@ -1516,6 +1518,31 @@ quantitatively.
   calibration; the markers are retained as an honest boundary of
   applicability.}
   \label{fig:nlfaft}
+\end{figure}
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=\textwidth]{nlf_workshop_envelope.pdf}
+  \caption{The same transition fronts against the community: the
+  shaded band is the min--max envelope of the ${\sim}14$ submittals
+  to the 1st AIAA Transition Modeling and Prediction Workshop's
+  NLF(1)-0416 incidence sweep (digitized from the workshop-summary
+  overlay~\cite{coder_tmpw_summary}, which is the only published
+  collection of all participants;
+  \texttt{data/workshop\_nlf\_envelope.json}), circles the LTPT
+  experiment points recoverable from under the overlay's marker
+  clusters, and the green curve the SA-LM2015 fine-grid sweep of
+  Piotrowski and Zingg~\cite{piotrowski_zingg_2021},
+  vector-digitized from their Fig.~6. Open squares/triangles: SA-AI
+  as in Fig.~\ref{fig:nlfaft} (all six grids at
+  $\alpha\!=\!0^\circ,4^\circ$ and, upper surface, $9^\circ$;
+  finest grids at $-4^\circ$). The envelope's width---$0.4$--$0.6$
+  in $x_t/c$ at fixed incidence---is the workshop's headline result;
+  the untuned SA-AI fronts sit inside it, on the
+  experiment--Langtry--Menter cluster, at every incidence, and its
+  early lower-surface front at $-4^\circ$ lies within the community
+  scatter there.}
+  \label{fig:nlfworkshop}
 \end{figure}
 
 \begin{table}[tp]

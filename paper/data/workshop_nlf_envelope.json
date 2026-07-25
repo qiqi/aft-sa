@@ -1,0 +1,310 @@
+{
+ "source_envelope": "references/TransitionMPW1_summary_Coder_NAS2021.pdf, page 22 (Case 2B - Alpha Sweep), embedded 1000x750 raster panels xref 543 (xtr_u vs Alpha) and 545 (xtr_l vs Alpha); NLF(1)-0416, M=0.1, Re=4e6 workshop Case 2B, ~14 participant submittals as colored letter-marker curves, experiment = filled black circles",
+ "source_piotrowski": "references/PiotrowskiZingg2020_SA-gamma-smooth_NLF0416.pdf, page 22, Fig. 6(f) Transition locations: vector paths; blue dash-dot = SA-LM2015 (fine grid), red solid = SA-sLM2015 (fine grid), gray open squares = LTPT experiment (series identified by legend-row alignment of vector colors)",
+ "axes_note": "Workshop envelope: abscissa = alpha [deg], ordinate = xtr/c (panels are xtr_u vs Alpha and xtr_l vs Alpha; NOT cl-based). Piotrowski Fig 6(f): ordinate = Cl, abscissa = transition location x/c; kept as cl (NOT converted to alpha). Piotrowski sweep points correspond to alpha = -6..6 deg step 2 on the fine grid (cl(alpha=0)=0.497 digitized vs 0.488 in their grid-convergence panel).",
+ "envelope": {
+  "upper": {
+   "alpha": [
+    -4.0,
+    -3.0,
+    -2.0,
+    -1.0,
+    0.0,
+    1.0,
+    2.0,
+    3.0,
+    4.0,
+    5.0,
+    6.0,
+    7.0,
+    8.0
+   ],
+   "xtr_min": [
+    0.0744,
+    0.0866,
+    0.064,
+    0.0762,
+    0.0553,
+    0.064,
+    0.0397,
+    0.0414,
+    0.0102,
+    0.0258,
+    0.0084,
+    0.0241,
+    0.0084
+   ],
+   "xtr_max": [
+    0.7292,
+    0.632,
+    0.5451,
+    0.4791,
+    0.4739,
+    0.4444,
+    0.4531,
+    0.4218,
+    0.4253,
+    0.3836,
+    0.3784,
+    0.3124,
+    0.2811
+   ]
+  },
+  "lower": {
+   "alpha": [
+    -4.0,
+    -3.0,
+    -2.0,
+    -1.0,
+    0.0,
+    1.0,
+    2.0,
+    3.0,
+    4.0,
+    5.0,
+    6.0,
+    7.0,
+    8.0
+   ],
+   "xtr_min": [
+    0.0084,
+    0.0241,
+    0.0084,
+    0.0397,
+    0.0397,
+    0.0762,
+    0.0796,
+    0.0987,
+    0.0848,
+    0.104,
+    0.0901,
+    0.1109,
+    0.0327
+   ],
+   "xtr_max": [
+    0.3384,
+    0.4722,
+    0.6302,
+    0.6233,
+    0.6511,
+    0.6337,
+    0.6545,
+    0.6476,
+    0.6684,
+    0.6545,
+    0.6684,
+    0.6632,
+    0.6754
+   ]
+  }
+ },
+ "experiment": {
+  "upper": {
+   "alpha": [
+    -3.12,
+    -1.04,
+    1.04
+   ],
+   "xtr": [
+    0.445,
+    0.407,
+    0.367
+   ],
+   "note": "only circles not occluded by participant symbols"
+  },
+  "lower": {
+   "alpha": [
+    -0.01,
+    1.04,
+    3.05,
+    7.13
+   ],
+   "xtr": [
+    0.525,
+    0.578,
+    0.61,
+    0.629
+   ],
+   "note": "only circles not occluded by participant symbols"
+  }
+ },
+ "piotrowski": {
+  "sa_lm2015_upper": {
+   "cl": [
+    -0.2221,
+    0.0162,
+    0.2576,
+    0.4976,
+    0.732,
+    0.9608,
+    1.1816
+   ],
+   "xtr": [
+    0.5451,
+    0.4861,
+    0.4527,
+    0.4235,
+    0.3719,
+    0.3069,
+    0.2244
+   ]
+  },
+  "sa_lm2015_lower": {
+   "cl": [
+    -0.2221,
+    0.0162,
+    0.2576,
+    0.4976,
+    0.732,
+    0.9608,
+    1.1816
+   ],
+   "xtr": [
+    0.0335,
+    0.1635,
+    0.4044,
+    0.5929,
+    0.6403,
+    0.6837,
+    0.6728
+   ]
+  },
+  "sa_slm2015_upper": {
+   "cl": [
+    -0.2226,
+    0.0154,
+    0.2566,
+    0.497,
+    0.732,
+    0.9603,
+    1.1803
+   ],
+   "xtr": [
+    0.5379,
+    0.477,
+    0.441,
+    0.4092,
+    0.3677,
+    0.3013,
+    0.2128
+   ]
+  },
+  "sa_slm2015_lower": {
+   "cl": [
+    -0.2226,
+    0.0154,
+    0.2566,
+    0.497,
+    0.732,
+    0.9603,
+    1.1803
+   ],
+   "xtr": [
+    0.0171,
+    0.1478,
+    0.394,
+    0.6001,
+    0.6292,
+    0.6361,
+    0.6458
+   ]
+  },
+  "experiment_upper": {
+   "cl": [
+    -0.7296,
+    -0.7241,
+    -0.6163,
+    -0.6155,
+    -0.503,
+    -0.4975,
+    -0.3858,
+    -0.3849,
+    -0.2679,
+    -0.2671,
+    -0.146,
+    -0.1452,
+    -0.0288,
+    -0.028,
+    0.0939,
+    0.0947,
+    0.2111,
+    0.4509,
+    0.4517,
+    0.5634,
+    0.5642,
+    0.6775,
+    0.6814
+   ],
+   "xtr": [
+    0.6491,
+    0.6003,
+    0.6026,
+    0.5514,
+    0.5514,
+    0.5003,
+    0.5514,
+    0.5003,
+    0.5026,
+    0.4514,
+    0.5003,
+    0.4514,
+    0.5003,
+    0.4514,
+    0.4514,
+    0.4002,
+    0.4514,
+    0.4002,
+    0.3514,
+    0.4002,
+    0.3514,
+    0.3002,
+    0.3514
+   ]
+  },
+  "experiment_lower": {
+   "cl": [
+    0.2119,
+    0.3283,
+    0.329,
+    0.4486,
+    0.4494,
+    0.5603,
+    0.5611,
+    0.6775,
+    0.6814,
+    0.7853,
+    0.7892,
+    0.8931,
+    0.897,
+    1.0095,
+    1.0103,
+    1.1173,
+    1.1181,
+    1.2212,
+    1.2251
+   ],
+   "xtr": [
+    0.4002,
+    0.4514,
+    0.4026,
+    0.5514,
+    0.5003,
+    0.6003,
+    0.5514,
+    0.6003,
+    0.6515,
+    0.6003,
+    0.6515,
+    0.6003,
+    0.6515,
+    0.6515,
+    0.6003,
+    0.6515,
+    0.6003,
+    0.6003,
+    0.6515
+   ]
+  }
+ },
+ "notes": "Workshop calibration: x-axis major ticks (inward, 13px) at pixel cols 184,306,429,551,674,796,918 -> alpha=-4..8 step 2 (61.17 px/deg); y-axis major ticks at rows 84,199.5,314.5,429,545 -> xtr=1.0..0.2 step 0.2 (576.2 px/unit); bottom axis row 659 maps to xtr=0.0015, i.e. calibration self-consistent to ~0.002. Envelope = per-column min/max over saturated (non-black, non-white) pixels in the plot interior, sampled in +/-3 px windows at integer alpha; both panels share identical geometry. Participant curves are drawn as colored letter glyphs (~20 px tall) centered on the data points and connected by thin lines, so the envelope includes glyph extent: inflate/deflate uncertainty ~ +/-0.017 in xtr/c. No legend box inside either plot area (nothing masked); ~14 distinct letter/color codes visible (c,d,e,f,g,h,i,j,k,m,q,r,u,...). Experiment (black filled circles, r~9-10 px) recovered by disc template matching on dark pixels; only unoccluded circles are recoverable - upper surface alpha ~ -3,-1,+1; lower surface alpha ~ 0,1,3,7; the remaining experiment symbols are buried under the letter clusters. A near-black thin participant curve exists in the cm panel but no all-black participant line was detected inside the xtr panels (dark-thin-line mask empty), so the colored-pixel envelope should not be missing a black submittal. Piotrowski calibration from tick-label centers of panel (f): x/c: px=350.1+141.875*x; Cl: py=565.35-51.8*Cl; model curves taken from the 7-vertex vector polylines (marker fills coincide); legend samples excluded; LTPT experiment squares (n=41) split upper/lower by nearest-model-curve classification. Caveat: workshop envelope min/max is over ALL submittals including gross outliers (e.g. the green \"m\" participant near xtr~0.02-0.1 on both surfaces and cyan \"h\" collapsing to ~0 at high alpha); the headline scatter is real, not a digitization artifact. Piotrowski experiment upper/lower split is ambiguous only near the branch crossing (cl~0.2-0.5, x/c~0.4-0.5) where the two branches nearly coincide. Piotrowski color-to-series mapping verified against legend row positions: blue dash-dot polylines = SA-LM2015fine, red solid = SA-sLM2015fine."
+}

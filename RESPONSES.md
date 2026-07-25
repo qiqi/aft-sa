@@ -1845,3 +1845,60 @@ assembly gains the (1-w) fv1 + w blend; the analytic q-margin
 composite-profile note goes to repro/analytic. Results
 sections/figures flip to flow360_fv1 when the campaign lands. I'll
 list every rewritten paragraph as it happens.
+
+## 2026-07-25: AIAA Transition Workshop research (Q1: 2nd workshop? Q2: NLF-0416 open sources)
+- NO 2nd Transition Modeling & Prediction Workshop held/announced as of Jul 2026. Follow-ons: 1st AIAA LFC Transition-Prediction Workshop (suction LFC, LST/PSE, 2025-26, Schrauf/Vijgen/Badrya, 3 test cases, flyer+test-case PDF on transitionmodeling.larc.nasa.gov); NATO AVT-313 (prolate spheroid); AIAA APA Transition Modeling DG verification-paper series (OVERFLOW/FUN3D gamma-Re_theta J.Aircraft).
+- JACKPOT for NLF-0416 digitization: Coder NAS seminar "Summary of the 1st AIAA CFD TMPW" slides, pp.16-22 = Case-2 grid conv (a=0,5) + alpha-sweep overlays of ALL 14 submittals (x_tr/c vs alpha + polars), raster 1000x750 PNG. Saved: references/TransitionMPW1_summary_Coder_NAS2021.pdf. Also saved proceedings agenda (participant list+deck links) and Piotrowski-Zingg(2020) UTIAS preprint (vector Fig.6 alpha sweep).
+- 12+ participant slide decks freely downloadable from transitionmodeling.larc.nasa.gov (ANSYS, Tsinghua k-w-gamma, TAI SA-BCM, NLR, CVUT, MARIN/IST, Siemens, CIRA, ONERA, UMD, KAIST, Toronto).
+
+## 2026-07-25 ~18:45 UTC — Workshop questions answered (agent report, PDFs in references/)
+Q1 (2nd workshop?): NO — none held or announced as of Jul 2026; no
+summary journal paper either. Follow-ons: the 1st AIAA LFC
+Transition-Prediction Workshop (2025-26, suction-LFC/LST-PSE scope,
+different beast), Coder's APA discussion group verification-paper
+series (Venkatachari et al. J. Aircraft 2024, gamma-Re_theta_t in
+OVERFLOW+FUN3D), and NATO AVT-313 (spheroid; headline finding = big
+cross-implementation scatter — useful context for our Sec. spheroid).
+Q2 (more NLF participants than AFT?): YES. The jackpot:
+references/TransitionMPW1_summary_Coder_NAS2021.pdf — Coder's NAS
+seminar summary of the workshop, pp. 15-22 = Case 2 (NLF-0416) with
+ALL 14 submittals overlaid: grid convergence at alpha=0/5 and full
+alpha-sweep x_tr/c (both surfaces) + polars vs experiment. Raster
+(lossless) but digitizable. Also saved: Piotrowski & Zingg (VECTOR
+alpha-sweep transition, SA-LM2015 + smooth variant) and the workshop
+proceedings index (links to 13 participant decks: ONERA elsA, Ansys
+Fluent, NLR, CTU OpenFOAM, CIRA, MARIN/IST ReFRESCO, STAR-CCM+,
+Tsinghua k-omega-gamma, UMD, SA-BCM (Cakmakcioglu), KAIST...).
+PROPOSAL: digitize the summary's alpha-sweep overlays into a shaded
+"workshop envelope" band on fig:nlfaft (14 curves would be soup) +
+optionally Piotrowski's vector curves as one named line. Awaiting go.
+
+## 2026-07-25 ~19:20 UTC — Canon campaign PAUSED (your call); invariant-kernel debug resumed
+Campaign stopped cleanly at ~20/93 (completed cases preserved in
+flow360_fv1; resume needs a skip-completed guard added to
+run_sphere_campaign). GPUs turned to clearing the vector-calculus
+question. First finding, from the existing 40k fields:
+- THE LEADING EDGE IS THE CONTAMINATION SITE. Control: chi == seed
+  exactly everywhere at x<0.02. Invariant run: p99 = 3x seed, max 6x
+  seed in the same window. Spurious amplification at/above the LE
+  seeds the whole downstream boundary layer -> earlier transition ->
+  the +12/+22/+11 counts. (Wake elevation exists but is modest and
+  post-transition.)
+- Mechanism (quasi-2D makes it sharp): omega is out-of-plane, so
+  s_hat is ALWAYS the in-plane tangent, signed by omega_y. In
+  near-irrotational regions (above the LE curvature, outer BL edge)
+  omega_y is gradient noise, its sign flutters, and the nodes with
+  s_hat anti-parallel to u get X = -|u| -> g ~ +1 -> P ~ +Y/|u|
+  (small but positive) where the magnitude form's X = |u| gives g < 0,
+  clipped to zero. The onset gate can pass there (large d). This also
+  explains the 5-decade residual floor (sign flutter never settles).
+- Candidate fix (kernel v2): blend the signed representative toward
+  the magnitude form by shear significance, X_eff = W (u.s_hat) +
+  (1-W)|u| with W = Y^2/(Y^2 + X_mag^2) = S_hat^2 (and Z likewise).
+  Strong shear (attached BL, bubble shear layer, reversed-flow layer:
+  the case the invariant form exists for) keeps the signed X; weak
+  shear (stagnation, irrotational noise) falls back to the magnitude
+  form whose clipping is the guard. No new constants.
+- Running now: one-step ON/OFF restart pair from the identical
+  converged control state to localize the production difference
+  field-by-field before implementing v2.
