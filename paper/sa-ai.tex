@@ -1432,7 +1432,13 @@ quantitatively.
   source's recalibration to $N_\mathrm{crit}\!=\!7.18$ (solid), with
   its XFOIL reference (dotted); all extracted vector-exact from the
   source figures
-  (\texttt{data/aft\_nlf0416\_digitized.json}). The isolated coarse-grid points at incidence are under-resolved-front artifacts (cf.\ the L0 discussion of Fig.~\ref{fig:nlfcflow}); the cavity-L1 $15^\circ$ lower front reached the iteration budget still wandering over $0.65$--$0.67\,c$ (the final batch's value is plotted; the one non-converged case of the twenty-four). Open squares/triangles:
+  (\texttt{data/aft\_nlf0416\_digitized.json}). Green: the
+  Langtry--Menter $\gamma$--$Re_\theta$ model in OVERFLOW (fine grid)
+  from the transition-workshop exercise of
+  Denison~\cite{denison_2021_overflow}, digitized from its Fig.~11
+  (\texttt{data/lm\_nlf0416\_transition\_digitized.json}); no
+  SA-BCM result at this condition is available in the open
+  literature. The isolated coarse-grid points at incidence are under-resolved-front artifacts (cf.\ the L0 discussion of Fig.~\ref{fig:nlfcflow}); the cavity-L1 $15^\circ$ lower front reached the iteration budget still wandering over $0.65$--$0.67\,c$ (the final batch's value is plotted; the one non-converged case of the twenty-four). Open squares/triangles:
   SA-AI on all six grids (L0--L2 by marker size, both families) at
   $\alpha\!=\!0^\circ,4^\circ,9^\circ,15^\circ$, at the paper-wide
   untuned seed.}
@@ -1688,7 +1694,12 @@ and Table~\ref{tab:eppmesh} lists their resolution quantitatively.
   across the four incidences).
   The gray dash-dot curve is fully turbulent SA ($\chi_\infty\!=\!3$, same
   solver, structured L2 grid), $66$--$87\%$ above the SA-AI drag in the
-  bucket and $+149\%$ at $\alpha\!=\!7^\circ$.}
+  bucket and $+149\%$ at $\alpha\!=\!7^\circ$. The green and purple
+  curves are the $\gamma$--$Re_\theta$ (Langtry--Menter, OpenFOAM) and
+  SA-BC (SU2) transition models at the same condition and
+  $Tu\!=\!0.1\%$, digitized vector-exact from
+  Ref.~\cite{shahjahan_2024}
+  (\texttt{data/lmbcm\_eppler387\_digitized.json}).}
   \label{fig:epppolar}
 \end{figure}
 
@@ -1863,7 +1874,9 @@ a few percent of chord of the oil flow.
   \caption{Published transition-model results for the Eppler 387 at
   $Re\!=\!2\!\times\!10^5$ near $\alpha\!=\!5^\circ$, against this work
   and the LTPT measurement. Literature values are figure-read from the
-  cited open sources (uncertainties are the read-off error); the only
+  cited open sources (uncertainties are the read-off error;
+  the Ref.~\cite{shahjahan_2024} polar values are vector-exact
+  digitizations, matched-$c_l$ interpolated); the only
   text-stated literature numbers are Ref.~\cite{shahjahan_2024}'s
   average bubble-station errors ($4.6/3.7/5.4\%$ of chord for
   $\gamma$--$Re_\theta$ at this Reynolds number). $c_d$ is at matched
@@ -1881,8 +1894,8 @@ a few percent of chord of the oil flow.
     \midrule
     Experiment (LTPT) & --- & 0.06--0.16\% & 0.891 & 0.0138 & 0.38/---/0.59 \\
     SA-AI (this work, L2) & Flow360 & $\chi_\infty\!=\!c_{v1}e^{-9}$ & 0.925--0.937 & ${\approx}0.0153$ & 0.40/0.53/0.66 \\
-    $\gamma$--$Re_\theta$ \cite{shahjahan_2024} & OpenFOAM & 0.1\% & --- & $0.0200\pm0.0005$ & 0.41/0.58/0.60 \\
-    SA-BC \cite{cakmakcioglu_2017, shahjahan_2024} & SU2 & 0.1\% & $0.93\pm0.02$ & $0.0142\pm0.0008$ & 0.39/0.57/0.63 \\
+    $\gamma$--$Re_\theta$ \cite{shahjahan_2024} & OpenFOAM & 0.1\% & --- & 0.0195 & 0.41/0.58/0.60 \\
+    SA-BC \cite{cakmakcioglu_2017, shahjahan_2024} & SU2 & 0.1\% & $0.93\pm0.02$ & 0.0140 & 0.39/0.57/0.63 \\
     $\gamma$--SA \cite{dalessandro_2025} & foam-extend & 0.07\% & $0.91\pm0.02$ & 0.0133--0.0140 & --- \\
     \bottomrule
   \end{tabular}

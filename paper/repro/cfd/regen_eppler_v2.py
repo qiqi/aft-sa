@@ -973,6 +973,14 @@ def make_polar_figure(out_name='eppler_polar_compare'):
     if tb_cl:
         ax.plot(tb_cd, tb_cl, marker='v', mfc='none', ms=5, ls='-.', lw=1.2,
                 color='0.55', zorder=2)
+    # Transition-model literature at the same condition (Tu=0.1%): digitized
+    # vector data from Shahjahan et al. ICAS 2024 Fig 6b (Re=2e5) -- gamma-
+    # Re_theta (Langtry-Menter, OpenFOAM) and SA-BC (BCM, SU2).
+    lit = _json.load(open(f'{PD}/data/lmbcm_eppler387_digitized.json'))['polar']
+    ax.plot(lit['langtry_menter']['cd'], lit['langtry_menter']['cl'],
+            ls='-', lw=1.0, marker='x', ms=4, color='C2', zorder=2)
+    ax.plot(lit['sa_bc']['cd'], lit['sa_bc']['cl'],
+            ls='-', lw=1.0, marker='+', ms=5, color='C4', zorder=2)
     # SA-AI on top: structured = circle/solid, unstructured = triangle/dashed.
     mesh_mk = {'str': 'o', 'cav': '^'}
     for mesh in ['str', 'cav']:
@@ -993,6 +1001,8 @@ def make_polar_figure(out_name='eppler_polar_compare'):
                Line2D([],[],color='C0', ls='-',  marker='o', ms=4, label='SA-AI, structured (O-grid)'),
                Line2D([],[],color='C1', ls='--', marker='^', ms=4, label='SA-AI, unstructured'),
                Line2D([],[],color='0.55', ls='-.', marker='v', mfc='none', ms=5, lw=1.2, label='SA, fully turbulent (str L2)'),
+               Line2D([],[],color='C2', ls='-', lw=1.0, marker='x', ms=4, label='$\\gamma$--$Re_\\theta$ (Shahjahan et al.)'),
+               Line2D([],[],color='C4', ls='-', lw=1.0, marker='+', ms=5, label='SA-BC (Shahjahan et al.)'),
                Line2D([],[],color='0.4', lw=POLAR_LW['L0'], label='L0'),
                Line2D([],[],color='0.4', lw=POLAR_LW['L1'], label='L1'),
                Line2D([],[],color='0.4', lw=POLAR_LW['L2'], label='L2')]

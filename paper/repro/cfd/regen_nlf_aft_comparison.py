@@ -23,6 +23,10 @@ PD = os.path.abspath(os.path.join(_H, '..', '..'))
 B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
 
 D = json.load(open(f'{PD}/data/aft_nlf0416_digitized.json'))['transition']
+# Langtry-Menter (OVERFLOW gamma-Re_theta, fine grid) at the same condition:
+# raster-digitized from Denison et al.'s transition-workshop Fig 11
+# (repro: data/lm_nlf0416_transition_digitized.json)
+LM = json.load(open(f'{PD}/data/lm_nlf0416_transition_digitized.json'))['transition']
 camp = json.load(open(f'{B}/sphere_campaign_nlf_results.json'))
 
 fig, axs = plt.subplots(1, 2, figsize=(10.5, 4.4), sharey=True)
@@ -39,6 +43,9 @@ for ax, side, lab in ((axs[0], 'upper', 'upper surface'),
             label='AFT, $N_\\mathrm{crit}=7.18$ (recalibrated)')
     xf = D[f'xfoil_{side}']
     ax.plot(xf['xt'], xf['cl'], ':', color='0.6', lw=1.2, label='XFOIL ($e^9$)')
+    lm = LM[f'lm_fine_grid_{side}']
+    ax.plot(lm['xtr'], lm['cl'], '-', color='C2', lw=1.2, marker='x', ms=4,
+            label='$\\gamma$--$Re_\\theta$ (Denison et al.)')
     for fam, c, mk in (('str', 'C0', 's'), ('cav', 'C1', '^')):
         for lv, ms, mew, al in ((0, 3.5, 0.8, 0.5), (1, 5.2, 1.1, 0.75),
                                 (2, 7.0, 1.6, 1.0)):
