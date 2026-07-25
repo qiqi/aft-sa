@@ -2085,3 +2085,29 @@ Sections to read: Sec. III paragraph beginning 'In the solver the
 indicator triple is assembled from four local vector-calculus
 objects' + Eq. (eq:gram) (one page); the RESPONSES ~00:15 entry for
 the derivation; the artifact kernel card for the memo version.
+
+## 2026-07-26 ~02:00 UTC — Review passes 26 (remainder) + 27 all addressed (commit 0f6c17a)
+Headlines (full detail in agent-paper-review/2026-07-25-1613-response.md):
+- fig:nlfworkshop: the 9-deg cluster is DROPPED (it sat beyond the
+  digitized envelope's -4..8 alpha domain — the caption's "at every
+  incidence" could not be supported there); caption states the domain,
+  the manuscript-vs-journal Piotrowski provenance, and the c_l->alpha
+  replot; band recolored gray so the O-grid markers cannot hide.
+- The promised analytic q-margin note is DELIVERED:
+  repro/analytic/fv1_qmargin_composite.py (Reichardt + Coles): q < 2
+  through the entire gated band for wake parameter Pi <= 3.5 at any
+  delta+ >= 100; near-separation wakes (Pi 5-7, low delta+) reach
+  q ~ 2.3-2.8 and open G partially — the II.F sentence is scoped to
+  exactly this envelope, and the <=1.5-count consequence bound now
+  traces to a committed dataset (data/fv1bypass_battery_results.json,
+  16 slots x on/off).
+- The fv1 bypass weight is renamed b (w stays the onset ramp width);
+  Appendix E counts FOUR departures from baseline SA, the recovery
+  recipe includes b==0, and s, G, and Reichardt's U+ (cited) are
+  restated in the assembled model.
+- fig:nlfcfhigh's alpha=9/15 dash-dot overlay correctly attributed to
+  XFOIL (with the x ue^2 conversion stated); N envelope remains
+  FlexFoil's. A global Cf-convention disclosure now lives in the
+  Appendix-A conventions paragraph.
+- Status sentence made pause-proof; note the campaign is in fact
+  RESUMED (skip guard) since the Gram adoption.
