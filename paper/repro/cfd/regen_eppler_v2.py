@@ -1001,7 +1001,7 @@ def make_polar_figure(out_name='eppler_polar_compare'):
                Line2D([],[],color='C0', ls='-',  marker='o', ms=4, label='SA-AI, structured (O-grid)'),
                Line2D([],[],color='C1', ls='--', marker='^', ms=4, label='SA-AI, unstructured'),
                Line2D([],[],color='0.55', ls='-.', marker='v', mfc='none', ms=5, lw=1.2, label='SA, fully turbulent (str L2)'),
-               Line2D([],[],color='C2', ls='-', lw=1.0, marker='x', ms=4, label='$\\gamma$--$Re_\\theta$ (Shahjahan et al.)'),
+               Line2D([],[],color='C2', ls='-', lw=1.0, marker='x', ms=4, label='$\\gamma$\u2013$Re_\\theta$ (Shahjahan et al.)'),
                Line2D([],[],color='C4', ls='-', lw=1.0, marker='+', ms=5, label='SA-BC (Shahjahan et al.)'),
                Line2D([],[],color='0.4', lw=POLAR_LW['L0'], label='L0'),
                Line2D([],[],color='0.4', lw=POLAR_LW['L1'], label='L1'),

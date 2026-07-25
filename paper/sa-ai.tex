@@ -1436,12 +1436,17 @@ quantitatively.
   Langtry--Menter $\gamma$--$Re_\theta$ model in OVERFLOW (fine grid)
   from the transition-workshop exercise of
   Denison~\cite{denison_2021_overflow}, digitized from its Fig.~11
-  (\texttt{data/lm\_nlf0416\_transition\_digitized.json}); no
-  SA-BCM result at this condition is available in the open
-  literature. The isolated coarse-grid points at incidence are under-resolved-front artifacts (cf.\ the L0 discussion of Fig.~\ref{fig:nlfcflow}); the cavity-L1 $15^\circ$ lower front reached the iteration budget still wandering over $0.65$--$0.67\,c$ (the final batch's value is plotted; the one non-converged case of the twenty-four). Open squares/triangles:
+  (\texttt{data/lm\_nlf0416\_transition\_digitized.json}; the
+  workshop condition is $M\!=\!0.2$, $Tu\!=\!0.15\%$---immaterial
+  on transition-vs-$c_l$ axes). No published SA-BCM incidence
+  \emph{sweep} exists at this condition; the one open SA-BCM result
+  is a single-incidence ($\alpha\!=\!0^\circ$) mesh-adaptation
+  study~\cite{tarsia_2025}. The isolated coarse-grid points at incidence are under-resolved-front artifacts (cf.\ the L0 discussion of Fig.~\ref{fig:nlfcflow}); the cavity-L1 $15^\circ$ lower front reached the iteration budget still wandering over $0.65$--$0.67\,c$ (the final batch's value is plotted; the one non-converged case of the twenty-four). Open squares/triangles:
   SA-AI on all six grids (L0--L2 by marker size, both families) at
-  $\alpha\!=\!0^\circ,4^\circ,9^\circ,15^\circ$, at the paper-wide
-  untuned seed.}
+  $\alpha\!=\!0^\circ,4^\circ,9^\circ,15^\circ$, plus the
+  negative-incidence pair $\alpha\!=\!-4^\circ$ (zero lift) and
+  $-8^\circ$ (the edge of the measured range) on the finest grids,
+  all at the paper-wide untuned seed.}
   \label{fig:nlfaft}
 \end{figure}
 
@@ -1860,12 +1865,14 @@ incidence and has no front to move.
 
 The same benchmark condition has published results from the other
 local-correlation transition models, and Table~\ref{tab:epplit} places
-this work among them. The comparison is read from the cited sources'
-figures (none tabulate the values numerically; the stated uncertainties
-are the axis-calibrated read-off error), so it supports one-significant-
-figure conclusions only: the transported-intermittency
+this work among them. The bubble stations and lift coefficients are
+read from the cited sources' figures (none tabulate them numerically;
+the stated uncertainties are the axis-calibrated read-off error) and
+support one-significant-figure conclusions; the polar drags are
+matched-$c_l$ interpolations of the vector-exact digitized curves of
+Fig.~\ref{fig:epppolar}: the transported-intermittency
 $\gamma$--$Re_\theta$ overpredicts the matched-lift drag by
-${\sim}45\%$ where SA-AI carries $+11\%$; the algebraic SA-BC model,
+$41\%$ where SA-AI carries $+11\%$; the algebraic SA-BC model,
 whose intermittency was calibrated partly on this very airfoil,
 essentially reproduces the measured polar; and the one-equation
 $\gamma$--SA of D'Alessandro et al.\ lands within a few counts. All
@@ -2552,7 +2559,7 @@ against the reference's $0.011$, all of whose growth is induced---the
 strips' XFOIL profile drag is flat in lift, while the RANS profile
 drag climbs $\approx\!6$ counts per $0.1$ of $c_l$. The sectional
 diagnostic sheets of Appendix~D
-(Figs.~\ref{fig:daesec10}--\ref{fig:daesec60}) locate the mechanism:
+(Figs.~\ref{fig:daesec10}--\ref{fig:daesec92}) locate the mechanism:
 at fixed separation and reattachment---both match the strips at every
 incidence---the model's handover-stretched pressure recovery inside
 the bubble deepens with incidence, the $-C_p$ plateau persisting
@@ -3188,9 +3195,10 @@ transition contours ($\chi\!=\!1$ and $N\!=\!N_\mathrm{crit}$) are
 directly comparable.
 
 \paragraph{Sectional diagnostic sheets.} Figures~\ref{fig:daesec10},
-\ref{fig:daesec31}, and~\ref{fig:daesec60} carry the section-cut
+\ref{fig:daesec75}, and~\ref{fig:daesec92} carry the section-cut
 diagnostics behind the drag-slope discussion of
-Sec.~\ref{sec:daedalus}: at $\eta=0.10$, $0.31$, and $0.60$, columns
+Sec.~\ref{sec:daedalus}: at $\eta=0.10$, $0.75$, and $0.92$ (the last
+in the taper, at its locally reduced chord Reynolds number), columns
 $\alpha=4^\circ$, $5^\circ$, $6^\circ$, five rows per
 station---the probe-maximum $Re_\Omega$ against the onset threshold
 $Re_\Omega^c(P)$ evaluated at the local rate (dash-dotted), the
@@ -3215,16 +3223,17 @@ station.
 
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.99\textwidth]{daedalus_section_eta31.pdf}
-  \caption{As Fig.~\ref{fig:daesec10}, at $\eta=0.31$.}
-  \label{fig:daesec31}
+  \includegraphics[width=0.99\textwidth]{daedalus_section_eta75.pdf}
+  \caption{As Fig.~\ref{fig:daesec10}, at $\eta=0.75$.}
+  \label{fig:daesec75}
 \end{figure}
 
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.99\textwidth]{daedalus_section_eta60.pdf}
-  \caption{As Fig.~\ref{fig:daesec10}, at $\eta=0.60$.}
-  \label{fig:daesec60}
+  \includegraphics[width=0.99\textwidth]{daedalus_section_eta92.pdf}
+  \caption{As Fig.~\ref{fig:daesec10}, at $\eta=0.92$---inside the
+  taper, chord $0.728\,$m and $Re_c=4.0\times10^5$.}
+  \label{fig:daesec92}
 \end{figure}
 
 \clearpage

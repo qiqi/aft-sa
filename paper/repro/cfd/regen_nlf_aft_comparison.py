@@ -45,13 +45,17 @@ for ax, side, lab in ((axs[0], 'upper', 'upper surface'),
     ax.plot(xf['xt'], xf['cl'], ':', color='0.6', lw=1.2, label='XFOIL ($e^9$)')
     lm = LM[f'lm_fine_grid_{side}']
     ax.plot(lm['xtr'], lm['cl'], '-', color='C2', lw=1.2, marker='x', ms=4,
-            label='$\\gamma$--$Re_\\theta$ (Denison et al.)')
+            label='$\\gamma$\u2013$Re_\\theta$ (Denison)')
     for fam, c, mk in (('str', 'C0', 's'), ('cav', 'C1', '^')):
         for lv, ms, mew, al in ((0, 3.5, 0.8, 0.5), (1, 5.2, 1.1, 0.75),
                                 (2, 7.0, 1.6, 1.0)):
             cls, xts = [], []
-            for a in (0, 4, 9, 15):
-                r = camp.get(f'{fam}L{lv}prop_nlf0416_Re4M_a{a}')
+            keys = [f'{fam}L{lv}prop_nlf0416_Re4M_a{a}' for a in (0, 4, 9, 15)]
+            if lv == 2:   # negative-incidence pair exists on the finest grids only
+                keys += [f'{fam}L2prop_nlf0416_Re4M_am4',
+                         f'{fam}L2prop_nlf0416_Re4M_am8']
+            for k in keys:
+                r = camp.get(k)
                 if r is None:
                     continue
                 xt = r['xtr_up' if side == 'upper' else 'xtr_lo']
@@ -61,7 +65,7 @@ for ax, side, lab in ((axs[0], 'upper', 'upper surface'),
             ax.plot(xts, cls, mk, color=c, ms=ms, mfc='none', mew=mew,
                     alpha=al,
                     label=(f"SA-AI, {'O-grid' if fam=='str' else 'unstructured'}"
-                           " (L0$\to$L2 by size)") if lv == 2 else None,
+                           " (L0$\\to$L2 by size)") if lv == 2 else None,
                     zorder=5)
     ax.set_xlabel('$x_t/c$'); ax.set_title(lab, fontsize=10)
     ax.grid(alpha=0.3); ax.set_xlim(0, 0.75)

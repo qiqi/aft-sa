@@ -60,6 +60,7 @@ ax_tr.plot([OIL[a][1] for a in oa], oa, 'o-', mfc='none', mec='k', color='k',
 swp = f'{PD}/data/mfoil_eppler_bubble_sweep.json'
 if os.path.exists(swp):
     s = json.load(open(swp))
+    xf = s.pop('xfoil', None)
     aa = sorted(float(k) for k in s)
     ls = [s[f'{a:.1f}']['ls'] for a in aa]
     tr = [s[f'{a:.1f}']['tr'] for a in aa]
@@ -68,6 +69,14 @@ if os.path.exists(swp):
           and aa[i] <= 6.5]     # mfoil unreliable at the stall edge (see text)
     ax_ls.plot([ls[i] for i in ok], [aa[i] for i in ok], ':', color='0.5', lw=1.4)
     ax_tr.plot([tr[i] for i in ok], [aa[i] for i in ok], ':', color='0.5', lw=1.4)
+    if xf:   # XFOIL carries the e^9 reference past mfoil's convergence edge
+        ax2 = sorted(float(k) for k in xf)
+        for ax, q in ((ax_ls, 'ls'), (ax_tr, 'tr')):
+            pts = [(xf[f'{a:.1f}'][q], a) for a in ax2
+                   if xf[f'{a:.1f}']['conv'] and xf[f'{a:.1f}'][q] is not None]
+            if pts:
+                ax.plot([p[0] for p in pts], [p[1] for p in pts], '-.',
+                        color='0.5', lw=1.1)
 
 # literature transition models (digitized), if the bubble extraction landed
 lit = json.load(open(f'{PD}/data/lmbcm_eppler387_digitized.json'))
@@ -119,8 +128,10 @@ handles = [Line2D([], [], color='k', ls='-', lw=0.8, marker='o', mfc='none', ms=
            Line2D([], [], color='0.35', ls='none', marker='D', mfc='none', ms=3.5,
                   label='Experiment (Selig et al.)'),
            Line2D([], [], color='0.5', ls=':', lw=1.4, label='mfoil ($e^9$)'),
+           Line2D([], [], color='0.5', ls='-.', lw=1.1,
+                  label='XFOIL ($e^9$, $\\alpha\\geq6.5^\\circ$)'),
            Line2D([], [], color='C2', ls='-', lw=1.0, marker='x', ms=4.5,
-                  label='$\\gamma$--$Re_\\theta$ (Shahjahan et al.)'),
+                  label='$\\gamma$\u2013$Re_\\theta$ (Shahjahan et al.)'),
            Line2D([], [], color='C4', ls='-', lw=1.0, marker='+', ms=5,
                   label='SA-BC (Shahjahan et al.)'),
            Line2D([], [], color='C0', ls='none', marker='s', mfc='none', ms=5.5,

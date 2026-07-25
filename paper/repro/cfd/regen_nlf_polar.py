@@ -70,8 +70,13 @@ if tb_cl: ax.plot(tb_cd,tb_cl,marker='v',mfc='none',ms=5,ls='-.',lw=1.2,color='0
 for mesh in ['str','cav']:
     for level in ['L0','L1','L2']:
         cl,cd=[],[]
-        for a in alphas:
-            f=converged_clcd(case_dir(mesh,level,a))
+        # negative-incidence pair (alpha=-4 zero-lift, -8 measured-range edge)
+        # exists on the finest grids only
+        cases=([f"{B}/{mesh}L2prop_nlf0416_Re4M_am8",
+                f"{B}/{mesh}L2prop_nlf0416_Re4M_am4"] if level=='L2' else []) \
+              + [case_dir(mesh,level,a) for a in alphas]
+        for cdir in cases:
+            f=converged_clcd(cdir)
             if f: cl.append(f[0]); cd.append(f[1])
         if cl: ax.plot(cd,cl,marker=MESH_MK[mesh],ms=4,ls=MESH_LS[mesh],
                        lw=LEVEL_LW[level],color=MESH_COL[mesh],zorder=3)

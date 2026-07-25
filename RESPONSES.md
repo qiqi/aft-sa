@@ -1458,3 +1458,66 @@ Irony worth noting: strL0's broken short bubble lands nearly ON the
 experimental reattachment (0.587 vs oil flow 0.59) — the right answer
 for the wrong reason, now visible as the small L0 square hugging the
 data in the new fig:eppbubble while the converged grids sit late.
+
+## 2026-07-25 ~12:00 UTC — L0 follow-up: is it y+? And the strL0 LE suction peak
+Q1 (NLF: just y+ too high?): No — y+ cannot be the driver, by your own
+argument made quantitative. NLF L0 y+ (95th pct): cavity 2.99,
+structured 1.90 (tab:nlfmesh) — the cavity is 1.6x WORSE on y+ yet its
+drag error is SMALLER (+29 vs +37 counts), i.e. y+ anti-orders the
+error. Also the structured family's friction came out dead-on (47.6 vs
+47) despite y+~2 — the excess is all in pressure. What orders the
+error is BL PROFILE resolution: cells across the boundary layer
+(first-cell-to-BL-height ratio; at Re=4e6 the BL is ~0.5-1%c and the
+L0 stretching gives ~10-15 cells through it) and streamwise spacing.
+The under-resolved profile mispredicts displacement growth ->
+form-drag error; on the cavity the same under-resolution additionally
+shreds the turbulent Cf itself (visibly ragged, half the resolved
+level), trading friction for pressure. y+~2-3 contributes at the
+margin but the families' error ordering rules it out as the cause.
+Q2 (Eppler strL0 LE): confirmed — good catch, and it revises my
+midchord-only story. The strL0 suction peak is clipped ~7% (-Cp 1.35
+vs 1.45): the Construct2D O-grid at L0 has Delta_s @ LE = 4.9e-3 c vs
+the cavity's 1.1e-3 (4.4x coarser; NLF same pattern, 5.3e-3 vs
+0.55e-3) — the L0 O-grid walks around the LE arc in ~8-10 points. So
+the structured-L0 Eppler failure is a two-deficit story: (1) clipped
+LE suction peak (pressure-drag error at the nose AND a weakened
+adverse-gradient onset feeding the bubble), plus (2) the cosine
+distribution being coarsest at midchord where the bubble lives
+(1.7-1.9%c). The cavity L0 is finer at BOTH ends, which is why it
+keeps the bubble nearly canonical and pays only the generic
+form-drag tax.
+
+## 2026-07-25 ~12:00 UTC — Invariant-kernel verdict at matched protocol: FAILS
+The redo is conclusive and the answer is negative:
+- Controls validate the harness EXACTLY: flag-off clones at 40k
+  reproduce canon to the last digit (str 0.9796/0.00741 vs canon
+  0.9797/0.00740; cav 0.9839/0.00771 vs 0.9843/0.00776).
+- Flag-on at the same protocol converges AWAY from canon: str NLF
+  +12.4 counts, cav NLF +22.3, Eppler a5 +10.8. Not line widths.
+- The concept is NOT what fails: the python replica of both kernels
+  on the converged field is identical to all digits (parallel-layer
+  degeneracy exact). The freestream/ahead-of-LE chi is exactly the
+  seed in flag-on runs too (no contamination), constants verified.
+  The remaining suspects are discrete-feedback effects where s_hat's
+  sign is noise-driven (BL edge / weak shear): flag-on runs carry a
+  turbulence-residual floor 5 DECADES higher — persistent production
+  flutter — and small positive P where the magnitude form clips to
+  zero can bias the amplification integral once the solution is
+  allowed to respond (the python check was frozen-field).
+DECISION per the original plan (verify on 2D before 3D): the invariant
+form is NOT cleared. The spheroid campaign runs the standard magnitude
+kernel. The elegant form stays in the extension memo as future work
+with this diagnosis attached (likely fix: blend s_hat to the
+magnitude representative where |Y| << |X|, i.e. weak shear, keeping
+the signed behavior only where vorticity is coherent).
+
+## 2026-07-25 ~12:05 UTC — Negative-alpha NLF pair: landed and converged (40k)
+str/cav L2 at alpha=-4: CL +0.018/+0.036 (zero-lift hit), CD
+0.00768/0.00746 vs experiment ~0.0068 at matched CL (+9/+7 counts).
+At alpha=-8 (experimental edge): CL -0.476/-0.457 (exp -0.474 at -8),
+CD 0.01125/0.01110 vs exp ~0.0105 (+7/+6 counts). Family agreement
+1-2 counts everywhere. Transition: at CL~0 the camber makes the LOWER
+surface the adverse side — SA-AI lower front 0.08-0.16 (LM's fine-grid
+lower curve says 0.18 at the same cl; the experiment sits later), upper
+0.46-0.50 (LM 0.48). Campaign JSON updated; the transition figure now
+carries the negative-branch points on the finest grids.

@@ -118,5 +118,43 @@
   "conv": true,
   "ls": null,
   "tr": null
+ },
+ "xfoil": {
+  "6.5": {
+   "cl": null,
+   "conv": false,
+   "ls": null,
+   "tr": null
+  },
+  "7.0": {
+   "cl": null,
+   "conv": false,
+   "ls": null,
+   "tr": null
+  },
+  "7.5": {
+   "cl": null,
+   "conv": false,
+   "ls": null,
+   "tr": null
+  },
+  "8.0": {
+   "cl": null,
+   "conv": false,
+   "ls": null,
+   "tr": null
+  },
+  "8.5": {
+   "cl": null,
+   "conv": false,
+   "ls": null,
+   "tr": null
+  },
+  "9.0": {
+   "cl": null,
+   "conv": false,
+   "ls": null,
+   "tr": null
+  }
  }
 }

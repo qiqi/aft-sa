@@ -1,4 +1,4 @@
-"""Daedalus SECTION sheets -> figs/daedalus_section_eta{10,31,60}.pdf.
+"""Daedalus SECTION sheets -> figs/daedalus_section_eta{10,75,92}.pdf.
 
 The 2D airfoils' five-row whole-page diagnostic (rows: probe-max Re_Omega;
 probe-max Shat*g; max chi with the e^N envelope N; -Cp; signed C_f,x),
@@ -15,7 +15,7 @@ Rows 1-2 probe the volume along in-plane surface normals to 0.01 c_loc
 (the 2D convention); row 3 reads the near-wall band max chi from the
 committed chi_surface.npz (5% c band).
 
-  python3 regen_daedalus_section_sheets.py [eta ...]   # default 0.10 0.31 0.60
+  python3 regen_daedalus_section_sheets.py [eta ...]   # default 0.10 0.75 0.92
 """
 import os
 import sys
@@ -281,7 +281,7 @@ def probe_cached(case, surfname, etas, mu):
 
 
 if __name__ == '__main__':
-    etas = [float(x) for x in sys.argv[1:]] or [0.10, 0.31, 0.60]
+    etas = [float(x) for x in sys.argv[1:]] or [0.10, 0.75, 0.92]
     for a in ALPHAS:
         for fam, (tpl, surfname, ls) in CASES.items():
             case = tpl.format(a=a)

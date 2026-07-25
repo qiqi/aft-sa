@@ -1,6 +1,6 @@
 {
  "source": "Shahjahan, Emmerson & Verstraete, 'On the choice of turbulence model for the simulation of airfoils at Reynolds number below 200,000', ICAS 2024, paper 0327 (file: sa-ai/references/icas2024_0327.pdf)",
- "condition": "Eppler 387 airfoil, Re = 200,000, freestream turbulence intensity Tu = 0.1% (paper Sec. 4); incompressible RANS (ANSYS Fluent)",
+ "condition": "Eppler 387 airfoil, Re = 200,000, freestream turbulence intensity Tu = 0.1% (paper Sec. 4); incompressible RANS; gamma-Re_theta in OpenFOAM, SA-BC in SU2",
  "polar": {
   "langtry_menter": {
    "cd": [
