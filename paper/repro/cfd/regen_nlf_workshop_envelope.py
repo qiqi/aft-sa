@@ -29,10 +29,10 @@ fig, axs = plt.subplots(1, 2, figsize=(10.5, 4.2))
 for ax, side, key in ((axs[0], 'upper', 'xtr_up'), (axs[1], 'lower', 'xtr_lo')):
     env = W['envelope'][side]
     a = np.asarray(env['alpha'], float)
-    ax.fill_between(a, env['xtr_min'], env['xtr_max'], color='C0', alpha=0.18,
+    ax.fill_between(a, env['xtr_min'], env['xtr_max'], color='0.5', alpha=0.22,
                     lw=0)
-    ax.plot(a, env['xtr_min'], color='C0', lw=0.7, alpha=0.5)
-    ax.plot(a, env['xtr_max'], color='C0', lw=0.7, alpha=0.5)
+    ax.plot(a, env['xtr_min'], color='0.4', lw=0.7, alpha=0.6)
+    ax.plot(a, env['xtr_max'], color='0.4', lw=0.7, alpha=0.6)
     ex = W['experiment'][side]
     ax.plot(ex['alpha'], ex['xtr'], 'o', mfc='none', mec='k', ms=6, mew=1.2,
             zorder=6)
@@ -45,7 +45,7 @@ for ax, side, key in ((axs[0], 'upper', 'xtr_up'), (axs[1], 'lower', 'xtr_lo')):
         for lv, ms, mew, al in ((0, 3.5, 0.8, 0.5), (1, 5.2, 1.1, 0.75),
                                 (2, 7.0, 1.6, 1.0)):
             A, X = [], []
-            alphas = [0, 4] + ([9] if side == 'upper' else [])
+            alphas = [0, 4]   # 9 deg lies beyond the envelope's alpha domain (-4..8)
             keys = [(f'{fam}L{lv}prop_nlf0416_Re4M_a{q}', q) for q in alphas]
             if lv == 2:
                 keys.append((f'{fam}L2prop_nlf0416_Re4M_am4', -4))
@@ -57,16 +57,16 @@ for ax, side, key in ((axs[0], 'upper', 'xtr_up'), (axs[1], 'lower', 'xtr_lo')):
             if A:
                 ax.plot(A, X, mk, color=c, ms=ms, mfc='none', mew=mew,
                         alpha=al, zorder=5)
-    ax.set_xlabel(r'$\alpha$ (deg)'); ax.set_xlim(-6.5, 9.5)
+    ax.set_xlabel(r'$\alpha$ (deg)'); ax.set_xlim(-6.5, 8.5)
     ax.set_ylim(0, 1.0 if side == 'upper' else 0.8)
     ax.set_ylabel(f'$x_t/c$ ({side} surface)')
     ax.grid(alpha=0.3)
-handles = [plt.Rectangle((0, 0), 1, 1, fc='C0', alpha=0.18,
-                         label='workshop submittals (min--max of ~14)'),
+handles = [plt.Rectangle((0, 0), 1, 1, fc='0.5', alpha=0.22,
+                         label='workshop submittals (min–max of ~14)'),
            Line2D([], [], color='k', ls='none', marker='o', mfc='none', ms=6,
                   label='LTPT experiment'),
            Line2D([], [], color='C2', ls='-', lw=1.2, marker='x', ms=4,
-                  label='SA-LM2015 (Piotrowski--Zingg, fine)'),
+                  label='SA-LM2015 (Piotrowski–Zingg, fine)'),
            Line2D([], [], color='C0', ls='none', marker='s', mfc='none', ms=5.5,
                   label='SA-AI, O-grid (L0$\\to$L2 by size)'),
            Line2D([], [], color='C1', ls='none', marker='^', mfc='none', ms=5.5,

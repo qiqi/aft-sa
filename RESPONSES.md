@@ -1965,3 +1965,123 @@ downstream contamination feeding back, not a local source.
 Battery running (4 runs: str/cav NLF a4 + Eppler a5 with the new form
 vs the existing controls + a fresh Eppler control). Verdict = ON ==
 control within line widths, the bar the s_hat form failed.
+
+## 2026-07-25 ~22:30 UTC — Gram form (projected) verdict: FAILS WORSE; diagnosis + repair proposal
+Battery result (vs held controls; s_hat form had failed +12.4/+22.3/
++10.8 counts):
+  str NLF a4:  control 0.9796/0.00741 -> gram 0.9644/0.00882 (+14.2 ct)
+  cav NLF a4:  control 0.9839/0.00771 -> gram 0.9539/0.01057 (+28.5 ct)
+  Eppler a5:   control 0.9171/0.01598 -> gram 0.9050/0.01834 (+23.5 ct)
+Diagnosis (chi maps, systematic not flutter): the STAGNATION UNDERSIDE
+carries chi at 94x seed and the LE at 17x (controls: exactly seed).
+Cause: projecting u to the wall-parallel plane removes the advection-
+speed guard precisely at impingement points, where u is wall-normal
+and u_par ~ 0 -> denominator collapses -> P inflates. The amplification
+steadying must come from the FULL advection speed (the same physics as
+the advection-speed discussion in the LSB thread).
+PROPOSED REPAIR (awaiting the author's agreement): drop the
+projections entirely — they are automatic in the numerator (m is
+perpendicular to n, so <m,u> = <m,u_par>) and harmful in the
+denominator:
+  P = (<m,m> - <m,u> - <m,l>) /
+      sqrt((<m,m>+<u,u>)(<m,m>+<u,u>+<l,l>)),
+  m = omega x d_vec,  l = (d.d)/2 lap(u).
+Exact on parallel layers (u_n = 0 there); crossflow wedge H untouched;
+wake/BL-edge suppression retained; impingement guarded by the full
+<u,u>. Pure dot products of unmodified vectors — simpler than every
+prior variant.
+
+## 2026-07-25 ~23:30 UTC — Unprojected Gram verdict: BOTH variants fail identically; root cause is signedness itself
+Results (vs controls; ct = dCD counts):
+  mode 2 (all raw):    nlf_str +13.7, nlf_cav +23.6, epp +23.8
+  mode 3 (l projected): identical to mode 2 within 0.2 ct
+  (projected form was +14.2/+28.5/+23.5; s_hat form +12.4/+22.3/+10.8)
+So the projection was never the driver. Field forensics on mode 2:
+BL edge and outer bands CLEAN (exactly seed — my edge hypothesis was
+wrong for this variant); the contamination is the LE (14x seed) and
+the STAGNATION UNDERSIDE (88x seed) — despite the full <u,u> guard,
+because at a stagnation region the full velocity itself vanishes.
+Root cause common to ALL signed variants: in weak-shear regions the
+signed <m,u> flutters with the omega-noise sign, clip<P>_0 rectifies
+the positive half, and the onset gate passes wherever d^2|omega|/nu
+is large. The magnitude kernel is immune BY CONSTRUCTION (X=+|u|
+always -> g<0 in weak shear -> clipped). Signedness is the leak, not
+the normalization.
+Remaining options: (1) the shear-significance blend W=B/(B+uu) —
+signed where shear dominates advection (backflow), magnitude where
+advection dominates (every leak site); engineered for exactly this
+discriminator, never run; zero new constants. (2) accept the
+magnitude kernel as final (expressible division-free in Gram
+clothing; the crossflow odd-pairing H story is an ADDITION and
+survives either way). Proposed: run (1) as mode 4 to close the
+question with data. Awaiting the author's go.
+
+## 2026-07-26 ~00:15 UTC — The magnitude kernel in division-free Gram clothing (derivation)
+Homogeneity: Shat and g are degree-0 in (X,Y,Z); scale the triple by
+X = |u| (positive) instead of Y:
+  (X,Y,Z) ~ (X^2, XY, XZ) = (<u,u>, sqrt(<u,u><m,m>), <l,u>)
+— the division hidden in Z = <l,u>/|u| is cancelled EXACTLY by the
+scaling. The calibrated magnitude kernel is then
+  Shat = sqrt(<u,u><m,m>) / sqrt(<u,u>^2 + <u,u><m,m>)
+  g    = (sqrt(<u,u><m,m>) - <u,u> - <l,u>)
+         / sqrt(<u,u>^2 + <u,u><m,m> + <l,u>^2)
+with m = omega x d_vec, l = (d.d)/2 lap(u): two Gram pairings, one
+square root of their product, RMS denominators, no unit vectors, and
+P -> 0 smoothly in quiescent flow.
+Structure worth putting in the paper:
+1. DUALITY: signed form = pairings against m (<m,u>,<m,m>,<m,l>);
+   magnitude form = pairings against u (<u,u>, sqrt(<u,u><m,m>),
+   <u,l>). Same three vectors, different reference leg; coincident on
+   parallel layers (u || m) — matching every frozen-field check.
+2. CAUCHY-SCHWARZ IS THE BATTERY VERDICT IN ONE LINE: the magnitude
+   form's middle entry is the C-S ENVELOPE of the signed form's
+   <m,u>. The envelope never flips sign with omega-noise -> weak
+   shear always lands on g<0 and clips; every signed variant failed
+   because it kept the pairing, the magnitude kernel survives because
+   it keeps the envelope. (The W-blend = interpolating between a
+   pairing and its own envelope.)
+3. Y-CHOICE via the Lagrange identity: |omega x d|^2 =
+   <omega,omega><d,d> - <omega,d>^2 — the canon full-|omega| Y is
+   also division-free (Y^2 = <d,d><omega,omega>), the tangential
+   choice differs only by the wall-normal-vorticity pairing
+   <omega,d>^2 (identical in 2D, i.e., the whole calibration domain),
+   and that difference term sits naturally next to the crossflow odd
+   pairing H = n.(u x m) in the same algebra.
+So the paper can present the UNCHANGED calibrated kernel in this form
+— same numbers, no recalibration — with <m,u> (signed variant, failed
+verification) and H (crossflow channel) documented as the algebra's
+other two readings. W-blend run still on offer to data-close the
+signed option.
+
+## 2026-07-26 ~01:00 UTC — GRAM FORM ADOPTED (magnitude kernel); campaign resumed; what changed where
+Adoption executed (commit b8cac0e):
+1. REUSE: everything already computed remains valid — the Gram form
+   is algebraically identical to the calibrated magnitude kernel
+   (degree-0 homogeneity, rescale by |u|), so the old canon, the fv1
+   batteries, and the 20 completed flow360_fv1 cases all carry over
+   unchanged. No solver code change: the implemented (X,Y,Z)
+   arithmetic IS the Gram form after the rescale.
+2. Y-CONVENTION pinned: full-vorticity Y^2 = <d,d><omega,omega>
+   (identical to canon everywhere incl. 3D; also division-free). The
+   tangential |omega x d| variant differs only by the wall-normal-
+   vorticity pairing (Lagrange identity) and is documented as the
+   3D-future option next to the crossflow pairing H.
+3. PAPER (Sec. III solver-realization passage, new Eq. eq:gram): the
+   triple is now stated as (<u,u>, sqrt(<u,u><d,d><omega,omega>),
+   <l,u>) with the four vectors defined; parallel-layer reduction
+   spelled out; the signed pairing <omega x d, u> recorded WITH its
+   verdict (implemented in four variants, rejected — rectifies
+   vorticity-direction noise in weak shear; its C-S envelope IS the
+   middle Gram entry); the odd crossflow pairing pointed at the
+   outlook. The existing signed-vs-magnitude realization paragraph
+   (mixed-sign layer discussion) stands unchanged — it was already
+   exactly right.
+4. ARTIFACT memo updated + republished (same URL): kernel card now
+   'adopted' with the full verdict trail.
+5. CAMPAIGN resumed with a skip-completed guard (ai_constants.log as
+   the completion marker): the 20 finished cases skipped in seconds,
+   remaining ~73 running on all 8 GPUs.
+Sections to read: Sec. III paragraph beginning 'In the solver the
+indicator triple is assembled from four local vector-calculus
+objects' + Eq. (eq:gram) (one page); the RESPONSES ~00:15 entry for
+the derivation; the artifact kernel card for the memo version.

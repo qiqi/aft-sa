@@ -75,7 +75,7 @@ dimensions on the wing of the Daedalus human-powered aircraft.
   $N,\;N_\mathrm{crit},\;Re_\Omega^{\mathrm{c}}$\quad\quad \= \kill
   $\tilde\nu$ \> SA working variable \\
   $\tilde S$ \> SA modified vorticity \\
-  $\nu,\;\nu_t$ \> kinematic (laminar) and eddy viscosity ($\nu_t=\tilde\nu f_{v1}$) \\
+  $\nu,\;\nu_t$ \> kinematic (laminar) and eddy viscosity ($\nu_t=\tilde\nu[(1-b)f_{v1}+b]$, Eq.~\eqref{eq:fv1bypass}) \\
   $c_{v1},\;f_{v1}$ \> SA near-wall constant and function \\
   $P,\;D$ \> production and destruction of $\tilde\nu$ \\
   $P_\mathrm{SA},\;P_\mathrm{AI}$ \> turbulent (SA) and laminar-amplification production terms \\
@@ -1132,7 +1132,7 @@ separation bubble in mid-handover---that identity is void at every
 $\chi$: there is no wall scale for $f_{v1}$ to enforce, and its
 damping is an unearned sink on exactly the young turbulence that must
 close the bubble. Whether a point is in an attached wall layer is
-decidable from the state itself, with no new constants: writing
+decidable from the state itself, with no new calibrated constants: writing
 $y^+\!:=\!\chi/\kappa$ (exact in any SA-consistent attached layer,
 where $\tilde\nu\!=\!\kappa y u_\tau$ through buffer and log
 regions), the reconstruction
@@ -1145,14 +1145,18 @@ an attached equilibrium layer and is many times larger in a lifted
 layer, whose $|\mathbf u|$ and $d$ are set by the bubble geometry
 rather than the wall unit. The assembly is therefore blended,
 \begin{equation}
-  \mu_t = \big[(1-w)\,f_{v1}(\chi) + w\big]\,\rho\tilde\nu,
+  \mu_t = \big[(1-b)\,f_{v1}(\chi) + b\big]\,\rho\tilde\nu,
   \qquad
-  w = s(\chi)\,G(q),
+  b = s(\chi)\,G(q),
   \label{eq:fv1bypass}
 \end{equation}
 where $G$ ramps on over $q\!\in\!(2,4)$---the margin covers how far
-attached layers stray from Reichardt under pressure gradient, which a
-composite log--wake profile bounds below two in the gated band---and
+attached layers stray from Reichardt under pressure gradient: a
+composite log--wake profile
+(\texttt{repro/analytic/fv1\_qmargin\_composite.py}) keeps
+$q\!<\!2$ in the gated band for wake parameters up to
+$\Pi\!\approx\!3.5$, while near-separation wakes can open $G$
+partially, with the batteries bounding the consequence---and
 $s\!=\!\mathrm{clip}(\chi-1,0,1)$ is a smoothing ramp across the
 amplification threshold. The $s$ ramp is deliberately \emph{faster}
 than the $\sigma_t$ handover: $\sigma_t$ encodes turbulence maturity
@@ -1161,16 +1165,19 @@ proximity---gating the bypass on maturity would charge the young
 turbulence twice for the same immaturity. The construction is inert
 everywhere it should be: for $\chi\!<\!1$, $\mu_t$ is negligible
 under either assembly; for $\chi\!\gtrsim\!30$, $f_{v1}\!\to\!1$
-and the blend is the identity; and in attached layers $G$ never
-opens. Its effect is confined to lifted transitional layers.
+and the blend is the identity; and in the inner attached wall layer
+$q\!=\!1$ by construction and $G$ stays shut. At an attached
+layer's \emph{outer edge}, where $\chi$ descends back through the
+handover band, the gate does open---there $f_{v1}$ is already close
+to one, and the flat-plate and NLF batteries bound the net effect
+below $1.5$ drag counts (\texttt{data/fv1bypass\_battery\_results.json}). Its effect is confined to lifted transitional layers.
 \emph{Status of the results that follow:} the bypass entered the
 model after the campaigns of Secs.~IV--VII were computed; every
 figure, table, and quoted number in those sections is from the
 bypass-inactive model, and the controlled on/off batteries (flat
 plate and NLF unchanged within $1.5$ counts, Eppler moved toward the
 measurement at every condition) bound what will shift when the
-recomputation replaces them. The full recomputation is in progress
-and will be adopted wholesale.
+recomputation replaces them. The recomputation will be adopted wholesale when complete.
 
 \subsection{Preservation of the Spalart--Allmaras calibration}\label{sec:calib_diff}
 
@@ -1556,23 +1563,27 @@ quantitatively.
   \includegraphics[width=\textwidth]{nlf_workshop_envelope.pdf}
   \caption{The same transition fronts against the community: the
   shaded band is the min--max envelope of the ${\sim}14$ submittals
-  to the 1st AIAA Transition Modeling and Prediction Workshop's
-  NLF(1)-0416 incidence sweep (digitized from the workshop-summary
-  overlay~\cite{coder_tmpw_summary}, which is the only published
-  collection of all participants;
+  to the First AIAA CFD Transition Modeling and Prediction Workshop's
+  NLF(1)-0416 incidence sweep, which spans
+  $\alpha\!=\!-4^\circ$--$8^\circ$ (digitized from the
+  workshop-summary overlay~\cite{coder_tmpw_summary}, the only
+  published collection of all participants;
   \texttt{data/workshop\_nlf\_envelope.json}), circles the LTPT
   experiment points recoverable from under the overlay's marker
   clusters, and the green curve the SA-LM2015 fine-grid sweep of
-  Piotrowski and Zingg~\cite{piotrowski_zingg_2021},
-  vector-digitized from their Fig.~6. Open squares/triangles: SA-AI
-  as in Fig.~\ref{fig:nlfaft} (all six grids at
-  $\alpha\!=\!0^\circ,4^\circ$ and, upper surface, $9^\circ$;
-  finest grids at $-4^\circ$). The envelope's width---$0.4$--$0.6$
-  in $x_t/c$ at fixed incidence---is the workshop's headline result;
-  the untuned SA-AI fronts sit inside it, on the
-  experiment--Langtry--Menter cluster, at every incidence, and its
-  early lower-surface front at $-4^\circ$ lies within the community
-  scatter there.}
+  Piotrowski and Zingg~\cite{piotrowski_zingg_2021}, vector-digitized
+  from the manuscript version of their Fig.~6(f), whose native
+  ordinate is $c_l$ and is replotted here against the sweep's
+  $\alpha\!=\!-6^\circ$--$6^\circ$. Open squares/triangles: SA-AI
+  as in Fig.~\ref{fig:nlfaft}, at the incidences the envelope covers
+  (all six grids at $\alpha\!=\!0^\circ,4^\circ$; finest grids at
+  $-4^\circ$; the $9^\circ$ cluster of Fig.~\ref{fig:nlfaft} lies
+  beyond the band's domain and is omitted). The envelope's width
+  reaches $0.4$--$0.6$ in $x_t/c$ at fixed incidence---the
+  community-wide scatter the workshop documented; the untuned SA-AI
+  fronts sit inside it, on the experiment--Langtry--Menter cluster,
+  at every incidence shown, and the early lower-surface front at
+  $-4^\circ$ lies within the community scatter there.}
   \label{fig:nlfworkshop}
 \end{figure}
 
@@ -1752,12 +1763,14 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
   The upper-surface transition has marched to $x/c\!\lesssim\!0.05$ at
   $\alpha\!=\!9^\circ$ and is at the LE by $\alpha\!=\!15^\circ$, while the
   lower transition remains aft of mid-chord. mfoil does not converge at
-  $\alpha\!=\!9^\circ$ and stalls at $15^\circ$, so both the $e^9$ overlay
-  (dash-dot: $C_p$, $C_f$, and transition location) and the continuous
-  amplification envelope $N(x)$ (row~3, dotted) are FlexFoil's---an
-  independently written implementation of the XFOIL closure
-  set~\cite{drela_xfoil_1989} whose envelopes match mfoil's where both
-  exist (Sec.~\ref{sec:eppresweep}). The L0 unstructured under-resolves
+  $\alpha\!=\!9^\circ$ and stalls at $15^\circ$, so the $e^9$ overlay
+  (dash-dot: $C_p$, $C_f$---converted from XFOIL's edge-normalized
+  dump to the freestream convention, $\times u_e^2$---and transition
+  location) is XFOIL's~\cite{drela_xfoil_1989}, and the continuous
+  amplification envelope $N(x)$ (row~3, dotted) is FlexFoil's---an
+  independently written implementation of the same closure set whose
+  envelopes match mfoil's where both exist
+  (Sec.~\ref{sec:eppresweep}). The L0 unstructured under-resolves
   the LE suction peak by $\sim\!1$ in $-C_p$ at $\alpha\!=\!15^\circ$ (thin
   dashed blue); L1/L2 collapse on both grids. The high-incidence cases test
   the amplification model under a strong adverse gradient:
@@ -1962,7 +1975,7 @@ Fig.~\ref{fig:sheet_eppler387_a5_upper}.)
   same method (dash-dot). Past $\alpha\!=\!6.5^\circ$ the $e^9$
   closure \emph{transitions ahead of laminar separation}---its signed
   $C_f$ never crosses zero (FlexFoil and XFOIL agree, minimum
-  $+2\!\times\!10^{-4}$ at $7^\circ$)---and so predicts no bubble
+  $+4.7\!\times\!10^{-4}$ in the freestream convention at $7^\circ$)---and so predicts no bubble
   where the oil flow still shows one; the isolated FlexFoil marker at
   $8^\circ$ is a marginal three-point sliver. Black circles: the oil-flow visualization (McGhee et
   al., NASA TM 4062, Table~III; its nine tabulated incidences less
@@ -2063,7 +2076,7 @@ To assess whether the same constants follow the bubble across the
 Reynolds-number range of the McGhee experiment, we hold everything of
 Sec.~\ref{sec:eppval}'s study fixed---the incidence at
 $\alpha\!=\!5^\circ$ and the freestream seed at
-$\chi_\infty\!=\!8.76\!\times\!10^{-4}$ and sweep the four other tabulated
+$\chi_\infty\!=\!8.76\!\times\!10^{-4}$---and sweep the four other tabulated
 Reynolds numbers,
 $Re\!\in\!\{6\!\times\!10^4,\,1\!\times\!10^5,\,3\!\times\!10^5,\,4.6\!\times\!10^5\}$,
 reusing the grids of both mesh families at all three refinement levels
@@ -3005,6 +3018,12 @@ contour---and $h_\infty$, unlike every near-wall scale, does not
 halve per level (it is reached only far outside the region the
 sheets and tables measure).
 
+Wherever a five-row figure's dotted or dash-dotted reference $C_f$
+comes from an XFOIL or FlexFoil surface dump (the mfoil references
+are already freestream-normalized), it is converted from the dumps'
+edge normalization to the freestream convention of the computed rows
+($\times u_e^2$).
+
 The contour sheets present the computed fields in the manner of the
 flat-plate figure (Fig.~\ref{fig:flatplate_batch}): line contours of
 the velocity magnitude $|\mathbf{u}|/U_\infty$ (left column) and of
@@ -3436,11 +3455,13 @@ $\tilde\nu$ obeys the single transport equation
   \label{eq:aisa}
 \end{equation}
 identical in form to Spalart--Allmaras~\cite{spalart_allmaras_1992} except in
-three places---the blended production $P$ (its amplification branch built on
-$\hat S g$), the tied destruction $D$, and the
-factor $c_{\nu,\mathrm{ai}}$ on the molecular diffusion;
+four places---the blended production $P$ (its amplification branch built on
+$\hat S g$), the tied destruction $D$, the
+factor $c_{\nu,\mathrm{ai}}$ on the molecular diffusion, and the
+lifted-layer bypass weight $b$ in the eddy-viscosity assembly;
 $\sigma_P\!\equiv\!1$ (and with it $\sigma_D\!=\!1$),
-$c_{\nu,\mathrm{ai}}\!=\!1$ recovers baseline SA exactly.
+$c_{\nu,\mathrm{ai}}\!=\!1$, and $b\!\equiv\!0$ recover baseline
+SA exactly.
 
 \paragraph{Terms.} The production and destruction are
 \begin{equation}
@@ -3466,9 +3487,14 @@ production, destruction, and closure functions, carried over unchanged, are
 \end{gather}
 with $\omega$ the vorticity magnitude, $\chi\!=\!\tilde\nu/\nu$, $d$ the wall
 distance, and eddy viscosity
-$\mu_t\!=\!\rho\tilde\nu\,[(1-w)f_{v1}+w]$ with the
-lifted-layer bypass weight $w=s(\chi)G(q)$ of
-Eqs.~\eqref{eq:fv1q}--\eqref{eq:fv1bypass} (the wall-function
+$\mu_t\!=\!\rho\tilde\nu\,[(1-b)f_{v1}+b]$ with the
+lifted-layer bypass weight $b=s(\chi)G(q)$ of
+Eqs.~\eqref{eq:fv1q}--\eqref{eq:fv1bypass}, where
+$s=\mathrm{clip}(\chi-1,0,1)$, $G=\mathrm{clip}((q-2)/2,0,1)$, and
+$U^+(y^+)$ in Eq.~\eqref{eq:fv1q} is Reichardt's law of the
+wall~\cite{reichardt_1951},
+$U^+=\tfrac1\kappa\ln(1+\kappa y^+)+7.8\,(1-e^{-y^+/11}-\tfrac{y^+}{11}e^{-y^+/3})$
+(the wall-function
 auxiliary $g_w$ is Spalart's $g$, renamed to avoid the Rayleigh coordinate $g$
 below). We retain the
 non-negative $\tilde S$ modification and the negative-$\tilde\nu$ safeguards
