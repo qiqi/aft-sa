@@ -1549,7 +1549,7 @@ disturbance level rather than as a per-case tuning.
   SA-AI prediction (structured O-grid and unstructured meshes, all three
   refinement levels) at $\alpha\!\in\!\{0^\circ,4^\circ,9^\circ,15^\circ\}$ (all
   six grids), extended on the finest grids through
-  $\alpha\!=\!-4^\circ$ and $-8^\circ$ to $c_l\!\approx\!-0.48$
+  $\alpha\!=\!-4^\circ$ and $-8^\circ$ to $c_l\!\approx\!-0.48$,
   overlaid on the digitized experimental section characteristics (Somers, NASA
   TP-1861, Fig.~11d~\cite{somers_1981}) and the mfoil $e^9$ reference. Mesh family
   sets the color (blue = O-grid, orange = unstructured); refinement sets the line
@@ -1868,8 +1868,9 @@ reproduced by every method on the plot, SA-AI included, to a few
 percent of chord at every incidence. The reattachment---the bubble's
 aft end, set by the post-transition turbulent recovery---is the
 quantity this test hinges on, and it is where the sphere kernel shows
-its cost: at $\alpha\!\le\!5^\circ$ every converged grid reattaches
-systematically late, a bubble $0.05$--$0.07\,c$ too long, while the
+its cost: at $\alpha\!\le\!5^\circ$, at grid convergence, both
+families reattach systematically late---a bubble $0.05$--$0.07\,c$
+too long--- while the
 near-stall $7^\circ$ case closes slightly early; the lower surface
 runs laminar to the trailing edge at every incidence and has no front
 to move.
@@ -1899,7 +1900,8 @@ Fig.~\ref{fig:eppbubble}.
   $0.0155/0.0148$ str/cav with $c_l\!=\!0.925/0.937$). Bubble stations
   are laminar separation~/ transition~/ turbulent reattachment at
   $\alpha\!=\!5^\circ$; the oil flow tabulates separation and
-  reattachment only.}
+  reattachment only. The SA-BC intermittency correlation was
+  calibrated in part on this airfoil~\cite{cakmakcioglu_2017}.}
   \label{tab:epplit}
   \begin{tabular}{l l l c c c}
     \toprule
@@ -1916,10 +1918,10 @@ Fig.~\ref{fig:eppbubble}.
 
 This low-$\alpha$ over-length is not an amplification deficit. The
 amplification is on time---the $\chi\!=\!1$ front sits mid-bubble,
-at the $e^9$ crossing to within its convention offset
-(Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}, row~3)---and at these
-Reynolds numbers the recirculating bubble, if anything, over-feeds the
-amplifying zone. What is slow is the \emph{transition} itself: the
+slightly \emph{ahead} of the $e^9$ crossing
+(Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}, row~3)---and the inflectional
+profile saturates the rate coordinate ($P\!\approx\!1$) across the
+mid-bubble. What is slow is the \emph{transition} itself: the
 model deliberately carries no closure for the transition process, so
 breakdown is represented by the transported-$\chi$ handover into SA
 production, and the handover needs a fixed number of $e$-folds of
@@ -2871,9 +2873,16 @@ cavity mesher is driven by the anisotropic metric
 \end{equation*}
 where $d$ is the distance to the nearest wall point, $R$ rotates into
 the (wall-normal, wall-tangential) frame of that nearest point,
-$h_0$ and $h_w$ are the first-cell height and wall-tangential spacing
-of Tables~\ref{tab:nlfmesh}/\ref{tab:eppmesh}, $\gamma$ the growth
-ratio, and $h_\infty$ the isotropic far-field size.
+$h_0$ is the first-cell height of
+Tables~\ref{tab:nlfmesh}/\ref{tab:eppmesh}, $\gamma$ the growth
+ratio, $h_w$ the wall-tangential metric input, and $h_\infty$ the
+isotropic far-field size; per level L0/L1/L2 the inputs are
+$\gamma\!=\!1.2/1.1/1.05$, $h_w\!=\!0.008/0.004/0.002$, and
+$h_\infty\!=\!3.0/2.0/1.5$ (chords). The metric governs the
+interior only---the boundary spacing comes from the resampled
+contour---and $h_\infty$, unlike every near-wall scale, does not
+halve per level (it is reached only far outside the region the
+sheets and tables measure).
 
 The contour sheets present the computed fields in the manner of the
 flat-plate figure (Fig.~\ref{fig:flatplate_batch}): line contours of
@@ -2986,27 +2995,32 @@ $5\times$-raised handover frame of the Appendix~A conventions).
 The $\alpha\!=\!5^\circ$ sheet
 (Fig.~\ref{fig:sheet_eppler387_a5_upper}) also resolves the anatomy
 of the double peak that the $\max_y \hat S g$ trace of
-Fig.~\ref{fig:eppcfhigh} (row~2) shows inside the bubble. The first
-peak is the \emph{lifted laminar shear layer} over the recirculation
-core: at its maximum ($x\!\approx\!0.48$) the rate-carrying layer
-has climbed to the top of the row-2 probe window ($0.01\,c$, i.e.\
-$y^+\!\approx\!420$ in the viscous units of the reattached wall,
+Fig.~\ref{fig:eppcfhigh} (row~2, a wall-normal probe of fixed depth
+$0.01\,c$) shows inside the bubble. The first peak is the
+\emph{lifted laminar shear layer} over the recirculation core: at
+its maximum ($x\!\approx\!0.48$) the rate-carrying layer has
+climbed to the top of the probe window ($0.01\,c$, i.e.\
+$y^+\!\approx\!42$ in the viscous units of the reattached wall,
 $u_\tau$ taken at $x\!=\!0.70$)---visible in the sheet as the
-elevated high-shear band arcing over the bubble. Between
-$x\!\approx\!0.51$ and $0.62$ the trace collapses to
-${\approx}0.14$: the handover that the layer itself ignited
-($\chi\!=\!1$ crosses at $0.47$, $c_{v1}$ at $0.52$, $30$ at
-$0.57$) diffuses exactly the inflection and concentrated shear that
-carry the outer branch---a deeper probe shows its residue dying by
-$x\!\approx\!0.55$---while the turbulent reattachment layer has not
-yet formed; the wall-normal max of one decaying and one growing
-branch necessarily notches at their crossing. The second peak, at
-$x\!=\!0.645$, is the new near-wall \emph{reattachment layer} at
-$d\!=\!0.0014\,c$ ($y^+\!\approx\!58$)---an order of magnitude
-lower than the first: concentrated shear at the low advection speed
-of the reattachment region saturates $\hat S g$ once more, before
-the attached-boundary-layer level (${\approx}0.2$) takes over
-downstream.
+elevated high-shear band arcing over the bubble. The sharp notch that
+follows (minimum ${\approx}0.14$ at $x\!=\!0.51$) is the layer
+\emph{leaving that fixed window}, not a collapse of the physical
+field: probed deeper, the lifted layer stays saturated
+($\hat S g\!\approx\!1$) just above the window until
+$x\!\approx\!0.69$, and the full-depth envelope never drops below
+$0.85$. With the strong outer branch out of frame, the trace shows
+the still-weak near-wall region, then re-rises as the layer descends
+through reattachment: the second peak, at $x\!=\!0.645$, is the new
+near-wall \emph{reattachment layer} at $d\!=\!0.0014\,c$
+($y^+\!\approx\!6$, the sublayer of the forming turbulent
+wall layer)---an order of magnitude lower than the first, with
+concentrated shear at the low advection speed of the reattachment
+region saturating $\hat S g$ once more before the
+attached-boundary-layer level (${\approx}0.2$) takes over
+downstream. The handover crossings ($\chi\!=\!1$ at $0.47$,
+$c_{v1}$ at $0.52$, $30$ at $0.57$) bracket the notch because both
+track the bubble's growth toward reattachment; the alignment is
+correlational, not causal.
 
 \begin{figure}[p]
   \centering

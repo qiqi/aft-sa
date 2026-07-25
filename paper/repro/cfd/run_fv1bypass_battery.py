@@ -21,17 +21,27 @@ sys.path.insert(0, "/home/qiqi/flexcompute/sa-ai/paper/repro/driver")
 from rans.solve import run_solver
 from run_continuation_ladders import clone, forces, FR, canon_env, write_ai_constants
 
-# (tag-stem, source case, Re in k)
+# (tag-stem, source case, Re in k). Promotion criteria (author,
+# 2026-07-25): canon if flat plate AND NLF unaffected AND Eppler improved.
 SLOTS = [
     ("epp2e5_a0",  "strL2prop_eppler387_Re200k_a0",  200),
     ("epp2e5_a2",  "strL2prop_eppler387_Re200k_a2",  200),
     ("epp2e5_a5",  "strL2prop_eppler387_Re200k_a5",  200),
     ("epp2e5_a7",  "strL2prop_eppler387_Re200k_a7",  200),
     ("epp2e5_a5cav", "cavL2prop_eppler387_Re200k_a5", 200),
-    ("epp60k_a5",  "strL2prop_eppler387_Re60k_a5",   60),
-    ("epp100k_a5", "strL2prop_eppler387_Re100k_a5",  100),
-    ("epp300k_a5", "strL2prop_eppler387_Re300k_a5",  300),
-    ("epp460k_a5", "strL2prop_eppler387_Re460k_a5",  460),
+    ("epp60k_a5",  "sweep_strL2_Re60k_a5",   60),
+    ("epp100k_a5", "sweep_strL2_Re100k_a5",  100),
+    ("epp300k_a5", "sweep_strL2_Re300k_a5",  300),
+    ("epp460k_a5", "sweep_strL2_Re460k_a5",  460),
+    # inertness gates: NLF (attached, Re=4e6) and the flat plate
+    ("nlf_a0",  "strL2prop_nlf0416_Re4M_a0",  4000),
+    ("nlf_a4",  "strL2prop_nlf0416_Re4M_a4",  4000),
+    ("nlf_a9",  "strL2prop_nlf0416_Re4M_a9",  4000),
+    ("nlf_a15", "strL2prop_nlf0416_Re4M_a15", 4000),
+    ("nlf_a4cav", "cavL2prop_nlf0416_Re4M_a4", 4000),
+    # flat plate (muRef=1e-7 => Rk = Mach/muRef/1000 = 1000)
+    ("fp_Tu0040", "flatplate_sphere_Tu0040", 1000),
+    ("fp_Tu0300", "flatplate_sphere_Tu0300", 1000),
 ]
 
 slot, gpu = int(sys.argv[1]), int(sys.argv[2])

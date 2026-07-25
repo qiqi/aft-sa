@@ -1669,3 +1669,70 @@ committed diag script; nlfpolar caption covers the negative branch;
 campaign JSON schema completed; the invariant-kernel harness moved
 out of paper/repro (the paper is silent on the abandoned variant, as
 it should be).
+
+## 2026-07-25 ~15:15 UTC — CORRECTION to the double-peak explanation (review pass 25)
+The reviewer refuted the CAUSAL half of the double-peak story you
+liked, and the data is on its side. What survives and what changes:
+- SURVIVES (verified): the two peaks are two different shear layers —
+  the lifted laminar layer over the recirculation core (peak 1, at
+  the top of the row-2 probe window at its maximum) and the near-wall
+  reattachment layer (peak 2 at d=0.0014c). Peak positions, heights,
+  chi crossings: all as quoted.
+- CORRECTED: the sharp notch between them is the lifted layer
+  CLIMBING OUT OF THE FIXED 0.01c PROBE WINDOW, not the handover
+  diffusing it. Probed deeper, the layer stays saturated (P~1) just
+  above the window through the entire "collapse", until x~0.69; the
+  full-depth envelope never drops below 0.85. My "deeper probe shows
+  it dying by 0.55" misread an argmax jump between two branches that
+  are BOTH at ceiling. The chi=1/c_v1 alignment with the notch is
+  correlational (both track the bubble's growth toward reattachment),
+  not causal. Appendix B now says exactly this.
+- Also fixed: both y+ conversions were 10x too large (u_tau missing
+  the xU_inf=M=0.1 in solver units): the window top is y+~42 and
+  peak 2 sits at y+~6 — the SUBLAYER of the forming wall layer, which
+  actually fits "new near-wall reattachment layer" better than the
+  wrong 58 did.
+
+## 2026-07-25 ~15:20 UTC — fv1-bypass PROMOTION BATTERY: verdict table
+All 32 runs done (16 slots x ON/OFF, matched cold/fSlow=1/40k
+protocol, sigma_t-tied s(chi), analytic q gate). ON-vs-OFF:
+  case            OFF CL/CD        ON CL/CD         dCD(counts)
+  epp2e5 a0       0.389/0.01059    0.388/0.01047    -1.3
+  epp2e5 a2       0.608/0.01206    0.608/0.01191    -1.6
+  epp2e5 a5       0.927/0.01529    0.928/0.01498    -3.1
+  epp2e5 a7       1.140/0.01452    1.140/0.01444    -0.8
+  epp2e5 a5 cav   0.937/0.01477    0.937/0.01455    -2.2
+  epp 60k a5      0.622/0.05382    0.633/0.05343    -3.9 (still burst)
+  epp100k a5      0.812/0.04048    0.828/0.03847   -20.1 (still open)
+  epp300k a5      0.940/0.01116    0.940/0.01096    -2.0
+  epp460k a5      0.949/0.00886    0.949/0.00881    -0.5
+  nlf a0/4/9/15   ---              ---              -0.1/-0.3/-0.4/-1.3
+  nlf a4 cav      ---              ---              -0.4
+  flat Tu0040     0.024/0.01181    0.024/0.01166    -1.5
+  flat Tu0300     0.034/0.01694    0.034/0.01691    -0.3
+Against your promotion criteria:
+- NLF: unaffected (<=0.4 counts except -1.3 at the near-stall 15 deg;
+  CL moves <=0.08%). PASS.
+- Flat plate: Tu0300 untouched; Tu0040 loses 1.5 counts — needs the
+  onset-Re_theta check (CD alone conflates onset with the turbulent
+  run) before calling it. PROBABLE PASS, verify onset.
+- Eppler: improves at EVERY condition, direction always toward the
+  measurement: -0.8..-3.1 counts through the 2e5 benchmark (a5 str
+  0.01498 vs exp 0.0138 — about a third of the canon gap closed),
+  -2.0/-0.5 at 300k/460k, and -20 counts at the 1e5 bursting
+  boundary. IMPROVED — but the 1e5 bubble does NOT close (0.828/0.038
+  vs the burst 0.812/0.040; experiment 0.873/0.0237).
+THE TWIST: the earlier exploration (old s(chi) window (1,2)) CLOSED
+the 1e5 bubble outright (0.93/0.0231, drag on the measurement).
+Today's sigma_t-tied s is much weaker exactly where fv1 bites
+(s=0.22 at chi=2, 0.63 at chi=5, full only ~chi 20), and the 1e5
+closure is lost. The parameter elimination has a real cost at the
+bursting boundary.
+Recommendation: make the s-ramp width an explicit input defaulting to
+the sigma_t width (keeps the zero-parameter default), and test width=1
+(the old window's strength) at 1e5 + the 2e5 benchmark + one NLF +
+one flat plate (8 quick runs). If width=1 closes 1e5 while staying
+inert elsewhere, the promotion decision becomes: accept ONE tunable
+with an analytic anchor candidate (the fv1 half-saturation scale,
+chi~c_v1/2... to be derived) in exchange for moving the bursting
+boundary — your call.
