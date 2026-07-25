@@ -67,6 +67,35 @@ for a in alphas:
     f=converged_clcd(f"{B}/strL2prop_nlf0416_Re4M_turb_a{int(a)}")
     if f: tb_cl.append(f[0]); tb_cd.append(f[1])
 if tb_cl: ax.plot(tb_cd,tb_cl,marker='v',mfc='none',ms=5,ls='-.',lw=1.2,color='0.55',zorder=2)
+# Workshop-submittal polars (cl vs cd -- native axes), light underlay;
+# AFT highlighted royalblue, algebraic B-C seagreen (annotated round 7).
+import json as _json
+_WS = _json.load(open(f'{PD}/data/workshop_nlf_submittals.json'))['drag_polar']
+for _name, _ser in _WS.items():
+    if _name == 'experiment' or not isinstance(_ser, dict):
+        continue
+    _cl = _ser.get('cl') or []
+    _cd = _ser.get('cd') or []
+    if len(_cl) < 1:
+        continue
+    _fam = _ser.get('family', '')
+    if 'AFT' in _fam:
+        _kw = dict(color='mediumpurple', lw=0.9, alpha=0.75, zorder=1.6)
+    elif 'B-C' in _fam or 'algebraic' in _fam.lower():
+        _kw = dict(color='seagreen', lw=1.1, alpha=0.9, zorder=1.6)
+    else:
+        _kw = dict(color='0.82', lw=0.55, zorder=1.2)
+    _o = np.argsort(np.asarray(_cl, float))
+    _x = np.asarray(_cd, float)[_o]; _y = np.asarray(_cl, float)[_o]
+    # break the polyline where cd jumps by >0.006 between cl-neighbors
+    # (identity-ambiguous / post-stall points would otherwise draw false
+    # horizontal connectors)
+    _xp, _yp = list(_x), list(_y)
+    for _i in range(len(_x) - 1, 0, -1):
+        if abs(_x[_i] - _x[_i-1]) > 0.006:
+            _xp.insert(_i, np.nan); _yp.insert(_i, np.nan)
+    ax.plot(_xp, _yp, '-', marker='.', ms=2.5, **_kw)
+
 for mesh in ['str','cav']:
     for level in ['L0','L1','L2']:
         cl,cd=[],[]
@@ -90,6 +119,9 @@ handles=[Line2D([],[],color='k',ls='-',marker='o',mfc='none',ms=4,label='Experim
          Line2D([],[],color='C0',ls='-', marker='o',ms=4,label='SA-AI, structured (O-grid)'),
          Line2D([],[],color='C1',ls='--',marker='^',ms=4,label='SA-AI, unstructured'),
          Line2D([],[],color='0.55',ls='-.',marker='v',mfc='none',ms=5,lw=1.2,label='SA, fully turbulent (str L2)'),
+         Line2D([],[],color='0.82',lw=0.55,label='workshop submittals'),
+         Line2D([],[],color='mediumpurple',lw=0.9,label='workshop AFT'),
+         Line2D([],[],color='seagreen',lw=1.1,label='workshop B--C'),
          Line2D([],[],color='0.4',lw=LEVEL_LW['L0'],label='L0'),
          Line2D([],[],color='0.4',lw=LEVEL_LW['L1'],label='L1'),
          Line2D([],[],color='0.4',lw=LEVEL_LW['L2'],label='L2')]

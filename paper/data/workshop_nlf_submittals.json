@@ -1,0 +1,1393 @@
+{
+ "meta": {
+  "source": "references/TransitionMPW1_summary_Coder_NAS2021.pdf (J. Coder, NASA AMS seminar 2021-03-04, summary of the 1st AIAA CFD Transition Modeling & Prediction Workshop), Case 2 NLF(1)-0416, M=0.1, Re=4e6",
+  "pages": {
+   "transition_vs_alpha": "deck page 22 (Case 2B - Alpha Sweep), embedded 1000x750 rasters xref 543 (xtr_u vs alpha) and 545 (xtr_l vs alpha)",
+   "drag_polar": "deck page 21 (Case 2B - Alpha Sweep), embedded 1000x750 raster xref 522 (cl vs cd)"
+  },
+  "dpi": "native embedded PNG resolution (1000x750 per panel; equivalent ~300 dpi at slide scale); pages also rendered at 200-400 dpi for letter identification",
+  "method": "9-color palette classification (RGB base colors + white-blend model) -> per-color thin-line RANSAC segment tracing between alpha columns, Hungarian chain linking, letter-template matching (occlusion-aware normalized correlation with white-background penalty) to assign curve identities; polar: spot-arbitrated letter-template matches + row-wise single-curve traces for line-only/occluded series",
+  "axis_calibration": {
+   "xtr_panels": "x: major ticks at px cols 184..918 -> alpha -4..8 (61.167 px/deg); y: ticks rows 83..660 -> xtr 1.0..0.0 (576.25 px/unit); values from traced line vertices (no glyph-center bias)",
+   "polar": "x: cd=0 at px col 179, 149.75 px per 0.005; y: cl=1.5 at row 100.0, cl=0 at row 609.66 (339.77 px/unit cl)"
+  },
+  "letters_and_colors": "letters = participants (key withheld by organizers; deck p.10), colors = model type (deck p.10-11). 14 letters found = 14 submittals: c,d,e,f,g,h,i,j,k,l,m,q,r,u. Red: c(2 curves),g,f,m; orange: i,j(2),k,r + 2 line-only; blue: d,q,u; cyan: h; magenta: e; chartreuse: m(2nd curve of participant m); green(0,210,0): l; gray line-only (no letter). Case-3 slide legends give color->model mapping (p.24-26): blue=SA+AFT2017b, green=SA+B-C, purple=lag-EB, red=SST+g-Retheta(LM2009)/g(MS2015), cyan=SA+MB, orange=gamma-Retheta+CF variants, black=LST+e^N.",
+  "alpha_grids": "most submittals ran alpha=-4..8 step 2; participants c, g, h, q(partly), j(polar) and the gray line have step-1 data; odd-alpha singleton letters in the xtr panels are participant c",
+  "uncertainty": "xtr: +/-0.005 x/c (3 px) for line-traced points of isolated curves; +/-0.012 inside letter pileups (all series at alpha in [-4,0] upper, and the converged 0.62-0.66 band on lower surface at alpha>=2, incl. blue d/q/u trio identity ambiguity); polar: cd +/-0.0002 for isolated glyphs, +/-0.0005 in the bucket bottom; cl +/-0.01. A sixth faint red 'shadow' curve fragment near m (xtr_u alpha 5-8) could not be attributed and is omitted.",
+  "known_gaps": "letters fully hidden at some alphas are omitted rather than interpolated (see per-series partial_note); polar per-point letter identity in the cl<0.7 pack is uncertain for the red family and the blue trio"
+ },
+ "transition_vs_alpha": {
+  "c": {
+   "family": "LM/gamma-Retheta (SST + gamma-Re_theta_t LM2009 or SST + gamma MS2015; red color code)",
+   "upper": {
+    "alpha": [
+     -4.0,
+     -3.0,
+     -2.0,
+     -1.0,
+     0.0,
+     1.0,
+     2.0,
+     3.0,
+     4.0,
+     5.0,
+     6.0,
+     7.0,
+     8.0
+    ],
+    "xtr": [
+     0.5444,
+     0.5053,
+     0.4786,
+     0.459,
+     0.4423,
+     0.4279,
+     0.4139,
+     0.3997,
+     0.3823,
+     0.3514,
+     0.3158,
+     0.2615,
+     0.2183
+    ],
+    "partial": false
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -3.0,
+     -2.0,
+     -1.0,
+     0.0,
+     1.0,
+     2.0,
+     3.0,
+     4.0,
+     5.0,
+     6.0,
+     7.0,
+     8.0
+    ],
+    "xtr": [
+     0.2608,
+     0.3955,
+     0.5291,
+     0.611,
+     0.6176,
+     0.6237,
+     0.6325,
+     0.6459,
+     0.6593,
+     0.6442,
+     0.6499,
+     0.6525,
+     0.6593
+    ],
+    "partial": false
+   },
+   "partial": false
+  },
+  "c_v2": {
+   "family": "LM/gamma-Retheta (SST + gamma-Re_theta_t LM2009 or SST + gamma MS2015; red color code)",
+   "upper": {
+    "alpha": [
+     5.0,
+     6.0,
+     7.0,
+     8.0
+    ],
+    "xtr": [
+     0.3592,
+     0.3058,
+     0.2707,
+     0.2242
+    ],
+    "partial": true,
+    "partial_note": "resolved only for alpha>=5 (and a clipped pair at alpha=-4); coincides with 'c' to within ~0.005 x/c elsewhere"
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -2.0
+    ],
+    "xtr": [
+     0.202,
+     0.3766
+    ],
+    "partial": true,
+    "partial_note": "only the alpha=-4 and -2 points are separable from 'c'; the two variants coincide within ~0.005 x/c for alpha>=0"
+   },
+   "partial": true
+  },
+  "d": {
+   "family": "AFT (SA + AFT2017b; blue color code per Case-3 legend)",
+   "upper": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     5.0,
+     6.0
+    ],
+    "xtr": [
+     0.4633,
+     0.4321,
+     0.3939,
+     0.3471,
+     0.2898,
+     0.2464,
+     0.2169
+    ],
+    "partial": true,
+    "partial_note": "alpha=8 hidden; alpha>=2 values carry the blue-trio separation uncertainty"
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.1388,
+     0.3748,
+     0.5727,
+     0.6091,
+     0.6178,
+     0.6334,
+     0.6438
+    ],
+    "partial": true,
+    "partial_note": "blue d/q/u trio separation uncertain for alpha>=2"
+   },
+   "partial": true
+  },
+  "e": {
+   "family": "unknown (magenta; not in Case-3 legend palette - candidates: SA + gamma-Re_theta_t sLM2015 or lag elliptic-blending, neither confirmed)",
+   "upper": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.4335,
+     0.4062,
+     0.3717,
+     0.3084,
+     0.2273,
+     0.165,
+     0.1178
+    ],
+    "partial": true,
+    "partial_note": "alpha=4 partially occluded (interpolated between chain fragments, +/-0.01)"
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     8.0
+    ],
+    "xtr": [
+     0.1142,
+     0.2695,
+     0.4705,
+     0.6053,
+     0.6733
+    ],
+    "partial": true,
+    "partial_note": "alpha=4 and 6 not recoverable; series converges into the pileup band"
+   },
+   "partial": true
+  },
+  "f": {
+   "family": "LM/gamma-Retheta (SST-coupled local-correlation; red color code)",
+   "upper": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.4474,
+     0.421,
+     0.3939,
+     0.3089,
+     0.2388,
+     0.1748
+    ],
+    "partial": true,
+    "partial_note": "alpha=2 point unresolvable inside the red-family pileup"
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.2837,
+     0.4415,
+     0.5992,
+     0.6107,
+     0.6291,
+     0.6355,
+     0.6447
+    ],
+    "partial": false
+   },
+   "partial": true
+  },
+  "g": {
+   "family": "LM/gamma-Retheta (SST-coupled local-correlation; red color code)",
+   "upper": {
+    "alpha": [
+     -4.0,
+     -3.0,
+     -2.0,
+     -1.0,
+     0.0,
+     1.0,
+     2.0,
+     3.0,
+     4.0,
+     5.0,
+     6.0,
+     7.0,
+     8.0
+    ],
+    "xtr": [
+     0.719,
+     0.6272,
+     0.5352,
+     0.4755,
+     0.4156,
+     0.3811,
+     0.3648,
+     0.3419,
+     0.3169,
+     0.2771,
+     0.2336,
+     0.2006,
+     0.1673
+    ],
+    "partial": false
+   },
+   "lower": {
+    "alpha": [
+     -1.0,
+     0.0,
+     1.0,
+     2.0,
+     3.0,
+     4.0,
+     5.0,
+     6.0,
+     7.0,
+     8.0
+    ],
+    "xtr": [
+     0.4673,
+     0.5525,
+     0.5801,
+     0.6081,
+     0.6122,
+     0.6232,
+     0.615,
+     0.5668,
+     0.4984,
+     0.4302
+    ],
+    "partial": true,
+    "partial_note": "alpha<=-2 not recoverable inside the left-hand pileup"
+   },
+   "partial": true
+  },
+  "gray_line": {
+   "family": "unknown, possibly coupled e^N/LST (gray line-only series, no letter symbols anywhere in the deck; gray/black shade family = LST+e^N in Case-3 slides)",
+   "upper": {
+    "alpha": [
+     0.0,
+     1.0,
+     2.0,
+     3.0,
+     4.0,
+     5.0,
+     6.0,
+     7.0,
+     8.0
+    ],
+    "xtr": [
+     0.3729,
+     0.3471,
+     0.3216,
+     0.2721,
+     0.2226,
+     0.199,
+     0.1756,
+     0.1334,
+     0.0918
+    ],
+    "partial": true,
+    "partial_note": "alpha<0 not traceable inside the on-axis pileup"
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.1326,
+     0.3611,
+     0.4953,
+     0.597,
+     0.6299,
+     0.635
+    ],
+    "partial": true,
+    "partial_note": "alpha=4 segment not traceable"
+   },
+   "partial": true
+  },
+  "h": {
+   "family": "Medida-Baeder gamma-Re_theta with SA (cyan color code = SA+MB per Case-3 legend); LM-family correlation model",
+   "upper": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     -1.0,
+     0.0,
+     1.0,
+     2.0,
+     3.0,
+     4.0,
+     5.0,
+     6.0,
+     7.0,
+     8.0
+    ],
+    "xtr": [
+     0.4191,
+     0.396,
+     0.3795,
+     0.3627,
+     0.3297,
+     0.2971,
+     0.2346,
+     0.1721,
+     0.1159,
+     0.076,
+     0.0514,
+     0.0269
+    ],
+    "partial": false
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -3.0,
+     -2.0,
+     -1.0,
+     0.0,
+     1.0,
+     2.0,
+     3.0,
+     4.0,
+     5.0,
+     6.0,
+     7.0,
+     8.0
+    ],
+    "xtr": [
+     0.0625,
+     0.1303,
+     0.198,
+     0.3891,
+     0.5805,
+     0.5883,
+     0.5964,
+     0.6041,
+     0.6126,
+     0.4312,
+     0.3014,
+     0.2372,
+     0.1734
+    ],
+    "partial": false
+   },
+   "partial": false
+  },
+  "i": {
+   "family": "LM/gamma-Retheta + crossflow extension (orange color code: gamma-Re_theta_t LM2009/LM2015 + CF(He)/CF+ variants)",
+   "upper": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.5841,
+     0.4987,
+     0.4548,
+     0.4338,
+     0.4068,
+     0.3589,
+     0.2619
+    ],
+    "partial": false
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.319,
+     0.6103,
+     0.6329,
+     0.627,
+     0.6386,
+     0.6508,
+     0.6525
+    ],
+    "partial": true,
+    "partial_note": "alpha>=2 values lie in the converged band: identity uncertainty ~+/-0.008 x/c"
+   },
+   "partial": true
+  },
+  "j": {
+   "family": "LM/gamma-Retheta + crossflow extension (orange color code)",
+   "upper": {
+    "alpha": [
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.4108,
+     0.379,
+     0.2891,
+     0.222,
+     0.1553,
+     0.1031
+    ],
+    "partial": true,
+    "partial_note": "alpha=-4 point occluded"
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0
+    ],
+    "xtr": [
+     0.1001,
+     0.2905,
+     0.4351,
+     0.5482,
+     0.6225
+    ],
+    "partial": true,
+    "partial_note": "alpha>=6 not separable inside the converged 0.62-0.66 x/c band"
+   },
+   "partial": true
+  },
+  "k": {
+   "family": "LM/gamma-Retheta + crossflow extension (orange; erratum on deck p.27 identifies k = SST-2003 + LM2009.mod + CF(He).mod)",
+   "upper": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.4994,
+     0.4488,
+     0.4298,
+     0.3721,
+     0.3344,
+     0.2029,
+     0.1341
+    ],
+    "partial": false
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.2554,
+     0.4777,
+     0.6294,
+     0.6291,
+     0.6386,
+     0.6506,
+     0.6553
+    ],
+    "partial": false
+   },
+   "partial": false
+  },
+  "l": {
+   "family": "algebraic/BC (SA + Bas-Cakmakcioglu; green (0,210,0) matches Case-3 legend green exactly)",
+   "upper": {
+    "alpha": [
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     8.0
+    ],
+    "xtr": [
+     0.4316,
+     0.4035,
+     0.366,
+     0.2803,
+     0.138
+    ],
+    "partial": true,
+    "partial_note": "alpha=6 hidden behind the letter pileup; alpha=-4 not recovered"
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0
+    ],
+    "xtr": [
+     0.1435,
+     0.3282,
+     0.5721,
+     0.6282
+    ],
+    "partial": true,
+    "partial_note": "alpha>=4 not separable inside the converged band"
+   },
+   "partial": true
+  },
+  "m_chart": {
+   "family": "unknown (chartreuse; not in Case-3 legend palette; near-leading-edge transition on both surfaces at all alpha - bypass-like/algebraic behavior)",
+   "upper": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.0918,
+     0.0823,
+     0.0724,
+     0.0574,
+     0.0276,
+     0.0252,
+     0.0252
+    ],
+    "partial": false
+   },
+   "lower": {
+    "alpha": [
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.0248,
+     0.0574,
+     0.098,
+     0.1024,
+     0.1064,
+     0.1177
+    ],
+    "partial": true,
+    "partial_note": "alpha=-4 clipped at the bottom axis"
+   },
+   "partial": true
+  },
+  "m_red": {
+   "family": "LM/gamma-Retheta (SST-coupled local-correlation; red color code)",
+   "upper": {
+    "alpha": [
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.4283,
+     0.4043,
+     0.3505,
+     0.2784,
+     0.1926,
+     0.1229
+    ],
+    "partial": true,
+    "partial_note": "alpha=-4 point occluded in the on-axis cluster"
+   },
+   "lower": {
+    "alpha": [
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.4507,
+     0.6062,
+     0.6195,
+     0.6239,
+     0.622,
+     0.5029
+    ],
+    "partial": true,
+    "partial_note": "alpha=-4 occluded in on-axis cluster"
+   },
+   "partial": true
+  },
+  "orange_line1": {
+   "family": "LM/gamma-Retheta + crossflow extension (orange, line-only, no letter symbols; likely an additional variant of an orange-coded submittal)",
+   "upper": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.4803,
+     0.4338,
+     0.4075,
+     0.3603,
+     0.312,
+     0.2369,
+     0.1553
+    ],
+    "partial": false
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0
+    ],
+    "xtr": [
+     0.215,
+     0.4377,
+     0.5838,
+     0.6055
+    ],
+    "partial": true,
+    "partial_note": "line not separable beyond alpha~2 (converged band)"
+   },
+   "partial": true
+  },
+  "orange_line2": {
+   "family": "LM/gamma-Retheta + crossflow extension (orange, line-only, no letter symbols; ends near alpha=1-2)",
+   "upper": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0
+    ],
+    "xtr": [
+     0.4416,
+     0.418,
+     0.3927
+    ],
+    "partial": true,
+    "partial_note": "series (as drawn) ends near alpha=1"
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0
+    ],
+    "xtr": [
+     0.2721,
+     0.4125,
+     0.5477,
+     0.6074
+    ],
+    "partial": true,
+    "partial_note": "line not separable beyond alpha~2 (converged band)"
+   },
+   "partial": true
+  },
+  "q": {
+   "family": "AFT (SA + AFT2017b; blue color code per Case-3 legend)",
+   "upper": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     5.0
+    ],
+    "xtr": [
+     0.4555,
+     0.4226,
+     0.3948,
+     0.3514,
+     0.2846,
+     0.2386
+    ],
+    "partial": true,
+    "partial_note": "alpha>=6 hidden inside the blue d/q/u pileup"
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     5.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.1458,
+     0.3731,
+     0.5727,
+     0.6117,
+     0.6213,
+     0.6247,
+     0.6299,
+     0.6351
+    ],
+    "partial": true,
+    "partial_note": "blue d/q/u trio separation uncertain for alpha>=2 (curves within ~0.01 x/c)"
+   },
+   "partial": true
+  },
+  "r": {
+   "family": "LM/gamma-Retheta + crossflow extension (orange color code)",
+   "upper": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.3911,
+     0.3802,
+     0.3639,
+     0.3197,
+     0.2351,
+     0.1286,
+     0.0724
+    ],
+    "partial": false
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.0659,
+     0.2436,
+     0.4219,
+     0.5577,
+     0.563,
+     0.5751,
+     0.0522
+    ],
+    "partial": false
+   },
+   "partial": false
+  },
+  "u": {
+   "family": "AFT (SA + AFT2017b; blue color code per Case-3 legend)",
+   "upper": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.4512,
+     0.4207,
+     0.3922,
+     0.3495,
+     0.2985,
+     0.2221,
+     0.1409
+    ],
+    "partial": false
+   },
+   "lower": {
+    "alpha": [
+     -4.0,
+     -2.0,
+     0.0,
+     2.0,
+     4.0,
+     6.0,
+     8.0
+    ],
+    "xtr": [
+     0.144,
+     0.4068,
+     0.5692,
+     0.6074,
+     0.6161,
+     0.6265,
+     0.6334
+    ],
+    "partial": true,
+    "partial_note": "blue d/q/u trio separation uncertain for alpha>=2"
+   },
+   "partial": true
+  }
+ },
+ "experiment": {
+  "upper": {
+   "alpha": [
+    -3.12,
+    -1.04,
+    1.04
+   ],
+   "xtr": [
+    0.445,
+    0.407,
+    0.367
+   ]
+  },
+  "lower": {
+   "alpha": [
+    -0.01,
+    1.04,
+    3.05,
+    7.13
+   ],
+   "xtr": [
+    0.525,
+    0.578,
+    0.61,
+    0.629
+   ]
+  },
+  "note": "NASA LTPT experiment, filled black circles; only circles not fully occluded by participant symbols are recoverable (identical to workshop_nlf_envelope.json experiment block)."
+ },
+ "drag_polar": {
+  "c": {
+   "cd": [
+    0.00947,
+    0.00836,
+    0.00746,
+    0.00679,
+    0.00633,
+    0.00603,
+    0.00549,
+    0.00513,
+    0.00573
+   ],
+   "cl": [
+    1.425,
+    1.322,
+    1.213,
+    1.101,
+    0.984,
+    0.863,
+    0.61,
+    0.371,
+    0.127
+   ],
+   "partial": true,
+   "partial_note": "step-1 series; several bucket-bottom points (cl~0.2-0.5 and cl<0) not separable from the red pileup",
+   "family": "LM/gamma-Retheta (SST + gamma-Re_theta_t LM2009 or SST + gamma MS2015; red color code)"
+  },
+  "c_v2": {
+   "cd": [
+    0.00937,
+    0.00826,
+    0.0074,
+    0.00669,
+    0.00596,
+    0.00576
+   ],
+   "cl": [
+    1.393,
+    1.29,
+    1.184,
+    1.072,
+    0.842,
+    0.239
+   ],
+   "partial": true,
+   "partial_note": "second variant of participant c; resolved only where the c/c pairs separate",
+   "family": "LM/gamma-Retheta (SST + gamma-Re_theta_t LM2009 or SST + gamma MS2015; red color code)"
+  },
+  "g": {
+   "cd": [
+    0.01047,
+    0.0086,
+    0.00689,
+    0.00563
+   ],
+   "cl": [
+    1.36,
+    1.151,
+    0.933,
+    0.009
+   ],
+   "partial": true,
+   "partial_note": "only the four points with confident letter evidence; rest buried in the red pack",
+   "family": "LM/gamma-Retheta (SST-coupled local-correlation; red color code)"
+  },
+  "f": {
+   "cd": [
+    0.00903,
+    0.00686,
+    0.00546,
+    0.00506
+   ],
+   "cl": [
+    1.172,
+    0.887,
+    0.445,
+    0.23
+   ],
+   "partial": true,
+   "partial_note": "only confident points kept; high-cl and bucket-bottom points not separable from c/g/m",
+   "family": "LM/gamma-Retheta (SST-coupled local-correlation; red color code)"
+  },
+  "m_red": {
+   "cd": [
+    0.01167,
+    0.00917,
+    0.00743,
+    0.00623,
+    0.00536,
+    0.00609
+   ],
+   "cl": [
+    1.364,
+    1.158,
+    0.943,
+    0.717,
+    0.243,
+    0.001
+   ],
+   "partial": true,
+   "partial_note": "alpha ~ 0 and 4 region points missing (occluded)",
+   "family": "LM/gamma-Retheta (SST-coupled local-correlation; red color code)"
+  },
+  "i": {
+   "cd": [
+    0.00902,
+    0.01007,
+    0.00823,
+    0.00723,
+    0.00659,
+    0.00683,
+    0.008
+   ],
+   "cl": [
+    1.376,
+    1.154,
+    0.939,
+    0.71,
+    0.477,
+    0.239,
+    0.001
+   ],
+   "partial": true,
+   "partial_note": "i/j discrimination in the pack is by cd-ordering of the paired orange glyph columns; identity of individual points ~80% confidence; the cl=1.376 point may belong elsewhere in the orange family",
+   "family": "LM/gamma-Retheta + crossflow extension (orange color code: gamma-Re_theta_t LM2009/LM2015 + CF(He)/CF+ variants)"
+  },
+  "j": {
+   "cd": [
+    0.01254,
+    0.0111,
+    0.00917,
+    0.00793,
+    0.00726,
+    0.00766,
+    0.0089
+   ],
+   "cl": [
+    1.36,
+    1.142,
+    0.928,
+    0.704,
+    0.471,
+    0.236,
+    -0.005
+   ],
+   "partial": false,
+   "family": "LM/gamma-Retheta + crossflow extension (orange color code)"
+  },
+  "j_v2": {
+   "cd": [
+    0.01371
+   ],
+   "cl": [
+    1.345
+   ],
+   "partial": true,
+   "partial_note": "a second j-lettered glyph appears at alpha~8 (participant j submitted LM2009+CF and LM2015+CF variants per the workshop model list); only this point is separable",
+   "family": "LM/gamma-Retheta + crossflow extension (orange color code)"
+  },
+  "k": {
+   "cd": [
+    0.00995,
+    0.00825,
+    0.00674,
+    0.00571,
+    0.00524,
+    0.00534,
+    0.00618
+   ],
+   "cl": [
+    1.404,
+    1.192,
+    0.972,
+    0.745,
+    0.51,
+    0.268,
+    0.024
+   ],
+   "partial": false,
+   "family": "LM/gamma-Retheta + crossflow extension (orange; erratum on deck p.27 identifies k = SST-2003 + LM2009.mod + CF(He).mod)"
+  },
+  "r": {
+   "cd": [
+    0.01117,
+    0.00873,
+    0.0072,
+    0.00589,
+    0.00639,
+    0.00766
+   ],
+   "cl": [
+    1.344,
+    1.17,
+    0.67,
+    0.476,
+    0.237,
+    -0.004
+   ],
+   "partial": true,
+   "partial_note": "alpha~4 point occluded; cl=1.170 point moderate confidence",
+   "family": "LM/gamma-Retheta + crossflow extension (orange color code)"
+  },
+  "q": {
+   "cd": [
+    0.01017,
+    0.00796,
+    0.00763,
+    0.00599,
+    0.00699
+   ],
+   "cl": [
+    1.375,
+    1.166,
+    1.051,
+    0.242,
+    0.001
+   ],
+   "partial": true,
+   "partial_note": "blue d/q/u trio heavily coincident; per-point identity uncertain",
+   "family": "AFT (SA + AFT2017b; blue color code per Case-3 legend)"
+  },
+  "u": {
+   "cd": [
+    0.0098,
+    0.00833,
+    0.0076,
+    0.00526,
+    0.00479,
+    0.00596
+   ],
+   "cl": [
+    1.382,
+    1.153,
+    1.05,
+    0.732,
+    0.496,
+    0.237
+   ],
+   "partial": true,
+   "partial_note": "blue d/q/u trio heavily coincident; per-point identity uncertain",
+   "family": "AFT (SA + AFT2017b; blue color code per Case-3 legend)"
+  },
+  "d": {
+   "cd": [
+    0.01008,
+    0.00975
+   ],
+   "cl": [
+    1.373,
+    1.338
+   ],
+   "partial": true,
+   "partial_note": "only two glyphs separable; d largely hidden under q/u",
+   "family": "AFT (SA + AFT2017b; blue color code per Case-3 legend)"
+  },
+  "h": {
+   "cd": [
+    0.01416,
+    0.01145,
+    0.00998,
+    0.00851,
+    0.00678,
+    0.00621,
+    0.00735,
+    0.00831
+   ],
+   "cl": [
+    1.376,
+    1.17,
+    1.07,
+    0.967,
+    0.743,
+    0.505,
+    0.26,
+    0.019
+   ],
+   "partial": false,
+   "family": "Medida-Baeder gamma-Re_theta with SA (cyan color code = SA+MB per Case-3 legend); LM-family correlation model"
+  },
+  "e": {
+   "cd": [
+    0.01077,
+    0.01012,
+    0.00922,
+    0.00795,
+    0.00674,
+    0.00618,
+    0.00598,
+    0.00611,
+    0.00659,
+    0.00699,
+    0.00708
+   ],
+   "cl": [
+    1.382,
+    1.288,
+    1.194,
+    1.006,
+    0.794,
+    0.629,
+    0.417,
+    0.299,
+    0.134,
+    0.04,
+    -0.007
+   ],
+   "partial": false,
+   "note": "row-wise trace of the magenta line (letters occluded); polyline samples, not symbol vertices",
+   "family": "unknown (magenta; not in Case-3 legend palette - candidates: SA + gamma-Re_theta_t sLM2015 or lag elliptic-blending, neither confirmed)"
+  },
+  "m_chart": {
+   "cd": [
+    0.01541,
+    0.01339,
+    0.01166,
+    0.01068,
+    0.01012,
+    0.00995,
+    0.0102
+   ],
+   "cl": [
+    1.359,
+    1.147,
+    0.888,
+    0.699,
+    0.464,
+    0.229,
+    -0.007
+   ],
+   "partial": false,
+   "family": "unknown (chartreuse; not in Case-3 legend palette; near-leading-edge transition on both surfaces at all alpha - bypass-like/algebraic behavior)"
+  },
+  "l": {
+   "cd": [
+    0.01012,
+    0.00973,
+    0.00886,
+    0.00791,
+    0.00711,
+    0.00678,
+    0.00624,
+    0.00576,
+    0.00561,
+    0.00539,
+    0.00534,
+    0.00544,
+    0.00558,
+    0.00593,
+    0.00634,
+    0.00656
+   ],
+   "cl": [
+    1.359,
+    1.312,
+    1.217,
+    1.1,
+    0.982,
+    0.935,
+    0.817,
+    0.723,
+    0.652,
+    0.558,
+    0.417,
+    0.37,
+    0.299,
+    0.181,
+    0.064,
+    -0.007
+   ],
+   "partial": false,
+   "note": "row-wise trace of the green line (letters occluded); polyline samples, not symbol vertices",
+   "family": "algebraic/BC (SA + Bas-Cakmakcioglu; green (0,210,0) matches Case-3 legend green exactly)"
+  },
+  "gray_line": {
+   "cd": [
+    0.0109,
+    0.01022,
+    0.00841,
+    0.00775,
+    0.00705,
+    0.00656,
+    0.00622,
+    0.00591,
+    0.00581,
+    0.00564,
+    0.00528,
+    0.00531,
+    0.00566,
+    0.00584,
+    0.00623,
+    0.00621,
+    0.00651
+   ],
+   "cl": [
+    1.429,
+    1.265,
+    1.217,
+    1.076,
+    1.029,
+    0.935,
+    0.888,
+    0.77,
+    0.747,
+    0.535,
+    0.393,
+    0.37,
+    0.323,
+    0.276,
+    0.181,
+    0.064,
+    0.017
+   ],
+   "partial": true,
+   "partial_note": "row-wise trace of the gray line; noisy where it crosses the pack - treat cd to +/-0.0004",
+   "family": "unknown, possibly coupled e^N/LST (gray line-only series, no letter symbols anywhere in the deck; gray/black shade family = LST+e^N in Case-3 slides)"
+  },
+  "experiment": {
+   "cd": [
+    0.01272,
+    0.01119,
+    0.00933,
+    0.00735,
+    0.00644,
+    0.00594,
+    0.00578,
+    0.00588,
+    0.00628
+   ],
+   "cl": [
+    1.513,
+    1.421,
+    1.217,
+    1.014,
+    0.903,
+    0.794,
+    0.567,
+    0.339,
+    0.096
+   ],
+   "note": "NASA LTPT experiment, filled black circles, recovered by occlusion-aware disc matching; additional circles buried under the letter pack (incl. one at cl~-0.07) are not recoverable"
+  }
+ }
+}

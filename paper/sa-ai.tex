@@ -1480,9 +1480,18 @@ quantitatively.
   source's recalibration to $N_\mathrm{crit}\!=\!7.18$ (solid), with
   its XFOIL reference (dotted); all extracted vector-exact from the
   source figures
-  (\texttt{data/aft\_nlf0416\_digitized.json}; the community-wide
-  context---all fourteen submittals to the transition workshop's
-  incidence sweep---is Fig.~\ref{fig:nlfworkshop}). Green: the
+  (\texttt{data/aft\_nlf0416\_digitized.json}). Thin underlaid
+  curves: \emph{all fourteen submittals} to the First AIAA CFD
+  Transition Modeling and Prediction Workshop's NLF(1)-0416 incidence
+  sweep ($\alpha\!=\!-4^\circ$--$8^\circ$), digitized per
+  submittal from the workshop-summary overlay~\cite{coder_tmpw_summary}
+  (\texttt{data/workshop\_nlf\_submittals.json}, the only published
+  collection of all participants) and placed on the lift axis through
+  the computed structured-L2 lift curve; the AFT submittals are
+  purple, the algebraic Bas--Cakmakcioglu submittal green, all others
+  light gray. Olive dash-dot: the SA-LM2015 fine-grid sweep of
+  Piotrowski and Zingg~\cite{piotrowski_zingg_2021}, vector-digitized
+  at its native $c_l$ ordinate. Green: the
   Langtry--Menter $\gamma$--$Re_\theta$ model in OVERFLOW (fine grid)
   from the transition-workshop exercise of
   Denison~\cite{denison_2021_overflow}, digitized from its Fig.~11
@@ -1511,34 +1520,6 @@ quantitatively.
   \label{fig:nlfaft}
 \end{figure}
 
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=\textwidth]{nlf_workshop_envelope.pdf}
-  \caption{The same transition fronts against the community: the
-  shaded band is the min--max envelope of the ${\sim}14$ submittals
-  to the First AIAA CFD Transition Modeling and Prediction Workshop's
-  NLF(1)-0416 incidence sweep, which spans
-  $\alpha\!=\!-4^\circ$--$8^\circ$ (digitized from the
-  workshop-summary overlay~\cite{coder_tmpw_summary}, the only
-  published collection of all participants;
-  \texttt{data/workshop\_nlf\_envelope.json}), circles the LTPT
-  experiment points recoverable from under the overlay's marker
-  clusters, and the green curve the SA-LM2015 fine-grid sweep of
-  Piotrowski and Zingg~\cite{piotrowski_zingg_2021}, vector-digitized
-  from the manuscript version of their Fig.~6(f), whose native
-  ordinate is $c_l$ and is replotted here against the sweep's
-  $\alpha\!=\!-6^\circ$--$6^\circ$. Open squares/triangles: SA-AI
-  as in Fig.~\ref{fig:nlfaft}, at the incidences the envelope covers
-  (all six grids at $\alpha\!=\!0^\circ,4^\circ$; finest grids at
-  $-4^\circ$; the $9^\circ$ cluster of Fig.~\ref{fig:nlfaft} lies
-  beyond the band's domain and is omitted). The envelope's width
-  reaches $0.4$--$0.6$ in $x_t/c$ at fixed incidence---the
-  community-wide scatter the workshop documented; the untuned SA-AI
-  fronts sit inside it, on the experiment--Langtry--Menter cluster,
-  at every incidence shown, and the early lower-surface front at
-  $-4^\circ$ lies within the community scatter there.}
-  \label{fig:nlfworkshop}
-\end{figure}
 
 \begin{table}[tp]
   \centering
@@ -1640,7 +1621,10 @@ disturbance level rather than as a per-case tuning.
   dissertation source as Fig.~\ref{fig:nlfaft} (dashed:
   $N_\mathrm{crit}\!=\!10.07$; solid: the recalibrated $7.18$); they
   end mid-plot because the source figure's axis stops at
-  $c_d\!=\!0.025$. The gray dash-dot curve is
+  $c_d\!=\!0.025$. Thin underlaid curves: the
+  fourteen workshop submittals' polars, as in Fig.~\ref{fig:nlfaft}
+  (AFT purple, Bas--Cakmakcioglu green, others light gray; segments
+  break where the source's marker identity is ambiguous). The gray dash-dot curve is
   fully turbulent SA ($\chi_\infty\!=\!3$, same solver, structured L2 grid):
   without the laminar run the drag sits $1.6$--$2.5\times$ above the
   SA-AI polar ($+142$/$+147\%$ in the bucket at $\alpha\!=\!0^\circ$/$4^\circ$,

@@ -29,9 +29,45 @@ D = json.load(open(f'{PD}/data/aft_nlf0416_digitized.json'))['transition']
 LM = json.load(open(f'{PD}/data/lm_nlf0416_transition_digitized.json'))['transition']
 camp = json.load(open(f'{B}/sphere_campaign_nlf_results.json'))
 
+# The full workshop-submittal underlay (all 14 participants, digitized from
+# the summary deck -- data/workshop_nlf_submittals.json). The deck's sweep
+# is xtr vs alpha; it is placed on this figure's lift axis via the computed
+# structured-L2 lift curve (smooth and near-linear over alpha in [-4,8];
+# a +-0.05 c_l placement error is imperceptible at underlay weight).
+WS = json.load(open(f'{PD}/data/workshop_nlf_submittals.json'))
+PZ = json.load(open(f'{PD}/data/workshop_nlf_envelope.json'))['piotrowski']
+_amap = [(-8, 'am8'), (-4, 'am4'), (0, 'a0'), (4, 'a4'), (9, 'a9'), (15, 'a15')]
+_aa = [a for a, t in _amap if f'strL2prop_nlf0416_Re4M_{t}' in camp]
+_cc = [camp[f'strL2prop_nlf0416_Re4M_{t}']['CL'] for a, t in _amap
+       if f'strL2prop_nlf0416_Re4M_{t}' in camp]
+
+
+def cl_of_alpha(a):
+    return np.interp(a, _aa, _cc)
+
+
+def ws_style(fam):
+    if 'AFT' in fam:
+        return dict(color='mediumpurple', lw=0.9, alpha=0.75, zorder=1.6)
+    if 'B-C' in fam or 'algebraic' in fam.lower():
+        return dict(color='seagreen', lw=1.1, alpha=0.9, zorder=1.6)
+    return dict(color='0.82', lw=0.55, alpha=1.0, zorder=1.2)
+
+
 fig, axs = plt.subplots(1, 2, figsize=(10.5, 4.4), sharey=True)
 for ax, side, lab in ((axs[0], 'upper', 'upper surface'),
                       (axs[1], 'lower', 'lower surface')):
+    for name, ser in WS['transition_vs_alpha'].items():
+        sd = ser.get(side)
+        if not sd or not sd.get('alpha'):
+            continue
+        a = np.asarray(sd['alpha'], float)
+        xt = np.asarray(sd['xtr'], float)
+        o = np.argsort(a)
+        ax.plot(xt[o], cl_of_alpha(a[o]), '-', **ws_style(ser['family']))
+    pz = PZ[f'sa_lm2015_{side}']
+    ax.plot(pz['xtr'], pz['cl'], '-.', color='olive', lw=1.0, alpha=0.9,
+            zorder=1.8, label='SA-LM2015 (Piotrowski--Zingg)')
     e = D[f'exp_{side}']
     ax.plot(e['xt'], e['cl'], 'o', mfc='none', mec='k', ms=6, mew=1.2,
             label='LTPT experiment', zorder=6)
@@ -70,7 +106,12 @@ for ax, side, lab in ((axs[0], 'upper', 'upper surface'),
     ax.set_xlabel('$x_t/c$'); ax.set_title(lab, fontsize=10)
     ax.grid(alpha=0.3); ax.set_xlim(0, 0.95)
 axs[0].set_ylabel('$c_l$'); axs[0].set_ylim(-0.6, 2.1)
-axs[0].legend(fontsize=7.5, loc='upper right')
+_h, _l = axs[0].get_legend_handles_labels()
+from matplotlib.lines import Line2D as _L2
+_h += [_L2([], [], color='0.82', lw=0.55, label='workshop submittals (14, all models)'),
+       _L2([], [], color='mediumpurple', lw=0.9, label='workshop AFT submittals'),
+       _L2([], [], color='seagreen', lw=1.1, label='workshop algebraic (B--C)')]
+axs[0].legend(handles=_h, fontsize=7.5, loc='upper right')
 plt.tight_layout()
 out = f'{PD}/figs/nlf_aft_transition.pdf'
 plt.savefig(out); plt.savefig('/tmp/nlf_aft.png', dpi=130)
