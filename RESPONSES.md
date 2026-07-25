@@ -1113,3 +1113,23 @@ When the L0 runs land: totals-table L0 rows, polar L0 line (the
 "L0->L2 by weight" legend becomes literal again), and a canon re-test
 of the predecessor lore that L0 suppresses the bubble at all but 2 of
 36 stations.
+
+## 2026-07-25 ~09:50 UTC — L0 meshes FOUND on 017-v100-dev; all six cases staged
+Good call. The predecessor Daedalus tree survives intact on 017-v100-dev
+at ~/flexcompute/sa-ai/scripts/daedalus — including case_cavity_saai
+(the cavity L0, mesh 202 MB) and case_ogrid_saai (ogrid L0, 63.6 MB),
+plus all the predecessor SOLUTIONS (L0-L2 both families), which also
+restores provenance for the paper's historical predecessor numbers.
+- Both archived L0 meshes fetched. The regenerated ogrid L0 matches the
+  archived one in size exactly (63,573,561 bytes; md5 differs only
+  through HDF5 creation metadata) — the tracked generator reproduces
+  the mesh; the ARCHIVED originals are what's staged, for continuity
+  with tab:daemesh's L0 metrics.
+- All SIX canon L0 cases staged (both families x a4/5/6). Runner:
+  daedalus/build_run_ogrid_L0.py run <gpu> (task #24). Queue: after
+  cavity-L2 a6 (~14:30 UTC); invariant-kernel verification takes the
+  first free GPU, L0 the second.
+- When they land: tab:daetotals gains its full L0 rows (both families),
+  the polar recovers the true L0->L2 ladder, and the predecessor lore
+  (L0 suppresses the bubble at all but 2 of 36 stations) gets re-tested
+  at the canon kernel.
