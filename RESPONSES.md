@@ -1089,3 +1089,27 @@ dotted. Probes the volumes along in-plane surface normals (0.01 c_loc,
 the 2D convention); chi row from the committed chi_surface.npz. Running
 now (~30 min: reloads the 37-55M-node volumes); destined for Appendix D
 with a main-text pointer from the slope discussion.
+
+## 2026-07-25 ~09:30 UTC — Daedalus L0: never run at canon; ogrid L0 rebuilt & staged
+Answer to your question: NO — the canon campaign only ever had L1/L2
+phases. No L0 case dirs exist in the tree, and the predecessor
+campaign's L0 solutions AND meshes are gone (the old scripts/daedalus
+tree is no longer on disk). The paper is internally consistent about it
+(totals table L1/L2 only; y+ caption predecessor-attributed), but the
+mesh table describes L0 — a referee bait your question anticipates.
+Action taken:
+- STRUCTURED L0 IS BACK: the ogrid mesh regenerated from the tracked
+  ogrid_wing.py refinement ladder (LEVELS[0]; 0.72M nodes; mesh.cgns
+  64 MB via the established gmsh->cgns pipeline), and the three case
+  dirs are staged from the L1 siblings. Runner:
+  daedalus/build_run_ogrid_L0.py (mesh|stage done; `run <gpu>` queued
+  as task #24 for after the cavity-L2 campaign, ~20-40 min/case on one
+  GPU).
+- CAVITY L0: the 3D unstructured mesher was NOT recovered on disk (the
+  2D cavity mesher in flexfoil/rans is not the 3D wing one) — cavity L0
+  stays absent unless the mesher resurfaces; the section's per-family
+  "where completed" wording already covers asymmetric availability.
+When the L0 runs land: totals-table L0 rows, polar L0 line (the
+"L0->L2 by weight" legend becomes literal again), and a canon re-test
+of the predecessor lore that L0 suppresses the bubble at all but 2 of
+36 stations.
