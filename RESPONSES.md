@@ -912,3 +912,29 @@ Re=2.4e5 in the dissertation (polars + fronts, mixed raster/vector).
 The AFT-family sentence and the tab:epplit "no published data" row are
 deleted per your instruction (the citation survives at its NLF-section
 sites). Build clean.
+
+## 2026-07-25 ~03:50 — LM/BCM digitization plan (research agent running)
+Figure numbering clarified: Figs 7/8 are the NLF polar + NLF Cf sheets
+(NOT Eppler); Eppler polar is Fig 10, Eppler Cf Figs 11-12; the NLF
+transition-vs-cl plot (where AFT already lives) is Fig 6.
+
+Current state of the two polar figures:
+- Eppler polar (Fig 10, regen_eppler_v2.make_polar_figure): SA-AI L0-L2
+  both families, LTPT experiment, mfoil/xfoil e9, fully-turbulent SA.
+  NO LM/BCM curves yet — but tab:epplit already has their alpha=5 POINTS
+  (gamma-Retheta cd 0.0200, SA-BC 0.0142, gamma-SA 0.0133-0.0140),
+  figure-read from shahjahan_2024 / cakmakcioglu_2017 / dalessandro_2025.
+- NLF polar (Fig 7): SA-AI, mfoil, FlexFoil, turbulent SA, + AFT (just
+  added). NO LM/BCM yet.
+Overlay mechanics are identical to the AFT addition (data dict -> plot
+-> legend entry) in both generators.
+
+Research agent launched for digitizable LM (gamma-Retheta + variants) and
+BCM (SA-BC/BCM) data on BOTH Eppler 387 (Re 2e5) AND NLF(1)-0416
+(Re 4e6) — polars + transition locations, with download URLs and
+vector/raster assessment. User confirmed they want NLF LM/BCM too if it
+exists.
+Plan once sources land: digitize polars -> overlay on Eppler Fig 10 +
+NLF Fig 7; digitize transition locations -> NLF Fig 6 (transition-vs-cl,
+alongside AFT); decide Fig 8 (Cf sheets) treatment (transition markers
+only, if at all).
