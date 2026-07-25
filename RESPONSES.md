@@ -938,3 +938,54 @@ Plan once sources land: digitize polars -> overlay on Eppler Fig 10 +
 NLF Fig 7; digitize transition locations -> NLF Fig 6 (transition-vs-cl,
 alongside AFT); decide Fig 8 (Cf sheets) treatment (transition markers
 only, if at all).
+
+## 2026-07-25 ~04:10 — compressibility & crossflow extensions (physics assessment)
+FRAME: the model = instability-agnostic SKELETON (transport of the
+amplification var + chi->SA handover + Re_Omega onset switch) + an
+instability-specific RATE ATOM (a_max, the inflection/curvature
+indicator building Shat*g, the threshold shape Re_Omega^c(Shat*g), and
+the N_crit(Tu) map). Skeleton reuses for any convective e^N-describable
+mechanism; only the rate atom changes.
+
+COMPRESSIBILITY (transonic / first-mode = TS): three rate-atom edits,
+no structural change:
+1. a_max -> 0.19 * Lambda(M_c): compressible free-shear growth
+   suppression (Papamoschou-Roshko/Sandham; spreading down 2-3x by
+   M_c=1). M_c built LOCALLY from shear dU + sound speeds, not flight
+   Mach. Transonic bubble M_c~0.4 -> Lambda~0.85 (10-20% ceiling drop).
+   Leading-order effect.
+2. Curvature indicator Z -> GENERALIZED inflection point d/dy(rho du/dy)
+   =0 (Lees-Lin) not u''=0: density enters Z; the kinematic sphere
+   indicators acquire a thermodynamic input (T field already carried).
+   Modest shift at subsonic-transonic edge Mach, but the correct
+   criterion.
+3. Re-anchor Re_Omega^c shape, k (Blasius N=1 anchor), and the Mack
+   N_crit(Tu) map against a COMPRESSIBLE LST/e^N database (Mach-dep);
+   receptivity map gains an acoustic branch.
+Plus shocks/SBLI as a separate (unmodeled) receptivity concern.
+Hypersonic SECOND mode (M>~4): different animal (trapped acoustic,
+opposite wall-T sensitivity) -> separate sub-model, not a mod.
+
+CROSSFLOW: a genuine SECOND amplification channel, not a re-tune.
+Physics: crossflow velocity (perp to inviscid streamline) is 0 at wall &
+edge -> inflectional -> co-rotating CF vortices (stationary in low-Tu).
+Different DIRECTION from TS. Needs:
+- CF indicator: the current pure-magnitude kernel is direction-agnostic,
+  which CF can't tolerate (CF is defined relative to edge direction e).
+  ELEGANT local candidate from the invariant-kernel work: s_hat =
+  (omega x n)/|.| ROTATES with height (skin-friction dir at wall ->
+  e at edge); that twist IS the crossflow. So CF strength ~ |ds_hat/dy|
+  or the wall-shear-vs-edge misalignment angle. Nonlocal wrinkle: e
+  (edge dir) from velocity at ~edge distance, or approx by grad-p dir.
+- CF rate a_cf + threshold on Re_cf (Arnal C1) or a CF N-factor.
+- Two-channel combo: transport N_TS and N_CF, fire when EITHER crosses
+  (Stock two-N diagrams, same as the spheroid lit).
+Attachment-line contamination = 3rd swept cousin (Re_theta_AL>~100),
+own cheap criterion.
+
+BOTTOM LINE: transonic compressibility = bounded 3-part rate-atom edit,
+realistic next step, needed by transonic-NLF. Crossflow = bigger
+(new directional indicator [best hope: invariant-kernel shear-twist],
+new rate+threshold, two-channel combo). CRM-NLF needs BOTH at once
+(compressible swept wing, CATNLF suppresses CF leaving residual TS) =
+a genuine leap, not an increment.
