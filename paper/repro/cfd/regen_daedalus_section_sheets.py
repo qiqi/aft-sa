@@ -91,9 +91,19 @@ def sphere_rate_1d(u, dudy, yc):
     return Shat * (Y - X - Z) / R
 
 
-def probe_station(vol, case, contours, c_loc, x_le, nu):
+def onset_threshold(pmax):
+    """Solver onset threshold Re_Omega^c(P) = ceil*pw/sqrt(ceil^2+pw^2),
+    pw = A + B/P^2, all three constants carrying the whole-equation k."""
+    pf = np.maximum(pmax, 1e-6)
+    ceil, A, B = K_ON * C_ON, K_ON * A_ON, K_ON * B_ON
+    pw = A + B / pf**2
+    return ceil * pw / np.sqrt(ceil**2 + pw**2)
+
+
+def probe_station(vol, case, contours, c_loc, x_le, mu_ref):
+    """Probe rows 1-2 along in-plane normals; return per-side dict.
+    mu_ref: freestream kinematic viscosity in solver nondim units."""
     c_loc_g[0], x_le_g[0] = c_loc, x_le
-    """Probe rows 1-2 along in-plane normals; return per-side dict."""
     pr = {}
     for side, q in contours.items():
         n = len(q)
@@ -130,7 +140,7 @@ def probe_station(vol, case, contours, c_loc, x_le, nu):
         for i in range(len(idx)):
             u = ut[i]
             dud = np.gradient(u, d)
-            reo[i] = np.nanmax(d**2 * np.abs(dud)) / nu
+            reo[i] = np.nanmax(d**2 * np.abs(dud)) / mu_ref
             pmax[i] = np.nanmax(sphere_rate_1d(np.abs(u), dud, d))
         xc = (anch[:, 0] - x_le) / c_loc
         pr[side] = dict(xc=xc, reo=reo, pmax=pmax)
@@ -201,6 +211,8 @@ def make_sheet(eta_q):
             for side in ('upper', 'lower'):
                 cc = SIDCOL[side]
                 ax_reo.semilogy(pr[side]['xc'], pr[side]['reo'], ls, color=cc, lw=1.5)
+                ax_reo.semilogy(pr[side]['xc'], onset_threshold(pr[side]['pmax']),
+                                '-.', color=cc, lw=0.8, alpha=0.6)
                 ax_P.semilogy(pr[side]['xc'],
                               np.clip(pr[side]['pmax'], 1e-4, None), ls, color=cc, lw=1.5)
                 ax_n.semilogy(sr[side]['xc'], np.clip(sr[side]['chi'], 1e-6, None),
@@ -237,6 +249,8 @@ def make_sheet(eta_q):
     if got_cav:
         handles.append(Line2D([], [], color='0.3', ls='--', lw=1.5,
                               label='unstructured L2 (where complete)'))
+    handles.append(Line2D([], [], color='0.5', ls='-.', lw=0.8,
+                          label=r'onset threshold $Re_\Omega^c(P)$'))
     handles.append(Line2D([], [], color='0.35', ls=':', lw=1.4,
                           label=r'FlexFoil strip ($N$, $C_p$, $C_f$)'))
     axs[0, 0].legend(handles=handles, fontsize=7.5, loc='lower right')

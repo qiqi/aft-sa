@@ -501,7 +501,6 @@ finally settles at the \emph{velocity pole} ($X\!\to\!1$, $g\!\to\!-1$) as the
 shear dies at the edge; what distinguishes them is only the size of the positive
 excursion in between.
 
-
 \subsection{Where and how much the instabilities amplify}%
 \label{sec:live}\label{sec:rate}\label{sec:calib_rate}\label{sec:nulamscale}
 On each of these curves we thicken the wall-normal band where the disturbance
@@ -528,7 +527,6 @@ no-slip line where the eddy viscosity vanishes. The growing region sits at a
 viscous standoff fixed by the $Re_\Omega$ onset gate (\S\ref{sec:onset}), which
 is what makes the inception Reynolds-number dependent even though the rate itself
 is not.
-
 
 The rate joins the two odd sphere functions---the shear fraction $\hat S$ and
 the Rayleigh coordinate $g$---into their even product $\hat S\,g$, the single amplifying coordinate the projective algebra allows: positive on the
@@ -1119,7 +1117,6 @@ Sec.~\ref{sec:epphandover} meets exactly such a flow, on the Eppler
 387 at $Re\!\leq\!10^5$, where the handover zone grows to a large
 fraction of the chord and sets the model's bubble-bursting boundary.
 
-
 \subsection{Preservation of the Spalart--Allmaras calibration}\label{sec:calib_diff}
 
 The reduced diffusion (Eq.~\eqref{eq:nulamscale}) and the two handover
@@ -1395,7 +1392,6 @@ $\chi_\infty$ exceeds $c_{v1}$ outright, no longer a meaningful kinematic
 parametrization of bypass transition. We therefore do not present T3A/T3B
 comparisons.
 
-
 \section{The NLF(1)-0416 airfoil at $Re\!=\!4\!\times\!10^6$}\label{sec:nlfval}
 
 The natural-laminar-flow airfoil NLF(1)-0416 demands an $e^N$-style
@@ -1522,7 +1518,6 @@ same convention is effectively sharper---while AFT's recalibrated
 freestream may equally be read as absorbing the tunnel's true
 disturbance level rather than as a per-case tuning.
 
-
 \begin{figure}[tp]
   \centering
   \includegraphics[width=0.62\textwidth]{nlf_polar_compare.pdf}
@@ -1634,13 +1629,11 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
   \label{fig:nlfcfhigh}
 \end{figure}
 
-
 Because a favorable gradient keeps the profile's curvature single-signed
 ($\hat S g\!\to\!0$), the model holds the favorable rooftop laminar with no
 pressure-gradient parameter anywhere: amplification is confined to the
 recovery stretch, where the profile turns inflectional ($\hat S g\!>\!0$)
 and the fronts are set.
-
 
 \section{The Eppler 387 low-Reynolds-number airfoil}\label{sec:eppval}
 
@@ -1905,7 +1898,6 @@ loss of the two-state structure the experiment shows---is the subject
 of the next
 section.
 
-
 \section{Reynolds-number study of the Eppler 387 at $\alpha\!=\!5^\circ$}\label{sec:eppresweep}
 
 To assess whether the same constants follow the bubble across the
@@ -2097,7 +2089,6 @@ profile is an uncalibrated byproduct of the $\sigma_t$ handover and of
 standard SA's separated-flow behavior, and we claim no accuracy for it.
 What this section tests is the macroscopic content: separation,
 transition, reattachment, and the forces that follow.
-
 
 \begin{figure}[tp]
   \centering
@@ -2508,7 +2499,8 @@ excluded from the figures and tables that follow.
   weight = level) against the AVL$+$XFOIL (vortex-lattice $+$ section
   polars) reference at matched $N_\mathrm{crit}$, trimmed to the RANS
   lift at each incidence (matched-lift reference). \textbf{(b)} Sectional lift on the finest
-  completed grid per family and incidence against the AVL
+  grid with sectional output available per family and incidence
+  against the AVL
   distribution (dotted), with sectional drag on the right axis (thin
   lines; the dotted reference is AVL induced drag, Trefftz-rescaled,
   plus the FlexFoil section profile drag): the loading agrees inboard
@@ -2523,7 +2515,7 @@ Table~\ref{tab:daetotals}). The two families agree at L1 to
 $0.6$--$0.8\%$ in $C_L$ and $0.9$--$1.8\%$ in $C_D$---and at
 $\alpha\!=\!4^\circ$ and $5^\circ$, the incidences where both
 finest grids are complete, to $0.6$--$0.7\%$ in $C_L$ and
-$0.7$--$1.6$ counts ($0.35$--$0.7\%$) in $C_D$ at L2. Against the
+$0.7$--$1.1$ counts ($0.35$--$0.5\%$) in $C_D$ at L2. Against the
 AVL$+$XFOIL reference trimmed to the same total lift (the
 lift-consistent comparison; the vortex lattice needs
 $\sim\!0.5^\circ$ more incidence to carry the RANS $C_L$), the RANS
@@ -2550,15 +2542,18 @@ further and recovering more gradually than the strip solution's
 abrupt-closure recovery, and the area between the two curves growing
 with $\alpha$: bubble pressure drag that an instant-transition
 closure structurally cannot produce, the same mechanism as
-Sec.~\ref{sec:epphandover} at the sections' $Re\approx6\times10^5$.
+Sec.~\ref{sec:epphandover} at the sections' $Re_c=5\times10^5$.
 (The $\chi\!=\!1$ lead over $N\!=\!N_\mathrm{crit}$ holds its
 $\sim\!0.09c$ convention offset at every incidence and contributes
-no slope.) Two accounting notes for reading sectional comparisons:
-the strip decomposition does not tile the wetted surface---its
-integral sits a nearly incidence-independent $9$--$10$ counts above
-the force totals, so sectional slopes are trustworthy where sectional
-levels are not---and the reference's sectional induced distribution
-is Trefftz-exact only in its integral.
+no slope.) An accounting note for reading sectional comparisons
+(\texttt{repro/cfd/daedalus\_strip\_accounting.py}): the RANS strip
+curves reproduce their own force totals to a count, but the
+reference's plotted sectional curve integrates a nearly
+incidence-independent $18$--$21$ counts \emph{below} its own ledger
+total---its induced shape is Trefftz-exact only in the integral, and
+its profile term lives on nine FlexFoil stations that do not tile the
+span---so sectional slopes are trustworthy where sectional level
+differences are not.
 At matched incidence the RANS lift runs $\sim\!5\%$ above the
 lattice's---the excess a vortex lattice built on camber lines alone would
 be expected to miss. A single-station decomposition makes it
@@ -2587,7 +2582,7 @@ predecessor-kernel campaign sat $15$--$26$ counts below; like-for-like
 on each case, the final kernel's longer bubble---see below---returned
 $6$--$14$ counts of bubble drag, leaving the $2$--$13$-count residual
 above.) Sectional lift on the finest
-completed grids
+grids with sectional output available
 (Fig.~\ref{fig:daepolar}b) matches the vortex-lattice distribution
 inboard to $\sim\!1\%$ and reproduces, identically on both families,
 the dip--recovery structure at the taper break that the vortex lattice
@@ -2627,7 +2622,6 @@ smooths over.
   unstructured-L2 row will be added when that run completes).}
   \label{fig:daesurf6}
 \end{figure}
-
 
 The flow itself is read from the surface maps of
 Figs.~\ref{fig:daesurf4}--\ref{fig:daesurf6}: the finest completed
@@ -2852,7 +2846,7 @@ handover above the lifted bubble shear layer stays in frame.
 
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.9\textwidth]{mesh_nlf_str.pdf}
+  \includegraphics[width=\textwidth,height=0.92\textheight,keepaspectratio]{mesh_nlf_str.pdf}
   \caption{NLF(1)-0416 structured O-grid mesh at the leading edge (left column)
   and blunt trailing edge (right column) for the three refinement levels
   L0--L2 (rows). The O-grid wraps the section with wall-normal clustering for
@@ -2863,7 +2857,7 @@ handover above the lifted bubble shear layer stays in frame.
 
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.9\textwidth]{mesh_nlf_cav.pdf}
+  \includegraphics[width=\textwidth,height=0.92\textheight,keepaspectratio]{mesh_nlf_cav.pdf}
   \caption{NLF(1)-0416 unstructured cavity mesh (leading and trailing edges,
   levels L0--L2), built from the same spline contour as the structured grid of
   Fig.~\ref{fig:nlfmesh_str} with blunt-trailing-edge--aware spacing. Every
@@ -2942,7 +2936,7 @@ $5\times$-raised handover frame of the Appendix~A conventions).
 
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.9\textwidth]{mesh_eppler_str.pdf}
+  \includegraphics[width=\textwidth,height=0.92\textheight,keepaspectratio]{mesh_eppler_str.pdf}
   \caption{Eppler 387 structured O-grid mesh at the leading edge (left column)
   and trailing edge (right column) for the three refinement levels L0--L2
   (rows), generated by the same recipe as the NLF grid
@@ -2953,7 +2947,7 @@ $5\times$-raised handover frame of the Appendix~A conventions).
 
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.9\textwidth]{mesh_eppler_cav.pdf}
+  \includegraphics[width=\textwidth,height=0.92\textheight,keepaspectratio]{mesh_eppler_cav.pdf}
   \caption{Eppler 387 unstructured cavity mesh (leading and trailing edges,
   levels L0--L2), built from the same spline contour as the structured grid of
   Fig.~\ref{fig:eppmesh_str} with an anisotropic near-wall boundary-layer
@@ -2968,14 +2962,12 @@ $5\times$-raised handover frame of the Appendix~A conventions).
   \label{fig:sheet_eppler387_a0_upper}
 \end{figure}
 
-
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a2_upper.pdf}
   \caption{Eppler~387, $Re=2\times10^5$, $\alpha=2^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_eppler387_a2_upper}
 \end{figure}
-
 
 \begin{figure}[p]
   \centering
@@ -2984,14 +2976,12 @@ $5\times$-raised handover frame of the Appendix~A conventions).
   \label{fig:sheet_eppler387_a5_upper}
 \end{figure}
 
-
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a7_upper.pdf}
   \caption{Eppler~387, $Re=2\times10^5$, $\alpha=7^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_eppler387_a7_upper}
 \end{figure}
-
 
 \clearpage
 \renewcommand{\thefigure}{C\arabic{figure}}
@@ -3015,7 +3005,6 @@ independence of the converged state, seen in the field variables.
   \label{fig:sheet_eppler387_Re60k_upper}
 \end{figure}
 
-
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re100k_upper.pdf}
@@ -3026,14 +3015,12 @@ independence of the converged state, seen in the field variables.
   \label{fig:sheet_eppler387_Re100k_upper}
 \end{figure}
 
-
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re300k_upper.pdf}
   \caption{Eppler~387, $Re=3\times10^5$, $\alpha=5^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_eppler387_Re300k_upper}
 \end{figure}
-
 
 \begin{figure}[p]
   \centering
@@ -3042,8 +3029,10 @@ independence of the converged state, seen in the field variables.
   \label{fig:sheet_eppler387_Re460k_upper}
 \end{figure}
 
-
 \clearpage
+\renewcommand{\thefigure}{D\arabic{figure}}
+\renewcommand{\thetable}{D\arabic{table}}
+\setcounter{figure}{0}\setcounter{table}{0}
 \section*{Appendix D: the Daedalus wing---definition, temporal-units
 conversion, and force tables}
 
@@ -3064,10 +3053,11 @@ reaches the local isotropic scale. Sizes, spanwise-station and
 around-the-section resolution are tabulated in the main text
 (Table~\ref{tab:daemesh}). All solutions use the airfoil-study solver
 settings with the final kernel (the recomputation noted at the opening
-of Sec.~\ref{sec:daedalus}; the completed set is both families at L1
-and the structured family at L2, at all three incidences) and are
+of Sec.~\ref{sec:daedalus}; the completed set is the one tabulated in
+Table~\ref{tab:daetotals}, dashes marking runs in progress) and are
 converged to steady or small-limit-cycle force histories; tabulated
-coefficients are means over the final 500 steps.
+coefficients are means over the final 500 pseudo-steps (51 logged
+samples).
 
 \begin{table}[tp]
   \centering
@@ -3092,7 +3082,7 @@ coefficients are means over the final 500 steps.
               & AVL$+$XFOIL & 1.0282 & 0.02125 & &\\
     \midrule
     $5^\circ$ & L1 & 1.1300 & 0.02212 & 1.1225 & 0.02235\\
-              & L2 & 1.1289 & 0.02243 & 1.1219 & 0.02259\\
+              & L2 & 1.1289 & 0.02243 & 1.1223 & 0.02254\\
               & AVL$+$XFOIL & 1.1289 & 0.02315 & &\\
     \midrule
     $6^\circ$ & L1 & 1.2317 & 0.02479 & 1.2227 & 0.02523\\
@@ -3184,20 +3174,24 @@ directly comparable.
 diagnostics behind the drag-slope discussion of
 Sec.~\ref{sec:daedalus}: at $\eta=0.10$, $0.31$, and $0.60$, columns
 $\alpha=4^\circ$, $5^\circ$, $6^\circ$, five rows per
-station---the probe-maximum $Re_\Omega$ against its onset threshold,
-the probe-maximum $\hat S g$ rate (log scale, as Fig.~2), the
+station---the probe-maximum $Re_\Omega$ against the onset threshold
+$Re_\Omega^c(P)$ evaluated at the local rate (dash-dotted), the
+probe-maximum $\hat S g$ rate (log scale, as
+Fig.~\ref{fig:onsetgraze}), the
 near-wall $\max\chi$ with the strip's $e^{N}$ amplification, $-C_p$,
 and streamwise $C_f$. Solid lines are the structured L2 solution,
-dashed the unstructured-family L2, dotted the AVL-trimmed
-FlexFoil/XFOIL strip at the same station.
+dashed the unstructured-family L2 where its field output is
+available, dotted the AVL-trimmed FlexFoil/XFOIL strip at the same
+station.
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{daedalus_section_eta10.pdf}
-  \caption{Daedalus wing section cut at $\eta=0.10$, $Re_c=6.6\times10^5$:
-  sectional diagnostics on the finest grids (structured L2 solid,
-  unstructured L2 dashed) against the AVL-trimmed FlexFoil/XFOIL strip
-  (dotted) at $\alpha=4^\circ$, $5^\circ$, $6^\circ$ (columns).}
+  \caption{Daedalus wing section cut at $\eta=0.10$, $Re_c=5.0\times10^5$:
+  sectional diagnostics on the finest grids (structured L2 solid;
+  unstructured L2 dashed where its field output is available) against
+  the AVL-trimmed FlexFoil/XFOIL strip (dotted) at $\alpha=4^\circ$,
+  $5^\circ$, $6^\circ$ (columns).}
   \label{fig:daesec10}
 \end{figure}
 

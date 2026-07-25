@@ -109,5 +109,10 @@
    0.481,
    0.645
   ]
+ },
+ "case_cavity_L2_saai_a5": {
+  "CL": 1.1223,
+  "CD": 0.02254,
+  "note": "canon window (pseudo_step>=last-500, 51 samples); front/bubble pending field-output recovery"
  }
 }

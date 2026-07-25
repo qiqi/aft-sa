@@ -63,10 +63,21 @@ OUT_NAMES = {'restartOutput', 'ipc_data', 'progress.csv', 'timer.json',
              'restart.json', 'restart_rank_1_of_1.dmp'}
 
 
+LOCAL_DATA = '/local_data/qiqi/sa-ai/flow360_fr'
+
+
 def clone(src, dst, Rk):
-    """New case dir seeded from src's end-of-run restart, at Reynolds Rk*1000."""
-    shutil.rmtree(dst, ignore_errors=True)
-    os.makedirs(dst)
+    """New case dir seeded from src's end-of-run restart, at Reynolds Rk*1000.
+    The real dir is created on /local_data (big-data convention, 2026-07-25)
+    with a symlink at dst, so hardlinks to migrated meshes stay same-device."""
+    real_dst = os.path.join(LOCAL_DATA, os.path.basename(dst))
+    shutil.rmtree(real_dst, ignore_errors=True)
+    if os.path.islink(dst):
+        os.remove(dst)
+    else:
+        shutil.rmtree(dst, ignore_errors=True)
+    os.makedirs(real_dst)
+    os.symlink(real_dst, dst)
     for f in os.listdir(src):
         if f in OUT_NAMES or f.endswith(OUT_PAT):
             continue
@@ -74,7 +85,10 @@ def clone(src, dst, Rk):
         if not os.path.isfile(sp):
             continue
         if os.path.getsize(sp) > 10e6:
-            os.link(sp, os.path.join(dst, f))     # mesh + partitioner dumps
+            try:                                  # mesh + partitioner dumps
+                os.link(os.path.realpath(sp), os.path.join(real_dst, f))
+            except OSError:                       # source not on /local_data
+                shutil.copy(sp, os.path.join(real_dst, f))
         else:
             shutil.copy(sp, os.path.join(dst, f))
     # seed: the PREVIOUS step's end-of-run state

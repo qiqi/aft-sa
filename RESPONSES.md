@@ -1264,3 +1264,62 @@ a short restart run of a5 (~100 steps, force means move < the 4e-4
 history std) regenerates volume.pvtu + slicing CSVs; then chi map,
 surface-map cavity row, and section-sheet overlays follow. The
 fig:daesurf5 pending-clause is restored until then.
+
+## 2026-07-25 ~09:40 UTC — Mesh figures regenerated and verified
+All four mesh figures rebuilt from the canonical flow360_fr a0 meshes
+with the per-level widths (L0 0.175 / L1 0.0875 / L2 0.044) and
+checked visually: the L2 panels now show grid structure where they
+were solid ink; the near-wall boundary-layer stack still saturates to
+a dark band (cell heights below line pitch — unavoidable), but the
+O-grid fan and TE wake refinement read cleanly at every level. They
+are vector PDFs, so zooming in a viewer resolves individual lines.
+Committed (a08434b); /local_data migration resumed for the flow360_fr
+2D cases now that nothing is reading them.
+
+## 2026-07-25 ~10:15 UTC — Review pass 22: three of my numbers were wrong; all fixed
+Pass 22 (agent-paper-review/2026-07-25-0929.md, response alongside)
+confirmed the slope diagnosis quantitatively (reproduced my 0.0180 vs
+0.0110 exactly, regenerated a committed section sheet bit-for-bit) but
+caught three real numerical defects, all mine, all now fixed:
+1. WRONG WINDOW on the new a5 table cell: I averaged the last 500 CSV
+   rows (= 5000 pseudo-steps); the table's convention is the last 500
+   pseudo-steps (51 samples). Canon values: CL 1.1223 / CD 0.02254
+   (std 1e-5/2e-6). Family gap at a5 is actually 0.58% CL / 1.09
+   counts — a STRONGER agreement than the 1.6 counts I printed. Table,
+   sentence, canon_results.json all corrected; the caption now spells
+   out "final 500 pseudo-steps (51 logged samples)" so the ambiguity
+   is dead. (This supersedes the 09:30 entry's numbers.)
+2. WRONG Re: the sections run at Re_c = 5.0e5, not 6.6e5 (I mixed the
+   dimensional 0.917 m chord into a unit-chord reference length). The
+   sheets' suptitles were always right; caption + slope paragraph
+   corrected. (Supersedes "Re_c ~ 6.6e5" in the 09:25 entry.)
+3. WRONG ACCOUNTING NOTE: my "strip decomposition sits 9-10 counts
+   above the force totals" came from an uncommitted heredoc and is not
+   reproducible. The committed repro script
+   (paper/repro/cfd/daedalus_strip_accounting.py) integrating exactly
+   the figure's own sectional curves shows: RANS strips tile their
+   force totals to ~1 count; it is the REFERENCE's plotted sectional
+   curve that integrates 18-21 counts BELOW its own ledger total
+   (induced shape Trefftz-exact only in the integral; profile on nine
+   FlexFoil stations). Tex sentence rewritten to say exactly that.
+   Moral unchanged: sectional slopes trustworthy, level differences no.
+Also from the pass: Appendix D was missing its figure/table counter
+renew (the new sheets printed as C5-C7 while the text said Appendix D
+— now D1-D3, and tab:daetotals becomes Table D1); the onset-threshold
+overlay the appendix text promised is now actually DRAWN in row 1 of
+the sheets (solver-exact form, dash-dotted; sheets regenerating); the
+paper's last hardcoded figure number ("as Fig. 2") is now a \ref; the
+dashed-cavity availability qualifiers are worded durably so the a5
+recovery won't need a third touch.
+
+## 2026-07-25 ~10:15 UTC — /local_data migration COMPLETE + full-page mesh figures
+Migration finished: 139 directories (all completed Daedalus cases +
+the whole flow360_fr 2D tree) now live under /local_data/qiqi/sa-ai/
+with symlinks in place; /home went 100% -> 87% (another ~100 GB
+freed), /local_data at 78%. Only the running a6 case remains on /home
+(moves after it lands).
+Mesh figures per your directive: LE and TE windows are now the same
+extents (0.16c x 0.14c) — same aspect ratio AND same physical scale —
+and the figure canvas is sized to the full text block (6.5 x 8.3 in)
+with the tex include set to width=\textwidth, height-capped with
+keepaspectratio. Regenerating all four now.

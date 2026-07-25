@@ -18,8 +18,10 @@ LEVELS = ['L0', 'L1', 'L2']
 # halve the line width per refinement level so the finer grids read as
 # structure rather than solid ink (vector output: stays crisp under zoom)
 LW = {'L0': 0.175, 'L1': 0.0875, 'L2': 0.04375}
-LE_WIN = (-0.03, 0.12, -0.07, 0.07)   # xlo,xhi,zlo,zhi
-TE_WIN = (0.88, 1.05, -0.05, 0.05)
+# identical window extents (0.16c x 0.14c) so LE and TE panels share the
+# same aspect ratio AND the same physical scale
+LE_WIN = (-0.030, 0.130, -0.07, 0.07)   # xlo,xhi,zlo,zhi
+TE_WIN = (0.885, 1.045, -0.07, 0.07)
 
 def first_grid(mb):
     for i in range(mb.GetNumberOfBlocks()):
@@ -56,7 +58,9 @@ def clip(segs, win):
 def make_figure(fam_key):
     fam, fam_label = FAMILIES[fam_key]
     for mesh_key, mesh_label in MESHERS.items():
-        fig, axes = plt.subplots(3, 2, figsize=(7.0, 8.2))
+        # full text block (AIAA ~6.5 x 9 in) minus caption; 3x2 panels of
+        # 0.16x0.14 windows fill it at equal axis scaling
+        fig, axes = plt.subplots(3, 2, figsize=(6.5, 8.3))
         for row, L in enumerate(LEVELS):
             cgns = f"{B}/{mesh_key}{L}prop_{fam}_a0/mesh.cgns"
             try:
