@@ -68,7 +68,7 @@ for a in alphas:
     if f: tb_cl.append(f[0]); tb_cd.append(f[1])
 if tb_cl: ax.plot(tb_cd,tb_cl,marker='v',mfc='none',ms=5,ls='-.',lw=1.2,color='0.55',zorder=2)
 # Workshop-submittal polars (cl vs cd -- native axes), light underlay;
-# AFT highlighted royalblue, algebraic B-C seagreen (annotated round 7).
+# AFT highlighted mediumpurple, algebraic B-C seagreen (annotated round 7).
 import json as _json
 _WS = _json.load(open(f'{PD}/data/workshop_nlf_submittals.json'))['drag_polar']
 for _name, _ser in _WS.items():
@@ -81,7 +81,7 @@ for _name, _ser in _WS.items():
     _fam = _ser.get('family', '')
     if 'AFT' in _fam:
         _kw = dict(color='mediumpurple', lw=0.9, alpha=0.75, zorder=1.6)
-    elif 'B-C' in _fam or 'algebraic' in _fam.lower():
+    elif 'B-C' in _fam:
         _kw = dict(color='seagreen', lw=1.1, alpha=0.9, zorder=1.6)
     else:
         _kw = dict(color='0.82', lw=0.55, zorder=1.2)
@@ -121,7 +121,7 @@ handles=[Line2D([],[],color='k',ls='-',marker='o',mfc='none',ms=4,label='Experim
          Line2D([],[],color='0.55',ls='-.',marker='v',mfc='none',ms=5,lw=1.2,label='SA, fully turbulent (str L2)'),
          Line2D([],[],color='0.82',lw=0.55,label='workshop submittals'),
          Line2D([],[],color='mediumpurple',lw=0.9,label='workshop AFT'),
-         Line2D([],[],color='seagreen',lw=1.1,label='workshop B--C'),
+         Line2D([],[],color='seagreen',lw=1.1,label='workshop B–C'),
          Line2D([],[],color='0.4',lw=LEVEL_LW['L0'],label='L0'),
          Line2D([],[],color='0.4',lw=LEVEL_LW['L1'],label='L1'),
          Line2D([],[],color='0.4',lw=LEVEL_LW['L2'],label='L2')]

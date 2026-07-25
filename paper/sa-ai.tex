@@ -1489,11 +1489,13 @@ quantitatively.
   submittal from the workshop-summary overlay~\cite{coder_tmpw_summary}
   (\texttt{data/workshop\_nlf\_submittals.json}, the only published
   collection of all participants) and placed on the lift axis through
-  the computed structured-L2 lift curve; the AFT submittals are
-  purple, the algebraic Bas--Cakmakcioglu submittal green, all others
-  light gray. Olive dash-dot: the SA-LM2015 fine-grid sweep of
+  the computed structured-L2 lift curve (fourteen submittals,
+  nineteen curves: two participants supplied second model variants and
+  three line-only series carry no letter code); the AFT submittals are
+  purple, the algebraic Bas--Cakmakcioglu submittal thin sea-green,
+  all others light gray. Olive dash-dot: the SA-LM2015 fine-grid sweep of
   Piotrowski and Zingg~\cite{piotrowski_zingg_2021}, vector-digitized
-  at its native $c_l$ ordinate. Green: the
+  at its native $c_l$ ordinate. Dark-green crosses: the
   Langtry--Menter $\gamma$--$Re_\theta$ model in OVERFLOW (fine grid)
   from the transition-workshop exercise of
   Denison~\cite{denison_2021_overflow}, digitized from its Fig.~11
@@ -1624,8 +1626,8 @@ disturbance level rather than as a per-case tuning.
   $N_\mathrm{crit}\!=\!10.07$; solid: the recalibrated $7.18$); they
   end mid-plot because the source figure's axis stops at
   $c_d\!=\!0.025$. Thin underlaid curves: the
-  fourteen workshop submittals' polars, as in Fig.~\ref{fig:nlfaft}
-  (AFT purple, Bas--Cakmakcioglu green, others light gray; segments
+  workshop submittals' polars, as in Fig.~\ref{fig:nlfaft}
+  (AFT purple, Bas--Cakmakcioglu sea-green, others light gray; segments
   break where the source's marker identity is ambiguous). The gray dash-dot curve is
   fully turbulent SA ($\chi_\infty\!=\!3$, same solver, structured L2 grid):
   without the laminar run the drag sits $1.6$--$2.5\times$ above the
@@ -1797,13 +1799,14 @@ drag sits within $\pm3\%$ of the data at the bucket edges ($-1\%$ at
 $\alpha\!=\!0^\circ$, $+1\%$ at $2^\circ$, $-3\%$ at $7^\circ$) and
 \emph{over}-predicts by $\sim\!11\%$ near
 $\alpha\!=\!5^\circ$---possibly the pressure-drag footprint of the slightly over-long
-laminar-separation bubble (\S\ref{sec:calib_rate}). The one published
-\emph{SA-based} transition-model result on this benchmark---the
+laminar-separation bubble (\S\ref{sec:calib_rate}). The one published SA-based
+\emph{transported-intermittency} ($\gamma$-equation) result on this
+benchmark---the
 $\gamma$--SA coupling of Ref.~\cite{dalessandro_2025} (foam-extend,
 $Tu\!=\!0.07\%$)---reports $c_l\!=\!0.91\pm0.02$ with
 $c_d\!=\!0.0133$--$0.0140$ at matched lift, the natural family
-comparison for SA-AI's ${\approx}0.0153$ interpolated at the same
-lift. The coarsest grid (L0)
+comparison for SA-AI's ${\approx}0.0153$ (structured L2)
+interpolated at the same lift. The coarsest grid (L0)
 over-predicts drag markedly; refinement is essential in this bubble-dominated
 regime.
 

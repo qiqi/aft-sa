@@ -49,7 +49,7 @@ def cl_of_alpha(a):
 def ws_style(fam):
     if 'AFT' in fam:
         return dict(color='mediumpurple', lw=0.9, alpha=0.75, zorder=1.6)
-    if 'B-C' in fam or 'algebraic' in fam.lower():
+    if 'B-C' in fam:
         return dict(color='seagreen', lw=1.1, alpha=0.9, zorder=1.6)
     return dict(color='0.82', lw=0.55, alpha=1.0, zorder=1.2)
 
@@ -67,7 +67,7 @@ for ax, side, lab in ((axs[0], 'upper', 'upper surface'),
         ax.plot(xt[o], cl_of_alpha(a[o]), '-', **ws_style(ser['family']))
     pz = PZ[f'sa_lm2015_{side}']
     ax.plot(pz['xtr'], pz['cl'], '-.', color='olive', lw=1.0, alpha=0.9,
-            zorder=1.8, label='SA-LM2015 (Piotrowski--Zingg)')
+            zorder=1.8, label='SA-LM2015 (Piotrowski–Zingg)')
     e = D[f'exp_{side}']
     ax.plot(e['xt'], e['cl'], 'o', mfc='none', mec='k', ms=6, mew=1.2,
             label='LTPT experiment', zorder=6)
@@ -110,7 +110,7 @@ _h, _l = axs[0].get_legend_handles_labels()
 from matplotlib.lines import Line2D as _L2
 _h += [_L2([], [], color='0.82', lw=0.55, label='workshop submittals (14, all models)'),
        _L2([], [], color='mediumpurple', lw=0.9, label='workshop AFT submittals'),
-       _L2([], [], color='seagreen', lw=1.1, label='workshop algebraic (B--C)')]
+       _L2([], [], color='seagreen', lw=1.1, label='workshop algebraic (B–C)')]
 axs[0].legend(handles=_h, fontsize=7.5, loc='upper right')
 plt.tight_layout()
 out = f'{PD}/figs/nlf_aft_transition.pdf'

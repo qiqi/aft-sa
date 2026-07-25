@@ -2236,3 +2236,21 @@ wall-parallel vorticity; phantomsection anchors + Table C1 numbering.
 
 Full response: agent-paper-review/2026-07-25-1800-response.md. Build: 87 pp, 0 errors,
 0 undefined, 0 overflows.
+
+## 2026-07-25 19:55 UTC — Review pass 30: both majors + 7 minors implemented
+
+The big one: the chartreuse participant-m curve (the community's most extreme outlier,
+attribution unknown) was being painted B-C sea-green in BOTH new figures because the style
+matcher grepped 'algebraic' in the family free-text and m_chart's note contains
+"bypass-like/algebraic behavior". A reader would have charged Bas-Cakmakcioglu with the
+worst curve in the workshop. Matcher now requires 'B-C'; both figures regenerated; the
+real B-C submittal draws sea-green and m_chart is anonymous gray. Also: the gamma-SA
+uniqueness sentence is scoped to "SA-based transported-intermittency (gamma-equation)"
+(SA-BC on our own polar figure contradicted the broad claim); captions carry the honest
+14-submittals/19-curves count; greens disambiguated (dark-green crosses vs thin
+sea-green); orphaned nlf_workshop_envelope.pdf git-rm'd; (structured L2) pinned on the
+0.0153 interpolant; anushka bib names re-braced; matplotlib legend en-dashes fixed.
+Campaign check prompted by the review's "GPUs idle" note: orchestrator alive, final two
+strL2 NLF batches at 97% on GPUs 3/5, 27/93 stamped.
+
+Full response: agent-paper-review/2026-07-25-1900-response.md.
