@@ -1323,3 +1323,8 @@ extents (0.16c x 0.14c) — same aspect ratio AND same physical scale —
 and the figure canvas is sized to the full text block (6.5 x 8.3 in)
 with the tex include set to width=\textwidth, height-capped with
 keepaspectratio. Regenerating all four now.
+
+## 2026-07-25: Digitized LM/SA-BC literature data for paper figures
+- paper/data/lmbcm_eppler387_digitized.json — ICAS 2024-0327 (Shahjahan): Fig 6b polar Re=200k (LM 19 pts, SA-BC 19 pts, exp Selig/McGhee/Volkers), Fig 9a transition-vs-alpha Re=100k + Fig 10a Re=200k (triangle markers = transition; alphas land on integers ±0.07°). Vector-path extraction via PyMuPDF; colors matched to legend swatches.
+- paper/data/lm_nlf0416_transition_digitized.json — Denison OVERFLOW TMW Fig 11 (raster 1280x960): LM fine-grid xtr/c vs cl upper+lower (7 pts each), Somers exp bounds (30+30 pts, laminar/turbulent pairs).
+- Verification overlays: paper/data/digitize_check_{eppler,nlf}.png — visually indistinguishable from originals.
