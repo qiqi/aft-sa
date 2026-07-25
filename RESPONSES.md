@@ -2149,3 +2149,70 @@ families); eppler/sweep/extension sets follow; skip-guard working (20 SKIPs logg
 - paper/data/ijsrp2019_e387_polars.json — IJSRP 2019 (Fluent). Re=60k: kklw (-8..10) + trans-SST (1..11) + Expt-as-plotted; Re=100k/300k: trans-SST ONLY (paper never ran kklw there; kklw=null). Markers are per-point image XObjects with vector bboxes + born-digital tick text => vector precision (+/-0.02 CL worst case). Paper's "EXP" does NOT faithfully duplicate McGhee TM-4062 (60k Cl wildly low; Cd high at 100k) — kept as-plotted, use real TM-4062 tables for comparisons.
 - Checks: paper/data/digitize_check_carreno2022.png, digitize_check_ijsrp2019.png.
 - alpha=5: carreno gRT CL 0.828/CD 0.0334; ijsrp 60k kklw 0.871/0.0471 (interp), transSST 0.029/0.0247 (as-plotted!); 100k transSST 0.834/0.0205 (interp); 300k transSST 0.879/0.0129 (interp).
+
+## 2026-07-25 18:12 UTC — Annotated round 7: 13 of 16 remarks addressed (commit a5eff9d)
+
+Done:
+- p23: Sec III keeps only the four-vector summary + pointer; Appendix E now states the
+  realization Gram-first (eq:gram moved there, = Eq. E4), followed by the signed-algebra
+  correspondence and the two other pairings. Ratio-form disclosure retained.
+- p35: "the sphere kernel" purged (1 site, -> "the model"); P-for-Shat-g purged (2 sites:
+  benchmark prose "(Shat g ~ 1)", Appendix D caption "Re_Omega^c(Shat g)"); struck the
+  inviscid-pressure clause, "The amplification is on time", "deliberately".
+- p36: tab:epplit deleted with its pointer paragraph (fig:epppolar + fig:eppbubble carry it);
+  SA-BC calibration sentence went with the caption.
+- p37: tab:eppresweep moved to Appendix C; figure is now the primary (2 rows x 3+2 panels:
+  cl/cd/cm; separation/reattachment). "independently"->"separately" for FlexFoil (5 sites).
+  The 1e5-failure prose awaits the fv1 recomputation (campaign running).
+- p39: sec:eppbistab dissolved to ONE paragraph (tab:eppfork deleted; fork agreement numbers
+  inline); hysteresis now only pointed at the 60k evidence. Labels kept inline so existing
+  Sec-refs resolve to the enclosing Reynolds section.
+- p40: caption overflow fixed by a pixel audit (text blocks vs page-number band): Fig. 16
+  caption trimmed + image 0.92\textwidth; Fig. C2 image 0.82\textwidth. Zero pages flagged.
+- p42: sec:epphandover dissolved: one completing paragraph (handover-length numbers inline,
+  table deleted), one trimmed re-seeding paragraph, cancellation paragraph untouched.
+
+Literature insertions (user: "do all of them into the figures, skip discussion"):
+- fig:eppresweepforces rebuilt 2-row full-width: top cl/cd/cm with Carreno gamma-Retheta
+  (0.828/0.0334 at 6e4), IJSRP k-kL-omega (6e4) and transition-SST (1e5, 3e5); bottom
+  sep/reattach with oil flow (1/2/3e5), Cole-Mueller alpha=4/6 bracket at 1e5, Ghimire's
+  three gamma variants at 3e5. EXCLUDED: IJSRP 6e4 transition-SST + its "experiment"
+  (corrupt as plotted: CL(5deg)=0.03, Cd spikes; recorded in JSON meta). Frere markers
+  drop in automatically when its digitization agent lands.
+- fig:eppbubble gains Cole-Mueller's SECOND experimental set at 2e5 (Figs 4.37-4.39 of the
+  1990 report digitized; also 1e5 + 3e5 in the JSON). REVISION (not append): their
+  reattachment reads 0.03-0.08c aft of the LTPT oil flow at matched alpha, so the
+  "systematically late" sentence is now scoped to the oil flow with the facility-to-facility
+  spread stated, and the computed low-incidence reattachments noted to fall within it.
+
+Flat-plate section revised to NEW canon (user directive; plates ran ahead of queue, all 5
+DONE): chi=1 onset bracket tightens 14% -> 9% (+8% at Tu=0.04, within 2% at 0.08/0.60,
+6-8% early at 0.16-0.30); early-bias attribution moved from "higher Tu" to mid-range;
+figure regenerated from flow360_fv1; conclusion updated to match. c_v1-crossing statement
+(Re_theta ~ 2500) unchanged.
+
+Pending: p26 workshop all-submittal overlay (digitization agent running) + same treatment
+for the drag bucket; Frere 6e4 cluster. Campaign: nlf set on final 4 L2 batches at last
+check; standing orders on completion = verify nlf_neg/eppler_ext, then Daedalus L0+L1
+new-canon (hold L2).
+
+## 2026-07-25 19:05 UTC — Round 7 complete (commits a5eff9d, 1e86d17, 44e0a83)
+
+Final two items landed:
+- Frere 6e4 cluster on fig:eppresweepforces: coupled RANS-e^N N=7/9 at exact alpha=5
+  (0.728/0.0602, 0.650/0.0602), ILES at alpha=4 only (0.768/0.0431; its alpha=4/8 pair
+  straddles the reattachment jump so an alpha=5 interpolation is meaningless), plus Delft
+  (0.590) and Stuttgart (0.732) alpha=5 lift points. Notable: the model's burst-branch
+  lift (0.62-0.70) sits amid the community/other-facility values at the bistable
+  condition; the LTPT upper branch (0.838) is the high edge of the spread.
+- p26 workshop rework: fig:nlfworkshop DELETED; all 14 submittals digitized per-submittal
+  (19 transition series, 267 pts, zero violations of the earlier envelope; 18 polar
+  series) and underlaid thin on fig:nlfaft (AFT purple, algebraic B-C green, others light
+  gray; placed on the lift axis via the computed strL2 lift curve since the deck's polar
+  has no per-point alpha — disclosed in caption) and on fig:nlfpolar (native cl-cd).
+  Piotrowski-Zingg SA-LM2015 kept at its native cl ordinate. The B-C submittal is exposed
+  as the near-LE outlier on both surfaces; the workshop AFT trio tracks the recalibrated
+  dissertation AFT and the SA-AI markers.
+
+Build clean, 87 pp., zero caption overflows. Remaining round-7 item ("get ready to revise
+the 1e5-failure prose per fv1 results") is the campaign-migration task (#27).
