@@ -2423,3 +2423,16 @@ PROCESS LESSON: never run a set ahead of the campaign queue without also removin
 from the queued orchestrator's list (the skip-guard only protects COMPLETED cases;
 in-flight cases collide with the reset). The campaign's nlf_neg err entries for
 cav_am8/str_am4 will be repaired from the orphan harvest at migration.
+
+## 2026-07-25 23:05 UTC — cav alpha=-8 FRONT-CONVERGED: the model is RIGHT at -8
+
+cavL2 am8 (fv1, front-convergence protocol) settled: xtr_up = 0.561, xtr_lo = 0.0104,
+CL = -0.4426, CD = 0.00964. Against: measured upper onset 0.542 (TP-1861 Fig 9d),
+AFT(Ncrit=7.18) 0.569, e9 0.662-0.663; lower = LE trip (e9 0.015-0.018); measured cd
+~0.0105. The upper front marched 0.08 -> 0.561 over ~70k pseudo-steps and locked. The
+user's hypothesis is vindicated end-to-end: once front-converged the model lands ON the
+measurement at alpha=-8 on BOTH surfaces — the negative pair becomes a success case at
+migration (captions currently saying "not front-converged / markers to be replaced" get
+the converged story; fig:nlfaft -8 markers move to 0.561/0.0104 cav). str am8 (campaign
+instance) still marching; str am4 converged earlier at 0.4469/0.1089 (measured 0.453).
+Both orphans stamped; babysitter exited clean.
