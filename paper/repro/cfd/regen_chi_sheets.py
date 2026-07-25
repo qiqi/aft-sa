@@ -4,7 +4,8 @@ One sheet per (airfoil case, surface): 6 rows = the six grids paired by level
 (cavity L0, O-grid L0, cavity L1, O-grid L1, cavity L2, O-grid L2), 2 columns
 in the flat-plate figure's style -- left: line contours of velocity magnitude
 |u|/U_inf; right: line contours of log10(chi), dashed = laminar levels
-(chi < 1), solid = chi = 1 and c_v1. The x axis is the x/c of the wall anchor;
+(chi < 1), solid = chi = 1, c_v1, 30, and 100 (the last two track the
+handover's completion and the turbulent interior). The x axis is the x/c of the wall anchor;
 the y axis is wall-normal distance from that anchor (each wall-normal probe
 scan is one vertical line of the sheet); the zoom holds the laminar band in
 frame and lets the turbulent part overshoot.
@@ -25,7 +26,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 from lib.calibrate_kernel import C_V1  # model constant: import, never restate
 
-B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_tie")
+B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
 FIGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'figs')
 MACH = 0.1
 
@@ -41,7 +42,8 @@ ROWS = [('cavL0prop', 'cavity L0'), ('strL0prop', 'O-grid L0'),
 ALPHAS = {'nlf0416': (0, 4, 9, 15), 'eppler387': (0, 2, 5, 7)}
 
 # levels beyond c_v1 show the HANDOVER dynamics: sigma_P is 97% complete
-# and f_v1 90% by chi ~ 30; chi ~ 100 marks the fully turbulent interior
+# and f_v1 90% by chi ~ 15; chi = 30 marks the effectively completed
+# handover (both > 0.98) and chi ~ 100 the fully turbulent interior
 CHI_MAJOR = [-3, -2, -1, 0, np.log10(C_V1), np.log10(30.0), 2.0]
 CHI_MINOR = [-2.5, -1.5, -0.5]
 CHI_FMT = {-3: '-3', -2: '-2', -1: '-1', 0: r'$\chi{=}1$', np.log10(C_V1): r'$c_{v1}$',

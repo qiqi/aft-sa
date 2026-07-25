@@ -1520,8 +1520,7 @@ convention was anchored on flat-plate transition at lower $Re_\theta$
 than these fronts, and at the NLF's higher-$Re_\theta$ fronts the
 same convention is effectively sharper---while AFT's recalibrated
 freestream may equally be read as absorbing the tunnel's true
-disturbance level rather than as a per-case tuning. The two closures
-place their empiricism differently; this case cannot separate them.
+disturbance level rather than as a per-case tuning.
 
 
 \begin{figure}[tp]
@@ -1592,7 +1591,8 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
   with mfoil $N$, row~4 $-C_p$,
   row~5 $C_f$; upper blue / lower red, O-grid solid / cavity dashed,
   L0--L2 by thickness, mfoil $e^9$ dotted; triangles on the $C_f$ row mark
-  the measured onsets---Somers's transition orifices read at the
+  the measured onsets---Somers's transition orifices
+  (Fig.~9d of Ref.~\cite{somers_1981}) read at the
   computed section $c_l$---open where extrapolated beyond the recorded
   data). At $\alpha\!=\!0^\circ$ both
   surfaces run laminar past a third of the chord (upper
@@ -2508,7 +2508,7 @@ in progress and are excluded from the figures and tables that follow.
   weight = level) against the AVL$+$XFOIL (vortex-lattice $+$ section
   polars) reference at matched $N_\mathrm{crit}$, trimmed to the RANS
   lift at each incidence (matched-lift reference). \textbf{(b)} Sectional lift on the finest
-  completed grids (structured L2, unstructured L1) against the AVL
+  completed grid per family and incidence against the AVL
   distribution (dotted), with sectional drag on the right axis (thin
   lines; the dotted reference is AVL induced drag, Trefftz-rescaled,
   plus the FlexFoil section profile drag): the loading agrees inboard
@@ -2812,7 +2812,9 @@ The contour sheets present the computed fields in the manner of the
 flat-plate figure (Fig.~\ref{fig:flatplate_batch}): line contours of
 the velocity magnitude $|\mathbf{u}|/U_\infty$ (left column) and of
 $\log_{10}\chi$ (right column; dashed contours are the laminar levels
-$\chi<1$, solid are $\chi\!=\!1$ and $c_{v1}$), on wall-anchored
+$\chi<1$, solid are $\chi\!=\!1$, $c_{v1}$, $30$, and $10^2$---the
+last two tracking the handover's completion and the turbulent
+interior), on wall-anchored
 coordinates---the abscissa is the $x/c$ of the wall anchor, the
 ordinate the wall-normal distance from that anchor, so each wall-normal
 probe scan is one vertical line of the panel. Rows pair the two mesh
@@ -2820,7 +2822,9 @@ families at each refinement level (cavity, then O-grid; L0, L1, L2).
 The wall-normal range is chosen to hold the laminar band in frame
 ($0.0015c$ upper and $0.0025c$ lower for the NLF(1)-0416, scaled with
 $1/\sqrt{Re}$ for the other cases), letting the turbulent layer
-overshoot the frame top.
+overshoot the frame top---except the Eppler upper surface, whose frame
+is raised a further $5\times$ ($0.0335c$ at $2\times10^5$) so the
+handover above the lifted bubble shear layer stays in frame.
 
 \begin{figure}[p]
   \centering
@@ -2908,8 +2912,8 @@ sheets}
 Figures~\ref{fig:eppmesh_str} and~\ref{fig:eppmesh_cav} show the mesh
 close-ups for the Eppler benchmark of Sec.~\ref{sec:eppval}; the sheets
 that follow cover the $\alpha$ sweep at $Re=2\times10^5$ (wall-normal
-frames $0.0067c$ upper and $0.0112c$ lower, the NLF frames scaled by
-$\smash{\sqrt{Re_\mathrm{NLF}/Re}}$).
+frames $0.0335c$ upper---the $5\times$-raised handover frame of the
+Appendix~A conventions---and $0.0112c$ lower).
 
 \begin{figure}[p]
   \centering

@@ -1031,3 +1031,30 @@ phi~30 deg front kink); (6) sequencing, incl. the cheap next step:
 evaluate the twist indicator PASSIVELY on the spheroid solutions
 (post-processing only) to check it lights the measured crossflow
 sectors before building any rate.
+
+## 2026-07-25 ~08:45 UTC — review pass 21 addressed (+ corrections to earlier entries)
+Pass 21 audited the tab:nlftrans and AFT-absence deletions (both clean,
+zero orphans), re-verified the chi sheets and the cavity-a4 numbers
+(all exact), and caught three staleness items — including one that's a
+process lesson: THE ROUND-5 APHORISM DELETION NEVER HAPPENED. My replace
+target had a whitespace mismatch, silently no-op'd, and the commit
+message + my earlier RESPONSES entry wrongly recorded it as done. It is
+actually deleted now, and every tex edit in this round printed a
+per-edit OK/FAILED check.
+Also fixed: Appendix A/B sheet-conventions text updated for the new
+contour levels (solid at 1, c_v1, 30, 10^2) and the 5x Eppler upper
+frame (0.0335c, deliberately breaking the 1/sqrt(Re) scaling — now
+stated); fig:daepolar panel-b caption now says "finest completed grid
+per family and incidence" (durable through the a5/a6 landings);
+Somers Fig. 9d citation restored at the cf-caption orifice clause;
+regen_chi_sheets default root corrected to flow360_fr (the stale
+flow360_tie default was what made the first regen silently skip
+everything — can't recur from a fresh checkout now).
+Verified for the reviewer's minor 4: the two L2-a4 runs used different
+solver builds, but the only delta is the newer build's ai_fv1Bypass=0
+constant, which gates on (>0.5) — bit-identical eddy-viscosity path at
+0; family agreement unaffected.
+CORRECTIONS to my earlier entries per the pass: (i) at 4 deg the L2
+family pair is tighter than L1 in DRAG (0.35% vs 0.92%) and marginally
+LOOSER in lift (0.72% vs 0.65%) — my "tighter than L1's 0.9%" conflated
+the two; (ii) the sheet regeneration was 24 PDFs, not 16.
