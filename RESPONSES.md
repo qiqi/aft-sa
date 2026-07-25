@@ -1328,3 +1328,95 @@ keepaspectratio. Regenerating all four now.
 - paper/data/lmbcm_eppler387_digitized.json — ICAS 2024-0327 (Shahjahan): Fig 6b polar Re=200k (LM 19 pts, SA-BC 19 pts, exp Selig/McGhee/Volkers), Fig 9a transition-vs-alpha Re=100k + Fig 10a Re=200k (triangle markers = transition; alphas land on integers ±0.07°). Vector-path extraction via PyMuPDF; colors matched to legend swatches.
 - paper/data/lm_nlf0416_transition_digitized.json — Denison OVERFLOW TMW Fig 11 (raster 1280x960): LM fine-grid xtr/c vs cl upper+lower (7 pts each), Somers exp bounds (30+30 pts, laminar/turbulent pairs).
 - Verification overlays: paper/data/digitize_check_{eppler,nlf}.png — visually indistinguishable from originals.
+
+## 2026-07-25 ~10:50 UTC — LM/BCM literature curves ARE IN THE FIGURES now
+Took your third ask as a go. The digitization agent extracted, and I
+verified against the source pages (check PNGs committed at
+paper/data/digitize_check_{eppler,nlf}.png — overlays are
+point-for-point):
+- Eppler polar (fig:epppolar): gamma-Re_theta and SA-BC curves from
+  Shahjahan ICAS 2024 Fig 6b, VECTOR-EXACT (19 points each — the
+  polyline vertices are the per-alpha marker centers). The story the
+  figure now tells: SA-AI and SA-BC both track the measured low-drag
+  bucket (SA-BC slightly better at mid-bucket, but it overshoots the
+  bucket top and its cl); gamma-Re_theta runs 40-60% high in drag
+  through the whole bucket. Bonus extraction: all three experiment
+  symbol sets (Selig/McGhee/Volkers) and the transition-vs-alpha data
+  at BOTH Re=1e5 (Fig 9a) and Re=2e5 (Fig 10a) are in the JSON for
+  future use.
+- NLF transition figure (fig:nlfaft): Langtry-Menter fine-grid curves
+  (upper+lower) from Denison's OVERFLOW workshop paper Fig 11
+  (raster, color/shape-segmented, calibration verified on tick
+  pixels). LM lands nearly on top of the recalibrated-AFT/experiment
+  cluster on both surfaces — a strong independent reference right
+  where SA-AI's points sit. Caption states plainly: no SA-BCM result
+  at this condition exists in the open literature.
+- tab:epplit's polar cells upgraded from figure-read +/- ranges to
+  matched-cl interpolations of the digitized curves: gamma-Re_theta
+  0.0195, SA-BC 0.0140 at cl=0.891 (both inside the old error bars —
+  the table's story is unchanged, just tighter).
+Committed 09b337b (+ 76d6bfe housekeeping: 98 tracked 2D ai_constants
+logs relocated out of the migration symlinks, same as the daedalus
+move). New Denison bib entry denison_2021_overflow.
+Also in 09b337b: the full-page mesh figures (identical 0.16c x 0.14c
+LE/TE windows, equal scale, width=\textwidth) — verified visually.
+
+## 2026-07-25 ~11:00 UTC — Invariant-kernel verification: first pass INVALID (protocol), redoing at matched convergence
+The three verification cases landed and at first read looked like a
+kernel failure (structured NLF transition 0.28 -> 0.62 aft, cavity
+0.30 -> 0.10 forward, Eppler bubble shifted). Diagnosis so far:
+- A pure-python replica of BOTH kernels on the converged canon field
+  (wall-normal probe at x/c=0.15) gives P_invariant == P_standard to
+  all printed digits with the physical vorticity orientation — the
+  CONCEPT is exactly 2D-degenerate as claimed. A deliberately flipped
+  omega sign inflates P 10x, confirming the s_hat construction is the
+  sensitive element and that the correct sign reproduces the standard
+  kernel.
+- Freestream/ahead-of-LE chi is EXACTLY the seed in all runs — no
+  contamination; solver env verified (ai_constants diff: only the
+  invariantKernel flag differs).
+- The smoking gun against my first comparison: a FLAG-OFF CONTROL run
+  through the same clone recipe (cold start, 20k steps) ALSO misses
+  the canon record — and its transition (0.60) lands next to the
+  invariant run's (0.62). The canon NLF cases ran 35k steps; at 20k
+  cold the transition front is still creeping aft. My verification
+  battery compared mid-transient snapshots against converged records.
+  (The one remaining flag-attributable signal: solver turbulence
+  residual floors 5 decades higher with the flag on — s_hat sign
+  flutter in weak-shear regions is the suspect; watching whether it
+  matters at convergence.)
+- Redo in flight at matched protocol: all four runs (str control, str
+  invariant, cav invariant, Eppler invariant) extended by restart to
+  40k, plus a fresh 40k cavity control. Verdict when they land: the
+  invariant kernel passes only if flag-ON == flag-OFF within line
+  widths AT CONVERGENCE on both families.
+
+## 2026-07-25 ~11:15 UTC — Table 6 -> figure: yes, and the data is RICHER than NLF
+Your question: can the reattachment table (Table 6, tab:eppxtr) become a
+figure like the NLF transition figure, with separation AND reattachment
+per panel — and is the data as tightly spaced in CL?
+Answer: yes, and on the experiment side it is RICHER than the NLF case:
+- TM-4062 Table III (paper/eppler.pdf p.15 — the full report was already
+  in the repo) tabulates oil-flow separation AND reattachment at R=200k
+  for NINE incidences: alpha = -2, 0, 2, 4, 5, 6, 7, 8, 8.5 (alpha=8 is
+  "NT at .32" — natural transition, no bubble; 8.5 is the post-stall
+  leading-edge bubble .03/.18). The repo had only our four alphas; the
+  full set is now in the new figure script.
+- Shahjahan Fig 10a carries separation (circles) and reattachment
+  (squares) markers for LM and SA-BC at integer alpha at exactly Re=2e5
+  — a second digitization agent is extracting those now (we already
+  have its transition triangles).
+- mfoil e^9 sweeps alpha densely for free: a -2..7.5 x 0.5deg bubble-
+  station sweep is running (separation/reattachment from signed Cf,
+  same definitions as the table).
+- SA-AI: currently the same density as NLF (4 incidences x 6 grids).
+  Queued to densify: alpha = -2, 1, 3, 4, 6 on both L2 grids (10 quick
+  2D runs) once the current GPU batch lands.
+Design: two panels sharing the alpha axis (separation left,
+reattachment right), NLF-figure conventions (oil flow black circles,
+mfoil dotted, LM/SA-BC in the polar's colors, SA-AI six grids by
+marker size). Axis is alpha rather than cl because every reference
+here is alpha-native (oil flow, Fig 10a). Script:
+repro/cfd/regen_epp_bubble_figure.py; the table's definitions and the
+mfoil-at-7deg caveat move into the caption. Will replace tab:eppxtr
+once the digitization and sweep land.

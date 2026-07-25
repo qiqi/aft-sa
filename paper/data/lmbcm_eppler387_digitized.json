@@ -377,5 +377,133 @@
    ]
   }
  },
- "notes": "polar: digitized from Figure 6(b), PDF page 10 (Re=200,000 drag polar). The figure is vector art; curve vertex coordinates were extracted programmatically with PyMuPDF get_drawings() and are exactly the per-alpha marker centers (clip-boundary artifacts at the right plot edge removed). Series identified by stroke color matched to legend swatch lines: blue=gamma-Re_theta (Langtry-Menter), green=SA-BC. Axis calibration from tick positions: cd*1e4=0 at px 333.93, tick spacing 24.630 px per 100 (verified against exact vector tick marks); cl=-0.5 at py 695.75, 32.19 px per 0.25 (tick-label centers, verified linear to <0.1 px). x axis is 'Drag coefficient x10^4'; values here are plain cd. Points are in curve (angle-of-attack) order, cl approx -0.3 to 1.26. experiment = wind-tunnel polars (Selig, McGhee, Volkers symbols in the same panel). transition: digitized from Figure 9(a), PDF page 13: TRANSITION location x/c versus angle of attack at Re = 100,000 (NOT 200,000 - Figure 9 is the Re=100k panel; caption symbols identify triangle=transition, circle=laminar separation, square=turbulent reattachment; only the transition triangles are digitized here). experiment_cole = Cole measurements. SA-BC values at alpha=6,7 deg (x/c~0.96) reflect the model's fully-separated state there (no reattachment), as discussed in the paper. transition_re200k: same quantity from Figure 10(a), PDF page 14, at Re = 200,000 (matches the polar condition); experiment = Selig. Transition x/c calibrated from tick-label centers (x/c 0 at px 113.55, 1.0 at 283.7; alpha -2 at py 403.0/192.3, 10 at 281.3/68.75 for p13/p14). Extracted model alphas land on integers to within 0.07 deg, confirming the calibration. All digitization by vector-path extraction, not by eye."
+ "notes": "polar: digitized from Figure 6(b), PDF page 10 (Re=200,000 drag polar). The figure is vector art; curve vertex coordinates were extracted programmatically with PyMuPDF get_drawings() and are exactly the per-alpha marker centers (clip-boundary artifacts at the right plot edge removed). Series identified by stroke color matched to legend swatch lines: blue=gamma-Re_theta (Langtry-Menter), green=SA-BC. Axis calibration from tick positions: cd*1e4=0 at px 333.93, tick spacing 24.630 px per 100 (verified against exact vector tick marks); cl=-0.5 at py 695.75, 32.19 px per 0.25 (tick-label centers, verified linear to <0.1 px). x axis is 'Drag coefficient x10^4'; values here are plain cd. Points are in curve (angle-of-attack) order, cl approx -0.3 to 1.26. experiment = wind-tunnel polars (Selig, McGhee, Volkers symbols in the same panel). transition: digitized from Figure 9(a), PDF page 13: TRANSITION location x/c versus angle of attack at Re = 100,000 (NOT 200,000 - Figure 9 is the Re=100k panel; caption symbols identify triangle=transition, circle=laminar separation, square=turbulent reattachment; only the transition triangles are digitized here). experiment_cole = Cole measurements. SA-BC values at alpha=6,7 deg (x/c~0.96) reflect the model's fully-separated state there (no reattachment), as discussed in the paper. transition_re200k: same quantity from Figure 10(a), PDF page 14, at Re = 200,000 (matches the polar condition); experiment = Selig. Transition x/c calibrated from tick-label centers (x/c 0 at px 113.55, 1.0 at 283.7; alpha -2 at py 403.0/192.3, 10 at 281.3/68.75 for p13/p14). Extracted model alphas land on integers to within 0.07 deg, confirming the calibration. All digitization by vector-path extraction, not by eye. bubble_re200k: laminar separation (ls) and turbulent reattachment (tr) x/c at Re=200,000 from Figure 10, PDF page 14: ls = circle markers in panel 10(a) ('Laminar separation and transition'), tr = square markers in panel 10(b) ('Turbulent reattachment'); marker shape encodes quantity, color encodes model (blue=gamma-Re_theta Langtry-Menter, green=SA-BC, black=Selig experiment). Calibration from exact vector tick marks: panel (a) x/c 0 at px 113.57, 1.0 at 283.67; panel (b) x/c 0 at px 333.45, 1.0 at 503.55; alpha -2 at py 191.59, 10 at py 68.06 (both panels share the alpha axis). Model marker alphas land on integers to <1e-4 deg; the extracted transition triangles were re-checked against transition_re200k and agree to <0.005 x/c. Legend swatch markers at px~239.14 excluded. Experiment (Selig) points sit at non-integer alphas; ls and tr rows paired by sorted order, 'alpha' is the ls-marker alpha and 'alpha_tr' the (slightly different, <0.25 deg) reattachment-marker alpha. Models cover alpha=-2..9 (12 points each); at alpha=8-9 the near-leading-edge ls/tr values reflect the models' post-stall/bursting state.",
+ "bubble_re200k": {
+  "langtry_menter": {
+   "alpha": [
+    -2,
+    -1,
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "ls": [
+    0.5361,
+    0.5149,
+    0.4936,
+    0.4722,
+    0.458,
+    0.4366,
+    0.4153,
+    0.4012,
+    0.373,
+    0.3453,
+    0.1815,
+    0.05
+   ],
+   "tr": [
+    0.8225,
+    0.7858,
+    0.7519,
+    0.7222,
+    0.6911,
+    0.6524,
+    0.6258,
+    0.5918,
+    0.5641,
+    0.529,
+    0.4651,
+    0.17
+   ]
+  },
+  "sa_bc": {
+   "alpha": [
+    -2,
+    -1,
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "ls": [
+    0.5501,
+    0.529,
+    0.5078,
+    0.4865,
+    0.458,
+    0.4437,
+    0.4153,
+    0.3941,
+    0.3661,
+    0.3248,
+    0.0464,
+    0.0102
+   ],
+   "tr": [
+    0.8174,
+    0.7803,
+    0.7461,
+    0.7222,
+    0.6974,
+    0.6719,
+    0.6524,
+    0.6258,
+    0.5986,
+    0.5501,
+    0.107,
+    0.0292
+   ]
+  },
+  "experiment_selig": {
+   "alpha": [
+    -1.65,
+    0.31,
+    2.34,
+    4.34,
+    6.32,
+    7.27,
+    9.2
+   ],
+   "ls": [
+    0.5194,
+    0.4605,
+    0.4204,
+    0.3906,
+    0.3701,
+    0.3514,
+    0.0194
+   ],
+   "tr": [
+    0.8505,
+    0.7842,
+    0.731,
+    0.6703,
+    0.5722,
+    0.5123,
+    0.0784
+   ],
+   "alpha_tr": [
+    -1.8,
+    0.25,
+    2.18,
+    4.32,
+    6.22,
+    7.14,
+    9.07
+   ]
+  }
+ }
 }

@@ -1780,7 +1780,7 @@ regime.
   $x/c\!\approx\!0.99$ across the entire $\alpha$ range, matching the
   $e^9$ prediction that the lower transition lies aft of the airfoil. At
   $\alpha\!=\!7^\circ$ the dotted reference is FlexFoil rather than mfoil,
-  which stalls numerically there (Table~\ref{tab:eppxtr}; XFOIL's forces
+  which stalls numerically there (Fig.~\ref{fig:eppbubble}; XFOIL's forces
   agree, $C_l\!=\!1.17$); the surface distributions carry no $N$ curve, so
   row~3 shows no envelope at $7^\circ$.}
   \label{fig:eppcfhigh}
@@ -1806,42 +1806,47 @@ here: at this low Reynolds number the airfoil carries only a short
 favorable-gradient segment near the leading edge, where $\hat S g\!\to\!0$ leaves the
 rate negligible; transition is set in the adverse recovery over the bubble.
 
-\begin{table}[tp]
+\begin{figure}[tp]
   \centering
-  \caption{Upper-surface turbulent-\emph{reattachment} location $x_R/c$ on the
-  Eppler 387 at $Re\!=\!2\!\times\!10^5$ across the four incidences, three
-  refinement levels, and two mesh families. For a laminar-separation bubble the
-  physically observable quantity is the reattachment point, not the amplification
-  onset; we define it in the computation as the most-downstream location where the
-  signed $C_f$ crosses back into positive (the physical return of attached flow aft
-  of the bubble), and take the same measure from mfoil's signed $C_f$. \emph{Exp}
-  is the oil-flow turbulent reattachment (McGhee et al., NASA TM 4062, Table~III),
-  i.e.\ the aft edge of the gray band on the $C_f$ rows of
-  Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}. The lower surface stays attached
-  and laminar to the trailing edge at every incidence.}
-  \label{tab:eppxtr}
-  \begin{tabular}{ccccccccc}
-    \toprule
-    & \multicolumn{3}{c}{Unstructured cavity} & \multicolumn{3}{c}{Structured O-grid} & & \\
-    \cmidrule(lr){2-4} \cmidrule(lr){5-7}
-    $\alpha$ & L0 & L1 & L2 & L0 & L1 & L2 & mfoil $e^9$ & Exp (oil flow) \\
-    \midrule
-    $0^\circ$ & 0.711 & 0.737 & 0.768 & 0.735 & 0.778 & 0.788 & 0.741 & 0.74 \\
-    $2^\circ$ & 0.649 & 0.682 & 0.718 & 0.672 & 0.721 & 0.737 & 0.691 & 0.67 \\
-    $5^\circ$ & 0.573 & 0.607 & 0.634 & 0.587 & 0.633 & 0.655 & 0.592 & 0.59 \\
-    $7^\circ$ & 0.459 & 0.435 & 0.444 & 0.324 & 0.414 & 0.449 & $0.40^\dagger$ & 0.48 \\
-    \bottomrule
-  \end{tabular}
-  \\[2pt]{\footnotesize $^\dagger$mfoil at $\alpha\!=\!7^\circ$ is unreliable
-  ($C_l\!=\!0.928$, below its $\alpha\!=\!5^\circ$ value---numerical stall onset);
-  the tabulated value is XFOIL's~\cite{drela_xfoil_1989}, which converges
-  there ($C_l\!=\!1.17$). At $\alpha\!\in\!\{0^\circ,2^\circ,5^\circ\}$ XFOIL and
-  mfoil agree to within $0.01\,c$.}
-\end{table}
+  \includegraphics[width=\textwidth]{eppler_bubble_stations.pdf}
+  \caption{Upper-surface laminar-separation (left) and
+  turbulent-\emph{reattachment} (right) locations on the Eppler 387 at
+  $Re\!=\!2\!\times\!10^5$ against incidence. For a laminar-separation
+  bubble the physically observable stations are the separation and
+  reattachment points, not the amplification onset; in the computation
+  they are the signed-$C_f$ zero crossings (separation: first downward;
+  reattachment: most-downstream upward---the physical return of
+  attached flow aft of the bubble), and the same measure is taken from
+  mfoil's signed $C_f$ (dotted; drawn to $\alpha\!=\!6.5^\circ$, beyond
+  which mfoil is at the edge of its convergence regime---at
+  $\alpha\!=\!7^\circ$ it returns $C_l\!=\!0.928$, below its $5^\circ$
+  value, while XFOIL~\cite{drela_xfoil_1989} converges there with
+  $C_l\!=\!1.17$). Black circles: the oil-flow visualization (McGhee et
+  al., NASA TM 4062, Table~III, all nine tabulated incidences; at
+  $\alpha\!=\!8^\circ$ the report notes natural transition at
+  $0.32\,c$---no bubble---and the $8.5^\circ$ entry is the post-stall
+  leading-edge bubble), i.e.\ the edges of the gray band on the $C_f$
+  rows of Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}. Gray diamonds:
+  the independent Selig et al.\ measurement, digitized with the
+  $\gamma$--$Re_\theta$ and SA-BC curves from
+  Ref.~\cite{shahjahan_2024}
+  (\texttt{data/lmbcm\_eppler387\_digitized.json}). Open
+  squares/triangles: SA-AI on all six grids (L0--L2 by marker size,
+  both families). The lower surface stays attached and laminar to the
+  trailing edge at every incidence.}
+  \label{fig:eppbubble}
+\end{figure}
 
-The reattachment---the bubble's aft end, set by the post-transition turbulent
-recovery---is the quantity this test hinges on, and it is where the sphere
-kernel shows its cost. At $\alpha\!\le\!5^\circ$ the model reattaches
+The bubble stations are collected in Fig.~\ref{fig:eppbubble},
+against the oil flow at all nine of its tabulated incidences, the
+independent Selig et al.\ measurement, the dense-$\alpha$ mfoil
+sweep, and the two digitized transition-model references. The
+separation location---set by the inviscid pressure distribution---is
+reproduced by every method on the plot, SA-AI included, to a few
+percent of chord at every incidence. The reattachment---the bubble's
+aft end, set by the post-transition turbulent recovery---is the
+quantity this test hinges on, and it is where the sphere kernel shows
+its cost. At $\alpha\!\le\!5^\circ$ the model reattaches
 systematically \emph{late}: $0.79\,c$ at $\alpha\!=\!0^\circ$ against the
 measured $0.74\,c$, $0.74\,c$ vs $0.67\,c$ at $2^\circ$, and $0.66\,c$ vs
 $0.59\,c$ at $5^\circ$---a bubble $0.05$--$0.07\,c$ too long, grid-converged (the
