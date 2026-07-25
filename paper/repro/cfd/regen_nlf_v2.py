@@ -57,9 +57,11 @@ def rate(Re_O, Gamma):
     return np.where(Re_O > Re_cliff, a, 0.0)
 
 def case_dir(mesh, level, alpha):
-    """mesh in {'cav','str'}, level in {'L0','L1','L2'}, alpha int."""
+    """mesh in {'cav','str'}, level in {'L0','L1','L2'}, alpha int
+    (negative alpha maps to the am<N> naming: -8 -> am8)."""
     a_int = int(alpha)
-    return f"{B}/{mesh}{level}prop_nlf0416_Re4M_a{a_int}"
+    tag = f"am{-a_int}" if a_int < 0 else f"a{a_int}"
+    return f"{B}/{mesh}{level}prop_nlf0416_Re4M_{tag}"
 
 def load_slice(d):
     r = vtk.vtkXMLPUnstructuredGridReader(); r.SetFileName(f"{d}/slice_centerSpan.pvtu"); r.Update()
@@ -512,7 +514,9 @@ LEVELS_CF = ['L0', 'L1', 'L2']   # configurable: restrict the refinement levels 
 # NLF transition table). None = front ahead of the instrumented region.
 # Entries marked extrapolated are beyond the recorded orifices (the paper's
 # double-dagger): upper at alpha=4, lower at alpha=15.
-EXP_XTR = {0: {'upper': (0.38, False), 'lower': (0.55, False)},
+EXP_XTR = {-8: {'upper': (0.542, False), 'lower': None},
+           -4: {'upper': (0.453, False), 'lower': None},
+           0: {'upper': (0.38, False), 'lower': (0.55, False)},
            4: {'upper': (0.31, True),  'lower': (0.62, False)},
            9: {'upper': None,          'lower': (0.64, False)},
            15: {'upper': None,         'lower': (0.66, True)}}
@@ -900,6 +904,13 @@ if __name__ == '__main__':
         make_convergence_figure(alphas, 'nlf_convergence_lowalpha_cav',
                                 'NLF(1)-0416 convergence, $\\alpha\\in\\{0^\\circ,4^\\circ\\}$ — unstructured (cavity)',
                                 meshes=['cav'])
+    if mode == 'neg':
+        # negative-incidence pair (finest grids only -- L2 both families)
+        alphas = [-4, -8]
+        LEVELS_CF[:] = ['L2']
+        make_cf_figure(alphas, 'nlf_cf_negalpha',
+                       'NLF(1)-0416 at $\\alpha\\in\\{-4^\\circ,-8^\\circ\\}$'
+                       ' — L2, cav/str')
     if mode in ('high', 'all'):
         alphas = [9, 15]
         title_all = 'NLF(1)-0416 at $\\alpha\\in\\{9^\\circ,15^\\circ\\}$ — L0/L1/L2 × cav/str'

@@ -2254,3 +2254,58 @@ Campaign check prompted by the review's "GPUs idle" note: orchestrator alive, fi
 strL2 NLF batches at 97% on GPUs 3/5, 27/93 stamped.
 
 Full response: agent-paper-review/2026-07-25-1900-response.md.
+
+## 2026-07-25 20:15 UTC — NLF positive set complete under new canon; diff vs old
+
+Campaign: nlf set (24 cases) done at 18:58, eppler set started. nlf_neg (am4/am8, L2 both
+families) pulled forward onto GPUs 6/7 (skip-guard makes the queued set a no-op); Sec IV
+migration will be ATOMIC when they land (task #30).
+
+Old(flow360_fr) -> new(flow360_fv1) diffs, notable rows (dCD in counts):
+  strL0_a15  -26.6   (L0 high-alpha: bypass removes buffer-layer contamination)
+  cavL0_a15  -12.4
+  cavL2_a9    -8.3   dxtr_up +0.024 (front aft; converged-grid change, cavity family)
+  strL1_a15   -8.2
+  strL0_a9    -5.3   dxtr_lo +0.095 (L0 lower front)
+  strL2_a15   -4.7
+  strL2_a9    -1.6;  a0/a4 rows <= 2.2 counts both families
+All shifts negative (drag down) = toward the measurement (L0 over-predicts markedly).
+Why bigger than the battery's <=1.3 counts: the battery ran the WEAKER sigma_t-tied
+exponential switch, cold-40k, finest grids (+a4cav) only; canon is the aggressive linear
+switch, converged protocol, all grids. The II.F parenthetical gets these actuals at
+migration.
+
+## 2026-07-25 20:45 UTC — Fig 6 negative-AoA diagnosis + new Fig (nlf_cf_negalpha)
+
+User: "In Fig 6 at CL=-0.5 the transition locations seem completely wrong. We need to
+diagnose." Verdict: HALF artifact, HALF real.
+
+ARTIFACT (lower surface): the stored xtr_lo=0.89 at alpha=-8 (both families) was a stale
+extraction value. Field forensics on the am8 cases: the lower (suction, -Cp=4.7) surface
+is turbulent from the LE (Cf=9e-3 at x=0.05; chi>1 from x=0.0025-0.0103 by today's
+converge_by_xtr extractor) — ON the references (mfoil at -8 converges: lower trip 0.015;
+FlexFoil 0.018). The 0.89 signature = a wrong-side probe window that saw no chi signal
+until the airfoil is thin enough (x~0.89) to read the OTHER surface's BL through the TE.
+Today's extractor is correct; the four negative rows in flow360_fr's results JSON were
+re-extracted and patched (am8: str 0.1302/0.0025, cav 0.1945/0.0103; am4: str
+0.4247/0.0729, cav 0.4523/0.1215) and Fig 6 regenerated — the -8 lower marker now sits
+on the references' LE trip.
+
+REAL (upper surface): the pressure-side front at 0.13-0.19 is the genuine solution
+(Cf jump confirms) vs measured 0.542 and e9 0.66 (mfoil -8: xtr_up 0.662, cl -0.476 =
+ours to 3 decimals; FlexFoil 0.663 — e9 pickles extended to -4/-8, mfoil unconverged at
+-4 so FlexFoil fills there). Mechanism (new five-row figure): over x=0.02-0.2 in the
+recovery of the UPPER surface's own LE spike (-Cp=2.1), row 2 shows a persistent
+low-level positive Shat*g band (1e-2..1e-1, noisy) and row 1 shows Re_Omega already past
+even the small-rate onset ceiling (k*2600); chi e-folds accumulate where the e9 envelope
+books zero (N=0 until 0.35). At -4 the same noise band exists but Re_Omega crosses later
+and the front stays put (0.42-0.45 = references). This is the rectification family
+(clip<P>_0 keeps positive noise) surviving in the magnitude kernel at small amplitude —
+the amplifying-zone-gate candidate revision is the relevant future fix.
+
+NEW FIGURE: fig:nlfnegalpha (nlf_cf_negalpha.pdf) — the Figs 8/9 five-row suite at
+alpha=-4/-8, L2 both families, with mfoil/FlexFoil e9 overlays (pickles extended) and
+measured onsets. Inserted after Fig 9; fig:nlfaft caption's -8 account rewritten (the
+old "holds the suction surface laminar to 0.89c" claim was built on the artifact).
+regen_nlf_v2.py gains a 'neg' mode; derived slices added to the four negative case dirs.
+Old canon throughout (consistent with the rest of the paper); regenerates at migration.

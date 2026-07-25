@@ -1510,17 +1510,18 @@ quantitatively.
   negative-incidence pair $\alpha\!=\!-4^\circ$ (zero lift) and
   $-8^\circ$ (the edge of the measured range) on the finest grids,
   all at the paper-wide untuned seed. At $-8^\circ$ the forces stay
-  within seven counts of the measurement but \emph{both} fronts miss:
-  the model holds the suction (lower) surface laminar to $0.89\,c$
-  against the references' leading-edge trip---the $-C_p\!\approx\!4.7$
-  spike bubble offers far less streamwise room than the $\chi$
-  handover needs, the Sec.~\ref{sec:epphandover} mechanism at its
-  extreme---and places the pressure-side front at $0.14$--$0.22\,c$
-  against the measured ${\approx}0.5\,c$, just downstream of the
-  stagnation point that has moved onto that surface. The
-  strong-negative-incidence regime lies outside the model's
-  calibration; the markers are retained as an honest boundary of
-  applicability.}
+  within seven counts of the measurement and the suction (lower)
+  surface trips at $0.003$--$0.01\,c$, on the references'
+  leading-edge trip ($e^9$: $0.015$--$0.018\,c$); the pressure
+  (upper) surface, however, transitions early---$0.13$--$0.19\,c$
+  against the measured ${\approx}0.54\,c$ and the $e^9$
+  $0.66\,c$---the amplification booked in the recovery of that
+  surface's own leading-edge spike ($-C_p\!\approx\!2.1$), where
+  the onset threshold is already exceeded and the rate coordinate is
+  small but positive while the $e^9$ envelope books nothing
+  (Fig.~\ref{fig:nlfnegalpha}). The strong-negative-incidence regime
+  lies outside the model's calibration; the markers are retained as
+  an honest boundary of applicability.}
   \label{fig:nlfaft}
 \end{figure}
 
@@ -1720,6 +1721,31 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
   laminar/turbulent handover stays at one chordwise location across the
   refinement series.}
   \label{fig:nlfcfhigh}
+\end{figure}
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=\textwidth]{nlf_cf_negalpha.pdf}
+  \caption{NLF(1)-0416 at the negative-incidence pair
+  $\alpha\!=\!-4^\circ$ (left, zero lift) and $-8^\circ$ (right,
+  the edge of the measured range), finest (L2) grids of both mesh
+  families, with the five-row suite and line conventions of
+  Figs.~\ref{fig:nlfcflow}--\ref{fig:nlfcfhigh} (rows: probe-max
+  $Re_\Omega$, probe-max $\hat S g$, near-wall $\max\chi$ with the
+  $e^9$ $N$ envelope, $-C_p$, signed $C_f$; upper surface blue, lower
+  red). The $e^9$ overlay is mfoil at $-8^\circ$ and FlexFoil at
+  $-4^\circ$, where mfoil's coupled solve does not converge; filled
+  triangle: measured onset at the computed lift. At $-4^\circ$ both
+  fronts land on the references. At $-8^\circ$ the suction (lower)
+  surface trips at $0.003$--$0.01\,c$, on the $e^9$ leading-edge
+  trip, while the pressure (upper) surface trips early
+  ($0.13$--$0.19\,c$ vs the measured $0.54$ and the $e^9$
+  $0.66\,c$): row~2 shows the low-level positive rate booked over
+  $x\!\approx\!0.02$--$0.2\,c$ in the recovery of that surface's
+  own leading-edge spike, where row~1's $Re_\Omega$ already exceeds
+  the small-rate onset ceiling while the $e^9$ envelope (row~3) books
+  nothing.}
+  \label{fig:nlfnegalpha}
 \end{figure}
 
 Because a favorable gradient keeps the profile's curvature single-signed
