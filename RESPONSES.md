@@ -1736,3 +1736,43 @@ inert elsewhere, the promotion decision becomes: accept ONE tunable
 with an analytic anchor candidate (the fv1 half-saturation scale,
 chi~c_v1/2... to be derived) in exchange for moving the bursting
 boundary — your call.
+
+## 2026-07-25 ~16:00 UTC — fv1 switch speed: the analytic case for FASTER than sigma_t
+Your question: any analytic reason (besides Eppler) for the bypass
+switch to be faster than the handover? YES — the two ramps answer
+different questions and tying them double-counts:
+- sigma_t (width 4) encodes turbulence MATURITY — how gradually nuHat
+  earns SA-production authority. Real physics, already applied to
+  production.
+- fv1 is NOT a maturity function. It is WALL-PROXIMITY damping: its
+  derivation is the attached-layer identity chi = kappa*y+, under
+  which fv1 enforces mu_t ~ y^3 in the sublayer; its half-saturation
+  chi = c_v1 = 7.1 IS y+ ~= 17 (mid buffer layer, by construction).
+  In a lifted transitional layer that identity is void at EVERY chi —
+  and the q gate is exactly the parameter-free certificate of that.
+  Once q fires, fv1 damping is an unjustified error with no
+  chi-dependence excuse. s(chi)'s only remaining jobs: smoothness at
+  the chi=1 edge, and inertness below chi~1 where mu_t < nu/360
+  regardless.
+- Ergo: sigma_t-tied s double-counts immaturity (production
+  discounted AND mu_t wall-damped in a layer with no wall). The
+  principled structure: maturity on production (sigma_t), geometry on
+  the viscosity assembly (q), s = fast one-chi-unit smoothing ramp.
+The aggressive switch is therefore the analytically preferred form;
+the width-1 battery (8 runs, in flight) is confirmation, not
+justification. If it closes 1e5 and holds the NLF/flat-plate gates,
+proposal: canon = bypass ON, s width ~= 1.
+
+## 2026-07-25 ~16:05 UTC — Fig. 13 FlexFoil branch + the e9 no-bubble finding
+FlexFoil (faithful-XFOIL, target/release/rustfoil) swept alpha=-2..9
+at Re=2e5 (repro: run_flexfoil_bubble_sweep.py). Branch added to
+fig:eppbubble (dash-dot, alpha<=6.5; isolated 8.0 sliver marked).
+Finding for the caption/text: at alpha>=7 the e9 integral closure
+TRANSITIONS AHEAD OF SEPARATION (min Cf stays positive, +2e-4 at 7 —
+identical in XFOIL, same closure) and predicts NO bubble, while the
+oil flow still shows one at 7 deg (0.33/0.48). mfoil's convergence
+failure at 7 and the missing high-alpha e9 stations are thus the same
+phenomenon: the reference family loses the bubble before the
+experiment does.
+Also queued per your directive: Eppler alpha=-2 and 8.5 canon runs
+AFTER the fv1 promotion decision (task list updated).

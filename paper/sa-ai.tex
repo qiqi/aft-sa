@@ -1839,11 +1839,17 @@ Fig.~\ref{fig:sheet_eppler387_a5_upper}.)
   they are the signed-$C_f$ zero crossings (separation: first downward;
   reattachment: most-downstream upward---the physical return of
   attached flow aft of the bubble), and the same measure is taken from
-  mfoil's signed $C_f$ (dotted; drawn to $\alpha\!=\!6.5^\circ$, beyond
-  which mfoil is at the edge of its convergence regime---at
+  the $e^9$ references: mfoil (dotted; drawn to $\alpha\!=\!6.5^\circ$,
+  beyond which it is at the edge of its convergence regime---at
   $\alpha\!=\!7^\circ$ it returns $C_l\!=\!0.928$, below its $5^\circ$
   value, while XFOIL~\cite{drela_xfoil_1989} converges there with
-  $C_l\!=\!1.17$). Black circles: the oil-flow visualization (McGhee et
+  $C_l\!=\!1.17$) and FlexFoil, an independent implementation of the
+  same method (dash-dot). Past $\alpha\!=\!6.5^\circ$ the $e^9$
+  closure \emph{transitions ahead of laminar separation}---its signed
+  $C_f$ never crosses zero (FlexFoil and XFOIL agree, minimum
+  $+2\!\times\!10^{-4}$ at $7^\circ$)---and so predicts no bubble
+  where the oil flow still shows one; the isolated FlexFoil marker at
+  $8^\circ$ is a marginal three-point sliver. Black circles: the oil-flow visualization (McGhee et
   al., NASA TM 4062, Table~III; its nine tabulated incidences less
   $\alpha\!=\!8^\circ$, where the report notes natural transition at
   $0.32\,c$ and no bubble exists to plot---the $8.5^\circ$ point is

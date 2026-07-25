@@ -83,6 +83,25 @@ if os.path.exists(swp):
                         color='0.5', lw=1.1)
                 XF_DRAWN.append(q)
 
+# FlexFoil (faithful-XFOIL) independent e^9 sweep: dash-dot. At alpha>=7
+# its Cf never crosses zero (transition preempts separation) -- no stations.
+ffp = f'{PD}/data/flexfoil_eppler_bubble_sweep.json'
+if os.path.exists(ffp):
+    ff = json.load(open(ffp))
+    fa = sorted(float(k) for k in ff)
+    for ax, q in ((ax_ls, 'ls'), (ax_tr, 'tr')):
+        pts = [(ff[f'{a:.1f}'][q], a) for a in fa
+               if ff[f'{a:.1f}']['conv'] and ff[f'{a:.1f}'][q] is not None]
+        # draw the contiguous low-alpha branch as a line; isolated points as markers
+        line = [pt for pt in pts if pt[1] <= 6.5]
+        iso = [pt for pt in pts if pt[1] > 6.5]
+        if line:
+            ax.plot([pt[0] for pt in line], [pt[1] for pt in line], '-.',
+                    color='0.3', lw=1.0)
+        if iso:
+            ax.plot([pt[0] for pt in iso], [pt[1] for pt in iso], 'v',
+                    color='0.3', ms=3.5, mfc='none')
+
 # literature transition models (digitized), if the bubble extraction landed
 lit = json.load(open(f'{PD}/data/lmbcm_eppler387_digitized.json'))
 bub = lit.get('bubble_re200k', {})
@@ -133,6 +152,8 @@ handles = [Line2D([], [], color='k', ls='-', lw=0.8, marker='o', mfc='none', ms=
            Line2D([], [], color='0.35', ls='none', marker='D', mfc='none', ms=3.5,
                   label='Experiment (Selig et al.)'),
            Line2D([], [], color='0.5', ls=':', lw=1.4, label='mfoil ($e^9$)'),
+           Line2D([], [], color='0.3', ls='-.', lw=1.0,
+                  label='FlexFoil ($e^9$, $\\alpha\\leq6.5^\\circ$)'),
            Line2D([], [], color='C2', ls='-', lw=1.0, marker='x', ms=4.5,
                   label='$\\gamma$\u2013$Re_\\theta$ (Shahjahan et al.)'),
            Line2D([], [], color='C4', ls='-', lw=1.0, marker='+', ms=5,
