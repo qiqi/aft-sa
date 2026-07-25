@@ -391,6 +391,14 @@ def wallnormal_max_metrics(case_d, side='upper', L_probe=0.01, n_probe=80,
     ReO = np.where(mask, ReO_raw, np.nan).reshape(n_probe, M)
     Gam = np.where(mask, Gam_raw, np.nan).reshape(n_probe, M)
     Psl = np.where(mask, P_raw, np.nan).reshape(n_probe, M)
+    # Neighbor-smooth the rate coordinate BEFORE the max (user request
+    # 2026-07-25): transported chi integrates production along streamlines,
+    # so isolated single-point Shat*g values carry no effect and a raw
+    # pointwise max over-reports them. sigma: ~0.5% chord streamwise,
+    # ~5% of the probe wall-normal. Presentation only.
+    from lib.smooth import nan_gaussian
+    _dxm = float(np.median(np.abs(np.diff(np.sort(xs))))) + 1e-12
+    Psl = nan_gaussian(Psl, sigma=(0.05 * n_probe, 0.005 / _dxm))
     ReO_max = np.nanmax(ReO, axis=0)
     Gam_max = np.nanmax(Gam, axis=0)
     P_max = np.nanmax(Psl, axis=0)

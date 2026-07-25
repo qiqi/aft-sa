@@ -31,6 +31,7 @@ from matplotlib.lines import Line2D
 
 D = '/home/qiqi/flexcompute/sa-ai/daedalus'
 PD = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+sys.path.insert(0, os.path.join(PD, 'repro'))
 sys.path.insert(0, D)
 from wing_geometry import chord, HALF_SPAN, XQC          # noqa: E402
 import sectional_compare as SC                            # noqa: E402
@@ -136,12 +137,17 @@ def probe_station(vol, case, contours, c_loc, x_le, mu_ref):
         vel = vtk_to_numpy(out.GetArray('velocity')).reshape(len(idx), N_PROBE, 3)
         ut = np.einsum('ijk,ik->ij', vel, tan)          # tangential profile
         reo = np.full(len(idx), np.nan)
-        pmax = np.full(len(idx), np.nan)
+        rate2d = np.full((len(idx), N_PROBE), np.nan)
         for i in range(len(idx)):
             u = ut[i]
             dud = np.gradient(u, d)
             reo[i] = np.nanmax(d**2 * np.abs(dud)) / mu_ref
-            pmax[i] = np.nanmax(sphere_rate_1d(np.abs(u), dud, d))
+            rate2d[i] = sphere_rate_1d(np.abs(u), dud, d)
+        # neighbor-smooth Shat*g before the max (see repro/lib/smooth.py)
+        from lib.smooth import nan_gaussian
+        rate2d = nan_gaussian(rate2d, sigma=(0.005 * N_ANCH / 0.985,
+                                             0.05 * N_PROBE))
+        pmax = np.nanmax(rate2d, axis=1)
         xc = (anch[:, 0] - x_le) / c_loc
         pr[side] = dict(xc=xc, reo=reo, pmax=pmax)
     return pr

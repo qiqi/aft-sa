@@ -2378,3 +2378,24 @@ range" reworded (TP-1861 measures to alpha~-13/-16); front-convergence claims sc
 the cavity rerun (structured queued); body sentence added introducing the negative pair;
 xtr_note de-overstated for the non-artifact rows; TP-1861 PDF added to references/;
 JSON trailing newline. Full response: agent-paper-review/2026-07-25-2041-response.md.
+
+## 2026-07-25 22:05 UTC — Row-2 diagnostic: neighbor-smoothed Shat*g before the max
+
+User: "our max(Shat*g) isn't really giving useful information... we should be smoothing
+the field over a neighbor before taking max when we plot it." Implemented everywhere the
+diagnostic appears:
+- repro/lib/smooth.py: NaN-aware Gaussian (normalized convolution).
+- regen_nlf_v2 + regen_eppler_v2 wallnormal_max_metrics: the sampled (n_probe x M) rate
+  field smoothed with sigma = (5% of probe wall-normal, 0.5% chord streamwise) before
+  the per-x max. Propagates to the NLF suites (Figs 8/9/10), Eppler benchmark suites,
+  and the Reynolds-sweep suites (regen_epp_resweep_suite reuses the function).
+- regen_daedalus_section_sheets: the (anchor x probe) rate array smoothed the same way.
+All nine suite figures regenerated. Validation on the negative pair: at -4 row 2 now
+shows the two clean physical bands (lower LE band, upper TS band rising to 0.1 at
+x 0.3-0.45); at -8 the noisy upper cluster is GONE — those were exactly the single-point
+spikes with no transported effect; the marching chi (row 3) is not driven by any
+resolved coherent amplification in the present field, consistent with the transient.
+Disclosure added at the five-row convention definition in the text (and the Daedalus
+appendix caption): "the field is neighbor-smoothed (~0.5% chord streamwise, 5% of the
+probe wall-normal) before the maximum... a raw pointwise maximum would over-report".
+Presentation only — the solver's production is untouched.

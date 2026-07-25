@@ -1665,7 +1665,13 @@ rate coordinate $\hat S g$ (Eq.~\eqref{eq:rate})---the amplifying inflectional
 coordinate the kernel acts on, on a log axis spanning the amplifying
 decades (suppressed and favorable stations, $\hat S g\!\le\!0$,
 fall below the plotted range), with the rate
-$a_{\max}\operatorname{clip}\langle \hat S g\rangle$; \emph{row 3} the in-BL maximum
+$a_{\max}\operatorname{clip}\langle \hat S g\rangle$; the field is
+neighbor-smoothed (${\approx}0.5\%$ chord streamwise, $5\%$ of the
+probe wall-normal) before the maximum is taken, because the
+transported $\tilde\nu$ integrates production along streamlines, so
+isolated single-point rate values---mesh noise on the unstructured
+family---have no effect on the solution and a raw pointwise maximum
+would over-report them; \emph{row 3} the in-BL maximum
 $\chi\!=\!\max_y\tilde\nu/\nu$ on a log axis with the amplification factor $N$ from
 mfoil~\cite{fidkowski_mfoil_2022}, a coupled viscous--inviscid $e^N$ panel solver,
 on a linear right axis, the two linked by $N\!=\!\ln(\chi/\chi_\infty)$ so
@@ -1729,7 +1735,7 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
 
 \begin{figure}[tp]
   \centering
-  \includegraphics[width=\textwidth]{nlf_cf_negalpha.pdf}
+  \includegraphics[width=0.96\textwidth]{nlf_cf_negalpha.pdf}
   \caption{NLF(1)-0416 at the negative-incidence pair
   $\alpha\!=\!-4^\circ$ (left, zero lift) and $-8^\circ$ (right,
   well into the negative branch of the measured polar), finest (L2)
@@ -3267,7 +3273,8 @@ in the taper, at its locally reduced chord Reynolds number), columns
 $\alpha=4^\circ$, $5^\circ$, $6^\circ$, five rows per
 station---the probe-maximum $Re_\Omega$ against the onset threshold
 $Re_\Omega^c(\hat S g)$ evaluated at the local rate (dash-dotted), the
-probe-maximum $\hat S g$ rate (log scale, as
+probe-maximum $\hat S g$ rate (neighbor-smoothed before the
+maximum, as the airfoil suites; log scale, as
 Fig.~\ref{fig:onsetgraze}), the
 near-wall $\max\chi$ with the strip's $e^{N}$ amplification, $-C_p$,
 and streamwise $C_f$. Solid lines are the structured L2 solution,
