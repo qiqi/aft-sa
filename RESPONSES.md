@@ -2360,3 +2360,21 @@ Sec-IV migration. Protocol lesson recorded in memory: never quote a transition f
 a fixed-budget cold start; forces flatten long before a RECEDING front settles (draining
 transient chi from a laminar side is ~100x slow under AI_LAMINAR_SLOWDOWN=0.01 —
 plausible mechanism for the slow march, unverified).
+
+## 2026-07-25 21:50 UTC — Pass 31: both majors + 7 minors (commit follows)
+
+Pass 31 independently confirmed the whole negative-AoA episode (own surface walk
+reproduces all four re-extracted rows and 0.89 nowhere; TP-1861 re-digitized from the
+NTRS scan confirms EXP_XTR upper 0.542@-8 / 0.453@-4 and 'lower: None'). Its two
+majors, both accepted: (1) the patched flow360_fr results JSON was uncommitted while
+the figure regenerated from it was committed — the exact stale-state failure mode this
+episode came from; now committed. (2) My "wrong-side window reads through the thin TE"
+provenance story for the 0.89 was asserted as fact but is UNREPRODUCIBLE (both
+wrong-window variants give 0.005/0.135; the gap at x=0.89 is 20x the window) — the
+xtr_note now says "stale value from a superseded extraction; provenance not
+reconstructed". CORRECTION to the 20:45/21:20 entries accordingly. Minors: broken
+cf_front detector deleted (station table was the real evidence); "edge of the measured
+range" reworded (TP-1861 measures to alpha~-13/-16); front-convergence claims scoped to
+the cavity rerun (structured queued); body sentence added introducing the negative pair;
+xtr_note de-overstated for the non-artifact rows; TP-1861 PDF added to references/;
+JSON trailing newline. Full response: agent-paper-review/2026-07-25-2041-response.md.

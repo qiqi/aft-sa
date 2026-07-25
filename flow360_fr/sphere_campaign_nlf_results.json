@@ -218,33 +218,37 @@
  "strL2prop_nlf0416_Re4M_am4": {
   "CL": 0.01803408367346763,
   "CD": 0.007676273669779197,
-  "xtr_up": 0.45999999999999996,
-  "xtr_lo": 0.08,
+  "xtr_up": 0.4247,
+  "xtr_lo": 0.0729,
   "steps": 40000,
-  "converged": true
+  "converged": true,
+  "xtr_note": "re-extracted 2026-07-25 with converge_by_xtr.extract_xtr (refinement of coarser earlier readings; no artifact here)"
  },
  "cavL2prop_nlf0416_Re4M_am4": {
   "CL": 0.03590992246560757,
   "CD": 0.007459882546512722,
-  "xtr_up": 0.5,
-  "xtr_lo": 0.16,
+  "xtr_up": 0.4523,
+  "xtr_lo": 0.1215,
   "steps": 40000,
-  "converged": true
+  "converged": true,
+  "xtr_note": "re-extracted 2026-07-25 with converge_by_xtr.extract_xtr (refinement of coarser earlier readings; no artifact here)"
  },
  "strL2prop_nlf0416_Re4M_am8": {
   "CL": -0.47632462428983136,
   "CD": 0.011250476927488493,
-  "xtr_up": 0.14,
-  "xtr_lo": 0.89,
+  "xtr_up": 0.1302,
+  "xtr_lo": 0.0025,
   "steps": 40000,
-  "converged": true
+  "converged": true,
+  "xtr_note": "re-extracted 2026-07-25 with converge_by_xtr.extract_xtr; the previous xtr_lo=0.89 was a stale value from a superseded extraction whose provenance was not reconstructed (pass-31: the wrong-side-window hypothesis does NOT reproduce it)"
  },
  "cavL2prop_nlf0416_Re4M_am8": {
   "CL": -0.4573024783903622,
   "CD": 0.011096145219642691,
-  "xtr_up": 0.22,
-  "xtr_lo": 0.89,
+  "xtr_up": 0.1945,
+  "xtr_lo": 0.0103,
   "steps": 40000,
-  "converged": true
+  "converged": true,
+  "xtr_note": "re-extracted 2026-07-25 with converge_by_xtr.extract_xtr; the previous xtr_lo=0.89 was a stale value from a superseded extraction whose provenance was not reconstructed (pass-31: the wrong-side-window hypothesis does NOT reproduce it)"
  }
 }

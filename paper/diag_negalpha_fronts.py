@@ -28,19 +28,6 @@ import regen_nlf_v2 as R
 NU = 2.5e-8
 
 
-def cf_front(x, cf, lam_hi=8e-4):
-    """Approximate transition from the signed-Cf jump: first x (beyond the
-    LE region) where a sustained rise above laminar levels begins."""
-    o = np.argsort(x)
-    x, cf = np.asarray(x)[o], np.asarray(cf)[o]
-    m = x > 0.02
-    x, cf = x[m], cf[m]
-    # transition = first station where Cf exceeds 1.5x the local laminar
-    # envelope estimate and keeps rising for the next 2% chord
-    for i in range(len(x) - 8):
-        if cf[i] > lam_hi and np.median(cf[i:i+8]) > lam_hi:
-            return x[i]
-    return None
 
 
 for tag in ('am4', 'am8'):
@@ -58,8 +45,6 @@ for tag in ('am4', 'am8'):
         print(f"== {fam} L2 {tag}  ({root.split('/')[-1]})")
         print(f"   Cp min:  upper {np.min(cpu):+.2f}   lower {np.min(cpl):+.2f}"
               f"   -> suction side = {'upper' if np.min(cpu) < np.min(cpl) else 'lower'}")
-        print(f"   Cf front (signed-Cf jump):  upper {cf_front(xu, cfu)}   "
-              f"lower {cf_front(xl, cfl)}")
         print(f"   chi>1 front (slice probe):  upper {cross_u}   lower {cross_l}")
         # Cf character at stations
         for side, x, cf in (('upper', xu, cfu), ('lower', xl, cfl)):
