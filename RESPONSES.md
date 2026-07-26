@@ -3304,3 +3304,14 @@ with split roots (str=fv1, cav=old, disclosed).
 QUESTION FOR USER: GPUs 0-5 are idle overnight after this — lift the
 cavity-L2 hold and run its 3 cases (~12 h, done by mid-morning)? That
 would close the last disclosure entirely.
+
+## 2026-07-26 22:30 UTC — Sec VII figures regenerated at the final kernel
+
+All Sec VII figures now carry the fv1 structured family: section sheets
+(eta 10/75/92), surface maps (a4/a5/a6, chi caches rebuilt on the fv1
+L2 volumes), and the polar/sectional figure (fv1 everywhere except the
+held cavity-L2; NOTE the sectional panel now uses fv1 cavity-L1 for
+a5/a6 where the old cavity-L2 slicing files are absent — finer canon,
+coarser grid; disclosed by the script's provenance print). Combined
+with the totals migration (c7129f6), task #24 is COMPLETE up to the
+held cavity-L2 runs. Build clean.

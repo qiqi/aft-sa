@@ -21,8 +21,12 @@ import matplotlib.tri as mtri
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy
 
-D = '/home/qiqi/flexcompute/sa-ai/daedalus'
-sys.path.insert(0, D)
+# structured family = final-kernel (fv1) recomputation; cavity-L2 held
+D_STR = '/local_data/qiqi/sa-ai/daedalus_fv1'
+D_CAV = '/home/qiqi/flexcompute/sa-ai/daedalus'
+def _root(case):
+    return D_STR if 'ogrid' in case else D_CAV
+sys.path.insert(0, '/home/qiqi/flexcompute/sa-ai/daedalus')
 import sectional_compare as SC                      # noqa: E402
 from wing_geometry import chord, HALF_SPAN, XQC     # noqa: E402
 from chi_surface_map import tri_faces               # noqa: E402
@@ -45,7 +49,7 @@ LEV_CHI = list(range(-5, 3))            # log10 chi decades
 
 def rans_row(case, surf):
     r = vtk.vtkXMLPUnstructuredGridReader()
-    r.SetFileName(f'{D}/{case}/{surf}')
+    r.SetFileName(f'{_root(case)}/{case}/{surf}')
     r.Update()
     g = r.GetOutput()
     p = vtk_to_numpy(g.GetPoints().GetData())
@@ -57,7 +61,7 @@ def rans_row(case, surf):
     up = p[:, 2] >= np.interp(xc, SC._CAM_X, SC._CAM_Z) * c_loc
     keep = up[tris].all(axis=1)
     tri = mtri.Triangulation(p[:, 0], p[:, 1], tris[keep])
-    d = np.load(f'{D}/{case}/chi_surface.npz')
+    d = np.load(f'{_root(case)}/{case}/chi_surface.npz')
     wall, chi = d['wall'], d['chi']
     # chi npz shares the same wall pvtu node order
     logchi = np.log10(np.clip(chi, 1e-8, None))
@@ -99,7 +103,7 @@ def rans_rows_available(a):
     surface + chi map present) -- incomplete campaign runs are skipped."""
     fams = []
     for fam, case in (('str', CASES[a][0]), ('cav', CASES[a][1])):
-        if all(os.path.exists(f'{D}/{case}/{f}') for f in
+        if all(os.path.exists(f'{_root(case)}/{case}/{f}') for f in
                ('total_forces_v2.csv', SURF[fam], 'chi_surface.npz')):
             fams.append(fam)
     return fams

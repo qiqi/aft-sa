@@ -15,8 +15,13 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-D = '/home/qiqi/flexcompute/sa-ai/daedalus'
-sys.path.insert(0, D)
+# all families/levels are the final-kernel (fv1) recomputation EXCEPT the
+# held cavity-L2 (old canon, disclosed)
+D_FV1 = '/local_data/qiqi/sa-ai/daedalus_fv1'
+D_OLD = '/home/qiqi/flexcompute/sa-ai/daedalus'
+def _root(case):
+    return D_OLD if ('cavity_L2' in case) else D_FV1
+sys.path.insert(0, '/home/qiqi/flexcompute/sa-ai/daedalus')
 import sectional_compare as SC
 from polar_compare import run_avl  # noqa: E402
 from wing_geometry import HALF_SPAN  # noqa: E402
@@ -38,7 +43,7 @@ LAB = {'str': 'structured O-grid', 'cav': 'unstructured'}
 
 def complete(case):
     """Full force history present (a RUNNING case has a partial CSV)."""
-    fn = f'{D}/{case}/total_forces_v2.csv'
+    fn = f'{_root(case)}/{case}/total_forces_v2.csv'
     if not os.path.exists(fn):
         return False
     with open(fn) as f:
@@ -48,12 +53,12 @@ def complete(case):
 def has_strips(case):
     """Sectional CSV present and non-empty (the cavity-L2 a5 run finished
     into a full disk: forces history intact, slicing CSVs zero-byte)."""
-    fn = f'{D}/{case}/Y_slicing_forceDistribution.csv'
+    fn = f'{_root(case)}/{case}/Y_slicing_forceDistribution.csv'
     return os.path.exists(fn) and os.path.getsize(fn) > 0
 
 
 def totals(case):
-    fn = f'{D}/{case}/total_forces_v2.csv'
+    fn = f'{_root(case)}/{case}/total_forces_v2.csv'
     hdr = open(fn).readline().split(',')
     iCL = [i for i, h in enumerate(hdr) if h.strip() == 'CL'][0]
     iCD = [i for i, h in enumerate(hdr) if h.strip() == 'CD'][0]
