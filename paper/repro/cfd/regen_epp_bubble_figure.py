@@ -136,7 +136,8 @@ for key, col, mk in (('langtry_menter', 'C2', 'x'), ('sa_bc', 'C4', '+')):
         m = np.isfinite(v)
         ax.plot(v[m], al[m], '-', color=col, lw=1.0, marker=mk, ms=4.5)
 
-# SA-AI, six grids
+# SA-AI, six grids (stations also dumped for the appendix data tables)
+STATIONS = {}
 for mesh, col, mk in (('str', 'C0', 's'), ('cav', 'C1', '^')):
     for lev, ms, mew, al_ in (('L0', 3.5, 0.8, 0.5), ('L1', 5.2, 1.1, 0.75),
                               ('L2', 7.0, 1.6, 1.0)):
@@ -179,11 +180,15 @@ for mesh, col, mk in (('str', 'C0', 's'), ('cav', 'C1', '^')):
                     TR.append(tr)
                 continue
             A.append(a); LS.append(separation(xu, cfu)); TR.append(reattach(xu, cfu))
+        STATIONS[f'{mesh}_{lev}'] = {f'{a:g}': (ls_, tr_)
+                                     for a, ls_, tr_ in zip(A, LS, TR)}
         for ax, V in ((ax_ls, LS), (ax_tr, TR)):
             pts = [(v, a) for v, a in zip(V, A) if v is not None]
             if pts:
                 ax.plot([p[0] for p in pts], [p[1] for p in pts], mk, color=col,
                         ms=ms, mfc='none', mew=mew, alpha=al_, zorder=5)
+json.dump(STATIONS, open(f'{PD}/data/eppbubble_stations_computed.json', 'w'),
+          indent=1)
 
 for ax, lab in ((ax_ls, 'laminar separation $x_{LS}/c$'),
                 (ax_tr, 'turbulent reattachment $x_R/c$')):

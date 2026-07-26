@@ -3076,3 +3076,16 @@ entry, into the 1-D figures only — Fig 6 (xtr,cl points), Fig 7 + 11
 the five-row suites (already 6 lines deep); OpenFOAM columns join the
 new appendix raw-number tables (task #36). Steel-blue = cross-solver,
 everywhere.
+
+## 2026-07-26 14:45 UTC — Appendix F: raw-data tables for every 1-D figure
+
+New generator repro/cfd/emit_appendix_tables.py -> paper/tables/tab_*.tex,
+new Appendix F (\input fragments): F1 flat-plate onsets (chi=1 + c_v1
+crossings, Flow360 AND OpenFOAM, vs AGS), F2 NLF forces+fronts (all 28
+cases, negatives leading in ascending alpha), F3 Eppler polar (all ten
+incidences, L2-only extensions marked), F4 bubble stations, F5 Re-sweep
+forces+stations (all six grids; cm/e9/exp deferred to Table C1).
+The bubble and resweep figure scripts now dump their computed stations
+to paper/data/*.json so the tables can never drift from the plots; the
+NLF table auto-fills the L0/L1 negative rows when tonight's batch lands
+(rerun the emitter). 101 pages, builds clean.

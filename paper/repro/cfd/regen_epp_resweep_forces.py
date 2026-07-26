@@ -140,11 +140,16 @@ axr = fig.add_subplot(gs[1, 3:6])
 Re = np.array(RES, float) * 1e3
 
 sa_st = {}   # (fam, L) -> (xs list, xr list)
+_dump = {}   # appendix data tables: forces + stations per family/level/Re
 for fam in ('str', 'cav'):
     for L in ('L0', 'L1', 'L2'):
         F = [forces(case_dir(fam, L, Rk)) for Rk in RES]
         S = [stations(case_dir(fam, L, Rk)) for Rk in RES]
         sa_st[(fam, L)] = S
+        _dump[f'{fam}_{L}'] = {str(Rk): {'cl': F[i][0], 'cd': F[i][1],
+                                         'cm': F[i][2], 'xsep': S[i][0],
+                                         'xr': S[i][1]}
+                               for i, Rk in enumerate(RES)}
         kw = dict(color=FAM[fam]['color'], ls=FAM[fam]['ls'], lw=POLAR_LW[L],
                   marker='o' if fam == 'str' else '^', ms=3.0)
         axl.semilogx(Re, [f[0] for f in F], **kw)
@@ -315,6 +320,8 @@ fig.legend(handles=handles, fontsize=7.5, ncol=4, frameon=False,
 plt.tight_layout(rect=(0, 0.155, 1, 1))
 os.makedirs(PREV, exist_ok=True)
 plt.savefig(f'{OUT}/eppler_resweep_forces.pdf')
+import json as _json
+_json.dump(_dump, open(f'{DATA}/eppresweep_forces_computed.json', 'w'), indent=1)
 plt.savefig(f'{PREV}/epp_resweep_forces.png', dpi=140)
 missing = [n for n, v in (('frere', frere), ('carreno', carreno),
                           ('ijsrp', ijsrp), ('ghimire', ghim),
