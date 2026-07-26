@@ -3221,3 +3221,12 @@ a6 (~21:50, GPUs 0-5) -> spheroid re72a0 L1/L2 -> re65 pair (~04:00).
 By morning: the COMPLETE spheroid matrix (1.5e6 x {5,10,29.7} +
 7.2e6 x {0} + 6.5e6 x {5,10}, all on three grid levels) + the full
 new-canon Daedalus set.
+
+## 2026-07-26 19:20 UTC — alpha=2.5 (Re=7.2e6) added per user order
+
+re72a2p5 x L0/L1/L2 staged (Stock Fig 14b, pure TS) and armed behind
+the workshop pair on GPUs 6/7 — overnight queue is now: re72a0
+L1/L2 -> re65 a5+a10 ladders -> re72a2p5 ladder (~07:00). The full
+measured-condition matrix will then be: 1.5e6 x {5,10,29.7},
+7.2e6 x {0, 2.5}, 6.5e6 x {5, 10} — every DFVLR incidence with hot-film
+fronts, on three grid levels each (24 spheroid cases total).
