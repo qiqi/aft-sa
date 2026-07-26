@@ -28,6 +28,14 @@ D = json.load(open(f'{PD}/data/aft_nlf0416_digitized.json'))['transition']
 # (repro: data/lm_nlf0416_transition_digitized.json)
 LM = json.load(open(f'{PD}/data/lm_nlf0416_transition_digitized.json'))['transition']
 camp = json.load(open(f'{B}/sphere_campaign_nlf_results.json'))
+# the negative-incidence pair runs as its own campaign set; merge its
+# results so the L2 am4/am8 markers (and the lift-curve nodes the
+# workshop underlay maps through) are present
+_negp = f'{B}/sphere_campaign_nlf_neg_results.json'
+if os.path.exists(_negp):
+    for _k, _v in json.load(open(_negp)).items():
+        if isinstance(_v, dict) and 'CL' in _v:
+            camp.setdefault(_k, _v)
 
 # The full workshop-submittal underlay (all 14 participants, digitized from
 # the summary deck -- data/workshop_nlf_submittals.json). The deck's sweep
