@@ -104,6 +104,8 @@ def main():
     ap.add_argument('--out', default=None, help='output prefix')
     ap.add_argument('--paper', action='store_true',
                     help='paper-grade titles (no case tag)')
+    ap.add_argument('--from-npz', action='store_true',
+                    help='replot from the existing .npz (skip probing)')
     args = ap.parse_args()
     case = args.case_dir.rstrip('/')
     tag = os.path.basename(case)
@@ -118,6 +120,16 @@ def main():
     fs = json.load(open(os.path.join(case, 'Flow360.json')))['freestream']
     mach, muref, alpha = fs['Mach'], fs['muRef'], fs['alphaAngle']
     qinf = 0.5 * mach**2                       # rho_inf = 1
+
+    if args.from_npz and os.path.exists(out + '.npz'):
+        d = np.load(out + '.npz')
+        xl, ph = d['xl'], np.radians(d['phi_deg'])
+        cf, gamma, chimax = d['cf'], d['gamma_w'], d['chimax']
+        us, up = d['us'], d['up']
+        XL, PH_ = np.meshgrid(xl, np.radians(d['phi_deg']))
+        XL = XL  # noqa
+        return plot_all(out, args, case, tag, alpha, mach, muref,
+                        xl, d['phi_deg'], cf, gamma, chimax, us, up)
 
     r = vtk.vtkXMLPUnstructuredGridReader()
     r.SetFileName(os.path.join(case, 'volume.pvtu'))
@@ -167,51 +179,66 @@ def main():
              gamma_w=gamma, chimax=chimax, us=us, up=up,
              alpha=alpha, mach=mach, muref=muref, h0=h0)
 
-    # ---- figure 1: the three unrolled maps ---------------------------------
+    plot_all(out, args, case, tag, alpha, mach, muref,
+             xl, np.degrees(ph), cf, gamma, chimax, us, up)
+
+
+def plot_all(out, args, case, tag, alpha, mach, muref,
+             xl, phd, cf, gamma, chimax, us, up):
+    """Figures in the paper's line-contour style (labeled black contours)."""
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
 
+    XL, PH = np.meshgrid(xl, np.radians(phd))
     fig, axs = plt.subplots(3, 1, figsize=(9.6, 10.2), sharex=True,
                             constrained_layout=True)
-    phd = np.degrees(ph)
 
     a = axs[0]
-    m = a.contourf(xl, phd, cf * 1e3, levels=np.linspace(0, 6, 25),
-                   cmap='viridis', extend='max')
-    a.contour(xl, phd, cf * 1e3, levels=np.linspace(0, 6, 13),
-              colors='k', linewidths=0.3, alpha=0.5)
+    lev = np.arange(0.0, 6.51, 0.5)
+    cs = a.contour(xl, phd, cf * 1e3, levels=lev, colors='k',
+                   linewidths=0.6)
+    a.clabel(cs, levels=lev[::2], fmt='%g', fontsize=7, inline_spacing=2)
     # skin-friction lines (oil-flow analogue) in the unrolled plane
     a.streamplot(xl, phd, us, np.degrees(up / np.maximum(
         B * np.sqrt(np.clip(1 - ((-A + XL) / A)**2, 1e-6, None)), 1e-9)),
-        color='w', linewidth=0.5, density=(2.2, 1.1), arrowsize=0.6)
-    fig.colorbar(m, ax=a, label=r'$c_f \times 10^3$')
+        color='0.55', linewidth=0.5, density=(2.2, 1.1), arrowsize=0.6)
     a.set_ylabel(r'$\phi$ [deg]  (0 = windward)')
     head = '' if args.paper else f'{tag}:  '
     re_l = mach / muref
     re_str = f'{re_l/10**int(np.log10(re_l)):.3g}\\times10^{int(np.log10(re_l))}'
-    a.set_title(head + '$c_f$ magnitude + skin-friction lines '
+    a.set_title(head + '$c_f\\times10^3$ (labeled) + skin-friction lines '
                 f'($\\alpha={alpha:g}^\\circ$, $Re_L={re_str}$)')
 
     a = axs[1]
-    lev = np.linspace(-60, 60, 25)
-    m = a.contourf(xl, phd, gamma, levels=lev, cmap='RdBu_r', extend='both')
-    a.contour(xl, phd, gamma, levels=[0], colors='k', linewidths=0.8)
-    fig.colorbar(m, ax=a, label=r'$\gamma_w$ [deg]')
+    lev = np.arange(-60, 61, 10)
+    cs = a.contour(xl, phd, gamma, levels=lev, colors='k', linewidths=0.6)
+    a.clabel(cs, levels=lev[::2], fmt='%g', fontsize=7, inline_spacing=2)
+    a.contour(xl, phd, gamma, levels=[0], colors='k', linewidths=1.6)
     a.set_ylabel(r'$\phi$ [deg]')
-    a.set_title(r'wall-shear direction $\gamma_w$ from local meridian '
-                r'(positive toward leeward); black: $\gamma_w=0$')
+    a.set_title(r'wall-shear direction $\gamma_w$ [deg] from local meridian '
+                r'(positive toward leeward; dashed negative; bold: '
+                r'$\gamma_w=0$)')
 
     a = axs[2]
     with np.errstate(all='ignore'):
-        m = a.contourf(xl, phd, np.log10(np.maximum(chimax, 1e-4)),
-                       levels=np.linspace(-4, 3, 29), cmap='magma')
-    a.contour(xl, phd, chimax, levels=[CV1], colors='c', linewidths=1.4)
-    fig.colorbar(m, ax=a, label=r'$\log_{10}\max_n \chi$')
+        logchi = np.log10(np.maximum(chimax, 1e-8))
+    major = [-3, -2, -1, 0, np.log10(CV1), np.log10(30.0), 2.0]
+    minor = [v + off for v in (-3, -2, -1, 0, 1) for off in
+             (np.log10(2), np.log10(5))]
+    a.contour(xl, phd, logchi, levels=sorted(minor), colors='k',
+              linewidths=0.35)
+    cs = a.contour(xl, phd, logchi, levels=major, colors='k',
+                   linewidths=0.8)
+    fmt = {lv: ('$c_{v1}$' if abs(lv - np.log10(CV1)) < 1e-9 else
+                ('30' if abs(lv - np.log10(30.0)) < 1e-9 else
+                 f'$10^{{{lv:g}}}$')) for lv in major}
+    a.clabel(cs, fmt=fmt, fontsize=7, inline_spacing=2)
+    a.contour(xl, phd, chimax, levels=[CV1], colors='k', linewidths=1.6)
     a.set_ylabel(r'$\phi$ [deg]')
     a.set_xlabel(r'$x/L$')
-    a.set_title(r'near-wall $\max\chi$; cyan: $\chi=c_{v1}$ '
-                r'(model-native transition front)')
+    a.set_title(r'near-wall $\max\chi$ (log labels); bold: '
+                r'$\chi=c_{v1}$ (model-native transition front)')
     for a in axs:
         a.set_ylim(0, 180)
         a.set_yticks([0, 45, 90, 135, 180])
@@ -219,14 +246,13 @@ def main():
     fig.savefig(out + '.pdf')
     print('wrote', out + '.png/.pdf')
 
-    # ---- figure 2: 3D perspective colored by cf ----------------------------
+    # ---- figure 2: 3D perspective colored by cf (render, not a contour) ----
     from matplotlib.colors import Normalize
     fig = plt.figure(figsize=(11, 4.4))
     norm = Normalize(0, 6)
     for k, (el, azv, ttl) in enumerate(
             [(28, -125, 'leeward'), (-28, -125, 'windward')]):
         ax = fig.add_subplot(1, 2, k + 1, projection='3d')
-        # full body: mirror the half model across y=0
         for sgn in (1, -1):
             Pm, _, _, _ = surface_frame(XL, PH)
             Y = sgn * Pm[..., 1]

@@ -237,10 +237,65 @@ def eppler_resweep():
           'tab:data_eppresweep', 'll cccc cccc')
 
 
+# ---------------- spheroid ----------------------------------------------------
+SPH_COND = [(1.5e6, '5', 'a5'), (1.5e6, '10', 'a10'), (1.5e6, '29.7', 'a29p7'),
+            (6.5e6, '5', 're65a5'), (6.5e6, '10', 're65a10'),
+            (7.2e6, '0', 're72a0'), (7.2e6, '2.5', 're72a2p5')]
+
+
+def spheroid_totals():
+    camp = json.load(open(f'{B}/sphere_campaign_spheroid_results.json'))
+    rows = []
+    for Re, alab, tag in SPH_COND:
+        cells = [f'${Re/1e6:g}\\times10^6$ & ${alab}^\\circ$']
+        any_done = False
+        for lev in ('L0', 'L1', 'L2'):
+            e = camp.get(f'case_ogrid_{lev}_saai_{tag}')
+            if e and e.get('complete'):
+                any_done = True
+                cells.append(f"{fmt(e['CL'])} & {fmt(e['CD'], 5)}")
+            else:
+                cells.append('-- & --')
+        if any_done:
+            rows.append(' & '.join(cells))
+    write('tab_spheroid_totals.tex',
+          r'$Re_L$ & $\alpha$ & \multicolumn{2}{c}{L0} &'
+          r' \multicolumn{2}{c}{L1} & \multicolumn{2}{c}{L2} \\'
+          r' & & $C_L$ & $C_D$ & $C_L$ & $C_D$ & $C_L$ & $C_D$',
+          rows,
+          r'6:1 prolate spheroid totals (half-model, reference area = '
+          r'frontal): SA-AI at every DFVLR-measured condition on the '
+          r'L0--L2 O-grid ladder. Dashes: runs in progress.',
+          'tab:sphtotals', 'll cc cc cc')
+
+
+def spheroid_fronts():
+    d = json.load(open(f'{PAPER}/data/spheroid_front_summary.json'))
+    rows = []
+    for r in d['rows']:
+        rows.append(f"{r['phi']:.1f} & {fmt(r['meas'], 3)} & "
+                    f"{fmt(r['cf_L0'], 3)} & {fmt(r['cf_L1'], 3)} & "
+                    f"{fmt(r['cf_L2'], 3)} & "
+                    f"[{fmt(r['band_lo'], 3)}, {fmt(r['band_hi'], 3)}] & "
+                    f"{fmt(r['chi1_L2'], 3)} & {fmt(r['cv1_L2'], 3)}")
+    write('tab_spheroid_fronts.tex',
+          r'$\phi$ [deg] & measured & \multicolumn{3}{c}{$C_f$-rise, '
+          r'$k\!=\!1.5$} & L2 band & $\chi\!=\!1$ & $\chi\!=\!c_{v1}$ \\'
+          r' & $x/L$ & L0 & L1 & L2 & $k\!=\!1.25$--$2$ & L2 & L2',
+          rows,
+          r'6:1 prolate spheroid, $Re_L\!=\!1.5\times10^6$ (measured '
+          r'$1.52\times10^6$), $\alpha\!=\!10^\circ$: computed front '
+          r'stations behind Fig.~\ref{fig:spheroidfront} at the measured '
+          r'azimuths (DFVLR hot films, Stock Fig.~15a).',
+          'tab:data_spheroid', 'cc ccc c cc')
+
+
 if __name__ == '__main__':
     flatplate()
     nlf()
     eppler_polar()
     eppler_bubble()
     eppler_resweep()
+    spheroid_totals()
+    spheroid_fronts()
     print('APPENDIX-TABLES-DONE')

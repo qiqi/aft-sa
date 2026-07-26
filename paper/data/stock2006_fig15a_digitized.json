@@ -89,5 +89,66 @@
    0
   ]
  },
- "note_circles": "leeward-most 6.56e6 circle uncertain: glyph crossed by streamlines; independent re-read (pass 40) gives ~0.31/165 vs 0.256/153 here -- re-digitize before any 6.5e6 comparison uses it"
+ "note_circles": "leeward-most 6.56e6 circle uncertain: glyph crossed by streamlines; independent re-read (pass 40) gives ~0.31/165 vs 0.256/153 here -- re-digitize before any 6.5e6 comparison uses it",
+ "stock_computed_separation_line": {
+  "note": "Stock's computed free-vortex-layer separation line (dash-dot in Fig 15a; his 3D BL code), polyline read at ~14 points, +-0.01 x/L",
+  "points": [
+   {
+    "xL": 0.2759,
+    "phi_deg": 129.9
+   },
+   {
+    "xL": 0.3823,
+    "phi_deg": 118.6
+   },
+   {
+    "xL": 0.4582,
+    "phi_deg": 111.0
+   },
+   {
+    "xL": 0.5342,
+    "phi_deg": 105.3
+   },
+   {
+    "xL": 0.6101,
+    "phi_deg": 100.4
+   },
+   {
+    "xL": 0.6861,
+    "phi_deg": 95.5
+   },
+   {
+    "xL": 0.762,
+    "phi_deg": 89.4
+   },
+   {
+    "xL": 0.838,
+    "phi_deg": 82.6
+   },
+   {
+    "xL": 0.8886,
+    "phi_deg": 75.4
+   },
+   {
+    "xL": 0.9329,
+    "phi_deg": 64.8
+   },
+   {
+    "xL": 0.9519,
+    "phi_deg": 53.4
+   },
+   {
+    "xL": 0.9646,
+    "phi_deg": 38.3
+   },
+   {
+    "xL": 0.9709,
+    "phi_deg": 15.5
+   },
+   {
+    "xL": 0.9734,
+    "phi_deg": 2.3
+   }
+  ]
+ }
 }

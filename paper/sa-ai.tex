@@ -2744,27 +2744,41 @@ incidence, mixed TS--crossflow at $\alpha\!\approx\!5$--$15^\circ$
 and $Re_L\!\gtrsim\!6.5\!\times\!10^6$, pure-crossflow beyond---and
 at $Re_L\!=\!1.5\!\times\!10^6$ the boundary layer stays laminar up
 to the open free-vortex-layer separation, with the measured fronts
-tracking the separation line itself. Figure~\ref{fig:spheroidmaps} shows SA-AI in
-exactly this presentation: the analytic spheroid
+tracking the separation line itself. The model carries no
+crossflow closure---the amplification rate is calibrated on
+two-dimensional TS growth---so this body probes what that economy
+costs, regime by regime.
+
+The geometry is the analytic spheroid
 ($x^2\!/A^2+r^2\!/B^2\!=\!1$, $A\!=\!L/2$, $B\!=\!L/12$, half-model)
 on a structured O-grid ladder (L0--L2:
 $0.37$/$2.2$/$12.6$ million nodes, first wall spacing halving per
-level from $5\!\times\!10^{-6}L$), at $Re_L\!=\!1.5\!\times\!10^6$,
-$M\!=\!0.1$, $\alpha\!=\!10^\circ$, with the airfoil-study solver
-settings, seed, and constants unchanged. All three levels are
-computed; the figure shows L1, and the level-to-level totals are not
-yet grid-converged ($C_L\!=\!0.205/0.208/0.186$ over L0/L1/L2), so
-the finest-level map comparison accompanies the front overlays. The model carries no
-crossflow closure---the amplification rate is calibrated on
-two-dimensional TS growth---so this case probes what that economy
-costs on a crossflow-dominated body.
-Figure~\ref{fig:spheroid3d} shows the same skin friction on the body,
-and Fig.~\ref{fig:spheroidfront} makes the first quantitative
-comparison, against the DFVLR hot-film transition
-points~\cite{kreplin_1985} as reported in Stock's
+level from $5\!\times\!10^{-6}L$ at $Re_L\!=\!1.5\!\times\!10^6$ and
+from $1.5\!\times\!10^{-6}L$ at the higher Reynolds numbers), at
+$M\!=\!0.1$, with the airfoil-study solver settings, seed, and
+constants unchanged. Every condition with DFVLR hot-film front
+measurements is computed on the full ladder:
+$Re_L\!=\!1.5\!\times\!10^6$ at $\alpha\!=\!5^\circ$, $10^\circ$, and
+$29.7^\circ$; $7.2\!\times\!10^6$ at $0^\circ$ (axisymmetric) and
+$2.5^\circ$ (the pure-TS anchors); and the workshop pair
+$6.5\!\times\!10^6$ at $5^\circ$ and $10^\circ$. Table~\ref{tab:sphtotals}
+collects the totals (no force measurements exist at these
+conditions---the hot films and pressure taps are the data---so the
+totals serve the grid story only): the attached-flow incidences move
+by a few percent per level while the massively separated
+$29.7^\circ$ case remains strongly level-sensitive, and the
+axisymmetric case carries zero lift to within the force
+oscillation.
+
+\input{tables/tab_spheroid_totals}
+
+Figure~\ref{fig:spheroidfront} makes the quantitative front
+comparison at the first condition, against the DFVLR hot-film
+transition points~\cite{kreplin_1985} as reported in Stock's
 Fig.~15a~\cite{stock_2006} (measured at $Re\!=\!1.52\!\times\!10^6$
 against the computed $1.5\!\times\!10^6$; digitized to
-${\pm}0.005\,x/L$). At this Reynolds number the boundary layer stays
+${\pm}0.005\,x/L$), together with Stock's computed free-vortex
+separation line. At this Reynolds number the boundary layer stays
 laminar up to the open vortex-layer separation and the measured points
 track the separation-line shear rise~\cite{stock_2006}, so the
 comparison quantity is the resultant-shear rise---the first station
@@ -2791,8 +2805,11 @@ $0.04\,L$), the onset gate's in-bubble arm suppressing the
 wall-damped separated layer (Sec.~\ref{sec:daedalus}), or
 attached-layer amplification genuinely subcritical at this Reynolds
 number (Stock's laminar-to-separation reading~\cite{stock_2006}) is
-not yet distinguished; the flank rate probe follows with the
-workshop condition ($Re_L\!=\!6.5\!\times\!10^6$).
+not yet distinguished; the flank rate probe and the per-condition
+comparisons at the remaining measured conditions (the $6.5$ and
+$7.2\!\times\!10^6$ solutions of Table~\ref{tab:sphtotals}) follow.
+The front stations behind the figure are tabulated in
+Table~\ref{tab:data_spheroid}.
 
 \begin{figure}[tp]
   \centering
@@ -2803,11 +2820,12 @@ workshop condition ($Re_L\!=\!6.5\!\times\!10^6$).
   white band is the $k\!=\!1.25$--$2$ sensitivity on L2), the
   model-native $\chi\!=\!c_{v1}$ front (solid cyan) with the
   $\chi\!=\!1$ crossing (dotted cyan) hugging it---the fast
-  handover---and the measured DFVLR
+  handover---the measured DFVLR
   transition points (red squares; Stock Fig.~15a at
   $Re\!=\!1.52\!\times\!10^6$~\cite{stock_2006}, digitized to
   ${\pm}0.005\,x/L$,
-  \texttt{data/stock2006\_fig15a\_digitized.json}). The measured
+  \texttt{data/stock2006\_fig15a\_digitized.json}), and Stock's
+  computed free-vortex separation line (gray dash-dot). The measured
   points at this Reynolds number lie on the laminar-separation
   line~\cite{stock_2006}, which the computed $c_f$-minimum trench
   reproduces; the computed shear rise lags them by an amount growing
@@ -2815,30 +2833,61 @@ workshop condition ($Re_L\!=\!6.5\!\times\!10^6$).
   \label{fig:spheroidfront}
 \end{figure}
 
-\begin{figure}[tp]
+Figures~\ref{fig:spheroidmaps} and~\ref{fig:spheroidmaps297} show two
+selected cases in detail, in the presentation of the measured
+campaign: the surface unrolled into $(x/L,\phi)$ with the
+skin-friction magnitude and friction lines (the oil-flow analogue),
+the wall-shear direction $\gamma_w$ (the hot-film quantity), and the
+wall-normal maximum of $\chi$ with the model front. At
+$\alpha\!=\!10^\circ$ (Fig.~\ref{fig:spheroidmaps}) the friction
+lines converge onto the leeward separation band at
+$\phi\!\approx\!100$--$135^\circ$, the crossflow reverses under the
+vortex ($\gamma_w\!=\!0$ line), and the amplification builds under
+the leeward vortex from mid-body without committing until near the
+tail---the deficit quantified above. At $\alpha\!=\!29.7^\circ$
+(Fig.~\ref{fig:spheroidmaps297}) the open separation covers most of
+the leeward half and the windward laminar run shortens; the
+level-to-level scatter of Table~\ref{tab:sphtotals} at this incidence
+reflects the vortex-dominated flow.
+Figure~\ref{fig:spheroid3d} shows the $\alpha\!=\!10^\circ$ skin
+friction on the body.
+
+\begin{figure}[p]
   \centering
-  \includegraphics[width=0.99\textwidth]{spheroid_maps_L1.pdf}
+  \includegraphics[width=0.99\textwidth]{spheroid_maps_L2.pdf}
   \caption{6:1 prolate spheroid, $Re_L\!=\!1.5\!\times\!10^6$,
-  $\alpha\!=\!10^\circ$, SA-AI on the L1 O-grid ($2.2$M nodes),
+  $\alpha\!=\!10^\circ$, SA-AI on the finest (L2) O-grid
+  ($12.6$M nodes),
   surface unrolled into $(x/L,\phi)$, windward line at
-  $\phi\!=\!0$. Top: $c_f$ magnitude with skin-friction lines (the
-  oil-flow analogue); the friction lines converge onto the leeward
-  separation-line band at $\phi\!\approx\!100$--$135^\circ$. Middle:
+  $\phi\!=\!0$. Top: $c_f$ magnitude (labeled contours) with
+  skin-friction lines (gray; the oil-flow analogue); the friction
+  lines converge onto the leeward separation-line band at
+  $\phi\!\approx\!100$--$135^\circ$. Middle:
   wall-shear direction $\gamma_w$ from the local meridian (positive
   toward leeward), the quantity the DFVLR hot films
-  measured~\cite{kreplin_1985}; the black $\gamma_w\!=\!0$ line marks
+  measured~\cite{kreplin_1985}; the bold $\gamma_w\!=\!0$ line marks
   the crossflow reversal under the leeward vortex. Bottom: wall-normal
-  maximum of $\chi$ with the $\chi\!=\!c_{v1}$ contour (cyan) as the
-  model-native transition front: at this Reynolds number the body runs
+  maximum of $\chi$ with the $\chi\!=\!c_{v1}$ contour (bold) as the
+  model-native transition front: the body runs
   laminar to $x/L\!\approx\!0.9$ on the windward side, with
   amplification building (but not committing) under the leeward
   vortex from mid-body.}
   \label{fig:spheroidmaps}
 \end{figure}
 
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{spheroid_maps_a29p7_L2.pdf}
+  \caption{As Fig.~\ref{fig:spheroidmaps}, at $\alpha\!=\!29.7^\circ$
+  (finest grid): the open free-vortex separation covers most of the
+  leeward half, the windward laminar run shortens, and the
+  $\gamma_w$ field carries the full vortex signature.}
+  \label{fig:spheroidmaps297}
+\end{figure}
+
 \begin{figure}[tp]
   \centering
-  \includegraphics[width=0.9\textwidth]{spheroid_maps_L1_3d.png}
+  \includegraphics[width=0.9\textwidth]{spheroid_maps_L2_3d.png}
   \caption{The $c_f$ magnitude of Fig.~\ref{fig:spheroidmaps} rendered
   on the body (leeward and windward views), the presentation of the
   N-factor and skin-friction contour figures of the
@@ -3758,14 +3807,15 @@ numbers need not be read off the plots. Conventions are those of the
 corresponding figures: forces are medians over the final $20\%$ of the
 pseudo-step history, transition locations are the near-wall $\chi\!=\!1$
 front stations, and bubble stations are the signed-$C_f$ zero
-crossings. The Daedalus totals are already tabulated in
-Table~\ref{tab:daetotals}.
+crossings. The Daedalus and spheroid totals are already tabulated in
+Tables~\ref{tab:daetotals} and~\ref{tab:sphtotals}.
 
 \input{tables/tab_flatplate_onsets}
 \input{tables/tab_nlf_data}
 \input{tables/tab_eppler_polar}
 \input{tables/tab_eppler_bubble}
 \input{tables/tab_eppler_resweep}
+\input{tables/tab_spheroid_fronts}
 
 \clearpage
 \renewcommand{\thefigure}{G\arabic{figure}}

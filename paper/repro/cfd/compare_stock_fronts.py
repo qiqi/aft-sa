@@ -120,6 +120,11 @@ for lev, c, ls in (('L0', 'w', ':'), ('L1', 'w', '--'), ('L2', 'w', '-')):
             label=f'{lev} $C_f$-rise front ($k=1.5$)')
 ax.plot(f_chi1, ph, ':', color='cyan', lw=1.2, label=r'L2 $\chi=1$ front')
 ax.plot(f_chi, ph, '-', color='cyan', lw=1.2, label=r'L2 $\chi=c_{v1}$ front')
+sep = D.get('stock_computed_separation_line', {}).get('points', [])
+if sep:
+    ax.plot([q['xL'] for q in sep], [q['phi_deg'] for q in sep], '-.',
+            color='0.35', lw=1.3,
+            label='free-vortex separation line (Stock, computed)')
 ax.plot([s['xL'] for s in SQ], [s['phi_deg'] for s in SQ], 's',
         color='red', mfc='none', ms=9, mew=2,
         label='measured (Stock Fig. 15a, DFVLR)')
@@ -133,4 +138,20 @@ ax.set_title(r'6:1 spheroid, $Re_L=1.5\times10^6$, $\alpha=10^\circ$: '
 fig.tight_layout()
 fig.savefig(f'{PAPER}/figs/spheroid_front_compare.pdf')
 fig.savefig(f'{PAPER}/figs/spheroid_front_compare.png', dpi=140)
-print('wrote spheroid_front_compare.pdf/png')
+summary = []
+for sq in SQ:
+    row = dict(phi=sq['phi_deg'], meas=sq['xL'])
+    for lev in ('L0', 'L1', 'L2'):
+        _, phL, f1L, fvL, fcfL, _ = res[lev]
+        row[f'cf_{lev}'] = round(float(np.interp(sq['phi_deg'], phL, fcfL[1.5])), 4)
+    _, phL, f1L, fvL, fcfL, _ = res['L2']
+    row['band_lo'] = round(float(np.interp(sq['phi_deg'], phL, fcfL[1.25])), 4)
+    row['band_hi'] = round(float(np.interp(sq['phi_deg'], phL, fcfL[2.0])), 4)
+    row['chi1_L2'] = round(float(np.interp(sq['phi_deg'], phL, f1L)), 4)
+    row['cv1_L2'] = round(float(np.interp(sq['phi_deg'], phL, fvL)), 4)
+    summary.append(row)
+json.dump(dict(condition='Re_L=1.5e6 (measured 1.52e6), alpha=10',
+               criterion='cf-rise k=1.5 x running min, band k=1.25-2',
+               rows=summary),
+          open(f'{PAPER}/data/spheroid_front_summary.json', 'w'), indent=1)
+print('wrote spheroid_front_compare.pdf/png + front summary json')

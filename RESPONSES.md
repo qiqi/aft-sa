@@ -3230,3 +3230,19 @@ L1/L2 -> re65 a5+a10 ladders -> re72a2p5 ladder (~07:00). The full
 measured-condition matrix will then be: 1.5e6 x {5,10,29.7},
 7.2e6 x {0, 2.5}, 6.5e6 x {5, 10} — every DFVLR incidence with hot-film
 fronts, on three grid levels each (24 spheroid cases total).
+
+## 2026-07-26 19:55 UTC — Spheroid section built out (user orders: full results, macroscopic-first, contour style, comparisons)
+
+Section now: (1) setup + regime map + FULL measured-condition matrix;
+(2) MACROSCOPIC: tab:sphtotals (in-section, emitter-generated, dashes
+for the overnight runs) + fig:spheroidfront front comparison with the
+measured DFVLR points AND Stock's computed separation line (newly
+digitized, 14-pt polyline) + the full mechanism paragraph; (3) SELECTED
+DETAILS: L2 alpha=10 + L2 alpha=29.7 unrolled map figures + 3D view.
+ALL spheroid maps switched contourf -> labeled line contours (paper
+style; --from-npz replot path added). New Appendix-F table
+tab:data_spheroid (front stations at the measured azimuths, from the
+committed spheroid_front_summary.json the comparison script now
+exports). Forces harvested to sphere_campaign_spheroid_results.json
+(11 cases; note: re72a0 L0 CL=0.0062 median — check the tail for a slow
+transient at alpha=0). Build clean.
