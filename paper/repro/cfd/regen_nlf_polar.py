@@ -101,8 +101,8 @@ for mesh in ['str','cav']:
         cl,cd=[],[]
         # negative-incidence pair (alpha=-4 zero-lift, -8 measured-range edge)
         # exists on the finest grids only
-        cases=([f"{B}/{mesh}L2prop_nlf0416_Re4M_am8",
-                f"{B}/{mesh}L2prop_nlf0416_Re4M_am4"] if level=='L2' else []) \
+        cases=[f"{B}/{mesh}{level}prop_nlf0416_Re4M_am8",
+               f"{B}/{mesh}{level}prop_nlf0416_Re4M_am4"] \
               + [case_dir(mesh,level,a) for a in alphas]
         for cdir in cases:
             f=converged_clcd(cdir)

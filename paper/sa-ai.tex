@@ -1485,10 +1485,11 @@ with the low-turbulence tunnel), across
 $\alpha\!\in\!\{0^\circ, 4^\circ, 9^\circ,
 15^\circ\}$, on a three-level isotropic refinement ladder of both mesh families
 (unstructured cavity-mesher and structured O-grid, L0--L2, twenty-four
-cases total). The finest grids extend the matrix to the
+cases total). The same six grids extend the matrix to the
 negative-incidence pair $\alpha\!=\!-8^\circ$ and $-4^\circ$
-(Fig.~\ref{fig:nlfnegalpha}; wall-anchored contour sheets in
-Appendix~A). The unstructured mesher uses a shared NLF contour (a natural cubic
+(twelve further cases; Fig.~\ref{fig:nlfnegalpha} shows the finest
+pair, and the wall-anchored contour sheets of Appendix~A carry the
+full ladder). The unstructured mesher uses a shared NLF contour (a natural cubic
 spline in arc length through the published coordinates, resampled with
 piecewise-cosine clustering) with
 blunt-trailing-edge--aware spacing ($h_\mathrm{TE}$ scales with first-cell
@@ -1548,8 +1549,7 @@ quantitatively.
   SA-AI on all six grids (L0--L2 by marker size, both families) at
   $\alpha\!=\!0^\circ,4^\circ,9^\circ,15^\circ$, plus the
   negative-incidence pair $\alpha\!=\!-8^\circ$ (well into the
-  negative branch of the measured polar) and $-4^\circ$ (zero lift) on
-  the finest grids,
+  negative branch of the measured polar) and $-4^\circ$ (zero lift),
   all at the paper-wide untuned seed. At $-8^\circ$ the drag sits $8$--$11$ counts below
   the measured polar at matched lift, the suction (lower) surface trips at
   $0.004$--$0.011\,c$, on the references' leading-edge trip ($e^9$:
@@ -2834,7 +2834,7 @@ tracking the Somers fronts (the lower front's aft-ward march with lift
 reproduced to within $0.02\,c$), and the
 handover held across $\alpha\!\in\!\{0^\circ,4^\circ,9^\circ,15^\circ\}$ on
 twenty-four cases (both mesh families, three refinement levels), plus the
-finest-grid negative pair. On the Eppler
+negative pair on the same six grids. On the Eppler
 387 at
 $Re\!=\!2\!\times\!10^5$ (Sec.~\ref{sec:eppval}) the
 model resolved the adverse-gradient, laminar-separation-bubble regime---the signed
@@ -3008,21 +3008,42 @@ handover above the lifted bubble shear layer stays in frame.
 
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_negalpha_upper.pdf}
-  \caption{NLF(1)-0416 negative-incidence pair, upper surface: rows are
-  (cavity, O-grid) L2 at $\alpha=-8^\circ$ then $-4^\circ$. At
-  $-8^\circ$ this (pressure) surface holds a long laminar run before
-  its front settles at $0.56\,c$ (Fig.~\ref{fig:nlfnegalpha}).}
+  \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_am8_upper.pdf}
+  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=-8^\circ$, upper
+  surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all
+  six grids. This (pressure) surface holds a long laminar run before
+  its front settles at $0.54$--$0.57\,c$ on L1/L2
+  (Fig.~\ref{fig:nlfnegalpha}); the L0 grids trip at
+  $0.14$--$0.20\,c$, the under-resolved-front artifact of the
+  coarsest level (cf.\ Fig.~\ref{fig:nlfcflow}).}
   \label{fig:sheet_nlf0416_negalpha_upper}
 \end{figure}
 
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_negalpha_lower.pdf}
+  \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_am8_lower.pdf}
   \caption{As Fig.~\ref{fig:sheet_nlf0416_negalpha_upper}, lower
-  surface: tripped at the leading edge at $-8^\circ$ (the suction side
-  there) and laminar to ${\approx}0.11$--$0.12\,c$ at $-4^\circ$.}
+  surface (the suction side at $-8^\circ$): tripped at the leading
+  edge on every grid.}
   \label{fig:sheet_nlf0416_negalpha_lower}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_am4_upper.pdf}
+  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=-4^\circ$ (zero
+  lift), upper surface: velocity magnitude (left) and $\log_{10}\chi$
+  (right) on all six grids; fronts at $0.44$--$0.48\,c$ across the
+  ladder.}
+  \label{fig:sheet_nlf0416_am4_upper}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_am4_lower.pdf}
+  \caption{As Fig.~\ref{fig:sheet_nlf0416_am4_upper}, lower surface:
+  laminar to ${\approx}0.08$--$0.13\,c$ on every grid.}
+  \label{fig:sheet_nlf0416_am4_lower}
 \end{figure}
 
 \begin{figure}[p]

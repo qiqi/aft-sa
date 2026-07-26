@@ -100,9 +100,8 @@ for ax, side, lab in ((axs[0], 'upper', 'upper surface'),
                                 (2, 7.0, 1.6, 1.0)):
             cls, xts = [], []
             keys = [f'{fam}L{lv}prop_nlf0416_Re4M_a{a}' for a in (0, 4, 9, 15)]
-            if lv == 2:   # negative-incidence pair exists on the finest grids only
-                keys += [f'{fam}L2prop_nlf0416_Re4M_am4',
-                         f'{fam}L2prop_nlf0416_Re4M_am8']
+            keys += [f'{fam}L{lv}prop_nlf0416_Re4M_am4',
+                     f'{fam}L{lv}prop_nlf0416_Re4M_am8']
             for k in keys:
                 r = camp.get(k)
                 if r is None:

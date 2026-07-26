@@ -3136,3 +3136,17 @@ GRID CONVERGENCE (forces): a10 CL 0.2054/0.2082/0.1861, CD
 CL(10)/CL(5) = 2.23 — superlinear, vortex lift onset, physical.
 CAMPAIGN: a5 ladder DONE (L2 15:17); a29p7 ladder LAUNCHED (GPUs 6/7);
 NLF neg batch 7/8 (strL1 am8 marching).
+
+## 2026-07-26 15:50 UTC — NLF negative pair complete on ALL SIX GRIDS
+
+All 8 L0/L1 cases front-converged (protocol: converge_by_xtr, same as
+L2). Fronts (xtr_up, alpha=-8): L0 0.14-0.20 (under-resolved trip, the
+known L0 artifact), L1 0.538/0.571, L2 0.559/0.561 vs measured 0.542 —
+L1/L2 bracket the measurement. alpha=-4 upper: 0.435-0.476 across all
+six grids (tight). Lower LE trips everywhere at -8. Results merged into
+sphere_campaign_nlf_neg_results.json (12 entries). Appendix sheets now
+STANDARD six-grid per-alpha format (4 figures, am8 then am4, replacing
+the two L2-pair sheets); Figs 6/7 now draw negatives at every level;
+Table F2 auto-filled (L2-only clause dropped); body text updated
+(36 NLF cases total). Build clean.
+SPHEROID: a29p7 L0 done 15:26 (fast), L1 running.
