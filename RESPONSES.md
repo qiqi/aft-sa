@@ -2670,3 +2670,15 @@ peak already fixed pre-review (their independent numbers match). All ten minors 
 (convention unification makes the apex +3.7/+1.3%; scoping extended to tautest and the
 relaxation time; Sec VII carries its own bypass-inactive disclosure).
 Full response: agent-paper-review/2026-07-26-0258-response.md.
+
+## 2026-07-26 06:55 UTC — Special-study new-canon reruns launched (GPUs 6,7)
+
+Daedalus Phase 2 complete (all 12 L0/L1 cases, rc=0 throughout); Phase 3 (ogrid L2
+sequential, 6 ranks on GPUs 0-5) started 06:40. The freed GPUs 6/7 now run the queued
+Sec-VI special studies at the new canon: continuation ladders (descent+climb), the
+2e5->1e5/6e4 bistability forks, the 40k fork/descent extensions, and the tau=1
+oscillator pair — str chain on 6, cav chain on 7 (scripts/run_special_studies_fv1.sh;
+FR/LOCAL_DATA flipped to fv1; canonical env carries the bypass). On completion: the
+bistability/relaxation/tautest scope notes in Sec VI can drop their "pre-bypass" caveats
+if the conclusions transfer, the App-C warm-start rows return, and the "repetition is
+queued" clauses resolve.

@@ -63,7 +63,7 @@ OUT_NAMES = {'restartOutput', 'ipc_data', 'progress.csv', 'timer.json',
              'restart.json', 'restart_rank_1_of_1.dmp'}
 
 
-LOCAL_DATA = '/local_data/qiqi/sa-ai/flow360_fr'
+LOCAL_DATA = '/local_data/qiqi/sa-ai/flow360_fv1'
 
 
 def clone(src, dst, Rk):
