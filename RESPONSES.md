@@ -2724,3 +2724,48 @@ terminology; generator docstrings no longer assert the refuted second branch (de
 fork-overlay block deleted); AND the fv1 tree converted from a bare symlink to the
 fr layout (real dir, member symlinks) so the new-canon record — 10 results JSONs + 24
 ai_constants logs — is now IN GIT with pre-bypass parity.
+
+## 2026-07-26 09:40 UTC — User Q: 60k bistability, cold-start state, downward forking
+
+(1) Experiment bistable ONLY at 6e4 (TM-4062: both states over alpha 3-7 deg, selection
+environmental; Re>6e4 "turbulent reattachment always resulted"; 1e5 single-valued, three
+tunnel conditions coincide). (2) New-canon cold 6e4 = BURST both families (0.636/0.712,
+cd 0.053/0.051, no Cf recovery ahead of TE) — sits on the measured NON-reattaching
+branch (~0.64), not the reattaching one (0.838). (3) Forking downward from reattached Re:
+DONE this morning at the new canon (direct 2e5 forks + slow ladder 2e5->1.5->1->0.8->0.6
++ 40k extensions). Branch-death located: descended bubble still CLOSES at 1.5e5
+(x_R 0.79/0.70 str/cav) but closure is LOST crossing to 1e5 and never returns (no upward
+Cf crossing at 1e5/8e4/6e4 on either family; 6e4 endpoints identical to cold burst).
+Model bursting boundary: between 1.5e5 and 1e5, vs measured between 6e4 and 1e5.
+(4) Mechanism: the SA sustainment floor (chi_eq ~ 0.09 Re_tau; 6e4 shear layer
+Re_theta 220-330 -> chi_eq 6-9 ~ c_v1, nu_t 3-4 nu) — the reattaching branch does not
+exist in the model at 6e4; no initialization can fork onto it. OFFERED: finer descent
+1.4/1.3/1.2/1.1e5 to pin the model boundary to a number (GPUs 6/7 free, ~1-2h).
+
+## 2026-07-26 10:20 UTC — Morning batch: Fig 6 negatives, figure order, ylims, 8.5 deg, spheroid L0
+
+- Fig 6 negatives restored (root-flip regression: nlf_neg results file not merged);
+  converged fronts: am4 upper 0.447/0.453 (measured 0.453), lower 0.109/0.122; am8 upper
+  0.559/0.561 (measured ~0.54, AFT-7.18 0.56, e9 0.66), lower 0.004/0.010 (LE trip).
+- Suite figures reordered ascending in AoA: negative pair (cols swapped to -8,-4) is now
+  Fig 8, then 0/4, then 9/15.
+- Row-2 max(Omega_hat I_hat) ylim standardized to [1e-3, 1] across all TEN five-row
+  figures; the resweep suites (Figs 16/17) also gained the log axis + the common panel
+  aspect (they had linear row 2 and a different figsize).
+- Eppler extension roster (user Q): ran SIX incidences at L2 both families — the
+  requested -2 and 8.5 PLUS 1/3/4/6 added as bracket angles for denser fig:eppbubble
+  coverage. 8.5 ran fine (cav 1.261/0.0215) but its markers were missing because the
+  station extractor's window (x in 0.05-0.85) misses the post-stall LE bubble; both
+  solutions carry it (str 0.032-0.038c, cav 0.020-0.049c vs oil flow 0.03-0.18 — the
+  model's LE bubble reattaches much earlier than measured); nose window added, figure
+  regenerated with the 8.5 stations.
+- User: the finer Re up-sweep not worth running (declined) — monostable burst confirmed.
+- SPHEROID (user: start the coarsest L0): the mesher + L0/L1 meshes already existed
+  (spheroid/ogrid_spheroid.py, Jul 24: 6:1 prolate half-model, symmetry y=0, sphere
+  farfield 30L, L0 150x40x60 ~0.37M nodes, h0=5e-6L for Re_L=1.5e6). Staged
+  spheroid_fv1/case_ogrid_L0_saai_a10: Re_L=1.5e6 (muRef 6.667e-8), alpha=10 (x-z
+  incidence plane per mesher convention), M=0.1, canonical seed 8.76e-6 (slowdown
+  pre-compensated), refArea = half frontal area 0.0109, 20k pseudo-steps, canon env via
+  run_solution.py saai. Prep rc=0; solver running on GPU 7. NOTE: no crossflow closure
+  in the model (outlook item) — the alpha=10 spheroid is exactly the crossflow-challenge
+  probe.

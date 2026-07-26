@@ -595,7 +595,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         # log scale, same Omega_hat*I_hat range as the onset-threshold figure
         # (fig02_onset_graze); suppressed/favorable values <= 0 drop below
         ax_P.set_yscale('log')
-        ax_P.set_ylim(3e-3, 1.3); ax_P.grid(alpha=0.3, which='both')
+        ax_P.set_ylim(1e-3, 1.0); ax_P.grid(alpha=0.3, which='both')
         if col == 0: ax_P.set_ylabel(r'$\max \hat\Omega \hat I$ (log)')
         # ROW 3: chi + N
         for mesh in meshes:

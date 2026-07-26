@@ -72,7 +72,7 @@ def for_each_case(Rk):
 
 
 def make_fig(re_list, out):
-    fig, axs = plt.subplots(5, len(re_list), figsize=(5.2*len(re_list), 13.6),
+    fig, axs = plt.subplots(5, len(re_list), figsize=(5.76*len(re_list), 13),
                             sharex=True)
     for col, Rk in enumerate(re_list):
         ax_reo, ax_P, ax_chi, ax_cp, ax_cf = (axs[i, col] for i in range(5))
@@ -98,8 +98,8 @@ def make_fig(re_list, out):
         ax_reo.set_title(f"Re = {Rk}k", fontsize=12)
         if col == 0: ax_reo.set_ylabel(r'$\max Re_\Omega$ (log)')
         ax_P.axhline(0.0, color='gray', ls=':', lw=0.6, alpha=0.5)
-        ax_P.set_ylim(-0.3, 1.0); ax_P.grid(alpha=0.3)
-        if col == 0: ax_P.set_ylabel(r'$\max \hat\Omega \hat I$')
+        ax_P.set_yscale('log'); ax_P.set_ylim(1e-3, 1.0); ax_P.grid(alpha=0.3, which='both')
+        if col == 0: ax_P.set_ylabel(r'$\max \hat\Omega \hat I$ (log)')
         # ROW 3: max chi (log, left) and the e^9 N envelope (linear, right)
         for fam, lvl, d, ls, lw in for_each_case(Rk):
             if not os.path.exists(f"{d}/slice_centerSpan.pvtu"):

@@ -234,7 +234,7 @@ def make_sheet(eta_q):
             ax_cf.plot(ref['xc'], ref['cf'], ':', color='0.35', lw=1.4)
         ax_reo.set_ylim(1e2, 1e4); ax_reo.grid(alpha=0.3, which='both')
         ax_reo.set_title(rf'$\alpha={a}^\circ$', fontsize=10)
-        ax_P.set_ylim(3e-3, 1.3); ax_P.grid(alpha=0.3, which='both')
+        ax_P.set_ylim(1e-3, 1.0); ax_P.grid(alpha=0.3, which='both')
         ax_n.set_ylim(1e-6, 3e2); ax_n.grid(alpha=0.3)
         ax_n.axhline(CV1, color='gray', ls=':', lw=0.6, alpha=0.6)
         ax_nN.set_ylim(np.log(1e-6 / CHI_INF), np.log(3e2 / CHI_INF))

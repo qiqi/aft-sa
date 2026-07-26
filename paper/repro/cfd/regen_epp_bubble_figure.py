@@ -153,6 +153,19 @@ for mesh, col, mk in (('str', 'C0', 's'), ('cav', 'C1', '^')):
                 (xu, cfu, _), _ = R.airfoil_walk_contour(d)
             except Exception:
                 continue
+            if a == 8.5:
+                # post-stall LE bubble (oil flow: 0.03-0.18c): the default
+                # mid-chord search window misses it -- search the nose
+                import numpy as _np
+                _o = _np.argsort(xu)
+                _x, _cf = _np.asarray(xu)[_o], _np.asarray(cfu)[_o]
+                _m = (_x > 0.005) & (_x < 0.3)
+                _neg = _np.where(_cf[_m] < 0)[0]
+                if len(_neg):
+                    A.append(a)
+                    LS.append(float(_x[_m][_neg[0]]))
+                    TR.append(float(_x[_m][_neg[-1]]))
+                continue
             A.append(a); LS.append(separation(xu, cfu)); TR.append(reattach(xu, cfu))
         for ax, V in ((ax_ls, LS), (ax_tr, TR)):
             pts = [(v, a) for v, a in zip(V, A) if v is not None]
