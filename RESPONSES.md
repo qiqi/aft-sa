@@ -2639,3 +2639,16 @@ numbers are old-field); 1e5 residual-unsteadiness amplitudes in the sweep narrat
 epp resweep_low/high caption details; str am4 orphan-repair note (babysitter .orphan
 overwrite bug — values recovered from its log); fork/ladder new-canon reruns on freed
 GPUs; Daedalus migration when the chain lands.
+
+## 2026-07-26 03:50 UTC — Morning-list items 1-2 done (App-B double peak; 1e5 unsteadiness)
+
+App-B double-peak passage remeasured on the NEW fields with the NEW smoothed diagnostic:
+anatomy fully persists (window-top departure -> notch -> reattachment-layer peak; the
+full-depth envelope stays saturated — diag panel confirms). Numbers updated: first peak
+0.92@0.50 (was @0.48), notch min 0.28@0.54 (was 0.14@0.51 — the plotted trace is now the
+neighbor-smoothed one, noted in text), second peak 0.82@0.615 (was @0.645, "order of
+magnitude lower" clause corrected — smoothing changes the windowed trace's relative
+heights), attached level 0.08 (was 0.2), crossings 0.48/0.54/0.59 (were 0.47/0.52/0.57).
+1e5 unsteadiness sentence rewritten from fv1 windows: cavity family ripples (3e-4 L1,
+1e-3 L2 in cl), structured grids steady <=3e-5, and the structured-L1 limit cycle of the
+pre-bypass model DOES NOT RECUR (its "medians over the cycle" bookkeeping dropped).
