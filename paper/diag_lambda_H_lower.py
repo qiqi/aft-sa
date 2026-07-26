@@ -16,7 +16,8 @@ sys.path.insert(0, '/home/qiqi/flexcompute/sa-ai/paper')
 from regen_nlf_v2 import walk_contour_xz, slice_y_plane, load_slice_derived
 
 B = "/home/qiqi/flexcompute/sa-ai/flow360"
-NU = 1.0 / 4e6   # Re=4M, ν=1/Re in chord units
+NU = 1.0 / 4e6   # U-normalized 1/Re (Re_O path with omega/M below)
+NU_AINF = 0.1 / 4e6  # a_inf-based M/Re: nuHat and omega are in a_inf,L units
 MACH = 0.1
 
 # Cases to analyze (α=9 lower surface is the main target; α=15 for cross-check)
@@ -87,7 +88,7 @@ def compute_bl_integrals(d, u_t, U_e=None):
 
 def find_kernel_active_d(d, omega, target_ReO=200.0):
     """Find wall distance where Re_Ω = d²·|ω|/ν ≈ target. Returns that d."""
-    Re_O = d**2 * np.abs(omega) / NU
+    Re_O = d**2 * np.abs(omega) / NU_AINF
     valid = np.isfinite(Re_O)
     if valid.sum() < 3: return np.nan
     d_v, R_v = d[valid], Re_O[valid]
@@ -156,7 +157,7 @@ def analyze_case(name, cd, side='lower'):
         if not (np.isfinite(Ue_p) and np.isfinite(Ue_m)): continue
         dUe_dx = (Ue_p - Ue_m) / (2*dx)
         lambda_p = d_active**2 * dUe_dx / NU
-        chi_max = np.nanmax(nuhat / NU) if np.isfinite(nuhat).any() else np.nan
+        chi_max = np.nanmax(nuhat / NU_AINF) if np.isfinite(nuhat).any() else np.nan
         results.append({
             'x': x0, 'H': H, 'theta': theta, 'Re_theta': Re_th,
             'lambda_p': lambda_p, 'd_active': d_active,

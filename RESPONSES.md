@@ -2974,3 +2974,18 @@ PASS 36: spheroid section updated for the landed L2 (CL ladder
 0.205/0.208/0.186 quoted, non-converged flagged); all 8 minors done
 (unreferenced binaries untracked, Re label parameterized, docstring,
 wording). Responses in agent-paper-review/.
+
+## 2026-07-26 13:30 UTC — Pass 37 round: seed sentence retracted, guards added
+
+Pass 37 verified the chi fix end-to-end (every new tex number matches
+their independent recompute) but REFUTED the seed-shortfall sentence I
+had just added: at the BL edge the delivered seed is EXACT (2.2767e-4
+to 4 digits, all stations; re-verified myself on fv1 — my earlier -15%
+read was the FR canon's outer far-field cells, which never feed the BL).
+Sentence replaced with the verified statement. Also: guarding sentence
+for the chi=1 -> c_v1 convention switch (seed-sensitivity stated as the
+reason; c_v1 anchored via chi_inf=c_v1 e^-N); caption log10-chi fix;
+diag_lambda_H_lower.py had the same 10x bug (fixed; no tex numbers
+trace to it); stale paper/ flat-plate script deleted; 1253 record
+corrected (its global NU=1e-7 prescription would corrupt Re_theta/Cf);
+P1-18c CLOSED with the cross-solver same-grid sentence.
