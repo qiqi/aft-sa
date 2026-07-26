@@ -3018,3 +3018,14 @@ ONBOARDING §5 repointed; README/cases.py corrections; committed junk
 purged. Queued: full README float table, silent-skip convention,
 landscape-machinery quarantine, lib migration. Response in
 agent-paper-review/2026-07-26-1330-response.md.
+
+## 2026-07-26 14:30 UTC — OpenFOAM integrated into Fig 5 (bottom panels)
+
+Per user order (figures only, no discussion): the OpenFOAM flat-plate
+sweep is exported to paper/data/openfoam_flatplate_summary.json
+(openfoam/scripts/export_flatplate_summary.py, same cf_and_retheta
+machinery) and overlaid as thin steel-blue curves in fig:flatplate_batch's
+two bottom panels — max-chi(x) and Cf(Re_theta) — one legend entry,
+one caption clause. Same seeds, same slopes, crossings a few % early:
+the cross-solver agreement reads at a glance. Contour rows stay Flow360.
+NEXT (task #36): appendix raw-number tables for every 1-D figure.

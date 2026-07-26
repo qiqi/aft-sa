@@ -229,6 +229,30 @@ def main():
         ax_cf.loglog(Re_th[valid_cf], cf_vol[valid_cf], SYMBOLS[k], mfc='w', mec='k',
                      color='k', ms=4, label=rf'SA-AI, $Tu={tu:g}$%')
 
+    # Cross-solver overlay: the independent OpenFOAM (cell-centered,
+    # incompressible) implementation on the same grid spec, exported by
+    # openfoam/scripts/export_flatplate_summary.py. Steel-blue thin curves,
+    # both bottom panels; one legend entry each.
+    _ofp = '/home/qiqi/flexcompute/sa-ai/paper/data/openfoam_flatplate_summary.json'
+    assert os.path.exists(_ofp), f'missing OpenFOAM summary: {_ofp}'
+    import json as _json
+    _of = _json.load(open(_ofp))['cases']
+    for k, tu in enumerate(TU_LIST):
+        e = _of[f'{tu:.2f}']
+        ox = np.array(e['x'], float)
+        ochi = np.array([np.nan if v is None else v for v in e['chi_max']])
+        oreth = np.array([np.nan if v is None else v for v in e['Re_theta']])
+        ocf = np.array([np.nan if v is None else v for v in e['cf']])
+        vch = np.isfinite(ochi)
+        ax_chi.semilogy(ox[vch], ochi[vch], '-', color='steelblue', lw=0.8,
+                        alpha=0.85, zorder=2,
+                        label='OpenFOAM replication' if k == 0 else None)
+        vcf = np.isfinite(oreth) & np.isfinite(ocf) & (oreth > 1) \
+            & (ox < PLATE_END_X - OUTLET_MARGIN)
+        ax_cf.loglog(oreth[vcf], ocf[vcf], '-', color='steelblue', lw=0.8,
+                     alpha=0.85, zorder=2,
+                     label='OpenFOAM replication' if k == 0 else None)
+
     # Right axis: Cf(x) in light gray, so the Cf rise can be correlated
     # against the chi=1 and chi=c_v1 crossings directly (annotation request).
     ax_chi2 = ax_chi.twinx()
