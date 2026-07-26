@@ -1,0 +1,92 @@
+{
+ "source": "Stock, AIAA J 44(1) 2006, Fig. 15a (DOI 10.2514/1.16026); measured transition, DFVLR 3x3m tunnel (Kreplin et al.); digitized 2026-07-26 from paper/spheroid.pdf p.9 at 300 dpi, blob-detect + zoom-verified centers, +-4 px (~0.005 x/L, ~1.5 deg)",
+ "convention": "phi=0 windward symmetry line (matches our maps); x/L from nose",
+ "re_1p52e6_alpha10_squares": [
+  {
+   "xL": 0.3962,
+   "phi_deg": 131.8
+  },
+  {
+   "xL": 0.481,
+   "phi_deg": 119.3
+  },
+  {
+   "xL": 0.5671,
+   "phi_deg": 112.9
+  },
+  {
+   "xL": 0.6532,
+   "phi_deg": 108.7
+  },
+  {
+   "xL": 0.7392,
+   "phi_deg": 99.2
+  },
+  {
+   "xL": 0.8228,
+   "phi_deg": 93.2
+  },
+  {
+   "xL": 0.8823,
+   "phi_deg": 81.8
+  },
+  {
+   "xL": 0.9342,
+   "phi_deg": 63.3
+  }
+ ],
+ "re_6p56e6_alpha10_circles": [
+  {
+   "xL": 0.2557,
+   "phi_deg": 153.0
+  },
+  {
+   "xL": 0.3089,
+   "phi_deg": 60.2
+  },
+  {
+   "xL": 0.3962,
+   "phi_deg": 35.6
+  },
+  {
+   "xL": 0.481,
+   "phi_deg": 27.7
+  },
+  {
+   "xL": 0.5646,
+   "phi_deg": 20.1
+  }
+ ],
+ "pixel_calibration": {
+  "x_pix": [
+   338,
+   534,
+   733,
+   930,
+   1128
+  ],
+  "x_val": [
+   -1,
+   -0.5,
+   0,
+   0.5,
+   1
+  ],
+  "y_pix": [
+   65,
+   145,
+   225,
+   303,
+   382,
+   461
+  ],
+  "y_val": [
+   150,
+   120,
+   90,
+   60,
+   30,
+   0
+  ]
+ }
+}

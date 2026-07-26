@@ -3111,3 +3111,28 @@ self-expires); main-text anchors to F1/G added; F5 window footnote; F2
 conditional L2-only clause; a8p5 caption "past the experimental stall"
 + 4x-short remark; G disclosure + 0.3-Omega clause. references/ PDFs
 never lost — they live at repo root, not paper/ (answered in file).
+
+## 2026-07-26 15:35 UTC — Spheroid: first quantitative literature comparison
+
+DIGITIZED Stock 2006 Fig 15a (blob-detect + zoom-verified, +-0.005 x/L):
+8 measured squares Re=1.52e6/alpha=10 (phi 63->132, x/L 0.93->0.40) +
+5 circles at 6.56e6 -> paper/data/stock2006_fig15a_digitized.json.
+COMPARISON (L2, cf-rise front vs measured; spheroid_front_compare.pdf):
+  phi=63:  meas 0.934  comp 0.939  (+0.004)   windward: EXCELLENT
+  phi=93:  meas 0.823  comp 0.851  (+0.028)
+  phi=99:  meas 0.739  comp 0.828  (+0.089)
+  phi=109: meas 0.653  comp 0.750  (+0.097)
+  phi=119: meas 0.481  comp 0.697  (+0.216)
+  phi=132: meas 0.396  comp 0.625  (+0.229)   leeward flank: LATE
+SEPARATION LINE: our cf-min trench sits ON the measured points mid-flank
+(delta -0.003..+0.045 at phi 99-113) — separation geometry captured;
+the lag is in the transition AFTER separation. PHYSICS READ: exactly the
+paper's slow-handover mechanism (fixed chi e-folds vs spot-driven
+breakdown), now in the 3D open vortex layer: lag grows toward the flank
+(0 -> 0.23 L), zero at the windward plane. The vortex-CORE transition
+tongue (phi 145-160, to x~0.45) is where K-K's e^N line also hooks.
+GRID CONVERGENCE (forces): a10 CL 0.2054/0.2082/0.1861, CD
+0.0817/0.0852/0.0817; a5 CL 0.0942/0.0876/0.0834, CD 0.054/0.053/0.058.
+CL(10)/CL(5) = 2.23 — superlinear, vortex lift onset, physical.
+CAMPAIGN: a5 ladder DONE (L2 15:17); a29p7 ladder LAUNCHED (GPUs 6/7);
+NLF neg batch 7/8 (strL1 am8 marching).
