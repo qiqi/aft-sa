@@ -40,16 +40,18 @@ def fronts(npz):
     xl, ph = d['xl'], d['phi_deg']
     chi, cf = d['chimax'], d['cf']
     n = len(ph)
+    f_chi1 = np.full(n, np.nan)
     f_chi = np.full(n, np.nan)
     f_cf = np.full(n, np.nan)
     for i in range(n):
         c = chi[i]
-        hits = np.where(np.isfinite(c) & (c > CV1))[0]
-        if len(hits) and hits[0] > 0:
-            j = hits[0]
-            f = (CV1 - c[j-1]) / (c[j] - c[j-1])
-            f_chi[i] = xl[j-1] + f * (xl[j] - xl[j-1])
-    return xl, ph, f_chi, cf
+        for lev, arr in ((1.0, f_chi1), (CV1, f_chi)):
+            hits = np.where(np.isfinite(c) & (c > lev))[0]
+            if len(hits) and hits[0] > 0:
+                j = hits[0]
+                f = (lev - c[j-1]) / (c[j] - c[j-1])
+                arr[i] = xl[j-1] + f * (xl[j] - xl[j-1])
+    return xl, ph, f_chi1, f_chi, cf
 
 
 def cf_front(xl, cf_row, k):
@@ -77,10 +79,10 @@ SQ = D['re_1p52e6_alpha10_squares']
 res = {}
 for lev in ('L0', 'L1', 'L2'):
     npz = f'{PAPER}/figs/spheroid_maps_{lev}.npz'
-    xl, ph, f_chi, cf = fronts(npz)
+    xl, ph, f_chi1, f_chi, cf = fronts(npz)
     fcf = {k: np.array([cf_front(xl, cf[i], k) for i in range(len(ph))])
            for k in (1.25, 1.5, 2.0)}
-    res[lev] = (xl, ph, f_chi, fcf, cf)
+    res[lev] = (xl, ph, f_chi1, f_chi, fcf, cf)
 
 # ---- comparison table at the measured phis ---------------------------------
 print(f"{'phi':>6} {'meas x/L':>9} |"
@@ -89,18 +91,21 @@ print(f"{'phi':>6} {'meas x/L':>9} |"
 for s in SQ:
     row = [f"{s['phi_deg']:6.1f} {s['xL']:9.3f} |"]
     for lev in ('L0', 'L1', 'L2'):
-        _, ph, _, fcf, _ = res[lev]
+        _, ph, _, _, fcf, _ = res[lev]
         ff = np.interp(s['phi_deg'], ph, fcf[1.5])
         row.append(f" {ff:8.3f}")
-    _, ph, _, fcf, _ = res['L2']
+    _, ph, f_chi1, f_chi, fcf, _ = res['L2']
     lo = np.interp(s['phi_deg'], ph, fcf[1.25])
     hi = np.interp(s['phi_deg'], ph, fcf[2.0])
     ff = np.interp(s['phi_deg'], ph, fcf[1.5])
-    row.append(f" |  [{lo:5.3f},{hi:5.3f}] | {ff - s['xL']:+7.3f}")
+    c1 = np.interp(s['phi_deg'], ph, f_chi1)
+    cv = np.interp(s['phi_deg'], ph, f_chi)
+    row.append(f" |  [{lo:5.3f},{hi:5.3f}] | {ff - s['xL']:+7.3f}"
+               f" | chi1 {c1:5.3f} cv1 {cv:5.3f}")
     print(''.join(row))
 
 # ---- overlay figure ---------------------------------------------------------
-xl, ph, f_chi, fcf, cf = res['L2']
+xl, ph, f_chi1, f_chi, fcf, cf = res['L2']
 fig, ax = plt.subplots(figsize=(9.6, 4.4))
 m = ax.contourf(xl, ph, cf * 1e3, levels=np.linspace(0, 6, 25),
                 cmap='viridis', extend='max')
@@ -108,9 +113,10 @@ fig.colorbar(m, ax=ax, label=r'$c_f \times 10^3$')
 ax.fill_betweenx(ph, fcf[1.25], fcf[2.0], color='w', alpha=0.25, lw=0,
                  label=r'L2 criterion band ($k=1.25$--$2$)')
 for lev, c, ls in (('L0', 'w', ':'), ('L1', 'w', '--'), ('L2', 'w', '-')):
-    _, phL, _, fcfL, _ = res[lev]
+    _, phL, _, _, fcfL, _ = res[lev]
     ax.plot(fcfL[1.5], phL, ls, color=c, lw=1.4,
             label=f'{lev} $C_f$-rise front ($k=1.5$)')
+ax.plot(f_chi1, ph, ':', color='cyan', lw=1.2, label=r'L2 $\chi=1$ front')
 ax.plot(f_chi, ph, '-', color='cyan', lw=1.2, label=r'L2 $\chi=c_{v1}$ front')
 ax.plot([s['xL'] for s in SQ], [s['phi_deg'] for s in SQ], 's',
         color='red', mfc='none', ms=9, mew=2,

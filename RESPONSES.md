@@ -3163,3 +3163,21 @@ that gap IS the finding). Revised L2 deltas: +-0.02 windward,
 script folded into repro/cfd. Sheet labels harmonized (am8/am4),
 pointer range extended, superseded pair sheets removed, circle caveat
 in the JSON. Build clean. Spheroid a29p7: L1 done 15:54, L2 solving.
+
+## 2026-07-26 16:40 UTC — chi-crossing diagnostic (user question): mechanism RE-ATTRIBUTED
+
+Measured chi=1 and chi=c_v1 crossings per phi (L2): they nearly COINCIDE
+everywhere (gap <= 0.02 L; both 0.90-0.97 x/L at every azimuth). So on
+the leeward flank chi=1 is NOT just ahead of the measured Cf rise — it
+is 0.13-0.56 L AFT of it. The 2D slow-handover mechanism does NOT
+explain the flank lag (handover here is fast once amplification
+commits); the deficit is the AMPLIFICATION itself in the separated
+vortex layer — the wall-anchored kernel books only weak growth in the
+lifted layer whose breakdown the hot films detect at separation.
+Corollary: the flank part of the computed cf rise is laminar 3D
+structure, not modeled transition (as pass 40 suspected). Windward:
+chi=1 at 0.902 slightly ahead of measured 0.934 — classic. Paper
+passage corrected (slow-handover attribution REPLACED by the
+amplification-deficit finding); chi=1 front added to the figure and
+table; comparison script updated. Earlier RESPONSES entries (15:35)
+attributing the lag to slow handover are superseded by this one.
