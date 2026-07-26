@@ -275,9 +275,9 @@ handover in the recovery.
 Section~\ref{sec:eppval} uses the Eppler 387 at low Reynolds number to test the
 adverse-pressure-gradient, laminar-separation-bubble regime. The same
 constants (collected in Appendix~E) are used across all three
-regimes and across the twenty-four coupled-RANS cases run for each airfoil
+regimes and across every coupled-RANS case run for each airfoil
 (cavity unstructured $+$ structured O-grid, three refinement levels, four
-incidences). Section~\ref{sec:eppresweep} sweeps the Eppler across the
+incidences, plus finest-grid incidence extensions). Section~\ref{sec:eppresweep} sweeps the Eppler across the
 tunnel's Reynolds range at fixed incidence, locating the model's
 bubble-bursting boundary and the mechanism that misplaces it.
 Section~\ref{sec:daedalus} closes with a three-dimensional
@@ -1468,7 +1468,7 @@ $\alpha\!\in\!\{0^\circ, 4^\circ, 9^\circ,
 15^\circ\}$, on a three-level isotropic refinement ladder of both mesh families
 (unstructured cavity-mesher and structured O-grid, L0--L2, twenty-four
 cases total). The finest grids extend the matrix to the
-negative-incidence pair $\alpha\!=\!-4^\circ$ and $-8^\circ$
+negative-incidence pair $\alpha\!=\!-8^\circ$ and $-4^\circ$
 (Fig.~\ref{fig:nlfnegalpha}; wall-anchored contour sheets in
 Appendix~A). The unstructured mesher uses a shared NLF contour (a natural cubic
 spline in arc length through the published coordinates, resampled with
@@ -1522,11 +1522,10 @@ quantitatively.
   study~\cite{tarsia_2025}. The isolated coarse-grid points at incidence are under-resolved-front artifacts (cf.\ the L0 discussion of Fig.~\ref{fig:nlfcflow}); the cavity-L1 $15^\circ$ lower front is the one unsettled case of the twenty-four, still drifting over $0.65$--$0.67\,c$ (the final value is plotted). Open squares/triangles:
   SA-AI on all six grids (L0--L2 by marker size, both families) at
   $\alpha\!=\!0^\circ,4^\circ,9^\circ,15^\circ$, plus the
-  negative-incidence pair $\alpha\!=\!-4^\circ$ (zero lift) and
-  $-8^\circ$ (well into the negative branch of the measured polar) on
+  negative-incidence pair $\alpha\!=\!-8^\circ$ (well into the
+  negative branch of the measured polar) and $-4^\circ$ (zero lift) on
   the finest grids,
-  all at the paper-wide untuned seed and computed to front
-  convergence. At $-8^\circ$ the drag sits $8$--$11$ counts below
+  all at the paper-wide untuned seed. At $-8^\circ$ the drag sits $8$--$11$ counts below
   the measured polar at matched lift, the suction (lower) surface trips at
   $0.004$--$0.011\,c$, on the references' leading-edge trip ($e^9$:
   $0.015$--$0.018\,c$), and the pressure-side (upper) front
@@ -1794,7 +1793,11 @@ $\alpha\!\in\!\{0^\circ,2^\circ,5^\circ,7^\circ\}$, with the freestream seed at
 the same $N_\mathrm{crit}\!=\!9$ anchor as the NLF,
 $\chi_\infty\!=\!8.76\!\times\!10^{-4}$ (the LTPT-class value). Three
 refinement levels on two independently-generated mesh families
-(unstructured cavity, structured O-grid) give twenty-four cases.
+(unstructured cavity, structured O-grid) give twenty-four cases. The
+finest (L2) pair extends the matrix with six further incidences,
+$\alpha\!=\!-2^\circ$, $1^\circ$, $3^\circ$, $4^\circ$, $6^\circ$, and
+$8.5^\circ$ (twelve additional solutions), spanning the measured polar
+end to end.
 
 Mesh generation reuses the NLF recipe verbatim. The 56-point Eppler 387
 contour is read from the NASA TM 4062 Table I (design coordinates with the
@@ -1824,8 +1827,8 @@ and Table~\ref{tab:eppmesh} lists their resolution quantitatively.
   range (XFOIL fills $\alpha\!=\!7^\circ$, where mfoil's coupled solve
   fails). The computed points track the low-drag laminar bucket;
   the two mesh families agree to within
-  $\Delta C_d\!\le\!2\times10^{-4}$ ($0.1$--$0.2\!\times\!10^{-3}$
-  across the four incidences).
+  $\Delta C_d\!\le\!2.4\times10^{-4}$ across $\alpha\!=\!-2^\circ$--$7^\circ$
+  and to $1.0\!\times\!10^{-3}$ at the unsteady $8.5^\circ$ point.
   The gray dash-dot curve is fully turbulent SA ($\chi_\infty\!=\!3$, same
   solver, structured L2 grid), $77$--$97\%$ above the SA-AI drag in the
   bucket and $+151\%$ at $\alpha\!=\!7^\circ$. The green and purple
@@ -1840,7 +1843,8 @@ and Table~\ref{tab:eppmesh} lists their resolution quantitatively.
 \end{figure}
 
 On the finest grids the SA-AI polar (Fig.~\ref{fig:epppolar}) tracks the
-measured low-drag bucket across the range at matched lift:
+measured low-drag bucket over $\alpha\!=\!0^\circ$--$7^\circ$
+($c_l\!\approx\!0.38$--$1.15$) at matched lift:
 $3.7$--$6.4\%$ \emph{below} the data at the bucket edges ($-5.8\%$/$-4.3\%$
 structured/unstructured at $\alpha\!=\!0^\circ$, $-4.4\%$/$-3.8\%$
 at $2^\circ$, $-3.7\%$/$-6.4\%$ at $7^\circ$) and
@@ -1849,7 +1853,14 @@ percentage reads the experimental polar's drag at the computed lift),
 where
 the pressure-drag footprint of the slightly over-long
 laminar-separation bubble (\S\ref{sec:calib_rate}) remains the
-largest positive residual. The one published SA-based
+largest positive residual. At the two extension endpoints the
+comparison changes character: at $-2^\circ$ the computed drag sits
+${\approx}14\%$ below the measured curve---the model's bucket extends
+below $c_l\!\approx\!0.25$, where the LTPT's low-drag corner has
+already ended---and at $8.5^\circ$ a matched-lift read is ill-posed
+(the computed lift reaches the measured maximum and the solutions are
+unsteady; the plotted points are medians over an oscillating
+window). The one published SA-based
 \emph{transported-intermittency} ($\gamma$-equation) result on this
 benchmark---the
 $\gamma$--SA coupling of Ref.~\cite{dalessandro_2025} (foam-extend,
@@ -1997,7 +2008,10 @@ Fig.~\ref{fig:sheet_eppler387_a5_upper}.)
   ($\pm1\%$ chord; their $\alpha\!\ge\!7^\circ$ entries are
   attached-transition values and plot no bubble). Open
   squares/triangles: SA-AI on all six grids (L0--L2 by marker size,
-  both families). The lower surface stays attached and laminar to the
+  both families); as on the polar, the $-2^\circ$--$8.5^\circ$
+  extension incidences exist on the finest (L2) pair only, L0/L1
+  keeping $\alpha\!\in\!\{0^\circ,2^\circ,5^\circ,7^\circ\}$. The
+  lower surface stays attached and laminar to the
   trailing edge at every incidence.}
   \label{fig:eppbubble}
 \end{figure}
@@ -2029,6 +2043,17 @@ number~\cite{cole_mueller_1990} read reattachment $0.03$--$0.08\,c$
 aft of the LTPT oil flow at and between its tabulated incidences
 ($\alpha\!=\!-2^\circ$--$3^\circ$; the oil flow interpolated where
 the incidences do not coincide).
+
+Past stall the trend continues: at the $8.5^\circ$ extension both
+families reproduce the experiment's post-stall
+\emph{leading-edge-bubble topology} (oil flow: separation at
+$0.03\,c$, reattachment at $0.18\,c$) but reattach at
+$0.032$--$0.049\,c$---roughly four times short of the measured
+recovery---carrying the $\alpha\!\ge\!7^\circ$ early-reattachment
+direction through the stall. The structured family's bubble is a
+marginal few-sample sliver, and the solutions there are unsteady;
+Fig.~\ref{fig:eppbubble} plots the stations of the time-median
+surface solution.
 
 
 This low-$\alpha$ over-length is not an amplification deficit: the
@@ -2209,7 +2234,7 @@ transition, reattachment, and the forces that follow.
 
 \begin{figure}[tp]
   \centering
-  \includegraphics[width=0.92\textwidth]{eppler_resweep_lowRe.pdf}
+  \includegraphics[width=\textwidth]{eppler_resweep_lowRe.pdf}
   \caption{Eppler 387 at $\alpha\!=\!5^\circ$, $Re\!=\!6\!\times\!10^4$ (left) and
   $1\!\times\!10^5$ (right): the five-row suite and line conventions of
   the benchmark figures (rows: $\max Re_\Omega$, $\max\hat\Omega \hat I$,
@@ -2713,12 +2738,14 @@ $\hat\Omega \hat I\!\to\!0$ with no pressure-gradient term---and ignites at each
 tracking the Somers fronts (the lower front's aft-ward march with lift
 reproduced to within $0.02\,c$), and the
 handover held across $\alpha\!\in\!\{0^\circ,4^\circ,9^\circ,15^\circ\}$ on
-twenty-four cases (both mesh families, three refinement levels). On the Eppler
+twenty-four cases (both mesh families, three refinement levels), plus the
+finest-grid negative pair. On the Eppler
 387 at
 $Re\!=\!2\!\times\!10^5$ (Sec.~\ref{sec:eppval}) the
 model resolved the adverse-gradient, laminar-separation-bubble regime---the signed
-skin friction shows the recirculation directly---across another twenty-four cases
-on the same two-family ladder, though it reattaches late at low
+skin friction shows the recirculation directly---across another thirty-six cases
+on the same two-family ladder (twelve of them the finest-pair extension over
+$\alpha\!=\!-2^\circ$--$8.5^\circ$), though it reattaches late at low
 incidence---$0.02$--$0.04\,c$ aft of the measured oil-flow reattachment at
 $\alpha\!\le\!5^\circ$ ($0.76$ vs $0.74\,c$, $0.71$ vs $0.67\,c$, $0.63$ vs
 $0.59\,c$, inside the facility-to-facility spread of the two

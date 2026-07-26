@@ -2808,3 +2808,17 @@ Appendix A; all front-convergence-protocol language removed (5 sites).
 SPHEROID: L0+L1 literature-style surface maps done (Kreplin-convention
 unrolled cf/gamma_w/chi maps + 3D views); L2 (12.6M nodes) solving on
 GPUs 6,7. Daedalus P3: ogrid L2 a4 DONE, a5 solving.
+
+## 2026-07-26 11:25 UTC — Pass 35 addressed (3 majors, 6 minors)
+
+Polar text caught up with the ten-incidence L2 pair: agreement band
+re-scoped (<=2.4e-4 over -2..7 deg; 1.0e-3 at unsteady 8.5), tracking
+claim scoped to alpha=0-7 with endpoint caveats (-2 deg: ~14% below the
+measured curve, the model's bucket outlives the LTPT low-drag corner;
+8.5: matched lift ill-posed), extension set introduced in the setup +
+new post-stall paragraph (LE-bubble topology reproduced, reattachment
+~4x short at 0.032-0.049c vs 0.18c). Counts fixed (36 Eppler cases).
+CORRECTION to the 10:20 entry: 8.5 cav canon-window medians are
+1.2426/0.02258 (earlier 1.261/0.0215 was an instantaneous read).
+NOTE: reviewer's chain status wrong on cavity L2 — it is HELD; the
+new-canon chain runs ogrid L2 only.

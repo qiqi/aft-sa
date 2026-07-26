@@ -917,7 +917,7 @@ if __name__ == '__main__':
         alphas = [-8, -4]
         LEVELS_CF[:] = ['L2']
         make_cf_figure(alphas, 'nlf_cf_negalpha',
-                       'NLF(1)-0416 at $\\alpha\\in\\{-4^\\circ,-8^\\circ\\}$'
+                       'NLF(1)-0416 at $\\alpha\\in\\{-8^\\circ,-4^\\circ\\}$'
                        ' — L2, cav/str')
     if mode in ('high', 'all'):
         alphas = [9, 15]

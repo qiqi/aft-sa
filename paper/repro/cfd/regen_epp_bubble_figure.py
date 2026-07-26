@@ -160,11 +160,23 @@ for mesh, col, mk in (('str', 'C0', 's'), ('cav', 'C1', '^')):
                 _o = _np.argsort(xu)
                 _x, _cf = _np.asarray(xu)[_o], _np.asarray(cfu)[_o]
                 _m = (_x > 0.005) & (_x < 0.3)
-                _neg = _np.where(_cf[_m] < 0)[0]
+                _xm, _cm = _x[_m], _cf[_m]
+                _neg = _np.where(_cm < 0)[0]
                 if len(_neg):
                     A.append(a)
-                    LS.append(float(_x[_m][_neg[0]]))
-                    TR.append(float(_x[_m][_neg[-1]]))
+                    # interpolated zero crossings, the same definition as
+                    # separation()/reattach() at every other incidence
+                    i0, i1 = _neg[0], _neg[-1]
+                    ls = float(_xm[i0])
+                    if i0 > 0:
+                        f = (0.0 - _cm[i0-1]) / (_cm[i0] - _cm[i0-1])
+                        ls = float(_xm[i0-1] + f * (_xm[i0] - _xm[i0-1]))
+                    tr = float(_xm[i1])
+                    if i1 + 1 < len(_xm):
+                        f = (0.0 - _cm[i1]) / (_cm[i1+1] - _cm[i1])
+                        tr = float(_xm[i1] + f * (_xm[i1+1] - _xm[i1]))
+                    LS.append(ls)
+                    TR.append(tr)
                 continue
             A.append(a); LS.append(separation(xu, cfu)); TR.append(reattach(xu, cfu))
         for ax, V in ((ax_ls, LS), (ax_tr, TR)):
