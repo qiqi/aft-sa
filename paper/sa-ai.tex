@@ -1193,9 +1193,11 @@ finest-grid results by more than the cold-budget batteries bounded:
 up to $8$ counts on the NLF at high incidence---$27$ on its coarsest
 grids---and $-10$ counts at the Eppler benchmark's
 $\alpha\!=\!5^\circ$, all toward the measurement); the
-three-dimensional deployment of Sec.~\ref{sec:daedalus} is being
-recomputed, and its figures, tables, and quoted numbers still show
-the bypass-inactive model.
+three-dimensional deployment of Sec.~\ref{sec:daedalus} is now also
+recomputed---its tabulated totals and every structured-family figure
+and number are the final kernel---except the cavity-L2 solutions,
+whose recomputation is held; where those appear in the section
+figures they are the bypass-inactive model, and are so marked.
 
 \subsection{Preservation of the Spalart--Allmaras calibration}\label{sec:calib_diff}
 
@@ -2439,9 +2441,12 @@ as resolved transition physics.
 
 \section{Three-dimensional deployment: the Daedalus wing}\label{sec:daedalus}
 
-(This section's campaign predates the lifted-layer bypass adoption of
-\S\ref{sec:fv1bypass}; its recomputation is in progress, and every
-number and figure here is from the bypass-inactive model.)
+(This section's campaign is recomputed at the final kernel of
+\S\ref{sec:fv1bypass}---all tabulated totals and the structured
+family throughout---except the cavity-L2 solutions, whose
+recomputation is held: the dashed cavity-L2 rows of
+Table~\ref{tab:daetotals}, and the cavity-L2 curves of the section
+figures, which remain from the bypass-inactive model.)
 
 The model's first three-dimensional application is the wing of the
 Daedalus human-powered aircraft: half-span $17.07\,$m, root chord
@@ -3472,7 +3477,7 @@ the surface triangles and the prism stack terminated where its height
 reaches the local isotropic scale. Sizes, spanwise-station and
 around-the-section resolution are tabulated in the main text
 (Table~\ref{tab:daemesh}). All solutions use the airfoil-study solver
-settings with the final kernel (the recomputation noted at the opening
+settings with the final kernel (the recomputation scope noted at the opening
 of Sec.~\ref{sec:daedalus}; the completed set is the one tabulated in
 Table~\ref{tab:daetotals}, dashes marking runs in progress) and are
 converged to steady or small-limit-cycle force histories; tabulated
@@ -3488,8 +3493,11 @@ samples).
   drag at the trim plus XFOIL profile drag at the trimmed strip
   loading, matched local $c_l$ and $N_\mathrm{crit}\!=\!13.6$,
   integrated over span
-  (\texttt{daedalus/avl\_fixed\_cl\_reference.py}). Dashes: runs of
-  the final-kernel recomputation still in progress.}
+  (\texttt{daedalus/avl\_fixed\_cl\_reference.py}; the reference drag
+  at the marginally shifted trim lifts is unchanged at the printed
+  digits). Dashes: the cavity-L2 recomputation is held; those
+  solutions appear in the section figures from the bypass-inactive
+  model, as disclosed in the text.}
   \label{tab:daetotals}
   \begin{tabular}{cl cc cc}
     \toprule
@@ -3497,17 +3505,17 @@ samples).
     \cmidrule(lr){3-4}\cmidrule(lr){5-6}
     $\alpha$ & level & $C_L$ & $C_D$ & $C_L$ & $C_D$\\
     \midrule
-    $4^\circ$ & L1 & 1.0278 & 0.01957 & 1.0211 & 0.01975\\
-              & L2 & 1.0282 & 0.01997 & 1.0208 & 0.02004\\
-              & AVL$+$XFOIL & 1.0282 & 0.02125 & &\\
+    $4^\circ$ & L1 & 1.0279 & 0.01946 & 1.0232 & 0.01941\\
+              & L2 & 1.0284 & 0.01969 & --- & ---\\
+              & AVL$+$XFOIL & 1.0284 & 0.02125 & &\\
     \midrule
-    $5^\circ$ & L1 & 1.1300 & 0.02212 & 1.1225 & 0.02235\\
-              & L2 & 1.1289 & 0.02243 & 1.1223 & 0.02254\\
-              & AVL$+$XFOIL & 1.1289 & 0.02315 & &\\
+    $5^\circ$ & L1 & 1.1307 & 0.02197 & 1.1248 & 0.02201\\
+              & L2 & 1.1290 & 0.02212 & --- & ---\\
+              & AVL$+$XFOIL & 1.1290 & 0.02315 & &\\
     \midrule
-    $6^\circ$ & L1 & 1.2317 & 0.02479 & 1.2227 & 0.02523\\
-              & L2 & 1.2279 & 0.02509 & --- & ---\\
-              & AVL$+$XFOIL & 1.2279 & 0.02530 & &\\
+    $6^\circ$ & L1 & 1.2321 & 0.02465 & 1.2256 & 0.02481\\
+              & L2 & 1.2282 & 0.02474 & --- & ---\\
+              & AVL$+$XFOIL & 1.2282 & 0.02530 & &\\
     \bottomrule
   \end{tabular}
 \end{table}

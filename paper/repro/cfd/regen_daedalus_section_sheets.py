@@ -29,10 +29,14 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-D = '/home/qiqi/flexcompute/sa-ai/daedalus'
+# per-family roots: the structured family is the final-kernel (fv1)
+# recomputation; the cavity-L2 recomputation is HELD, so its solutions
+# remain the bypass-inactive model (disclosed in Sec. VII)
+D_STR = '/local_data/qiqi/sa-ai/daedalus_fv1'
+D_CAV = '/home/qiqi/flexcompute/sa-ai/daedalus'
 PD = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 sys.path.insert(0, os.path.join(PD, 'repro'))
-sys.path.insert(0, D)
+sys.path.insert(0, '/home/qiqi/flexcompute/sa-ai/daedalus')  # geometry modules
 from wing_geometry import chord, HALF_SPAN, XQC          # noqa: E402
 import sectional_compare as SC                            # noqa: E402
 
@@ -40,8 +44,8 @@ CHI_INF = 8.76e-6
 AMAX, C_ON, A_ON, B_ON, K_ON, W_ON = 0.19, 2600.0, 175.0, 2.0, 0.712, 0.35
 CV1 = 7.1
 ALPHAS = [4, 5, 6]
-CASES = {'str': ('case_ogrid_L2_saai_a{a}', 'surface_fluid_wing.pvtu', '-'),
-         'cav': ('case_cavity_L2_saai_a{a}', 'surface_farfield_body.pvtu', '--')}
+CASES = {'str': (D_STR, 'case_ogrid_L2_saai_a{a}', 'surface_fluid_wing.pvtu', '-'),
+         'cav': (D_CAV, 'case_cavity_L2_saai_a{a}', 'surface_farfield_body.pvtu', '--')}
 SIDCOL = {'upper': 'C0', 'lower': 'C3'}
 STRIPS = pickle.load(open('/home/qiqi/flexcompute/sa-ai/flow360_ai/'
                           'flexfoil_daedalus_strips.pkl', 'rb'))
@@ -57,7 +61,7 @@ def load(p):
 
 
 def complete(case):
-    fn = f'{D}/{case}/total_forces_v2.csv'
+    fn = f'{root}/{case}/total_forces_v2.csv'
     return os.path.exists(fn) and sum(1 for _ in open(fn)) >= 2001
 
 
@@ -155,11 +159,11 @@ def probe_station(vol, case, contours, c_loc, x_le, mu_ref):
 
 def surface_rows(case, surfname, contours, c_loc, x_le, mstation, mu):
     """Rows 3-5 data: max chi (npz), Cp, Cf_x at the station."""
-    g = load(f'{D}/{case}/{surfname}')
+    g = load(f'{root}/{case}/{surfname}')
     p = vtk_to_numpy(g.GetPoints().GetData())
     cp = vtk_to_numpy(g.GetPointData().GetArray('Cp'))
     cfx = vtk_to_numpy(g.GetPointData().GetArray('CfVec'))[:, 0]
-    npz = np.load(f'{D}/{case}/chi_surface.npz')
+    npz = np.load(f'{root}/{case}/chi_surface.npz')
     chi = npz['chi']
     rows = {}
     for side, q in contours.items():
@@ -207,9 +211,9 @@ def make_sheet(eta_q):
     for col, a in enumerate(ALPHAS):
         ax_reo, ax_P, ax_n, ax_cp, ax_cf = axs[:, col]
         ax_nN = ax_n.twinx()
-        for fam, (tpl, surfname, ls) in CASES.items():
+        for fam, (root, tpl, surfname, ls) in CASES.items():
             case = tpl.format(a=a)
-            if not complete(case) or not os.path.exists(f'{D}/{case}/chi_surface.npz'):
+            if not complete(case) or not os.path.exists(f'{root}/{case}/chi_surface.npz'):
                 continue
             if fam == 'cav':
                 got_cav = True
@@ -275,9 +279,9 @@ CACHE = {}
 
 
 def probe_cached(case, surfname, etas, mu):
-    surf = load(f'{D}/{case}/{surfname}')
+    surf = load(f'{root}/{case}/{surfname}')
     spts = vtk_to_numpy(surf.GetPoints().GetData())
-    vol = load(f'{D}/{case}/volume.pvtu')
+    vol = load(f'{root}/{case}/volume.pvtu')
     out = {}
     for eta_q in etas:
         contours, c_loc, x_le, mst = section_contour(spts, eta_q)
@@ -291,10 +295,10 @@ def probe_cached(case, surfname, etas, mu):
 if __name__ == '__main__':
     etas = [float(x) for x in sys.argv[1:]] or [0.10, 0.75, 0.92]
     for a in ALPHAS:
-        for fam, (tpl, surfname, ls) in CASES.items():
+        for fam, (root, tpl, surfname, ls) in CASES.items():
             case = tpl.format(a=a)
-            if complete(case) and os.path.exists(f'{D}/{case}/chi_surface.npz'):
-                mu = json.load(open(f'{D}/{case}/Flow360.json'))['freestream']['muRef']
+            if complete(case) and os.path.exists(f'{root}/{case}/chi_surface.npz'):
+                mu = json.load(open(f'{root}/{case}/Flow360.json'))['freestream']['muRef']
                 CACHE[case] = probe_cached(case, surfname, etas, mu)
                 print('probed', case, flush=True)
     for eta_q in etas:

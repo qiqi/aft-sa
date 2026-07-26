@@ -3290,3 +3290,17 @@ transition earlier at this pure-TS condition; the Stock Fig 14a front
 comparison quantifies it next. Totals table refreshed (dashes filled);
 L2 maps probing (Re-scaled rays). Workshop pair (re65) now starting on
 GPUs 6/7; Daedalus a6 minutes from landing.
+
+## 2026-07-26 22:00 UTC — Daedalus new-canon COMPLETE; Sec VII migration underway
+
+a6 landed 21:44 (CL 1.2282/CD 0.02474 final-500 mean). All 15 fv1 cases
+harvested (daedalus_fv1_results.json): CL within 0.3% of old canon, CD
+0.5-2% LOWER (the bypass signature). tab:daetotals migrated to fv1
+(cavity-L2 rows dashed — recomputation HELD per user order); AVL trim
+cells updated (reference drag unchanged at printed digits); the II.F
+exception and Sec VII opening disclosure NARROWED to exactly the held
+cavity-L2 solutions; App D note updated. Section sheets regenerating
+with split roots (str=fv1, cav=old, disclosed).
+QUESTION FOR USER: GPUs 0-5 are idle overnight after this — lift the
+cavity-L2 hold and run its 3 cases (~12 h, done by mid-morning)? That
+would close the last disclosure entirely.
