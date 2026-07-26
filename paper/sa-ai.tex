@@ -3685,4 +3685,30 @@ Table~\ref{tab:daetotals}.
 \input{tables/tab_eppler_bubble}
 \input{tables/tab_eppler_resweep}
 
+\clearpage
+\renewcommand{\thefigure}{G\arabic{figure}}
+\setcounter{figure}{0}
+\section*{Appendix G: cross-solver replication detail}
+
+Figure~\ref{fig:flatplate_openfoam} shows the flat-plate sweep of
+Fig.~\ref{fig:flatplate_batch} computed end to end by the independent
+implementation of the model referenced in
+Sec.~\ref{sec:flatplate}---OpenFOAM, cell-centered, pressure-based,
+incompressible, with the plain compact Laplacian for the profile
+curvature and no freestream-decay compensation---on the same
+$320\times80$ grid specification, in the identical layout for
+panel-by-panel comparison. The summary crossings of both solvers are
+tabulated in Table~\ref{tab:data_flatplate}.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.90\textwidth]{flat_plate_batch_openfoam.pdf}
+  \caption{The freestream-turbulence sweep of
+  Fig.~\ref{fig:flatplate_batch}, recomputed by the independent
+  cell-centered incompressible (OpenFOAM) implementation on the same
+  grid specification; layout and conventions as in
+  Fig.~\ref{fig:flatplate_batch}.}
+  \label{fig:flatplate_openfoam}
+\end{figure}
+
 \end{document}

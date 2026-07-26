@@ -3089,3 +3089,13 @@ The bubble and resweep figure scripts now dump their computed stations
 to paper/data/*.json so the tables can never drift from the plots; the
 NLF table auto-fills the L0/L1 negative rows when tonight's batch lands
 (rerun the emitter). 101 pages, builds clean.
+
+## 2026-07-26 14:55 UTC — Appendix G: OpenFOAM full-detail figure
+
+Per user question (should OpenFOAM get detailed appendix plots): YES —
+new Appendix G "cross-solver replication detail" holds the OpenFOAM
+agent's paper-identical five-row flat-plate figure (same 320x80 spec,
+correct chi normalization) for panel-by-panel comparison against Fig 5;
+it is the designated home for the airfoil comparison sheets when the
+structured-family OpenFOAM results arrive. Main text stays minimal
+(steel-blue overlay + one sentence + the mesh-family scope sentence).
