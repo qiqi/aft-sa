@@ -393,7 +393,7 @@ def wallnormal_max_metrics(case_d, side='upper', L_probe=0.01, n_probe=80,
     Psl = np.where(mask, P_raw, np.nan).reshape(n_probe, M)
     # Neighbor-smooth the rate coordinate BEFORE the max (user request
     # 2026-07-25): transported chi integrates production along streamlines,
-    # so isolated single-point Shat*g values carry no effect and a raw
+    # so isolated single-point Omega_hat*I_hat values carry no effect and a raw
     # pointwise max over-reports them. sigma: ~0.5% chord streamwise,
     # ~5% of the probe wall-normal. Presentation only.
     from lib.smooth import nan_gaussian
@@ -631,7 +631,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         ax_reo = axs[0, col]; ax_P = axs[1, col]
         ax_n   = axs[2, col]; ax_cp  = axs[3, col]; ax_cf = axs[4, col]
         ax_nN = ax_n.twinx()
-        # ROW 1+2: wall-normal-probe max Re_Omega (onset gate) and max P = Shat*g
+        # ROW 1+2: wall-normal-probe max Re_Omega (onset gate) and max P = Omega_hat*I_hat
         # (rate coordinate) --- the two quantities the sphere kernel actually uses.
         for mesh in meshes:
             for level in ['L0', 'L1', 'L2']:  # all levels now current
@@ -655,9 +655,9 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         ax_reo.set_ylim(1e2, 1e4); ax_reo.grid(alpha=0.3, which='both')
         ax_reo.set_title(rf'$\alpha={alpha}^\circ$', fontsize=10)
         if col == 0: ax_reo.set_ylabel(r'$\max Re_\Omega$ (log)')
-        # max P = Shat*g, the sphere rate coordinate: P>0 (above the dotted line)
+        # max P = Omega_hat*I_hat, the sphere rate coordinate: P>0 (above the dotted line)
         # is the amplifying, inflectional side; the rate is a_max clip<P>.
-        # log scale, same Shat*g range as the onset-threshold figure
+        # log scale, same Omega_hat*I_hat range as the onset-threshold figure
         # (fig02_onset_graze); suppressed/favorable values <= 0 drop below
         ax_P.set_yscale('log')
         ax_P.set_ylim(3e-3, 1.3); ax_P.grid(alpha=0.3, which='both')

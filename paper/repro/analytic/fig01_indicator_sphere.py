@@ -13,8 +13,8 @@ disturbance actually grows (attached profiles evaluated at Re_theta = 500,
 where the favorable layer is still subcritical and so carries no band; the
 reversed-flow (Stewartson lower-branch, beta=-0.19, H~4.9) profile at
 Re_theta = 200). Grey lines: contours of the rate
-coordinate S_hat*g at {0.025, 0.2, 0.4, 0.6, 0.8, 1.0}; the lowest hugs the
-neutral locus S_hat*g = 0 (the parabola great circle g = 0 plus the
+coordinate Omega_hat*I_hat at {0.025, 0.2, 0.4, 0.6, 0.8, 1.0}; the lowest hugs the
+neutral locus Omega_hat*I_hat = 0 (the parabola great circle I_hat = 0 plus the
 shear-free meridian).
 
 Run from paper/: python3 repro/analytic/fig01_indicator_sphere.py
@@ -97,16 +97,16 @@ def main():
     ax.plot([0], [+1], marker='^', color='0.3', ms=9, zorder=6)
     ax.plot([0], [-1], marker='v', color='0.3', ms=9, zorder=6)
 
-    # grey S_hat*g contours over the near hemisphere
+    # grey Omega_hat*I_hat contours over the near hemisphere
     hg = np.linspace(-0.999, 0.999, 601)
     vg = np.linspace(-0.999, 0.999, 601)
     Hm, Vm = np.meshgrid(hg, vg)
     disk = Hm**2 + Vm**2 < 1.0
     Wm = np.sqrt(np.clip(1.0 - Hm**2 - Vm**2, 0, None))
     X = (Wm - Hm)/SQ2; Y = (Wm + Hm)/SQ2; Z = Vm
-    Shat = Y/np.sqrt(X*X + Y*Y + 1e-30)
+    Omega_hat = Y/np.sqrt(X*X + Y*Y + 1e-30)
     G = Y - X - Z
-    Psg = np.where(disk, Shat*G, np.nan)
+    Psg = np.where(disk, Omega_hat*G, np.nan)
     cs = ax.contour(Hm, Vm, Psg, levels=LEVELS, colors='0.6', linewidths=0.8,
                     zorder=2)
 

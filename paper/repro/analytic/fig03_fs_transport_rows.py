@@ -107,7 +107,7 @@ def main():
         if irow == 0:
             axR.legend([r'canonical model ($c_{\nu,\mathrm{ai}}\!=\!1/6$, $k\!=\!0.712$)',
                         'Drela--Giles envelope'], fontsize=7.5, loc='lower right')
-        print(f'beta={beta:+.2f} H={H:.2f}: max Shat*g = {msg:.3f}, '
+        print(f'beta={beta:+.2f} H={H:.2f}: max Omega_hat*I_hat = {msg:.3f}, '
               f'x_max={x_max:.2e}, N_end={np.log(env[-1]):.1f}, '
               f'Rt_end={Rt[-1]:.0f}, Rtc={Rtc:.0f}', flush=True)
     plt.savefig('figs/fs_nuHat_rows.pdf')

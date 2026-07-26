@@ -3,7 +3,7 @@
 The rate kernel's growth against the Drela-Giles correlation, analytically,
 on frozen parallel Falkner-Skan profiles -- no marching, no onset gate.
 
-INVISCID (tab:ratelimit): a disturbance grows at a(S_hat*g)*|omega| while
+INVISCID (tab:ratelimit): a disturbance grows at a(Omega_hat*I_hat)*|omega| while
 advecting at the local u, so the most growth per unit length the rate can
 sustain is the pointwise supremum max_y a*|omega|/u. Compared to Drela's
 explicit spatial envelope rate s_DG/theta,
@@ -13,7 +13,7 @@ either side. Independent of Reynolds number, diffusion, and c_nu,ai.
 VISCOUS (tab:frozeneig): growth, diffusion, and advection compose the
 generalized eigenproblem
 
-    [ a(S_hat*g)*|omega| + (c_nu,ai*nu/sigma) d^2/dy^2 ] v = s u v,
+    [ a(Omega_hat*I_hat)*|omega| + (c_nu,ai*nu/sigma) d^2/dy^2 ] v = s u v,
 
 whose leading eigenvalue s is the realizable dN/dx at that Re_theta. The
 problem symmetrizes under u^(1/2) similarity (one symmetric tridiagonal

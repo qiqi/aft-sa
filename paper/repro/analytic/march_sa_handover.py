@@ -10,7 +10,7 @@ chi_inf = c_v1 e^-9.
 Purpose (author discussion 2026-07-24): (1) reproduce the low-Re_theta
 handover STALL (every brake scales as chi/Re_Omega); (2) tune the
 amplifying-zone gate
-    A = (1-sigma_P) * clip< sign(Shat)*max(0,|Shat|-1/sqrt2) * g >_0^1
+    A = (1-sigma_P) * clip< sign(Omega_hat)*max(0,|Omega_hat|-1/sqrt2) * I_hat >_0^1
 applied as exp(-c*A) suspending destruction and the f_v2 correction.
 Target: smallest c restoring d(ln chi)/dx slope continuity across the
 handover (post/pre slope ratio >= 0.9) on the separated profile at
@@ -68,7 +68,7 @@ def march_sa(fs, x_max, nx=1200, ny=800, seed=SEED, gate_c=0.0, ufrac=0.0,
         Sh = Y/np.sqrt(X*X + Y*Y + 1e-30)
         gco = (Y - X - Z)/R
         # v4 COLUMN gate, hinge form: the shear surplus <Y-X>_+ (= omega*d
-        # exceeding |u|; identical zero set to |Shat|>1/sqrt2 for the
+        # exceeding |u|; identical zero set to |Omega_hat|>1/sqrt2 for the
         # non-negative implemented indicators) times the accumulated-inflection coordinate I_hat
         # g -- both vanish at the wall state (X=Y, Z=0), so the gate is
         # quadratically insensitive to sublayer noise and exactly zero in

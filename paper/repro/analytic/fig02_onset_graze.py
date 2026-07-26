@@ -88,7 +88,7 @@ def main():
         i = int(np.argmax(ratio))
         ax.plot(P[i], ReOm[i], 'o', color=col, ms=6.0, mec='k', mew=0.6, zorder=6)
         print(f'beta={beta:+.3f} H={H:5.2f} Re_theta_c={Rtc:6.0f} '
-              f'graze ratio={ratio[i]:.3f} at Shat*g={P[i]:.3f}', flush=True)
+              f'graze ratio={ratio[i]:.3f} at Omega_hat*I_hat={P[i]:.3f}', flush=True)
     ax.set_xlabel(r'$\hat\Omega \hat I$')
     ax.set_ylabel(r'$Re_\Omega = d^2\omega/\nu$ at $Re_\theta = Re_{\theta 0}(H)$')
     ax.set_xlim(3e-3, 1.3); ax.set_ylim(30, 6e3)

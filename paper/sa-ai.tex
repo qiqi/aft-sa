@@ -43,7 +43,7 @@ through laminar instability growth and turbulent eddy-viscosity production,
 handing over near $\chi\!=\!\tilde\nu/\nu\!\sim\!1$. No auxiliary field is
 introduced. The amplification rate depends only on the local mean
 flow---a vorticity Reynolds number and two profile-shape indicators, a
-vorticity fraction and an inflectional (Rayleigh) coordinate---with no
+vorticity fraction and an accumulated-inflection (Rayleigh) coordinate---with no
 pressure-gradient parameter anywhere, and
 is anchored to canonical stability limits: the free-shear growth
 eigenvalue, the linear-stability onset of the Falkner--Skan family, and
@@ -85,10 +85,10 @@ dimensions on the wing of the Daedalus human-powered aircraft.
   $d$ \> distance to the nearest wall \\
   $\omega$ \> vorticity magnitude \\
   $Re_\Omega$ \> vorticity Reynolds number, $d^2\omega/\nu$ \\
-  $X,\;Y,\;Z$ \> velocity, shear, and curvature indicators, Eq.~\eqref{eq:indicators} \\
+  $X,\;Y,\;Z$ \> velocity, vorticity (shear), and curvature indicators, Eq.~\eqref{eq:indicators} \\
   $\hat\Omega,\;\lambda$ \> vorticity fraction $Y/\sqrt{X^2+Y^2}=\sin\lambda$ and longitude, Eq.~\eqref{eq:shat} \\
   $I,\;\hat I$ \> accumulated inflection $I=d\,u'-u-\tfrac12 d^2u''$ and its normalized (sphere) coordinate $\hat I=Y-X-Z$, Eqs.~\eqref{eq:parabola} and~\eqref{eq:g_integral} \\
-  $\hat\Omega \hat I$ \> amplifying (rate) coordinate: the even product of vorticity fraction and accumulated inflection, Eq.~\eqref{eq:rate} \\
+  $\hat\Omega \hat I$ \> amplifying (rate) coordinate: the even product of the vorticity fraction and the accumulated-inflection coordinate, Eq.~\eqref{eq:rate} \\
   $\hat{\mathbf{n}}$ \> unit wall-normal direction (gradient of $d$) \\
   $a,\;a_{\max}$ \> laminar amplification rate and its free-shear ceiling ($0.19$) \\
   $Re_\Omega^{\mathrm{c}}(\hat\Omega \hat I)$ \> vorticity-Reynolds onset threshold, Eq.~\eqref{eq:reomc} \\
@@ -366,8 +366,8 @@ calls for local sensors of the profile shape rich enough to place it.
 The local sensors are few. In a thin, quasi-two-dimensional boundary layer only
 one velocity component is significant and only its wall-normal derivatives are
 large, so to second order about any wall-normal point the profile is captured by
-exactly three velocity scales formed from the wall distance $d$---the velocity $u$, the shear
-$d\,u'$, and the curvature $\tfrac12 d^2u''$ (the Taylor coefficients weighted
+exactly three velocity scales formed from the wall distance $d$---the velocity $u$, the
+shear (in-plane vorticity) $d\,u'$, and the curvature $\tfrac12 d^2u''$ (the Taylor coefficients weighted
 by $d^{k}$, the $\tfrac12$ the quadratic term's actual velocity contribution).
 There is a fourth independent local number, the vorticity Reynolds number
 $Re_\Omega=d^2\omega/\nu$; but the amplification \emph{rate} is
@@ -427,8 +427,8 @@ only rotation-invariant products of the indicator vectors survive.
   \includegraphics[width=0.68\textwidth]{indicator_sphere.pdf}
   \caption{The profiles the kernel must match, on the $\mathbb{RP}^2$ indicator
   sphere \eqref{eq:indicators} (orthographic x-ray view: curvature vertical,
-  shear$-$velocity horizontal; near hemisphere solid, far side dotted;
-  triangles mark the four visible poles---velocity left, shear right,
+  vorticity$-$velocity horizontal; near hemisphere solid, far side dotted;
+  triangles mark the four visible poles---velocity left, vorticity right,
   $\pm$curvature top and bottom). Seven Falkner--Skan profiles run as thin
   curves from the wall (center) toward the freestream: favorable
   ($\beta\!=\!+0.30$, blue), Blasius ($\beta\!=\!0$, green), moderate
@@ -459,7 +459,7 @@ equator). What every profile shares as it leaves is not a common direction but a
 parabola $u=By+Cy^2$ satisfies, through \eqref{eq:indicators}, the single linear
 relation
 \begin{equation}
-  \hat I \;\equiv\; Y - X - Z \;=\; \text{shear}-\text{velocity}-\text{curvature} \;=\; 0
+  \hat I \;\equiv\; Y - X - Z \;=\; \text{vorticity}-\text{velocity}-\text{curvature} \;=\; 0
   \label{eq:parabola}
 \end{equation}
 identically, so the parabola great circle $\hat I=0$ is the neutral locus. A real
@@ -479,9 +479,10 @@ combination,
   \label{eq:g_integral}
 \end{equation}
 so $I$ is exactly the residual of the near-wall parabolic fit: the
-\emph{accumulated inflection}---the integrand $\tfrac12 s^2 u'''$ is the
-third-derivative contribution to the wall-to-point change of the vorticity,
-and $I$ accumulates it from the wall to the probe point. Since
+\emph{accumulated inflection}---the integrand
+$-\tfrac12 s^2 u''' = \tfrac12 s^2\omega''$ is the third-derivative
+contribution to the wall-to-point change of the vorticity, and $I$
+accumulates it from the wall to the probe point. Since
 $u'''\!=\!-\omega''$ (with the two-dimensional sign
 convention $\omega=-u'$ used in this section; elsewhere $\omega$ denotes the
 vorticity magnitude), it is the
@@ -570,8 +571,8 @@ single shape-driven continuum: from the near-parabolic Blasius profile, through
 the adverse layers as an inflection point emerges and the growth turns inviscid
 (Rayleigh), to the detached shear layer of a separation bubble and its unbounded
 limit, the free mixing layer. The coordinate $\hat\Omega \hat I$ runs along exactly this
-continuum---zero on the neutral parabola, unity at the fully-inflectional shear
-pole---so one ceiling closes it.
+continuum---zero on the neutral parabola, unity at the fully-inflectional
+vorticity pole---so one ceiling closes it.
 
 At that pole the profile \emph{is} a free shear layer, and its amplification is
 the inviscid Kelvin--Helmholtz instability: a \emph{temporal} eigenvalue with no
@@ -859,7 +860,7 @@ should.
 We represent the shape by a soft minimum of the two limits,
 \begin{equation}
   Re_\Omega^{\mathrm c}(\hat\Omega \hat I) \;=\; k\,\operatorname{softmin}_2\!\Big(C,\;
-      A + B\,(\hat\Omega \hat I)^{-2}\Big),
+      A + B\,\langle\hat\Omega \hat I\rangle_+^{-2}\Big),
   \qquad (C,\,A,\,B) \;=\; (2600,\;175,\;2),
   \label{eq:reomc}
 \end{equation}
@@ -3355,8 +3356,8 @@ production, destruction, and closure functions, carried over unchanged, are
   \tilde S = \omega + \frac{\tilde\nu}{\kappa^2 d^2}\,f_{v2}, \qquad
   f_{v2} = 1 - \frac{\chi}{1+\chi f_{v1}}, \notag\\[3pt]
   f_{v1} = \frac{\chi^3}{\chi^3+c_{v1}^3}, \qquad
-  f_w = g_w\!\left(\frac{1+c_{w3}^6}{g_w^6+c_{w3}^6}\right)^{\!1/6}, \qquad
-  g_w = r + c_{w2}(r^6-r), \qquad
+  f_w = g\!\left(\frac{1+c_{w3}^6}{g^6+c_{w3}^6}\right)^{\!1/6}, \qquad
+  g = r + c_{w2}(r^6-r), \qquad
   r = \min\!\left(\frac{\tilde\nu}{\tilde S\,\kappa^2 d^2},\,10\right),
   \label{eq:sa_closure}
 \end{gather}
@@ -3370,8 +3371,8 @@ $U^+(y^+)$ in Eq.~\eqref{eq:fv1q} is Reichardt's law of the
 wall~\cite{reichardt_1951},
 $U^+=\tfrac1\kappa\ln(1+\kappa y^+)+7.8\,(1-e^{-y^+/11}-\tfrac{y^+}{11}e^{-y^+/3})$
 (the wall-function
-auxiliary $g_w$ is Spalart's $g$, renamed for consistency with the coordinate
-symbols
+auxiliary $g$ is Spalart's, with its literature symbol restored now that the
+coordinate rename freed it
 below). We retain the
 non-negative $\tilde S$ modification and the negative-$\tilde\nu$ safeguards
 of Ref.~\cite{allmaras_2012}. The handover weights are

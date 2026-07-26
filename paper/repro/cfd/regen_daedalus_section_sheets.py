@@ -1,7 +1,7 @@
 """Daedalus SECTION sheets -> figs/daedalus_section_eta{10,75,92}.pdf.
 
 The 2D airfoils' five-row whole-page diagnostic (rows: probe-max Re_Omega;
-probe-max Shat*g; max chi with the e^N envelope N; -Cp; signed C_f,x),
+probe-max Omega_hat*I_hat; max chi with the e^N envelope N; -Cp; signed C_f,x),
 now cut at fixed spanwise stations of the Daedalus wing -- built to
 diagnose why the RANS sectional profile drag grows with lift while the
 strips' XFOIL profile drag stays flat (the CD-vs-CL slope discrepancy of
@@ -88,8 +88,8 @@ def sphere_rate_1d(u, dudy, yc):
     Y = yc * dudy
     Z = 0.5 * yc**2 * d2u
     R = np.sqrt(X * X + Y * Y + Z * Z) + 1e-30
-    Shat = Y / np.sqrt(X * X + Y * Y + 1e-30)
-    return Shat * (Y - X - Z) / R
+    Omega_hat = Y / np.sqrt(X * X + Y * Y + 1e-30)
+    return Omega_hat * (Y - X - Z) / R
 
 
 def onset_threshold(pmax):
@@ -143,7 +143,7 @@ def probe_station(vol, case, contours, c_loc, x_le, mu_ref):
             dud = np.gradient(u, d)
             reo[i] = np.nanmax(d**2 * np.abs(dud)) / mu_ref
             rate2d[i] = sphere_rate_1d(np.abs(u), dud, d)
-        # neighbor-smooth Shat*g before the max (see repro/lib/smooth.py)
+        # neighbor-smooth Omega_hat*I_hat before the max (see repro/lib/smooth.py)
         from lib.smooth import nan_gaussian
         rate2d = nan_gaussian(rate2d, sigma=(0.005 * N_ANCH / 0.985,
                                              0.05 * N_PROBE))
@@ -258,7 +258,7 @@ def make_sheet(eta_q):
         handles.append(Line2D([], [], color='0.3', ls='--', lw=1.5,
                               label='unstructured L2 (where complete)'))
     handles.append(Line2D([], [], color='0.5', ls='-.', lw=0.8,
-                          label=r'onset threshold $Re_\Omega^c(P)$'))
+                          label=r'onset threshold $Re_\Omega^c(\hat\Omega\hat I)$'))
     handles.append(Line2D([], [], color='0.35', ls=':', lw=1.4,
                           label=r'FlexFoil strip ($N$, $C_p$, $C_f$)'))
     axs[0, 0].legend(handles=handles, fontsize=7.5, loc='lower right')

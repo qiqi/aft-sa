@@ -9,7 +9,7 @@ like 1/Re_theta per e-fold, so it acts on the thin-layer (low-threshold)
 side and vanishes on the thick-layer (ceiling) side. Hence ONE compensation
 factor k on the low branch only:
 
-    Re_Omega_crit(S_hat*g) = softmin_2(C, k*[A + B*(S_hat*g)^-2]),
+    Re_Omega_crit(Omega_hat*I_hat) = softmin_2(C, k*[A + B*(Omega_hat*I_hat)^-2]),
 
 with k anchored by a 1-D solve: the marched Blasius envelope must cross
 N=1 at the Drela-Giles station Re_theta = 338. (The earlier free 3-parameter

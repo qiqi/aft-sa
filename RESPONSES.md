@@ -2573,3 +2573,18 @@ negative-incidence pair is now grid-converged and correct on both surfaces under
 canon — Sec IV migration gets a success story where the draft had a "boundary of
 applicability". eppler_ext running (last 12 cases); Daedalus chain armed behind the
 completion marker.
+
+## 2026-07-26 02:15 UTC — Pass 32 (rename audit): 3 majors + minors 1-4,6 done; 5,7 deferred
+
+Majors: (1) pole/indicator scheme settled — Y = "vorticity (shear) indicator", mnemonic
+"vorticity−velocity−curvature", fig:model caption poles + the line-wrapped "shear pole"
+straggler fixed; (2) Daedalus legend Re_Omega^c(P) -> (Omega_hat I_hat), three sheets
+regenerated; (3) SIGN SLIP in the accumulated-inflection definitional sentence fixed
+(integrand is −½s²u‴ = +½s²ω″ — the reviewer caught the theorem sentence off by a sign).
+Minors: nomenclature/abstract naming drift fixed ("accumulated-inflection coordinate");
+stdout labels converted; comment sweep completed (incl. 3 more files found);
+eq:reomc now carries the ⟨·⟩₊ clip matching App E; Spalart's g RESTORED (g_w retired —
+the cleanest outcome of freeing the symbol). Deferred: eq label renames (churn);
+the 93/93 hard gate (script currently executing — bash incremental-read hazard; monitors
+serve as tonight's audit). CORRECTION to the 01:45 audit claim: "repo grep clean" was
+overstated — rendered-PDF clean; comments swept per pass-32's list.

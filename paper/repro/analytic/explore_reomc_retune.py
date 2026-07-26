@@ -35,9 +35,9 @@ def sphere_rate(u, dudy, yc, ceil, a_, b_):
     d2u = np.gradient(dudy, yc)
     X = u; Y = yc*dudy; Z = 0.5*yc**2*d2u
     R = np.sqrt(X*X + Y*Y + Z*Z) + 1e-30
-    Shat = Y/np.sqrt(X*X + Y*Y + 1e-30)
+    Omega_hat = Y/np.sqrt(X*X + Y*Y + 1e-30)
     g = (Y - X - Z)/R
-    P = Shat*g
+    P = Omega_hat*g
     a = A_MAX*np.minimum(1.0, np.clip(P, 0.0, None))
     ReOm = yc**2*np.abs(dudy)
     _pw = a_ + b_*np.maximum(P, 1e-6)**(-2.0)

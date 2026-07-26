@@ -19,8 +19,8 @@ Also recorded per (beta, c): the N=1 crossing Re_theta -- the stage-(c) input
 for re-anchoring Re_Omega_crit against the Drela-Giles N=1 station.
 
 Onset kernel = the CURRENT solver canon (softmin_2, absorbed scale):
-    Re_Omega_crit = softmin_2(1670, 112 + 1.28/(S_hat*g)^2), ramp w=0.35,
-    a = 0.19*clip<S_hat*g>_0^1.
+    Re_Omega_crit = softmin_2(1670, 112 + 1.28/(Omega_hat*I_hat)^2), ramp w=0.35,
+    a = 0.19*clip<Omega_hat*I_hat>_0^1.
 (These will be re-anchored in stage (c) after c_nu,ai is chosen; the slope
 criterion of stages (a)-(b) is insensitive to the onset scale, which moves
 the crossings but hardly the secants between them.)
@@ -53,9 +53,9 @@ def sphere_rate(u, dudy, yc,
     d2u = np.gradient(dudy, yc)
     X = u; Y = yc*dudy; Z = 0.5*yc**2*d2u
     R = np.sqrt(X*X + Y*Y + Z*Z) + 1e-30
-    Shat = Y/np.sqrt(X*X + Y*Y + 1e-30)
+    Omega_hat = Y/np.sqrt(X*X + Y*Y + 1e-30)
     g = (Y - X - Z)/R
-    P = Shat*g
+    P = Omega_hat*g
     a = A_MAX*np.minimum(1.0, np.clip(P, 0.0, None))
     ReOm = yc**2*np.abs(dudy)
     _pw = a_ + b_*np.maximum(P, 1e-6)**(-2.0)
