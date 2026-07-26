@@ -1,0 +1,218 @@
+{
+ "cavL0prop_eppler387_Re200k_a0": {
+  "CL": 0.3847,
+  "CD": 0.01196,
+  "xtr_up": 0.6426,
+  "xtr_lo": 0.9986,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 2.5
+ },
+ "cavL0prop_eppler387_Re200k_a5": {
+  "CL": 0.9253,
+  "CD": 0.01596,
+  "xtr_up": 0.4888,
+  "xtr_lo": 0.9983,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 2.6
+ },
+ "cavL0prop_eppler387_Re200k_a7": {
+  "CL": 1.1241,
+  "CD": 0.02038,
+  "xtr_up": 0.3908,
+  "xtr_lo": 0.9983,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 2.6
+ },
+ "cavL0prop_eppler387_Re200k_a2": {
+  "CL": 0.6061,
+  "CD": 0.01246,
+  "xtr_up": 0.5721,
+  "xtr_lo": 0.9985,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 2.6
+ },
+ "cavL1prop_eppler387_Re200k_a0": {
+  "CL": 0.3969,
+  "CD": 0.01026,
+  "xtr_up": 0.6501,
+  "xtr_lo": 0.9987,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 5.5
+ },
+ "cavL1prop_eppler387_Re200k_a2": {
+  "CL": 0.6207,
+  "CD": 0.01152,
+  "xtr_up": 0.5912,
+  "xtr_lo": 0.9985,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 5.5
+ },
+ "strL0prop_eppler387_Re200k_a2": {
+  "CL": 0.6079,
+  "CD": 0.01381,
+  "xtr_up": 0.575,
+  "xtr_lo": 0.998,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 2.3
+ },
+ "strL0prop_eppler387_Re200k_a0": {
+  "CL": 0.3859,
+  "CD": 0.01292,
+  "xtr_up": 0.645,
+  "xtr_lo": 0.998,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 2.3
+ },
+ "strL0prop_eppler387_Re200k_a7": {
+  "CL": 1.0639,
+  "CD": 0.02728,
+  "xtr_up": 0.31,
+  "xtr_lo": 0.9974,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 2.3
+ },
+ "strL0prop_eppler387_Re200k_a5": {
+  "CL": 0.9083,
+  "CD": 0.02007,
+  "xtr_up": 0.48,
+  "xtr_lo": 0.9981,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 2.3
+ },
+ "strL1prop_eppler387_Re200k_a2": {
+  "CL": 0.6048,
+  "CD": 0.01196,
+  "xtr_up": 0.6083,
+  "xtr_lo": 1.0,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 5.3
+ },
+ "cavL1prop_eppler387_Re200k_a5": {
+  "CL": 0.9465,
+  "CD": 0.01444,
+  "xtr_up": 0.5106,
+  "xtr_lo": 0.9983,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 15.8
+ },
+ "strL1prop_eppler387_Re200k_a0": {
+  "CL": 0.3843,
+  "CD": 0.0108,
+  "xtr_up": 0.6631,
+  "xtr_lo": 1.0,
+  "steps": 24995,
+  "converged": true,
+  "dt_min": 7.7
+ },
+ "strL1prop_eppler387_Re200k_a5": {
+  "CL": 0.9218,
+  "CD": 0.01575,
+  "xtr_up": 0.5093,
+  "xtr_lo": 0.9998,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 5.2
+ },
+ "cavL1prop_eppler387_Re200k_a7": {
+  "CL": 1.1593,
+  "CD": 0.01557,
+  "xtr_up": 0.3734,
+  "xtr_lo": 0.9982,
+  "steps": 24995,
+  "converged": true,
+  "dt_min": 25.7
+ },
+ "cavL2prop_eppler387_Re200k_a5": {
+  "CL": 0.9375,
+  "CD": 0.01428,
+  "xtr_up": 0.5219,
+  "xtr_lo": 0.9984,
+  "steps": 24995,
+  "converged": true,
+  "dt_min": 23.5
+ },
+ "cavL2prop_eppler387_Re200k_a0": {
+  "CL": 0.3894,
+  "CD": 0.0103,
+  "xtr_up": 0.6608,
+  "xtr_lo": 0.9989,
+  "steps": 29994,
+  "converged": true,
+  "dt_min": 32.2
+ },
+ "cavL2prop_eppler387_Re200k_a2": {
+  "CL": 0.6124,
+  "CD": 0.01167,
+  "xtr_up": 0.6005,
+  "xtr_lo": 0.9987,
+  "steps": 29994,
+  "converged": true,
+  "dt_min": 32.4
+ },
+ "cavL2prop_eppler387_Re200k_a7": {
+  "CL": 1.1535,
+  "CD": 0.01419,
+  "xtr_up": 0.3767,
+  "xtr_lo": 0.9982,
+  "steps": 29994,
+  "converged": true,
+  "dt_min": 32.5
+ },
+ "strL1prop_eppler387_Re200k_a7": {
+  "CL": 1.1262,
+  "CD": 0.01686,
+  "xtr_up": 0.3598,
+  "xtr_lo": 0.9996,
+  "steps": 19996,
+  "converged": true,
+  "dt_min": 19.8
+ },
+ "strL2prop_eppler387_Re200k_a0": {
+  "CL": 0.3844,
+  "CD": 0.0101,
+  "xtr_up": 0.6623,
+  "xtr_lo": 0.999,
+  "steps": 29994,
+  "converged": true,
+  "dt_min": 33.3
+ },
+ "strL2prop_eppler387_Re200k_a2": {
+  "CL": 0.6059,
+  "CD": 0.01154,
+  "xtr_up": 0.6073,
+  "xtr_lo": 0.9987,
+  "steps": 29994,
+  "converged": true,
+  "dt_min": 33.4
+ },
+ "strL2prop_eppler387_Re200k_a7": {
+  "CL": 1.1415,
+  "CD": 0.01431,
+  "xtr_up": 0.3856,
+  "xtr_lo": 0.9983,
+  "steps": 29994,
+  "converged": true,
+  "dt_min": 33.4
+ },
+ "strL2prop_eppler387_Re200k_a5": {
+  "CL": 0.9274,
+  "CD": 0.01451,
+  "xtr_up": 0.5254,
+  "xtr_lo": 0.9984,
+  "steps": 29994,
+  "converged": true,
+  "dt_min": 74.1
+ }
+}

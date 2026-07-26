@@ -5,7 +5,7 @@ should visibly shorten the bubble; if it is the c_v1 (f_v1) amplitude
 ladder, reattachment should barely move.
 
 RESULT (both Re): tau=1 turns the steady canon solutions into relaxation
-oscillators (limit-cycle dCL ~ 0.3 at 1e5, ~ 0.08 at 2e5) without closing
+oscillators (limit-cycle dCL ~ 0.3 at 1e5, ~ 0.06 at 2e5; final-20% ptp, new canon) without closing
 the 1e5 bubble -- the bottleneck is the amplitude ladder, not the ramp.
 
   python3 run_tau_test.py [gpu]        # runs Re=1e5 then Re=2e5

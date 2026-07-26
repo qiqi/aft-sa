@@ -2710,3 +2710,17 @@ rows restored (1e5 sheets regenerated with the new-canon fork extensions, 8 rows
 Build clean. Remaining CFD: Daedalus P3 (ogrid L2 a4 solving ~2h in, a5/a6 follow) —
 cavity L2 held per order. Remaining paper: Daedalus migration when P3 lands; solver
 identifier rename after that (clean rebuild).
+
+## 2026-07-26 09:25 UTC — Pass 34: tau-amplitude convention error fixed + record parity
+
+The reviewer caught a real one: my tau=1 amplitudes (0.34/0.29) used a final-50% window
+contaminated by the cold-start transient — at 2e5 that's ~5x the recurrent oscillation.
+At the paper's own final-20% convention: 0.30 at 1e5 (unchanged from pre-bypass 0.29)
+and 0.06 at 2e5 (WEAKER than pre-bypass 0.08). Text now prints 0.3/0.06 with "the
+oscillation persists" (my "stronger still" and the commit's "sharpening" claim are
+retracted — the qualitative relaxation-oscillator finding stands at both Re). Minors:
+drag bound ~5e-4; App-C "agree to within the residual unsteadiness" + warm-started
+terminology; generator docstrings no longer assert the refuted second branch (dead
+fork-overlay block deleted); AND the fv1 tree converted from a bare symlink to the
+fr layout (real dir, member symlinks) so the new-canon record — 10 results JSONs + 24
+ai_constants logs — is now IN GIT with pre-bypass parity.

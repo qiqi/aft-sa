@@ -71,20 +71,6 @@ def for_each_case(Rk):
             yield fam, lvl, sweep_dir(fam, lvl, Rk), R.MESH_LS[fam], R.LEVEL_LW[lvl]
 
 
-# Warm-started (continuation) L2 solutions at Re=1e5: the second branch of
-# the bistable band (run_bistability_forks.py). Distinct hues, side-paired.
-FORK_UP, FORK_LO = 'darkcyan', 'darkviolet'
-
-
-def for_each_fork(Rk):
-    if Rk != 100:
-        return
-    for fam in FAMS:
-        d = f"{B}/fork_{fam}L2_Re100k_a5"
-        if os.path.isdir(d):
-            yield fam, d, R.MESH_LS[fam], R.LEVEL_LW['L2']
-
-
 def make_fig(re_list, out):
     fig, axs = plt.subplots(5, len(re_list), figsize=(5.2*len(re_list), 13.6),
                             sharex=True)

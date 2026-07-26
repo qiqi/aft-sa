@@ -150,8 +150,9 @@ def sweep_re_sheet(retag, Re, relabel, side):
     """One appendix sheet per sweep Reynolds number, in the alpha-sheet
     style: 6 rows = the six grids paired by level (Re = 2e5 is covered by
     the main-matrix sheets). At Re = 1e5 two extra rows carry the L2
-    solutions warm-started from the converged 2e5 state (the reattaching
-    branch of the bistable band, Sec. eppbistab): both branches plotted.
+    solutions warm-started from the converged 2e5 state; the study's
+    outcome (Sec. eppbistab) is that there is NO second branch -- the
+    rows are plotted because they coincide with the cold-start rows.
     Wall-normal range scales as 1/sqrt(Re) from the Re = 2e5 values."""
     import regen_eppler_v2 as m
     L_ref = AF_SETUP['eppler387']['L_up' if side == 'upper' else 'L_lo']
