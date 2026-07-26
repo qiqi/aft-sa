@@ -3210,3 +3210,14 @@ GPUs 6/7 (L0 starts now — its mesh is built; L1/L2 follow their mesh
 builds). Note alpha=2.5 at 7.2e6 is also measured (Fig 14b) — cheap
 add if wanted. Running tonight: Daedalus a6 (GPUs 0-5), re72a0 ladder
 (GPUs 6/7), re65 L1/L2 mesh builds (CPU).
+
+## 2026-07-26 19:00 UTC — Workshop pair armed; full spheroid campaign completes overnight
+
+All three re65 (h0=1.5e-6) meshes BUILT. re72a0 L0 solving: CL ~ 1e-6
+(exact axisymmetric zero lift — sanity PASS), CD 0.0189 at 5k steps.
+Workshop pair staged (re65a5, re65a10 x L0/L1/L2, muRef=0.1/6.5e6) and
+chained behind the re72a0 ladder on GPUs 6/7. Overnight queue: Daedalus
+a6 (~21:50, GPUs 0-5) -> spheroid re72a0 L1/L2 -> re65 pair (~04:00).
+By morning: the COMPLETE spheroid matrix (1.5e6 x {5,10,29.7} +
+7.2e6 x {0} + 6.5e6 x {5,10}, all on three grid levels) + the full
+new-canon Daedalus set.
