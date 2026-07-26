@@ -1694,6 +1694,34 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
 
 \begin{figure}[tp]
   \centering
+  \includegraphics[width=0.96\textwidth]{nlf_cf_negalpha.pdf}
+  \caption{NLF(1)-0416 at the negative-incidence pair
+  $\alpha\!=\!-8^\circ$ (left, well into the negative branch of the
+  measured polar) and $-4^\circ$ (right, zero lift), finest (L2)
+  grids of both mesh families, with the five-row suite and line
+  conventions described in the text (rows: probe-max
+  $Re_\Omega$, probe-max $\hat\Omega \hat I$, near-wall $\max\chi$ with the
+  $e^9$ $N$ envelope, $-C_p$, signed $C_f$; upper surface blue, lower
+  red). The $e^9$ overlay is mfoil at $-8^\circ$ and FlexFoil at
+  $-4^\circ$, where mfoil's coupled solve does not converge; filled
+  triangle: measured onset at the computed lift. All four solutions
+  are front-converged (batched restarts to a $0.01\,c$ front
+  tolerance). At $-4^\circ$ both fronts land on the references. At
+  $-8^\circ$ the suction (lower) surface trips at
+  $0.004$--$0.011\,c$, on the $e^9$ leading-edge trip, locking
+  within the first batches, while the pressure-side (upper) front
+  settles at $0.559$--$0.561\,c$, on the measured
+  ${\approx}0.54\,c$ ($e^9$: $0.66\,c$); the march there is
+  slow---${\approx}0.5\,c$ of aft travel over
+  ${\sim}7\!\times\!10^4$ pseudo-steps from the cold start---so
+  rows~1--3 on that surface only read cleanly at front convergence.
+  The wall-anchored contour sheets appear in Appendix~A
+  (Figs.~\ref{fig:sheet_nlf0416_negalpha_upper}--\ref{fig:sheet_nlf0416_negalpha_lower}).}
+  \label{fig:nlfnegalpha}
+\end{figure}
+
+\begin{figure}[tp]
+  \centering
   \includegraphics[width=0.99\textwidth]{nlf_cf_lowalpha.pdf}
   \caption{NLF(1)-0416 surface distributions at $\alpha\!\in\!\{0^\circ,4^\circ\}$,
   $Re\!=\!4\!\times\!10^6$, $\chi_\infty\!=\!8.76\!\times\!10^{-4}$. Five-row
@@ -1747,33 +1775,6 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
   \label{fig:nlfcfhigh}
 \end{figure}
 
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.96\textwidth]{nlf_cf_negalpha.pdf}
-  \caption{NLF(1)-0416 at the negative-incidence pair
-  $\alpha\!=\!-4^\circ$ (left, zero lift) and $-8^\circ$ (right,
-  well into the negative branch of the measured polar), finest (L2)
-  grids of both mesh families, with the five-row suite and line conventions of
-  Figs.~\ref{fig:nlfcflow}--\ref{fig:nlfcfhigh} (rows: probe-max
-  $Re_\Omega$, probe-max $\hat\Omega \hat I$, near-wall $\max\chi$ with the
-  $e^9$ $N$ envelope, $-C_p$, signed $C_f$; upper surface blue, lower
-  red). The $e^9$ overlay is mfoil at $-8^\circ$ and FlexFoil at
-  $-4^\circ$, where mfoil's coupled solve does not converge; filled
-  triangle: measured onset at the computed lift. All four solutions
-  are front-converged (batched restarts to a $0.01\,c$ front
-  tolerance). At $-4^\circ$ both fronts land on the references. At
-  $-8^\circ$ the suction (lower) surface trips at
-  $0.004$--$0.011\,c$, on the $e^9$ leading-edge trip, locking
-  within the first batches, while the pressure-side (upper) front
-  settles at $0.559$--$0.561\,c$, on the measured
-  ${\approx}0.54\,c$ ($e^9$: $0.66\,c$); the march there is
-  slow---${\approx}0.5\,c$ of aft travel over
-  ${\sim}7\!\times\!10^4$ pseudo-steps from the cold start---so
-  rows~1--3 on that surface only read cleanly at front convergence.
-  The wall-anchored contour sheets appear in Appendix~A
-  (Figs.~\ref{fig:sheet_nlf0416_negalpha_upper}--\ref{fig:sheet_nlf0416_negalpha_lower}).}
-  \label{fig:nlfnegalpha}
-\end{figure}
 
 Because a favorable gradient keeps the profile's curvature single-signed
 ($\hat\Omega \hat I\!\to\!0$), the model holds the favorable rooftop laminar with no

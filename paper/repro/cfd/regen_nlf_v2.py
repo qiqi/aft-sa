@@ -914,7 +914,7 @@ if __name__ == '__main__':
                                 meshes=['cav'])
     if mode == 'neg':
         # negative-incidence pair (finest grids only -- L2 both families)
-        alphas = [-4, -8]
+        alphas = [-8, -4]
         LEVELS_CF[:] = ['L2']
         make_cf_figure(alphas, 'nlf_cf_negalpha',
                        'NLF(1)-0416 at $\\alpha\\in\\{-4^\\circ,-8^\\circ\\}$'
