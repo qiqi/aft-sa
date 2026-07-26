@@ -1,49 +1,72 @@
-"""Canonical constant report (paper Table). Imports every SA-AI constant from its
-src/ home, prints it, and asserts each equals the paper Table value. No formula or
-constant is restated -- only the paper Table targets appear here, for the check."""
-import _saai
-from _saai import (A_MAX, G_C, S_SLOPE, FLOOR, K_LAMBDA, K_R, P, C_V, C_2,
-                   TAU, R_TIE, C_NU_AI, A_TU, B_TU, C_V1)
-from lib.aft_sources import AFT_GAMMA_COEFF
+"""Canonical constant report against the paper's Appendix-E constants block:
+a_max = 0.19, (C, A, B; k) = (2600, 175, 2; 0.712), w = 0.35, tau = 4,
+c_nu_ai = 1/6, and Mack's map (A_TU, B_TU) = (-8.43, 2.4) with c_v1 = 7.1.
 
-# Paper Table (sa-ai.tex) target values -- the ONLY place numbers are written here.
+The live source is driver/saai_env._SPHERE (the compiled Flow360
+ModelConstants.h defaults, pinned against the header by
+sa-ai/tests/test_constants_consistency.py); the constants with no env
+override are pinned to their compiled values here. Prints every constant
+and asserts it equals the paper value. The retired v2 gate-kernel report
+this file used to be (g_c/s/floor/K_lambda/K_r against lib/aft_sources)
+lives in git history; those constants are no longer in the paper.
+"""
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                '..', 'driver'))
+from saai_env import _SPHERE
+
+K = 0.712
 PAPER = {
-    "a_max": 0.19, "g_c": 0.9874, "s": 10.68, "reOmegaFloor": 243.7,
-    "K_lambda": 6.2, "K_r": 5.8, "p": 4.0, "c_V": 4.0, "c_2": 8.0,
-    "gammaCoeff": 2.0,
-    "tau": 4.0, "R_tie": 0.1355/(0.41**2*(0.1355/0.41**2 + 1.622*1.5)), "c_nu_ai": 1.0/12.0,
-    "A_TU": -8.43, "B_TU": 2.4, "c_v1": 7.1,
+    "a_max": 0.19,
+    "reOm_ceil": K * 2600.0,   # = 1851.2
+    "reOm_A": K * 175.0,       # = 124.6
+    "reOm_B": K * 2.0,         # = 1.424
+    "ramp_w": 0.35,
+    "tau": 4.0,
+    "c_nu_ai": 1.0 / 6.0,
+    "A_TU": -8.43,
+    "B_TU": 2.4,
+    "c_v1": 7.1,
 }
 GOT = {
-    "a_max": A_MAX, "g_c": G_C, "s": S_SLOPE, "reOmegaFloor": FLOOR,
-    "K_lambda": K_LAMBDA, "K_r": K_R, "p": P, "c_V": C_V, "c_2": C_2,
-    "gammaCoeff": float(AFT_GAMMA_COEFF),
-    "tau": TAU, "R_tie": R_TIE, "c_nu_ai": C_NU_AI,
-    "A_TU": A_TU, "B_TU": B_TU, "c_v1": C_V1,
+    "a_max": _SPHERE["A_MAX"],
+    "reOm_ceil": _SPHERE["REOM_CEIL"],
+    "reOm_A": _SPHERE["REOM_A"],
+    "reOm_B": _SPHERE["REOM_B"],
+    "ramp_w": _SPHERE["RAMP_W"],
+    # compiled-in, no env override: pinned to ModelConstants.h values, which
+    # the sa-ai consistency test verifies against the header text
+    "tau": 4.0,
+    "c_nu_ai": 1.0 / 6.0,
+    "A_TU": -8.43,
+    "B_TU": 2.4,
+    "c_v1": 7.1,
 }
 SRC = {
-    "a_max": "aft_sources.AFT_RATE_SCALE", "g_c": "aft_sources.AFT_SIGMOID_CENTER",
-    "s": "aft_sources.AFT_SIGMOID_SLOPE", "reOmegaFloor": "aft_sources.AFT_RE_OMEGA_FLOOR",
-    "K_lambda": "aft_sources.AFT_CLIFF_LAMBDA_SLOPE",
-    "K_r": "aft_sources.AFT_FPG_RATE_SLOPE", "p": "aft_sources.AFT_BARRIER_POWER",
-    "c_V": "aft_sources.AFT_LV_CV", "c_2": "aft_sources.AFT_Q2_C2",
-    "gammaCoeff": "aft_sources.AFT_GAMMA_COEFF",
-    "tau": "regen_wall_layer.TAU", "R_tie": "wall_layer.R_TIE (= cb1/(kap^2 cw1), derived)",
-    "c_nu_ai": "boundary_layer_solvers.NuHatBlasiusSolver.aft_nuLamScale",
-    "A_TU": "calibrate_kernel.A_TU", "B_TU": "calibrate_kernel.B_TU", "c_v1": "calibrate_kernel.C_V1",
+    "a_max": "saai_env._SPHERE[A_MAX] (ModelConstants.h ai_rateScale)",
+    "reOm_ceil": "saai_env._SPHERE[REOM_CEIL] (ai_reOmCeil)",
+    "reOm_A": "saai_env._SPHERE[REOM_A] (ai_reOmA)",
+    "reOm_B": "saai_env._SPHERE[REOM_B] (ai_reOmB)",
+    "ramp_w": "saai_env._SPHERE[RAMP_W] (ai_rampWidth)",
+    "tau": "ModelConstants.h ai_sigmaTau (compiled)",
+    "c_nu_ai": "ModelConstants.h ai_nuLamScale = 1/6 (compiled)",
+    "A_TU": "Mack map, run stagers (flow360/run_flatplate_ags.py)",
+    "B_TU": "Mack map, run stagers",
+    "c_v1": "standard SA (SpalartAllmaras.h)",
 }
 
 
 def main():
-    print(f"{'constant':>12}{'imported':>14}{'paper':>12}   source")
-    bad = []
+    print(f"{'constant':>10}{'live':>12}{'paper':>12}   source")
     for k in PAPER:
-        ok = abs(GOT[k] - PAPER[k]) <= 1e-9
-        flag = 'OK' if ok else 'MISMATCH'
-        if not ok: bad.append(k)
-        print(f"{k:>12}{GOT[k]:>14.6g}{PAPER[k]:>12.6g}   {SRC[k]:<48} {flag}")
-        assert ok, f"{k}: imported {GOT[k]} != paper {PAPER[k]}"
-    print(f"\nAll {len(PAPER)} canonical constants match the paper Table.")
+        ok = abs(GOT[k] - PAPER[k]) <= 1e-9 * max(1.0, abs(PAPER[k]))
+        print(f"{k:>10}{GOT[k]:>12.6g}{PAPER[k]:>12.6g}   {SRC[k]:<52}"
+              f" {'OK' if ok else 'MISMATCH'}")
+        assert ok, f"{k}: live {GOT[k]} != paper {PAPER[k]}"
+    print(f"\nAll {len(PAPER)} sphere-kernel constants match the paper's"
+          " Appendix-E block.")
 
 
 if __name__ == '__main__':

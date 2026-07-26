@@ -32,10 +32,12 @@ camp = json.load(open(f'{B}/sphere_campaign_nlf_results.json'))
 # results so the L2 am4/am8 markers (and the lift-curve nodes the
 # workshop underlay maps through) are present
 _negp = f'{B}/sphere_campaign_nlf_neg_results.json'
-if os.path.exists(_negp):
-    for _k, _v in json.load(open(_negp)).items():
-        if isinstance(_v, dict) and 'CL' in _v:
-            camp.setdefault(_k, _v)
+# part of the committed canon: without it the workshop underlay's whole
+# negative-incidence branch would silently clamp to the alpha=0 lift
+assert os.path.exists(_negp), f'missing neg-campaign results: {_negp}'
+for _k, _v in json.load(open(_negp)).items():
+    if isinstance(_v, dict) and 'CL' in _v:
+        camp.setdefault(_k, _v)
 
 # The full workshop-submittal underlay (all 14 participants, digitized from
 # the summary deck -- data/workshop_nlf_submittals.json). The deck's sweep
@@ -51,6 +53,9 @@ _cc = [camp[f'strL2prop_nlf0416_Re4M_{t}']['CL'] for a, t in _amap
 
 
 def cl_of_alpha(a):
+    a_arr = np.atleast_1d(np.asarray(a, float))
+    assert a_arr.min() >= _aa[0] - 1e-9 and a_arr.max() <= _aa[-1] + 1e-9, \
+        f'alpha {a} outside the computed lift-curve nodes {_aa} -- np.interp would clamp'
     return np.interp(a, _aa, _cc)
 
 

@@ -7,7 +7,8 @@ coarse grid (trapezoidal integration of du+/dy+ = 1/(1+nut+) over the coarse
 nodes, second order), so B and dCf include the discretization error of both the
 nuHat transport and the momentum integration. Same constants/machinery as fig07."""
 import _saai
-from _saai import C_NU_AI as CNU, TAU, R_TIE
+from _saai import TAU, R_TIE
+CNU = 1.0/6.0  # sphere-kernel canon; lib default (1/12) is the retired v2 value
 from lib.spalart_allmaras import CB1 as cb1, SIGMA as sig, CB2 as cb2, \
     KAPPA as kap, CW1 as cw1, CW2 as cw2, CW3 as cw3, CV1 as cv1, CV2 as cv2
 import numpy as np

@@ -24,23 +24,29 @@ SCRIPTS = [  # (script, paper floats/passages it feeds)
     # Sec. IV -- flat plate
     ("regen_flatplate_flow360.py", "fig:flatplate_batch (+ ONSET_DIAG=1: AGS onset numbers)"),
     # Sec. V -- NLF(1)-0416
-    ("regen_nlf_v2.py",            "fig nlf_cf_lowalpha/highalpha"),
-    ("regen_nlf_transition.py",    "tab:nlftrans (printed rows)"),
-    ("regen_l0_artifact.py",       "Sec. V L0-artifact narrative (diagnostic; figure not in sa-ai.tex)"),
+    ("regen_nlf_v2.py",            "fig nlf_cf_lowalpha/highalpha + fig:nlfnegalpha (neg mode)"),
+    ("regen_nlf_transition.py",    "Sec. V transition-front prose numbers"),
     ("regen_nlf_polar.py",         "fig:nlfpolar"),
+    ("regen_nlf_aft_comparison.py","fig:nlfaft (headline transition comparison)"),
     # Sec. VI -- Eppler 387
     ("regen_eppler_v2.py",         "fig eppler_cf_lowalpha/highalpha, fig:epppolar"),
-    ("regen_epp_reattach.py",      "tab:eppxtr (printed rows)"),
+    ("regen_epp_reattach.py",      "Sec. VI separation/reattachment prose numbers"),
+    ("regen_epp_bubble_figure.py", "fig:eppbubble"),
     # Sec. VI, Reynolds sweep
-    ("regen_epp_L1compare.py",     "fig:eppresweep_low, fig:eppresweep_high"),
-    ("regen_resweep_table.py",     "tab:eppresweep (printed LaTeX rows)"),
-    # Appendix -- wall-anchored contour sheets (16 figures)
-    ("regen_chi_sheets.py",        "fig:sheet_* (appendix, 6 grids x 2 columns per case-surface)"),
+    ("regen_epp_resweep_suite.py", "fig:eppresweep_low, fig:eppresweep_high"),
+    ("regen_epp_resweep_forces.py","fig:eppresweepforces"),
+    ("regen_resweep_table.py",     "tab:eppresweep / Table C1 (printed LaTeX rows)"),
+    # Sec. VII -- Daedalus
+    ("regen_daedalus_section_sheets.py", "fig:daesurf4/5/6"),
+    # Appendices -- wall-anchored contour sheets
+    ("regen_chi_sheets.py",        "fig:sheet_* (6 grids x 2 columns per case-surface)"),
+    ("regen_negalpha_sheets.py",   "fig:sheet_nlf0416_negalpha_* (L2 pair)"),
+    ("regen_epp_ext_sheets.py",    "fig:sheet_eppler387_{am2,a8p5}_upper (L2 pair)"),
 ]
 
 
 def main():
-    root = os.environ.get("SAAI_CFD_ROOT", "(default: shipped flow360_fr)")
+    root = os.environ.get("SAAI_CFD_ROOT", "(default: flow360_fv1 canon)")
     print(f"SAAI_CFD_ROOT = {root}")
     results = []
     for script, feeds in SCRIPTS:

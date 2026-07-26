@@ -3004,3 +3004,17 @@ campaign front-convergence protocol (converge_by_xtr). Launcher
 scripts/run_nlfneg_l0l1.sh runs them across GPUs 0-5 the moment
 Daedalus a5 lands (~15:00); appendix sheets then regenerate in the
 standard 6-grid per-alpha format (task #34).
+
+## 2026-07-26 14:15 UTC — Pass 38 (repro audit) actionable core done
+
+resweep-table e9 column fixed (mfoil-convergence branch + xfoil hard-fail;
+reproduces tex digit-for-digit incl. both XFOIL rows); constants_report
+rewritten to the sphere-kernel Appendix-E canon (v2 report retired);
+c_nu_ai=1/6 in the three II.E scripts (tie stays exact, no live digit
+moves); crossing guards in the flat-plate onset path; nlf_aft merge +
+interp hardened (no silent clamp); both regenerate suites rebuilt to the
+current figure inventory; SIX stale paper/-level duplicates deleted;
+ONBOARDING §5 repointed; README/cases.py corrections; committed junk
+purged. Queued: full README float table, silent-skip convention,
+landscape-machinery quarantine, lib migration. Response in
+agent-paper-review/2026-07-26-1330-response.md.

@@ -11,9 +11,8 @@ Layout (matches the archived original + new χ vs Re_θ panel):
 All extraction is from volume.pvtu (cell-centered → already nodal in Flow360
 output). Span direction (y) is collapsed by selecting a single y-slice.
 
-NOTE (partial canon flip, 2026-07-25): Sec. III of the paper is on the
-NEW canon -- regenerate with SAAI_CFD_ROOT=/home/qiqi/flexcompute/sa-ai/flow360_fv1
-until the global root flip; a bare run rebuilds the OLD-canon figure.
+The default root is the fv1 canon; a bare run rebuilds the committed
+figure.
 """
 import os, sys, numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
@@ -329,8 +328,12 @@ def onset_vs_ags():
         xs, cs, rs = x[m], chimax[m], reth[m]
         ags = AGS_Reth(tu)
         row = [f"Tu={tu:5.2f}% {ags:6.0f} |"]
-        for lev in (1.0, 7.1):
-            i = np.where(cs > lev)[0][0]
+        for lev in (1.0, C_V1):
+            hits = np.where(cs > lev)[0]
+            assert len(hits), f"Tu={tu}: chi never crosses {lev}"
+            i = hits[0]
+            assert i > 0, (f"Tu={tu}: chi already above {lev} at the first "
+                           "station -- crossing not interior, refuse to wrap")
             f = (lev - cs[i-1])/(cs[i] - cs[i-1])
             xq = xs[i-1] + f*(xs[i]-xs[i-1])
             rint = rs[i-1] + f*(rs[i]-rs[i-1])

@@ -14,24 +14,22 @@ sys.path.insert(0, ANALYTIC)
 # backs). The two slow Tier-1/N-level scans (scan_background_constants.py,
 # scan_anchor_level.py) are on-demand and not part of this suite.
 SCRIPTS = [
-    # Sec. II -- the model and its indicators
-    "fig01_indicator_plane.py",  # fig:indicatorplane (FS family in the indicator planes)
-    "fig02_kernel_maps.py",      # fig:kernel (S(z) map + cliff)
-    # Sec. III.A -- the rate ceiling and the three-anchor solve
+    # Sec. II -- the model and its committed figures
+    "fig01_indicator_sphere.py", # fig:model (rate coordinate on the sphere)
+    "fig02_onset_graze.py",      # fig:onsetgraze (soft-min onset curve)
+    "fig02_model_calibrate.py",  # fig:calibrate
     "amax_rayleigh.py",          # a_max = tanh-layer eigenvalue (asserts)
-    "verify_three_anchors.py",   # canonical triple satisfies the 3 conditions (asserts)
     "fig03_fs_transport_rows.py",# fig:nuhat (instrument on three wedges)
-    "fig04_shapefactor.py",      # fig:shapefactor (family, cliff-only + factored)
-    # Sec. III.B -- favorable-gradient pair (Tier 3)
-    "fig05_06_klambda.py",       # fig:worstpoint, fig:klambda_sc (K_lambda fixed point)
-    "fit_fpg_rate_slope.py",     # eq:kr one-point fit at beta=0.35 (asserts)
-    # Sec. III.C -- turbulent layer and handover
-    "verify_wall_layer_tie.py",       # Sec III.E tie exactness (asserted; no figure)
-    "tab02_yplus.py",            # tab:yplus
-    # Sec. III.D -- receptivity
-    "tu_map.py",                 # eq:tumap
-    # Sec. III.E -- assembled constants
-    "constants_report.py",       # constants block (asserts vs paper Table)
+    "fig04_shapefactor.py",      # Sec. II shape-factor family (prose numbers)
+    # Sec. II.E -- turbulent layer and handover (prose verification)
+    "verify_wall_layer_tie.py",  # tie exactness (asserted; no figure)
+    "tab02_yplus.py",            # II.E round-off statement (table dropped)
+    # receptivity + assembled constants
+    "tu_map.py",                 # eq:tumap (seed list in Sec. IV)
+    "constants_report.py",       # Appendix-E constants block (asserts)
+    # Historical v2-record scripts (fig01_indicator_plane, fig02_kernel_maps,
+    # fig05_06_klambda, fit_fpg_rate_slope, verify_three_anchors) are retired
+    # from the suite: their floats/constants are no longer in the paper.
 ]
 
 

@@ -7,7 +7,8 @@ the residual is roundoff). No figure: the paper states the identity and
 this script certifies it. SA constants imported from src.spalart_allmaras;
 c_nu,ai / tau / R_TIE imported canonical (_saai)."""
 import _saai
-from _saai import C_NU_AI as CNU, TAU, R_TIE
+from _saai import TAU, R_TIE
+CNU = 1.0/6.0  # sphere-kernel canon; lib default (1/12) is the retired v2 value
 from lib.spalart_allmaras import CB1 as cb1, SIGMA as sig, CB2 as cb2, \
     KAPPA as kap, CW1 as cw1, CW2 as cw2, CW3 as cw3, CV1 as cv1, CV2 as cv2
 import numpy as np

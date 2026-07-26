@@ -22,7 +22,8 @@ import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as spla
 import _saai
-from _saai import SIGMA_SA, K_R, C_NU_AI, A_MAX
+from _saai import SIGMA_SA, A_MAX
+C_NU_AI = 1.0/6.0  # sphere-kernel canon; lib default (1/12) is the retired v2 value
 from fig04_shapefactor import sphere_rate
 from lib.boundary_layer import FalknerSkanWedge
 from lib.spalart_allmaras import CB1 as cb1, CW1 as cw1, CW2 as cw2, \

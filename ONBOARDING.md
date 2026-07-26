@@ -130,13 +130,13 @@ map (or find a new figure's generator), grep the basename across the source dirs
 | `shapefactor_amplification` | `paper/repro/analytic/fig04_shapefactor.py` (kernel + canonical constants live HERE; incl. reversed-flow lower branch, H>4) | self-contained (model) |
 | `daedalus_polar_sectional` | `paper/regen_daedalus_polar_sectional.py` | **Daedalus case tree** + AVL |
 | `daedalus_surface_a{4,5,6}` | `paper/regen_daedalus_surface_maps.py` (strips cache: `regen_daedalus_strips_cache.py`, needs FlexFoil + AVL) | **Daedalus case tree** |
-| `eppler_cf_lowalpha`, `eppler_cf_highalpha` | `paper/regen_eppler_v2.py` (`make_cf_figure`; run `python regen_eppler_v2.py {low\|high\|polar\|all}`) | **CFD tree** + mfoil/xfoil pkl |
-| `eppler_polar_compare` | `paper/regen_eppler_v2.py` (`make_polar_figure`) | **CFD tree** + mfoil pkl |
+| `eppler_cf_lowalpha`, `eppler_cf_highalpha` | `paper/repro/cfd/regen_eppler_v2.py` (`make_cf_figure`; run `python repro/cfd/regen_eppler_v2.py {low\|high\|polar\|all}`) | **CFD tree** + mfoil/xfoil pkl |
+| `eppler_polar_compare` | `paper/repro/cfd/regen_eppler_v2.py` (`make_polar_figure`) | **CFD tree** + mfoil pkl |
 | `eppler_L1compare_lowRe`, `_highRe` | `paper/repro/cfd/regen_epp_L1compare.py` | **CFD tree** + mfoil/xfoil/flexfoil pkl |
 | `mesh_eppler_cav/str`, `mesh_nlf_cav/str` | `paper/regen_mesh_figures.py` (filenames built from `fam_key`×`mesh_key`) | **CFD mesh files** |
 | `nlf_cf_lowalpha`, `nlf_cf_highalpha` | `paper/repro/cfd/regen_nlf_v2.py` (canonical; incl. expt-onset markers + FlexFoil N) | **CFD tree** + mfoil/flexfoil pkl |
-| `nlf_polar_compare` | `paper/regen_nlf_polar.py` | **CFD tree** + mfoil pkl |
-| `flat_plate_batch_flow360` | `paper/regen_flatplate_flow360.py` | **CFD tree** |
+| `nlf_polar_compare` | `paper/repro/cfd/regen_nlf_polar.py` | **CFD tree** + mfoil pkl |
+| `flat_plate_batch_flow360` | `paper/repro/cfd/regen_flatplate_flow360.py` | **CFD tree** |
 
 Tables: `tab:eppxtr` (reattachment) ← `paper/regen_epp_reattach.py`; `tab:eppresweep`
 (α=5 Re-sweep c_l/c_d/c_m vs e⁹ + LTPT Table B1) ← `paper/regen_resweep_table.py`;

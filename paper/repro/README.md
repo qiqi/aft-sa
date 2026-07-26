@@ -18,7 +18,7 @@ loguru) and the Flow360 solver binary (`compute` repo, branch
   a_max eigenvalue check, the Tu map). Run all:
   `python analytic/regenerate_all.py` (figures land in `paper/figs/`).
 - `cfd/` — the CFD figure/table generators. They read one case tree selected
-  by `SAAI_CFD_ROOT` (default: the shipped `sa-ai/flow360_fr/`). Run all:
+  by `SAAI_CFD_ROOT` (default: the fv1 canon `sa-ai/flow360_fv1/` (every cfd script defaults to it)). Run all:
   `python cfd/regenerate_cfd.py`. `prepare.py` assembles a tree from fresh
   driver output (falling back to the shipped tree) and computes the derived
   slice fields (`add_derived_to_slice.py`).
@@ -64,7 +64,7 @@ Read each script alongside the passage it backs; `regenerate_all.py` and
 | §VI Eppler | eppler_cf figures, fig:epppolar | `cfd/regen_eppler_v2.py` |
 | §VI Eppler | tab:eppxtr | `cfd/regen_epp_reattach.py` |
 | §VI α=7° | N_crit sweep behind the shared-e^N discussion (needs xfoil + xvfb-run, on demand) | `cfd/xfoil_ncrit_sweep.py` |
-| §VI Re sweep | fig:eppresweep_low/high | `cfd/regen_epp_L1compare.py` |
+| §VI Re sweep | fig:eppresweep_low/high | `cfd/regen_epp_resweep_suite.py` |
 | Appendix | 18 wall-anchored contour sheets (velocity + log10 chi, 6 grids) | `cfd/regen_chi_sheets.py` |
 | §VI Re sweep | tab:eppresweep | `cfd/regen_resweep_table.py` |
 | numerics.md | discrete-scheme record (replay, spike trace, operator variants; reads the mode-3 tree) | `numerics/*.py` |
@@ -91,6 +91,6 @@ mfoil/XFOIL e^9 caches (`*.pkl`) ship inside the case tree root.
 
 ```
 python analytic/regenerate_all.py          # 12/12 must pass
-SAAI_CFD_ROOT=... python cfd/regenerate_cfd.py    # 9/9 must pass
-python ../../tests/test_constants_consistency.py  # 4/4 must pass
+SAAI_CFD_ROOT=... python cfd/regenerate_cfd.py    # all listed generators must pass (see regenerate_cfd.SCRIPTS)
+python ../../tests/test_constants_consistency.py  # all live checks must pass (the consistency test currently carries 4 SKIPs pending the lib sphere-kernel migration)
 ```

@@ -1,6 +1,8 @@
 """Section-characteristics table for the Eppler 387 alpha=5 Reynolds sweep
-(Sec. VI.A): c_l, c_d, c_m(quarter-chord) from the structured and unstructured
-L1 CFD, the e^9 panel reference (mfoil; XFOIL at 460k), and the LTPT experiment
+(now quoted in the Sec. VI prose and Table C1; the standalone table was
+dissolved): c_l, c_d, c_m(quarter-chord) from the structured and unstructured
+CFD (LEVEL, default L2 -- the level the tex quotes), the e^9 panel reference
+(mfoil where convergent; XFOIL at 60k -- footnoted -- and 460k), and the LTPT experiment
 (NASA TM-4062 Table B1, hand-read from the scanned listing at the tabulated
 angle nearest alpha = 5 deg).
 
@@ -86,7 +88,11 @@ def mfoil_point(Re):
     return float(m.post.cl), float(m.post.cd), float(m.post.cm), bool(m.glob.conv)
 
 def xfoil_point(Re_k):
-    cmds = f"""LOAD {DAT}
+    cmds = f"""PLOP
+G F
+
+LOAD {DAT}
+PANE
 OPER
 MACH 0.1
 VISC {Re_k * 1000}
@@ -99,7 +105,7 @@ ALFA {ALPHA}
 
 QUIT
 """
-    p = subprocess.run(['xvfb-run', '-a', 'xfoil'], input=cmds,
+    p = subprocess.run(['xfoil'], input=cmds,
                        capture_output=True, text=True, timeout=240)
     cl = cd = cm = None
     for line in p.stdout.splitlines():
@@ -117,7 +123,12 @@ def main():
     for Rk in RES:
         s = cfd_forces(str_dir(Rk))
         c = cfd_forces(cav_dir(Rk))
-        if Rk in mn:
+        # the table's e^9 convention (tab:eppresweep footnote): mfoil where
+        # its coupled solve converges to finite forces; XFOIL at 60k (burst
+        # regime, footnoted) and 460k (mfoil diverges outright)
+        use_mfoil = Rk in mn and mn[Rk].get('cl') is not None \
+            and np.isfinite(mn[Rk]['cl']) and Rk not in (60, 460)
+        if use_mfoil:
             cl, cd, cm, conv = mfoil_point(Rk)
             print(f"  mfoil Re={Rk}k fresh cl={cl:.3f} cd={cd:.4f} cm={cm:.4f} conv={conv} "
                   f"(pkl cl={mn[Rk]['cl']:.3f} cd={mn[Rk]['cd']:.4f})")
@@ -125,6 +136,9 @@ def main():
         else:
             cl, cd, cm = xfoil_point(Rk)
             print(f"  xfoil Re={Rk}k cl={cl} cd={cd} cm={cm}")
+            if cl is None or not np.isfinite(cl):
+                raise RuntimeError(f"xfoil unavailable for the Re={Rk}k e9 row"
+                                   " -- refusing to print a NaN table row")
             e9 = (cl, cd, cm)
         rows[Rk] = (s, c, e9, EXP[Rk])
 
