@@ -141,8 +141,12 @@ for mesh, col, mk in (('str', 'C0', 's'), ('cav', 'C1', '^')):
     for lev, ms, mew, al_ in (('L0', 3.5, 0.8, 0.5), ('L1', 5.2, 1.1, 0.75),
                               ('L2', 7.0, 1.6, 1.0)):
         A, LS, TR = [], [], []
-        for a in (0, 2, 5, 7):
-            d = f"{B}/{mesh}{lev}prop_eppler387_Re200k_a{a}"
+        TAG = {-2: 'am2', 0: 'a0', 1: 'a1', 2: 'a2', 3: 'a3', 4: 'a4x',
+               5: 'a5', 6: 'a6', 7: 'a7', 8.5: 'a8p5'}
+        alphas = ((-2, 0, 1, 2, 3, 4, 5, 6, 7, 8.5) if lev == 'L2'
+                  else (0, 2, 5, 7))   # extension set exists on L2 only
+        for a in alphas:
+            d = f"{B}/{mesh}{lev}prop_eppler387_Re200k_{TAG[a]}"
             if not os.path.isdir(d):
                 continue
             try:

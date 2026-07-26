@@ -54,7 +54,10 @@ EXP_ERR = {Rk: (0.006, 0.0003) if Rk >= 100 else (0.039, 0.0023) for Rk in RES}
 OIL = {100: (0.34, 0.67), 200: (0.38, 0.59), 300: (0.39, 0.55)}
 
 bench = json.load(open(f'{B}/sphere_campaign_eppler_results.json'))
-swp = json.load(open(f'{B}/sphere_campaign_epp_sweep_results.json'))
+_swp_p = f'{B}/sphere_campaign_epp_sweep_l1_results.json'
+if not os.path.exists(_swp_p):
+    _swp_p = f'{B}/sphere_campaign_epp_sweep_results.json'   # legacy tree
+swp = json.load(open(_swp_p))
 lvl = json.load(open(f'{B}/sphere_campaign_epp_sweep_levels_results.json'))
 
 
@@ -62,6 +65,9 @@ def case_dir(fam, L, Rk):
     if Rk == 200:
         return f'{B}/{fam}{L}prop_eppler387_Re200k_a5'
     if L == 'L1':
+        uni = f'{B}/sweep_{fam}L1_Re{Rk}k_a5'
+        if os.path.isdir(uni):
+            return uni
         return f'{B}/sweep_Re{Rk}k_a5' if fam == 'cav' else f'{B}/sweep_str_Re{Rk}k_a5'
     return f'{B}/sweep_{fam}{L}_Re{Rk}k_a5'
 

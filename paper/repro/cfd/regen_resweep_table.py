@@ -45,10 +45,12 @@ LEVEL = os.environ.get('SAAI_TAB_LEVEL', 'L2')   # table quotes the finest grids
 
 def cav_dir(Rk):
     if Rk == 200: return f"{B}/cav{LEVEL}prop_eppler387_Re200k_a5"
-    return f"{B}/sweep_Re{Rk}k_a5" if LEVEL == 'L1' else f"{B}/sweep_cav{LEVEL}_Re{Rk}k_a5"
+    d = f"{B}/sweep_cav{LEVEL}_Re{Rk}k_a5"
+    return d if os.path.isdir(d) or LEVEL != 'L1' else f"{B}/sweep_Re{Rk}k_a5"
 def str_dir(Rk):
     if Rk == 200: return f"{B}/str{LEVEL}prop_eppler387_Re200k_a5"
-    return f"{B}/sweep_str_Re{Rk}k_a5" if LEVEL == 'L1' else f"{B}/sweep_str{LEVEL}_Re{Rk}k_a5"
+    d = f"{B}/sweep_str{LEVEL}_Re{Rk}k_a5"
+    return d if os.path.isdir(d) or LEVEL != 'L1' else f"{B}/sweep_str_Re{Rk}k_a5"
 
 def cfd_forces(d):
     rows = [r for r in list(csv.reader(open(f"{d}/total_forces_v2.csv")))[1:] if len(r) > 10]

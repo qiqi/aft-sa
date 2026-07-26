@@ -2605,3 +2605,37 @@ per GPU). Migration infrastructure armed:
   whose files exist only in flow360_fr; those studies need new-canon reruns on GPUs
   freed after Daedalus (queued).
 Prose migration (Secs II.F, IV, V, VI, VII quoted numbers) begins when figures land.
+
+## 2026-07-26 03:30 UTC — 2D NEW-CANON MIGRATION LANDED (Secs II.F, IV, V, VI + conclusion)
+
+All 2D figures regenerate from flow360_fv1 (driver 8/10 + the six scripts it lacked run
+by hand; two failures benign legacy diagnostics; L1 sweep naming unified with legacy
+fallback; the 1e5 App-C sheet renders without the warm-start fork rows until their
+new-canon rerun). Prose migrated with recomputed numbers:
+
+HEADLINES of the new canon (all toward the measurement):
+- Eppler benchmark at matched lift: +11% drag error -> +2.7% (str) / +0.7% (cav).
+  Bucket edges now sit 4-6% BELOW the data (bypass removes ~2-7 counts everywhere).
+- Reattachment margin at 2e5: 0.05-0.07c late -> 0.02-0.04c late (0.76/0.71/0.63 vs oil
+  0.74/0.67/0.59 at alpha=0/2/5) — inside the Cole-Mueller facility spread.
+- 1e5 bursting: still bursts, less badly: L2 drag +30%/+73% (was +44%/+87%); cavL1 +4%.
+- 6e4: cl 0.64/0.71 (was 0.62/0.70); separation ~0.32.
+- Handover lengths shorten (the bypass at work): half-saturation 0.03-0.05c at 2-4.6e5
+  (was 0.05-0.08), 1e5 full production 0.18-0.30c downstream (was 0.2-0.6).
+- Re-seeding flip intact: 21-27x above at <=1e5, 25-100x below at 3-4.6e5.
+- NLF fully-turbulent ratios: +144/+150/+67/+74% (was +142/147/64/71).
+- Negative pair: converged story in all captions/prose (0.559-0.561 on measured 0.542;
+  "within nine counts"; march ~0.5c over ~7e4 steps).
+- Table C1 SA-AI columns replaced; II.F now states the 2D adoption + that converged
+  moves exceeded the cold-budget battery bounds (up to 8 counts NLF high-alpha, 27 on
+  L0s, -10 counts Eppler benchmark); Sec VII (Daedalus) explicitly marked bypass-inactive
+  pending its recompute.
+- Bistability paragraph scoped: fork/ladder/extension probes ran at the pre-bypass canon
+  (states move +0.02-0.03 cl; branch structure unaffected; repetition queued).
+
+MORNING VERIFICATION LIST (own pass before user wakes): App-B double-peak numbers
+(feature survives smoothing+canon — visible notch at x~0.52 — but quoted y+/window
+numbers are old-field); 1e5 residual-unsteadiness amplitudes in the sweep narrative;
+epp resweep_low/high caption details; str am4 orphan-repair note (babysitter .orphan
+overwrite bug — values recovered from its log); fork/ladder new-canon reruns on freed
+GPUs; Daedalus migration when the chain lands.

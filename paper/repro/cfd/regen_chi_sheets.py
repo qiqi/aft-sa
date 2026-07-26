@@ -137,10 +137,13 @@ SWEEP_RE = [('Re60k', 6e4, r'$6\times10^4$'), ('Re100k', 1e5, r'$10^5$'),
 
 
 def _sweep_case(fam, lvl, retag):
-    """fam in {cav, str}, lvl in {L0, L1, L2}; L1 keeps the legacy names."""
-    if lvl == 'L1':
-        return f"{B}/sweep_{'str_' if fam == 'str' else ''}{retag}_a5"
-    return f"{B}/sweep_{fam}{lvl}_{retag}_a5"
+    """fam in {cav, str}, lvl in {L0, L1, L2}. The fv1 tree uses uniform
+    names for all levels; the legacy L1 aliases remain as a fallback for
+    the old tree."""
+    uni = f"{B}/sweep_{fam}{lvl}_{retag}_a5"
+    if lvl != 'L1' or os.path.isdir(uni):
+        return uni
+    return f"{B}/sweep_{'str_' if fam == 'str' else ''}{retag}_a5"
 
 
 def sweep_re_sheet(retag, Re, relabel, side):
@@ -160,6 +163,13 @@ def sweep_re_sheet(retag, Re, relabel, side):
     if retag == 'Re100k':
         forks = [('cav', 'fork', 'cavity L2, warm start'),
                  ('str', 'fork', 'O-grid L2, warm start')]
+        # the warm-start extensions are a separate (old-canon) study; drop
+        # the rows if the current root has not rerun them yet
+        forks = [f for f in forks if os.path.exists(
+            f"{B}/ext_fork_{f[0]}L2_{retag}_a5/slice_centerSpan.pvtu")]
+        if len(forks) < 2:
+            print(f"  NOTE: warm-start fork rows absent in this root "
+                  f"({len(forks)}/2) -- sheet renders without them")
     nrows = len(rows) + len(forks)
     fig, axes = plt.subplots(nrows, 2, figsize=(11.5, 2.1*nrows + 0.6),
                              sharex=True, sharey=True)

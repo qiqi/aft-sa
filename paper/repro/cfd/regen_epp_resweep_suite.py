@@ -56,6 +56,10 @@ def sweep_dir(fam, lvl, Rk):
     if Rk == 200:
         return f"{B}/{fam}{lvl}prop_eppler387_Re200k_a5"
     if lvl == 'L1':
+        import os as _os
+        uni = f"{B}/sweep_{fam}L1_Re{Rk}k_a5"
+        if _os.path.isdir(uni):
+            return uni
         return (f"{B}/sweep_Re{Rk}k_a5" if fam == 'cav'
                 else f"{B}/sweep_str_Re{Rk}k_a5")
     return f"{B}/sweep_{fam}{lvl}_Re{Rk}k_a5"

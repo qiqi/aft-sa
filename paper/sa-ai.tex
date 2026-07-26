@@ -1182,14 +1182,19 @@ handover band, the gate does open---there $f_{v1}$ is already close
 to one, and the flat-plate and NLF batteries bound the net effect
 below $1.5$ drag counts (\texttt{data/fv1bypass\_battery\_results.json}). Its effect is confined to lifted transitional layers.
 \emph{Status of the results that follow:} the bypass entered the
-model after the campaigns of Secs.~IV--VII were computed; every
-figure, table, and quoted number in those sections is from the
-bypass-inactive model, and the controlled on/off batteries (flat
-plate and NLF unchanged within $1.5$ counts, Eppler moved toward the
-measurement at every condition) bound what will shift when the
-recomputation replaces them (Sec.~\ref{sec:flatplate} already uses
-the recomputed model; the remaining sections will be adopted wholesale
-when the campaign completes).
+model after the original campaigns were computed; the controlled
+on/off batteries (flat plate and NLF within $1.5$ counts at their
+cold-budget protocol, Eppler moved toward the measurement at every
+condition) motivated the promotion, and the full recomputation is
+now adopted: every two-dimensional figure, table, and
+quoted number in Secs.~\ref{sec:flatplate}--\ref{sec:eppresweep} is
+from the bypass-active model (the converged recomputation moved the
+finest-grid results by more than the cold-budget batteries bounded:
+up to $8$ counts on the NLF at high incidence---$27$ on its coarsest
+grids---and $-10$ counts at the Eppler benchmark's
+$\alpha\!=\!5^\circ$, all toward the measurement); the
+three-dimensional deployment of Sec.~\ref{sec:daedalus} is being
+recomputed, and its figures still show the bypass-inactive model.
 
 \subsection{Preservation of the Spalart--Allmaras calibration}\label{sec:calib_diff}
 
@@ -1464,9 +1469,9 @@ $\alpha\!\in\!\{0^\circ, 4^\circ, 9^\circ,
 cases total). The finest grids extend the matrix to the
 negative-incidence pair $\alpha\!=\!-4^\circ$ and $-8^\circ$
 (Fig.~\ref{fig:nlfnegalpha}; wall-anchored contour sheets in
-Appendix~A), whose $-8^\circ$ pressure-side front had not
-front-converged at the fixed cold-start budget and whose
-front-converged recomputation is pending. The unstructured mesher uses a shared NLF contour (a natural cubic
+Appendix~A), computed to front convergence---at $-8^\circ$ the
+pressure-side front marches ${\approx}0.5\,c$ aft of its cold-start
+transient before locking on the measured onset. The unstructured mesher uses a shared NLF contour (a natural cubic
 spline in arc length through the published coordinates, resampled with
 piecewise-cosine clustering) with
 blunt-trailing-edge--aware spacing ($h_\mathrm{TE}$ scales with first-cell
@@ -1521,17 +1526,19 @@ quantitatively.
   negative-incidence pair $\alpha\!=\!-4^\circ$ (zero lift) and
   $-8^\circ$ (well into the negative branch of the measured polar) on
   the finest grids,
-  all at the paper-wide untuned seed. At $-8^\circ$ the forces stay
-  within seven counts of the measurement and the suction (lower)
-  surface trips at $0.003$--$0.01\,c$, on the references'
-  leading-edge trip ($e^9$: $0.015$--$0.018\,c$). The pressure-side
-  (upper) markers at $0.13$--$0.19\,c$ are \emph{not
-  front-converged}: these two cases ran a fixed cold-start budget,
-  and a front-convergence rerun (cavity family; the structured rerun
-  is queued) shows the upper front still marching aft at
-  ${\approx}0.08\,c$ per $5000$ pseudo-steps at that budget, toward
-  the references' $0.54$--$0.66\,c$ (Fig.~\ref{fig:nlfnegalpha});
-  front-converged values will replace these markers.}
+  all at the paper-wide untuned seed and computed to front
+  convergence. At $-8^\circ$ the forces stay within nine counts of
+  the measurement, the suction (lower) surface trips at
+  $0.004$--$0.010\,c$, on the references' leading-edge trip ($e^9$:
+  $0.015$--$0.018\,c$), and the pressure-side (upper) front
+  converges at $0.559$--$0.561\,c$ (families agreeing to
+  $0.002\,c$)---on the measured ${\approx}0.54\,c$, with the
+  recalibrated AFT at $0.57$ and $e^9$ at $0.66\,c$. The march to
+  front convergence is slow---the upper front travels
+  ${\approx}0.5\,c$ aft of its cold-start transient over
+  ${\sim}7\!\times\!10^4$ pseudo-steps
+  (Fig.~\ref{fig:nlfnegalpha})---so a fixed-budget cold start reads
+  a transient front here.}
   \label{fig:nlfaft}
 \end{figure}
 
@@ -1642,8 +1649,8 @@ disturbance level rather than as a per-case tuning.
   break where the source's marker identity is ambiguous). The gray dash-dot curve is
   fully turbulent SA ($\chi_\infty\!=\!3$, same solver, structured L2 grid):
   without the laminar run the drag sits $1.6$--$2.5\times$ above the
-  SA-AI polar ($+142$/$+147\%$ in the bucket at $\alpha\!=\!0^\circ$/$4^\circ$,
-  $+64$/$+71\%$ at $9^\circ$/$15^\circ$).}
+  SA-AI polar ($+144$/$+150\%$ in the bucket at $\alpha\!=\!0^\circ$/$4^\circ$,
+  $+67$/$+74\%$ at $9^\circ$/$15^\circ$).}
   \label{fig:nlfpolar}
 \end{figure}
 
@@ -1659,7 +1666,7 @@ method-class limit: FlexFoil converges at the identical conditions
 RANS), as does XFOIL (its digitized $e^9$ curve in
 Fig.~\ref{fig:nlfaft} spans these incidences). The fully turbulent SA
 polar on the same structured L2 grid closes on SA-AI only as the laminar
-run shrinks ($+142\%$ at $0^\circ$ narrowing to $+64$--$71\%$ at
+run shrinks ($+144\%$ at $0^\circ$ narrowing to $+67$--$74\%$ at
 $9^\circ$--$15^\circ$).
 
 The airfoil surface distributions are presented as five-row figures
@@ -1751,21 +1758,19 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
   $e^9$ $N$ envelope, $-C_p$, signed $C_f$; upper surface blue, lower
   red). The $e^9$ overlay is mfoil at $-8^\circ$ and FlexFoil at
   $-4^\circ$, where mfoil's coupled solve does not converge; filled
-  triangle: measured onset at the computed lift. At $-4^\circ$ both
-  fronts land on the references. At $-8^\circ$ the suction (lower)
-  surface trips at $0.003$--$0.01\,c$, on the $e^9$ leading-edge
-  trip, and locks there within the first batches of a
-  front-convergence rerun (cavity family; the structured rerun is
-  queued). The pressure-side (upper) state shown is a
-  \emph{transient}: at these cases' fixed cold-start budget the
-  upper front is still marching aft (${\approx}0.08\,c$ per $5000$
-  pseudo-steps in the cavity rerun, toward the references'
-  $0.54$--$0.66\,c$), so rows~1--3 on that surface read the
-  mid-march state, not a converged prediction; the wall-anchored
-  contour sheets of the transient appear in Appendix~A
-  (Figs.~\ref{fig:sheet_nlf0416_negalpha_upper}--\ref{fig:sheet_nlf0416_negalpha_lower}).
-  Front-converged solutions replace this figure in the
-  recomputation.}
+  triangle: measured onset at the computed lift. All four solutions
+  are front-converged (batched restarts to a $0.01\,c$ front
+  tolerance). At $-4^\circ$ both fronts land on the references. At
+  $-8^\circ$ the suction (lower) surface trips at
+  $0.004$--$0.010\,c$, on the $e^9$ leading-edge trip and locking
+  within the first batches, while the pressure-side (upper) front
+  settles at $0.559$--$0.561\,c$, on the measured
+  ${\approx}0.54\,c$ ($e^9$: $0.66\,c$); the march there is
+  slow---${\approx}0.5\,c$ of aft travel over
+  ${\sim}7\!\times\!10^4$ pseudo-steps from the cold start---so
+  rows~1--3 on that surface only read cleanly at front convergence.
+  The wall-anchored contour sheets appear in Appendix~A
+  (Figs.~\ref{fig:sheet_nlf0416_negalpha_upper}--\ref{fig:sheet_nlf0416_negalpha_lower}).}
   \label{fig:nlfnegalpha}
 \end{figure}
 
@@ -1841,18 +1846,20 @@ and Table~\ref{tab:eppmesh} lists their resolution quantitatively.
 \end{figure}
 
 On the finest grids the SA-AI polar (Fig.~\ref{fig:epppolar}) tracks the
-measured low-drag bucket across the range: on the structured family the
-drag sits within $\pm3\%$ of the data at the bucket edges ($-1\%$ at
-$\alpha\!=\!0^\circ$, $+1\%$ at $2^\circ$, $-3\%$ at $7^\circ$) and
-\emph{over}-predicts by $\sim\!11\%$ near
-$\alpha\!=\!5^\circ$---possibly the pressure-drag footprint of the slightly over-long
-laminar-separation bubble (\S\ref{sec:calib_rate}). The one published SA-based
+measured low-drag bucket across the range at matched lift: $4$--$6\%$
+\emph{below} the data at the bucket edges ($-5.8\%$/$-4.3\%$
+structured/unstructured at $\alpha\!=\!0^\circ$, $-4.4\%$/$-3.8\%$
+at $2^\circ$, $-3.7\%$/$-6.4\%$ at $7^\circ$) and
+$+2.7\%$/$+0.7\%$ at the $\alpha\!=\!5^\circ$ bubble apex, where
+the pressure-drag footprint of the slightly over-long
+laminar-separation bubble (\S\ref{sec:calib_rate}) remains the
+largest positive residual. The one published SA-based
 \emph{transported-intermittency} ($\gamma$-equation) result on this
 benchmark---the
 $\gamma$--SA coupling of Ref.~\cite{dalessandro_2025} (foam-extend,
 $Tu\!=\!0.07\%$)---reports $c_l\!=\!0.91\pm0.02$ with
 $c_d\!=\!0.0133$--$0.0140$ at matched lift, the natural family
-comparison for SA-AI's ${\approx}0.0153$ (structured L2)
+comparison for SA-AI's ${\approx}0.0142$ (structured L2)
 interpolated at the same lift. The coarsest grid (L0)
 over-predicts drag markedly; refinement is essential in this bubble-dominated
 regime.
@@ -1904,8 +1911,8 @@ regime.
   dotted, and the tabulated experimental $C_p$ (NASA TM-4062 App.~D, column with
   the nearest angle of attack) as open black circles on the $-C_p$ row). The signed $C_f$ (row~5) shows the laminar-separation bubble
   directly as the dip below zero on the upper surface. The bubble sits at
-  $x/c\!\approx\!0.52$--$0.78$ at $\alpha\!=\!0^\circ$ and marches forward to
-  $x/c\!\approx\!0.47$--$0.73$ at $\alpha\!=\!2^\circ$; both Flow360 and mfoil
+  $x/c\!\approx\!0.52$--$0.76$ at $\alpha\!=\!0^\circ$ and marches forward to
+  $x/c\!\approx\!0.48$--$0.71$ at $\alpha\!=\!2^\circ$; both Flow360 and mfoil
   show the same recirculation structure.}
   \label{fig:eppcflow}
 \end{figure}
@@ -2006,17 +2013,16 @@ percent of chord at every incidence. The reattachment---the bubble's
 aft end, set by the post-transition turbulent recovery---is the
 quantity this test hinges on, and it is where the model shows
 its cost: at $\alpha\!\le\!5^\circ$, at grid convergence, both
-families reattach systematically late against the oil flow---a bubble
-$0.05$--$0.07\,c$ too long---while the near-stall $7^\circ$ case
+families reattach late against the oil flow---a bubble
+$0.03$--$0.04\,c$ too long---while the near-stall $7^\circ$ case
 closes slightly early; the lower surface runs laminar to the trailing
-edge at every incidence and has no front to move. That margin should
-be read against the facility-to-facility spread now on the figure: the
+edge at every incidence and has no front to move. That margin sits
+\emph{inside} the facility-to-facility spread on the figure: the
 Cole--Mueller pressure-station measurements at the same Reynolds
 number~\cite{cole_mueller_1990} read reattachment $0.03$--$0.08\,c$
 aft of the LTPT oil flow at and between its tabulated incidences
 ($\alpha\!=\!-2^\circ$--$3^\circ$; the oil flow interpolated where
-the incidences do not coincide), and the computed low-incidence
-reattachments fall within that spread.
+the incidences do not coincide).
 
 
 This low-$\alpha$ over-length is not an amplification deficit: the
@@ -2127,11 +2133,11 @@ the model's bursting boundary (the opening fan of
 Fig.~\ref{fig:eppresweepforces}): on every grid the upper-surface recovery
 is incomplete---the signed $C_f$ regains zero only within $0.04\,c$ of
 the trailing edge, against the measured oil-flow reattachment near
-$0.67\,c$---and the L2 drag sits $+44\%$ (unstructured) to $+87\%$
+$0.67\,c$---and the L2 drag sits $+30\%$ (unstructured) to $+73\%$
 (structured) above the measurement, refinement pushing both
 families toward the burst state rather than the measured short bubble
 (the coarser grids only mask the failure: the unstructured L1 lands
-$+7\%$ high).
+$+4\%$ high).
 The over-length has two contributions---the under-amplified detached
 shear layer of \S\ref{sec:calib_rate}, dominant at $2\!\times\!10^5$,
 and the stretching handover zone of Sec.~\ref{sec:epphandover}, which
@@ -2150,7 +2156,7 @@ computed and measured recoveries part company.
 
 The solution is markedly more mesh-sensitive at $6\!\times\!10^4$ than at
 the higher Reynolds numbers: the open separation gives
-$C_l\!=\!0.70$ unstructured vs.\ $0.62$ structured at L2, against
+$C_l\!=\!0.71$ unstructured vs.\ $0.64$ structured at L2, against
 $\Delta C_d\!\leq\!2\!\times\!10^{-4}$ ($8\!\times\!10^{-4}$ at L1) at
 $3$--$4.6\!\times\!10^5$.
 The experiment itself is bistable there: in the TM-4062 listing at
@@ -2171,15 +2177,15 @@ The sweep traces the classic low-$Re$ bubble progression at fixed incidence: as
 the Reynolds number rises the transition front moves forward and the
 laminar-separation bubble shortens. The upper-surface $C_f$ shows an open,
 non-reattaching separation at $Re\!=\!6\!\times\!10^4$---the flow separates near
-$x/c\!\approx\!0.35$ and does not recover ahead of the trailing edge, the
+$x/c\!\approx\!0.32$ and does not recover ahead of the trailing edge, the
 low-$Re$ bubble-bursting limit---then an incompletely closing
 separation at $10^5$, the $C_f$ regaining zero only within $0.04\,c$ of
 the trailing edge on every grid (the model carries the bursting regime
 one Reynolds step past the measurement), and then short, shallow
 bubbles---the computed $C_f$
 only grazes zero---recovering, on the two finer levels, at
-$x/c\!\approx\!0.56$--$0.57$ ($3\!\times\!10^5$) and
-$x/c\!\approx\!0.50$
+$x/c\!\approx\!0.55$ ($3\!\times\!10^5$) and
+$x/c\!\approx\!0.48$
 ($4.6\!\times\!10^5$).
 
 The deep reverse-$C_f$ surge inside the long bubbles at
@@ -2224,7 +2230,7 @@ transition, reattachment, and the forces that follow.
   $4.6\!\times\!10^5$ (right). The bubble is short and moves forward with Reynolds
   number, recovering (on the two finer levels) near
   $x/c\!\approx\!0.56$--$0.57$ at $3\!\times\!10^5$ and
-  $\approx\!0.50$ at $4.6\!\times\!10^5$ (at these two Reynolds
+  $\approx\!0.48$ at $4.6\!\times\!10^5$ (at these two Reynolds
   numbers the computed $C_f$ only grazes zero). The mfoil $e^9$ panel solver converges at
   $3\!\times\!10^5$ but diverges on the thin bubble at $4.6\!\times\!10^5$, where
   XFOIL supplies the $e^9$ $C_p$/$C_f$ reference (dotted) and FlexFoil the
@@ -2255,7 +2261,10 @@ $\le\!0.005$, drag to $\le\!5\!\times\!10^{-4}$) and collapse onto the
 burst branch within $20\,000$ iterations at $6\!\times\!10^4$
 (repro: \texttt{repro/cfd/run\_bistability\_forks.py},
 \texttt{run\_continuation\_ladders.py}, \texttt{run\_fork\_extensions.py},
-\texttt{run\_dn\_extensions.py}). \emph{The model is monostable
+\texttt{run\_dn\_extensions.py}; the probes ran at the pre-bypass
+canon---the recomputation moves the $10^5$ states by
+$+0.02$--$0.03$ in $c_l$ without changing the branch structure they
+probe, and their repetition is queued). \emph{The model is monostable
 throughout the sweep}; the only trace of the nearby fold is the
 relaxation time at $10^5$---convergence takes
 $3$--$4.5\!\times\!10^4$ iterations, an order of magnitude longer than
@@ -2277,10 +2286,10 @@ it stretches like $\delta/c\!\propto\!Re^{-1/2}$ as the layers
 thicken, and faster once the bubble grows. Measured on the computed
 structured-L2 solutions
 (repro: \texttt{repro/cfd/analyze\_handover\_length.py}), the
-half-saturation length is $0.05$--$0.08\,c$ at $2$--$4.6\!\times\!10^5$,
-where the bubble closes $0.06$--$0.17\,c$ past the crossing; at
-$10^5$ half-saturation alone costs $0.08$--$0.10\,c$, full production
-arrives only $0.2$--$0.6\,c$ downstream, and the bubble never closes;
+half-saturation length is $0.03$--$0.05\,c$ at $2$--$4.6\!\times\!10^5$,
+where the bubble closes $0.04$--$0.15\,c$ past the crossing; at
+$10^5$ half-saturation alone costs $0.05$--$0.10\,c$, full production
+arrives only $0.18$--$0.30\,c$ downstream, and the bubble never closes;
 at $6\!\times\!10^4$ full production is never reached on the airfoil.
 The $e^9$ reference---whose closure switches to fully turbulent
 \emph{at} the transition point---reattaches within $0.05\,c$ of its
@@ -2319,8 +2328,8 @@ across it into the reversed stream, convects \emph{back upstream}, and
 re-enters the amplifying band already elevated. Measured on the
 structured-L2 sweep (\texttt{repro/cfd/measure\_lsb\_reseeding.py}),
 the median $\chi$ in the reversed region over the bubble's first third
-sits $16$--$29\times$ \emph{above} the incoming-envelope level just
-upstream of separation at $Re\!\le\!10^5$, but $30$--$100\times$
+sits $21$--$27\times$ \emph{above} the incoming-envelope level just
+upstream of separation at $Re\!\le\!10^5$, but $25$--$100\times$
 \emph{below} it at $3$--$4.6\!\times\!10^5$; the flip is sharp at the
 bursting boundary because the conducting overlap---an amplifying layer
 running over un-closed reversed flow for half the chord---is itself
@@ -2694,10 +2703,11 @@ twenty-four cases (both mesh families, three refinement levels). On the Eppler
 $Re\!=\!2\!\times\!10^5$ (Sec.~\ref{sec:eppval}) the
 model resolved the adverse-gradient, laminar-separation-bubble regime---the signed
 skin friction shows the recirculation directly---across another twenty-four cases
-on the same two-family ladder, though it reattaches systematically late at low
-incidence---$0.05$--$0.07\,c$ aft of the measured oil-flow reattachment at
-$\alpha\!\le\!5^\circ$ ($0.79$ vs $0.74\,c$, $0.74$ vs $0.67\,c$, $0.66$ vs
-$0.59\,c$), and $0.03\,c$ early at $7^\circ$
+on the same two-family ladder, though it reattaches late at low
+incidence---$0.02$--$0.04\,c$ aft of the measured oil-flow reattachment at
+$\alpha\!\le\!5^\circ$ ($0.76$ vs $0.74\,c$, $0.71$ vs $0.67\,c$, $0.63$ vs
+$0.59\,c$, inside the facility-to-facility spread of the two
+experiments on Fig.~\ref{fig:eppbubble}), and early at $7^\circ$
 (\S\ref{sec:calib_rate}); an $\alpha\!=\!5^\circ$ sweep across five Reynolds numbers,
 $Re\!=\!6\!\times\!10^4$ to $4.6\!\times\!10^5$, follows the bubble's march and
 shortening. The same constants (Appendix~E) were used
@@ -2915,10 +2925,10 @@ handover above the lifted bubble shear layer stays in frame.
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_negalpha_upper.pdf}
   \caption{NLF(1)-0416 negative-incidence pair, upper surface: rows are
-  (cavity, O-grid) L2 at $\alpha=-4^\circ$ then $-8^\circ$. At
-  $-8^\circ$ this surface's transition front is an aft-marching
-  transient at the fixed cold-start budget (see
-  Fig.~\ref{fig:nlfnegalpha}); the sheet shows that state mid-march.}
+  (cavity, O-grid) L2 at $\alpha=-4^\circ$ then $-8^\circ$,
+  front-converged. At $-8^\circ$ this (pressure) surface holds a long
+  laminar run before its front settles at $0.56\,c$
+  (Fig.~\ref{fig:nlfnegalpha}).}
   \label{fig:sheet_nlf0416_negalpha_upper}
 \end{figure}
 
@@ -2926,10 +2936,10 @@ handover above the lifted bubble shear layer stays in frame.
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_negalpha_lower.pdf}
   \caption{As Fig.~\ref{fig:sheet_nlf0416_negalpha_upper}, lower
-  surface: laminar to ${\approx}0.07$--$0.12\,c$ at $-4^\circ$ and
+  surface: laminar to ${\approx}0.11$--$0.12\,c$ at $-4^\circ$ and
   tripped at the leading edge at $-8^\circ$ (the suction side there);
   these fronts lock within the first batches of the front-convergence
-  rerun (cavity; structured queued).}
+  protocol.}
   \label{fig:sheet_nlf0416_negalpha_lower}
 \end{figure}
 
@@ -3076,11 +3086,11 @@ coefficients against the $e^9$ reference and the tunnel data
     \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}\cmidrule(lr){11-13}
     $Re$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ & $c_l$ & $c_d$ & $c_m$ \\
     \midrule
-    $6\!\times\!10^4$   & 0.621 & 0.0541 & $-$0.098 & 0.695 & 0.0522 & $-$0.103 & 0.869$^\ddagger$ & 0.0411$^\ddagger$ & $-$0.102$^\ddagger$ & 0.838 & 0.0439 & $-$0.114 \\
-    $1\!\times\!10^5$   & 0.769 & 0.0444 & $-$0.104 & 0.860 & 0.0341 & $-$0.099 & 0.952 & 0.0213 & $-$0.087 & 0.873 & 0.0237 & $-$0.089 \\
-    $2\!\times\!10^5$   & 0.925 & 0.0155 & $-$0.082 & 0.937 & 0.0148 & $-$0.083 & 0.960 & 0.0128 & $-$0.082 & 0.891 & 0.0138 & $-$0.081 \\
-    $3\!\times\!10^5$   & 0.940 & 0.0111 & $-$0.080 & 0.949 & 0.0112 & $-$0.082 & 0.962 & 0.0103 & $-$0.082 & 0.901 & 0.0114 & $-$0.080 \\
-    $4.6\!\times\!10^5$ & 0.949 & 0.0088 & $-$0.081 & 0.958 & 0.0090 & $-$0.083 & 0.966 & 0.0086 & $-$0.082 & 0.914 & 0.0093 & $-$0.081 \\
+    $6\!\times\!10^4$   & 0.636 & 0.0533 & $-$0.098 & 0.712 & 0.0506 & $-$0.103 & 0.869$^\ddagger$ & 0.0411$^\ddagger$ & $-$0.102$^\ddagger$ & 0.838 & 0.0439 & $-$0.114 \\
+    $1\!\times\!10^5$   & 0.795 & 0.0410 & $-$0.102 & 0.877 & 0.0307 & $-$0.096 & 0.952 & 0.0213 & $-$0.087 & 0.873 & 0.0237 & $-$0.089 \\
+    $2\!\times\!10^5$   & 0.927 & 0.0145 & $-$0.081 & 0.938 & 0.0143 & $-$0.083 & 0.960 & 0.0128 & $-$0.082 & 0.891 & 0.0138 & $-$0.081 \\
+    $3\!\times\!10^5$   & 0.941 & 0.0107 & $-$0.080 & 0.950 & 0.0108 & $-$0.082 & 0.962 & 0.0103 & $-$0.082 & 0.901 & 0.0114 & $-$0.080 \\
+    $4.6\!\times\!10^5$ & 0.950 & 0.0087 & $-$0.081 & 0.959 & 0.0089 & $-$0.083 & 0.966 & 0.0086 & $-$0.082 & 0.914 & 0.0093 & $-$0.081 \\
     \bottomrule
   \end{tabular}
   \\[2pt]{\footnotesize $^\ddagger$The only condition in this paper where
