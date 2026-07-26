@@ -1495,7 +1495,14 @@ from the TE also halves); the structured O-grid is generated with the same
 contour by Construct2D~\cite{prosser_construct2d}. Every length scale---surface point count, $h_0$,
 growth-ratio offset (the wall-normal growth ratio minus one), TE step, and TE
 ramp---refines by a factor of two
-per level.
+per level. The two families also separate the solver classes: the
+cavity meshes' anisotropic boundary-layer triangles are tractable for
+the node-centered least-squares operators used here but defeat a
+cell-centered compact-stencil discretization outright (the independent
+cell-centered implementation of Sec.~\ref{sec:flatplate} diverges on
+both the primal triangulation and its median dual, for standard SA as
+much as for SA-AI), so the cross-solver replication carries the
+structured family only.
 Figures~\ref{fig:nlfmesh_str} and~\ref{fig:nlfmesh_cav} (appendix) show the
 two mesh families at the leading and trailing edges across the three
 refinement levels, and Table~\ref{tab:nlfmesh} lists their resolution

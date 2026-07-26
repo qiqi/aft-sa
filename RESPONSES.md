@@ -3029,3 +3029,50 @@ two bottom panels — max-chi(x) and Cf(Re_theta) — one legend entry,
 one caption clause. Same seeds, same slopes, crossings a few % early:
 the cross-solver agreement reads at a glance. Contour rows stay Flow360.
 NEXT (task #36): appendix raw-number tables for every 1-D figure.
+
+## 2026-07-26 OpenFOAM NLF strL0 a0: bistability/hysteresis + final agreement
+
+1. Identical-mesh NLF(1)-0416 strL0 alpha=0 (gmshToFoam from the committed
+   mesh.msh, symmetry planes -> empty, true 2D, 8 ranks, 11 min/30k iters).
+   First run transitioned at x/c~0.05 (upper) vs Flow360 0.385. Kernel
+   diagnostics (aiRate/aiP/aiZ/aiReOmega now AUTO_WRITE fields in
+   SpalartAllmarasAI) showed NO active amplification in the converged state:
+   the LE turbulence was self-sustaining SA. Cause = SIMPLE startup transient
+   tripped chi>1 near the LE; the gated-max production then sustains it --
+   the natural-transition BISTABILITY. Flow360 avoids this via
+   AI_LAMINAR_SLOWDOWN timescale separation; SIMPLE under-relaxation is NOT
+   an fSlow analog for airfoil impulsive starts (flat plate got away with it).
+2. Fix (two-stage startup): converge the flow from uniform init, then reset
+   nuTilda AND nut to the seed (copy the 0/ fields into the latest time; do
+   NOT foamDictionary -set a binary field -- it fails silently) and continue.
+   The front then forms on the settled flow: Cd 0.0101 -> 0.00669, stable
+   15k iters.
+3. Final identical-mesh agreement (chi crossings, x/c):
+   upper chi=1: OF 0.376 vs F360 0.385 (-2.5%); chi=cv1: 0.381 vs 0.390
+   lower chi=1: OF 0.556 vs F360 0.575 (-3.4%); chi=cv1: 0.559 vs 0.581
+   Forces: Cl 0.517 vs 0.545 (-5%), Cd 0.00669 vs 0.00803 (-17%, L0-coarse;
+   pressure-drag + compressibility + scheme differences unseparated).
+4. Median-dual conversion of the cavity mesh: geometrically exact
+   (area-conserving; scripts/dual_mesh.py) but the dual of the sliver
+   triangulation is WORSE for compact cell-centered FV (non-orth 120 deg,
+   opposing owner-neighbour vectors); all scheme ladders diverge. Flow360's
+   robustness on cavity meshes is in its node-centered OPERATORS (LSQ
+   gradients, dual-face assembly), not the CV shape. Cavity family = no-go
+   for OpenFOAM; documented negative result.
+
+## 2026-07-26 14:40 UTC — OpenFOAM airfoil scope: mesh-family sentence + integration plan
+
+Added at the first mesh description (Sec. V): the two families separate
+the solver classes — the cavity BL triangles defeat cell-centered
+compact-stencil FV outright (diverges on primal AND median dual, stock
+SA identically; per openfoam-unstructured-failures.md), so the
+cross-solver replication carries the structured family only.
+INTEGRATION PLAN for the airfoil structured results when they arrive
+(same pattern as the flat plate): the OpenFOAM agent exports one
+committed JSON per comparison (paper/data/openfoam_<case>_summary.json);
+our regen scripts overlay steel-blue thin curves/markers, one legend
+entry, into the 1-D figures only — Fig 6 (xtr,cl points), Fig 7 + 11
+(polar points), Fig 14 (bubble stations), Fig 15 (forces vs Re) — NOT
+the five-row suites (already 6 lines deep); OpenFOAM columns join the
+new appendix raw-number tables (task #36). Steel-blue = cross-solver,
+everywhere.
