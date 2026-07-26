@@ -3190,3 +3190,13 @@ hypotheses (lifted layer beyond the wall-anchored kernel / probe reach
 0.04 L; in-bubble onset-gate arm; genuinely subcritical at 1.5e6) with
 the flank rate probe tied to the workshop step. Caption notes both cyan
 lines. Script hygiene done. Build clean.
+
+## 2026-07-26 17:55 UTC — Re=1.5e6 campaign COMPLETE; night shift launched
+
+SPHEROID a29p7 ladder done (L2 17:49): CL 1.1329/0.9705/1.2833,
+CD 0.5953/0.5404/0.6970 (L0/L1/L2) — strong level sensitivity in the
+massive-vortex regime, as expected. Full 1.5e6 matrix now computed:
+alpha = 5, 10, 29.7 x L0/L1/L2 (the three DFVLR-measured incidences).
+NIGHT SHIFT: Daedalus ogrid L2 a6 launched (GPUs 0-5, ~4 h — completes
+the new-canon Daedalus set); 6.5e6 spheroid meshes building on CPU
+(h0=1.5e-6 ladder, L0 first); a29p7 L2 maps generating.
