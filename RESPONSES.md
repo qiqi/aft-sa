@@ -2870,3 +2870,39 @@ the model sees the vortex-layer amplification but commits late. L2 +
 cf-rise front + digitized Fig 15a line = the quantitative comparison.
 stock_2006 added to bib + cited in the spheroid section with a
 mechanism-map sentence.
+
+## 2026-07-26 12:25 UTC — Q&A digest (recent questions, answered in one place)
+
+1. SPHEROID MESH FAMILY: structured O-grid only today. The unstructured
+   recipe survives from Daedalus: Flynn360 (BL prisms + tetgen glue +
+   octree farfield) on a watertight STL; configs/logs/STL generator on
+   017-v100-dev (~/flexcompute/sa-ai/scripts/daedalus, README has the
+   FLOW360_SOLVER_ONLY=OFF build note). Caveat: full-body only (no
+   symmetry plane) => ~0.7/4.4/25M nodes at L0/L1/L2.
+2. SPHEROID CONDITIONS RUN: Re_L=1.5e6, M=0.1, alpha=10 only. L0
+   CL=0.2054/CD=0.0817; L1 0.2082/0.0852; L2 (12.6M) finishing now.
+3. LITERATURE PRESENTATION: unrolled (x/L, phi) maps of cf, wall-shear
+   angle gamma_w, transition front + skin-friction lines + 3D cf views
+   (Kreplin/DFVLR; Krimmelbein-Krumbein; Hildebrand FUN3D-LASTRAC).
+   Replicated on L0/L1 (spheroid/surface_map.py); draft section in paper.
+4. AUTHORITATIVE PAPER: Stock 2006 (AIAA J 44(1), user-supplied
+   paper/spheroid.pdf) — reviewed 11:55 entry: N_TS=8.0/N_CF=5.5,
+   mechanism map, and 1.5e6 = laminar up to vortex-layer separation.
+5. DAEDALUS ETA: ogrid L2 a5 ~15:00, a6 ~19:00 tonight (a4 took 3h59m;
+   a5 tracking the same rate).
+6. SPHEROID PLAN: confirmed two-Re design. 1.5e6 at ALL measured alphas
+   {5, 10, 29.7} (transition never CF there; fronts track separation);
+   6.5e6 up to alpha=10: {5, 10} on the h0=1.5e-6 ladder (TS-primary at
+   5, CF onset mid-body at 10). Optional pure-TS anchor: 0/2.5 at 7.2e6.
+7. SPEED: measured 8.9 s per tool-call round trip (context-dominated;
+   shell startup 6 ms — innocent). Cleaned: 1 orphaned watcher process
+   killed, 4 dead log-tail monitors stopped, task list 17 -> 3 entries.
+   Biggest available speedup: fresh session (state carries via memory/
+   ONBOARDING/RESPONSES).
+8. SYMBOL RENAME (#31) — what keeps it open: the solver-internal
+   identifier rename in the compute repo (Shat -> OmegaHat etc.), held
+   until the CFD queue drains because it forces a full clean rebuild
+   (BUILD_CONSISTENCY SOP), plus one final omission sweep. Paper,
+   repro scripts, docs, memory: done.
+9. TASK BOOKKEEPING: #27 (new-canon campaign) closed — its remaining
+   scope is exactly #24 (Daedalus Sec VII migration) + #23 (spheroid).
