@@ -1728,7 +1728,7 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
   $0.559$--$0.561\,c$, on the measured ${\approx}0.54\,c$ ($e^9$:
   $0.66\,c$).
   The wall-anchored contour sheets appear in Appendix~A
-  (Figs.~\ref{fig:sheet_nlf0416_negalpha_upper}--\ref{fig:sheet_nlf0416_negalpha_lower}).}
+  (Figs.~\ref{fig:sheet_nlf0416_am8_upper}--\ref{fig:sheet_nlf0416_am4_lower}).}
   \label{fig:nlfnegalpha}
 \end{figure}
 
@@ -2757,10 +2757,47 @@ yet grid-converged ($C_L\!=\!0.205/0.208/0.186$ over L0/L1/L2), so
 the finest-level map comparison accompanies the front overlays. The model carries no
 crossflow closure---the amplification rate is calibrated on
 two-dimensional TS growth---so this case probes what that economy
-costs on a crossflow-dominated body; the maps here are the
-infrastructure for that comparison, with the measured-front overlays
-and the workshop condition ($Re_L\!=\!6.5\!\times\!10^6$) to follow.
-Figure~\ref{fig:spheroid3d} shows the same skin friction on the body.
+costs on a crossflow-dominated body.
+Figure~\ref{fig:spheroid3d} shows the same skin friction on the body,
+and Fig.~\ref{fig:spheroidfront} makes the first quantitative
+comparison, against the DFVLR hot-film transition
+points~\cite{kreplin_1985} as reported in Stock's
+Fig.~15a~\cite{stock_2006} (measured at $Re\!=\!1.52\!\times\!10^6$
+against the computed $1.5\!\times\!10^6$; digitized to
+${\pm}0.005\,x/L$). At this Reynolds number the boundary layer stays
+laminar up to the open vortex-layer separation and the measured points
+track the separation-line shear rise~\cite{stock_2006}, so the
+comparison quantity is the resultant-shear rise---the first station
+where $c_f$ exceeds $k\!=\!1.5\times$ its running minimum, the
+hot-film detection analogue, with the $k\!=\!1.25$--$2$ sensitivity
+shown as a band---and \emph{not} the model-native $\chi\!=\!c_{v1}$
+front, which stays aft ($0.92$--$0.97\,x/L$) at every azimuth. The
+computed rise matches the measurement to within ${\pm}0.02\,x/L$ over
+the windward half ($\phi\!\le\!93^\circ$) and lags by up to
+$0.21\,x/L$ at the leeward flank ($\phi\!=\!132^\circ$): the
+separated vortex layer transitions downstream of the measured line,
+the three-dimensional open-layer form of the slow transported-$\chi$
+handover of Sec.~\ref{sec:epphandover}. The workshop condition
+($Re_L\!=\!6.5\!\times\!10^6$) follows.
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{spheroid_front_compare.pdf}
+  \caption{6:1 prolate spheroid, $Re_L\!=\!1.5\!\times\!10^6$,
+  $\alpha\!=\!10^\circ$: the L2 $c_f$ map with the computed
+  $C_f$-rise fronts on the three grids ($k\!=\!1.5$ criterion; the
+  white band is the $k\!=\!1.25$--$2$ sensitivity on L2), the
+  model-native $\chi\!=\!c_{v1}$ front (cyan), and the measured DFVLR
+  transition points (red squares; Stock Fig.~15a at
+  $Re\!=\!1.52\!\times\!10^6$~\cite{stock_2006}, digitized to
+  ${\pm}0.005\,x/L$,
+  \texttt{data/stock2006\_fig15a\_digitized.json}). The measured
+  points at this Reynolds number lie on the laminar-separation
+  line~\cite{stock_2006}, which the computed $c_f$-minimum trench
+  reproduces; the computed shear rise lags them by an amount growing
+  from zero at the windward plane to $0.21\,x/L$ at the flank.}
+  \label{fig:spheroidfront}
+\end{figure}
 
 \begin{figure}[tp]
   \centering
@@ -3016,16 +3053,16 @@ handover above the lifted bubble shear layer stays in frame.
   (Fig.~\ref{fig:nlfnegalpha}); the L0 grids trip at
   $0.14$--$0.20\,c$, the under-resolved-front artifact of the
   coarsest level (cf.\ Fig.~\ref{fig:nlfcflow}).}
-  \label{fig:sheet_nlf0416_negalpha_upper}
+  \label{fig:sheet_nlf0416_am8_upper}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_am8_lower.pdf}
-  \caption{As Fig.~\ref{fig:sheet_nlf0416_negalpha_upper}, lower
+  \caption{As Fig.~\ref{fig:sheet_nlf0416_am8_upper}, lower
   surface (the suction side at $-8^\circ$): tripped at the leading
   edge on every grid.}
-  \label{fig:sheet_nlf0416_negalpha_lower}
+  \label{fig:sheet_nlf0416_am8_lower}
 \end{figure}
 
 \begin{figure}[p]

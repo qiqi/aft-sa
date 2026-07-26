@@ -3150,3 +3150,16 @@ the two L2-pair sheets); Figs 6/7 now draw negatives at every level;
 Table F2 auto-filled (L2-only clause dropped); body text updated
 (36 NLF cases total). Build clean.
 SPHEROID: a29p7 L0 done 15:26 (fast), L1 running.
+
+## 2026-07-26 16:05 UTC — Pass 40: comparison wired into the paper
+
+Digitization gate PASSED by independent re-digitization (<0.002 x/L);
+Re pinned 1.52e6 (measured) vs 1.5e6 (computed), disclosed. New
+fig:spheroidfront + framing passage in the tex: comparison quantity =
+resultant-shear rise (k=1.5 x running-min, sub-cell interpolated;
+k=1.25-2 band shown), NOT the chi=c_v1 front (stays 0.92-0.97 —
+that gap IS the finding). Revised L2 deltas: +-0.02 windward,
++0.06..+0.21 flank-ward. Criterion de-ad-hoc'd (no absolute offset);
+script folded into repro/cfd. Sheet labels harmonized (am8/am4),
+pointer range extended, superseded pair sheets removed, circle caveat
+in the JSON. Build clean. Spheroid a29p7: L1 done 15:54, L2 solving.

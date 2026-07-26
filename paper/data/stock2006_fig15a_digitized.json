@@ -88,5 +88,6 @@
    30,
    0
   ]
- }
+ },
+ "note_circles": "leeward-most 6.56e6 circle uncertain: glyph crossed by streamlines; independent re-read (pass 40) gives ~0.31/165 vs 0.256/153 here -- re-digitize before any 6.5e6 comparison uses it"
 }

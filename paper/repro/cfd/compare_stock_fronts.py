@@ -5,9 +5,17 @@ paper/data/stock2006_fig15a_digitized.json).
 
 Front definitions from the surface-map .npz dumps (surface_map.py):
   chi front    : first x/L where the wall-normal max chi crosses c_v1
-  cf-rise front: first x/L (past the nose) where cf exceeds
-                 1.5x its running minimum + 2e-4 (the hot-film criterion
-                 analogue: the shear rise out of the laminar decay)
+                 (the model-native front; at this Re it sits at
+                 0.92-0.97 x/L for every phi and does NOT track the
+                 measured points -- the finding, not a bug: the
+                 measured points are the laminar-separation-line
+                 shear rise, Stock Sec. III.C)
+  cf-rise front: first x/L (past the nose, sub-cell interpolated) where
+                 cf exceeds k x its running minimum, k = 1.5 (the
+                 hot-film analogue: the resultant-shear rise out of the
+                 laminar decay; Kreplin's detection quantity). The
+                 criterion sensitivity is quantified with k = 1.25 and
+                 2.0 and reported as a band.
 
 Outputs: overlay figure (L2 cf map + measured points + computed fronts)
 -> paper/figs/spheroid_front_compare.pdf/png, and a comparison table
@@ -41,16 +49,26 @@ def fronts(npz):
             j = hits[0]
             f = (CV1 - c[j-1]) / (c[j] - c[j-1])
             f_chi[i] = xl[j-1] + f * (xl[j] - xl[j-1])
-        v = cf[i]
-        runmin = np.inf
-        for j in range(len(xl)):
-            if not np.isfinite(v[j]) or xl[j] < 0.05:
-                continue
-            runmin = min(runmin, v[j])
-            if xl[j] > 0.2 and v[j] > 1.5 * runmin + 2e-4:
-                f_cf[i] = xl[j]
-                break
-    return xl, ph, f_chi, f_cf, cf
+    return xl, ph, f_chi, cf
+
+
+def cf_front(xl, cf_row, k):
+    """First sub-cell-interpolated x/L (x>0.2) where cf exceeds k x its
+    running minimum. Pure relative criterion (no absolute offset)."""
+    runmin = np.inf
+    prev_ex = None
+    for j in range(len(xl)):
+        v = cf_row[j]
+        if not np.isfinite(v) or xl[j] < 0.05:
+            continue
+        runmin = min(runmin, v)
+        ex = v - k * runmin
+        if xl[j] > 0.2 and ex > 0 and prev_ex is not None and prev_ex[1] <= 0:
+            xj_1, e0 = prev_ex
+            f = -e0 / (ex - e0)
+            return xj_1 + f * (xl[j] - xj_1)
+        prev_ex = (xl[j], ex)
+    return np.nan
 
 
 D = json.load(open(f'{PAPER}/data/stock2006_fig15a_digitized.json'))
@@ -59,34 +77,40 @@ SQ = D['re_1p52e6_alpha10_squares']
 res = {}
 for lev in ('L0', 'L1', 'L2'):
     npz = f'{PAPER}/figs/spheroid_maps_{lev}.npz'
-    res[lev] = fronts(npz)
+    xl, ph, f_chi, cf = fronts(npz)
+    fcf = {k: np.array([cf_front(xl, cf[i], k) for i in range(len(ph))])
+           for k in (1.25, 1.5, 2.0)}
+    res[lev] = (xl, ph, f_chi, fcf, cf)
 
 # ---- comparison table at the measured phis ---------------------------------
 print(f"{'phi':>6} {'meas x/L':>9} |"
-      + ''.join(f" {lev+' chi':>8} {lev+' cf':>8}" for lev in ('L0','L1','L2'))
-      + " | d(L2 cf) ")
+      + ''.join(f" {lev+' cf':>8}" for lev in ('L0', 'L1', 'L2'))
+      + " |  L2 band(k=1.25..2) | d(L2,k=1.5)")
 for s in SQ:
     row = [f"{s['phi_deg']:6.1f} {s['xL']:9.3f} |"]
     for lev in ('L0', 'L1', 'L2'):
-        xl, ph, f_chi, f_cf, _ = res[lev]
-        fc = np.interp(s['phi_deg'], ph, f_chi)
-        ff = np.interp(s['phi_deg'], ph, f_cf)
-        row.append(f" {fc:8.3f} {ff:8.3f}")
-    xl, ph, f_chi, f_cf, _ = res['L2']
-    ff = np.interp(s['phi_deg'], ph, f_cf)
-    row.append(f" | {ff - s['xL']:+7.3f}")
+        _, ph, _, fcf, _ = res[lev]
+        ff = np.interp(s['phi_deg'], ph, fcf[1.5])
+        row.append(f" {ff:8.3f}")
+    _, ph, _, fcf, _ = res['L2']
+    lo = np.interp(s['phi_deg'], ph, fcf[1.25])
+    hi = np.interp(s['phi_deg'], ph, fcf[2.0])
+    ff = np.interp(s['phi_deg'], ph, fcf[1.5])
+    row.append(f" |  [{lo:5.3f},{hi:5.3f}] | {ff - s['xL']:+7.3f}")
     print(''.join(row))
 
 # ---- overlay figure ---------------------------------------------------------
-xl, ph, f_chi, f_cf, cf = res['L2']
+xl, ph, f_chi, fcf, cf = res['L2']
 fig, ax = plt.subplots(figsize=(9.6, 4.4))
 m = ax.contourf(xl, ph, cf * 1e3, levels=np.linspace(0, 6, 25),
                 cmap='viridis', extend='max')
 fig.colorbar(m, ax=ax, label=r'$c_f \times 10^3$')
+ax.fill_betweenx(ph, fcf[1.25], fcf[2.0], color='w', alpha=0.25, lw=0,
+                 label=r'L2 criterion band ($k=1.25$--$2$)')
 for lev, c, ls in (('L0', 'w', ':'), ('L1', 'w', '--'), ('L2', 'w', '-')):
-    _, phL, fchiL, fcfL, _ = res[lev]
-    ax.plot(fcfL, phL, ls, color=c, lw=1.4,
-            label=f'{lev} $C_f$-rise front')
+    _, phL, _, fcfL, _ = res[lev]
+    ax.plot(fcfL[1.5], phL, ls, color=c, lw=1.4,
+            label=f'{lev} $C_f$-rise front ($k=1.5$)')
 ax.plot(f_chi, ph, '-', color='cyan', lw=1.2, label=r'L2 $\chi=c_{v1}$ front')
 ax.plot([s['xL'] for s in SQ], [s['phi_deg'] for s in SQ], 's',
         color='red', mfc='none', ms=9, mew=2,
