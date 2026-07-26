@@ -3258,3 +3258,15 @@ comparisons. Minors: +-0.023 bound; compare-figure restyled to line
 contours (legend moved off the phi=132 square; black separation line);
 Re-SCALED probe rays (the overnight high-Re maps would have biased cf
 low — reviewer caught it pre-cut); dead code cleaned. Build clean.
+
+## 2026-07-26 20:35 UTC — Appendix H: spheroid station waterfalls (Stock Figs 2-5 style)
+
+Both L2 cases re-probed with wall Cp (Re-scaled rays per pass 42);
+four waterfall figures generated and inserted as Appendix H: Cp at the
+13 pressure stations (+0.14/-Cp per station) and Cft/gamma_w at the 7
+hot-film stations (-1.5e-3 / -15 deg per station), alpha=10 and 29.7,
+exact conventions of Stock Figs 2-5 (station lists from the figure
+legends). The model's c_v1-front marks are absent from the hot-film
+range at 1.5e6 — the amplification-deficit finding in the measured
+campaign's own presentation. Measured-symbol digitization = task #37.
+Section points to the appendix. 113 pages, builds clean.
