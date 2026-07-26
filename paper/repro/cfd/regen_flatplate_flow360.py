@@ -23,7 +23,7 @@ from vtkmodules.util.numpy_support import vtk_to_numpy
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
+B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fv1")
 NU = 1.0e-6   # Re_unit = 1e6, nu = 1/Re  (=> Re_x = x * 1e6)
 MACH = 0.1    # Flow360 stores velocity = u/c_∞; freestream u/U_∞ = Mach/Mach = 1, so divide by MACH
 # AGS-calibrated case set (Tu in S-S/AGS natural-transition range; drop the old

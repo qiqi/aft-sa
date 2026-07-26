@@ -14,7 +14,7 @@ from scipy.ndimage import gaussian_filter1d
 matplotlib.rcParams.update({'font.size': 10, 'axes.titlesize': 10, 'axes.labelsize': 10,
                             'xtick.labelsize': 9, 'ytick.labelsize': 9, 'legend.fontsize': 8})
 
-B  = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
+B  = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fv1")
 PD = "/home/qiqi/flexcompute/sa-ai/paper"
 AF = 'eppler387'        # surface_fluid_<AF>.pvtu
 Z_TE_HALF = 0.000833    # half blunt-TE thickness for E387 (NASA TM 4062)

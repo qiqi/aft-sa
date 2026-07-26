@@ -2588,3 +2588,20 @@ the cleanest outcome of freeing the symbol). Deferred: eq label renames (churn);
 the 93/93 hard gate (script currently executing — bash incremental-read hazard; monitors
 serve as tonight's audit). CORRECTION to the 01:45 audit claim: "repo grep clean" was
 overstated — rendered-PDF clean; comments swept per pass-32's list.
+
+## 2026-07-26 02:30 UTC — 2D CAMPAIGN COMPLETE (93/93); Daedalus launched; root flipped
+
+FV1-CANON-CAMPAIGN-DONE at 02:14; chain audit: 93/93 stamped, nlf_neg results repaired
+from the orphan harvest. Daedalus Phase 1 launched 02:18 (six L0 + ogrid L1 a4/a5, one
+per GPU). Migration infrastructure armed:
+- paper/data/fv1_migration_comparison.txt: full old->new diff, every campaign set.
+- SAAI_CFD_ROOT defaults flipped to flow360_fv1 across repro/ (left as-is:
+  run_continuation_ladders' LOCAL_DATA and docstring mentions — those belong to the
+  old-canon continuation studies).
+- e9 reference pickles symlinked into flow360_fv1 (canon-independent).
+- Derived-field augmentation running over all fv1 slices; the full figure regeneration
+  (regenerate_cfd.py) chains behind it. Failures will be triaged — expected class:
+  scripts overlaying old-canon SPECIAL-STUDY artifacts (forks/ladders/warm-start rows)
+  whose files exist only in flow360_fr; those studies need new-canon reruns on GPUs
+  freed after Daedalus (queued).
+Prose migration (Secs II.F, IV, V, VI, VII quoted numbers) begins when figures land.

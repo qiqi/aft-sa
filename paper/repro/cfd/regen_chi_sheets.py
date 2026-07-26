@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 from lib.calibrate_kernel import C_V1  # model constant: import, never restate
 
-B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
+B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fv1")
 FIGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'figs')
 MACH = 0.1
 

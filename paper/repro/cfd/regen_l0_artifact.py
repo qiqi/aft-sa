@@ -10,7 +10,7 @@ holds Gamma~1.1 and rises monotonically. NLF(1)-0416, alpha=4 deg, upper surface
 import os
 import vtk, numpy as np, matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from vtk.util.numpy_support import vtk_to_numpy as v2n
-B=os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr"); CHI=8.76e-4; GC=1.005  # = canonical g_c (tests/test_constants_consistency.py)
+B=os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fv1"); CHI=8.76e-4; GC=1.005  # = canonical g_c (tests/test_constants_consistency.py)
 def load(fn):
     r=vtk.vtkXMLUnstructuredGridReader(); r.SetFileName(fn); r.Update(); return r.GetOutput()
 def surfaces(case):

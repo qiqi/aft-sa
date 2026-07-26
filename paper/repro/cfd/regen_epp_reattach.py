@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import regen_eppler_v2 as R
 
-B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
+B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fv1")
 # NASA TM 4062, Table III oil-flow turbulent reattachment (aft edge of the grey
 # LSB band in the C_f figures), R=2e5.
 EXP_REATTACH = {0: 0.74, 2: 0.67, 5: 0.59, 7: 0.48}

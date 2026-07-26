@@ -20,7 +20,7 @@ from matplotlib.lines import Line2D
 
 _H = os.path.dirname(os.path.abspath(__file__))
 PD = os.path.abspath(os.path.join(_H, '..', '..'))
-B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
+B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fv1")
 
 D = json.load(open(f'{PD}/data/aft_nlf0416_digitized.json'))['transition']
 # Langtry-Menter (OVERFLOW gamma-Re_theta, fine grid) at the same condition:

@@ -32,7 +32,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import matplotlib.ticker as mticker
 
-B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
+B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fv1")
 _HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.abspath(os.path.join(_HERE, '..', '..', 'figs'))
 DATA = os.path.abspath(os.path.join(_HERE, '..', '..', 'data'))

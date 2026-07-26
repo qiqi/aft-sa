@@ -19,7 +19,7 @@ from rans.solve import run_solver
 from run_continuation_ladders import clone, canon_env, write_ai_constants
 import numpy as np
 
-FR = "/home/qiqi/flexcompute/sa-ai/flow360_fr"
+FR = "/home/qiqi/flexcompute/sa-ai/flow360_fv1"
 FAMS = (sys.argv[1],) if len(sys.argv) > 2 else ('str', 'cav')
 GPU = int(sys.argv[2]) if len(sys.argv) > 2 else 7
 results_path = f"{FR}/fork_bistability_results.json"

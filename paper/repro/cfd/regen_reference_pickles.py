@@ -30,7 +30,7 @@ import tempfile
 import numpy as np
 
 SA = '/home/qiqi/flexcompute/sa-ai'
-B = os.environ.get('SAAI_CFD_ROOT', f'{SA}/flow360_fr')
+B = os.environ.get('SAAI_CFD_ROOT', f'{SA}/flow360_fv1')
 NLF_DAT = f'{SA}/external/construct2d/nlf0416.dat'
 EPP_DAT = f'{SA}/external/construct2d/eppler387.dat'
 sys.path.insert(0, SA)

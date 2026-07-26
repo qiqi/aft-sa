@@ -20,7 +20,7 @@ sources and prints the Table~\ref{tab:nlftrans} rows:
 import os, csv, pickle
 import numpy as np
 
-B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
+B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fv1")
 ALPHAS = [0, 4, 9, 15]
 
 # --- Somers TP-1861 Fig. 9(d), R=4e6: authoritative transition-front readings by

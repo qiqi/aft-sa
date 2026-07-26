@@ -27,7 +27,7 @@ from rans.solve import run_solver
 import saai_env
 import numpy as np
 
-FR = "/home/qiqi/flexcompute/sa-ai/flow360_fr"
+FR = "/home/qiqi/flexcompute/sa-ai/flow360_fv1"
 MACH = 0.1
 STEPS = 20000
 

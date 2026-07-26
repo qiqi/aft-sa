@@ -30,7 +30,7 @@ from scipy.spatial import cKDTree
 from vtk.util.numpy_support import vtk_to_numpy
 import regen_eppler_v2 as R
 
-B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
+B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fv1")
 UINF = 0.1  # Mach (velocity in sound-speed units)
 
 CASES = [

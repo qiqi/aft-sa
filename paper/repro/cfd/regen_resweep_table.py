@@ -28,7 +28,7 @@ a~5 the measured lift collapses from .838 (a=4.99) to .639 (a=5.51).
 import os, sys, csv, pickle, subprocess
 import numpy as np
 
-B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
+B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fv1")
 DAT = '/home/qiqi/flexcompute/sa-ai/external/construct2d/eppler387.dat'
 ALPHA = 5.0
 RES = [60, 100, 200, 300, 460]

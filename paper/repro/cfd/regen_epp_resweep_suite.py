@@ -31,7 +31,7 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 import regen_eppler_v2 as R
 
-B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
+B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fv1")
 UP, LO = R.UP_COLOR, R.LO_COLOR
 LEVELS = ['L0', 'L1', 'L2']
 FAMS = ['cav', 'str']

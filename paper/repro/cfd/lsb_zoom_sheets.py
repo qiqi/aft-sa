@@ -24,7 +24,7 @@ import vtk
 from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
 import regen_eppler_v2 as m
 
-B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
+B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fv1")
 PREV = os.path.abspath(os.path.join(_H, '..', 'analytic', 'figs_explore'))
 MACH = 0.1
 C_V1 = 7.1

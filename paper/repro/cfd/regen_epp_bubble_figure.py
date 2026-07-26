@@ -24,7 +24,7 @@ import regen_eppler_v2 as R
 from regen_epp_reattach import reattach
 
 PD = os.path.abspath(os.path.join(_H, '..', '..'))
-B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fr")
+B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fv1")
 
 # TM-4062 Table III, R=200,000: alpha -> (LS, TR).  alpha=8 is "(NT at .32)"
 # (natural transition, no bubble): excluded.  8.5 is the post-stall LE bubble.

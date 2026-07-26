@@ -31,7 +31,7 @@ import numpy as np
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy
 
-FR = '/home/qiqi/flexcompute/sa-ai/flow360_fr'
+FR = '/home/qiqi/flexcompute/sa-ai/flow360_fv1'
 AMAX, C, A, B, K, W = 0.19, 2600.0, 175.0, 2.0, 0.712, 0.35
 
 
