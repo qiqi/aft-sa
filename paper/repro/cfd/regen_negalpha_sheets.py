@@ -27,10 +27,10 @@ B = S.B
 FIGS = S.FIGS
 AF = 'nlf0416'
 CFG = S.AF_SETUP[AF]
-ROWS = [('cav', -4, 'cavity L2, $\\alpha=-4^\\circ$'),
-        ('str', -4, 'O-grid L2, $\\alpha=-4^\\circ$'),
-        ('cav', -8, 'cavity L2, $\\alpha=-8^\\circ$'),
-        ('str', -8, 'O-grid L2, $\\alpha=-8^\\circ$')]
+ROWS = [('cav', -8, 'cavity L2, $\\alpha=-8^\\circ$'),
+        ('str', -8, 'O-grid L2, $\\alpha=-8^\\circ$'),
+        ('cav', -4, 'cavity L2, $\\alpha=-4^\\circ$'),
+        ('str', -4, 'O-grid L2, $\\alpha=-4^\\circ$')]
 
 
 def case_dir(fam, alpha):

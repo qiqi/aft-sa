@@ -1470,9 +1470,7 @@ $\alpha\!\in\!\{0^\circ, 4^\circ, 9^\circ,
 cases total). The finest grids extend the matrix to the
 negative-incidence pair $\alpha\!=\!-4^\circ$ and $-8^\circ$
 (Fig.~\ref{fig:nlfnegalpha}; wall-anchored contour sheets in
-Appendix~A), computed to front convergence---at $-8^\circ$ the
-pressure-side front marches ${\approx}0.5\,c$ aft of its cold-start
-transient before locking on the measured onset. The unstructured mesher uses a shared NLF contour (a natural cubic
+Appendix~A). The unstructured mesher uses a shared NLF contour (a natural cubic
 spline in arc length through the published coordinates, resampled with
 piecewise-cosine clustering) with
 blunt-trailing-edge--aware spacing ($h_\mathrm{TE}$ scales with first-cell
@@ -1521,7 +1519,7 @@ quantitatively.
   on transition-vs-$c_l$ axes). No published SA-BCM incidence
   \emph{sweep} exists at this condition; the one open SA-BCM result
   is a single-incidence ($\alpha\!=\!0^\circ$) mesh-adaptation
-  study~\cite{tarsia_2025}. The isolated coarse-grid points at incidence are under-resolved-front artifacts (cf.\ the L0 discussion of Fig.~\ref{fig:nlfcflow}); the cavity-L1 $15^\circ$ lower front reached the iteration budget still wandering over $0.65$--$0.67\,c$ (the final batch's value is plotted; the one non-converged case of the twenty-four). Open squares/triangles:
+  study~\cite{tarsia_2025}. The isolated coarse-grid points at incidence are under-resolved-front artifacts (cf.\ the L0 discussion of Fig.~\ref{fig:nlfcflow}); the cavity-L1 $15^\circ$ lower front is the one unsettled case of the twenty-four, still drifting over $0.65$--$0.67\,c$ (the final value is plotted). Open squares/triangles:
   SA-AI on all six grids (L0--L2 by marker size, both families) at
   $\alpha\!=\!0^\circ,4^\circ,9^\circ,15^\circ$, plus the
   negative-incidence pair $\alpha\!=\!-4^\circ$ (zero lift) and
@@ -1534,12 +1532,7 @@ quantitatively.
   $0.015$--$0.018\,c$), and the pressure-side (upper) front
   converges at $0.559$--$0.561\,c$ (families agreeing to
   $0.002\,c$)---on the measured ${\approx}0.54\,c$, with the
-  recalibrated AFT at $0.57$ and $e^9$ at $0.66\,c$. The march to
-  front convergence is slow---the upper front travels
-  ${\approx}0.5\,c$ aft of its cold-start transient over
-  ${\sim}7\!\times\!10^4$ pseudo-steps
-  (Fig.~\ref{fig:nlfnegalpha})---so a fixed-budget cold start reads
-  a transient front here.}
+  recalibrated AFT at $0.57$ and $e^9$ at $0.66\,c$.}
   \label{fig:nlfaft}
 \end{figure}
 
@@ -1704,17 +1697,12 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
   $e^9$ $N$ envelope, $-C_p$, signed $C_f$; upper surface blue, lower
   red). The $e^9$ overlay is mfoil at $-8^\circ$ and FlexFoil at
   $-4^\circ$, where mfoil's coupled solve does not converge; filled
-  triangle: measured onset at the computed lift. All four solutions
-  are front-converged (batched restarts to a $0.01\,c$ front
-  tolerance). At $-4^\circ$ both fronts land on the references. At
-  $-8^\circ$ the suction (lower) surface trips at
-  $0.004$--$0.011\,c$, on the $e^9$ leading-edge trip, locking
-  within the first batches, while the pressure-side (upper) front
-  settles at $0.559$--$0.561\,c$, on the measured
-  ${\approx}0.54\,c$ ($e^9$: $0.66\,c$); the march there is
-  slow---${\approx}0.5\,c$ of aft travel over
-  ${\sim}7\!\times\!10^4$ pseudo-steps from the cold start---so
-  rows~1--3 on that surface only read cleanly at front convergence.
+  triangle: measured onset at the computed lift. At $-4^\circ$ both
+  fronts land on the references. At $-8^\circ$ the suction (lower)
+  surface trips at $0.004$--$0.011\,c$, on the $e^9$ leading-edge
+  trip, while the pressure-side (upper) front settles at
+  $0.559$--$0.561\,c$, on the measured ${\approx}0.54\,c$ ($e^9$:
+  $0.66\,c$).
   The wall-anchored contour sheets appear in Appendix~A
   (Figs.~\ref{fig:sheet_nlf0416_negalpha_upper}--\ref{fig:sheet_nlf0416_negalpha_lower}).}
   \label{fig:nlfnegalpha}
@@ -2892,6 +2880,25 @@ handover above the lifted bubble shear layer stays in frame.
 
 \begin{figure}[p]
   \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_negalpha_upper.pdf}
+  \caption{NLF(1)-0416 negative-incidence pair, upper surface: rows are
+  (cavity, O-grid) L2 at $\alpha=-8^\circ$ then $-4^\circ$. At
+  $-8^\circ$ this (pressure) surface holds a long laminar run before
+  its front settles at $0.56\,c$ (Fig.~\ref{fig:nlfnegalpha}).}
+  \label{fig:sheet_nlf0416_negalpha_upper}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_negalpha_lower.pdf}
+  \caption{As Fig.~\ref{fig:sheet_nlf0416_negalpha_upper}, lower
+  surface: tripped at the leading edge at $-8^\circ$ (the suction side
+  there) and laminar to ${\approx}0.11$--$0.12\,c$ at $-4^\circ$.}
+  \label{fig:sheet_nlf0416_negalpha_lower}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a0_upper.pdf}
   \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=0^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_nlf0416_a0_upper}
@@ -2944,28 +2951,6 @@ handover above the lifted bubble shear layer stays in frame.
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a15_lower.pdf}
   \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=15^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_nlf0416_a15_lower}
-\end{figure}
-
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_negalpha_upper.pdf}
-  \caption{NLF(1)-0416 negative-incidence pair, upper surface: rows are
-  (cavity, O-grid) L2 at $\alpha=-4^\circ$ then $-8^\circ$,
-  front-converged. At $-8^\circ$ this (pressure) surface holds a long
-  laminar run before its front settles at $0.56\,c$
-  (Fig.~\ref{fig:nlfnegalpha}).}
-  \label{fig:sheet_nlf0416_negalpha_upper}
-\end{figure}
-
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_negalpha_lower.pdf}
-  \caption{As Fig.~\ref{fig:sheet_nlf0416_negalpha_upper}, lower
-  surface: laminar to ${\approx}0.11$--$0.12\,c$ at $-4^\circ$ and
-  tripped at the leading edge at $-8^\circ$ (the suction side there);
-  these fronts lock within the first batches of the front-convergence
-  protocol.}
-  \label{fig:sheet_nlf0416_negalpha_lower}
 \end{figure}
 
 \clearpage
