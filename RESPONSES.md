@@ -2682,3 +2682,31 @@ FR/LOCAL_DATA flipped to fv1; canonical env carries the bypass). On completion: 
 bistability/relaxation/tautest scope notes in Sec VI can drop their "pre-bypass" caveats
 if the conclusions transfer, the App-C warm-start rows return, and the "repetition is
 queued" clauses resolve.
+
+## 2026-07-26 08:05 UTC — INTERIM (unconverged): new-canon 1e5 fork/ladder states differ by path
+
+Ladders + forks done (rc=0, both families); 40k extensions running. PRELIMINARY 1e5
+states (fixed budgets, NOT yet extended): cold 0.795/0.876 (str/cav CL), fork-from-2e5
+0.730/0.828, descent 0.735/0.835, climb-from-6e4 0.836/0.915 — path spreads ~0.10 in CL
+vs the pre-bypass model's <=0.005 monostability. If the extensions hold these apart, the
+NEW canon is BISTABLE at 1e5 (a qualitatively new result — the two-state structure the
+experiment shows at 6e4 would exist in the model, still one Reynolds step high); if they
+converge, monostability survives and the Sec VI caveats simply drop. 6e4 spreads are
+small (0.017/0.008) — burst-branch monostable pending extensions. NO paper edits until
+the extensions decide.
+
+## 2026-07-26 08:40 UTC — SPECIAL STUDIES COMPLETE AT NEW CANON: monostability confirmed, caveats resolved
+
+All chains done (rc=0 throughout): ladders (descent+climb, both families), bistability
+forks, 40k fork/descent/climb extensions, tau=1 pair. VERDICT: the 1e5 path spread of the
+interim reading was TRANSIENT — extensions converge every path onto the cold state (str:
+0.7975/0.7974/0.7983 vs cold 0.7952, lift <=0.003, drag <=5e-4; cav: fork/descent
+0.8816/0.8813 vs cold 0.8763 <=0.005, climb 0.869 still drifting toward the pack at its
+40k end). MONOSTABLE at the recomputed canon; 6e4 collapses to the burst branch. The
+tau=1 oscillator is STRONGER at the new canon (dCl 0.34 at 1e5, 0.29 at 2e5 — was
+0.3/0.08): the memoryless-gate conclusion sharpens. Sec VI edits: pre-bypass caveats on
+the probes/relaxation/tautest all resolved with re-derived numbers; App-C warm-start
+rows restored (1e5 sheets regenerated with the new-canon fork extensions, 8 rows again).
+Build clean. Remaining CFD: Daedalus P3 (ogrid L2 a4 solving ~2h in, a5/a6 follow) —
+cavity L2 held per order. Remaining paper: Daedalus migration when P3 lands; solver
+identifier rename after that (clean rebuild).

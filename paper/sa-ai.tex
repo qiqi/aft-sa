@@ -2270,21 +2270,21 @@ conditions coincide. The model reproduces neither the second branch
 nor the hysteresis: direct forks of each family's converged
 $2\!\times\!10^5$ solution, slow one-step Reynolds descents and
 climbs, and $40\,000$-iteration extensions of every $10^5$ endpoint
-all converge to one family-specific state at $10^5$ (lift agreeing to
-$\le\!0.005$, drag to $\le\!5\!\times\!10^{-4}$) and collapse onto the
-burst branch within $20\,000$ iterations at $6\!\times\!10^4$
+all converge to one family-specific state at $10^5$ (structured:
+lift agreeing to $\le\!0.003$, drag to $\le\!5\!\times\!10^{-4}$;
+cavity: $\le\!0.005$ among cold, fork, and descent, with the slow
+climb still $0.012$ away and drifting toward the pack at the end of
+its $40\,000$-iteration extension) and collapse onto the burst branch
+at $6\!\times\!10^4$
 (repro: \texttt{repro/cfd/run\_bistability\_forks.py},
 \texttt{run\_continuation\_ladders.py}, \texttt{run\_fork\_extensions.py},
-\texttt{run\_dn\_extensions.py}; the probes ran at the pre-bypass
-canon---the recomputation moves the $10^5$ states by
-$+0.02$--$0.03$ in $c_l$ without changing the branch structure they
-probe, and their repetition is queued). \emph{The model is monostable
-throughout the sweep}; the only trace of the nearby fold is the
-relaxation time at $10^5$ (measured, like the probes, at the
-pre-bypass canon)---convergence takes
-$3$--$4.5\!\times\!10^4$ iterations, an order of magnitude longer than
-anywhere else in the sweep, with $\pm0.06$ lift excursions along the
-way---and the experiment's two-state structure, hysteresis included,
+\texttt{run\_dn\_extensions.py}; the probes were repeated in full at
+the recomputed canon and the conclusion carried over). \emph{The
+model is monostable throughout the sweep}; the only trace of the nearby fold is the
+relaxation time at $10^5$---the warm-started paths need their full
+$4\!\times\!10^4$-iteration extensions to close on the cold state
+(the cavity climb is still drifting at the end of its), an order of
+magnitude longer than anywhere else in the sweep---and the experiment's two-state structure, hysteresis included,
 lives at $6\!\times\!10^4$, one Reynolds step below the model's
 bistable-free burst.
 
@@ -2320,11 +2320,11 @@ structure the experiment shows at $6\!\times\!10^4$. Narrowing the
 interpolation is not the remedy: at $\tau\!=\!1$ (a four-times-narrower
 ramp) the handover becomes a relaxation oscillator---production closes
 the bubble, closure destroys the amplification fetch that fired the
-gate, and the bubble reopens---with $\Delta C_l\!\approx\!0.3$ at
-$10^5$ and $\approx\!0.08$ even at the otherwise steady
+gate, and the bubble reopens---with $\Delta C_l\!\approx\!0.34$ at
+$10^5$ and $\approx\!0.29$ even at the otherwise steady
 $2\!\times\!10^5$ benchmark (cases
-\texttt{tautest\_strL2\_Re\{100,200\}k\_a5\_tau1}, run at the
-pre-bypass canon like the initialization probes). The gate is
+\texttt{tautest\_strL2\_Re\{100,200\}k\_a5\_tau1}, repeated at the
+recomputed canon, where the oscillation is stronger still). The gate is
 memoryless where breakdown is irreversible. The identified remedy,
 left to future work, is a transition-zone closure with physical
 content: an outer-scaled breakdown trigger (a Reynolds-stress proxy
@@ -3067,12 +3067,12 @@ One upper-surface sheet per swept Reynolds number of
 Sec.~\ref{sec:eppresweep} (the $Re=2\times10^5$ anchor is the
 $\alpha\!=\!5^\circ$ sheet of Appendix~B), each covering the full
 L0--L2 suite on both mesh families; the wall-normal frame scales as
-$\smash{\sqrt{2\times10^5/Re}}$. (The pre-bypass study also carried
-two warm-started L2 rows at $Re=10^5$, indistinguishable from the
-cold-start rows---the initialization independence of
-Sec.~\ref{sec:eppbistab} seen in the field variables; those
-extensions are being repeated at the recomputed canon and the rows
-will return with them.)
+$\smash{\sqrt{2\times10^5/Re}}$. At $Re=10^5$ two additional rows
+show each family's fork-started L2 solution after its
+$40\,000$-iteration extension (Sec.~\ref{sec:eppbistab}): the fields
+are indistinguishable from the cold-start L2 rows above them---the
+initialization independence of the converged state, seen in the field
+variables.
 Table~\ref{tab:eppresweep} tabulates the sweep's L2 section
 coefficients against the $e^9$ reference and the tunnel data
 (discussed in Sec.~\ref{sec:eppresweep}).
@@ -3145,7 +3145,9 @@ coefficients against the $e^9$ reference and the tunnel data
   \centering
   \includegraphics[width=0.82\textwidth]{chi_sheet_eppler387_Re100k_upper.pdf}
   \caption{Eppler~387, $Re=10^5$, $\alpha=5^\circ$, upper surface, all six
-  grids.}
+  grids plus the two extended fork-started L2 solutions (bottom rows),
+  indistinguishable from the cold-start L2 rows
+  (Sec.~\ref{sec:eppbistab}).}
   \label{fig:sheet_eppler387_Re100k_upper}
 \end{figure}
 

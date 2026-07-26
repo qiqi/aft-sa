@@ -72,12 +72,17 @@ def clone(src, dst, Rk):
     with a symlink at dst, so hardlinks to migrated meshes stay same-device."""
     real_dst = os.path.join(LOCAL_DATA, os.path.basename(dst))
     shutil.rmtree(real_dst, ignore_errors=True)
-    if os.path.islink(dst):
-        os.remove(dst)
+    if os.path.realpath(os.path.dirname(dst)) == os.path.realpath(LOCAL_DATA):
+        # the tree root itself is a symlink onto LOCAL_DATA (fv1 layout):
+        # dst IS real_dst, no per-case symlink needed
+        os.makedirs(real_dst)
     else:
-        shutil.rmtree(dst, ignore_errors=True)
-    os.makedirs(real_dst)
-    os.symlink(real_dst, dst)
+        if os.path.islink(dst):
+            os.remove(dst)
+        else:
+            shutil.rmtree(dst, ignore_errors=True)
+        os.makedirs(real_dst)
+        os.symlink(real_dst, dst)
     for f in os.listdir(src):
         if f in OUT_NAMES or f.endswith(OUT_PAT):
             continue
