@@ -4,7 +4,10 @@
 paper/data/stock2006_fig15a_digitized.json).
 
 Front definitions from the surface-map .npz dumps (surface_map.py):
-  chi front    : first x/L where the wall-normal max chi crosses c_v1
+  chi fronts   : first x/L where the wall-normal max chi crosses 1
+                 (blend onset) and c_v1 (half-saturation); the two
+                 nearly coincide (<=0.05 L over the azimuth grid) --
+                 the fast-handover diagnostic
                  (the model-native front; at this Re it sits at
                  0.92-0.97 x/L for every phi and does NOT track the
                  measured points -- the finding, not a bug: the
@@ -21,7 +24,7 @@ Outputs: overlay figure (L2 cf map + measured points + computed fronts)
 -> paper/figs/spheroid_front_compare.pdf/png, and a comparison table
 printed at the measured phis for L0/L1/L2 (grid convergence).
 
-Run from paper/: python3 ../spheroid/compare_stock_fronts.py
+Run from paper/: python3 repro/cfd/compare_stock_fronts.py
 """
 import json
 import os
@@ -42,7 +45,6 @@ def fronts(npz):
     n = len(ph)
     f_chi1 = np.full(n, np.nan)
     f_chi = np.full(n, np.nan)
-    f_cf = np.full(n, np.nan)
     for i in range(n):
         c = chi[i]
         for lev, arr in ((1.0, f_chi1), (CV1, f_chi)):

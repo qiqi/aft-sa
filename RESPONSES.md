@@ -3181,3 +3181,12 @@ passage corrected (slow-handover attribution REPLACED by the
 amplification-deficit finding); chi=1 front added to the figure and
 table; comparison script updated. Earlier RESPONSES entries (15:35)
 attributing the lag to slow handover are superseded by this one.
+
+## 2026-07-26 17:00 UTC — Pass 41: quantifiers fixed, cause -> hypotheses
+
+"At every azimuth" corrected to full-grid numbers (gap <= 0.05 L, fronts
+0.90-0.99); the kernel-causal clause replaced by the three live
+hypotheses (lifted layer beyond the wall-anchored kernel / probe reach
+0.04 L; in-bubble onset-gate arm; genuinely subcritical at 1.5e6) with
+the flank rate probe tied to the workshop step. Caption notes both cyan
+lines. Script hygiene done. Build clean.
