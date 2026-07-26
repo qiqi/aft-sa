@@ -2836,3 +2836,17 @@ prolate spheroid" before the Conclusion — setup sentence + two figures
 3D cf views), kreplin_1985 bib entry added; minimal text by design.
 CONDITIONS RUN SO FAR: Re_L=1.5e6, M=0.1, alpha=10 deg only; L0
 (CL 0.2054/CD 0.0817) and L1 (0.2082/0.0852) done, L2 solving GPUs 6/7.
+
+## 2026-07-26 11:40 UTC — Spheroid: authoritative literature
+
+Most authoritative physics treatment: Stock, AIAA J 44(1):108-118 (2006),
+"eN Transition Prediction in 3D Boundary Layers on Inclined Prolate
+Spheroids" (paywalled; the NTS-NCF interaction diagram everyone reuses).
+Open companion downloaded to references/: Krimmelbein & Krumbein 2010
+(DLR elib 67581) — Fig 5 has measured+computed fronts at EXACTLY our
+condition (Re 1.5e6, alpha 10; pure-TS per their analysis — fair first
+test for a crossflow-less model) and at the 6.5e6 workshop pair.
+PRELIMINARY: their leeward front hooks to x/L~0.35-0.5 at phi~130-160
+where our L1 chi front only reaches ~0.85 — model likely late under the
+leeward vortex; verify on L2 with a cf-rise front + digitized line
+before claiming. Data source: Kreplin/Vollmers/Meier 1985 (in bib).
