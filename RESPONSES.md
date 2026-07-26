@@ -3281,3 +3281,12 @@ appendix text states the printed-vs-text discrepancy; station-1
 edge-read noted; front sentence scoped per incidence; roadmap A-H.
 Task 37 (measured symbols) unblocked — offsets now match what will be
 digitized. Build clean.
+
+## 2026-07-26 21:35 UTC — alpha=0 (7.2e6) ladder complete: zero lift at L1/L2
+
+CL 0.0062/0.0000/0.0000 (L0 residual = coarse-grid asymmetry, RESOLVED);
+CD 0.0150/0.0169/0.0211 — rising 41% with refinement: the finer grids
+transition earlier at this pure-TS condition; the Stock Fig 14a front
+comparison quantifies it next. Totals table refreshed (dashes filled);
+L2 maps probing (Re-scaled rays). Workshop pair (re65) now starting on
+GPUs 6/7; Daedalus a6 minutes from landing.
