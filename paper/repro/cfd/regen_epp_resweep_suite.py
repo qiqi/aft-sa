@@ -109,7 +109,7 @@ def make_fig(re_list, out):
         if col == 0: ax_reo.set_ylabel(r'$\max Re_\Omega$ (log)')
         ax_P.axhline(0.0, color='gray', ls=':', lw=0.6, alpha=0.5)
         ax_P.set_ylim(-0.3, 1.0); ax_P.grid(alpha=0.3)
-        if col == 0: ax_P.set_ylabel(r'$\max \hat S g$')
+        if col == 0: ax_P.set_ylabel(r'$\max \hat\Omega \hat I$')
         # ROW 3: max chi (log, left) and the e^9 N envelope (linear, right)
         for fam, lvl, d, ls, lw in for_each_case(Rk):
             if not os.path.exists(f"{d}/slice_centerSpan.pvtu"):

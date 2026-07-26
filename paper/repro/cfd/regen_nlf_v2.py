@@ -301,7 +301,7 @@ def wallnormal_max_metrics(case_d, side='upper', L_probe=0.01, n_probe=80,
     ReO_raw = vtk_to_numpy(pdd.GetArray('Re_Omega'))
     _gam_arr = pdd.GetArray('Gamma')  # retired; kept robust for legacy return slots
     Gam_raw = vtk_to_numpy(_gam_arr) if _gam_arr is not None else np.full(M*n_probe, np.nan)
-    P_arr = pdd.GetArray('P')
+    P_arr = pdd.GetArray('OmegaI') or pdd.GetArray('P')  # legacy field name
     P_raw = vtk_to_numpy(P_arr) if P_arr is not None else np.full(M*n_probe, np.nan)
     valid = vtk_to_numpy(probe.GetValidPoints())
     mask = np.zeros(M * n_probe, bool); mask[valid] = True
@@ -596,7 +596,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         # (fig02_onset_graze); suppressed/favorable values <= 0 drop below
         ax_P.set_yscale('log')
         ax_P.set_ylim(3e-3, 1.3); ax_P.grid(alpha=0.3, which='both')
-        if col == 0: ax_P.set_ylabel(r'$\max \hat S g$ (log)')
+        if col == 0: ax_P.set_ylabel(r'$\max \hat\Omega \hat I$ (log)')
         # ROW 3: chi + N
         for mesh in meshes:
             for level in LEVELS_CF:  # configurable level set

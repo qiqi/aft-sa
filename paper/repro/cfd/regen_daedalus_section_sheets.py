@@ -245,7 +245,7 @@ def make_sheet(eta_q):
         ax_cf.set_xlim(0, 1)
         if col == 0:
             ax_reo.set_ylabel(r'$\max Re_\Omega$ (log)')
-            ax_P.set_ylabel(r'$\max \hat S g$ (log)')
+            ax_P.set_ylabel(r'$\max \hat\Omega \hat I$ (log)')
             ax_n.set_ylabel(r'$\chi$ (log)')
             ax_cp.set_ylabel(r'$-C_p$')
             ax_cf.set_ylabel(r'$C_{f,x}$')

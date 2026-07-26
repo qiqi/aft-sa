@@ -2436,3 +2436,103 @@ migration (captions currently saying "not front-converged / markers to be replac
 the converged story; fig:nlfaft -8 markers move to 0.561/0.0104 cav). str am8 (campaign
 instance) still marching; str am4 converged earlier at 0.4469/0.1089 (measured 0.453).
 Both orphans stamped; babysitter exited clean.
+
+## 2026-07-26 00:20 UTC — Naming g: "accumulated inflection" is not a metaphor, it's a theorem
+
+User asked whether the literature ever named our g, and whether "accumulated inflection"
+makes sense (defining pointwise inflection as (1/2)d^2 x the curvature derivative — the
+third-derivative contribution to the wall-to-point vorticity change).
+
+1. LITERATURE: no. g = (Y-X-Z)/R appears nowhere under any name; "Rayleigh coordinate"
+   is our own coinage. Classical stability theory has only sign CONDITIONS in this
+   neighborhood (Rayleigh's inflection-point criterion: u'' changes sign somewhere;
+   Fjortoft's sharpening: interior maximum of |vorticity|), never a pointwise quantity.
+   Nearest unnamed relatives: Y-X-Z is exactly minus the second-order Taylor
+   extrapolation of u to the wall (the "parabolic wall-velocity defect").
+
+2. THE IDENTITY (verified numerically to integration accuracy, and exact by
+   differentiation): with u(0)=0,
+       g R = d u'(d) - u(d) - (1/2) d^2 u''(d) = - (1/2) INT_0^d y^2 u'''(y) dy.
+   d/dd of the left side is exactly -(1/2) d^2 u'''(d). So defining the pointwise
+   inflection density iota(y) = -(1/2) y^2 u'''(y) — precisely the user's construction:
+   the third-derivative-induced part of the vorticity change from wall to y if that
+   third derivative persisted — g R IS the integral of iota from the wall to the probe
+   point. "Accumulated inflection" is literally what it is. Corollary: g vanishes
+   IDENTICALLY for every linear AND quadratic profile (Couette, channel-Poiseuille) —
+   only super-quadratic bending registers.
+
+3. "Inflection" generally: from Latin inflectere, "to bend" — the point where a curve's
+   curvature changes sign. For boundary layers: an inflectional profile IS defined as
+   one whose u(y) has an interior inflection point (u'' crossing zero, equivalently an
+   interior extremum of the vorticity u'); it is the gateway property of inviscid
+   (Rayleigh/Fjortoft) instability. Nobody in the literature defines a pointwise
+   AMOUNT of inflection — that definition is ours to make, and iota above is the one
+   that makes g its exact accumulation.
+
+4. NUANCE for the paper: the accumulated inflection proper is g*R (dimensional,
+   velocity units); g itself is the accumulated inflection NORMALIZED by the indicator
+   magnitude R (the sphere's projective normalization). Suggested wording: name
+   I = Y-X-Z the accumulated inflection, keep g = I/R as "the (normalized)
+   accumulated-inflection coordinate", retain one sentence tying it to Rayleigh's
+   criterion. Sites: nomenclature, Sec II (eq:indicators/eq:rate prose), App E, outlook.
+   Also noted: the initialism ("AI") folds back into the model's own name.
+
+Held for the user's go (naming is authorial; variants: which of g vs gR carries the
+name, and whether "integrated" beats "accumulated"). The identity itself is worth
+adding to the paper regardless — it derives the quadratic-blindness of g in one line.
+
+## 2026-07-26 00:40 UTC — Symbol proposal: I=Y-X-Z with I_hat=I/R replacing g; Omega_hat replacing S_hat
+
+Assessment (user asked; held for go before executing):
+
+WHY S_hat WAS WRONG ALL ALONG: "S" came from reading the parallel-layer Y = d|u'| as
+"shear" during development. But in the turbulence-modeling convention (SST literature),
+S = STRAIN-rate magnitude and Omega = ROTATION/vorticity magnitude — and our Y is built
+on vorticity (solver form Y = d|omega|, Gram form sqrt(<u,u><d,d><omega,omega>)). So
+S_hat actively suggests the wrong tensor invariant. Omega_hat fixes that, matches our
+own Re_Omega = d^2|omega|/nu (same Omega family), and de-crowds S, which the paper uses
+three ways (SA's S-tilde, the onset sigmoid S(zeta), and S_hat). Strong yes.
+
+I / I_hat: I = Y-X-Z is fresh in the paper (no \hat I collisions; I not otherwise used
+as a math symbol), reads as "accumulated Inflection", and the pair
+(Omega_hat, I_hat) = normalized vorticity fraction x normalized accumulated inflection
+makes the rate coordinate Omega_hat*I_hat self-describing. Only alternatives worth a
+thought before committing: lowercase omega_hat (rejected: suggests the unit vorticity
+VECTOR; uppercase matches Re_Omega), and whether I might be mistaken for identity /
+intensity (low risk here; Tu covers intensity).
+
+EXECUTION ORDER (once approved) — the one hazard is the RUNNING campaign:
+1. Paper: ~79 S_hat sites + g-coordinate sites (nomenclature, Sec II, App E, captions,
+   outlook; the g_w wall-function disambiguation note simplifies since g frees up);
+   add the exact identity g R = -(1/2) INT y^2 u''' dy as the definition of I.
+2. Figure row labels ("max S_hat g" -> "max Omega_hat I_hat") in the regen scripts +
+   regenerate all suite figures (cheap, postproc only).
+3. Python repro: variable names + the derived-slice FIELD names ('Shat','g_coord','P').
+   Field rename invalidates existing slice_with_derived.pvtu files -> writer emits new
+   names, readers accept BOTH during migration, re-augment lazily.
+4. Solver (compute repo): pure-rename commit (internal identifiers only, no behavior)
+   — ONLY AFTER the fv1 campaign completes, with the mandatory clean rebuild (SOP).
+5. Docs: ONBOARDING.md, memory files, the saai_extensions artifact kernel card.
+   RESPONSES.md stays append-only (historical entries unedited).
+
+## 2026-07-26 01:15 UTC — GLOBAL SYMBOL RENAME EXECUTED (user-approved)
+
+Ŝ → Ω̂ (vorticity fraction) and g → Î (accumulated-inflection coordinate), with
+I ≡ R·Î = du′−u−½d²u″ = −½∫y²u‴dy (the accumulated inflection; eq:g_integral now states
+the identity for the UNNORMALIZED combination, fixing a small rigor slip — the old text
+wrote the integral as equal to the normalized g). Executed:
+- Paper: 19 targeted definitional rewrites + 68 compound Ω̂Î sites + 3 singles;
+  nomenclature gains the I,Î entry; "shear fraction"→"vorticity fraction",
+  "shear pole"→"vorticity pole"; g_w footnote updated; grep- and RENDER-clean
+  (0 Ŝ, 0 "Rayleigh coordinate" in the built PDF); 91 pp, 0 errors, 0 overflows.
+- Figures: row-2 labels now "max Ω̂Î" — all nine suite figures + onset_graze
+  regenerated.
+- Repro code: add_derived_to_slice writes Omega_hat/I_hat/OmegaI (legacy
+  Shat/g_coord/P still READ by consumers for pre-rename case dirs).
+- Docs: ONBOARDING.md updated (with "formerly Ŝ" breadcrumb); memory updated.
+- QUEUED: solver-internal identifier rename — after ALL CFD lands (clean-rebuild SOP);
+  artifact kernel-card update rides the next artifact refresh.
+
+ALSO: user (going to sleep) ordered finishing ALL CFD without feedback except
+unstructured-L2 Daedalus → after the fv1 campaign closes: Daedalus alpha=4/5/6 at
+L0+L1 both families + L2 O-GRID under new canon, staged on /local_data.

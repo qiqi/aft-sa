@@ -22,13 +22,15 @@ production `P = max[(1−σ_P)·P_AI, σ_P·P_SA]` (destruction tied:
 `σ_D = 1 − (c_b1/κ²c_w1)(1−σ_P)`), with `σ_P` a handover function of `χ` and
 `P_AI = a·ω·ν̃`. **The rate is the SPHERE KERNEL (model v3)**: three local
 indicators `(X,Y,Z) = (|u|, ωd, ½d²u″)/R` on the projective sphere, shear fraction
-`Ŝ = Y/√(X²+Y²)`, Rayleigh coordinate `g = (Y−X−Z)/R` (the parabola great circle
-`g = 0` is neutral), and `a = a_max·clip⟨Ŝg⟩₀¹·S(Re_Ω/Re_Ω^c)` with
+`Ω̂ = Y/√(X²+Y²)` (vorticity fraction; formerly Ŝ), accumulated-inflection
+coordinate `Î = (Y−X−Z)/R` (formerly g; I = R·Î = −½∫y²u‴dy exactly, the
+"accumulated inflection" — parabola great circle `Î = 0` is neutral), and
+`a = a_max·clip⟨Ω̂Î⟩₀¹·S(Re_Ω/Re_Ω^c)` with
 `a_max = 0.19` (Michalke eigenvalue) and the soft-min onset threshold
-`Re_Ω^c = k·softmin₂(2600, 175 + 2/(Ŝg)²)`, shape from the LST graze,
+`Re_Ω^c = k·softmin₂(2600, 175 + 2/(Ω̂Î)²)`, shape from the LST graze,
 `k = 0.712` (whole-equation drain compensation at `c_ν,ai = 1/6`) anchored
 at the grid-converged Blasius N=1 crossing (Drela Re_θ=338). Favorable pressure gradient gives
-`P = Ŝg ≤ 0` → no amplification, **geometrically** — there is no λ_p, no Γ sigmoid,
+`Ω̂Î ≤ 0` → no amplification, **geometrically** — there is no λ_p, no Γ sigmoid,
 no sigma_FPG in the live model (those are retired v2 machinery). `u″` is evaluated
 by the ring-averaged compact velocity Laplacian (a viscous-flux-style pre-pass).
 **No extra transport equation** (unlike Coder AFT, Langtry–Menter γ–Re_θ, or the

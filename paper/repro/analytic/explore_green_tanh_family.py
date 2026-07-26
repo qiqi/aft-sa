@@ -246,7 +246,7 @@ def main():
         Line2D([], [], color=gcol[1], ls='-.', lw=2,
                label='Green/tanh family at OS critical')],
         fontsize=8, loc='upper right')
-    ax.set_xlabel(r'$\hat S g$')
+    ax.set_xlabel(r'$\hat\Omega \hat I$')
     ax.set_ylabel(r'$Re_\Omega$ at the profile-family critical $Re_\theta$')
     ax.set_xlim(3e-3, 1.3); ax.set_ylim(30, 6e3)
     ax.grid(alpha=0.3, which='both')

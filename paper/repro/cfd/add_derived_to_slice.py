@@ -2,7 +2,9 @@
 fields used by the Cf figures:
   - Re_Omega = d^2 |omega| / nu                                   (onset gate)
   - sph_X = |u|, sph_Y = omega d, sph_Z = 1/2 d^2 (n.grad omega)  (indicators)
-  - Shat = Y/sqrt(X^2+Y^2),  g_coord = (Y-X-Z)/R,  P = Shat*g     (rate coord)
+  - Omega_hat = Y/sqrt(X^2+Y^2),  I_hat = (Y-X-Z)/R,  OmegaI = Omega_hat*I_hat
+    (rate coordinate; legacy field names Shat/g_coord/P are still READ by
+    the consumers for pre-rename case dirs, but no longer written)
 Writes slice_with_derived.pvtu next to slice_centerSpan.pvtu.  (The retired
 Gamma / lambda_p / amp_rate fields of the old kernel are no longer produced.)
 """
@@ -46,7 +48,7 @@ def augment(pvtu_path):
     U = np.sqrt(v[:,0]**2 + v[:,1]**2 + v[:,2]**2)
     Re_O = d*d*omega / nu
     ome_d = omega * d
-    # Sphere-kernel amplifying coordinate P = Shat * g.
+    # Kernel amplifying coordinate OmegaI = Omega_hat * I_hat.
     # X = |u|, Y = omega d, Z = 1/2 d^2 (n.grad omega); n = grad(wallDistance)
     # (outward wall-normal), so Z carries the physical curvature sign.
     nmag = np.sqrt(gradD[:,0]**2 + gradD[:,1]**2 + gradD[:,2]**2) + 1e-30
@@ -54,13 +56,13 @@ def augment(pvtu_path):
                  + gradW[:,2]*gradD[:,2]) / nmag
     X = U; Y = ome_d; Z = 0.5*d*d*domega_dn
     Rsph = np.sqrt(X*X + Y*Y + Z*Z) + 1e-30
-    Shat = Y / (np.sqrt(X*X + Y*Y) + 1e-30)
-    g_coord = (Y - X - Z) / Rsph
-    P = Shat * g_coord
+    Omega_hat = Y / (np.sqrt(X*X + Y*Y) + 1e-30)
+    I_hat = (Y - X - Z) / Rsph
+    OmegaI = Omega_hat * I_hat
     for name, arr in [('Re_Omega', Re_O.astype(np.float32)),
-                      ('Shat', Shat.astype(np.float32)),
-                      ('g_coord', g_coord.astype(np.float32)),
-                      ('P', P.astype(np.float32)),
+                      ('Omega_hat', Omega_hat.astype(np.float32)),
+                      ('I_hat', I_hat.astype(np.float32)),
+                      ('OmegaI', OmegaI.astype(np.float32)),
                       ('sph_X', X.astype(np.float32)),        # |u|
                       ('sph_Y', Y.astype(np.float32)),        # omega d (shear)
                       ('sph_Z', Z.astype(np.float32)),        # 1/2 d^2 n.grad(omega) (curvature)
