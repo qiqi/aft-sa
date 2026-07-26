@@ -126,8 +126,6 @@ def main():
         xl, ph = d['xl'], np.radians(d['phi_deg'])
         cf, gamma, chimax = d['cf'], d['gamma_w'], d['chimax']
         us, up = d['us'], d['up']
-        XL, PH_ = np.meshgrid(xl, np.radians(d['phi_deg']))
-        XL = XL  # noqa
         return plot_all(out, args, case, tag, alpha, mach, muref,
                         xl, d['phi_deg'], cf, gamma, chimax, us, up)
 
@@ -138,24 +136,35 @@ def main():
     print(f'{tag}: {grid.GetNumberOfPoints():,} pts, h0={h0:.2e}, '
           f'alpha={alpha}, muRef={muref:.3e}')
 
+    re_scale = 1.5e6 / (mach / muref)   # rays were designed for Re_L=1.5e6
+    shear_ray = SHEAR_RAY * re_scale
+    chi_ray = np.geomspace(CHI_RAY[0] * re_scale, CHI_RAY[-1], len(CHI_RAY))
     xl = np.linspace(XLO, XHI, NX)
     ph = np.linspace(0.0, np.pi, NP)
     XL, PH = np.meshgrid(xl, ph)                       # (NP, NX)
     P, n, t_s, t_p = surface_frame(XL, PH)
 
     # ---- wall shear: LS slope of u_t over the sublayer heights -------------
-    spts = (P[..., None, :] + SHEAR_RAY[None, None, :, None] * n[..., None, :])
+    spts = (P[..., None, :] + shear_ray[None, None, :, None] * n[..., None, :])
     res, valid = probe(grid, spts.reshape(-1, 3))
-    u = res['velocity'].reshape(NP, NX, len(SHEAR_RAY), 3)
-    w = valid.reshape(NP, NX, len(SHEAR_RAY)).astype(float)
+    u = res['velocity'].reshape(NP, NX, len(shear_ray), 3)
+    # wall pressure (constant across the sublayer): innermost valid height;
+    # Cp = (p - 1/gamma) / qinf in the a_inf,rho_inf nondimensionalization
+    pr = res['p'].reshape(NP, NX, len(shear_ray))
+    vmask = valid.reshape(NP, NX, len(shear_ray))
+    pw = np.where(vmask, pr, np.nan)
+    first = np.argmax(vmask, axis=-1)   # 0 if no height valid -> pw NaN there
+    pwall = np.take_along_axis(pw, first[..., None], axis=-1)[..., 0]
+    cp = (pwall - 1.0 / 1.4) / qinf
+    w = valid.reshape(NP, NX, len(shear_ray)).astype(float)
     ok = w.sum(axis=-1) >= 4                  # need >= 4 heights for the fit
     print(f'  shear-ray probe valid: {w.mean()*100:.2f}% '
           f'(fit-able: {ok.mean()*100:.2f}%)')
     u_t = u - np.einsum('ijkl,ijl->ijk', u, n)[..., None] * n[..., None, :]
     u_t = np.where(w[..., None] > 0, u_t, 0.0)
     wsum = np.maximum(w.sum(axis=-1), 1e-30)
-    dbar = (w * SHEAR_RAY).sum(axis=-1) / wsum
-    dc = (SHEAR_RAY[None, None, :] - dbar[..., None]) * w
+    dbar = (w * shear_ray).sum(axis=-1) / wsum
+    dc = (shear_ray[None, None, :] - dbar[..., None]) * w
     dudn = np.einsum('ijk,ijkl->ijl', dc, u_t) \
         / np.maximum((dc * dc).sum(axis=-1), 1e-30)[..., None]
     us = np.einsum('ijk,ijk->ij', dudn, t_s)
@@ -166,17 +175,17 @@ def main():
     gamma[~ok] = np.nan
 
     # ---- near-wall max chi along wall-normal rays --------------------------
-    rays = (P[..., None, :] + CHI_RAY[None, None, :, None] * n[..., None, :])
+    rays = (P[..., None, :] + chi_ray[None, None, :, None] * n[..., None, :])
     resr, validr = probe(grid, rays.reshape(-1, 3))
-    nut = resr['solutionTurbulence'].reshape(NP, NX, len(CHI_RAY))
-    rho = resr['rho'].reshape(NP, NX, len(CHI_RAY))
+    nut = resr['solutionTurbulence'].reshape(NP, NX, len(chi_ray))
+    rho = resr['rho'].reshape(NP, NX, len(chi_ray))
     chi = rho * nut / muref
-    chi[~validr.reshape(NP, NX, len(CHI_RAY))] = np.nan
+    chi[~validr.reshape(NP, NX, len(chi_ray))] = np.nan
     with np.errstate(all='ignore'):
         chimax = np.nanmax(chi, axis=-1)
 
     np.savez(out + '.npz', xl=xl, phi_deg=np.degrees(ph), cf=cf,
-             gamma_w=gamma, chimax=chimax, us=us, up=up,
+             gamma_w=gamma, chimax=chimax, us=us, up=up, cp=cp,
              alpha=alpha, mach=mach, muref=muref, h0=h0)
 
     plot_all(out, args, case, tag, alpha, mach, muref,

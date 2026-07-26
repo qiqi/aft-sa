@@ -238,9 +238,10 @@ def eppler_resweep():
 
 
 # ---------------- spheroid ----------------------------------------------------
+# prose order: the low-Re ladder, the pure-TS anchors, the workshop pair
 SPH_COND = [(1.5e6, '5', 'a5'), (1.5e6, '10', 'a10'), (1.5e6, '29.7', 'a29p7'),
-            (6.5e6, '5', 're65a5'), (6.5e6, '10', 're65a10'),
-            (7.2e6, '0', 're72a0'), (7.2e6, '2.5', 're72a2p5')]
+            (7.2e6, '0', 're72a0'), (7.2e6, '2.5', 're72a2p5'),
+            (6.5e6, '5', 're65a5'), (6.5e6, '10', 're65a10')]
 
 
 def spheroid_totals():
@@ -248,16 +249,15 @@ def spheroid_totals():
     rows = []
     for Re, alab, tag in SPH_COND:
         cells = [f'${Re/1e6:g}\\times10^6$ & ${alab}^\\circ$']
-        any_done = False
         for lev in ('L0', 'L1', 'L2'):
             e = camp.get(f'case_ogrid_{lev}_saai_{tag}')
             if e and e.get('complete'):
-                any_done = True
                 cells.append(f"{fmt(e['CL'])} & {fmt(e['CD'], 5)}")
             else:
                 cells.append('-- & --')
-        if any_done:
-            rows.append(' & '.join(cells))
+        # staged conditions keep their dash row: the caption's
+        # 'dashes = in progress' must describe visible rows
+        rows.append(' & '.join(cells))
     write('tab_spheroid_totals.tex',
           r'$Re_L$ & $\alpha$ & \multicolumn{2}{c}{L0} &'
           r' \multicolumn{2}{c}{L1} & \multicolumn{2}{c}{L2} \\'

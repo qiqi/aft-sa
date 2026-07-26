@@ -3246,3 +3246,15 @@ committed spheroid_front_summary.json the comparison script now
 exports). Forces harvested to sphere_campaign_spheroid_results.json
 (11 cases; note: re72a0 L0 CL=0.0062 median — check the tail for a slow
 transient at alpha=0). Build clean.
+
+## 2026-07-26 20:15 UTC — Pass 42 addressed (4 majors)
+
+Scope sentence corrected (no "every"; in-progress status inline; the
+un-run DFVLR incidences named); emitter prints dash rows (no silent
+drops) in prose order; alpha=0 claim replaced by the number (CL~0.006,
+decaying, under investigation); grid-convergence disclosure restored
+(up to 11% at alpha=10); deferral names the owed alpha=5/29.7
+comparisons. Minors: +-0.023 bound; compare-figure restyled to line
+contours (legend moved off the phi=132 square; black separation line);
+Re-SCALED probe rays (the overnight high-Re maps would have biased cf
+low — reviewer caught it pre-cut); dead code cleaned. Build clean.

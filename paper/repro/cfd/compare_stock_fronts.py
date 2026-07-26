@@ -109,21 +109,21 @@ for s in SQ:
 # ---- overlay figure ---------------------------------------------------------
 xl, ph, f_chi1, f_chi, fcf, cf = res['L2']
 fig, ax = plt.subplots(figsize=(9.6, 4.4))
-m = ax.contourf(xl, ph, cf * 1e3, levels=np.linspace(0, 6, 25),
-                cmap='viridis', extend='max')
-fig.colorbar(m, ax=ax, label=r'$c_f \times 10^3$')
-ax.fill_betweenx(ph, fcf[1.25], fcf[2.0], color='w', alpha=0.25, lw=0,
+cs = ax.contour(xl, ph, cf * 1e3, levels=np.arange(0, 6.51, 0.5),
+                colors='0.65', linewidths=0.5)
+ax.clabel(cs, levels=np.arange(0, 6.51, 1.0), fmt='%g', fontsize=6.5)
+ax.fill_betweenx(ph, fcf[1.25], fcf[2.0], color='C0', alpha=0.18, lw=0,
                  label=r'L2 criterion band ($k=1.25$--$2$)')
-for lev, c, ls in (('L0', 'w', ':'), ('L1', 'w', '--'), ('L2', 'w', '-')):
+for lev, ls in (('L0', ':'), ('L1', '--'), ('L2', '-')):
     _, phL, _, _, fcfL, _ = res[lev]
-    ax.plot(fcfL[1.5], phL, ls, color=c, lw=1.4,
+    ax.plot(fcfL[1.5], phL, ls, color='C0', lw=1.4,
             label=f'{lev} $C_f$-rise front ($k=1.5$)')
-ax.plot(f_chi1, ph, ':', color='cyan', lw=1.2, label=r'L2 $\chi=1$ front')
-ax.plot(f_chi, ph, '-', color='cyan', lw=1.2, label=r'L2 $\chi=c_{v1}$ front')
+ax.plot(f_chi1, ph, ':', color='C4', lw=1.3, label=r'L2 $\chi=1$ front')
+ax.plot(f_chi, ph, '-', color='C4', lw=1.3, label=r'L2 $\chi=c_{v1}$ front')
 sep = D.get('stock_computed_separation_line', {}).get('points', [])
 if sep:
     ax.plot([q['xL'] for q in sep], [q['phi_deg'] for q in sep], '-.',
-            color='0.35', lw=1.3,
+            color='k', lw=1.3,
             label='free-vortex separation line (Stock, computed)')
 ax.plot([s['xL'] for s in SQ], [s['phi_deg'] for s in SQ], 's',
         color='red', mfc='none', ms=9, mew=2,
@@ -132,7 +132,7 @@ ax.set_xlabel('$x/L$')
 ax.set_ylabel(r'$\phi$ [deg]  (0 = windward)')
 ax.set_ylim(0, 180)
 ax.set_xlim(0, 1)
-ax.legend(fontsize=8, loc='upper left', framealpha=0.9)
+ax.legend(fontsize=8, loc='lower left', framealpha=0.9)
 ax.set_title(r'6:1 spheroid, $Re_L=1.5\times10^6$, $\alpha=10^\circ$: '
              'computed fronts vs measured transition')
 fig.tight_layout()

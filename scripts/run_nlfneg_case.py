@@ -28,6 +28,14 @@ for f in ("restart.json", "restart_rank_1_of_1.dmp"):
 env, _ = canon_env()
 penv = dict(os.environ)
 penv.update(env)
+# converge_by_xtr runs as a subprocess: hand it the import roots explicitly
+penv['PYTHONPATH'] = ':'.join([
+    "/home/qiqi/flexcompute/flexfoil/rans",
+    "/home/qiqi/flexcompute/sa-ai/paper/repro",
+    "/home/qiqi/flexcompute/sa-ai/paper/repro/cfd",
+    "/home/qiqi/flexcompute/sa-ai/paper/repro/driver",
+    penv.get('PYTHONPATH', ''),
+]).rstrip(':')
 print(f"START {tag} alpha={alpha} gpu={gpu}", flush=True)
 rc = subprocess.run([sys.executable, DRIVER, wd, '--gpu', str(gpu)],
                     env=penv).returncode

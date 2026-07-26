@@ -2756,19 +2756,25 @@ $0.37$/$2.2$/$12.6$ million nodes, first wall spacing halving per
 level from $5\!\times\!10^{-6}L$ at $Re_L\!=\!1.5\!\times\!10^6$ and
 from $1.5\!\times\!10^{-6}L$ at the higher Reynolds numbers), at
 $M\!=\!0.1$, with the airfoil-study solver settings, seed, and
-constants unchanged. Every condition with DFVLR hot-film front
-measurements is computed on the full ladder:
+constants unchanged. The matrix covers the measured conditions
+spanning Stock's three regimes---the low-Reynolds ladder
 $Re_L\!=\!1.5\!\times\!10^6$ at $\alpha\!=\!5^\circ$, $10^\circ$, and
-$29.7^\circ$; $7.2\!\times\!10^6$ at $0^\circ$ (axisymmetric) and
-$2.5^\circ$ (the pure-TS anchors); and the workshop pair
-$6.5\!\times\!10^6$ at $5^\circ$ and $10^\circ$. Table~\ref{tab:sphtotals}
+$29.7^\circ$ (computed on the full L0--L2 ladder); the pure-TS anchors
+$7.2\!\times\!10^6$ at $0^\circ$ (axisymmetric) and
+$2.5^\circ$; and the workshop pair
+$6.5\!\times\!10^6$ at $5^\circ$ and $10^\circ$ (both in
+progress)---while the DFVLR record's remaining incidences
+($15$--$29.5^\circ$ at $3$--$8.5\!\times\!10^6$) stay outside the
+present matrix. Table~\ref{tab:sphtotals}
 collects the totals (no force measurements exist at these
 conditions---the hot films and pressure taps are the data---so the
 totals serve the grid story only): the attached-flow incidences move
-by a few percent per level while the massively separated
+by several percent per level---up to $11\%$ in $C_L$ at
+$\alpha\!=\!10^\circ$ on the finest step, not yet
+grid-converged---the massively separated
 $29.7^\circ$ case remains strongly level-sensitive, and the
-axisymmetric case carries zero lift to within the force
-oscillation.
+axisymmetric case carries a residual lift $C_L\!\approx\!0.006$ at
+L0, still decaying at the end of its run and under investigation.
 
 \input{tables/tab_spheroid_totals}
 
@@ -2787,7 +2793,7 @@ hot-film detection analogue, with the $k\!=\!1.25$--$2$ sensitivity
 shown as a band---and \emph{not} the model-native $\chi\!=\!c_{v1}$
 front, which stays aft ($0.92$--$0.99\,x/L$ across the azimuth
 range). The
-computed rise matches the measurement to within ${\pm}0.02\,x/L$ over
+computed rise matches the measurement to within ${\pm}0.023\,x/L$ over
 the windward half ($\phi\!\le\!93^\circ$) and lags by up to
 $0.21\,x/L$ at the leeward flank ($\phi\!=\!132^\circ$). The flank
 lag is \emph{not} the slow transported-$\chi$ handover of
@@ -2805,9 +2811,13 @@ $0.04\,L$), the onset gate's in-bubble arm suppressing the
 wall-damped separated layer (Sec.~\ref{sec:daedalus}), or
 attached-layer amplification genuinely subcritical at this Reynolds
 number (Stock's laminar-to-separation reading~\cite{stock_2006}) is
-not yet distinguished; the flank rate probe and the per-condition
-comparisons at the remaining measured conditions (the $6.5$ and
-$7.2\!\times\!10^6$ solutions of Table~\ref{tab:sphtotals}) follow.
+not yet distinguished; the flank rate probe, the front comparisons at
+the two completed low-Reynolds conditions with measured fronts
+($\alpha\!=\!5^\circ$, Stock Fig.~14c, and $29.7^\circ$,
+Fig.~16c---the same laminar-to-separation regime, awaiting their
+digitization), and the per-condition
+comparisons at the $6.5$ and
+$7.2\!\times\!10^6$ conditions of Table~\ref{tab:sphtotals} follow.
 The front stations behind the figure are tabulated in
 Table~\ref{tab:data_spheroid}.
 
@@ -2868,7 +2878,8 @@ friction on the body.
   measured~\cite{kreplin_1985}; the bold $\gamma_w\!=\!0$ line marks
   the crossflow reversal under the leeward vortex. Bottom: wall-normal
   maximum of $\chi$ with the $\chi\!=\!c_{v1}$ contour (bold) as the
-  model-native transition front: the body runs
+  model-native transition front (sub-unity $\chi$ decades dashed,
+  supercritical solid): the body runs
   laminar to $x/L\!\approx\!0.9$ on the windward side, with
   amplification building (but not committing) under the leeward
   vortex from mid-body.}
