@@ -18,7 +18,9 @@ OUT = os.path.join(_H, '..', '..', 'data', 'flexfoil_eppler_bubble_sweep.json')
 out = {}
 for a in np.arange(-2.0, 9.01, 0.5):
     dump = f'/tmp/ff_bubble_{a:.1f}.json'
-    p = subprocess.run([RF, 'faithful-viscous', DAT, '--alpha', f'{a:.2f}',
+    # --alpha=<v> form: clap rejects a separate "-2.00" token as a flag,
+    # which is why every negative incidence of the first sweep errored
+    p = subprocess.run([RF, 'faithful-viscous', DAT, f'--alpha={a:.2f}',
                         '--re', '200000', '--mach', '0.1', '--ncrit', '9',
                         '--max-iterations', '300', '--dump-surface', dump],
                        capture_output=True, text=True, timeout=600)

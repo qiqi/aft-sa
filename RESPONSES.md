@@ -2785,3 +2785,26 @@ The L2 pair now carries all ten computed incidences (-2,0,1,2,3,4,5,6,7,8.5); la
 levels keep the original four. Caption updated. The dense L2 polar tracks the measured
 bucket from cl 0.18 to the 8.5-deg knee. ALSO RUNNING: spheroid L1 (2 ranks, GPUs 6/7);
 L2 spheroid mesh (12.6M nodes) building on CPU — fits the 2 free GPUs at ~6.3M/rank.
+
+## 2026-07-26 11:05 UTC — Reference-range extensions (Figs 11/14/15) + spheroid maps + user edits
+
+FIG REFS (task: extend mfoil/xfoil/FlexFoil to match our data):
+- Fig 11 polar: mfoil now converges at ALL extension incidences except its
+  known alpha=7 failure (mfoil 8/8.5 cross-check xfoil to ~0.4% cl); dotted
+  curve spans -2..8.5 with a NaN break at 7, xfoil diamond fills. Legend
+  "alpha != 7".
+- Fig 14 bubble: the FlexFoil negative-alpha "failures" were an ARG BUG
+  (clap parses "--alpha -2.0" as a flag; fixed to --alpha=-2.0). FlexFoil
+  now converges -2..9; bubble stations -2..6.5, transition-ahead-of-
+  separation >= 7 (confirms the caption's regime finding).
+- Fig 15 forces-vs-Re: xfoil at all five Re (with cm; 60/460 entries
+  regenerated), mfoil 0.6-3e5 (460k solve fails outright). FlexFoil
+  limit-cycles at 1-3e5 (residual plateau 5e-3), not plotted there anyway.
+- Audit: Figs 6/7 runnable refs already span cl -0.47..1.9 (digitized
+  XFOIL/AFT + mfoil pkl -8..15); per-alpha/per-Re sheet refs match their
+  own conditions; all remaining short curves are digitized literature.
+USER EDITS: negalpha appendix sheets rows now ascend (-8 then -4) and lead
+Appendix A; all front-convergence-protocol language removed (5 sites).
+SPHEROID: L0+L1 literature-style surface maps done (Kreplin-convention
+unrolled cf/gamma_w/chi maps + 3D views); L2 (12.6M nodes) solving on
+GPUs 6,7. Daedalus P3: ogrid L2 a4 DONE, a5 solving.

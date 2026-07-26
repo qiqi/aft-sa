@@ -1,31 +1,27 @@
 {
  "-2.0": {
-  "conv": false,
-  "ls": null,
-  "tr": null,
-  "xtr": null,
-  "err": "[Errno 2] No such file or directory: '/tmp/ff_bubble_-2.0.js"
+  "conv": true,
+  "ls": 0.5461304492499729,
+  "tr": 0.7967460200223019,
+  "xtr": 0.7803554088812865
  },
  "-1.5": {
-  "conv": false,
-  "ls": null,
-  "tr": null,
-  "xtr": null,
-  "err": "[Errno 2] No such file or directory: '/tmp/ff_bubble_-1.5.js"
+  "conv": true,
+  "ls": 0.5347358062746004,
+  "tr": 0.7823747283650042,
+  "xtr": 0.7662989284847109
  },
  "-1.0": {
-  "conv": false,
-  "ls": null,
-  "tr": null,
-  "xtr": null,
-  "err": "[Errno 2] No such file or directory: '/tmp/ff_bubble_-1.0.js"
+  "conv": true,
+  "ls": 0.5235623664406669,
+  "tr": 0.7682735667646209,
+  "xtr": 0.7522431585226134
  },
  "-0.5": {
-  "conv": false,
-  "ls": null,
-  "tr": null,
-  "xtr": null,
-  "err": "[Errno 2] No such file or directory: '/tmp/ff_bubble_-0.5.js"
+  "conv": true,
+  "ls": 0.512506345417434,
+  "tr": 0.7544386264018544,
+  "xtr": 0.7381899811878401
  },
  "0.0": {
   "conv": true,

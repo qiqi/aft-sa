@@ -971,11 +971,19 @@ def make_polar_figure(out_name='eppler_polar_compare'):
     # computed curves are never covered by the reference data.
     ax.plot(ecd, ecl, '-', color='k', lw=1.4, zorder=1)
     ax.plot(ecd, ecl, 'o', mfc='none', mec='k', ms=4, zorder=1)
-    # mfoil is reliable at alpha=0,2,5; at alpha=7 it is at the edge of convergence
-    # (unphysical cl), so xfoil fills that point.
-    ma = [a for a in alphas if float(a) in mn and int(a) != 7]
-    ax.plot([mn[float(a)]['cd'] for a in ma], [mn[float(a)]['cl'] for a in ma],
-            ls=':', color='0.4', marker='s', mfc='none', ms=5, lw=1.2, zorder=2)
+    # mfoil converges everywhere on the computed range except alpha=7 (its
+    # coupled solve sits at the bubble-collapse edge there and returns an
+    # unphysical cl); xfoil fills that single point.  NaN break at the gap so
+    # the dotted line does not bridge 6 -> 8.
+    ma = sorted(a for a in mn if isinstance(a, float)
+                and mn[a].get('conv') and a != 7.0)
+    mcd = [mn[a]['cd'] for a in ma]
+    mcl = [mn[a]['cl'] for a in ma]
+    if 6.0 in ma and 8.0 in ma:
+        i = ma.index(8.0)
+        mcd.insert(i, np.nan); mcl.insert(i, np.nan)
+    ax.plot(mcd, mcl, ls=':', color='0.4', marker='s', mfc='none', ms=5,
+            lw=1.2, zorder=2)
     xf = pickle.load(open(f"{B}/xfoil_eppler387_Re200k.pkl", 'rb'))
     if 7.0 in xf:
         ax.plot(xf[7.0]['cd'], xf[7.0]['cl'], ls='none', color='0.5',
@@ -1021,7 +1029,7 @@ def make_polar_figure(out_name='eppler_polar_compare'):
     ax.set_xlabel('$C_d$'); ax.set_ylabel('$C_l$')
     ax.grid(alpha=0.3)
     handles = [Line2D([],[],color='k', ls='-', marker='o', mfc='none', ms=4, label='Experiment (LTPT)'),
-               Line2D([],[],color='0.4', ls=':', marker='s', mfc='none', ms=5, lw=1.2, label='mfoil ($e^9$, $\\alpha\\!\\leq\\!5^\\circ$)'),
+               Line2D([],[],color='0.4', ls=':', marker='s', mfc='none', ms=5, lw=1.2, label='mfoil ($e^9$, $\\alpha\\!\\neq\\!7^\\circ$)'),
                Line2D([],[],color='0.5', ls='none', marker='D', mfc='none', ms=6, mew=1.3, label='xfoil ($e^9$, $\\alpha\\!=\\!7^\\circ$)'),
                Line2D([],[],color='C0', ls='-',  marker='o', ms=4, label='SA-AI, structured (O-grid)'),
                Line2D([],[],color='C1', ls='--', marker='^', ms=4, label='SA-AI, unstructured'),

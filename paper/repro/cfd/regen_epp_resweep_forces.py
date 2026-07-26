@@ -152,19 +152,24 @@ for fam in ('str', 'cav'):
         axs.semilogx(Re, [s[0] for s in S], **kw)
         axr.semilogx(Re, [s[1] for s in S], **kw)
 
-# e^9 reference
-mre = [100, 200, 300]
+# e^9 reference: mfoil dotted wherever its solve returns finite forces
+# (460k fails outright); xfoil diamonds at every computed Reynolds number,
+# so the reference spans the full data range.
+mre = [r for r in sorted(mf) if np.isfinite(mf[r].get('cl') or np.nan)]
 axl.semilogx([r*1e3 for r in mre], [mf[r]['cl'] for r in mre], ':',
              color='0.45', marker='s', mfc='none', ms=5.5, lw=1.2)
 axd.loglog([r*1e3 for r in mre], [mf[r]['cd'] for r in mre], ':',
            color='0.45', marker='s', mfc='none', ms=5.5, lw=1.2)
 axm.semilogx([r*1e3 for r in mre], [mf[r]['cm'] for r in mre], ':',
              color='0.45', marker='s', mfc='none', ms=5.5, lw=1.2)
-xre = [Rk for Rk in (60, 460) if Rk in xf]
+xre = sorted(xf)
 axl.semilogx([r*1e3 for r in xre], [xf[r]['cl'] for r in xre], ls='none',
              color='0.45', marker='D', mfc='none', ms=5.5, mew=1.2)
 axd.loglog([r*1e3 for r in xre], [xf[r]['cd'] for r in xre], ls='none',
            color='0.45', marker='D', mfc='none', ms=5.5, mew=1.2)
+xrm = [r for r in xre if xf[r].get('cm') is not None]
+axm.semilogx([r*1e3 for r in xrm], [xf[r]['cm'] for r in xrm], ls='none',
+             color='0.45', marker='D', mfc='none', ms=5.5, mew=1.2)
 
 # experiment
 axl.errorbar(Re, [EXP[r][0] for r in RES], yerr=[EXP_ERR[r][0] for r in RES],

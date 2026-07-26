@@ -1820,7 +1820,9 @@ and Table~\ref{tab:eppmesh} lists their resolution quantitatively.
   six additional computed incidences) overlaid on the digitized
   experimental section characteristics from the Langley Low-Turbulence Pressure
   Tunnel (McGhee et al., NASA TM-4062, App.~B, $R\!=\!2\!\times\!10^5$) and the
-  mfoil $e^9$ reference. The computed points track the low-drag laminar bucket;
+  mfoil $e^9$ reference, now spanning the same extended incidence
+  range (XFOIL fills $\alpha\!=\!7^\circ$, where mfoil's coupled solve
+  fails). The computed points track the low-drag laminar bucket;
   the two mesh families agree to within
   $\Delta C_d\!\le\!2\times10^{-4}$ ($0.1$--$0.2\!\times\!10^{-3}$
   across the four incidences).
@@ -2100,8 +2102,9 @@ and in Fig.~\ref{fig:eppresweep_low}. \begin{figure}[tp]
   section lift, drag (log), and quarter-chord moment---all $24$ SA-AI
   solutions (structured O-grid solid blue, unstructured cavity dashed
   orange, L0--L2 by line thickness), the $e^9$ panel reference (mfoil
-  squares at $1$--$3\!\times\!10^5$, XFOIL diamonds at the two ends,
-  as in Table~\ref{tab:eppresweep}; $c_m$ from mfoil), and the LTPT
+  squares at $0.6$--$3\!\times\!10^5$, where its solve returns
+  forces, XFOIL diamonds at all five Reynolds numbers,
+  as in Table~\ref{tab:eppresweep}; $c_m$ from both), and the LTPT
   measurement (black circles; error bars are the repeat scatter,
   $\pm0.006$/$\pm0.0003$ at $Re\!\geq\!10^5$ and the
   $\alpha\!=\!4.00^\circ$ repeat half-spread $\pm0.04$/$\pm0.0023$
