@@ -4,7 +4,7 @@ Marches the disturbance transport (eq:transport) on Falkner-Skan wedges with the
 NEW sphere kernel written on the definite product P = Shat*g:
     X,Y,Z = (u, d u', 1/2 d^2 u'')/R           (unit-sphere indicators, d=y)
     Shat  = Y/sqrt(X^2+Y^2)                     (shear fraction = sin longitude; odd)
-    g     = Yn - Xn - Zn                         (Rayleigh coord; odd)
+    I_hat = Yn - Xn - Zn                         (accumulated-inflection coord; odd)
     P     = Shat*g                               (EVEN => RP^2-definite)
     a     = a_max * min(1, <P>+ + c_sqrt*sqrt(<P>+))
     onset = ramp(Re_Omega / Re_Omega_crit(P)),  Re_Omega = d^2|u'|/nu  (=yc^2|u'| in BL units)

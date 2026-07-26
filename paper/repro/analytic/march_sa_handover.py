@@ -69,7 +69,7 @@ def march_sa(fs, x_max, nx=1200, ny=800, seed=SEED, gate_c=0.0, ufrac=0.0,
         gco = (Y - X - Z)/R
         # v4 COLUMN gate, hinge form: the shear surplus <Y-X>_+ (= omega*d
         # exceeding |u|; identical zero set to |Shat|>1/sqrt2 for the
-        # non-negative implemented indicators) times the Rayleigh coordinate
+        # non-negative implemented indicators) times the accumulated-inflection coordinate I_hat
         # g -- both vanish at the wall state (X=Y, Z=0), so the gate is
         # quadratically insensitive to sublayer noise and exactly zero in
         # the log layer. Column max: the chi peak detaches from the

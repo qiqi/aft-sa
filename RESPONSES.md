@@ -2536,3 +2536,30 @@ wrote the integral as equal to the normalized g). Executed:
 ALSO: user (going to sleep) ordered finishing ALL CFD without feedback except
 unstructured-L2 Daedalus → after the fv1 campaign closes: Daedalus alpha=4/5/6 at
 L0+L1 both families + L2 O-GRID under new canon, staged on /local_data.
+
+## 2026-07-26 01:45 UTC — Overnight plan armed (user asleep: ALL CFD except cavity-L2 Daedalus)
+
+Chain launched (runlogs/daedalus_fv1.log, monitored): waits for FV1-CANON-CAMPAIGN-DONE
+-> repairs the nlf_neg results entries from the orphan harvest -> audits 93/93 stamps ->
+runs the 15 Daedalus cases in 3 phases (P1: six L0 @1 GPU + ogrid L1 a4/a5; P2: ogrid L1
+a6 + three cavity L1 @2 GPUs; P3: ogrid L2 a4/5/6 sequential @6 ranks). Staging
+pre-flighted NOW: 15 cases cloned to /local_data/qiqi/sa-ai/daedalus_fv1 (15G,
+mesh hardlinks, fresh cold-start configs, per-case alpha verified). New canon rides in
+via saai_env.canonical_ai_env() inside run_solution.py. Cavity L2 (111M elem, 8-GPU)
+HELD per order. Note: stages='all' re-partitions; hardlinked partition artifacts in the
+ORIGINAL dirs could be touched through shared inodes — they are derived, regenerable
+artifacts (original RESULTS untouched).
+
+SYMBOL AUDIT (omissions + other candidates, as requested):
+- Omissions: repo grep + rendered-PDF scan clean (0 Shat/S-hat, 0 "Rayleigh coordinate");
+  3 stale code comments fixed (march_sa_handover, fig04_shapefactor,
+  explore_sphere_favorable). Remaining intentional: ONBOARDING's "formerly S-hat"
+  breadcrumb; append-only RESPONSES history; solver identifiers (queued, task #31).
+- Other candidates spotted (NOT acted on):
+  1. S still double-booked: SA's S-tilde vs the onset sigmoid S(zeta) (eq:onset, App E).
+     Candidate: rename the gate to sigma_on(zeta) or W(zeta). Recommend: yes, low cost.
+  2. q = fv1-bypass gate ratio (Sec II.F) vs dynamic-pressure q convention — the paper
+     spells dynamic pressure out, so low risk; could rename to q_b if desired.
+  3. k = onset scale (0.712) — fine (no TKE in the paper), noted only.
+  4. R = indicator magnitude — local to Sec II/App E, fine.
+  Everything else (a, b, tau, chi, lambda) collision-free after the rename.

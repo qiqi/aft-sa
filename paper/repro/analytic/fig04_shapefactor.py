@@ -22,7 +22,7 @@ from lib.aft_sources import (compute_aft_amplification_rate,
 # Dimensionless rate x onset on the indicator sphere; the transport source is
 # this times |du/dy|.  X=u, Y=y u', Z=1/2 y^2 u'' are the (velocity, shear,
 # curvature) indicators; Shat=Y/sqrt(X^2+Y^2) is the shear fraction; g is the
-# Rayleigh coordinate; the definite product P=Shat*g drives both the linear
+# accumulated-inflection coordinate; the product Omega_hat*I_hat drives both the linear
 # rate (ceiling a_max at P>=1) and the onset scale Re_Omega,crit(P).
 A_MAX = 0.19          # Michalke free-shear eigenvalue (fixed)
 # CANONICAL MODEL CONSTANTS (paper Sec. II.D, 2026-07-23 canon).
