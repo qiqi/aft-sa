@@ -1194,7 +1194,8 @@ up to $8$ counts on the NLF at high incidence---$27$ on its coarsest
 grids---and $-10$ counts at the Eppler benchmark's
 $\alpha\!=\!5^\circ$, all toward the measurement); the
 three-dimensional deployment of Sec.~\ref{sec:daedalus} is being
-recomputed, and its figures still show the bypass-inactive model.
+recomputed, and its figures, tables, and quoted numbers still show
+the bypass-inactive model.
 
 \subsection{Preservation of the Spalart--Allmaras calibration}\label{sec:calib_diff}
 
@@ -1527,9 +1528,9 @@ quantitatively.
   $-8^\circ$ (well into the negative branch of the measured polar) on
   the finest grids,
   all at the paper-wide untuned seed and computed to front
-  convergence. At $-8^\circ$ the forces stay within nine counts of
-  the measurement, the suction (lower) surface trips at
-  $0.004$--$0.010\,c$, on the references' leading-edge trip ($e^9$:
+  convergence. At $-8^\circ$ the drag sits $8$--$11$ counts below
+  the measured polar at matched lift, the suction (lower) surface trips at
+  $0.004$--$0.011\,c$, on the references' leading-edge trip ($e^9$:
   $0.015$--$0.018\,c$), and the pressure-side (upper) front
   converges at $0.559$--$0.561\,c$ (families agreeing to
   $0.002\,c$)---on the measured ${\approx}0.54\,c$, with the
@@ -1629,7 +1630,7 @@ disturbance level rather than as a per-case tuning.
   SA-AI prediction (structured O-grid and unstructured meshes, all three
   refinement levels) at $\alpha\!\in\!\{0^\circ,4^\circ,9^\circ,15^\circ\}$ (all
   six grids), extended on the finest grids through
-  $\alpha\!=\!-4^\circ$ and $-8^\circ$ to $c_l\!\approx\!-0.48$,
+  $\alpha\!=\!-4^\circ$ and $-8^\circ$ to $c_l\!\approx\!-0.46$,
   overlaid on the digitized experimental section characteristics (Somers, NASA
   TP-1861, Fig.~11d~\cite{somers_1981}) and the mfoil $e^9$ reference. Mesh family
   sets the color (blue = O-grid, orange = unstructured); refinement sets the line
@@ -1762,7 +1763,7 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
   are front-converged (batched restarts to a $0.01\,c$ front
   tolerance). At $-4^\circ$ both fronts land on the references. At
   $-8^\circ$ the suction (lower) surface trips at
-  $0.004$--$0.010\,c$, on the $e^9$ leading-edge trip and locking
+  $0.004$--$0.011\,c$, on the $e^9$ leading-edge trip, locking
   within the first batches, while the pressure-side (upper) front
   settles at $0.559$--$0.561\,c$, on the measured
   ${\approx}0.54\,c$ ($e^9$: $0.66\,c$); the march there is
@@ -1830,11 +1831,11 @@ and Table~\ref{tab:eppmesh} lists their resolution quantitatively.
   Tunnel (McGhee et al., NASA TM-4062, App.~B, $R\!=\!2\!\times\!10^5$) and the
   mfoil $e^9$ reference. The computed points track the low-drag laminar bucket;
   the two mesh families agree to within
-  $\Delta C_d\!\lesssim\!7\times10^{-4}$ ($0.1$--$0.7\!\times\!10^{-3}$
+  $\Delta C_d\!\le\!2\times10^{-4}$ ($0.1$--$0.2\!\times\!10^{-3}$
   across the four incidences).
   The gray dash-dot curve is fully turbulent SA ($\chi_\infty\!=\!3$, same
-  solver, structured L2 grid), $66$--$87\%$ above the SA-AI drag in the
-  bucket and $+149\%$ at $\alpha\!=\!7^\circ$. The green and purple
+  solver, structured L2 grid), $77$--$97\%$ above the SA-AI drag in the
+  bucket and $+151\%$ at $\alpha\!=\!7^\circ$. The green and purple
   curves are the $\gamma$--$Re_\theta$ (Langtry--Menter, OpenFOAM) and
   SA-BC (SU2) transition models at the same condition and
   $Tu\!=\!0.1\%$, digitized vector-exact from
@@ -1846,11 +1847,13 @@ and Table~\ref{tab:eppmesh} lists their resolution quantitatively.
 \end{figure}
 
 On the finest grids the SA-AI polar (Fig.~\ref{fig:epppolar}) tracks the
-measured low-drag bucket across the range at matched lift: $4$--$6\%$
-\emph{below} the data at the bucket edges ($-5.8\%$/$-4.3\%$
+measured low-drag bucket across the range at matched lift:
+$3.7$--$6.4\%$ \emph{below} the data at the bucket edges ($-5.8\%$/$-4.3\%$
 structured/unstructured at $\alpha\!=\!0^\circ$, $-4.4\%$/$-3.8\%$
 at $2^\circ$, $-3.7\%$/$-6.4\%$ at $7^\circ$) and
-$+2.7\%$/$+0.7\%$ at the $\alpha\!=\!5^\circ$ bubble apex, where
+$+3.7\%$/$+1.3\%$ at the $\alpha\!=\!5^\circ$ bubble apex (every
+percentage reads the experimental polar's drag at the computed lift),
+where
 the pressure-drag footprint of the slightly over-long
 laminar-separation bubble (\S\ref{sec:calib_rate}) remains the
 largest positive residual. The one published SA-based
@@ -1922,11 +1925,15 @@ regime.
   \includegraphics[width=0.99\textwidth]{eppler_cf_highalpha.pdf}
   \caption{As Fig.~\ref{fig:eppcflow}, at $\alpha\!\in\!\{5^\circ,7^\circ\}$.
   At $\alpha\!=\!5^\circ$ the bubble has moved forward to
-  $x/c\!\approx\!0.40$--$0.64$; at $\alpha\!=\!7^\circ$ the
-  suction peak is near $-C_p\!\approx\!3$
-  and the bubble is much shorter, $x/c\!\approx\!0.41$--$0.45$, reattaching
-  $\sim\!0.03\,c$ ahead of the measured oil-flow reattachment ($0.48\,c$).
-  The signed $C_f$ (bottom row) shows the small recirculation directly. The
+  $x/c\!\approx\!0.40$--$0.63$; at $\alpha\!=\!7^\circ$ the
+  suction peak is near $-C_p\!\approx\!3$ and the model sits at the
+  edge of bubble collapse: the upper-surface $C_f$ crosses zero only
+  on three of the six grids (structured L0/L2 and cavity L0)---on the
+  structured L2 a $x/c\!\approx\!0.39$--$0.41$ sliver, reattaching
+  ${\sim}0.07\,c$ ahead of the measured oil-flow reattachment
+  ($0.48\,c$)---while on the other three, transition preempts
+  separation entirely, one incidence ahead of the experiment's
+  $\alpha\!=\!8^\circ$ natural-transition point. The
   lower-surface boundary layer remains attached and laminar to
   $x/c\!\approx\!0.99$ across the entire $\alpha$ range, matching the
   $e^9$ prediction that the lower transition lies aft of the airfoil. At
@@ -1942,11 +1949,12 @@ regime.
 The skin friction (Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}, bottom rows)
 shows the LSB directly: the upper-surface $C_f$ drops below zero over a band
 that spans up to $\sim\!0.25\,c$ at low incidence---a shallow laminar separation
-feeding a compact turbulent recirculation core---and narrows to $\sim\!0.05\,c$
-by $\alpha\!=\!7^\circ$, then
-rises sharply through reattachment and reaches the turbulent level. Both
-Flow360 and mfoil show the same recirculation structure at all four
-incidences and on both mesh families.
+feeding a compact turbulent recirculation core---and collapses toward
+$\alpha\!=\!7^\circ$, where only three of the six grids retain a
+sliver of recirculation ($0.014\,c$ on the structured L2) and the
+rest transition ahead of separation. Both
+Flow360 and mfoil show the same recirculation structure at
+$\alpha\!\le\!5^\circ$ on both mesh families.
 
 The rate coordinate $\max_y \hat\Omega \hat I$ (row~2 of
 Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}) shows the adverse-gradient
@@ -2014,9 +2022,14 @@ aft end, set by the post-transition turbulent recovery---is the
 quantity this test hinges on, and it is where the model shows
 its cost: at $\alpha\!\le\!5^\circ$, at grid convergence, both
 families reattach late against the oil flow---a bubble
-$0.03$--$0.04\,c$ too long---while the near-stall $7^\circ$ case
-closes slightly early; the lower surface runs laminar to the trailing
-edge at every incidence and has no front to move. That margin sits
+$0.02$--$0.04\,c$ too long---while at the near-stall $7^\circ$
+the model sits at the edge of bubble collapse: three of six grids
+(the unstructured finest among them) transition ahead of separation
+and plot no stations---one incidence ahead of the experiment's
+$\alpha\!=\!8^\circ$ natural-transition point---and the surviving
+structured-L2 sliver closes $0.07\,c$ early; the lower surface runs
+laminar to the trailing edge at every incidence and has no front to
+move. That margin sits
 \emph{inside} the facility-to-facility spread on the figure: the
 Cole--Mueller pressure-station measurements at the same Reynolds
 number~\cite{cole_mueller_1990} read reattachment $0.03$--$0.08\,c$
@@ -2038,7 +2051,7 @@ $\chi$ (${\approx}\ln c_{v1}$ to half commitment) whose physical
 length is macroscopic at this Reynolds number. The turbulent stress
 that closes the bubble therefore arrives aft of where spot-driven
 breakdown completes in the tunnel, and reattachment---the quantity the
-oil flow measures---lands $0.05$--$0.07\,c$ late even though the
+oil flow measures---lands $0.02$--$0.04\,c$ late even though the
 front is placed correctly. Where that handover length leads as the
 Reynolds number falls---to a bursting boundary, and to the loss of the
 two-state structure the experiment shows---is the subject of the next
@@ -2066,14 +2079,15 @@ conditions) and the mfoil/XFOIL $e^9$ reference where it converges;
 wall-anchored contour sheets for every solution of the sweep appear in
 Appendix~C.
 Every solution away from $10^5$ is steady---force coefficients flat
-to $\Delta C_l,\Delta C_d\!<\!5\!\times\!10^{-5}$
-over the final $2000$ pseudo-steps. At $10^5$, the near-bursting
-condition discussed below, the cavity family carries residual
-unsteadiness ($\Delta C_l\!\approx\!3\!\times\!10^{-4}$ at L1,
-$1\!\times\!10^{-3}$ at L2 over the final tenth of the run) while
-the structured grids are steady to $\le\!3\!\times\!10^{-5}$; the
-structured-L1 bubble limit cycle of the pre-bypass model does not
-recur under the recomputation.
+to $\Delta C_l\!\le\!3\!\times\!10^{-4}$ over the final $2000$
+pseudo-steps, most below $10^{-4}$ (the loosest are the structured L1
+benchmark at $2.6\!\times\!10^{-4}$ and the structured L0 at
+$3\!\times\!10^5$ at $1.8\!\times\!10^{-4}$). At $10^5$, the
+near-bursting condition discussed below, the cavity family carries
+the residual unsteadiness ($\Delta C_l\!\approx\!3\!\times\!10^{-4}$
+at L1, $7\!\times\!10^{-4}$ at L2) while the structured grids sit
+at $\le\!3\!\times\!10^{-5}$; the structured-L1 bubble limit cycle
+of the pre-bypass model does not recur under the recomputation.
 
 
 
@@ -2131,7 +2145,7 @@ The one
 systematic failure is at $Re\!=\!10^5$, where the computation sits past
 the model's bursting boundary (the opening fan of
 Fig.~\ref{fig:eppresweepforces}): on every grid the upper-surface recovery
-is incomplete---the signed $C_f$ regains zero only within $0.04\,c$ of
+is incomplete---the signed $C_f$ regains zero only within $0.05\,c$ of
 the trailing edge, against the measured oil-flow reattachment near
 $0.67\,c$---and the L2 drag sits $+30\%$ (unstructured) to $+73\%$
 (structured) above the measurement, refinement pushing both
@@ -2179,7 +2193,7 @@ laminar-separation bubble shortens. The upper-surface $C_f$ shows an open,
 non-reattaching separation at $Re\!=\!6\!\times\!10^4$---the flow separates near
 $x/c\!\approx\!0.32$ and does not recover ahead of the trailing edge, the
 low-$Re$ bubble-bursting limit---then an incompletely closing
-separation at $10^5$, the $C_f$ regaining zero only within $0.04\,c$ of
+separation at $10^5$, the $C_f$ regaining zero only within $0.05\,c$ of
 the trailing edge on every grid (the model carries the bursting regime
 one Reynolds step past the measurement), and then short, shallow
 bubbles---the computed $C_f$
@@ -2266,7 +2280,8 @@ canon---the recomputation moves the $10^5$ states by
 $+0.02$--$0.03$ in $c_l$ without changing the branch structure they
 probe, and their repetition is queued). \emph{The model is monostable
 throughout the sweep}; the only trace of the nearby fold is the
-relaxation time at $10^5$---convergence takes
+relaxation time at $10^5$ (measured, like the probes, at the
+pre-bypass canon)---convergence takes
 $3$--$4.5\!\times\!10^4$ iterations, an order of magnitude longer than
 anywhere else in the sweep, with $\pm0.06$ lift excursions along the
 way---and the experiment's two-state structure, hysteresis included,
@@ -2286,7 +2301,7 @@ it stretches like $\delta/c\!\propto\!Re^{-1/2}$ as the layers
 thicken, and faster once the bubble grows. Measured on the computed
 structured-L2 solutions
 (repro: \texttt{repro/cfd/analyze\_handover\_length.py}), the
-half-saturation length is $0.03$--$0.05\,c$ at $2$--$4.6\!\times\!10^5$,
+half-saturation length is $0.025$--$0.05\,c$ at $2$--$4.6\!\times\!10^5$,
 where the bubble closes $0.04$--$0.15\,c$ past the crossing; at
 $10^5$ half-saturation alone costs $0.05$--$0.10\,c$, full production
 arrives only $0.18$--$0.30\,c$ downstream, and the bubble never closes;
@@ -2308,7 +2323,8 @@ the bubble, closure destroys the amplification fetch that fired the
 gate, and the bubble reopens---with $\Delta C_l\!\approx\!0.3$ at
 $10^5$ and $\approx\!0.08$ even at the otherwise steady
 $2\!\times\!10^5$ benchmark (cases
-\texttt{tautest\_strL2\_Re\{100,200\}k\_a5\_tau1}). The gate is
+\texttt{tautest\_strL2\_Re\{100,200\}k\_a5\_tau1}, run at the
+pre-bypass canon like the initialization probes). The gate is
 memoryless where breakdown is irreversible. The identified remedy,
 left to future work, is a transition-zone closure with physical
 content: an outer-scaled breakdown trigger (a Reynolds-stress proxy
@@ -2329,8 +2345,9 @@ re-enters the amplifying band already elevated. Measured on the
 structured-L2 sweep (\texttt{repro/cfd/measure\_lsb\_reseeding.py}),
 the median $\chi$ in the reversed region over the bubble's first third
 sits $21$--$27\times$ \emph{above} the incoming-envelope level just
-upstream of separation at $Re\!\le\!10^5$, but $25$--$100\times$
-\emph{below} it at $3$--$4.6\!\times\!10^5$; the flip is sharp at the
+upstream of separation at $Re\!\le\!10^5$, but $27\times$
+\emph{below} it already at $2\!\times\!10^5$ and
+$70$--$170\times$ below at $3$--$4.6\!\times\!10^5$; the flip is sharp at the
 bursting boundary because the conducting overlap---an amplifying layer
 running over un-closed reversed flow for half the chord---is itself
 created by the starved handover, so the two defects are one causal
@@ -2352,7 +2369,7 @@ is genuine to the physics: the booked amplification tracks the $e^N$
 envelope through bubbles and attached recoveries alike, and the
 handover is short on the bubble's scale. At $Re\!\lesssim\!10^5$
 the model still places separation and the transition front, and lands
-within $2$--$12\%$ (family-dependently) on lift---but by
+within $11\%$ (family-dependently) on lift---but by
 compensation: the re-seeded climb fires the $\chi\!=\!1$ front
 $\sim\!0.16\,c$ \emph{ahead} of the physical envelope's equivalent
 station (measured against the mfoil envelope at
@@ -2373,6 +2390,10 @@ as resolved transition physics.
 
 
 \section{Three-dimensional deployment: the Daedalus wing}\label{sec:daedalus}
+
+(This section's campaign predates the lifted-layer bypass adoption of
+\S\ref{sec:fv1bypass}; its recomputation is in progress, and every
+number and figure here is from the bypass-inactive model.)
 
 The model's first three-dimensional application is the wing of the
 Daedalus human-powered aircraft: half-span $17.07\,$m, root chord
@@ -2712,12 +2733,13 @@ experiments on Fig.~\ref{fig:eppbubble}), and early at $7^\circ$
 $Re\!=\!6\!\times\!10^4$ to $4.6\!\times\!10^5$, follows the bubble's march and
 shortening. The same constants (Appendix~E) were used
 throughout. Across both airfoils the L1$\to$L2 transition-location drift is at
-or below $0.03\,c$ away from the marginal cases (the near-LE onset at
-$\alpha\!=\!9^\circ$ reaches $0.031\,c$ on a transition front, and the
-near-stall Eppler $\alpha\!=\!7^\circ$ $0.035\,c$ on the
+or below $0.01\,c$ (reaching $0.008\,c$ at the NLF's near-LE
+$\alpha\!=\!9^\circ$ front and $0.011\,c$ on the Eppler
 reattachment), and the two independently-generated mesh families
 agree to within $0.02\,c$ of chord on every transition front and to
-$0.005$--$0.021\,c$ on the Eppler reattachment at L2. The Reynolds sweep
+$0.004$--$0.011\,c$ on the Eppler reattachment at L2 (the
+edge-of-collapse $7^\circ$ case excepted, where three grids retain
+no bubble). The Reynolds sweep
 also locates the model's low-$Re$ boundary: the Eppler bubble fails to
 close at $10^5$ on every grid, and an exhaustive initialization study
 (cold starts, Reynolds-number forks, slow continuation in both
@@ -3045,11 +3067,12 @@ One upper-surface sheet per swept Reynolds number of
 Sec.~\ref{sec:eppresweep} (the $Re=2\times10^5$ anchor is the
 $\alpha\!=\!5^\circ$ sheet of Appendix~B), each covering the full
 L0--L2 suite on both mesh families; the wall-normal frame scales as
-$\smash{\sqrt{2\times10^5/Re}}$. At $Re=10^5$ two additional rows show
-each family's warm-started L2 solution after its $40\,000$-iteration
-extension (Sec.~\ref{sec:eppbistab}): the fields are indistinguishable
-from the cold-start L2 rows above them---the initialization
-independence of the converged state, seen in the field variables.
+$\smash{\sqrt{2\times10^5/Re}}$. (The pre-bypass study also carried
+two warm-started L2 rows at $Re=10^5$, indistinguishable from the
+cold-start rows---the initialization independence of
+Sec.~\ref{sec:eppbistab} seen in the field variables; those
+extensions are being repeated at the recomputed canon and the rows
+will return with them.)
 Table~\ref{tab:eppresweep} tabulates the sweep's L2 section
 coefficients against the $e^9$ reference and the tunnel data
 (discussed in Sec.~\ref{sec:eppresweep}).
@@ -3122,9 +3145,7 @@ coefficients against the $e^9$ reference and the tunnel data
   \centering
   \includegraphics[width=0.82\textwidth]{chi_sheet_eppler387_Re100k_upper.pdf}
   \caption{Eppler~387, $Re=10^5$, $\alpha=5^\circ$, upper surface, all six
-  grids plus the two extended warm-started L2 solutions (bottom rows),
-  indistinguishable from the cold-start L2 rows
-  (Sec.~\ref{sec:eppbistab}).}
+  grids.}
   \label{fig:sheet_eppler387_Re100k_upper}
 \end{figure}
 

@@ -2652,3 +2652,21 @@ heights), attached level 0.08 (was 0.2), crossings 0.48/0.54/0.59 (were 0.47/0.5
 1e5 unsteadiness sentence rewritten from fv1 windows: cavity family ripples (3e-4 L1,
 1e-3 L2 in cl), structured grids steady <=3e-5, and the structured-L1 limit cycle of the
 pre-bypass model DOES NOT RECUR (its "medians over the cycle" bookkeeping dropped).
+
+## 2026-07-26 04:30 UTC — Pass 33 (full-refresh audit): 6 majors + 10 minors done
+
+The audit verified the entire migration to the digit and caught the residual 15%:
+(1) the fully-turbulent SA curves silently vanished from both polars at the root flip
+(baselines lived only in flow360_fr) — symlinked (AI-off, canon-independent), polars
+regenerated, epppolar caption recomputed (77-97% bucket, +151% at 7, family agreement
+1-2e-4); (2) the alpha=7 Eppler bubble CHANGED QUALITATIVELY at the new canon — Cf
+crosses zero on only 3/6 grids (strL2 sliver 0.39-0.41c, 0.07c early; cavity finest has
+NO bubble): re-derived as edge-of-collapse physics, one incidence ahead of the
+experiment's alpha=8 NT point; (3) the three reattachment-margin statements harmonized
+at 0.02-0.04c (the 0.05-0.07 survivor killed) + conclusion drift sentence re-derived
+(improves to <=0.01c); (4) steadiness passage re-derived at the stated final-2000-step
+convention; (5) Appendix-C warm-start claims scoped to the pre-bypass study; (6) double
+peak already fixed pre-review (their independent numbers match). All ten minors done
+(convention unification makes the apex +3.7/+1.3%; scoping extended to tautest and the
+relaxation time; Sec VII carries its own bypass-inactive disclosure).
+Full response: agent-paper-review/2026-07-26-0258-response.md.
