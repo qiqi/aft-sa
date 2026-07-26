@@ -2906,3 +2906,20 @@ mechanism-map sentence.
    repro scripts, docs, memory: done.
 9. TASK BOOKKEEPING: #27 (new-canon campaign) closed — its remaining
    scope is exactly #24 (Daedalus Sec VII migration) + #23 (spheroid).
+
+## 2026-07-26 12:55 UTC — Spheroid L2 done; day/night GPU split in effect
+
+SPHEROID L2 alpha=10 (12.6M nodes, GPUs 6/7): rc=0 at 20k steps.
+Final-window CL 0.1861 (ptp 2.6e-3), CD 0.08175. Ladder: L0 0.2054 ->
+L1 0.2082 -> L2 0.1861 — NON-monotone, CL drops 11% at L2; suspect the
+leeward front/vortex structure shifts with resolution; maps regenerating
+in background (first run hit a 10-min timeout; 2M probes on 12.6M cells).
+NOTE: mpirun chains don't capture the solver constants echo — L1/L2
+carry ai_constants.note (launcher env record); L0's ai_constants.log is
+the canon reference.
+USER ORDERS APPLIED: (1) Daedalus PAUSED after a5 — chain script killed
+(a5 solver untouched, ETA ~15:00; a6 tonight); watcher re-armed on the
+chain log. (2) Spheroid gets days: alpha=5 ladder (L0/L1/L2 sequential,
+GPUs 6/7) staged + launched 12:52; alpha=29.7 queued for GPUs 0-5 when
+a5 frees them. (3) OpenFOAM replication agent noted — its simpleFoam
+runs + flatplate watcher are its own; hands off.
