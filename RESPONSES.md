@@ -3270,3 +3270,14 @@ legends). The model's c_v1-front marks are absent from the hot-film
 range at 1.5e6 — the amplification-deficit finding in the measured
 campaign's own presentation. Measured-symbol digitization = task #37.
 Section points to the appendix. 113 pages, builds clean.
+
+## 2026-07-26 20:55 UTC — Pass 43: waterfall conventions corrected to the PRINTED figures
+
+Reviewer digitized Stock's axes: Fig 5 uses -3.0/-20 offsets AND station
+5 at X/a=0.130 (array moved between runs); the printed Cp displacement
+is 0.42 (Stock's text says 0.14 — his own typo). Script now carries
+per-incidence conventions; H figures regenerated (29.7 tangle gone);
+appendix text states the printed-vs-text discrepancy; station-1
+edge-read noted; front sentence scoped per incidence; roadmap A-H.
+Task 37 (measured symbols) unblocked — offsets now match what will be
+digitized. Build clean.

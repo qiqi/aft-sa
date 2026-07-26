@@ -21,8 +21,18 @@ CV1 = 7.1
 CP_STATIONS = [-0.99880, -0.98520, -0.96560, -0.92840, -0.86520, -0.74320,
                -0.53700, -0.28780, -0.03760, 0.21240, 0.46160, 0.66920,
                0.79240]
-HF_STATIONS = [-0.894, -0.722, -0.382, -0.040, 0.304, 0.650, 0.766]
-DCP, DCF, DGAM = 0.14, -1.5, -15.0
+# per-incidence conventions, READ FROM STOCK'S PRINTED FIGURES (pass 43):
+# - Fig 5 (29.7 deg) displaces by -3.0/-20 deg and its hot-film station 5
+#   is X/a = 0.130 (the array moved between runs), unlike Fig 4's 0.304;
+# - the Cp displacement is 0.42 per station in BOTH printed figures --
+#   Stock's text says 0.14, contradicting his own axes (3x0.14; typo).
+DCP = 0.42
+CASES = {
+    'a10':   dict(hf=[-0.894, -0.722, -0.382, -0.040, 0.304, 0.650, 0.766],
+                  dcf=-1.5, dgam=-15.0),
+    'a29p7': dict(hf=[-0.894, -0.722, -0.382, -0.040, 0.130, 0.650, 0.766],
+                  dcf=-3.0, dgam=-20.0),
+}
 
 
 def load(npz):
@@ -34,13 +44,17 @@ def station_curve(xl, field2d, Xa):
     xs = (Xa + 1.0) / 2.0
     j = np.searchsorted(xl, xs)
     j = np.clip(j, 1, len(xl) - 1)
-    f = (xs - xl[j-1]) / (xl[j] - xl[j-1])
+    # no extrapolation: the first pressure station (X/a=-0.9988 ->
+    # x/L=0.0006) sits below the probe grid start (0.004) and is read at
+    # the grid edge (stated in the caption)
+    f = np.clip((xs - xl[j-1]) / (xl[j] - xl[j-1]), 0.0, 1.0)
     return field2d[:, j-1] * (1 - f) + field2d[:, j] * f
 
 
 def front_phi(xl, ph, chimax, Xa):
-    """phi where the chi=c_v1 front crosses this station (if any):
-    the smallest phi at which the front x(phi) <= x_station boundary."""
+    """ALL phi crossings of the chi=c_v1 front x(phi) with this station
+    (right for wavy fronts); fronts at the first x-index and crossings
+    adjacent to NaN spans are skipped -- none occur on the current maps."""
     xs = (Xa + 1.0) / 2.0
     fx = np.full(len(ph), np.nan)
     for i in range(len(ph)):
@@ -71,7 +85,7 @@ def cp_waterfall(npz, out, title):
     ax.set_xlim(0, 215)
     ax.set_xticks([0, 30, 60, 90, 120, 150, 180])
     ax.set_xlabel(r'$\phi$ [deg]')
-    ax.set_ylabel(r'$-C_p$ (curves displaced by $+0.14$ per station)')
+    ax.set_ylabel(rf'$-C_p$ (curves displaced by $+{DCP:g}$ per station)')
     ax.grid(alpha=0.3)
     ax.set_title(title, fontsize=10)
     fig.tight_layout()
@@ -80,25 +94,25 @@ def cp_waterfall(npz, out, title):
     print('wrote', out)
 
 
-def cf_gamma_waterfall(npz, out, title):
+def cf_gamma_waterfall(npz, out, title, hf, dcf, dgam):
     xl, ph, d = load(npz)
     fig, axs = plt.subplots(2, 1, figsize=(6.8, 9.2), sharex=True)
-    for j, Xa in enumerate(HF_STATIONS):
+    for j, Xa in enumerate(hf):
         cf = station_curve(xl, d['cf'], Xa) * 1e3
         gm = station_curve(xl, d['gamma_w'], Xa)
-        axs[0].plot(ph, cf + DCF * j, '-', color='k', lw=0.8)
-        axs[1].plot(ph, gm + DGAM * j, '-', color='k', lw=0.8)
-        axs[0].annotate(f'$X/a={Xa:g}$', (181, (cf + DCF * j)[-1]),
+        axs[0].plot(ph, cf + dcf * j, '-', color='k', lw=0.8)
+        axs[1].plot(ph, gm + dgam * j, '-', color='k', lw=0.8)
+        axs[0].annotate(f'$X/a={Xa:g}$', (181, (cf + dcf * j)[-1]),
                         fontsize=6.5, va='center')
-        axs[1].annotate(f'$X/a={Xa:g}$', (181, (gm + DGAM * j)[-1]),
+        axs[1].annotate(f'$X/a={Xa:g}$', (181, (gm + dgam * j)[-1]),
                         fontsize=6.5, va='center')
         for pstar in front_phi(xl, ph, d['chimax'], Xa):
             ci = np.interp(pstar, ph, cf)
             gi = np.interp(pstar, ph, gm)
-            axs[0].plot(pstar, ci + DCF * j, 's', color='k', ms=5)
-            axs[1].plot(pstar, gi + DGAM * j, 's', color='k', ms=5)
-    axs[0].set_ylabel(r'$C_{ft}\times10^3$ (displaced $-1.5$ per station)')
-    axs[1].set_ylabel(r'$\gamma_w$ [deg] (displaced $-15^\circ$ per station)')
+            axs[0].plot(pstar, ci + dcf * j, 's', color='k', ms=5)
+            axs[1].plot(pstar, gi + dgam * j, 's', color='k', ms=5)
+    axs[0].set_ylabel(rf'$C_{{ft}}\times10^3$ (displaced ${dcf:g}$ per station)')
+    axs[1].set_ylabel(rf'$\gamma_w$ [deg] (displaced ${dgam:g}^\circ$ per station)')
     axs[1].set_xlabel(r'$\phi$ [deg]')
     axs[1].set_xlim(0, 215)
     axs[1].set_xticks([0, 30, 60, 90, 120, 150, 180])
@@ -111,14 +125,22 @@ def cf_gamma_waterfall(npz, out, title):
     print('wrote', out)
 
 
+def re_label(npz):
+    d = np.load(npz)
+    re_l = float(d['mach']) / float(d['muref'])
+    return f'{re_l/10**int(np.log10(re_l)):.3g}\\times10^{int(np.log10(re_l))}'
+
+
 if __name__ == '__main__':
-    for tag, ttl in (('L2', r'$\alpha=10^\circ$'),
-                     ('a29p7_L2', r'$\alpha=29.7^\circ$')):
+    for tag, base, ttl in (('L2', 'a10', r'$\alpha=10^\circ$'),
+                           ('a29p7_L2', 'a29p7', r'$\alpha=29.7^\circ$')):
         npz = f'{PAPER}/figs/spheroid_maps_{tag}.npz'
-        base = ('a10' if tag == 'L2' else 'a29p7')
+        rs = re_label(npz)
+        c = CASES[base]
         cp_waterfall(npz, f'spheroid_stations_cp_{base}',
-                     f'{ttl}, $Re_L=1.5\\times10^6$ (L2): '
+                     f'{ttl}, $Re_L={rs}$ (L2): '
                      '$C_p$ at the DFVLR pressure stations')
         cf_gamma_waterfall(npz, f'spheroid_stations_cfgamma_{base}',
-                           f'{ttl}, $Re_L=1.5\\times10^6$ (L2): wall shear '
-                           'at the DFVLR hot-film stations')
+                           f'{ttl}, $Re_L={rs}$ (L2): wall shear '
+                           'at the DFVLR hot-film stations',
+                           c['hf'], c['dcf'], c['dgam'])

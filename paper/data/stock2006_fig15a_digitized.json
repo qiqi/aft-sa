@@ -150,5 +150,6 @@
     "phi_deg": 2.3
    }
   ]
- }
+ },
+ "note_cp_legends": "Stock's Figs 2 and 3 Cp-station legends disagree at the 4th decimal for three taps (Fig2: -0.03780/0.21220/0.46180; Fig3: -0.03760/0.21240/0.46160); we follow Fig 3. Not a digitization error."
 }
