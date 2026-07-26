@@ -3315,3 +3315,18 @@ a5/a6 where the old cavity-L2 slicing files are absent — finer canon,
 coarser grid; disclosed by the script's provenance print). Combined
 with the totals migration (c7129f6), task #24 is COMPLETE up to the
 held cavity-L2 runs. Build clean.
+
+## 2026-07-26 23:10 UTC — Pass 44: Sec VII PROSE migrated (the half I missed)
+
+The figures/table migration had left every quantitative Sec VII claim
+old-canon. Now migrated with independent verification (fv1 L1 chi
+caches built; canon_front_metrics root override; my station values ==
+reviewer's): drag ladder 15.6/10.3/5.6 counts; L1 gaps 0.46-0.53%
+(TIGHTER than predecessor); bubbles 0.49-0.65/0.47-0.64/0.46-0.62;
+sep<=0.017c, reatt<=0.009c; refinement 0.630->0.653 (not yet the
+strips' 0.660); L1 family bubble edges CORRECTED to 0.03c (was-true-
+now-false claim fixed honestly); predecessor residual 5.6-15.6 counts.
+Panel (b) now truly reads fv1 strips (native_strips root override —
+it had silently read the old tree); AVL reference RETRIMMED to fv1
+lifts (CD_ref unchanged at printed digits, now measured); daggers mark
+every predecessor solution in the figures. Build clean.

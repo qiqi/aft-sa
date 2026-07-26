@@ -60,7 +60,7 @@ def load(p):
     return r.GetOutput()
 
 
-def complete(case):
+def complete(root, case):
     fn = f'{root}/{case}/total_forces_v2.csv'
     return os.path.exists(fn) and sum(1 for _ in open(fn)) >= 2001
 
@@ -213,7 +213,7 @@ def make_sheet(eta_q):
         ax_nN = ax_n.twinx()
         for fam, (root, tpl, surfname, ls) in CASES.items():
             case = tpl.format(a=a)
-            if not complete(case) or not os.path.exists(f'{root}/{case}/chi_surface.npz'):
+            if not complete(root, case) or not os.path.exists(f'{root}/{case}/chi_surface.npz'):
                 continue
             if fam == 'cav':
                 got_cav = True
@@ -297,7 +297,7 @@ if __name__ == '__main__':
     for a in ALPHAS:
         for fam, (root, tpl, surfname, ls) in CASES.items():
             case = tpl.format(a=a)
-            if complete(case) and os.path.exists(f'{root}/{case}/chi_surface.npz'):
+            if complete(root, case) and os.path.exists(f'{root}/{case}/chi_surface.npz'):
                 mu = json.load(open(f'{root}/{case}/Flow360.json'))['freestream']['muRef']
                 CACHE[case] = probe_cached(case, surfname, etas, mu)
                 print('probed', case, flush=True)

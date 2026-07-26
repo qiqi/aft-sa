@@ -20,6 +20,8 @@ import numpy as np
 
 sys.path.insert(0, '/home/qiqi/flexcompute/sa-ai/daedalus')
 sys.path.insert(0, '/home/qiqi/flexcompute/sa-ai/paper')
+import os
+os.environ.setdefault('SAAI_DAE_ROOT', '/local_data/qiqi/sa-ai/daedalus_fv1')
 import sectional_compare as SC
 from polar_compare import run_avl
 from wing_geometry import chord, HALF_SPAN
@@ -27,7 +29,7 @@ from wing_geometry import chord, HALF_SPAN
 S_REF = 30.84
 ALPHAS = [4, 5, 6]
 # canon force totals (tab:daetotals; structured L2 vs matched-lift reference)
-RANS_TOTAL = {4: 0.01997, 5: 0.02243, 6: 0.02509}
+RANS_TOTAL = {4: 0.01969, 5: 0.02212, 6: 0.02474}   # fv1 str-L2 (final kernel)
 REF_TOTAL = {4: 0.02125, 5: 0.02315, 6: 0.02530}
 RANS_CASE = {a: f'case_ogrid_L2_saai_a{a}' for a in ALPHAS}
 FF = pickle.load(open('/home/qiqi/flexcompute/sa-ai/flow360_ai/'

@@ -134,7 +134,10 @@ def native_strips(case):
     (ClipOutput.cpp): CF{x,z}_per_span = F/(q Sref) per unit span. Convert to
     local wind-axis coefficients via cl*c = CF_per_span * Sref."""
     import csv as _csv
-    path = f'{HERE}/{case}/Y_slicing_forceDistribution.csv'
+    # SAAI_DAE_ROOT overrides the case tree (the fv1 recomputation lives at
+    # /local_data/qiqi/sa-ai/daedalus_fv1); default remains this directory
+    root = os.environ.get('SAAI_DAE_ROOT', HERE)
+    path = f'{root}/{case}/Y_slicing_forceDistribution.csv'
     rows = np.genfromtxt(path, delimiter=',', skip_header=1)
     y, cfx, cfz = rows[:, 0], rows[:, 2], rows[:, 3]
     sref = 15.42 if 'ogrid' in case else 30.84

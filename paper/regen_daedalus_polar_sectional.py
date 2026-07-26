@@ -34,7 +34,8 @@ CASES = {(fam, lv): [f'case_{FAM_DIR[fam]}_L{lv}_saai_a{a}' for a in (4, 5, 6)]
 # level), CD = Trefftz CDff at trim + XFOIL profile drag at the trimmed
 # strip loading. Targets follow the finest completed structured
 # case; rerun avl_fixed_cl_reference.py after any new structured-L2 landing.
-AVL_XFOIL = {4: (1.0282, 0.02125), 5: (1.1289, 0.02315), 6: (1.2279, 0.02530)}
+AVL_XFOIL = {4: (1.0284, 0.02125), 5: (1.1290, 0.02315),
+             6: (1.2282, 0.02530)}   # retrimmed to the fv1 lifts 2026-07-26
 ALPHAS = [4.0, 5.0, 6.0]
 COL = {'str': 'C0', 'cav': 'C1'}
 LW = {0: 0.8, 1: 1.6, 2: 2.4}
@@ -115,7 +116,10 @@ def main():
             if case is None:
                 continue
             finest_used[(fam, a)] = case
+            # read the strips from the same tree the gate consulted
+            os.environ['SAAI_DAE_ROOT'] = _root(case)
             e, cl, cd = SC.native_strips(case)
+            os.environ.pop('SAAI_DAE_ROOT', None)
             axs.plot(e, cl, ls, color=acol[a], lw=1.3)
             axd.plot(e, cd, ls, color=acol[a], lw=0.7, alpha=0.65)
         cl_t, cdi_t, strips = run_avl(a)

@@ -16,6 +16,8 @@ import sectional_compare as SC
 from wing_geometry import chord, HALF_SPAN, XQC
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# SAAI_DAE_ROOT overrides the case tree (fv1 recomputation)
+ROOT = os.environ.get('SAAI_DAE_ROOT', HERE)
 SURF = {'ogrid': 'surface_fluid_wing.pvtu', 'cavity': 'surface_farfield_body.pvtu'}
 ETAS = np.arange(0.10, 0.801, 0.035)
 
@@ -27,11 +29,11 @@ def upper_mask(p):
 
 
 def station(case, fam, eta, band=0.008):
-    d = np.load(f'{HERE}/{case}/chi_surface.npz')
+    d = np.load(f'{ROOT}/{case}/chi_surface.npz')
     w, chi = d['wall'], d['chi']
     xcw, upw = upper_mask(w)
     r = vtk.vtkXMLPUnstructuredGridReader()
-    r.SetFileName(f'{HERE}/{case}/{SURF[fam]}')
+    r.SetFileName(f'{ROOT}/{case}/{SURF[fam]}')
     r.Update()
     g = r.GetOutput()
     p = vtk_to_numpy(g.GetPoints().GetData())
@@ -94,7 +96,7 @@ if __name__ == '__main__':
         for fam, lv in (('ogrid', 'L1'), ('ogrid', 'L2'), ('cavity', 'L1'),
                         ('cavity', 'L2')):
             case = f'case_{fam}_{lv}_saai_a{a}'
-            if not os.path.exists(f'{HERE}/{case}/chi_surface.npz'):
+            if not os.path.exists(f'{ROOT}/{case}/chi_surface.npz'):
                 continue
             f31, b31 = station(case, fam, 0.31)
             fronts = [station(case, fam, e)[0] for e in ETAS]

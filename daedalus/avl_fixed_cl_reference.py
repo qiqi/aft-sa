@@ -30,8 +30,9 @@ ETAS_X = [0.05, 0.15, 0.30, 0.45, 0.60, 0.75, 0.85, 0.92, 0.97]
 
 def canon_cl(a):
     """Target CL: finest completed canon case at this incidence."""
+    root = os.environ.get('SAAI_DAE_ROOT', HERE)   # fv1 recomputation root
     for lv in ('L2', 'L1'):
-        fn = f'{HERE}/case_ogrid_{lv}_saai_a{a}/total_forces_v2.csv'
+        fn = f'{root}/case_ogrid_{lv}_saai_a{a}/total_forces_v2.csv'
         if not os.path.exists(fn) or sum(1 for _ in open(fn)) < 2001:
             continue
         hdr = open(fn).readline().split(',')
