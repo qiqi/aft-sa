@@ -2563,3 +2563,13 @@ SYMBOL AUDIT (omissions + other candidates, as requested):
   3. k = onset scale (0.712) — fine (no TKE in the paper), noted only.
   4. R = indicator magnitude — local to Sec II/App E, fine.
   Everything else (a, b, tau, chi, lambda) collision-free after the rename.
+
+## 2026-07-26 01:25 UTC — str am8 front-converged; negative pair CLOSED
+
+strL2 am8 (fv1): xtr_up = 0.5593 (locked to 7 digits over 3 batches), xtr_lo = 0.0040,
+CL = -0.4646, CD = 0.00962 (74985 steps). With cav (0.561/0.0104): the families agree to
+0.002c on the upper front, ON the measured 0.542 (e9 0.66, AFT-7.18 0.569). The
+negative-incidence pair is now grid-converged and correct on both surfaces under the new
+canon — Sec IV migration gets a success story where the draft had a "boundary of
+applicability". eppler_ext running (last 12 cases); Daedalus chain armed behind the
+completion marker.
