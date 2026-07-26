@@ -3073,7 +3073,9 @@ sheets}
 
 Figures~\ref{fig:eppmesh_str} and~\ref{fig:eppmesh_cav} show the mesh
 close-ups for the Eppler benchmark of Sec.~\ref{sec:eppval}; the sheets
-that follow cover the $\alpha$ sweep at $Re=2\times10^5$, upper
+that follow cover the $\alpha$ sweep at $Re=2\times10^5$ in ascending
+incidence, including the $-2^\circ$ and $8.5^\circ$ extension pair
+(finest grids only), upper
 surface only---the lower surface stays attached and featureless
 throughout the sweep (wall-normal frame $0.0335c$, the
 $5\times$-raised handover frame of the Appendix~A conventions).
@@ -3131,6 +3133,17 @@ correlational, not causal.
 
 \begin{figure}[p]
   \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_am2_upper.pdf}
+  \caption{Eppler~387, $Re=2\times10^5$, $\alpha=-2^\circ$, upper
+  surface (finest L2 pair; the extension incidences exist on L2 only):
+  velocity magnitude (left) and $\log_{10}\chi$ (right). The bubble
+  sits at its aft-most station of the sweep
+  ($x/c\!\approx\!0.55$--$0.80$).}
+  \label{fig:sheet_eppler387_am2_upper}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a0_upper.pdf}
   \caption{Eppler~387, $Re=2\times10^5$, $\alpha=0^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_eppler387_a0_upper}
@@ -3155,6 +3168,18 @@ correlational, not causal.
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a7_upper.pdf}
   \caption{Eppler~387, $Re=2\times10^5$, $\alpha=7^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_eppler387_a7_upper}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a8p5_upper.pdf}
+  \caption{Eppler~387, $Re=2\times10^5$, $\alpha=8.5^\circ$, upper
+  surface (finest L2 pair): velocity magnitude (left) and
+  $\log_{10}\chi$ (right). Post-stall: the layer trips in the
+  leading-edge bubble within the first few percent of chord
+  (Fig.~\ref{fig:eppcfhigh}) and runs turbulent and attached over the
+  rest of the surface.}
+  \label{fig:sheet_eppler387_a8p5_upper}
 \end{figure}
 
 \clearpage

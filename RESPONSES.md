@@ -2989,3 +2989,18 @@ diag_lambda_H_lower.py had the same 10x bug (fixed; no tex numbers
 trace to it); stale paper/ flat-plate script deleted; 1253 record
 corrected (its global NU=1e-7 prescription would corrupt Re_theta/Cf);
 P1-18c CLOSED with the cross-solver same-grid sentence.
+
+## 2026-07-26 13:50 UTC — Eppler extension sheets in appendix; NLF neg L0/L1 staged
+
+EPPLER (user order): chi_sheet_eppler387_{am2,a8p5}_upper.pdf generated
+(L2 pair, Appendix-B conventions) and inserted in ascending alpha
+(-2 before 0; 8.5 after 7). The 8.5 sheet shows the trip inside the
+LE bubble (chi crosses c_v1 within the first few % chord) and the
+turbulent attached layer over the rest; -2 shows the aft-most bubble
+(~0.55-0.80c). Appendix intro updated. Build clean.
+NLF (user order): am4/am8 exist on L2 only -> 8 new cases staged
+(L0/L1 x str/cav x -4/-8), cloned from the fv1 a4 cases, canon env,
+campaign front-convergence protocol (converge_by_xtr). Launcher
+scripts/run_nlfneg_l0l1.sh runs them across GPUs 0-5 the moment
+Daedalus a5 lands (~15:00); appendix sheets then regenerate in the
+standard 6-grid per-alpha format (task #34).
