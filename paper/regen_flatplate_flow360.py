@@ -18,7 +18,12 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
 B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_ai")
-NU = 1.0e-6   # Re_unit = 1e6, nu = 1/Re  (=> Re_x = x * 1e6)
+NU = 1.0e-6   # U-normalized scale nu/U = 1/Re_unit (Re_theta, Cf paths)
+# Flow360's nuHat output is in a_inf*L units, so chi needs the a_inf-based
+# viscosity M/Re = 1e-7, NOT NU: chi = nuHat/(M*NU). Using NU directly
+# under-read chi by 10x (caught by the OpenFOAM cross-solver replication,
+# review 2026-07-26-1253).
+NU_CHI = 0.1 * NU
 MACH = 0.1    # Flow360 stores velocity = u/c_∞; freestream u/U_∞ = Mach/Mach = 1, so divide by MACH
 # AGS-calibrated case set (Tu in S-S/AGS natural-transition range; drop the old
 # out-of-range Tu=0.85% and the mis-sourced 5-pt set). See run_flatplate_ags.py.
@@ -56,7 +61,7 @@ def extract_volume(cd):
     wd = vtk_to_numpy(pd.GetArray('wallDistance'))
     # Flow360 stores velocity in units of c_∞ (sound speed). Convert to U_∞ by /Mach.
     u = vel[:, 0] / MACH
-    chi = nuhat / NU
+    chi = nuhat / NU_CHI
     # Quasi-2D mesh: span has only ~2 y-values. Pick the first one.
     y_unique = np.unique(pts[:, 1])
     span_sel = np.abs(pts[:, 1] - y_unique[0]) < 1e-5

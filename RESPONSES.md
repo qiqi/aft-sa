@@ -2923,3 +2923,54 @@ chain log. (2) Spheroid gets days: alpha=5 ladder (L0/L1/L2 sequential,
 GPUs 6/7) staged + launched 12:52; alpha=29.7 queued for GPUs 0-5 when
 a5 frees them. (3) OpenFOAM replication agent noted — its simpleFoam
 runs + flatplate watcher are its own; hands off.
+
+## 2026-07-26 OpenFOAM cross-solver flat plate: 10x chi normalization bug in regen_flatplate_flow360.py
+
+Diagnosed by regenerating the paper's flat_plate_batch_flow360 figure from the
+OpenFOAM SA-AI port (sa-ai/openfoam/scripts/regen_flatplate_compare.py) and
+overlaying max-chi(x): OpenFOAM sat a CONSTANT ~11.7x above Flow360 in the
+laminar fetch at all 5 Tu -- a pure offset, same growth slope.
+
+Root cause: paper/regen_flatplate_flow360.py uses NU = 1e-6 ("nu = 1/Re") to
+form chi = nuHat/NU, but Flow360 nuHat output is in c_inf*L units, so the
+correct divisor is NU = M/Re = 1e-7 (the ONBOARDING Sec. 5 convention used by
+the Eppler scripts). Verified directly: freestream nuHat in
+flatplate_sphere_Tu0040/volume.pvtu = 1.92e-11 => chi = 1.92e-4 with 1e-7
+(intended Mack seed 2.28e-4; -16% shortfall is real, fSlow-BC related) vs
+1.9e-5 with the script's 1e-6.
+
+Consequences:
+- The figure's chi(x) curves and chi=1 crossings are evaluated at ACTUAL
+  chi=10: crossings plotted/quoted from this script (ONSET_DIAG path) are
+  systematically late. Cf/Re_theta panels unaffected (velocity conversion
+  correct).
+- With the corrected convention, TRUE chi=1 crossings vs AGS steepen with Tu
+  in BOTH solvers (F360: +5% at Tu=0.04 to -22% at Tu=0.6); the flat-vs-Tu
+  behavior of the committed figure was partly the bug.
+- Cross-solver replication (corrected): OpenFOAM (cell-centered
+  pressure-based incompressible SIMPLE) vs Flow360 (node-centered
+  density-based compressible): chi=1 crossing Re_x uniformly -7..-10.5%
+  (Re_theta -3.5..-5%), Cf-min onset -4..-10%, no Tu trend. Also -16% F360
+  freestream seed shortfall vs exact seed in OpenFOAM explains ~2% of it.
+
+Paper script NOT edited (another agent owns that tree) -- fix is one line:
+NU = 1.0e-7 in regen_flatplate_flow360.py (and re-check any text numbers
+derived from its ONSET_DIAG output).
+
+## 2026-07-26 13:20 UTC — chi-normalization bug FIXED (10x); passes 36 + OpenFOAM report addressed
+
+FLAT PLATE (correctness): the OpenFOAM agent's report was right — both
+regen_flatplate_flow360.py copies divided nuHat (a_inf*L units) by the
+U-normalized 1e-6 instead of M/Re=1e-7, displaying chi a DECADE low.
+Verified on raw output (freestream nuHat ~1e-11, U_inf=0.1). Fixed
+(NU_CHI=0.1*NU), figure regenerated — chi curves now start exactly at
+the set seeds. Corrected onsets vs AGS (integrated Re_theta):
+chi=1: +2/-8/-17/-23/-27%(Tu 0.04..0.60) — drifts early as seed->1;
+chi=c_v1 (half-saturation, mid Cf-rise): +7/-2/-8/-10/-4% — WITHIN 10%.
+The old "chi=1 within 9%" was really the chi~10 crossing. Text, caption,
+conclusion rewritten to the c_v1 convention; seed-shortfall caveat added
+(realized inlet ambient ~15% below set; ~0.2 e-folds).
+PASS 36: spheroid section updated for the landed L2 (CL ladder
+0.205/0.208/0.186 quoted, non-converged flagged); all 8 minors done
+(unreferenced binaries untracked, Re label parameterized, docstring,
+wording). Responses in agent-paper-review/.

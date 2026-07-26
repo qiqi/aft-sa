@@ -4,8 +4,9 @@ Two-row Eppler-387 alpha=5 Reynolds-sweep summary (annotated-round-7
 layout):
   row 1: c_l | c_d (log) | c_m(c/4) vs Re -- all 24 SA-AI solutions
          (structured solid blue / unstructured dashed orange, L0-L2 by
-         line thickness), e^9 panel reference (mfoil squares 1-3e5,
-         XFOIL diamonds at the ends; c_m from mfoil only), LTPT
+         line thickness), e^9 panel reference (mfoil squares 0.6-3e5,
+         where its solve returns forces; XFOIL diamonds at all five Re,
+         c_m from both), LTPT
          measurement with repeat scatter, and published literature at
          the shared conditions read at alpha=5:
            6e4: Frere+ 2016 ILES & coupled RANS-e^N (if digitized),

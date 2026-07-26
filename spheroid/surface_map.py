@@ -102,6 +102,8 @@ def main():
                     help='first wall spacing /L (default: 5e-6 * 0.5^level '
                          'guessed from the case name L0/L1/L2)')
     ap.add_argument('--out', default=None, help='output prefix')
+    ap.add_argument('--paper', action='store_true',
+                    help='paper-grade titles (no case tag)')
     args = ap.parse_args()
     case = args.case_dir.rstrip('/')
     tag = os.path.basename(case)
@@ -185,8 +187,11 @@ def main():
         color='w', linewidth=0.5, density=(2.2, 1.1), arrowsize=0.6)
     fig.colorbar(m, ax=a, label=r'$c_f \times 10^3$')
     a.set_ylabel(r'$\phi$ [deg]  (0 = windward)')
-    a.set_title(f'{tag}:  $c_f$ magnitude + skin-friction lines '
-                f'($\\alpha={alpha:g}^\\circ$, $Re_L=1.5\\times10^6$)')
+    head = '' if args.paper else f'{tag}:  '
+    re_l = mach / muref
+    re_str = f'{re_l/10**int(np.log10(re_l)):.3g}\\times10^{int(np.log10(re_l))}'
+    a.set_title(head + '$c_f$ magnitude + skin-friction lines '
+                f'($\\alpha={alpha:g}^\\circ$, $Re_L={re_str}$)')
 
     a = axs[1]
     lev = np.linspace(-60, 60, 25)

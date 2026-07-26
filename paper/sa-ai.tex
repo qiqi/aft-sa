@@ -1315,9 +1315,12 @@ and the disturbance seed (Sec.~\ref{sec:calib}).
   Shaw~\cite{abu_ghannam_shaw_1980} transition-onset reference, and the
   bottom-right adds the digitized Schubauer--Skramstad
   Fig.~7 band (faint bars) for context. With the receptivity taken from Mack's
-  $e^N$ correlation, the model's $\chi\!=\!1$ onset brackets AGS within
-  $9\%$ across the range---late at the lowest $Tu$, early in the
-  mid-range (markers placed via the laminar $Re_\theta$--$Re_x$
+  $e^N$ correlation, the model's half-saturation ($\chi\!=\!c_{v1}$)
+  onset brackets AGS within
+  $10\%$ across the range---late at the lowest $Tu$, early at the
+  higher levels---while the $\chi\!=\!1$ blend-onset reading drifts
+  early as the seed approaches unity (markers placed via the laminar
+  $Re_\theta$--$Re_x$
   relation; the quoted residuals use the integrated $Re_\theta$ of the
   text); the
   $C_f$ follows the laminar branch then recovers the turbulent correlation
@@ -1403,7 +1406,10 @@ The Tu $\to\chi_\infty$ map of Eq.~\eqref{eq:tumap} sends each case to a single
 freestream seed
 ($\chi_\infty\!\approx\!2.3\!\times\!10^{-4}$, $1.2\!\times\!10^{-3}$,
 $6.3\!\times\!10^{-3}$, $2.9\!\times\!10^{-2}$, $1.5\!\times\!10^{-1}$ at the
-five $Tu$). Starting from this small laminar seed, $\tilde\nu$ remains inert
+five $Tu$; the realized inlet ambient runs ${\approx}15\%$ below these
+set values---the residual decay left by the compensated freestream
+drain, ${\approx}0.2$ $e$-folds, ${\lesssim}2\%$ on crossing
+$Re_\theta$, absorbed in the residuals quoted below). Starting from this small laminar seed, $\tilde\nu$ remains inert
 while the skin friction follows the laminar Blasius law (dashed); the
 amplification \eqref{eq:pai} grows the disturbance through the unstable region
 until $\chi$ reaches unity, after which $C_f$ rises toward the turbulent
@@ -1424,21 +1430,21 @@ the choice; we state the convention and give both readings, with
 $Re_\theta$ integrated from the computed profiles at the crossing
 station (edge-normalized momentum thickness, integral cut at the
 boundary-layer edge). At the
-$\chi\!=\!1$ crossing the model brackets the correlation within
-$9\%$: $+8\%$ late at the lowest disturbance level
-($Tu\!=\!0.04\%$), within $2\%$ at $0.08\%$ and $0.60\%$, and
-$6$--$8\%$ early over $Tu\!=\!0.16$--$0.30\%$. At the alternative
-$\chi\!=\!c_{v1}$
-crossing---the band's turbulent end---the layer is already
-mid-transition and its integrated $Re_\theta$ ($\approx\!2500$,
-nearly uniform across the sweep, $2.2$--$3.5\times$ AGS) measures
-transitional growth rather than onset placement. The
+$\chi\!=\!1$ crossing---the start of the blend---the model reads
+$+2\%$ late at the lowest disturbance level ($Tu\!=\!0.04\%$) and
+drifts steadily early as the seed grows, $-8\%$ at $0.08\%$ to
+$-27\%$ at $0.60\%$: with the seed itself approaching unity, the
+first crossing measures an ever-earlier stage of the growth. At the
+$\chi\!=\!c_{v1}$ crossing---the half-saturation point, mid-way up
+the $C_f$ rise---the model brackets the correlation within $10\%$
+across the whole sweep: $+7\%$ late at $Tu\!=\!0.04\%$, $-2\%$ at
+$0.08\%$, and $4$--$10\%$ early over $0.16$--$0.60\%$. The
 onset residuals have different roots: the late bias at low $Tu$ is the
 retained-drain footprint of the calibration (the marched Blasius
 envelope runs $7\%$ past Drela's station by $N\!=\!9$,
 Sec.~\ref{sec:calib_onset}, and the low-$Tu$ seeds hand over near that
-depth), while the early bias in the mid-range traces to the receptivity
-map \eqref{eq:tumap}, taken from
+depth), while the early bias at the higher levels traces to the
+receptivity map \eqref{eq:tumap}, taken from
 Mack's $e^N$ correlation without adjustment here; tightening either is
 left to future work.
 
@@ -1823,7 +1829,7 @@ and Table~\ref{tab:eppmesh} lists their resolution quantitatively.
   six additional computed incidences) overlaid on the digitized
   experimental section characteristics from the Langley Low-Turbulence Pressure
   Tunnel (McGhee et al., NASA TM-4062, App.~B, $R\!=\!2\!\times\!10^5$) and the
-  mfoil $e^9$ reference, now spanning the same extended incidence
+  mfoil $e^9$ reference, spanning the same extended incidence
   range (XFOIL fills $\alpha\!=\!7^\circ$, where mfoil's coupled solve
   fails). The computed points track the low-drag laminar bucket;
   the two mesh families agree to within
@@ -2721,12 +2727,15 @@ at $Re_L\!=\!1.5\!\times\!10^6$ the boundary layer stays laminar up
 to the open free-vortex-layer separation, with the measured fronts
 tracking the separation line itself. Figure~\ref{fig:spheroidmaps} shows SA-AI in
 exactly this presentation: the analytic spheroid
-($x^2\!/A^2+r^2\!/B^2\!=\!1$, $A\!=\!L/2$, $B\!=\!L/12$, half model)
+($x^2\!/A^2+r^2\!/B^2\!=\!1$, $A\!=\!L/2$, $B\!=\!L/12$, half-model)
 on a structured O-grid ladder (L0--L2:
 $0.37$/$2.2$/$12.6$ million nodes, first wall spacing halving per
 level from $5\!\times\!10^{-6}L$), at $Re_L\!=\!1.5\!\times\!10^6$,
 $M\!=\!0.1$, $\alpha\!=\!10^\circ$, with the airfoil-study solver
-settings, seed, and constants unchanged. The model carries no
+settings, seed, and constants unchanged. All three levels are
+computed; the figure shows L1, and the level-to-level totals are not
+yet grid-converged ($C_L\!=\!0.205/0.208/0.186$ over L0/L1/L2), so
+the finest-level map comparison accompanies the front overlays. The model carries no
 crossflow closure---the amplification rate is calibrated on
 two-dimensional TS growth---so this case probes what that economy
 costs on a crossflow-dominated body; the maps here are the
@@ -2791,12 +2800,13 @@ closure $\chi_\infty(Tu)$ is Mack's $e^N$ correlation, and the destruction-gate
 weight is tied to the production weight by a wall-layer identity, so the
 linear $\tilde\nu$ wall solution---and with it the log law---is exactly
 standard SA's. On a zero-pressure-gradient flat plate (Sec.~\ref{sec:flatplate}) the Mack
-closure places transition onset (at the stated $\chi\!=\!1$ convention,
+closure places transition onset (at the stated half-saturation
+$\chi\!=\!c_{v1}$ convention,
 $Re_\theta$ integrated from the computed profiles)
-within $9\%$ of the Abu-Ghannam \& Shaw
-correlation over the natural-transition range ($8\%$ late at the lowest
+within $10\%$ of the Abu-Ghannam \& Shaw
+correlation over the natural-transition range ($7\%$ late at the lowest
 disturbance level---the retained-drain footprint---within $2\%$ at
-$Tu\!=\!0.08\%$ and $0.60\%$, and $6$--$8\%$ early in between),
+$Tu\!=\!0.08\%$, and $4$--$10\%$ early above),
 verifying the Blasius envelope. On
 the NLF(1)-0416 at $Re\!=\!4\!\times\!10^6$ (Sec.~\ref{sec:nlfval}) the
 model holds the designed laminar rooftop---the favorable run held by
