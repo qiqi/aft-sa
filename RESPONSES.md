@@ -2850,3 +2850,23 @@ PRELIMINARY: their leeward front hooks to x/L~0.35-0.5 at phi~130-160
 where our L1 chi front only reaches ~0.85 — model likely late under the
 leeward vortex; verify on L2 with a cf-rise front + digitized line
 before claiming. Data source: Kreplin/Vollmers/Meier 1985 (in bib).
+
+## 2026-07-26 11:55 UTC — Stock 2006 reviewed (user supplied paper/spheroid.pdf)
+
+Physics per Stock (AIAA J 44(1) 2006, DOI 10.2514/1.16026):
+- Mechanism map: pure TS at alpha<=2.5 (Re 7.2e6); alpha=5-15 at Re~6.5e6
+  mixed TS+CF (pure CF mid-body from alpha=10); alpha>=20-24 essentially
+  pure CF; Re to 43.5e6 has N_CF up to 45.
+- AT OUR CONDITION (Re=1.52e6, alpha=10): laminar UP TO the open
+  free-vortex-layer separation; measured fronts track the separation
+  line (Fig 15a squares): x/L ~0.28 at phi~150 -> ~0.8-0.95 windward.
+- Limiting N: DFVLR tunnel N_TS=8.0/N_CF=5.5 (F1: 7.0/6.0); linear
+  TS-CF interaction decay; curvature ruins the CF correlation (omitted).
+- alpha<7: closed separation line; alpha>7: open vortex-layer separation
+  from circumferential BL accumulation on the flanks.
+IMPLICATION: our L1 leeward chi front (~0.85) vs measured ~0.3-0.6 on
+the flank = the 3D open-separation analogue of the slow-handover story;
+the model sees the vortex-layer amplification but commits late. L2 +
+cf-rise front + digitized Fig 15a line = the quantitative comparison.
+stock_2006 added to bib + cited in the spheroid section with a
+mechanism-map sentence.
