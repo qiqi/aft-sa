@@ -109,21 +109,31 @@ def nlf():
     for k, v in json.load(open(f'{B}/sphere_campaign_nlf_neg_results.json')).items():
         camp.setdefault(k, v)
     rows = []
+    neg_missing = False
     for a, tag in ((-8, 'am8'), (-4, 'am4'), (0, 'a0'), (4, 'a4'),
                    (9, 'a9'), (15, 'a15')):
         for lev in ('L0', 'L1', 'L2'):
             cells = [f'${a}$ & {lev}']
             found = False
             for fam in ('str', 'cav'):
-                e = camp.get(f'{fam}{lev}prop_nlf0416_Re4M_{tag}')
+                key = f'{fam}{lev}prop_nlf0416_Re4M_{tag}'
+                e = camp.get(key)
                 if e:
                     found = True
                     cells.append(f"{fmt(e.get('CL'))} & {fmt(e.get('CD'), 5)} & "
                                  f"{fmt(e.get('xtr_up'), 3)} & {fmt(e.get('xtr_lo'), 3)}")
                 else:
+                    # only the negative pair may legitimately be absent on
+                    # the coarser grids (runs staged); anything else is an
+                    # error, not a shorter table
+                    assert tag in ('am8', 'am4') and lev != 'L2', \
+                        f'missing campaign record: {key}'
+                    neg_missing = True
                     cells.append('-- & -- & -- & --')
             if found:
                 rows.append(' & '.join(cells))
+    negclause = (' The $-8^\\circ$/$-4^\\circ$ rows exist on the finest'
+                 ' (L2) pair only.' if neg_missing else '')
     write('tab_nlf_data.tex',
           r'$\alpha$ & grid & \multicolumn{4}{c}{structured O-grid} &'
           r' \multicolumn{4}{c}{unstructured cavity} \\'
@@ -134,13 +144,17 @@ def nlf():
           r'NLF(1)-0416, $Re\!=\!4\!\times\!10^6$: computed forces and '
           r'transition locations behind '
           r'Figs.~\ref{fig:nlfaft}, \ref{fig:nlfpolar}, '
-          r'and~\ref{fig:nlfnegalpha}.',
+          r'and~\ref{fig:nlfnegalpha}.' + negclause,
           'tab:data_nlf', 'll cccc cccc')
 
 
 # ---------------- Eppler polar ----------------------------------------------
 def eppler_polar():
     camp = json.load(open(f'{B}/sphere_campaign_eppler_results.json'))
+    # the twelve extension cases have their own committed campaign record --
+    # the authoritative values (the case CSVs are not shipped)
+    for k, v in json.load(open(f'{B}/sphere_campaign_eppler_ext_results.json')).items():
+        camp.setdefault(k, v)
     TAG = {-2: 'am2', 0: 'a0', 1: 'a1', 2: 'a2', 3: 'a3', 4: 'a4x',
            5: 'a5', 6: 'a6', 7: 'a7', 8.5: 'a8p5'}
     rows = []
@@ -150,12 +164,9 @@ def eppler_polar():
             cells = [f'${a:g}$ & {lev}']
             for fam in ('str', 'cav'):
                 key = f'{fam}{lev}prop_eppler387_Re200k_{TAG[a]}'
-                e = camp.get(key)
-                if e:
-                    cells.append(f"{fmt(e.get('CL'))} & {fmt(e.get('CD'), 5)}")
-                else:
-                    cl, cd = tail_forces(f'{B}/{key}')
-                    cells.append(f'{fmt(cl)} & {fmt(cd, 5)}')
+                assert key in camp, f'missing campaign record: {key}'
+                e = camp[key]
+                cells.append(f"{fmt(e.get('CL'))} & {fmt(e.get('CD'), 5)}")
             rows.append(' & '.join(cells))
     write('tab_eppler_polar.tex',
           r'$\alpha$ & grid & \multicolumn{2}{c}{structured O-grid} &'
@@ -218,7 +229,11 @@ def eppler_resweep():
           r'and upper-surface stations behind Fig.~\ref{fig:eppresweepforces} '
           r'($x_R$ pinned near $1$ means no closure ahead of the trailing '
           r'edge; $c_m$ and the $e^9$/experiment columns are in '
-          r'Table~\ref{tab:eppresweep}).',
+          r'Table~\ref{tab:eppresweep}). The $2\times10^5$ rows are the '
+          r'figure script\'s own re-extraction of the benchmark histories '
+          r'and agree with Table~\ref{tab:data_epppolar}\'s campaign-record '
+          r'values to within one unit in the last digit (tail-window '
+          r'rounding).',
           'tab:data_eppresweep', 'll cccc cccc')
 
 

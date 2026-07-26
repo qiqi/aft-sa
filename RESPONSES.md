@@ -3099,3 +3099,15 @@ correct chi normalization) for panel-by-panel comparison against Fig 5;
 it is the designated home for the airfoil comparison sheets when the
 structured-family OpenFOAM results arrive. Main text stays minimal
 (steel-blue overlay + one sentence + the mesh-family scope sentence).
+
+## 2026-07-26 15:10 UTC — Pass 39 addressed
+
+P1-18c sentence re-scoped (within 7% at chi=1, early, cites Table F1);
+OpenFOAM provenance COMMITTED (model source, scripts incl. the Appendix-G
+figure generator, README, failures doc — 21 files); emitter hardened
+(ext rows from the committed campaign JSON with asserts — the F3
+last-digit drift resolved in the record's favor; neg-L0/L1 whitelist
+self-expires); main-text anchors to F1/G added; F5 window footnote; F2
+conditional L2-only clause; a8p5 caption "past the experimental stall"
++ 4x-short remark; G disclosure + 0.3-Omega clause. references/ PDFs
+never lost — they live at repo root, not paper/ (answered in file).

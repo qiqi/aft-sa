@@ -1317,7 +1317,8 @@ and the disturbance seed (Sec.~\ref{sec:calib}).
   Fig.~7 band (faint bars) for context. Thin steel-blue curves in both
   bottom panels: the independent cell-centered incompressible
   (OpenFOAM) implementation of the model on the same grid
-  specification. With the receptivity taken from Mack's
+  specification (full-detail counterpart in Appendix~G; both solvers'
+  crossings tabulated in Table~\ref{tab:data_flatplate}). With the receptivity taken from Mack's
   $e^N$ correlation, the model's half-saturation ($\chi\!=\!c_{v1}$)
   onset brackets AGS within
   $10\%$ across the range---late at the lowest $Tu$, early at the
@@ -1395,9 +1396,11 @@ characteristic freestream on the far boundary, and slip walls on the two span
 planes (quasi-2D); the freestream Mach number is $0.1$. An independent
 cell-centered, pressure-based incompressible implementation of the
 model, run on this same grid specification, reproduces the onset
-crossings quoted below within $5\%$ in $Re_\theta$ uniformly across
-the sweep, so neither the grid nor the discretization carries the
-result. We compare the
+crossings quoted below within $7\%$ in $Re_\theta$ at the
+$\chi\!=\!1$ crossing, consistently slightly early across the whole
+sweep (Table~\ref{tab:data_flatplate}; the full-detail counterpart
+figure is in Appendix~G), so neither the grid nor the discretization
+carries the result. We compare the
 resulting transition onset to the Abu-Ghannam \&
 Shaw zero-pressure-gradient
 correlation~\cite{abu_ghannam_shaw_1980}, $Re_\theta^\mathrm{tr}\!=\!163+\exp(6.91-Tu[\%])$ --- the
@@ -2924,12 +2927,15 @@ and on the structure of the SA equation were formative.
 \section*{Appendix A: the NLF(1)-0416---meshes and wall-anchored
 contour sheets}
 
-Each of the following appendices collects, for one main-text section,
+Appendices A--D collect, for one main-text section each,
 the mesh views and the wall-anchored contour sheets of its cases:
 Appendix~A for the NLF(1)-0416 study (Sec.~\ref{sec:nlfval}),
 Appendix~B for the Eppler~387 benchmark (Sec.~\ref{sec:eppval}),
 Appendix~C for the Eppler Reynolds sweep (Sec.~\ref{sec:eppresweep}),
 and Appendix~D for the Daedalus wing (Sec.~\ref{sec:daedalus}).
+Appendix~E assembles the model equations and constants, Appendix~F
+tabulates the raw data behind the one-dimensional comparison figures,
+and Appendix~G carries the cross-solver replication detail.
 
 Figures~\ref{fig:nlfmesh_str} and~\ref{fig:nlfmesh_cav} show the
 leading- and trailing-edge close-ups of the structured O-grid and
@@ -3185,10 +3191,12 @@ correlational, not causal.
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a8p5_upper.pdf}
   \caption{Eppler~387, $Re=2\times10^5$, $\alpha=8.5^\circ$, upper
   surface (finest L2 pair): velocity magnitude (left) and
-  $\log_{10}\chi$ (right). Post-stall: the layer trips in the
-  leading-edge bubble within the first few percent of chord
-  (Fig.~\ref{fig:eppcfhigh}) and runs turbulent and attached over the
-  rest of the surface.}
+  $\log_{10}\chi$ (right). Past the experimental stall: the layer
+  trips in the leading-edge bubble within the first few percent of
+  chord---closing roughly $4\times$ shorter than the measured
+  $0.03$--$0.18\,c$ recovery (Fig.~\ref{fig:eppbubble})---and runs
+  turbulent and attached over the rest of the surface
+  (Fig.~\ref{fig:eppcfhigh}).}
   \label{fig:sheet_eppler387_a8p5_upper}
 \end{figure}
 
@@ -3695,7 +3703,9 @@ Fig.~\ref{fig:flatplate_batch} computed end to end by the independent
 implementation of the model referenced in
 Sec.~\ref{sec:flatplate}---OpenFOAM, cell-centered, pressure-based,
 incompressible, with the plain compact Laplacian for the profile
-curvature and no freestream-decay compensation---on the same
+curvature, the $0.3\Omega$ floor for $\tilde S$ in place of
+Spalart's $c_2/c_3$ continuation, and no freestream-decay
+compensation---on the same
 $320\times80$ grid specification, in the identical layout for
 panel-by-panel comparison. The summary crossings of both solvers are
 tabulated in Table~\ref{tab:data_flatplate}.
