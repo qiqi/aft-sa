@@ -1909,7 +1909,7 @@ regime.
 \begin{figure}[tp]
   \centering
   \includegraphics[width=0.99\textwidth]{eppler_cf_lowalpha.pdf}
-  \caption{Eppler 387 surface distributions at $\alpha\!\in\!\{0^\circ,2^\circ\}$,
+  \caption{Eppler 387 surface distributions at $\alpha\!\in\!\{0^\circ,5^\circ\}$,
   $Re\!=\!2\!\times\!10^5$, $M\!=\!0.1$, $\chi_\infty\!=\!8.76\!\times\!10^{-4}$
   (matched to $N_\mathrm{crit}\!=\!9$). Five-row layout and line conventions as
   described in the text (row~1 $\max Re_\Omega$, row~2 $\max \hat\Omega \hat I$,
@@ -1919,7 +1919,7 @@ regime.
   the nearest angle of attack) as open black circles on the $-C_p$ row). The signed $C_f$ (row~5) shows the laminar-separation bubble
   directly as the dip below zero on the upper surface. The bubble sits at
   $x/c\!\approx\!0.52$--$0.76$ at $\alpha\!=\!0^\circ$ and marches forward to
-  $x/c\!\approx\!0.48$--$0.71$ at $\alpha\!=\!2^\circ$; both Flow360 and mfoil
+  $x/c\!\approx\!0.40$--$0.63$ at $\alpha\!=\!5^\circ$; both Flow360 and mfoil
   show the same recirculation structure.}
   \label{fig:eppcflow}
 \end{figure}
@@ -1927,9 +1927,8 @@ regime.
 \begin{figure}[tp]
   \centering
   \includegraphics[width=0.99\textwidth]{eppler_cf_highalpha.pdf}
-  \caption{As Fig.~\ref{fig:eppcflow}, at $\alpha\!\in\!\{5^\circ,7^\circ\}$.
-  At $\alpha\!=\!5^\circ$ the bubble has moved forward to
-  $x/c\!\approx\!0.40$--$0.63$; at $\alpha\!=\!7^\circ$ the
+  \caption{As Fig.~\ref{fig:eppcflow}, at $\alpha\!\in\!\{7^\circ,8.5^\circ\}$
+  ($8.5^\circ$ on the finest L2 pair only). At $\alpha\!=\!7^\circ$ the
   suction peak is near $-C_p\!\approx\!3$ and the model sits at the
   edge of bubble collapse: the upper-surface $C_f$ crosses zero only
   on three of the six grids (structured L0/L2 and cavity L0)---on the
@@ -1937,14 +1936,19 @@ regime.
   ${\sim}0.07\,c$ ahead of the measured oil-flow reattachment
   ($0.48\,c$)---while on the other three, transition preempts
   separation entirely, one incidence ahead of the experiment's
-  $\alpha\!=\!8^\circ$ natural-transition point. The
+  $\alpha\!=\!8^\circ$ natural-transition point. At the post-stall
+  $8.5^\circ$ both families trip in the leading-edge bubble (gray
+  band: the oil flow's $0.03$--$0.18\,c$)---$\chi$ crosses $c_{v1}$
+  within the first few percent of chord and the flow is turbulent and
+  attached over the rest of the surface. The
   lower-surface boundary layer remains attached and laminar to
   $x/c\!\approx\!0.99$ across the entire $\alpha$ range, matching the
   $e^9$ prediction that the lower transition lies aft of the airfoil. At
   $\alpha\!=\!7^\circ$ the dotted reference is XFOIL rather than mfoil,
   which stalls numerically there (Fig.~\ref{fig:eppbubble});
   the surface distributions carry no $N$ curve, so
-  row~3 shows no envelope at $7^\circ$. XFOIL's dumped $C_f$ is
+  row~3 shows no envelope at $7^\circ$ (at $8.5^\circ$ mfoil converges
+  and the envelope returns). XFOIL's dumped $C_f$ is
   edge-normalized and is converted to the freestream convention of the
   computed rows ($\times u_e^2$).}
   \label{fig:eppcfhigh}
@@ -2699,6 +2703,62 @@ $\chi$ maps): a genuinely three-dimensional transition mechanism,
 captured by the transported amplification with no special
 treatment---and absent, necessarily, from the sectional $e^N$ row.
 
+\section{Toward crossflow: the 6:1 prolate spheroid}\label{sec:spheroid}
+
+The inclined 6:1 prolate spheroid is the canonical fully
+three-dimensional transition benchmark: the DFVLR campaign of Kreplin,
+Vollmers, and Meier~\cite{kreplin_1985} mapped the wall shear stress
+(magnitude and direction) over the whole body with surface hot films,
+and the transition-modeling literature validates against it in a
+standard presentation---the surface unrolled into the
+$(x/L,\phi)$ plane ($\phi\!=\!0$ the windward symmetry line), with
+skin-friction magnitude, wall-shear direction, and the transition
+front drawn as maps. Figure~\ref{fig:spheroidmaps} shows SA-AI in
+exactly this presentation: the analytic spheroid
+($x^2\!/A^2+r^2\!/B^2\!=\!1$, $A\!=\!L/2$, $B\!=\!L/12$, half model)
+on a structured O-grid ladder (L0--L2:
+$0.37$/$2.2$/$12.6$ million nodes, first wall spacing halving per
+level from $5\!\times\!10^{-6}L$), at $Re_L\!=\!1.5\!\times\!10^6$,
+$M\!=\!0.1$, $\alpha\!=\!10^\circ$, with the airfoil-study solver
+settings, seed, and constants unchanged. The model carries no
+crossflow closure---the amplification rate is calibrated on
+two-dimensional TS growth---so this case probes what that economy
+costs on a crossflow-dominated body; the maps here are the
+infrastructure for that comparison, with the measured-front overlays
+and the workshop condition ($Re_L\!=\!6.5\!\times\!10^6$) to follow.
+Figure~\ref{fig:spheroid3d} shows the same skin friction on the body.
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.99\textwidth]{spheroid_maps_L1.pdf}
+  \caption{6:1 prolate spheroid, $Re_L\!=\!1.5\!\times\!10^6$,
+  $\alpha\!=\!10^\circ$, SA-AI on the L1 O-grid ($2.2$M nodes),
+  surface unrolled into $(x/L,\phi)$, windward line at
+  $\phi\!=\!0$. Top: $c_f$ magnitude with skin-friction lines (the
+  oil-flow analogue); the friction lines converge onto the leeward
+  separation-line band at $\phi\!\approx\!100$--$135^\circ$. Middle:
+  wall-shear direction $\gamma_w$ from the local meridian (positive
+  toward leeward), the quantity the DFVLR hot films
+  measured~\cite{kreplin_1985}; the black $\gamma_w\!=\!0$ line marks
+  the crossflow reversal under the leeward vortex. Bottom: wall-normal
+  maximum of $\chi$ with the $\chi\!=\!c_{v1}$ contour (cyan) as the
+  model-native transition front: at this Reynolds number the body runs
+  laminar to $x/L\!\approx\!0.9$ on the windward side, with
+  amplification building (but not committing) under the leeward
+  vortex from mid-body.}
+  \label{fig:spheroidmaps}
+\end{figure}
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{spheroid_maps_L1_3d.png}
+  \caption{The $c_f$ magnitude of Fig.~\ref{fig:spheroidmaps} rendered
+  on the body (leeward and windward views), the presentation of the
+  N-factor and skin-friction contour figures of the
+  transition-prediction literature on this case.}
+  \label{fig:spheroid3d}
+\end{figure}
+
 \section{Conclusion}
 
 The Spalart--Allmaras working variable can, it turns out, serve as its
@@ -2999,7 +3059,7 @@ $5\times$-raised handover frame of the Appendix~A conventions).
 The $\alpha\!=\!5^\circ$ sheet
 (Fig.~\ref{fig:sheet_eppler387_a5_upper}) also resolves the anatomy
 of the double peak that the $\max_y \hat\Omega \hat I$ trace of
-Fig.~\ref{fig:eppcfhigh} (row~2, a wall-normal probe of fixed depth
+Fig.~\ref{fig:eppcflow} (row~2, a wall-normal probe of fixed depth
 $0.01\,c$, neighbor-smoothed as stated in Sec.~\ref{sec:nlfval})
 shows inside the bubble. The first peak is the \emph{lifted laminar
 shear layer} over the recirculation core: at its maximum ($0.92$ at

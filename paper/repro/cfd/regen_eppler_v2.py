@@ -49,7 +49,8 @@ MESH_LS = {'str': '-', 'cav': '--'}
 # --- Experimental reference data, digitized from McGhee et al., NASA TM-4062 ---
 # Upper-surface laminar separation bubble from oil-flow visualization (Table III),
 # R=200,000: alpha -> (x_LS laminar separation, x_TR turbulent reattachment).
-EXP_LSB = {0: (0.48, 0.74), 2: (0.43, 0.67), 5: (0.38, 0.59), 7: (0.33, 0.48)}
+EXP_LSB = {0: (0.48, 0.74), 2: (0.43, 0.67), 5: (0.38, 0.59), 7: (0.33, 0.48),
+           8.5: (0.03, 0.18)}   # 8.5: post-stall LE bubble (TM-4062 Table III)
 # EXACT tabulated experimental Cp from TM-4062 Appendix D (R=200k), keyed by surface
 # with an 'xc' grid + per-alpha-column arrays. Figure alpha -> nearest table column(s).
 import json as _json, os as _os
@@ -83,9 +84,11 @@ def rate(Re_O, Gamma):
     return np.where(Re_O > Re_cliff, a, 0.0)
 
 def case_dir(mesh, level, alpha):
-    """mesh in {'cav','str'}, level in {'L0','L1','L2'}, alpha int."""
-    a_int = int(alpha)
-    return f"{B}/{mesh}{level}prop_eppler387_Re200k_a{a_int}"
+    """mesh in {'cav','str'}, level in {'L0','L1','L2'}; alpha 8.5 maps to
+    the L2-only extension tag a8p5."""
+    if float(alpha) == 8.5:
+        return f"{B}/{mesh}{level}prop_eppler387_Re200k_a8p5"
+    return f"{B}/{mesh}{level}prop_eppler387_Re200k_a{int(alpha)}"
 
 def load_slice(d):
     r = vtk.vtkXMLPUnstructuredGridReader(); r.SetFileName(f"{d}/slice_centerSpan.pvtu"); r.Update()
@@ -719,8 +722,9 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         # band spanning laminar-separation -> turbulent-reattachment (x/c). Shown
         # on the surface-distribution rows so it can be read against the computed
         # C_f reversal and the C_p plateau.
-        if int(alpha) in EXP_LSB:
-            xls, xtr = EXP_LSB[int(alpha)]
+        akey = float(alpha) if float(alpha) in EXP_LSB else int(alpha)
+        if akey in EXP_LSB:
+            xls, xtr = EXP_LSB[akey]
             for a in (ax_cp, ax_cf):
                 a.axvspan(xls, xtr, color='0.55', alpha=0.32, zorder=0)
                 a.axvline(xls, color='0.35', ls=':', lw=0.8, alpha=0.8, zorder=0)
@@ -1049,44 +1053,44 @@ if __name__ == '__main__':
     if mode in ('polar', 'all'):
         make_polar_figure()
     if mode in ('low', 'all'):
-        alphas = [0, 2]
-        title_all = 'Eppler 387, Re=200k at $\\alpha\\in\\{0^\\circ,2^\\circ\\}$ — L0/L1/L2 × cav/str'
-        title_str = 'Eppler 387, Re=200k at $\\alpha\\in\\{0^\\circ,2^\\circ\\}$ — structured (O-grid) L0/L1/L2'
-        title_cav = 'Eppler 387, Re=200k at $\\alpha\\in\\{0^\\circ,2^\\circ\\}$ — unstructured (cavity) L0/L1/L2'
+        alphas = [0, 5]
+        title_all = 'Eppler 387, Re=200k at $\\alpha\\in\\{0^\\circ,5^\\circ\\}$ — L0/L1/L2 × cav/str'
+        title_str = 'Eppler 387, Re=200k at $\\alpha\\in\\{0^\\circ,5^\\circ\\}$ — structured (O-grid) L0/L1/L2'
+        title_cav = 'Eppler 387, Re=200k at $\\alpha\\in\\{0^\\circ,5^\\circ\\}$ — unstructured (cavity) L0/L1/L2'
         make_cf_figure(alphas, 'eppler_cf_lowalpha',     title_all)
         make_cf_figure(alphas, 'eppler_cf_lowalpha_str', title_str, meshes=['str'])
         make_cf_figure(alphas, 'eppler_cf_lowalpha_cav', title_cav, meshes=['cav'])
         make_landscape_figure(alphas, 'eppler_landscape_lowalpha',
-                              'Eppler 387, Re=200k amplification landscape, $\\alpha\\in\\{0^\\circ,2^\\circ\\}$')
+                              'Eppler 387, Re=200k amplification landscape, $\\alpha\\in\\{0^\\circ,5^\\circ\\}$')
         make_landscape_normal_figure(alphas, 'eppler_landscape_normal_lowalpha',
                               'Eppler 387, Re=200k amplification landscape (wall-normal probe), '
-                              '$\\alpha\\in\\{0^\\circ,2^\\circ\\}$')
+                              '$\\alpha\\in\\{0^\\circ,5^\\circ\\}$')
         make_convergence_figure(alphas, 'eppler_convergence_lowalpha',
-                                'Eppler 387, Re=200k convergence, $\\alpha\\in\\{0^\\circ,2^\\circ\\}$ — cav + str')
+                                'Eppler 387, Re=200k convergence, $\\alpha\\in\\{0^\\circ,5^\\circ\\}$ — cav + str')
         make_convergence_figure(alphas, 'eppler_convergence_lowalpha_str',
-                                'Eppler 387, Re=200k convergence, $\\alpha\\in\\{0^\\circ,2^\\circ\\}$ — structured (O-grid)',
+                                'Eppler 387, Re=200k convergence, $\\alpha\\in\\{0^\\circ,5^\\circ\\}$ — structured (O-grid)',
                                 meshes=['str'])
         make_convergence_figure(alphas, 'eppler_convergence_lowalpha_cav',
-                                'Eppler 387, Re=200k convergence, $\\alpha\\in\\{0^\\circ,2^\\circ\\}$ — unstructured (cavity)',
+                                'Eppler 387, Re=200k convergence, $\\alpha\\in\\{0^\\circ,5^\\circ\\}$ — unstructured (cavity)',
                                 meshes=['cav'])
     if mode in ('high', 'all'):
-        alphas = [5, 7]
-        title_all = 'Eppler 387, Re=200k at $\\alpha\\in\\{5^\\circ,7^\\circ\\}$ — L0/L1/L2 × cav/str'
-        title_str = 'Eppler 387, Re=200k at $\\alpha\\in\\{5^\\circ,7^\\circ\\}$ — structured (O-grid) L0/L1/L2'
-        title_cav = 'Eppler 387, Re=200k at $\\alpha\\in\\{5^\\circ,7^\\circ\\}$ — unstructured (cavity) L0/L1/L2'
+        alphas = [7, 8.5]
+        title_all = 'Eppler 387, Re=200k at $\\alpha\\in\\{7^\\circ,8.5^\\circ\\}$ — L0/L1/L2 × cav/str'
+        title_str = 'Eppler 387, Re=200k at $\\alpha\\in\\{7^\\circ,8.5^\\circ\\}$ — structured (O-grid) L0/L1/L2'
+        title_cav = 'Eppler 387, Re=200k at $\\alpha\\in\\{7^\\circ,8.5^\\circ\\}$ — unstructured (cavity) L0/L1/L2'
         make_cf_figure(alphas, 'eppler_cf_highalpha',     title_all)
         make_cf_figure(alphas, 'eppler_cf_highalpha_str', title_str, meshes=['str'])
         make_cf_figure(alphas, 'eppler_cf_highalpha_cav', title_cav, meshes=['cav'])
         make_landscape_normal_figure(alphas, 'eppler_landscape_normal_highalpha',
                               'Eppler 387, Re=200k amplification landscape (wall-normal probe), '
-                              '$\\alpha\\in\\{5^\\circ,7^\\circ\\}$')
+                              '$\\alpha\\in\\{7^\\circ,8.5^\\circ\\}$')
         make_landscape_figure(alphas, 'eppler_landscape_highalpha',
-                              'Eppler 387, Re=200k amplification landscape, $\\alpha\\in\\{5^\\circ,7^\\circ\\}$')
+                              'Eppler 387, Re=200k amplification landscape, $\\alpha\\in\\{7^\\circ,8.5^\\circ\\}$')
         make_convergence_figure(alphas, 'eppler_convergence_highalpha',
-                                'Eppler 387, Re=200k convergence, $\\alpha\\in\\{5^\\circ,7^\\circ\\}$ — cav + str')
+                                'Eppler 387, Re=200k convergence, $\\alpha\\in\\{7^\\circ,8.5^\\circ\\}$ — cav + str')
         make_convergence_figure(alphas, 'eppler_convergence_highalpha_str',
-                                'Eppler 387, Re=200k convergence, $\\alpha\\in\\{5^\\circ,7^\\circ\\}$ — structured (O-grid)',
+                                'Eppler 387, Re=200k convergence, $\\alpha\\in\\{7^\\circ,8.5^\\circ\\}$ — structured (O-grid)',
                                 meshes=['str'])
         make_convergence_figure(alphas, 'eppler_convergence_highalpha_cav',
-                                'Eppler 387, Re=200k convergence, $\\alpha\\in\\{5^\\circ,7^\\circ\\}$ — unstructured (cavity)',
+                                'Eppler 387, Re=200k convergence, $\\alpha\\in\\{7^\\circ,8.5^\\circ\\}$ — unstructured (cavity)',
                                 meshes=['cav'])

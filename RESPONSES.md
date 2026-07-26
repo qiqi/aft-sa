@@ -2822,3 +2822,17 @@ CORRECTION to the 10:20 entry: 8.5 cav canon-window medians are
 1.2426/0.02258 (earlier 1.261/0.0215 was an instantaneous read).
 NOTE: reviewer's chain status wrong on cavity L2 — it is HELD; the
 new-canon chain runs ogrid L2 only.
+
+## 2026-07-26 11:30 UTC — Figs 12/13 recolumned; spheroid section drafted
+
+FIGS 12/13 (user order): alpha=2 dropped from the detailed suites —
+Fig 12 now {0,5}, Fig 13 {7,8.5} (8.5 on the L2 pair only; EXP_LSB
+band 0.03-0.18 added; mfoil envelope returns at 8.5 where it converges;
+double-peak anatomy ref retargeted eppcfhigh->eppcflow since the 5-deg
+column moved). All six per-family/convergence variants regenerated.
+SPHEROID SECTION (user order): new Sec "Toward crossflow: the 6:1
+prolate spheroid" before the Conclusion — setup sentence + two figures
+(L1 unrolled cf/gamma_w/max-chi maps in the Kreplin/DFVLR presentation;
+3D cf views), kreplin_1985 bib entry added; minimal text by design.
+CONDITIONS RUN SO FAR: Re_L=1.5e6, M=0.1, alpha=10 deg only; L0
+(CL 0.2054/CD 0.0817) and L1 (0.2082/0.0852) done, L2 solving GPUs 6/7.
