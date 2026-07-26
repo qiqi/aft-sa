@@ -3200,3 +3200,13 @@ alpha = 5, 10, 29.7 x L0/L1/L2 (the three DFVLR-measured incidences).
 NIGHT SHIFT: Daedalus ogrid L2 a6 launched (GPUs 0-5, ~4 h — completes
 the new-canon Daedalus set); 6.5e6 spheroid meshes building on CPU
 (h0=1.5e-6 ladder, L0 first); a29p7 L2 maps generating.
+
+## 2026-07-26 18:35 UTC — alpha=0 added to the spheroid campaign (user order)
+
+alpha=0 IS measured — at Re=7.2e6 (Stock Fig 14a, pure TS, axisymmetric:
+the cleanest 3D anchor, no crossflow at all). Ladder staged on the
+re65 (h0=1.5e-6) meshes with muRef=0.1/7.2e6, launched mesh-gated on
+GPUs 6/7 (L0 starts now — its mesh is built; L1/L2 follow their mesh
+builds). Note alpha=2.5 at 7.2e6 is also measured (Fig 14b) — cheap
+add if wanted. Running tonight: Daedalus a6 (GPUs 0-5), re72a0 ladder
+(GPUs 6/7), re65 L1/L2 mesh builds (CPU).
