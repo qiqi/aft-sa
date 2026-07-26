@@ -999,14 +999,23 @@ def make_polar_figure(out_name='eppler_polar_compare'):
             ls='-', lw=1.0, marker='+', ms=5, color='C4', zorder=2)
     # SA-AI on top: structured = circle/solid, unstructured = triangle/dashed.
     mesh_mk = {'str': 'o', 'cav': '^'}
+    # L2 gains the extension incidences (-2, 1, 3, 4, 6, 8.5); the ladder
+    # levels keep the original four
+    EXT_TAGS = {-2: 'am2', 1: 'a1', 3: 'a3', 4: 'a4x', 6: 'a6', 8.5: 'a8p5'}
     for mesh in ['str', 'cav']:
         for level in ['L0', 'L1', 'L2']:
-            cl, cd = [], []
+            pts = []
             for a in alphas:
                 f = converged_clcd(case_dir(mesh, level, a))
-                if f: cl.append(f[0]); cd.append(f[1])
-            if cl:
-                ax.plot(cd, cl, marker=mesh_mk[mesh], ms=4, ls=MESH_LS[mesh],
+                if f: pts.append((a, f[0], f[1]))
+            if level == 'L2':
+                for a, tag in EXT_TAGS.items():
+                    f = converged_clcd(f"{B}/{mesh}L2prop_eppler387_Re200k_{tag}")
+                    if f: pts.append((a, f[0], f[1]))
+            pts.sort()
+            if pts:
+                ax.plot([q[2] for q in pts], [q[1] for q in pts],
+                        marker=mesh_mk[mesh], ms=4, ls=MESH_LS[mesh],
                         lw=POLAR_LW[level], color=mesh_col[mesh], zorder=3)
     ax.set_xlim(0.0, 0.05); ax.set_ylim(0.0, 1.25)
     ax.set_xlabel('$C_d$'); ax.set_ylabel('$C_l$')

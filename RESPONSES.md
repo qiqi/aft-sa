@@ -2769,3 +2769,19 @@ exist in the model at 6e4; no initialization can fork onto it. OFFERED: finer de
   run_solution.py saai. Prep rc=0; solver running on GPU 7. NOTE: no crossflow closure
   in the model (outlook item) — the alpha=10 spheroid is exactly the crossflow-challenge
   probe.
+
+## 2026-07-26 10:35 UTC — Spheroid L0 first solve COMPLETE
+
+case_ogrid_L0_saai_a10 (6:1 prolate half-model, Re_L=1.5e6, alpha=10, M=0.1, canon env
+with bypass — ai_constants stamped): full 20k pseudo-steps, rc=0, ~25 min on one V100.
+CL=0.2054, CD=0.08172 (half-frontal-area normalization, S_ref=0.0109). Next natural
+steps when wanted: transition-front extraction on the body (vs Kreplin/DFVLR hot-film
+maps), chi/Cf surface maps, the alpha ladder, L1, and the Re=6.5e6 workshop pair.
+
+## 2026-07-26 10:55 UTC — Fig 11 (Eppler polar): extension incidences added
+
+Same root-flip-era miss as Fig 6: the polar plotted only the original alpha {0,2,5,7}.
+The L2 pair now carries all ten computed incidences (-2,0,1,2,3,4,5,6,7,8.5); ladder
+levels keep the original four. Caption updated. The dense L2 polar tracks the measured
+bucket from cl 0.18 to the 8.5-deg knee. ALSO RUNNING: spheroid L1 (2 ranks, GPUs 6/7);
+L2 spheroid mesh (12.6M nodes) building on CPU — fits the 2 free GPUs at ~6.3M/rank.
