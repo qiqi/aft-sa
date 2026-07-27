@@ -1478,7 +1478,7 @@ negative-incidence pair $\alpha\!=\!-8^\circ$ and $-4^\circ$
 pair, and the wall-anchored contour sheets of Appendix~A carry the
 full ladder). The unstructured mesher uses a shared NLF contour (a natural cubic
 spline in arc length through the published coordinates, resampled with
-piecewise-cosine clustering) with
+piecewise-cosine clustering at the LE and TE) with
 blunt-trailing-edge--aware spacing ($h_\mathrm{TE}$ scales with first-cell
 height $h_0$ at every level; the TE ramp ratio $r_\mathrm{TE}$ decays from
 $2.0$ at L0 to $1.25$ at L2 so that the local cell size at fixed chord-distance
@@ -1823,8 +1823,8 @@ to the trailing edge.
 The model is evaluated at the de-facto benchmark condition of the
 transition-modeling literature: $Re\!=\!2\!\times\!10^5$, $M\!=\!0.1$, across
 $\alpha\!\in\!\{0^\circ,2^\circ,5^\circ,7^\circ\}$, with the freestream seed at
-the same $N_\mathrm{crit}\!=\!9$ anchor as the NLF,
-$\chi_\infty\!=\!8.76\!\times\!10^{-4}$ (the LTPT-class value). Three
+the same $N_\mathrm{crit}\!=\!9$, LTPT-class anchor as the NLF
+(Sec.~\ref{sec:nlfval}). Three
 refinement levels on two independently-generated mesh families
 (unstructured cavity, structured O-grid) give twenty-four cases. The
 finest (L2) pair extends the matrix with six further incidences,
@@ -1836,16 +1836,14 @@ Mesh generation reuses the NLF recipe verbatim. The 56-point Eppler 387
 contour is read from the NASA TM 4062 Table I (design coordinates with the
 trailing edge thickened from $0$ to $0.01\,\mathrm{in}$ blended at
 $x/c\!=\!0.95$; $z_\mathrm{TE}\!=\!\pm0.000833\,c$, half the NLF
-blunt-thickness), interpolated by the same natural cubic spline in
-arc length as the NLF contour, resampled at $N\!\in\!\{200,400,800\}$
-points with piecewise-cosine clustering at the LE and TE, and fed to both the
+blunt-thickness), splined and resampled as the NLF contour at
+$N\!\in\!\{200,400,800\}$ points, and fed to both the
 in-house unstructured cavity mesher and Construct2D; the far-field is fixed at
 $100\,c$. The resulting grids range
 from $1.5\!\times\!10^4$ nodes at L0 to $2.6\!\times\!10^5$ at L2.
 The mesh close-ups mirror the NLF's
-(Figs.~\ref{fig:nlfmesh_str} and~\ref{fig:nlfmesh_cav}: the same
-recipe, the NLF's blunt-TE handling aside, with every length scale
-halving per level);
+(Figs.~\ref{fig:nlfmesh_str} and~\ref{fig:nlfmesh_cav}, the blunt-TE
+handling aside);
 Table~\ref{tab:eppmesh} lists the Eppler resolution quantitatively.
 
 \begin{figure}[tp]
@@ -1987,9 +1985,7 @@ The skin friction (Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}, bottom rows)
 shows the LSB directly: the upper-surface $C_f$ drops below zero over a band
 that spans up to $\sim\!0.25\,c$ at low incidence---a shallow laminar separation
 feeding a compact turbulent recirculation core---and collapses toward
-$\alpha\!=\!7^\circ$, where only three of the six grids retain a
-sliver of recirculation ($0.014\,c$ on the structured L2) and the
-rest transition ahead of separation. Both
+$\alpha\!=\!7^\circ$. Both
 Flow360 and mfoil show the same recirculation structure at
 $\alpha\!\le\!5^\circ$ on both mesh families.
 
@@ -1998,8 +1994,7 @@ Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}) shows the adverse-gradient
 response the Eppler~387 probes: on the upper surface $\hat\Omega \hat I$ rises from near zero
 (the attached, near-neutral layer) into the strongly amplifying range across
 the laminar-separation bubble (the inflectional profile), then relaxes after
-reattachment, while the lower surface stays near zero; the growth of $\hat\Omega \hat I$ into
-the amplifying region is what ignites transition at the bubble.
+reattachment, while the lower surface stays near zero.
 (The conspicuous double peak the upper-surface trace shows inside the
 bubble---and the sharp notch between the two---is anatomized in
 Appendix~B against the contour sheet of
@@ -2048,9 +2043,7 @@ Fig.~\ref{fig:sheet_eppler387_a5_upper}.)
 \end{figure}
 
 The bubble stations are collected in Fig.~\ref{fig:eppbubble},
-against the oil flow at its eight bubble incidences (the ninth,
-$\alpha\!=\!8^\circ$, is natural transition with no bubble to
-plot), the
+against the oil flow at its eight bubble incidences, the
 independent Selig et al.\ measurement, the dense-$\alpha$ mfoil
 sweep, and the two digitized transition-model references. The
 separation location is
@@ -2065,9 +2058,8 @@ the model sits at the edge of bubble collapse: three of six grids
 (the unstructured finest among them) transition ahead of separation
 and plot no stations---one incidence ahead of the experiment's
 $\alpha\!=\!8^\circ$ natural-transition point---and the surviving
-structured-L2 sliver closes $0.07\,c$ early; the lower surface runs
-laminar to the trailing edge at every incidence and has no front to
-move. That margin sits
+structured-L2 sliver ($0.014\,c$ of recirculation) closes $0.07\,c$
+early. That low-$\alpha$ margin sits
 \emph{inside} the facility-to-facility spread on the figure: the
 Cole--Mueller pressure-station measurements at the same Reynolds
 number~\cite{cole_mueller_1990} read reattachment $0.03$--$0.08\,c$
@@ -2108,8 +2100,8 @@ quantified in the next section (Sec.~\ref{sec:epphandover}).
 To assess whether the same constants follow the bubble across the
 Reynolds-number range of the McGhee experiment, we hold everything of
 Sec.~\ref{sec:eppval}'s study fixed---the incidence at
-$\alpha\!=\!5^\circ$ and the freestream seed at
-$\chi_\infty\!=\!8.76\!\times\!10^{-4}$---and sweep the four other tabulated
+$\alpha\!=\!5^\circ$ and the paper-wide freestream seed
+(Sec.~\ref{sec:nlfval})---and sweep the four other tabulated
 Reynolds numbers,
 $Re\!\in\!\{6\!\times\!10^4,\,1\!\times\!10^5,\,3\!\times\!10^5,\,4.6\!\times\!10^5\}$,
 reusing the grids of both mesh families at all three refinement levels
