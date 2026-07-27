@@ -1,3347 +1,452 @@
-# Claude session log — important responses (append-only)
+# RESPONSES.md — paper agent log (role reversal, 2026-07-27)
 
-Newest entries at the bottom. Each entry is timestamped; skim headers.
+*Cleared 2026-07-27 ~15:10 by user order at the role handover. Prior
+history (3,476 lines) is in git (`git log -- RESPONSES.md`, last entry
+830ceee). From here on: the former reviewer agent (this log's new
+author) is the PAPER AGENT — editing the paper, responding to reviews
+in `agent-paper-review/`, and mirroring responses to the user's prompts
+here in appending style.*
 
 ---
 
-## 2026-07-24 ~19:50 — backfill of today's key findings
-
-### Daedalus section compiled onto the final-kernel campaign (commit 5509ab0)
-- 8 completed canon runs in the paper (both families L1 at α=4,5,6; structured
-  L2 at α=4,5); pending runs excluded everywhere; generators fill in
-  automatically as runs finish.
-- Headline: at η=0.31, α=4° the recomputed bubble spans 0.489–0.661c vs the
-  e^N strips' 0.472–0.660c (predecessor kernel: 0.04–0.06c, 3–4x short).
-  Reattachment agrees to <0.01c, separation to 0.02c. The second-gate-pinch
-  prediction is fulfilled in 3D.
-- χ=1 front still leads the strips' N_crit contour by ~0.09c = the expected
-  2-e-fold convention gap (χ=1 ≡ N=11.65 vs N_crit=13.6).
-- Both spanwise phenomena survive at canon: outboard bubble stretch
-  (reattachment 0.66→0.79→0.95c at η=0.31/0.92/0.97, strips 0.66→0.74→0.84)
-  and the tip-vortex trip (χ>1 from LE for η≳0.995).
-
-### AVL reference bug — you were right (commit 53d0a40)
-- run_avl grepped the NEAR-FIELD CDind (0.0121 at α=4°, implied e=0.66)
-  instead of the Trefftz CDff (0.0092, e=0.87) three lines below in the same
-  file. Appendix D always said "Trefftz"; the code betrayed it.
-- Corrected reference CDs: 0.02028 / 0.02212 / 0.02414 at α=4/5/6°.
-  RANS drag now lands within ±3 counts (1.5%) at L2, ±11 at L1.
-  Predecessor's true deficit was 11–17 counts (not 40–50); final kernel
-  returned 6–14 of them.
-- Discretization check (cached 24×80 hi-res AVL run): CDff moves +0.2%,
-  CLff +0.04% — Trefftz value converged; the near-field totals NaN at the
-  higher resolution (it is the fragile quantity). Stated in Appendix D.
-- The +5% lift offset stands: camber-line VLM misses section-thickness lift.
-
-### Blockage (far-field size)
-- O-grid far field: cylinder R = 100 root chords = 91.7 m = 2.7 spans.
-  Unstructured octree: ±2048 m (60 spans). Families agree on CL to 0.7%.
-- Classical wall-interference estimate: Δα = δ(S/C)C_L, C≈4×10^4 m²,
-  δ≈0.12 → ΔC_L/C_L ≈ 0.06%. The 0.7% family gap is discretization, not
-  confinement. In the section text now.
-
-### Annotated-pdf round (Sec. II.E restructure, commit 53d0a40)
-- All 13 annotations addressed: strikeouts deleted; calibration contact is
-  its own subsection ordered high-Re-untouched → inner-layer linearity →
-  c_ν,ai multiplies zero curvature (QED); τ folded into the blend paragraph;
-  coarse-grid table dropped; assembled model → Appendix E (bare reference).
-- Your round-off claim VERIFIED: the linear profile is an exact discrete
-  solution for both models under any consistent scheme; two unrelated
-  solvers (2nd-order FD at first-cell y+ 0.25–8; 4th-order collocation)
-  agree to 1e-9–1e-12.
-- "e^N growth untouched" now scoped: untouched *to* the χ=1 crossing; past
-  it the retained SA terms pace the growth — significant at low Re
-  (→ Sec. epphandover).
-
-### fv1-bypass status
-- Baseline battery (canon fSlow schedule): 1e5 bubble closes, CL 0.907, but
-  violent limit cycle (std 0.12); 2e5 appeared non-inert (std 0.016).
-- fSlow-schedule battery at 1e5: wide → std 0.0066; mild (0.1) → 0.0134;
-  OFF (fSlow=1) → std 0.0030, CL 0.927 / CD 0.0231.
-  ⇒ The limit cycle is a PSEUDO-TIME ARTIFACT of the canon slowdown
-  schedule. True bypass state at 1e5: CL≈0.93 (exp 0.873, +6%), CD≈0.023
-  (exp 0.0237 — essentially on the measurement). Burst branch was 0.77/0.044.
-- Running now (GPU 6): 2e5 pair (bypass on/off, fSlow=1) to re-test guard
-  inertness without the schedule artifact.
-
-### Review loop
-- Pass 13 (all fixed + gitignore root cause), pass 14 (provenance JSONs
-  tracked), pass 15 (P1-1/P1-2 CLOSED; Appendix-D predecessor clause fixed,
-  Daedalus repro chain force-added, jargon removed) — all addressed and
-  committed; responses in agent-paper-review/.
-
-### 3D validation cases beyond wings (your question; search agent running)
-- Scope filter: SA-AI covers TS + separation bubbles, NOT crossflow /
-  attachment-line / bypass ⇒ bodies of revolution at zero/low incidence are
-  the right family (as you suggested: fuselages/pods).
-- My ranking: (1) 6:1 prolate spheroid, DLR Kreplin hot-film data — α=0 is
-  axisymmetric TS-dominated, and an α-sweep MEASURES the model's crossflow
-  scope boundary (honest, quotable negative); meshing trivial with our
-  machinery. (2) Low-drag laminar bodies of revolution (Dolphin,
-  Hansen–Hoyt, Lutz–Wagner) — the UUV/airship community quantifies laminar
-  extent for a living; 3D analog of the NLF validation. (3) NLF nacelle
-  flight tests (NASA/GE '90s) — industrially compelling, less-controlled data.
-- Axisymmetric α=0 runs as a thin periodic wedge ≈ 2D cost.
-
-## 2026-07-24 ~20:00 — 3D non-wing validation cases: ranked survey (search agent, sources verified)
-
-1. **DLR 6:1 prolate spheroid, α=0 (Meier & Kreplin, Göttingen 1977–85)** — the
-   headline candidate. Hot-film wall-shear transition fronts + Cp; L=2.4 m,
-   Re_L 1.6–9.6e6. α=0 is axisymmetric, purely TS — cleanly in scope. Bonus:
-   the α=0 transition was measured in THREE tunnels at matched Re specifically
-   to quantify freestream-turbulence sensitivity — maps directly onto our Mack
-   χ∞(Tu) closure. Crossflow takes over by α=10° (Stock 2006), so an α-sweep
-   measures our scope boundary as an honest negative. Caveats: primary DFVLR
-   data reports not openly downloadable (digitize from secondary
-   transition-model papers or request from DLR); ERCOFTAC's entry covers only
-   the FIXED-transition α=10/30° cases, not natural transition at α=0.
-2. **NASA Langley MSBS laminar-flow body of revolution (Dress 1988/89,
-   Dodbele NLF design)** — the fully-open case: NTRS PDFs downloadable today
-   (19880016048, 19890009861). Magnetic suspension = support-interference-free
-   drag, free vs fixed transition, liquid-crystal/oil-flow laminar extent.
-   Axisymmetric, zero incidence, NLF-designed → in scope. Weakness: integral
-   drag rather than precise front coordinates; less famous.
-3. **NASA/GE NLF nacelle flight experiment (1986–92)** — flight, full-scale,
-   laminar to 50% of nacelle length; open NTRS status report (19900003234).
-   Risk: GE1/GE2 contour tables not confirmed open; mild pylon 3D effects.
-   The applications/flight case if geometry checks out.
-4. (LSB-specific complement) **Hansen & Hoyt 1984** (ASME JFE 106:202) —
-   ocean-going body of revolution where the favorable forebody postpones
-   transition all the way to laminar separation. Squarely our physics;
-   paywalled, disturbance environment hard to map to Tu; geometry unconfirmed.
-   Ruled out as validation: Carmichael Dolphin (no transition measurement),
-   Lutz–Wagner / Parsons–Goodson (design studies, not experiments), sailplane
-   fuselages (plot-level data, CAD-complex shapes — motivation citations only).
-
-Suggested program if we go: spheroid α=0 across Re + the three-tunnel Tu axis
-(thin periodic wedge ≈ 2D cost), MSBS body free-vs-fixed drag, spheroid α=10°
-as the labeled out-of-scope crossflow contrast.
-
-## 2026-07-24 ~20:20 — fv1-bypass 2e5 inertness verdict (fSlow=1 pair, GPU 6)
-- bypass ON : CL 0.9398 / CD 0.01340 (cycle std 0.0079)
-- bypass OFF: CL 0.9448 / CD 0.01368 (cycle std 0.0066)
-⇒ The earlier "not inert" cycle at 2e5 WAS the slowdown-schedule artifact
-  (both runs flutter equally at raw pseudo-time). Remaining bypass footprint
-  at 2e5: ΔCL −0.5%, ΔCD −2.8 counts — small, comparable to mesh-family
-  spread, and physically expected (2e5 also has a bubble where the bypass
-  legitimately acts). Not exactly inert, but no longer disqualifying.
-  Guard-tightening (χ>1 ramp, q threshold) can shrink it further if needed.
-
-## 2026-07-24 ~20:45 — AVL CDind vs CDff: they DO match (in double precision)
-Rebuilt AVL 3.36 from source (gfortran, -fdefault-real-8, raised limits) at
-tools/avl/Avl/bin/avl and ran a lattice ladder on the Daedalus wing, α=4°:
-  12x40: CDind 0.009245 | CDff 0.009244   (e = 0.869)
-  16x56: CDind 0.009254 | CDff 0.009258
-  24x80: CDind 0.009256 | CDff 0.009267
-⇒ In double precision the near-field and Trefftz totals agree to FOUR DIGITS
-  at every lattice, both grid-converged to ~0.1%. The old cache's CDind
-  0.0121 (same 12x40 lattice!) and the 24x80 NaN were SINGLE-PRECISION
-  ROUNDOFF — near-field induced drag is a small difference of large terms
-  (LE-suction cancellation), hopeless in float32 at AR 38. Not a lattice-
-  resolution problem, and the corrected Trefftz reference is rock solid
-  (0.009244 identical across precision). Appendix D wording updated to this
-  sharper story. (32x120 case abandoned: DP factorization > 10 min, not
-  needed.)
-
-## 2026-07-24 ~20:45 — review pass 16 addressed
-All pass-15 fixes + the AVL correction + II.E restructure verified by the
-reviewer end-to-end (they reran the round-off scripts and read the mesh
-bounding boxes; blockage arithmetic confirmed against the campaign's own
-lift slope). Fixed this round: predecessor-deficit claim now per-α (12–17
-counts below at 4°, ~0 at 6°); signed-algebra paragraph got its antecedent
-and moved after the implementation note; "within 3.5 counts (≈1.5%)";
-Re_Ω/P_AI wordings tightened; round-off claim now "below 1e-10" (what the
-scripts print); repro README + verify docstring updated; tracked
-avl_compare.py de-bugged (CDff); NaN stated plainly.
-
-## 2026-07-24 ~21:05 — DLR spheroid: α coverage and TS-vs-crossflow sectors (verified)
-Answers to the two questions:
-- BETWEEN 0 and 10: YES. Natural-transition hot-film front maps exist at
-  α=5° (Re 1.5e6 AND 6.5e6), plus 10° (both Re), 15/20/24° (6.5e6), 30°
-  (1.5–8.5e6). Tunnel Tu=0.1–0.2%. Primary: DFVLR IB 22-84 A 33 (Kreplin,
-  Vollmers, Meier 1985); all fronts REPRODUCED in Krimmelbein's 2021 DLR
-  dissertation (OPEN PDF, elib.dlr.de) — digitization source solved.
-- AT α=10°: NOT all crossflow — it is sectored (φ from windward):
-  φ≲30° pure TS; 30–60° TS/CF interaction; 60–140/160° CF-dominated;
-  leeward tangled in 3D separation (Krimmelbein & Krumbein 2010; Boiko
-  2021; Stock 2006).
-- THE KEY FACT for us: at Re=1.5e6 the transition is PURE TS at ALL
-  incidences (per Krimmelbein) — a full α-ladder (5°→30°) of genuinely
-  3D, skewed-boundary-layer transition entirely within SA-AI's scope.
-  At α=5°, Re=6.5e6 the CF N-factors are sub-critical (<3.5) — front still
-  TS-driven, CF only shapes its curvature.
-- Bonus: α=5/10/15° at Re=6.5e6 is AIAA Transition Modeling Workshop
-  Case 3 (M=0.13, Tu=0.15%) — community-standard comparison, open case
-  definition.
-- Profile data at incidence exist (hot-wire surveys at α=10°/6.5e6 with
-  natural transition, DFVLR IB 222-84/A10; wall-shear VECTOR maps give
-  laminar wall skew everywhere).
-⇒ Proposed campaign (addresses the "downgrade" concern): the Re=1.5e6
-  incidence ladder — nonzero AoA, twisted 3D profiles, new territory for
-  the Ŝg/Re_Ω indicators, yet in-scope so misses are genuine model
-  findings; then α=5/10° at 6.5e6 (workshop case) where the measured front
-  kink at φ≈30° localizes the model's crossflow boundary on one plot.
-
-## 2026-07-24 ~21:20 — spheroid campaign cost estimate (matched L0/L1/L2 quality)
-Meshes (meridional x circumferential-half x normal): L0 ~0.4M, L1 ~2-3M,
-L2 ~12-15M nodes (vs Daedalus 0.7/5.1/36.7M — compact body, no 37:1 span).
-Wall spacing at Re_L=6.5e6 tightens to h0/L ~ 1-2e-6 (y+<0.5), +~20% normal
-nodes; 1.5e6 ladder milder (5e-6). GPU cost from measured Daedalus
-throughput (L2 24 GPU-h): spheroid L2 ~8-12 GPU-h/case, L1 1-2. Program =
-ladder at anchor (a10/1.5e6) + L2 at a5/a30 (1.5e6) + a5/a10 (6.5e6
-workshop) ≈ 60-80 GPU-h ≈ one Daedalus-L2-phase; a day on the 6-GPU pool.
-Schedule items: mesh generator adaptation (~a day; two pole closeouts,
-symmetry plane through incidence plane), digitizing Kreplin fronts from
-Krimmelbein's open dissertation, a30 leeward may be unsteady (ladder to
-10-15 deg safely steady).
-
-## 2026-07-24 ~21:50 — AVL CL question resolved: thin-airfoil truncation, with numbers
-How the sequence runs (confirmed): AVL solves the CAMBER-surface lattice at
-α → CLtot + Trefftz CDff + cl(y); XFOIL/FlexFoil then runs sections at
-MATCHED local cl for profile cd. So the reference CL is purely inviscid
-thin-camber — and your intuition is right that proper inviscid should sit
-HIGH. Station ledger at η=0.31, α=4° (α_eff≈3.5°), DAE-11 at Re 5e5:
-  AVL camber-only strip      cl = 1.011
-  thick-section INVISCID 2D  cl = 1.119   (+10.7%: thickness; slope 6.92/rad)
-  viscous 2D (N=13.6)        cl = 1.053   (−5.9%: decambering)
-  RANS strip (canon L2)      cl = 1.066   (+1.2% vs viscous 2D)
-⇒ The +5% wing offset = thickness (+11%) minus viscosity (−6%). AVL's
-  camber-only CL is the LOW outlier by construction; RANS agrees with
-  viscous 2D to ~1%. Lift-curve check: AVL slope 5.73/rad, α0L −5.77°;
-  RANS slope 5.84/rad, α0L −6.1° — offset, not slope anomaly. Paper text
-  updated with the four-number decomposition.
-  (Tools note: mfoil viscous diverges on DAE-11 @5e5; FlexFoil
-  faithful-viscous plateaus unconverged but repeatable — treated as ±1%.)
-
-## 2026-07-24 ~22:15 — AVL reference moved to MATCHED-LIFT trim (your suggestion)
-New chain (daedalus/avl_fixed_cl_reference.py): AVL trimmed with 'A C <CL>'
-to the canon RANS CL (finest completed level per α), CDff at trim + XFOIL
-profile drag at the trimmed strip loading:
-   α=4: target CL 1.0282 → trim α 4.53°, CD_ref 0.02125 (RANS 0.01997: 13 cts / 6.0% low)
-   α=5: target CL 1.1289 → trim 5.55°,  CD_ref 0.02315 (RANS 0.02243:  7 cts / 3.1% low)
-   α=6: target CL 1.2317 (L1) → 6.59°,  CD_ref 0.02539 (RANS L1 0.02479: 6 cts low)
-The matched-α "lands on the reference" was flattered: the lattice carries 5%
-less lift → ~10% less induced drag. Matched-lift is the honest comparison:
-RANS 3–6% below strip theory, deficit shrinking with incidence; the
-reference's profile term barely moves with trim (0.0110→0.0108), so the
-growth is all induced. Predecessor sat 15–26 counts below this reference.
-Paper (ledger paragraph, fig caption, tab:daetotals, Appendix D) updated;
-the a6 reference refreshes when the L2 run lands (script picks up the
-finest completed case automatically).
-
-## 2026-07-24 ~22:40 — spheroid mesher built & validated (agent)
-spheroid/ogrid_spheroid.py: 6:1 prolate spheroid half-model O-grid reusing
-the Daedalus machinery (growth solver, pole treatment as prisms instead of
-the wing's slit-merge, Gmsh->CGNS via the flexfoil/rans pipeline).
-Symmetry plane y=0 (incidence in x-z), far field = sphere R=30L.
-L0 generated: 372,771 nodes, min Jacobian positive, wall/farfield/symmetry
-areas within 0.06% of analytic, volume closure 0.12%. L1: 2,204,111 nodes,
-areas within 0.02%. L2 projects 12.63M (not generated yet). Wall-spacing
-ladder: --h0 5e-6 halving per level (Daedalus convention), --h0-fixed and
-1.5e-6 flag for the Re=6.5e6 cases.
-Commands: python3 spheroid/ogrid_spheroid.py L0|L1|L2 [--h0 ...] [--summary]
-Next: L2 generation + a Flow360 case template (BCs, Mach 0.13/0.1, chi_inf
-from Tu=0.15% via Mack), then the alpha=10/Re=1.5e6 anchor ladder.
-
-## 2026-07-24 ~22:40 — plotting changes in flight
-(1) Four Cf-distribution figures (nlf/eppler low/high-alpha) widened
-    5->5.76 in/column, tex 0.86->0.99\textwidth — same rendered height,
-    near-full page width. Regenerating.
-(2) max(Shat*g) row now log scale, ylim 3e-3..1.3 (same range as the
-    onset-threshold figure); favorable/suppressed values drop below axis.
-(3) e^N envelopes now truncated at their transition point (the
-    post-transition reset to N=0 was an artifact of the reference dump,
-    not an envelope).
-
-## 2026-07-24 ~23:00 — who is closer to truth inside the LSB: e^N or SA-AI?
-Answer: e^N, on both halves — and SA-AI's reattachment agreement is a
-compensated error.
-- SA-AI over-amplifies inside the bubble via (1) LEDGER SPEED: nuHat peak
-  advects at ~half the physical packet (critical-layer) speed → ~2x e-folds
-  per unit length (intrinsic to local transport; Appendix-D frozen-profile
-  measurement), and (2) RATE CEILING: Shat*g saturates → a_max = detached-
-  tanh KH eigenvalue, while a shallow-bubble layer is still wall-damped
-  (resolved band 0.9–1.9x Drela–Giles). The in-bubble onset arm fixes only
-  the just-separated zone.
-- e^N + instant breakdown is closer to DNS truth (linear growth matches
-  LST; spot/roll breakdown within a few delta).
-- The agreement: too-fast climb + too-slow commit ≈ true climb + instant
-  commit. Compensation is Re-dependent: climb excess is a fixed FACTOR,
-  handover lag a fixed E-FOLD COUNT whose length grows as Re drops → the
-  cancellation breaks at 1e5/6e4 = the bursting-boundary displacement of
-  Sec. VI. fv1-bypass corroborates: fixing only the commit side closed the
-  1e5 bubble but CL 0.93 vs exp 0.873 (transition effectively early once
-  the climb excess is no longer absorbed).
-- Implication: truthful fix moves BOTH dials (rate down toward LST in the
-  bubble + faster commitment); either alone breaks the pairing. Sharper
-  framing of the "model the transition zone" future-work item.
-
-## 2026-07-24 ~21:15 — LSB over-amplification mechanism FOUND: closed-streamline re-seeding
-Your two objections (Re-trend; calibration already includes advection) both
-hold and they corner the mechanism. Measured on the Eppler strL2 a5 sweep,
-median chi in the reversed "dead air" (first third of bubble) vs the max
-incoming-envelope chi just upstream of separation:
-  60k: 16x ABOVE | 100k: 29x ABOVE | 300k: 0.03x (quiet) | 460k: 0.01x
-The flip sits exactly at the bursting boundary. Mechanism: in the elliptic
-solution the bubble is a closed cell — nuHat diffuses across the layer into
-the reversed stream, convects BACK upstream, and re-enters the amplifying
-band elevated (spiral path, recirculating dwell). Absent from the parabolic
-frozen-profile calibration BY CONSTRUCTION (one-pass march). Cross-layer
-diffusion vs convection strengthens as Re drops -> your observed trend.
-- Coder question: he never solved local advection speed — the amplifying
-  band is placed by profile geometry (Shat*g>0), production peaks low in
-  the layer (nuHat peak 2.4θ @ 0.22Ue vs packet 3.5θ @ 0.45Ue); the
-  Blasius N=1 anchor absorbs the family-stable speed ratio for attached
-  profiles. Absorbed bias, not a solution; useless against re-seeding
-  (not a profile property).
-- Nuance: real bubbles DO feed back (absolute instability at ~15-20%
-  reversal, Rist/Maucher) — the model's reservoir is an unconditional,
-  diffusion-driven caricature that switches on too early in Re.
-- Rig note: single-sweep FLARE marching can't reproduce this; multi-sweep
-  windward (Davis-Carter/ALESEP style) can — rig #2 design should keep
-  the multi-sweep reversed-layer convection for exactly this reason.
-
-## 2026-07-24 ~21:45 — re-seeding mechanism written into the paper; rig #2 cancelled
-- Dead-air production check (both Re): onset-gated to ~zero (median rate
-  <1e-9 a_max) → the low-Re reservoir is ADVECTION-DIFFUSION fed, exactly
-  the contour reading (cold front = bottom-led chi at 60k/100k; warm front
-  = top-led at 300k/460k, App C sheets).
-- New passage in Sec. epphandover: the two opposite-signed low-Re defects
-  (closed-cell re-seeding vs starved handover + SA anemia chi_eq~0.08
-  Re_tau), the measured 16x/29x vs 0.03x/0.01x flip at the bursting
-  boundary, the cold/warm-front contour signature, why no profile-based
-  calibration can see it (one-way march), and the honest-caution paragraph:
-  at 2-4.6e5 the model is genuine to the physics; at Re<~1e5 correct
-  bubbles/gross aero are the sum of two canceling errors, not resolved
-  transition physics. Conclusion updated to match.
-- repro/cfd/measure_lsb_reseeding.py committed (surplus + production
-  tables). Rig #2 cancelled (memory updated): a parabolic march is
-  structurally blind to the mechanism that matters.
-
-## 2026-07-24 ~22:05 — the fortuitous cancellation is now COMPLETE (both halves)
-Why re-seeding is severe at low Re and absent at high Re — measured:
-the REAR third of the reversed region is loaded at EVERY Re (19x the
-incoming envelope at 300k, 2.9x at 460k) — pickup is universal. What
-discriminates is CONDUCTION TO THE FRONT, with three controls, all
-favoring low Re:
-1. The hot-over-reversed OVERLAP is created by the starved handover
-   itself: at high Re closure follows transition within the short
-   handover, ending the conveyor as soon as the layer gets hot; the
-   un-closed low-Re bubble runs its conveyor under an amplifying layer
-   for half a chord. The two defects are ONE CAUSAL CHAIN (slow handover
-   -> no closure -> long fetch -> reservoir -> re-seeded front) — which
-   is why the flip is sharp at the bursting boundary, not gradual.
-2. The only sink is the destruction floor ∝ (nuHat/d)²: thin high-Re
-   cell returns its leak at small d (floor eats it in transit); thick
-   low-Re cell is ~lossless.
-3. Loading self-accelerates past chi~1 (nuHat self-diffusion takes over
-   from the reduced molecular trickle) — crossed at 60k/100k (maxima
-   5–18), never approached at high Re (chi~1e-3).
-Paper (Sec. epphandover) and measure_lsb_reseeding.py updated with the
-rear-third evidence and the three controls.
-
-============================================================
-## 2026-07-24 ~22:15 — DETAILED RESTATEMENT of tonight's LSB physics thread
-(The earlier entries above compressed these into digests; full prose below,
-as delivered in chat, actions omitted.)
-
-### 1. Who is closer to truth inside the LSB: e^N or SA-AI?
-e^N is closer on both halves, and SA-AI's reattachment agreement is a
-compensated error whose cancellation we have already watched fail at low
-Re.
-
-Why SA-AI over-amplifies inside the bubble — the original two-mechanism
-answer (later refined, see §3 below):
-(1) Ledger speed: the model banks e-folds along particle paths — dN/dx =
-a·ω/u_conv, where u_conv is the speed of the fluid carrying ν̃. The
-transported ν̃ peak sits low in the separated shear layer, in slow (even
-reversed) fluid at roughly half the physical packet speed (the real
-instability travels at the critical-layer phase speed, ~0.4–0.5 U_e).
-Half the convection speed = twice the e-folds per unit length. This is
-intrinsic to any local one-equation transport: we cannot advect N at the
-phase speed without an auxiliary field.
-(2) Rate ceiling: once the layer lifts, Ŝg saturates and the rate rides
-at a_max = 0.19 — the eigenvalue of a fully detached tanh layer. A
-shallow-bubble shear layer a few θ off the wall is still partially
-wall-damped and grows slower. The final kernel's in-bubble onset arm
-fixes the just-separated zone (the predecessor's 1.3–1.8× excess), but
-past onset the resolved band still runs 0.9–1.9× the Drela–Giles
-envelope — biased high.
-
-Why reattachment agrees anyway: the model's other economy runs in the
-opposite direction. e^N declares transition at N_crit and the physical
-breakdown is genuinely fast (spot/roll saturation within a few δ —
-Alam–Sandham-type DNS supports the reattaches-in-a-few-BL-thicknesses
-picture), while SA-AI must climb χ = 1 → c_v1 → ~30 and then let eddy
-viscosity diffuse to closing strength. So: too-fast climb + too-slow
-commit ≈ true climb + instant commit. The calibration effectively
-accepted this cancellation — it is why the anchors work.
-
-The tell that it is compensation, not correctness: the two errors scale
-differently with Reynolds number. The climb excess is a fixed FACTOR
-(~1.5–2× in e-folds per length), but the handover lag is a fixed E-FOLD
-COUNT whose physical length grows as Re drops. At 4.6e5 both are small
-against the bubble; at 1e5–6e4 the handover lag outgrows the climb
-surplus, the cancellation breaks, and the bubble starves — that IS the
-bursting-boundary displacement of Sec. VI. The fv1-bypass experiment is
-the complementary demonstration: fixing only the commit side (instant
-eddy viscosity) while keeping the over-amplification closed the 1e5
-bubble but landed CL ≈ 0.93 vs the measured 0.873 — transition now
-effectively early, because the climb excess is no longer being absorbed
-by the handover lag.
-
-Implication: a truthful model has to move both dials together — rate
-down toward the LST envelope inside the bubble AND commitment faster
-(spot-closure on σ_t, or the fv1-bypass with proper guards). Either
-alone breaks the agreement the current pairing buys.
-
-### 2. Your Re-trend objection and the calibration objection — how they
-### cornered the real mechanism
-Your observation (at high Re SA-AI does NOT over-amplify vs e^N; the
-discrepancy grows as Re falls) discriminates between the two mechanisms
-above and acquits the rate ceiling: if a_max-on-saturated-Ŝg were the
-culprit, the excess factor would be Re-independent and high-Re bubbles
-would over-amplify just as visibly.
-
-Your second objection then killed the pure advection-speed story too:
-the calibration instrument is the same transport equation marched with
-its own advection on frozen profiles, reversed branch included, and it
-shows only 0.9–1.9× — so anything the march captures is already priced
-into the anchors. The mechanism had to be something a parabolic,
-one-pass march cannot represent.
-
-That corner leaves closed-streamline re-seeding: in the elliptic
-solution the bubble is a closed cell — ν̃ produced in the shear layer
-diffuses across into the reversed stream, is carried BACK upstream to
-the separation region, and re-enters the amplifying band already
-elevated. The envelope at a station is then not ∫ a·ω/u dx from the
-attachment of the layer, but amplification along a spiral path with
-recirculating dwell.
-
-Measured on the Eppler strL2 α=5 sweep (median χ in the reversed dead
-air, first third of bubble, vs max incoming-envelope χ just upstream of
-separation): 60k: 16× ABOVE; 100k: 29× ABOVE; 300k: 0.03× (quiet);
-460k: 0.01× (quiet). The flip sits exactly at the bursting boundary.
-At 300k/460k the recirculation is QUIETER than the arriving envelope —
-one-pass behavior, exactly what the frozen-profile calibration assumes.
-
-Production check (sphere indicators + onset gate evaluated on the
-slices): the kernel's effective rate in the dead air is onset-gated to
-essentially zero at every swept Re (median < 1e-9 a_max; Ŝg>0 at about
-half the dead-air nodes but Re_Ω sits under the threshold). The
-reservoir is purely advection–diffusion fed — your contour reading
-("pretty sure it's not amplification driven") verified.
-
-Physical nuance: real bubbles do develop feedback — absolute/global
-instability when peak reversal exceeds roughly 15–20% of U_e
-(Rist/Maucher) — so the model's recirculating reservoir is a caricature
-of something real. But the model's version is unconditional
-diffusion-driven leakage, not a criterion-gated instability, and it
-switches on far too early on the Re axis.
-
-### 3. How did Coder solve the local advection speed? (He didn't.)
-He never placed the amplifying region at the wavepacket. The kernel puts
-production wherever Ŝg > 0 — a profile-geometry statement (the Rayleigh
-coordinate between neutral-circle crossings) — and production ∝ ω peaks
-low in the layer, well below the critical layer (the Appendix-D ledger
-measured the ν̃ peak at 2.4θ moving at 0.22 U_e vs the physical packet
-at 3.5θ, 0.45 U_e). What made this survivable: the calibration is the
-same transport equation marched on frozen profiles, and for the attached
-Falkner–Skan family the band's convection speed is a roughly
-family-stable fraction of U_e — so the single Blasius N=1 anchor (the k
-of the onset threshold) silently absorbs the speed ratio along with the
-laminar drain. It is an absorbed bias, not a solved problem: it holds
-while the speed ratio is universal (attached family, tracked within
-±12%), degrades on the reversed branch (0.9–1.9×, checked but never
-re-anchored), and offers no defense at all against re-seeding — which
-is not a profile property, so no local rate calibration can absorb it.
-
-### 4. How did Coder get his model to "match LSB"? (He didn't either.)
-He matched the two things that are cheap to match — transition FRONTS
-(his χ=1 contour sat the same ~0.1c ahead of the strips as ours) and
-integrated FORCES (few counts, 0.02–0.03c of front) — while the bubble
-LENGTHS were wrong the whole time (3–4× too short on the wing:
-0.04–0.06c vs the strips' 0.2c, the compressed-bubble systematic the old
-section carried as an unexplained disclosure). Front + forces are
-exactly the observables that tolerate large internal-structure errors,
-because they are set by the SUM of climb and commit, not by either one.
-
-His sum was the same cancellation in stronger doses: his ungated rate
-ran the free-shear ceiling from the separation point on — 1.3–1.8× the
-correlation immediately beyond separation — an even faster climb than
-ours, against the same slow σ_t handover. Faster climb + same lag = the
-handover costs less DISTANCE → bubbles too short, fronts right-ish,
-forces fine at moderate Re. The final kernel's in-bubble arm slowed the
-climb toward the correlation, which is precisely what lengthened the
-wing bubble onto the strips — and simultaneously exposed the low-Re
-starvation, because with a truthful climb there is nothing left to hide
-the lag behind.
-
-His ν̃ recirculates identically (re-seeding is a property of the
-transport topology plus the elliptic solver, not of the kernel) and SA's
-anemia (χ_eq ≈ 0.08 Re_τ) is kernel-independent. Neither ever showed in
-his record because his validation set lived where both are off: wing
-sections at Re ≈ 5e5 and Eppler at 2e5 — and the re-seeding flip sits
-between 1e5 and 3e5. He never ran 1e5 or 6e4. Did anyone investigate
-whether the agreement was fortuitous? No — the audit trail is: the
-compressed bubble was flagged as a systematic in the predecessor-era
-draft; the frozen-profile ledger (this thread) decomposed the excess
-into 1.45× temporal rate × 2.05× ledger speed; the sustainment floor and
-re-seeding measurements are from this week. The cancellation was never
-identified as such before.
-
-### 5. The completed mechanism: why re-seeding is Re-selective
-The missing half (why high-Re bubbles see no recirculation effect) has a
-clean answer, and the punchline is that re-seeding is not an independent
-defect — it is a corollary of the handover defect.
-
-Decisive measurement: the REAR third of the reversed region is loaded at
-EVERY Reynolds number — 19.5× the incoming envelope at 300k, 2.9× at
-460k — so pickup is universal. What discriminates the regimes is whether
-the load CONDUCTS TO THE FRONT. Three controls, all favoring low Re:
-
-(1) The hot-over-reversed overlap that feeds the conveyor is created by
-the starved handover itself. Re-seeding needs a reversed conveyor below
-and a hot (high-χ) layer above it simultaneously. At high Re, transition
-sits near the bubble's end and closure follows within the (short)
-handover length — the reversed flow ends almost as soon as the layer
-gets hot; the overlap is only the handover length itself, a sliver. At
-low Re the starved handover prevents closure, so the reversed conveyor
-persists under a layer that keeps amplifying — half a chord of
-continuously-loading fetch. The "two canceling errors" are therefore ONE
-CAUSAL CHAIN: slow handover → no closure → long hot-over-reversed
-overlap → reservoir loads → front re-seeds. This is also why the flip in
-the measurement (and in the contour character: cold front, bottom-led χ
-at 60k/100k; warm front, top-led at 300k+) is sharp at the bursting
-boundary rather than a smooth trend — the overlap inherits the fold from
-the closure failure.
-
-(2) The reservoir's only sink is the destruction floor, which goes as
-(ν̃/d)². The high-Re bubble is thin — the reversed region lives at small
-wall distance, and any ν̃ that leaks down is eaten during the return
-transit. The low-Re bubble is thick: d is an order larger, the 1/d²
-floor two orders weaker, and the conveyor runs essentially lossless.
-
-(3) The pickup has a nonlinear switch. Cross-layer loading per unit
-fetch scales as D·t/θ² with D ∝ ν(c_ν,ai/6 + χ): while the reservoir
-sits at χ ≪ 1 its diffusivity is the reduced molecular trickle, but once
-any of it crosses χ ~ 1 the ν̃ SELF-diffusion switches on and the
-reservoir spreads itself — crossed by the 60k/100k reservoirs (medians
-0.03–0.08, maxima 5–18), never approached at 300k/460k (χ ~ 1e-3).
-
-All of this is now in Sec. epphandover (with the honest-caution
-paragraph: genuine physics at 2–4.6e5; below ~1e5 correct bubbles and
-gross aerodynamics are the sum of canceling errors, not resolved
-transition physics), in the Conclusion, and reproducible via
-repro/cfd/measure_lsb_reseeding.py.
-============================================================
-
-## 2026-07-24 ~22:30 — mechanism trimmed to (1) in the paper, per your call
-You judged that of the three controls only (1) — the hot-over-reversed
-overlap created by the starved handover — is strong enough for the paper;
-(2) and (3) can be argued the other way or are neutral, and (3) is part
-of (1). On reflection I agree, and (2) has a specific problem beyond
-arguability: it is in tension with the paper's own earlier claim that the
-destruction floor is inert at the disturbance's scale (f_w ≈ 0.7 r with
-r ≪ 1 in the laminar range — the same smallness that makes the floor
-harmless under the amplifying band makes it a weak sink in the reversed
-cell), and its transit-time counterargument (the thin high-Re cell's
-return leg is also SHORTER, so exposure to the floor shrinks along with
-d) leaves the net effect ambiguous. (3) only fires because the reservoir
-is already loaded — the χ~1 self-diffusion crossing happens BECAUSE the
-fetch is long — so it is an amplifier inside mechanism (1), not an
-independent discriminator.
-
-The paper passage now carries only the causal-chain mechanism: pickup is
-universal (rear-third 19×/2.9× at 300k/460k), conduction to the front is
-controlled by the overlap length, the overlap is created by the starved
-handover (slow handover → no closure → long hot-over-reversed fetch →
-loaded reservoir → re-seeded front), the self-diffusion crossing folded
-in as a parenthetical amplifier, and the sharp flip at the bursting
-boundary explained as the overlap inheriting the fold from the closure
-failure. The destruction-floor argument is dropped from paper and
-measurement-script docstring both.
-
-## 2026-07-24 ~22:45 — Daedalus anatomy recast as the Sec-VI compensation
-Per your instruction, the Daedalus chi-map paragraph no longer dresses the
-mid-bubble front as "the expected convention offset" (the 11.7-vs-13.6
-e-fold arithmetic is dropped). It now says plainly what the maps show:
-the bubble's EXTENT matches the strips station by station, but the
-model's transition front (chi=1) sits near mid-bubble, ~0.09c ahead of
-the strips' N_crit contour, which sits just ahead of reattachment — the
-compensation of Sec. epphandover seen in three dimensions. The model
-books its e-folds early and spends the remainder of the bubble bringing
-eddy viscosity to closing strength; the e^N reference climbs to the
-bubble's rear and commits at once. At this chord Reynolds number (5e5)
-both halves of the compensation are small enough that the sum —
-separation to reattachment — lands on the reference. (The predecessor
-paragraph that follows is untouched: same fronts, bubble 3-4x short =
-same compensation at a stronger climb.)
-
-## 2026-07-24 ~22:50 — Sec. II.F retitled
-"Contact with Spalart's calibration" -> "Preservation of the
-Spalart–Allmaras calibration" — matches what the subsection actually
-proves (each calibration stage preserved exactly) and reads as the
-respectful claim it is. No residual "contact" phrasing in the body.
-
-## 2026-07-24 ~22:55 — back-reaction paragraph moved II.F -> II.E
-The destruction-floor back-reaction quantification (ratio < 1e-3 to the
-crossing at the N_crit=9 seed; instrument re-march with the term: anchors
-<1%, favorable mean -2.6% mostly past the crossing; coupled bounds:
-flat-plate onset +0.8% at lowest Tu, airfoil fronts/forces under line
-widths, peak |dCf| 3e-5) now sits in II.E directly after the paragraph
-that introduces the tie and claims the floor's inertness — where the
-claim is made, not two subsections later. Opening adapted ("The floor's
-inertness deserves its numbers, since it is the tie's one back-reaction
-on the laminar branch") to avoid repeating the claim sentence; the
-blend paragraph's pointer changed from "(quantified in Sec. II.F)" to
-"(quantified below)". II.F now runs intro -> high-Re stages -> inner
-layer/tie derivation -> linearity/discrete exactness -> Appendix E
-pointer, purely about preservation.
-
-## 2026-07-24 ~23:20 — review pass 18 addressed (commit cbec5f7)
-Pass 18 verified the entire re-seeding/cancellation analysis by rerunning
-the measurement script (every number reproduced digit-for-digit), added
-its own 2e5 measurement (front 0.09x, rear 58x, rate 0 — flip lands
-square on the bursting boundary), rendered the App C sheets to confirm
-the cold-front/warm-front signature is visible as claimed, and confirmed
-the plotting round (canvas rescale is height-preserving; e^N truncation
-works). Its four majors were all real:
-1. My cancellation clause said the re-seeded front lands "roughly where
-   the physical envelope would" — falsified by our own data: the chi=1
-   front is 0.16c AHEAD of the envelope's equivalent station (0.41 vs
-   0.57c at 1e5; 0.44 vs 0.60c at 6e4, vs mfoil at N=ln(1/chi_inf)).
-   And the cancellation logic NEEDS the front early (a head start the
-   over-long handover spends; if the front were right the two errors
-   would add on the reattachment side). Rewritten to the measured
-   statement.
-2. The "below 1e-9 a_max" production bound was exceeded ~40x by the 1e5
-   median (7.3e-9 absolute = 3.9e-8 a_max). Bound now 1e-7 a_max +
-   95th-percentile framing; conclusion (advection-diffusion fed)
-   unaffected.
-3. "Can still predict the bubble" contradicted "never closes" two pages
-   earlier. Scoped to what compensation delivers: separation + front +
-   lift within 2–12% family-dependently.
-4. The Daedalus front offset had been re-badged as "the compensation of
-   Sec VI seen in 3D" — but at wing Re (5e5) the re-seeding half is
-   measured OFF (0.01x). Restored the seed-convention arithmetic
-   (chi=1 = 11.7 e-folds vs N_crit 13.6, ~2 e-folds per 0.09c) as the
-   reason the front is early there, keeping only the commit half
-   (handover spending the rest of the bubble) as shared with Sec VI.
-Minors: 200k added to the committed script table; monotonicity claim
-dropped (29x at 1e5 > 16x at 6e4 — both burst, geometry differs);
-chi_eq now 0.09 Re_tau (the committed script's number) with Re_tau
-defined; Re_theta 220–330 scoped to 6e4 with "would equilibrate";
-median-vs-peak statistic convention stated in text; house-style times;
-README rows for both new scripts; 28 side-effect figure regenerations +
-lsb-zoom exploration committed. Reviewer also suggested (uncounted) an
-abstract amendment to mention the second defect — left for your call.
-
-## 2026-07-24 ~23:55 — annotated.pdf round 2 (Sec. III + implementation), all 10 items
-1-6 (seed paragraph): the "one empirical closure" sentence, the "used
-unchanged / plays the role of the e^N envelope" clause, the "Adopting
-Mack's map wholesale is an approximation..." sentence, and the "every
-airfoil computation uses N_crit=9" sentence (already said in the airfoil
-sections) all deleted; the turbulence intensity is now introduced in
-words before Eq. (18) uses the Tu symbol; the handover smear is now
-"chi = 1 -> O(c_v1), several e-folds" (was "two").
-7 (implementation note): the discretization paragraph (least-squares
-double-gradient odd-even modes, viscous-flux Laplacian, ring average)
-is REPLACED by a short vector-calculus statement: X=|u| (wall-relative,
-Galilean invariant), Y=|omega|d, Z=(1/2)d^2 (lap u . u_hat) with the
-divergence-free identity lap u = -curl omega, sign(u) u'' on a parallel
-layer, Re_Omega = d^2|omega|/nu; the analytic-Jacobian sentence kept.
-The signed-algebra paragraph's antecedent updated accordingly.
-8: the "kernel is therefore exact on the sign-consistent region..."
-closing sentence deleted (paragraph now ends at the antisymmetric-layer
-zero-amplitude remark).
-9 (THE SUBSTANTIVE ONE — Re_theta by integration, "don't do this
-anymore"): onset_vs_ags() in regen_flatplate_flow360.py now interpolates
-the INTEGRATED edge-normalized Re_theta (the machinery cf_and_retheta
-already had, which even documents the freestream-overshoot trap) at the
-crossings instead of converting via 0.664 sqrt(Re_x). New honest
-numbers, quoted in Sec. III + fig caption + Conclusion:
-  chi=1 crossing: +6.1% (Tu 0.04), -3.3% (0.08), -10.5/-13.7/-11.2%
-  (0.16/0.30/0.60) => "brackets AGS within 14%" (was ±10%). Note the
-  +6% at the lowest Tu now agrees BETTER with the 7% retained-drain
-  footprint than the old +10% did.
-  c_v1 crossing: integrated Re_theta ≈ 2500 nearly uniform across the
-  sweep = 2.2-3.5x AGS — the layer is already MID-TRANSITION there; the
-  old laminar-conversion reading (+14-36%) badly understated how far
-  the layer had left the laminar branch. The text now says the c_v1
-  reading measures transitional growth, not onset placement.
-  (My first standalone attempt hit the exact trap the regen script
-  documents: integrating f(1-f) over the 50-delta-tall column picks up
-  percent-level freestream nonuniformity — delta* survives clipping but
-  theta is poisoned, H came out 10. Deleted the standalone; the regen
-  extension is the single source of truth, run via ONSET_DIAG=1.)
-10: Fig. 5 (flat-plate batch) moved to right after the Sec. III opening
-paragraph.
-
-## 2026-07-25 ~00:15 — annotated.pdf round 3: floor back-reaction quantified on the march
-Four items, all on the back-reaction paragraph (now in II.E):
-- The coupled-computation bounds sentence is REMOVED per instruction and
-  replaced by the prescribed march quantification
-  (repro/analytic/floor_backreaction_table.py): D_floor/P_AI at the nuHat
-  peak of the frozen-profile marches, for beta = +0.10 / Blasius /
-  separation limit (-0.1988) and N_crit = 7/9/11:
-    chi=0.1 : 3e-6 – 1.2e-5
-    chi=1   : (2–8)e-4  — below 1e-3 for EVERY wedge and seed
-    chi=c_v1: (0.9–2.3)e-2, and at most 1.4% of the sigma_P-weighted SA
-              production it is tied against (largest at the separation
-              limit)
-- This also answers "why specific to airfoil seed?": it isn't — the
-  ratio at fixed chi depends on the seed only through Re_Omega at the
-  crossing (lower N_crit -> smaller Re_Omega -> larger ratio), and the
-  bound holds across N_crit 7–11 generally; the airfoil-seed phrasing is
-  gone.
-- "has already handed production over" -> "starts handing production
-  over" (at chi=1 the handover begins, not completes).
-- The instrument re-march sentence (anchors <1%, favorable mean -2.6%)
-  stays — it measures a different thing (station shifts with the term
-  included) and now follows the ratio table.
-
-## 2026-07-25 ~00:25 — elegant vector-calculus form of Shat*g in 3D
-The kernel only ever needs EVEN pairwise products of the signed
-indicators, and each has a coordinate-free realization (n_hat = grad d,
-u wall-relative):
-  Shat*g = (Y^2 - XY - YZ) / (sqrt(X^2+Y^2) R)
-  Y^2 = d^2 (omega . omega)
-  XY  = d   u . (omega x n_hat)         [omega x n_hat IS the signed
-                                          shear direction; = u' x_hat on
-                                          a parallel layer]
-  YZ  = (1/2) d^3 (lap u) . (omega x n_hat)
-  X^2 = |u|^2 ; Z^2 = (1/4) d^4 ((lap u).u_hat)^2   [norms, even anyway]
-Consequences:
-1. The mixed-sign-layer caveat dissolves: every term is even under the
-   global mirror (u,omega)->(-u,-omega), so the antipodal identification
-   is realized EXACTLY everywhere, including between the backflow
-   extremum and the velocity zero where the magnitude triple deviates.
-   The paper's half-page sign-algebra discussion would collapse to the
-   table above.
-2. Same ingredients (omega, lap u = -curl omega, grad d), no new
-   operators or cost — a re-wiring, not new machinery.
-3. NOT just elegance: on skewed 3D layers (shear direction rotating with
-   height) the current form pairs |omega| with the flow direction
-   blindly, while u.(omega x n_hat) picks the shear component aligned
-   with the local velocity. The two coincide on parallel layers (all 2D
-   validation + the high-AR wing) and differ exactly on twisted
-   profiles — the spheroid-at-incidence territory. The spheroid campaign
-   could double as the discriminating test between the two 3D closures.
-Caution: bit-identical in 2D, different in 3D => a model revision, not a
-refactor. Proposal: implement behind AI_INVARIANT_KERNEL alongside the
-current form, verify 2D bit-identity, and run both on the spheroid
-alpha-ladder.
-
-## 2026-07-25 ~00:40 — Daedalus ogrid L2 a6 landed; section refreshed (all-L2 structured set)
-case_ogrid_L2_saai_a6 finished (rc=0, 22:00): CL 1.2279 / CD 0.02509.
-- Matched-lift reference refreshed (target now the L2 lift): trim 6.555°,
-  CD_ref 0.02530 → RANS 2.1 counts (0.8%) BELOW. Full L2 drag ladder vs
-  strip theory: −6.0% / −3.1% / −0.8% at α=4/5/6 — deficit shrinking with
-  incidence, now measured on the finest grids at all three points.
-- Bubble at η=0.31, α=6°: RANS 0.458–0.630 vs strips 0.458–0.631 —
-  separation exact, reattachment within 0.001c. The "separation to 0.02c,
-  reattachment under 0.01c" statement now holds at every incidence.
-- Front: 0.522 vs strips' N_crit 0.617 (~0.095c ahead — same convention
-  offset as a4/a5).
-- Paper updated: nine solutions (pending set = three unstructured L2);
-  ledger drag numbers; tab:daetotals a6-L2 + refreshed AVL row; bubble
-  sentence extended to 6°; the a6 surface figure re-added (str L2 + e^N
-  rows) with the Figs. 4–6 range refs restored; polar figure regenerated
-  with the full structured-L2 line.
-Campaign remainder: cavity L2 a4 started 22:00 on all 8 GPUs (then a5,
-a6) — the unstructured-L2 rows and figure panels will slot in the same
-way when they land (generators are availability-driven).
-
-## 2026-07-25 ~01:00 — invariant kernel implemented (2D-verify-first plan)
-Per your revised plan (verify both forms agree on 2D — one NLF + one
-Eppler — then run only the verified invariant form on the spheroid):
-- Solver: __aiRateInvariant added to SAAiTransition.h — the triple is
-  built through the shear direction s_hat = (omega x n_out)/|omega x
-  n_out|: X = u.s_hat, Y = d|omega x n_out|, Z = (1/2)d^2 (lap u).s_hat,
-  then the shared __aiRateFromXYZ tail (Shat, g, P, clip, onset — now
-  factored out and used by both forms). Re_Omega keeps full |omega|.
-  Where tangential vorticity vanishes, Y->0 and the rate extinguishes
-  through Shat->0, as in the standard form.
-- Wiring: ai_invariantKernel constant, env AI_INVARIANT_KERNEL,
-  constants-echo line, rateOverride parameter threaded through
-  __aiSaProduction (Jacobian property unchanged: rate independent of
-  nuHat); the debug rawRate output uses the override when active.
-- Clean rebuild running (BUILD_CONSISTENCY SOP; headers changed).
-- Verification runner staged: paper/repro/cfd/run_invariant_kernel_verify.py
-  — NLF a4 Re4M strL2 (attached: expect agreement to solver noise; the
-  two forms are algebraically identical on parallel layers) + Eppler a5
-  Re2e5 strL2 (bubble: differences confined to the mixed-sign
-  recirculation layer, expected within line widths). Cold starts, canon
-  env + flag. GPU-gated: all 8 GPUs are on cavity-L2 until ~02:00.
-
-## 2026-07-25 ~01:45 — annotated.pdf round 4 (NLF section), all 13 items
-The section is restructured around the transition-location figure:
-- OPENING GUTTED per the two big strikeouts: the pins-most-fronts claim,
-  the lambda_p definition and all per-alpha front narration, the
-  what-the-case-tests paragraph, and the finite-difference pinned/free
-  quantification (dx_tr/dN discussion) are deleted. The section now
-  opens with one sentence + fig:nlfaft MOVED TO THE FRONT, regenerated
-  to show ALL SIX GRIDS (L0-L2 by marker size, both families) — the
-  coarse-grid scatter is now visible honestly (e.g. the cavity-L0
-  lower-front outliers). The lambda_p nomenclature row is dropped too
-  (no remaining use).
-- AFT ADDED TO THE POLAR (Fig. 7): the digitized dissertation data
-  already contained the AFT polar curves (nominal 10.07 dashed,
-  recalibrated 7.18 solid, gray) — overlaid with legend entries.
-- EPISTEMIC REWRITE of the AFT comparison ending (your note: can't argue
-  "we are better"; may be coincidence/compensation): the text now reads
-  "We do not read the untuned agreement as a ranking, because it may be
-  partly compensatory: the model's handover is least decisive at low
-  Re_theta (Sec. VI), the c_v1-based N_crit convention was anchored on
-  flat-plate transition at lower Re_theta than these fronts, and at the
-  NLF's higher-Re_theta fronts the same convention is effectively
-  sharper — while AFT's recalibrated freestream may equally be read as
-  absorbing the tunnel's true disturbance level rather than as a
-  per-case tuning. The two closures place their empiricism differently;
-  this case cannot separate them." ("fixed once for the whole paper" and
-  "without a per-case constant to choose" deleted.)
-- Also deleted per strikeouts: the families-agree-in-drag block
-  (0.4e-3/1.1e-3 counts + L1/L0 scatter recap), the signed/unsigned Cf
-  clause + the Throughout-conventions block + the surfaces-walk detail +
-  the across-figs convergence recap (all restated in the captions), the
-  "three-dimensional" before stall, mfoil's Newton-globalization clause
-  ("FlexFoil and XFOIL both converge" per your note), "least-squares"
-  (now "computed gradients"), and "triangulates" ->
-  "Delaunay-triangulates".
-Build clean.
-
-## 2026-07-25 ~02:00 — review pass 20 addressed
-Pass 20 audited the NLF restructure deletion-by-deletion (and reran both
-figure generators — content-identical). Real catches, all fixed:
-the cavity-L1 15° non-convergence disclosure (the only converged:false
-case of 24) had been deleted while the same commit plotted that case in
-the new headline figure — restored in the fig:nlfaft caption with the
-L0-artifact note; the polar caption now describes the two AFT curves
-(+ provenance + the cd=0.025 source-axis truncation); and my
-"FlexFoil and XFOIL both converge" over-reached the committed evidence
-(the pkl is source=flexfoil throughout; packaged xfoil SIGFPEs on this
-input — reviewer reproduced it) — scoped to "as does XFOIL in the
-N_crit sweep of Table 5", preserving the annotation's intent. Plus the
-adversarial-mesh payoff sentence, README row, whitespace.
-
-## 2026-07-25 ~02:20 — invariant kernel: compactness & cancellation retained?
-YES on both, by construction:
-1. Compactness: the invariant branch consumes lapVecAi = the SAME
-   ring-summed, dual-volume-weighted output of the VelocityLaplacianRaw
-   pre-pass (per-dual-face compact stencil with the edge-aligned gradient
-   component replaced by the two-point difference). No new
-   second-derivative discretization anywhere — only the projection
-   direction changed (u_hat -> s_hat).
-2. Cancellation: the odd–even mesh-scale cancellation lives in the
-   one-ring average of the Laplacian VECTOR, applied before any
-   projection — identical in both forms.
-NEW sensitivity (the honest caveat): s_hat = (omega x n_out)/|.| uses the
-NODAL vorticity direction (least-squares gradient, not ring-averaged),
-where u_hat used the smooth velocity. Protections: where the kernel acts
-(shear-dominated) omega's direction is as robust as the shear itself;
-where omega is small (BL edge/freestream) Y = d|omega x n| -> 0 kills the
-rate via Shat->0 before direction noise matters. Watch-item: cavity
-sliver triangles mid-BL — a cavity-family NLF case added to the 2D
-verification battery to measure it; if family scatter grows, the cheap
-fix is ring-averaging omega with the same dual-volume weights before
-forming s_hat.
-
-## 2026-07-25 ~02:45 — annotated round 5 (NLF): tab:nlftrans deleted; sheets upgraded
-- "handover" -> "laminar-to-turbulent handover" at the AFT-paragraph use;
-  the closing aphorism ("The two closures place their empiricism
-  differently; this case cannot separate them.") deleted per strikeout.
-- tab:nlftrans AND its comparison paragraph deleted ("with Fig 7 added
-  these are no longer necessary"). Dependents rewired: FlexFoil's
-  introduction (independent XFOIL-method implementation, <1%
-  cross-check) moved into the polar caption where it first appears; the
-  XFOIL-converges claim now points at the digitized e9 curve of
-  fig:nlfaft (spans 9/15 deg); the cf-caption onset triangles now cite
-  Somers's orifices read at computed cl directly (open = extrapolated
-  beyond recorded data). Zero dangling refs; build clean.
-- Appendix chi sheets (both the alpha-matrix and Re-sweep sets):
-  contour levels EXTENDED beyond c_v1 (chi = 30 — where sigma_P is 97%
-  complete and f_v1 90% — and chi = 100, the turbulent interior) to show
-  the handover dynamics; Eppler UPPER-surface probe range raised 5x
-  (L_up 0.0067 -> 0.0335, inherited by the Re-sweep sheets through
-  their sqrt(2e5/Re) scaling) so the handover above the bubble shear
-  layer stays in frame; probe resolution 140 -> 320 points to keep
-  near-wall sampling. All 16 sheets regenerating in the background.
-
-## 2026-07-25 ~03:00 — chi sheets committed (70ec237)
-All 16 sheets regenerated with the new levels (chi = 30 and 100 past
-c_v1) and the 5x Eppler upper range. Visual check (Re=1e5 upper): the
-handover fan above the bubble shear layer is fully in frame, and the
-low-Re RE-SEEDING TONGUE — near-wall chi contours running upstream
-along the wall to x~0.15, the cold-front signature — is now directly
-readable in the L2 rows, giving the Sec. VI mechanism its visual
-counterpart in the appendix. Build clean.
-
-## 2026-07-25 ~03:15 — Coder + Eppler 387: verified answer (search agent, sources checked)
-DID CODER RUN E387? NO — not with AFT, ever. Verified against his full
-146-page dissertation (downloaded; case list: flat plate, PSU 94-097,
-S805, S414, NLF(1)-0416, Discus 2cx, CRM, DLR-F11 — zero E387
-computations; "Eppler" appears only as the Eppler transition CRITERION),
-his AIAA J. 2014 paper, the AFT-2017/2019 papers, and his 2017 NAS talk.
-His two E387 publications (Maughmer & Coder, Army TR 10-D-106 2010;
-J. Aircraft 51(1) 2014) used LANGTRY–MENTER, not AFT — E387 at Re=3e5.
-The 1st Transition Modeling Workshop did NOT include E387 (cases: flat
-plate, NLF(1)-0416, spheroid, CRM-NLF).
-THE ONLY PUBLISHED AFT-ON-E387: Lopes, Eça & Vaz (IST/MARIN, ReFRESCO),
-ASME J. Fluids Eng. 142(5):051503 (2020) — E387 at two incidences
-(almost certainly Re=3e5, α=1° and 7°; paywalled), AFT predicts the
-separation-induced transition with higher numerical uncertainty.
-Open companion: NuTTS'18 (ResearchGate, login-gated).
-BEST OPEN E387 BENCHMARK (no AFT, but quality-controlled): Eça et al.,
-34th Symp. Naval Hydrodynamics 2022 — NTRS open PDF, E387 Re=3e5
-α=1/7 vs McGhee, multi-code with numerical-uncertainty estimates, PURE
-VECTOR figures (trivially digitizable).
-DOWNLOADS (saved to sa-ai/references/): coder_diss.pdf (dissertation,
-via Wayback mirror — PSU eTDA blocks scripts), snh34.pdf (NTRS),
-coder_ams2017.pdf, nutts2019_lopes.pdf, koning_ja.pdf. DTIC Army report:
-https://apps.dtic.mil/sti/tr/pdf/ADA532502.pdf (browser only).
-COMPARISON OPTIONS: (a) honest framing "AFT as implemented by Lopes et
-al., Re=3e5" — one Reynolds point, two incidences; (b) the SNH-34
-multi-code γ-family band at Re=3e5 as a community reference envelope on
-our sweep's 3e5 station; (c) email Rui Lopes (now Chalmers) for his IST
-thesis, which likely has fuller E387/AFT polars. Nearest Coder-authored
-low-Re LSB case if we want HIS model on a bubble: PSU 94-097 at
-Re=2.4e5 in the dissertation (polars + fronts, mixed raster/vector).
-
-## 2026-07-25 ~03:30 — AFT removed from the Eppler section; CRM-NLF answered below
-The AFT-family sentence and the tab:epplit "no published data" row are
-deleted per your instruction (the citation survives at its NLF-section
-sites). Build clean.
-
-## 2026-07-25 ~03:50 — LM/BCM digitization plan (research agent running)
-Figure numbering clarified: Figs 7/8 are the NLF polar + NLF Cf sheets
-(NOT Eppler); Eppler polar is Fig 10, Eppler Cf Figs 11-12; the NLF
-transition-vs-cl plot (where AFT already lives) is Fig 6.
-
-Current state of the two polar figures:
-- Eppler polar (Fig 10, regen_eppler_v2.make_polar_figure): SA-AI L0-L2
-  both families, LTPT experiment, mfoil/xfoil e9, fully-turbulent SA.
-  NO LM/BCM curves yet — but tab:epplit already has their alpha=5 POINTS
-  (gamma-Retheta cd 0.0200, SA-BC 0.0142, gamma-SA 0.0133-0.0140),
-  figure-read from shahjahan_2024 / cakmakcioglu_2017 / dalessandro_2025.
-- NLF polar (Fig 7): SA-AI, mfoil, FlexFoil, turbulent SA, + AFT (just
-  added). NO LM/BCM yet.
-Overlay mechanics are identical to the AFT addition (data dict -> plot
--> legend entry) in both generators.
-
-Research agent launched for digitizable LM (gamma-Retheta + variants) and
-BCM (SA-BC/BCM) data on BOTH Eppler 387 (Re 2e5) AND NLF(1)-0416
-(Re 4e6) — polars + transition locations, with download URLs and
-vector/raster assessment. User confirmed they want NLF LM/BCM too if it
-exists.
-Plan once sources land: digitize polars -> overlay on Eppler Fig 10 +
-NLF Fig 7; digitize transition locations -> NLF Fig 6 (transition-vs-cl,
-alongside AFT); decide Fig 8 (Cf sheets) treatment (transition markers
-only, if at all).
-
-## 2026-07-25 ~04:10 — compressibility & crossflow extensions (physics assessment)
-FRAME: the model = instability-agnostic SKELETON (transport of the
-amplification var + chi->SA handover + Re_Omega onset switch) + an
-instability-specific RATE ATOM (a_max, the inflection/curvature
-indicator building Shat*g, the threshold shape Re_Omega^c(Shat*g), and
-the N_crit(Tu) map). Skeleton reuses for any convective e^N-describable
-mechanism; only the rate atom changes.
-
-COMPRESSIBILITY (transonic / first-mode = TS): three rate-atom edits,
-no structural change:
-1. a_max -> 0.19 * Lambda(M_c): compressible free-shear growth
-   suppression (Papamoschou-Roshko/Sandham; spreading down 2-3x by
-   M_c=1). M_c built LOCALLY from shear dU + sound speeds, not flight
-   Mach. Transonic bubble M_c~0.4 -> Lambda~0.85 (10-20% ceiling drop).
-   Leading-order effect.
-2. Curvature indicator Z -> GENERALIZED inflection point d/dy(rho du/dy)
-   =0 (Lees-Lin) not u''=0: density enters Z; the kinematic sphere
-   indicators acquire a thermodynamic input (T field already carried).
-   Modest shift at subsonic-transonic edge Mach, but the correct
-   criterion.
-3. Re-anchor Re_Omega^c shape, k (Blasius N=1 anchor), and the Mack
-   N_crit(Tu) map against a COMPRESSIBLE LST/e^N database (Mach-dep);
-   receptivity map gains an acoustic branch.
-Plus shocks/SBLI as a separate (unmodeled) receptivity concern.
-Hypersonic SECOND mode (M>~4): different animal (trapped acoustic,
-opposite wall-T sensitivity) -> separate sub-model, not a mod.
-
-CROSSFLOW: a genuine SECOND amplification channel, not a re-tune.
-Physics: crossflow velocity (perp to inviscid streamline) is 0 at wall &
-edge -> inflectional -> co-rotating CF vortices (stationary in low-Tu).
-Different DIRECTION from TS. Needs:
-- CF indicator: the current pure-magnitude kernel is direction-agnostic,
-  which CF can't tolerate (CF is defined relative to edge direction e).
-  ELEGANT local candidate from the invariant-kernel work: s_hat =
-  (omega x n)/|.| ROTATES with height (skin-friction dir at wall ->
-  e at edge); that twist IS the crossflow. So CF strength ~ |ds_hat/dy|
-  or the wall-shear-vs-edge misalignment angle. Nonlocal wrinkle: e
-  (edge dir) from velocity at ~edge distance, or approx by grad-p dir.
-- CF rate a_cf + threshold on Re_cf (Arnal C1) or a CF N-factor.
-- Two-channel combo: transport N_TS and N_CF, fire when EITHER crosses
-  (Stock two-N diagrams, same as the spheroid lit).
-Attachment-line contamination = 3rd swept cousin (Re_theta_AL>~100),
-own cheap criterion.
-
-BOTTOM LINE: transonic compressibility = bounded 3-part rate-atom edit,
-realistic next step, needed by transonic-NLF. Crossflow = bigger
-(new directional indicator [best hope: invariant-kernel shear-twist],
-new rate+threshold, two-channel combo). CRM-NLF needs BOTH at once
-(compressible swept wing, CATNLF suppresses CF leaving residual TS) =
-a genuine leap, not an increment.
-
-## 2026-07-25 ~07:35 UTC — cavity-L2 a4 landed; section refreshed (all times UTC)
-(Clarified per your question: the server clock and all quoted times are
-UTC. Cavity a5 ETA ~09:00 UTC, a6 ~14:30 UTC.)
-case_cavity_L2_saai_a4: CL 1.0208 / CD 0.02004.
-- L2 FAMILY AGREEMENT at 4 deg: dCL 0.7%, dCD 0.7 counts (0.35%) —
-  tighter than L1's 0.9%. At eta=0.31 the two finest grids put the
-  transition front 0.002c apart (0.549 vs 0.551), separation 0.008c,
-  reattachment 0.016c; cavity bubble 0.481-0.645 vs strips 0.472-0.660.
-- vs matched-lift reference (0.02125): cavity 12.1 counts below —
-  consistent with the structured family's 12.8.
-- Paper updated: totals-table cell filled; "Ten converged RANS
-  solutions" with pending = cavity L2 at 5/6 deg; ledger carries the
-  L2 agreement; the a4 surface figure now has its promised
-  unstructured-L2 row (caption updated; the pending clause moved to
-  the a5/a6 captions); bubble-edge agreement now an L2 statement at
-  4 deg; polar + sectional figures regenerated (sectional a4 cavity
-  trace now L2).
-
-## 2026-07-25 ~08:20 UTC — extension memo published (HTML artifact)
-URL: https://claude.ai/code/artifact/7431a96b-50e2-499a-ace1-e77bb5a2b472
-Detailed page covering: (1) skeleton-vs-rate-atom framing; (2)
-compressibility — Langley-curve suppression Lambda(M_c) with the
-transonic-bubble point marked (~0.85), Lees-Lin generalized inflection
-d/dy(rho du/dy)=0 as a density-weighted curvature invariant
-(1/2)d^2[div(rho grad u)].s_hat/rho, acoustic receptivity, second
-mode/shocks fenced off, and the note that Re_Omega already uses local
-nu(T); (3) crossflow — profile unstable by construction, stationary
-(roughness) vs traveling (Tu) receptivity, criteria/two-N/local-closure
-landscape, and the memo's central identity: u.omega = u^2 d/dy
-arctan(w/u) — the validated helicity indicators (Langtry-CF,
-Grabe-Krumbein) ARE the wall-normal twist rate of the invariant
-kernel's s_hat frame; indicator fully local, no edge direction needed,
-pseudoscalar parity correct; (4) one-frame-three-instabilities table
-(curvature along s_hat / density-weighted curvature / twist of s_hat);
-(5) caveats from this week's lessons (compensation risk, nodal-s_hat
-discretization -> the queued cavity verification case, roughness input
-honesty, falsifiable rate-max combination rule vs the spheroid's
-phi~30 deg front kink); (6) sequencing, incl. the cheap next step:
-evaluate the twist indicator PASSIVELY on the spheroid solutions
-(post-processing only) to check it lights the measured crossflow
-sectors before building any rate.
-
-## 2026-07-25 ~08:45 UTC — review pass 21 addressed (+ corrections to earlier entries)
-Pass 21 audited the tab:nlftrans and AFT-absence deletions (both clean,
-zero orphans), re-verified the chi sheets and the cavity-a4 numbers
-(all exact), and caught three staleness items — including one that's a
-process lesson: THE ROUND-5 APHORISM DELETION NEVER HAPPENED. My replace
-target had a whitespace mismatch, silently no-op'd, and the commit
-message + my earlier RESPONSES entry wrongly recorded it as done. It is
-actually deleted now, and every tex edit in this round printed a
-per-edit OK/FAILED check.
-Also fixed: Appendix A/B sheet-conventions text updated for the new
-contour levels (solid at 1, c_v1, 30, 10^2) and the 5x Eppler upper
-frame (0.0335c, deliberately breaking the 1/sqrt(Re) scaling — now
-stated); fig:daepolar panel-b caption now says "finest completed grid
-per family and incidence" (durable through the a5/a6 landings);
-Somers Fig. 9d citation restored at the cf-caption orifice clause;
-regen_chi_sheets default root corrected to flow360_fr (the stale
-flow360_tie default was what made the first regen silently skip
-everything — can't recur from a fresh checkout now).
-Verified for the reviewer's minor 4: the two L2-a4 runs used different
-solver builds, but the only delta is the newer build's ai_fv1Bypass=0
-constant, which gates on (>0.5) — bit-identical eddy-viscosity path at
-0; family agreement unaffected.
-CORRECTIONS to my earlier entries per the pass: (i) at 4 deg the L2
-family pair is tighter than L1 in DRAG (0.35% vs 0.92%) and marginally
-LOOSER in lift (0.72% vs 0.65%) — my "tighter than L1's 0.9%" conflated
-the two; (ii) the sheet regeneration was 24 PDFs, not 16.
-
-## 2026-07-25 ~09:00 UTC — Daedalus CD-vs-CL slope: quantified; section sheets building
-Your observation quantified (ogrid L2 strips vs AVL-Trefftz-rescaled +
-FlexFoil profile):
-  eta=0.31: RANS sectional dcd/dcl = 0.0180 vs reference 0.0109 — and
-  the reference slope is PURE INDUCED (its XFOIL profile term is flat,
-  0.0122->0.0121). Excess = RANS PROFILE drag growing ~6 counts per
-  0.1 cl where XFOIL's doesn't grow at all.
-  Crossing behavior: inboard RANS goes from -7 counts (a4) to +8 (a6)
-  vs reference; outboard (eta=0.6) RANS is above at ALL alpha and
-  diverging (+7 -> +21 counts) — worst where the bubble is longest.
-Candidate mechanisms the new five-row SECTION SHEETS will separate:
- (a) bubble pressure drag deepening with incidence (-Cp plateau depth &
-     recovery deficit vs strip Cp);
- (b) handover post-reattachment Cf overshoot growing with alpha (Cf row
-     vs strip cf);
- (c) incipient TE separation/thickened recovery at a6 (Cf droop at
-     tail);
- (d) mid-bubble transition lead extending the turbulent run (chi/N row)
-     — but that offset is ~alpha-independent, so unlikely to make a
-     SLOPE.
-Prior: (a)+(b) — the stretched handover's reattachment signature grows
-with loading; XFOIL's abrupt closure doesn't.
-Generator: repro/cfd/regen_daedalus_section_sheets.py — the 2D
-five-row layout (probe-max Re_Omega / probe-max Shat*g / max-chi + strip
-N / -Cp / Cf_x) cut at eta = 0.10, 0.31, 0.60; columns alpha=4/5/6;
-O-grid L2 solid + cavity L2 dashed where complete; FlexFoil strip
-dotted. Probes the volumes along in-plane surface normals (0.01 c_loc,
-the 2D convention); chi row from the committed chi_surface.npz. Running
-now (~30 min: reloads the 37-55M-node volumes); destined for Appendix D
-with a main-text pointer from the slope discussion.
-
-## 2026-07-25 ~09:30 UTC — Daedalus L0: never run at canon; ogrid L0 rebuilt & staged
-Answer to your question: NO — the canon campaign only ever had L1/L2
-phases. No L0 case dirs exist in the tree, and the predecessor
-campaign's L0 solutions AND meshes are gone (the old scripts/daedalus
-tree is no longer on disk). The paper is internally consistent about it
-(totals table L1/L2 only; y+ caption predecessor-attributed), but the
-mesh table describes L0 — a referee bait your question anticipates.
-Action taken:
-- STRUCTURED L0 IS BACK: the ogrid mesh regenerated from the tracked
-  ogrid_wing.py refinement ladder (LEVELS[0]; 0.72M nodes; mesh.cgns
-  64 MB via the established gmsh->cgns pipeline), and the three case
-  dirs are staged from the L1 siblings. Runner:
-  daedalus/build_run_ogrid_L0.py (mesh|stage done; `run <gpu>` queued
-  as task #24 for after the cavity-L2 campaign, ~20-40 min/case on one
-  GPU).
-- CAVITY L0: the 3D unstructured mesher was NOT recovered on disk (the
-  2D cavity mesher in flexfoil/rans is not the 3D wing one) — cavity L0
-  stays absent unless the mesher resurfaces; the section's per-family
-  "where completed" wording already covers asymmetric availability.
-When the L0 runs land: totals-table L0 rows, polar L0 line (the
-"L0->L2 by weight" legend becomes literal again), and a canon re-test
-of the predecessor lore that L0 suppresses the bubble at all but 2 of
-36 stations.
-
-## 2026-07-25 ~09:50 UTC — L0 meshes FOUND on 017-v100-dev; all six cases staged
-Good call. The predecessor Daedalus tree survives intact on 017-v100-dev
-at ~/flexcompute/sa-ai/scripts/daedalus — including case_cavity_saai
-(the cavity L0, mesh 202 MB) and case_ogrid_saai (ogrid L0, 63.6 MB),
-plus all the predecessor SOLUTIONS (L0-L2 both families), which also
-restores provenance for the paper's historical predecessor numbers.
-- Both archived L0 meshes fetched. The regenerated ogrid L0 matches the
-  archived one in size exactly (63,573,561 bytes; md5 differs only
-  through HDF5 creation metadata) — the tracked generator reproduces
-  the mesh; the ARCHIVED originals are what's staged, for continuity
-  with tab:daemesh's L0 metrics.
-- All SIX canon L0 cases staged (both families x a4/5/6). Runner:
-  daedalus/build_run_ogrid_L0.py run <gpu> (task #24). Queue: after
-  cavity-L2 a6 (~14:30 UTC); invariant-kernel verification takes the
-  first free GPU, L0 the second.
-- When they land: tab:daetotals gains its full L0 rows (both families),
-  the polar recovers the true L0->L2 ladder, and the predecessor lore
-  (L0 suppresses the bubble at all but 2 of 36 stations) gets re-tested
-  at the canon kernel.
-
-## 2026-07-25 ~09:20 UTC — LM/BCM literature: landed hours ago; recap
-You asked whether the Langtry–Menter / BCM literature search landed —
-yes (full entry above at ~04:40 UTC, "LM/BCM source matrix"; PDFs in
-references/). The short version:
-- Eppler 387, Re=2e5, BOTH models in one open source: Shahjahan et al.,
-  ICAS 2024 (references/icas2024_0327.pdf), VECTOR figures. Fig 6 =
-  drag polars for gamma-Re_theta (OpenFOAM) and SA-BC (SU2) at
-  Tu=0.1%; Fig 9 = bubble/transition stations. Backups: Cakmakcioglu
-  2017 (original BC paper, exactly Re=2e5, raster Fig 8) and
-  D'Alessandro 2025 (gamma-SA).
-- NLF(1)-0416, Re=4e6: Langtry–Menter YES — Denison et al. OVERFLOW
-  transition-workshop paper (references/overflow_tmw.pdf), Fig 11 =
-  transition x/c vs c_l for both surfaces (drops directly into
-  fig:nlfaft next to AFT). No clean cd-cl polar in it.
-- BCM on NLF: NO usable open data (Tarsia Morisco 2025 is a
-  mesh-adaptation study at one condition; the Cakmakcioglu 2020
-  candidates are paywalled). Same honest-absence verdict as
-  AFT-on-Eppler.
-Digitization plan (ready, awaiting your go): Shahjahan Fig 6 -> LM+BCM
-curves on the Eppler polar (Fig 10); Denison Fig 11 -> LM transition
-curves on fig:nlfaft; text states the BCM-on-NLF absence.
-
-## 2026-07-25 ~09:25 UTC — Daedalus drag-slope diagnosis: the section sheets' verdict
-Why does CFD sectional CD grow faster with CL than AVL+XFOIL? The
-three new five-row section sheets (eta = 0.10/0.31/0.60, columns
-alpha = 4/5/6: probe-max Re_Omega, probe-max S_hat*g, max-chi + strip
-e^N, -Cp, Cf_x) now answer it:
-- Slopes: mid-span sectional dcd/dcl is ~0.0180 (RANS) vs ~0.0109
-  (reference). ALL the reference's growth is induced — its XFOIL
-  profile drag is flat in cl. The RANS profile drag climbs ~6 counts
-  per 0.1 cl.
-- Mechanism (visible in the -Cp row): separation and reattachment both
-  match the strips at every incidence — the bubble EDGES are right —
-  but inside the bubble the model's handover-stretched pressure
-  recovery deepens with incidence: the -Cp plateau persists further
-  and recovers more gradually than the strip's abrupt-closure
-  recovery, and the area between the curves grows with alpha. That is
-  bubble pressure drag an instant-transition closure structurally
-  cannot produce — the same Sec. eppresweep handover mechanism, now at
-  Re_c ~ 6.6e5.
-- Non-mechanisms ruled out: the chi=1 lead over N=N_crit sits at its
-  ~0.09c convention offset at every incidence (no slope contribution).
-In the paper: diagnosis paragraph added to the Daedalus ledger; the
-three sheets are in the Daedalus appendix (D) as figs daesec10/31/60,
-per your directive to keep them Daedalus-focused.
-
-## 2026-07-25 ~09:25 UTC — "Sections above, total below": the reconciliation
-Your observation — SA-AI has MORE drag than the reference over most of
-the span, yet LESS in the total — decomposes into three strands:
-1) The strip integrals don't tile the wing. Integrating the sectional
-   curves gives Delta(RANS - ref) = -3.7/+1.8/+8.3 counts at
-   alpha=4/5/6, but the force totals give -12.8/-7.2/-2.1: a nearly
-   incidence-INDEPENDENT ~9-10 count offset between the two
-   accountings. The strip bins miss a root sliver and cap the tip, so
-   the strip-integrated view sits systematically high; slopes are
-   trustworthy where levels are not.
-2) The reference's sectional induced-drag SHAPE is Trefftz-exact only
-   in its integral (local cl*alpha_i is rescaled to match CDff), so
-   pointwise sectional comparisons inherit shape error.
-3) At alpha=4 there is no paradox even sectionally (RANS is below the
-   reference over most of the span); the crossover builds with
-   incidence exactly as the bubble-pressure-drag slope does.
-Both accounting notes are now stated in the paper alongside the
-diagnosis paragraph.
-
-## 2026-07-25 ~09:30 UTC — Disk-full incident: casualties and repairs
-The root filesystem hit 100% (~08:45-08:55 UTC). Full damage list:
-- cavity-L2 a6 died at launch (rc=1). Freed 182 GB by deleting
-  regenerable partitioner dumps (mesh.cgns_rank_*.dmp) from completed
-  cases; a6 relaunched 08:57 on all 8 GPUs (~5.5 h, sentinel
-  CAVITY-A6-DONE).
-- paper/sa-ai.tex was TRUNCATED TO 0 BYTES: the interrupted edit's
-  open(...,'w') succeeded, the write hit ENOSPC. Restored from git
-  HEAD (f0d93d9, 07:41 — no tex edits existed between commit and
-  truncation, so nothing was lost). Edit scripts now write to a temp
-  file and os.replace() so a failed write can never truncate again.
-- cavity-L2 a5 (finished rc=0 at 08:55, INTO the full disk): forces
-  history and volume/surface outputs intact, but both slicing CSVs
-  (X/Y_slicing_forceDistribution.csv) are zero-byte. Sectional strips
-  for cav-a5 therefore fall back to L1 in the figure (explicit
-  has_strips() gate); the CSVs can be regenerated with a short
-  restart run once GPUs free up.
-
-## 2026-07-25 ~09:30 UTC — Cavity-L2 a5 landed; paper refreshed
-CL = 1.1219, CD = 0.02259 (final-500 mean; std 4e-4/4e-5). Family
-agreement at L2 now holds at both completed incidences: alpha=4:
-0.7% CL / 0.7 counts; alpha=5: 0.6% CL / 1.6 counts (0.7%).
-ai_constants check: a5's resolved-constants block is IDENTICAL to
-a4's except one new line, ai_invariantKernel: 0.000000 — the a5 run
-used the rebuilt solver carrying the (default-off) invariant-kernel
-code. Constants verified, flag off, as intended.
-Paper: tab:daetotals a5 cell filled, "Ten"->"Eleven" solutions,
-family-agreement sentence covers both incidences, fig:daesurf5
-caption's pending-clause dropped (cavity row regenerates when the a5
-chi surface map finishes), polar figure regenerated with the cav-L2
-a5 point.
-
-## 2026-07-25 ~09:35 UTC — /local_data migration + appendix restructure + mesh line widths
-- Large data now migrates to /local_data/qiqi/sa-ai/... mirroring
-  017-v100-dev's /local_disk/qiqi convention, with symlinks left in
-  the repo so every path keeps working
-  (scripts/migrate_to_local_data.sh: rsync, verify second pass
-  transfers nothing, rm, ln -s; skips busy/running dirs). 15 Daedalus
-  case dirs (~60 GB) moved so far; paused while figure regens read
-  flow360_fr, resumes after. One lesson already paid for: the mover
-  yanked a dir mid-read under the a5 chi-map (the lsof guard raced);
-  the map was simply rerun through the symlink — data verified intact.
-- Appendices, per your directives: the three Daedalus section sheets
-  live in the Daedalus appendix (D); the eight Eppler lower-surface
-  contour sheets (App B alpha sweep + App C Re sweep) are DELETED —
-  upper-only now, prose notes the lower surface stays attached and
-  featureless. NLF lower-surface sheets kept (App A).
-- Mesh figures: they are VECTOR (matplotlib LineCollection -> PDF),
-  so thin lines stay crisp under zoom. Line widths now halve per
-  level: L0 0.175, L1 0.0875, L2 0.044 (was uniform 0.35); all four
-  mesh figures regenerating from the canonical flow360_fr a0 meshes
-  (the script had pointed at the stale flow360 tree).
-
-## 2026-07-25 ~09:45 UTC — CORRECTION: cavity-L2 a5 field output also lost
-The 09:30 entry said a5's volume/surface outputs were intact — wrong.
-volume.pvtu is zero-byte too (everything the solver wrote at shutdown
-hit the full disk): no chi surface map, no surface-map figure row, no
-section-sheet dashed lines for cav-a5 until recovery. What IS intact:
-the full forces history (the CL/CD numbers stand — they come from
-total_forces_v2.csv, written incrementally long before the disk
-filled) and the 8-rank restart dumps. Recovery plan: after a6 lands,
-a short restart run of a5 (~100 steps, force means move < the 4e-4
-history std) regenerates volume.pvtu + slicing CSVs; then chi map,
-surface-map cavity row, and section-sheet overlays follow. The
-fig:daesurf5 pending-clause is restored until then.
-
-## 2026-07-25 ~09:40 UTC — Mesh figures regenerated and verified
-All four mesh figures rebuilt from the canonical flow360_fr a0 meshes
-with the per-level widths (L0 0.175 / L1 0.0875 / L2 0.044) and
-checked visually: the L2 panels now show grid structure where they
-were solid ink; the near-wall boundary-layer stack still saturates to
-a dark band (cell heights below line pitch — unavoidable), but the
-O-grid fan and TE wake refinement read cleanly at every level. They
-are vector PDFs, so zooming in a viewer resolves individual lines.
-Committed (a08434b); /local_data migration resumed for the flow360_fr
-2D cases now that nothing is reading them.
-
-## 2026-07-25 ~10:15 UTC — Review pass 22: three of my numbers were wrong; all fixed
-Pass 22 (agent-paper-review/2026-07-25-0929.md, response alongside)
-confirmed the slope diagnosis quantitatively (reproduced my 0.0180 vs
-0.0110 exactly, regenerated a committed section sheet bit-for-bit) but
-caught three real numerical defects, all mine, all now fixed:
-1. WRONG WINDOW on the new a5 table cell: I averaged the last 500 CSV
-   rows (= 5000 pseudo-steps); the table's convention is the last 500
-   pseudo-steps (51 samples). Canon values: CL 1.1223 / CD 0.02254
-   (std 1e-5/2e-6). Family gap at a5 is actually 0.58% CL / 1.09
-   counts — a STRONGER agreement than the 1.6 counts I printed. Table,
-   sentence, canon_results.json all corrected; the caption now spells
-   out "final 500 pseudo-steps (51 logged samples)" so the ambiguity
-   is dead. (This supersedes the 09:30 entry's numbers.)
-2. WRONG Re: the sections run at Re_c = 5.0e5, not 6.6e5 (I mixed the
-   dimensional 0.917 m chord into a unit-chord reference length). The
-   sheets' suptitles were always right; caption + slope paragraph
-   corrected. (Supersedes "Re_c ~ 6.6e5" in the 09:25 entry.)
-3. WRONG ACCOUNTING NOTE: my "strip decomposition sits 9-10 counts
-   above the force totals" came from an uncommitted heredoc and is not
-   reproducible. The committed repro script
-   (paper/repro/cfd/daedalus_strip_accounting.py) integrating exactly
-   the figure's own sectional curves shows: RANS strips tile their
-   force totals to ~1 count; it is the REFERENCE's plotted sectional
-   curve that integrates 18-21 counts BELOW its own ledger total
-   (induced shape Trefftz-exact only in the integral; profile on nine
-   FlexFoil stations). Tex sentence rewritten to say exactly that.
-   Moral unchanged: sectional slopes trustworthy, level differences no.
-Also from the pass: Appendix D was missing its figure/table counter
-renew (the new sheets printed as C5-C7 while the text said Appendix D
-— now D1-D3, and tab:daetotals becomes Table D1); the onset-threshold
-overlay the appendix text promised is now actually DRAWN in row 1 of
-the sheets (solver-exact form, dash-dotted; sheets regenerating); the
-paper's last hardcoded figure number ("as Fig. 2") is now a \ref; the
-dashed-cavity availability qualifiers are worded durably so the a5
-recovery won't need a third touch.
-
-## 2026-07-25 ~10:15 UTC — /local_data migration COMPLETE + full-page mesh figures
-Migration finished: 139 directories (all completed Daedalus cases +
-the whole flow360_fr 2D tree) now live under /local_data/qiqi/sa-ai/
-with symlinks in place; /home went 100% -> 87% (another ~100 GB
-freed), /local_data at 78%. Only the running a6 case remains on /home
-(moves after it lands).
-Mesh figures per your directive: LE and TE windows are now the same
-extents (0.16c x 0.14c) — same aspect ratio AND same physical scale —
-and the figure canvas is sized to the full text block (6.5 x 8.3 in)
-with the tex include set to width=\textwidth, height-capped with
-keepaspectratio. Regenerating all four now.
-
-## 2026-07-25: Digitized LM/SA-BC literature data for paper figures
-- paper/data/lmbcm_eppler387_digitized.json — ICAS 2024-0327 (Shahjahan): Fig 6b polar Re=200k (LM 19 pts, SA-BC 19 pts, exp Selig/McGhee/Volkers), Fig 9a transition-vs-alpha Re=100k + Fig 10a Re=200k (triangle markers = transition; alphas land on integers ±0.07°). Vector-path extraction via PyMuPDF; colors matched to legend swatches.
-- paper/data/lm_nlf0416_transition_digitized.json — Denison OVERFLOW TMW Fig 11 (raster 1280x960): LM fine-grid xtr/c vs cl upper+lower (7 pts each), Somers exp bounds (30+30 pts, laminar/turbulent pairs).
-- Verification overlays: paper/data/digitize_check_{eppler,nlf}.png — visually indistinguishable from originals.
-
-## 2026-07-25 ~10:50 UTC — LM/BCM literature curves ARE IN THE FIGURES now
-Took your third ask as a go. The digitization agent extracted, and I
-verified against the source pages (check PNGs committed at
-paper/data/digitize_check_{eppler,nlf}.png — overlays are
-point-for-point):
-- Eppler polar (fig:epppolar): gamma-Re_theta and SA-BC curves from
-  Shahjahan ICAS 2024 Fig 6b, VECTOR-EXACT (19 points each — the
-  polyline vertices are the per-alpha marker centers). The story the
-  figure now tells: SA-AI and SA-BC both track the measured low-drag
-  bucket (SA-BC slightly better at mid-bucket, but it overshoots the
-  bucket top and its cl); gamma-Re_theta runs 40-60% high in drag
-  through the whole bucket. Bonus extraction: all three experiment
-  symbol sets (Selig/McGhee/Volkers) and the transition-vs-alpha data
-  at BOTH Re=1e5 (Fig 9a) and Re=2e5 (Fig 10a) are in the JSON for
-  future use.
-- NLF transition figure (fig:nlfaft): Langtry-Menter fine-grid curves
-  (upper+lower) from Denison's OVERFLOW workshop paper Fig 11
-  (raster, color/shape-segmented, calibration verified on tick
-  pixels). LM lands nearly on top of the recalibrated-AFT/experiment
-  cluster on both surfaces — a strong independent reference right
-  where SA-AI's points sit. Caption states plainly: no SA-BCM result
-  at this condition exists in the open literature.
-- tab:epplit's polar cells upgraded from figure-read +/- ranges to
-  matched-cl interpolations of the digitized curves: gamma-Re_theta
-  0.0195, SA-BC 0.0140 at cl=0.891 (both inside the old error bars —
-  the table's story is unchanged, just tighter).
-Committed 09b337b (+ 76d6bfe housekeeping: 98 tracked 2D ai_constants
-logs relocated out of the migration symlinks, same as the daedalus
-move). New Denison bib entry denison_2021_overflow.
-Also in 09b337b: the full-page mesh figures (identical 0.16c x 0.14c
-LE/TE windows, equal scale, width=\textwidth) — verified visually.
-
-## 2026-07-25 ~11:00 UTC — Invariant-kernel verification: first pass INVALID (protocol), redoing at matched convergence
-The three verification cases landed and at first read looked like a
-kernel failure (structured NLF transition 0.28 -> 0.62 aft, cavity
-0.30 -> 0.10 forward, Eppler bubble shifted). Diagnosis so far:
-- A pure-python replica of BOTH kernels on the converged canon field
-  (wall-normal probe at x/c=0.15) gives P_invariant == P_standard to
-  all printed digits with the physical vorticity orientation — the
-  CONCEPT is exactly 2D-degenerate as claimed. A deliberately flipped
-  omega sign inflates P 10x, confirming the s_hat construction is the
-  sensitive element and that the correct sign reproduces the standard
-  kernel.
-- Freestream/ahead-of-LE chi is EXACTLY the seed in all runs — no
-  contamination; solver env verified (ai_constants diff: only the
-  invariantKernel flag differs).
-- The smoking gun against my first comparison: a FLAG-OFF CONTROL run
-  through the same clone recipe (cold start, 20k steps) ALSO misses
-  the canon record — and its transition (0.60) lands next to the
-  invariant run's (0.62). The canon NLF cases ran 35k steps; at 20k
-  cold the transition front is still creeping aft. My verification
-  battery compared mid-transient snapshots against converged records.
-  (The one remaining flag-attributable signal: solver turbulence
-  residual floors 5 decades higher with the flag on — s_hat sign
-  flutter in weak-shear regions is the suspect; watching whether it
-  matters at convergence.)
-- Redo in flight at matched protocol: all four runs (str control, str
-  invariant, cav invariant, Eppler invariant) extended by restart to
-  40k, plus a fresh 40k cavity control. Verdict when they land: the
-  invariant kernel passes only if flag-ON == flag-OFF within line
-  widths AT CONVERGENCE on both families.
-
-## 2026-07-25 ~11:15 UTC — Table 6 -> figure: yes, and the data is RICHER than NLF
-Your question: can the reattachment table (Table 6, tab:eppxtr) become a
-figure like the NLF transition figure, with separation AND reattachment
-per panel — and is the data as tightly spaced in CL?
-Answer: yes, and on the experiment side it is RICHER than the NLF case:
-- TM-4062 Table III (paper/eppler.pdf p.15 — the full report was already
-  in the repo) tabulates oil-flow separation AND reattachment at R=200k
-  for NINE incidences: alpha = -2, 0, 2, 4, 5, 6, 7, 8, 8.5 (alpha=8 is
-  "NT at .32" — natural transition, no bubble; 8.5 is the post-stall
-  leading-edge bubble .03/.18). The repo had only our four alphas; the
-  full set is now in the new figure script.
-- Shahjahan Fig 10a carries separation (circles) and reattachment
-  (squares) markers for LM and SA-BC at integer alpha at exactly Re=2e5
-  — a second digitization agent is extracting those now (we already
-  have its transition triangles).
-- mfoil e^9 sweeps alpha densely for free: a -2..7.5 x 0.5deg bubble-
-  station sweep is running (separation/reattachment from signed Cf,
-  same definitions as the table).
-- SA-AI: currently the same density as NLF (4 incidences x 6 grids).
-  Queued to densify: alpha = -2, 1, 3, 4, 6 on both L2 grids (10 quick
-  2D runs) once the current GPU batch lands.
-Design: two panels sharing the alpha axis (separation left,
-reattachment right), NLF-figure conventions (oil flow black circles,
-mfoil dotted, LM/SA-BC in the polar's colors, SA-AI six grids by
-marker size). Axis is alpha rather than cl because every reference
-here is alpha-native (oil flow, Fig 10a). Script:
-repro/cfd/regen_epp_bubble_figure.py; the table's definitions and the
-mfoil-at-7deg caveat move into the caption. Will replace tab:eppxtr
-once the digitization and sweep land.
-
-## 2026-07-25 ~11:40 UTC — L0 failure modes: NLF vs Eppler are DIFFERENT failures
-Your observation quantified (CD counts, canon window):
-  NLF a4:    strL0 110.7 vs strL2 74.0 (+37) | cavL0 106.3 vs cavL2 77.6 (+29)
-  Eppler a5: strL0 205.1 vs strL2 155.2 (+50) | cavL0 161.0 vs cavL2 148.1 (+13)
-Pressure/friction split (surface-integral CD_p; friction = CD - CD_p):
-  NLF a4:    strL0 63p/48f vs strL2 27p/47f  -> excess is +36 PRESSURE, friction dead-on
-             cavL0 76p/31f vs cavL2 31p/47f  -> +45 pressure MINUS 16 friction
-  Eppler a5: strL0 159p/46f vs strL2 105p/51f -> +54 pressure, friction -4
-             cavL0 109p/52f vs cavL2 94p/54f  -> +15 pressure only
-Mechanisms (diag plot: paper/diag_l0_failure_modes.py):
-1. NLF (attached, Re=4e6): NOT a transition failure. The fronts sit
-   within 0.06c of L2 on both families (str slightly early 0.22 vs
-   0.28, cav slightly late 0.36 vs 0.30) and the Cp distributions
-   overlay. The excess is the classic under-resolved-boundary-layer
-   FORM-DRAG error: the momentum deficit that should be skin friction
-   leaks into pressure drag through the smeared TE recovery. The
-   cavity shows it most nakedly — its L0 turbulent Cf is ragged and
-   HALF the resolved level (friction 16 counts low) while pressure
-   goes 45 high. Model-independent coarse-grid behavior; both
-   families converge by L1.
-2. Eppler (bubble, Re=2e5): a genuinely different, TRANSITION-ZONE
-   failure, and only the O-grid suffers it. strL0's bubble is
-   SHORTER and SHALLOWER than converged (reattach 0.587 vs 0.655,
-   min Cf -2.6e-3 vs -4.7e-3): the -Cp plateau breaks ~0.05c early
-   into a long soft recovery, and that fattened mid-chord pressure
-   loop is the +54 counts. The cavity L0 bubble is nearly canonical
-   (0.43-0.57). Why the difference: streamwise spacing exactly where
-   the bubble lives. The cos-clustered O-grid is COARSEST at
-   midchord — L0 Delta_s = 1.7-1.9%c across x=0.4-0.65 (~12 points
-   over the bubble, 3-4 over the handover) — while the cavity's
-   curvature-driven sizing gives 1.1-1.4%c there (tab:eppmesh rows).
-   The O-grid's clustering budget protects LE and TE; the bubble
-   pays.
-Irony worth noting: strL0's broken short bubble lands nearly ON the
-experimental reattachment (0.587 vs oil flow 0.59) — the right answer
-for the wrong reason, now visible as the small L0 square hugging the
-data in the new fig:eppbubble while the converged grids sit late.
-
-## 2026-07-25 ~12:00 UTC — L0 follow-up: is it y+? And the strL0 LE suction peak
-Q1 (NLF: just y+ too high?): No — y+ cannot be the driver, by your own
-argument made quantitative. NLF L0 y+ (95th pct): cavity 2.99,
-structured 1.90 (tab:nlfmesh) — the cavity is 1.6x WORSE on y+ yet its
-drag error is SMALLER (+29 vs +37 counts), i.e. y+ anti-orders the
-error. Also the structured family's friction came out dead-on (47.6 vs
-47) despite y+~2 — the excess is all in pressure. What orders the
-error is BL PROFILE resolution: cells across the boundary layer
-(first-cell-to-BL-height ratio; at Re=4e6 the BL is ~0.5-1%c and the
-L0 stretching gives ~10-15 cells through it) and streamwise spacing.
-The under-resolved profile mispredicts displacement growth ->
-form-drag error; on the cavity the same under-resolution additionally
-shreds the turbulent Cf itself (visibly ragged, half the resolved
-level), trading friction for pressure. y+~2-3 contributes at the
-margin but the families' error ordering rules it out as the cause.
-Q2 (Eppler strL0 LE): confirmed — good catch, and it revises my
-midchord-only story. The strL0 suction peak is clipped ~7% (-Cp 1.35
-vs 1.45): the Construct2D O-grid at L0 has Delta_s @ LE = 4.9e-3 c vs
-the cavity's 1.1e-3 (4.4x coarser; NLF same pattern, 5.3e-3 vs
-0.55e-3) — the L0 O-grid walks around the LE arc in ~8-10 points. So
-the structured-L0 Eppler failure is a two-deficit story: (1) clipped
-LE suction peak (pressure-drag error at the nose AND a weakened
-adverse-gradient onset feeding the bubble), plus (2) the cosine
-distribution being coarsest at midchord where the bubble lives
-(1.7-1.9%c). The cavity L0 is finer at BOTH ends, which is why it
-keeps the bubble nearly canonical and pays only the generic
-form-drag tax.
-
-## 2026-07-25 ~12:00 UTC — Invariant-kernel verdict at matched protocol: FAILS
-The redo is conclusive and the answer is negative:
-- Controls validate the harness EXACTLY: flag-off clones at 40k
-  reproduce canon to the last digit (str 0.9796/0.00741 vs canon
-  0.9797/0.00740; cav 0.9839/0.00771 vs 0.9843/0.00776).
-- Flag-on at the same protocol converges AWAY from canon: str NLF
-  +12.4 counts, cav NLF +22.3, Eppler a5 +10.8. Not line widths.
-- The concept is NOT what fails: the python replica of both kernels
-  on the converged field is identical to all digits (parallel-layer
-  degeneracy exact). The freestream/ahead-of-LE chi is exactly the
-  seed in flag-on runs too (no contamination), constants verified.
-  The remaining suspects are discrete-feedback effects where s_hat's
-  sign is noise-driven (BL edge / weak shear): flag-on runs carry a
-  turbulence-residual floor 5 DECADES higher — persistent production
-  flutter — and small positive P where the magnitude form clips to
-  zero can bias the amplification integral once the solution is
-  allowed to respond (the python check was frozen-field).
-DECISION per the original plan (verify on 2D before 3D): the invariant
-form is NOT cleared. The spheroid campaign runs the standard magnitude
-kernel. The elegant form stays in the extension memo as future work
-with this diagnosis attached (likely fix: blend s_hat to the
-magnitude representative where |Y| << |X|, i.e. weak shear, keeping
-the signed behavior only where vorticity is coherent).
-
-## 2026-07-25 ~12:05 UTC — Negative-alpha NLF pair: landed and converged (40k)
-str/cav L2 at alpha=-4: CL +0.018/+0.036 (zero-lift hit), CD
-0.00768/0.00746 vs experiment ~0.0068 at matched CL (+9/+7 counts).
-At alpha=-8 (experimental edge): CL -0.476/-0.457 (exp -0.474 at -8),
-CD 0.01125/0.01110 vs exp ~0.0105 (+7/+6 counts). Family agreement
-1-2 counts everywhere. Transition: at CL~0 the camber makes the LOWER
-surface the adverse side — SA-AI lower front 0.08-0.16 (LM's fine-grid
-lower curve says 0.18 at the same cl; the experiment sits later), upper
-0.46-0.50 (LM 0.48). Campaign JSON updated; the transition figure now
-carries the negative-branch points on the finest grids.
-
-## 2026-07-25 ~12:35 UTC — fv1-bypass: conclusion so far, and the full Eppler battery is RUNNING
-Conclusion of the disable-fv1-outside-buffer-layers exploration:
-1. It does exactly what the bursting-boundary analysis says is needed:
-   it commits the handover faster (fv1's chi^3 gate starves young
-   turbulence; bypassing it outside buffer layers removes the SA-side
-   anemia). At Re=1e5 it flips the model from the burst branch
-   (0.77/0.044) to a CLOSED bubble: CL 0.93 / CD 0.0231 against exp
-   0.873/0.0237 — drag lands ON the measurement, lift +6%.
-2. The "violent limit cycle" scare was an artifact of the laminar-
-   slowdown pseudo-time schedule, not of the bypass (fSlow=1 battery,
-   both on/off flutter equally under the schedule).
-3. At 2e5 its footprint is small but not zero: dCL -0.5%, dCD -2.8
-   counts (comparable to mesh-family spread; physically expected —
-   2e5 also has a bubble where the bypass legitimately acts).
-So: promising as the model's missing "fast transition commit" lever;
-the open question is inertness across the validated envelope. Per your
-question — yes, and it is now running: 18-run battery (bypass ON+OFF
-matched pairs, cold, fSlow=1 with seed decompensation, 40k steps) over
-str-L2 a0/2/5/7 at 2e5, cav-L2 a5, and the a5 Reynolds sweep
-60k/100k/300k/460k. The sweep rows answer the money question: does the
-bypass move the bursting boundary (60k!) without damaging the
-converged range (300k/460k)? ~2h. NOTE the OFF controls also test
-something independently interesting: the 2026-07-24 pair suggested the
-cold/fSlow=1 protocol itself moves the 2e5 state vs the canon
-continuation numbers — if confirmed, that is a second bistable-window
-symptom at 2e5 worth knowing about.
-
-## 2026-07-25 ~12:55 UTC — fv1-bypass free parameters, and the analytic answer
-The bypass blends mu_t from the fv1-damped value to nuHat with weight
-w = s(chi) * G(q), where q = Re_u / (y+ U+(y+)), y+ := chi/kappa, and
-U+ is the Reichardt law. Free parameters as implemented: the two gate
-windows — s(chi) switching on over chi in (1,2), and G(q) over q in
-(2,4). The Reichardt/kappa constants are standard, not free.
-Do we have an analytic, CFD-independent answer? Largely YES, and it is
-the reason this construction was chosen:
-1. The q gate's CENTER is analytic. SA's whole design premise is that
-   nuHat stays LINEAR through the buffer layer (nuHat = kappa y u_tau;
-   fv1 exists precisely to damp nu_t while nuHat stays linear). So in
-   any attached equilibrium wall layer, y+ = chi/kappa is exact and
-   Re_u = y+ U+(y+) identically -> q = 1 EXACTLY, parameter-free. In a
-   lifted/transitional shear layer at the same chi, d and |u| are
-   set by the bubble geometry, not the wall unit -> q >> 1 (measured
-   O(10-100) in our bubbles). The discriminator is not tuned; it is
-   law-of-the-wall self-consistency.
-2. The q gate's MARGIN (on over 2->4) must clear how far attached
-   layers stray from Reichardt. In the gated band (chi in (2,30), i.e.
-   y+ in (5,73)) the deviation is bounded by the pressure-gradient
-   distortion of the law of the wall; with a Coles log-wake composite
-   the wake contribution at y+ <= 73 stays small for any attached
-   Pi (it lives at y/delta = O(1)), and near-separation APG
-   half-power distortion reaches factor ~2 at the top of the band.
-   So q_on = 2 IS the analytic edge, and full-on at 4 is margin. This
-   can be made a one-page repro/analytic calculation (composite
-   profiles, no CFD) if we promote the bypass into the paper.
-3. The chi ramp s(chi) in (1,2) can be ELIMINATED as a parameter: tie
-   it to the model's own sigma_t handover ramp (center 1, width 4),
-   which is where turbulence formally begins. Then the bypass carries
-   ZERO new tunables beyond the q margin, which is analytic.
-Also inert by construction at both ends: chi<1 (mu_t negligible either
-way) and chi>30 (fv1 ~= 1 already) — the bypass can only act in the
-handover band, which is exactly where the bursting-boundary analysis
-says the model is too slow.
-
-## 2026-07-25 ~13:15 UTC — The max(S_hat*g) double-peak inside the bubble: investigated
-Your annotated question: row 2 shows a double peak inside the bubble
-with a sharp dip between them, roughly at the chi=1 crossing. Why?
-I probed the full y-resolved P = S_hat*g field (not just its
-wall-normal max) through the bubble on str-L2 a5 (diagnostic heat map:
-scratchpad sg_doublepeak.png; the committed row-2 curve is the
-y-max of this field). The answer: THE TWO PEAKS ARE TWO DIFFERENT
-SHEAR LAYERS, and the dip is the handover between them.
-- Peak 1 (x ~ 0.42-0.53) is the LIFTED LAMINAR shear layer over the
-  recirculation core — the inflectional profile drives P to its
-  ceiling (~1) across the mid-bubble, aided by the low advection
-  speed inside the bubble (X small).
-- The DIP (x ~ 0.55): the transition the layer itself ignited kills
-  it. Once near-wall chi crosses 1 -> c_v1 (the crossing sits at
-  0.48-0.53 here), the arriving eddy viscosity diffuses exactly the
-  quantities P is built from — the inflection (Z) and the
-  concentrated shear (Y) of the outer branch — while the TURBULENT
-  reattachment shear has not yet formed. Both branches are
-  momentarily weak; the y-max is the upper envelope of a decaying
-  curve and a growing one, and such an envelope has a sharp V at the
-  crossing — hence the narrow, deep notch (the argmax height jumps
-  discontinuously across it: branch switch confirmed numerically).
-- Peak 2 (x ~ 0.60-0.66) is the REATTACHMENT layer: the forming
-  turbulent wall jet concentrates shear (Y large) while the flow
-  near the reattachment line is slow (X small), so S_hat -> 1 and
-  g -> 1 saturate P again. Downstream, the attached turbulent BL
-  speeds up along the wall (X grows) and P relaxes to the attached
-  level (~0.2).
-So the dip tracks the chi handover CAUSALLY (the diffusion of branch
-1 is done by the handover's eddy viscosity), which is why it lines up
-with the chi=1..c_v1 crossing on row 3. It is, rather neatly, the
-model's own transition-completion marker expressed in the rate
-coordinate. Note this also explains why the second peak often tops
-the first: at reattachment the advection-speed X in the denominator
-of g is at its smallest. Diagnostic committed as
-paper/diag_sg_doublepeak.py.
-
-## 2026-07-25 ~13:45 UTC — fv1-bypass: s(chi) tied to sigma_t (parameter eliminated); PROMOTION battery running
-Per your approval, s(chi) in the bypass gate is no longer its own
-window: it is now the model's own sigma_t handover ramp
-(1 - exp(-(chi - switchCenter)/switchWidth), the committed (1,4)),
-so the bypass carries zero new chi parameters; the q gate keeps its
-analytic (2,4) law-of-the-wall margin. Clean rebuild done (SOP).
-Promotion criteria recorded: canon if the flat plate AND NLF are
-unaffected AND Eppler improves. The battery now covers all three:
-17 slots x (ON, OFF) at matched protocol — Eppler a0/2/5/7 + cav a5 +
-Re sweep 60k/100k/300k/460k; NLF a0/4/9/15 + cav a4; flat plate
-Tu0040/Tu0300. All 8 GPUs, ~3-4 h. Verdict table when it lands.
-
-## 2026-07-25 ~14:30 UTC — Review pass 24 + the alpha=-8 front diagnosis
-Pass 24 verified the whole pass-23 fix round and the eppbubble
-promotion bit-for-bit, and caught two real defects of mine:
-1. GHOST LEGEND: fig:eppbubble shipped with an "XFOIL (e9, a>=6.5)"
-   legend entry and NO curve (the xfoil fallback SIGFPE'd; the
-   committed branch data is all-null) — and my pass-23 response file
-   claimed the branch had landed. Fixed: legend gated on drawn data;
-   response corrected. Investigated the lost table-footnote number
-   too: XFOIL's alpha=7 Cf never crosses zero (min +2.2e-4), so the
-   old "0.40c" was a threshold crossing, not a zero-crossing
-   reattachment — it stays off the figure (convention mixing).
-2. THE ALPHA=-8 FRONTS DISAGREE WITH EVERYTHING, and the worse half
-   was invisible (clipped by xlim). Diagnosis on the am8 fields:
-   - Suction (lower) surface: a -Cp = 4.7 leading-edge spike whose
-     adverse recovery should trip transition at ~0.01c (XFOIL/AFT do).
-     SA-AI keeps the surface laminar to 0.89c: the spike bubble
-     offers ~0.01c of streamwise room while the chi handover needs
-     many times that — the paper's handover-length mechanism at its
-     most extreme. A genuinely informative failure.
-   - Pressure (upper) surface: front at 0.14-0.22c vs measured ~0.5c,
-     sitting just downstream of the stagnation point that has moved
-     onto that surface at -8 deg — the rate coordinate's
-     low-advection-speed (X->0) inflation region.
-   Decision per the reviewer's options: KEEP the markers, disclose
-   both misses in the caption, and extend xlim so the lower point is
-   visible. The forces stay within 7 counts — the polar is honest —
-   but the front misses now say out loud what they are: the boundary
-   of applicability at strong negative incidence, outside anything
-   the model was calibrated on.
-Minors: mfoil sweep now interpolates its reattachment crossing (and
-never clobbers the xfoil block); the L0 drag split lives in the
-committed diag script; nlfpolar caption covers the negative branch;
-campaign JSON schema completed; the invariant-kernel harness moved
-out of paper/repro (the paper is silent on the abandoned variant, as
-it should be).
-
-## 2026-07-25 ~15:15 UTC — CORRECTION to the double-peak explanation (review pass 25)
-The reviewer refuted the CAUSAL half of the double-peak story you
-liked, and the data is on its side. What survives and what changes:
-- SURVIVES (verified): the two peaks are two different shear layers —
-  the lifted laminar layer over the recirculation core (peak 1, at
-  the top of the row-2 probe window at its maximum) and the near-wall
-  reattachment layer (peak 2 at d=0.0014c). Peak positions, heights,
-  chi crossings: all as quoted.
-- CORRECTED: the sharp notch between them is the lifted layer
-  CLIMBING OUT OF THE FIXED 0.01c PROBE WINDOW, not the handover
-  diffusing it. Probed deeper, the layer stays saturated (P~1) just
-  above the window through the entire "collapse", until x~0.69; the
-  full-depth envelope never drops below 0.85. My "deeper probe shows
-  it dying by 0.55" misread an argmax jump between two branches that
-  are BOTH at ceiling. The chi=1/c_v1 alignment with the notch is
-  correlational (both track the bubble's growth toward reattachment),
-  not causal. Appendix B now says exactly this.
-- Also fixed: both y+ conversions were 10x too large (u_tau missing
-  the xU_inf=M=0.1 in solver units): the window top is y+~42 and
-  peak 2 sits at y+~6 — the SUBLAYER of the forming wall layer, which
-  actually fits "new near-wall reattachment layer" better than the
-  wrong 58 did.
-
-## 2026-07-25 ~15:20 UTC — fv1-bypass PROMOTION BATTERY: verdict table
-All 32 runs done (16 slots x ON/OFF, matched cold/fSlow=1/40k
-protocol, sigma_t-tied s(chi), analytic q gate). ON-vs-OFF:
-  case            OFF CL/CD        ON CL/CD         dCD(counts)
-  epp2e5 a0       0.389/0.01059    0.388/0.01047    -1.3
-  epp2e5 a2       0.608/0.01206    0.608/0.01191    -1.6
-  epp2e5 a5       0.927/0.01529    0.928/0.01498    -3.1
-  epp2e5 a7       1.140/0.01452    1.140/0.01444    -0.8
-  epp2e5 a5 cav   0.937/0.01477    0.937/0.01455    -2.2
-  epp 60k a5      0.622/0.05382    0.633/0.05343    -3.9 (still burst)
-  epp100k a5      0.812/0.04048    0.828/0.03847   -20.1 (still open)
-  epp300k a5      0.940/0.01116    0.940/0.01096    -2.0
-  epp460k a5      0.949/0.00886    0.949/0.00881    -0.5
-  nlf a0/4/9/15   ---              ---              -0.1/-0.3/-0.4/-1.3
-  nlf a4 cav      ---              ---              -0.4
-  flat Tu0040     0.024/0.01181    0.024/0.01166    -1.5
-  flat Tu0300     0.034/0.01694    0.034/0.01691    -0.3
-Against your promotion criteria:
-- NLF: unaffected (<=0.4 counts except -1.3 at the near-stall 15 deg;
-  CL moves <=0.08%). PASS.
-- Flat plate: Tu0300 untouched; Tu0040 loses 1.5 counts — needs the
-  onset-Re_theta check (CD alone conflates onset with the turbulent
-  run) before calling it. PROBABLE PASS, verify onset.
-- Eppler: improves at EVERY condition, direction always toward the
-  measurement: -0.8..-3.1 counts through the 2e5 benchmark (a5 str
-  0.01498 vs exp 0.0138 — about a third of the canon gap closed),
-  -2.0/-0.5 at 300k/460k, and -20 counts at the 1e5 bursting
-  boundary. IMPROVED — but the 1e5 bubble does NOT close (0.828/0.038
-  vs the burst 0.812/0.040; experiment 0.873/0.0237).
-THE TWIST: the earlier exploration (old s(chi) window (1,2)) CLOSED
-the 1e5 bubble outright (0.93/0.0231, drag on the measurement).
-Today's sigma_t-tied s is much weaker exactly where fv1 bites
-(s=0.22 at chi=2, 0.63 at chi=5, full only ~chi 20), and the 1e5
-closure is lost. The parameter elimination has a real cost at the
-bursting boundary.
-Recommendation: make the s-ramp width an explicit input defaulting to
-the sigma_t width (keeps the zero-parameter default), and test width=1
-(the old window's strength) at 1e5 + the 2e5 benchmark + one NLF +
-one flat plate (8 quick runs). If width=1 closes 1e5 while staying
-inert elsewhere, the promotion decision becomes: accept ONE tunable
-with an analytic anchor candidate (the fv1 half-saturation scale,
-chi~c_v1/2... to be derived) in exchange for moving the bursting
-boundary — your call.
-
-## 2026-07-25 ~16:00 UTC — fv1 switch speed: the analytic case for FASTER than sigma_t
-Your question: any analytic reason (besides Eppler) for the bypass
-switch to be faster than the handover? YES — the two ramps answer
-different questions and tying them double-counts:
-- sigma_t (width 4) encodes turbulence MATURITY — how gradually nuHat
-  earns SA-production authority. Real physics, already applied to
-  production.
-- fv1 is NOT a maturity function. It is WALL-PROXIMITY damping: its
-  derivation is the attached-layer identity chi = kappa*y+, under
-  which fv1 enforces mu_t ~ y^3 in the sublayer; its half-saturation
-  chi = c_v1 = 7.1 IS y+ ~= 17 (mid buffer layer, by construction).
-  In a lifted transitional layer that identity is void at EVERY chi —
-  and the q gate is exactly the parameter-free certificate of that.
-  Once q fires, fv1 damping is an unjustified error with no
-  chi-dependence excuse. s(chi)'s only remaining jobs: smoothness at
-  the chi=1 edge, and inertness below chi~1 where mu_t < nu/360
-  regardless.
-- Ergo: sigma_t-tied s double-counts immaturity (production
-  discounted AND mu_t wall-damped in a layer with no wall). The
-  principled structure: maturity on production (sigma_t), geometry on
-  the viscosity assembly (q), s = fast one-chi-unit smoothing ramp.
-The aggressive switch is therefore the analytically preferred form;
-the width-1 battery (8 runs, in flight) is confirmation, not
-justification. If it closes 1e5 and holds the NLF/flat-plate gates,
-proposal: canon = bypass ON, s width ~= 1.
-
-## 2026-07-25 ~16:05 UTC — Fig. 13 FlexFoil branch + the e9 no-bubble finding
-FlexFoil (faithful-XFOIL, target/release/rustfoil) swept alpha=-2..9
-at Re=2e5 (repro: run_flexfoil_bubble_sweep.py). Branch added to
-fig:eppbubble (dash-dot, alpha<=6.5; isolated 8.0 sliver marked).
-Finding for the caption/text: at alpha>=7 the e9 integral closure
-TRANSITIONS AHEAD OF SEPARATION (min Cf stays positive, +2e-4 at 7 —
-identical in XFOIL, same closure) and predicts NO bubble, while the
-oil flow still shows one at 7 deg (0.33/0.48). mfoil's convergence
-failure at 7 and the missing high-alpha e9 stations are thus the same
-phenomenon: the reference family loses the bubble before the
-experiment does.
-Also queued per your directive: Eppler alpha=-2 and 8.5 canon runs
-AFTER the fv1 promotion decision (task list updated).
-
-## 2026-07-25 ~17:20 UTC — fv1 bypass IS CANON; full 2D recomputation running
-Your decision executed:
-- canonical_ai_env() now exports AI_FV1BYPASS=1 and AI_FV1_SWIDTH=1 —
-  the LINEAR s-ramp over chi in (1,2) (the original clip form; the
-  exponential width-1 probe showed even it is too soft: 0.840/0.0367
-  at 1e5 vs the linear form's closed 0.925/0.0253). Compiled defaults
-  stay bypass-OFF so classical-SA comparisons are untouched.
-- NEW campaign root flow360_fv1 (on /local_data, symlinked): 93 cases
-  staged and RUNNING on all 8 GPUs — NLF 24 + negative pair (both L2
-  fams), Eppler 24 + extension alphas (-2, 1, 3, 4, 6, 8.5 on both
-  L2s: the oil-flow range you asked for, task #28 folded in), the
-  full Re sweep 24 (uniform sweep_{fam}{L}_ names), flat plates 5.
-  Old canon flow360_fr untouched for provenance; the paper flips via
-  SAAI_CFD_ROOT when we adopt. First-case solver echo verified:
-  ai_fv1Bypass 1, ai_fv1SwitchWidth 1. ETA ~8-12 h.
-- When it lands: full old-vs-new-canon comparison tables (forces,
-  fronts, bubble stations), flat-plate onset-Re_theta check
-  (the Tu0040 -1.5 ct needs the onset location, not CD), then the
-  paper migration (constants section gains the bypass term, Appendix
-  E assembled model updated, every figure/table regenerated from the
-  new root) as its own reviewed pass. The 1e5 bistability/fork
-  studies of Sec. VII will need re-running at new canon after that.
-- NOTE the sigma_t-tied battery + exponential width probe remain on
-  disk (fv1b_*, fv1w1_*) as the promotion evidence trail; the
-  matched-protocol linear ON/OFF pairs will be pulled from the new
-  campaign vs the OFF battery.
-
-## 2026-07-25 ~18:10 UTC — Your alpha=7 catch: the e^N Cf was EDGE-normalized (real bug, 4 figures)
-You were right and it was worth chasing: in fig:eppcfhigh's alpha=7
-column the dotted e^N Cf is XFOIL's dump (mfoil stalls there), and
-XFOIL/FlexFoil dump Cf is normalized by the LOCAL EDGE dynamic
-pressure (tau / (rho ue^2 / 2)) while the CFD rows and mfoil use the
-freestream convention. On the slow pressure side (ue~0.68 at alpha=7)
-that inflates the dotted curve by 1/ue^2 ~ 2.2x — the "many times
-higher" you saw. Verified: multiplying by ue^2 (= 1 - cp) drops the
-XFOIL lower-surface curve EXACTLY onto the CFD (including the 0.008
-peak at x=0.03; overlay in scratchpad cfnorm_check.png).
-Affected and fixed (conversion at plot time; all zero-crossing
-extractions are sign-invariant and untouched):
-- fig:eppcfhigh alpha=7 (XFOIL dotted),
-- NLF five-row sheets where the XFOIL fill is used (alpha=9/15),
-- the Re-sweep sheets at 60k/460k (XFOIL-primary rows),
-- the Daedalus section sheets' strip C_f row (FlexFoil dump; xue^2
-  via the stored ue).
-mfoil-sourced overlays were always freestream-normalized and correct.
-Regens running; caption of fig:eppcfhigh now states the convention
-(and corrects "FlexFoil" -> XFOIL — the alpha=7 reference is the
-XFOIL pickle; FlexFoil supplies the N envelopes elsewhere).
-
-## 2026-07-25 ~18:15 UTC — CANON CLARIFICATION (important): NOT the invariant kernel
-To your "confirm the canon is the vector-calculus implementation +
-fv1 bypass": NO on the first half. Canon = the MAGNITUDE (standard)
-sphere kernel + fv1 bypass (linear s over (1,2), analytic q gate).
-The invariant/vector-calculus kernel FAILED its 2D verification at
-matched protocol this morning (controls reproduce old canon exactly;
-invariant +12.4/+22.3/+10.8 counts on str-NLF/cav-NLF/Eppler;
-turbulence-residual floor 5 decades high — s_hat direction flutter in
-weak shear suspected). Per your own gate (verify on 2D first), it is
-not cleared; the running 93-case campaign uses the magnitude kernel.
-The invariant form remains a debugging project (candidate fix: blend
-s_hat to the magnitude representative in weak shear) and lives in the
-extension memo, not the paper.
-Paper rewrite scope right now (fv1 bypass only): Sec. II gains the
-bypass definition + double-counting argument; Appendix E's mu_t
-assembly gains the (1-w) fv1 + w blend; the analytic q-margin
-composite-profile note goes to repro/analytic. Results
-sections/figures flip to flow360_fv1 when the campaign lands. I'll
-list every rewritten paragraph as it happens.
-
-## 2026-07-25: AIAA Transition Workshop research (Q1: 2nd workshop? Q2: NLF-0416 open sources)
-- NO 2nd Transition Modeling & Prediction Workshop held/announced as of Jul 2026. Follow-ons: 1st AIAA LFC Transition-Prediction Workshop (suction LFC, LST/PSE, 2025-26, Schrauf/Vijgen/Badrya, 3 test cases, flyer+test-case PDF on transitionmodeling.larc.nasa.gov); NATO AVT-313 (prolate spheroid); AIAA APA Transition Modeling DG verification-paper series (OVERFLOW/FUN3D gamma-Re_theta J.Aircraft).
-- JACKPOT for NLF-0416 digitization: Coder NAS seminar "Summary of the 1st AIAA CFD TMPW" slides, pp.16-22 = Case-2 grid conv (a=0,5) + alpha-sweep overlays of ALL 14 submittals (x_tr/c vs alpha + polars), raster 1000x750 PNG. Saved: references/TransitionMPW1_summary_Coder_NAS2021.pdf. Also saved proceedings agenda (participant list+deck links) and Piotrowski-Zingg(2020) UTIAS preprint (vector Fig.6 alpha sweep).
-- 12+ participant slide decks freely downloadable from transitionmodeling.larc.nasa.gov (ANSYS, Tsinghua k-w-gamma, TAI SA-BCM, NLR, CVUT, MARIN/IST, Siemens, CIRA, ONERA, UMD, KAIST, Toronto).
-
-## 2026-07-25 ~18:45 UTC — Workshop questions answered (agent report, PDFs in references/)
-Q1 (2nd workshop?): NO — none held or announced as of Jul 2026; no
-summary journal paper either. Follow-ons: the 1st AIAA LFC
-Transition-Prediction Workshop (2025-26, suction-LFC/LST-PSE scope,
-different beast), Coder's APA discussion group verification-paper
-series (Venkatachari et al. J. Aircraft 2024, gamma-Re_theta_t in
-OVERFLOW+FUN3D), and NATO AVT-313 (spheroid; headline finding = big
-cross-implementation scatter — useful context for our Sec. spheroid).
-Q2 (more NLF participants than AFT?): YES. The jackpot:
-references/TransitionMPW1_summary_Coder_NAS2021.pdf — Coder's NAS
-seminar summary of the workshop, pp. 15-22 = Case 2 (NLF-0416) with
-ALL 14 submittals overlaid: grid convergence at alpha=0/5 and full
-alpha-sweep x_tr/c (both surfaces) + polars vs experiment. Raster
-(lossless) but digitizable. Also saved: Piotrowski & Zingg (VECTOR
-alpha-sweep transition, SA-LM2015 + smooth variant) and the workshop
-proceedings index (links to 13 participant decks: ONERA elsA, Ansys
-Fluent, NLR, CTU OpenFOAM, CIRA, MARIN/IST ReFRESCO, STAR-CCM+,
-Tsinghua k-omega-gamma, UMD, SA-BCM (Cakmakcioglu), KAIST...).
-PROPOSAL: digitize the summary's alpha-sweep overlays into a shaded
-"workshop envelope" band on fig:nlfaft (14 curves would be soup) +
-optionally Piotrowski's vector curves as one named line. Awaiting go.
-
-## 2026-07-25 ~19:20 UTC — Canon campaign PAUSED (your call); invariant-kernel debug resumed
-Campaign stopped cleanly at ~20/93 (completed cases preserved in
-flow360_fv1; resume needs a skip-completed guard added to
-run_sphere_campaign). GPUs turned to clearing the vector-calculus
-question. First finding, from the existing 40k fields:
-- THE LEADING EDGE IS THE CONTAMINATION SITE. Control: chi == seed
-  exactly everywhere at x<0.02. Invariant run: p99 = 3x seed, max 6x
-  seed in the same window. Spurious amplification at/above the LE
-  seeds the whole downstream boundary layer -> earlier transition ->
-  the +12/+22/+11 counts. (Wake elevation exists but is modest and
-  post-transition.)
-- Mechanism (quasi-2D makes it sharp): omega is out-of-plane, so
-  s_hat is ALWAYS the in-plane tangent, signed by omega_y. In
-  near-irrotational regions (above the LE curvature, outer BL edge)
-  omega_y is gradient noise, its sign flutters, and the nodes with
-  s_hat anti-parallel to u get X = -|u| -> g ~ +1 -> P ~ +Y/|u|
-  (small but positive) where the magnitude form's X = |u| gives g < 0,
-  clipped to zero. The onset gate can pass there (large d). This also
-  explains the 5-decade residual floor (sign flutter never settles).
-- Candidate fix (kernel v2): blend the signed representative toward
-  the magnitude form by shear significance, X_eff = W (u.s_hat) +
-  (1-W)|u| with W = Y^2/(Y^2 + X_mag^2) = S_hat^2 (and Z likewise).
-  Strong shear (attached BL, bubble shear layer, reversed-flow layer:
-  the case the invariant form exists for) keeps the signed X; weak
-  shear (stagnation, irrotational noise) falls back to the magnitude
-  form whose clipping is the guard. No new constants.
-- Running now: one-step ON/OFF restart pair from the identical
-  converged control state to localize the production difference
-  field-by-field before implementing v2.
-
-## 2026-07-25 ~20:10 UTC — Workshop envelope IS IN THE PAPER (fig:nlfworkshop)
-Per your go: new figure after fig:nlfaft — the min-max envelope of
-all ~14 workshop submittals (transition-vs-alpha, both surfaces,
-digitized from Coder's summary deck p.22 with verification overlay
-committed), the LTPT points recoverable from under the overlay
-clusters, Piotrowski-Zingg's vector SA-LM2015 sweep, and SA-AI's
-markers. The story it tells: the envelope is 0.4-0.6 chord WIDE at
-fixed incidence (the workshop's headline scatter), and the untuned
-SA-AI fronts sit inside it, on the experiment/LM cluster, at every
-incidence — including the alpha=-4 lower-surface front, which looked
-aggressive against the experiment alone but is within the community
-scatter. Two new bib entries (coder_tmpw_summary,
-piotrowski_zingg_2021); the three workshop PDFs committed to
-references/. Commit c0f3d8f (88 pages, clean build).
-
-## 2026-07-25 ~20:15 UTC — Vector-calculus kernel: the PAIR (division-free) form
-Your reformulation adopted, and it is strictly better conditioned.
-With m = omega x d_vec (d_vec = d n_hat) and l = (d.d)/2 * lap(u):
-  A = u . m   (= [u, omega, d_vec], a signed scalar triple product)
-  B = m . m
-  C = l . m
-  S_hat = B/sqrt(A^2+B^2),  g = (B-A-C)/sqrt(A^2+B^2+C^2),  P = S_hat g.
-Divisions only by positive-definite RMS norms of the pair triple; no
-unit vector is ever manufactured (the old code's s_hat needed
-1e-30-guarded normalization and fabricated a noise DIRECTION at
-omega -> 0; here A,B,C all vanish smoothly and P -> 0). Algebraically
-identical to the s_hat form wherever omega x d != 0 (the tail is
-homogeneous degree 0 — same projective class), so the LE sign-flutter
-pathology is a property of the class, not the divisions; the guard is
-the shear-significance blend, one line in pair language:
-  A_eff = W A + (1-W) |u| sqrt(B),  W = B/(B + u.u).
-Plan: implement pair form + W-guard as AI_INVARIANT_KERNEL=2 after
-the one-step ON/OFF localization (running) confirms the mechanism.
-
-## 2026-07-25 ~21:00 UTC — Vector kernel: YOUR wall-parallel Gram form agreed and implemented
-Final form (AI_INVARIANT_KERNEL=2), exactly as you proposed:
-  m = omega x d_vec (automatically wall-parallel),
-  u_par = u - (u.n)n,  l_par = (d^2/2)[lap u - (n.lap u)n],
-  P = (<m,m> - <m,u_par> - <m,l_par>) /
-      sqrt((<m,m>+<u_par,u_par>) (<m,m>+<u_par,u_par>+<l_par,l_par>)).
-Why it wins over both my earlier drafts:
-- EXACT on parallel layers: reduces to Shat*g when the three vectors
-  are collinear — verified on the frozen NLF attached profile to
-  1.4e-6.
-- Cauchy-Schwarz makes any misalignment only SHRINK P, which kills
-  both failure sites the one-step localization found (near-wake
-  n-to-TE orthogonality; aft-BL-edge omega sign flutter) with NO
-  switch, NO W-blend, NO degenerate limit: the denominator is
-  >= <u,u> wherever there is flow (your objection to W->0 as B->0 is
-  structurally resolved).
-- In the bubble the vectors are collinear, so the signed
-  (antipodal-exact) behavior of the recirculation layer is retained;
-  the pointwise bubble deviation from the MAGNITUDE kernel is the
-  designed one, and the solver battery is the macroscopic test.
-One-step localization that motivated the guard (for the record): the
-s_hat form's instantaneous production difference concentrates at
-x=1.0-1.25 (near-wake, wallDist 0.02-0.25) and the aft BL edge; the
-LE was numerically ZERO at one step — the 40k LE chi elevation was
-downstream contamination feeding back, not a local source.
-Battery running (4 runs: str/cav NLF a4 + Eppler a5 with the new form
-vs the existing controls + a fresh Eppler control). Verdict = ON ==
-control within line widths, the bar the s_hat form failed.
-
-## 2026-07-25 ~22:30 UTC — Gram form (projected) verdict: FAILS WORSE; diagnosis + repair proposal
-Battery result (vs held controls; s_hat form had failed +12.4/+22.3/
-+10.8 counts):
-  str NLF a4:  control 0.9796/0.00741 -> gram 0.9644/0.00882 (+14.2 ct)
-  cav NLF a4:  control 0.9839/0.00771 -> gram 0.9539/0.01057 (+28.5 ct)
-  Eppler a5:   control 0.9171/0.01598 -> gram 0.9050/0.01834 (+23.5 ct)
-Diagnosis (chi maps, systematic not flutter): the STAGNATION UNDERSIDE
-carries chi at 94x seed and the LE at 17x (controls: exactly seed).
-Cause: projecting u to the wall-parallel plane removes the advection-
-speed guard precisely at impingement points, where u is wall-normal
-and u_par ~ 0 -> denominator collapses -> P inflates. The amplification
-steadying must come from the FULL advection speed (the same physics as
-the advection-speed discussion in the LSB thread).
-PROPOSED REPAIR (awaiting the author's agreement): drop the
-projections entirely — they are automatic in the numerator (m is
-perpendicular to n, so <m,u> = <m,u_par>) and harmful in the
-denominator:
-  P = (<m,m> - <m,u> - <m,l>) /
-      sqrt((<m,m>+<u,u>)(<m,m>+<u,u>+<l,l>)),
-  m = omega x d_vec,  l = (d.d)/2 lap(u).
-Exact on parallel layers (u_n = 0 there); crossflow wedge H untouched;
-wake/BL-edge suppression retained; impingement guarded by the full
-<u,u>. Pure dot products of unmodified vectors — simpler than every
-prior variant.
-
-## 2026-07-25 ~23:30 UTC — Unprojected Gram verdict: BOTH variants fail identically; root cause is signedness itself
-Results (vs controls; ct = dCD counts):
-  mode 2 (all raw):    nlf_str +13.7, nlf_cav +23.6, epp +23.8
-  mode 3 (l projected): identical to mode 2 within 0.2 ct
-  (projected form was +14.2/+28.5/+23.5; s_hat form +12.4/+22.3/+10.8)
-So the projection was never the driver. Field forensics on mode 2:
-BL edge and outer bands CLEAN (exactly seed — my edge hypothesis was
-wrong for this variant); the contamination is the LE (14x seed) and
-the STAGNATION UNDERSIDE (88x seed) — despite the full <u,u> guard,
-because at a stagnation region the full velocity itself vanishes.
-Root cause common to ALL signed variants: in weak-shear regions the
-signed <m,u> flutters with the omega-noise sign, clip<P>_0 rectifies
-the positive half, and the onset gate passes wherever d^2|omega|/nu
-is large. The magnitude kernel is immune BY CONSTRUCTION (X=+|u|
-always -> g<0 in weak shear -> clipped). Signedness is the leak, not
-the normalization.
-Remaining options: (1) the shear-significance blend W=B/(B+uu) —
-signed where shear dominates advection (backflow), magnitude where
-advection dominates (every leak site); engineered for exactly this
-discriminator, never run; zero new constants. (2) accept the
-magnitude kernel as final (expressible division-free in Gram
-clothing; the crossflow odd-pairing H story is an ADDITION and
-survives either way). Proposed: run (1) as mode 4 to close the
-question with data. Awaiting the author's go.
-
-## 2026-07-26 ~00:15 UTC — The magnitude kernel in division-free Gram clothing (derivation)
-Homogeneity: Shat and g are degree-0 in (X,Y,Z); scale the triple by
-X = |u| (positive) instead of Y:
-  (X,Y,Z) ~ (X^2, XY, XZ) = (<u,u>, sqrt(<u,u><m,m>), <l,u>)
-— the division hidden in Z = <l,u>/|u| is cancelled EXACTLY by the
-scaling. The calibrated magnitude kernel is then
-  Shat = sqrt(<u,u><m,m>) / sqrt(<u,u>^2 + <u,u><m,m>)
-  g    = (sqrt(<u,u><m,m>) - <u,u> - <l,u>)
-         / sqrt(<u,u>^2 + <u,u><m,m> + <l,u>^2)
-with m = omega x d_vec, l = (d.d)/2 lap(u): two Gram pairings, one
-square root of their product, RMS denominators, no unit vectors, and
-P -> 0 smoothly in quiescent flow.
-Structure worth putting in the paper:
-1. DUALITY: signed form = pairings against m (<m,u>,<m,m>,<m,l>);
-   magnitude form = pairings against u (<u,u>, sqrt(<u,u><m,m>),
-   <u,l>). Same three vectors, different reference leg; coincident on
-   parallel layers (u || m) — matching every frozen-field check.
-2. CAUCHY-SCHWARZ IS THE BATTERY VERDICT IN ONE LINE: the magnitude
-   form's middle entry is the C-S ENVELOPE of the signed form's
-   <m,u>. The envelope never flips sign with omega-noise -> weak
-   shear always lands on g<0 and clips; every signed variant failed
-   because it kept the pairing, the magnitude kernel survives because
-   it keeps the envelope. (The W-blend = interpolating between a
-   pairing and its own envelope.)
-3. Y-CHOICE via the Lagrange identity: |omega x d|^2 =
-   <omega,omega><d,d> - <omega,d>^2 — the canon full-|omega| Y is
-   also division-free (Y^2 = <d,d><omega,omega>), the tangential
-   choice differs only by the wall-normal-vorticity pairing
-   <omega,d>^2 (identical in 2D, i.e., the whole calibration domain),
-   and that difference term sits naturally next to the crossflow odd
-   pairing H = n.(u x m) in the same algebra.
-So the paper can present the UNCHANGED calibrated kernel in this form
-— same numbers, no recalibration — with <m,u> (signed variant, failed
-verification) and H (crossflow channel) documented as the algebra's
-other two readings. W-blend run still on offer to data-close the
-signed option.
-
-## 2026-07-26 ~01:00 UTC — GRAM FORM ADOPTED (magnitude kernel); campaign resumed; what changed where
-Adoption executed (commit b8cac0e):
-1. REUSE: everything already computed remains valid — the Gram form
-   is algebraically identical to the calibrated magnitude kernel
-   (degree-0 homogeneity, rescale by |u|), so the old canon, the fv1
-   batteries, and the 20 completed flow360_fv1 cases all carry over
-   unchanged. No solver code change: the implemented (X,Y,Z)
-   arithmetic IS the Gram form after the rescale.
-2. Y-CONVENTION pinned: full-vorticity Y^2 = <d,d><omega,omega>
-   (identical to canon everywhere incl. 3D; also division-free). The
-   tangential |omega x d| variant differs only by the wall-normal-
-   vorticity pairing (Lagrange identity) and is documented as the
-   3D-future option next to the crossflow pairing H.
-3. PAPER (Sec. III solver-realization passage, new Eq. eq:gram): the
-   triple is now stated as (<u,u>, sqrt(<u,u><d,d><omega,omega>),
-   <l,u>) with the four vectors defined; parallel-layer reduction
-   spelled out; the signed pairing <omega x d, u> recorded WITH its
-   verdict (implemented in four variants, rejected — rectifies
-   vorticity-direction noise in weak shear; its C-S envelope IS the
-   middle Gram entry); the odd crossflow pairing pointed at the
-   outlook. The existing signed-vs-magnitude realization paragraph
-   (mixed-sign layer discussion) stands unchanged — it was already
-   exactly right.
-4. ARTIFACT memo updated + republished (same URL): kernel card now
-   'adopted' with the full verdict trail.
-5. CAMPAIGN resumed with a skip-completed guard (ai_constants.log as
-   the completion marker): the 20 finished cases skipped in seconds,
-   remaining ~73 running on all 8 GPUs.
-Sections to read: Sec. III paragraph beginning 'In the solver the
-indicator triple is assembled from four local vector-calculus
-objects' + Eq. (eq:gram) (one page); the RESPONSES ~00:15 entry for
-the derivation; the artifact kernel card for the memo version.
-
-## 2026-07-26 ~02:00 UTC — Review passes 26 (remainder) + 27 all addressed (commit 0f6c17a)
-Headlines (full detail in agent-paper-review/2026-07-25-1613-response.md):
-- fig:nlfworkshop: the 9-deg cluster is DROPPED (it sat beyond the
-  digitized envelope's -4..8 alpha domain — the caption's "at every
-  incidence" could not be supported there); caption states the domain,
-  the manuscript-vs-journal Piotrowski provenance, and the c_l->alpha
-  replot; band recolored gray so the O-grid markers cannot hide.
-- The promised analytic q-margin note is DELIVERED:
-  repro/analytic/fv1_qmargin_composite.py (Reichardt + Coles): q < 2
-  through the entire gated band for wake parameter Pi <= 3.5 at any
-  delta+ >= 100; near-separation wakes (Pi 5-7, low delta+) reach
-  q ~ 2.3-2.8 and open G partially — the II.F sentence is scoped to
-  exactly this envelope, and the <=1.5-count consequence bound now
-  traces to a committed dataset (data/fv1bypass_battery_results.json,
-  16 slots x on/off).
-- The fv1 bypass weight is renamed b (w stays the onset ramp width);
-  Appendix E counts FOUR departures from baseline SA, the recovery
-  recipe includes b==0, and s, G, and Reichardt's U+ (cited) are
-  restated in the assembled model.
-- fig:nlfcfhigh's alpha=9/15 dash-dot overlay correctly attributed to
-  XFOIL (with the x ue^2 conversion stated); N envelope remains
-  FlexFoil's. A global Cf-convention disclosure now lives in the
-  Appendix-A conventions paragraph.
-- Status sentence made pause-proof; note the campaign is in fact
-  RESUMED (skip guard) since the Gram adoption.
-
-## 2026-07-25 — E387 literature scour for comparison figures (agent)
-Downloaded to references/ (4 best, all free):
-1. frere2016-e387-ILES-DG-eN-RANS-Re60k.pdf — Frere et al., J.Phys.Conf.Ser 753:022037 (2016), open access. ILES(DG, effectively DNS) + EllipSys2D RANS coupled e^N (Ncrit 7/9) + XFOIL, E387 Re=6e4. Fig 2 CL/CD vs alpha vs 4 experiments (LTPT/Delft/Princeton/Stuttgart); Figs 4-5 Cp AND Cf at alpha=4,8 deg. Covers coupled RANS-e^N + high-fidelity anchor at the bursting Re.
-2. carreno-ruiz2022-gammaRetheta-STARCCM-e387-Re60k.pdf — Carreno Ruiz & D'Ambrosio, FTaC 109:279-308 (2022), open access. gamma-Re_theta in STAR-CCM+ (Menter vs Suluksna-Juntasaro correlations, s1 tuning); E387 Fig 19 CL+CD vs alpha at Re=6e4.
-3. ghimire2025-openfoam-gammaSST-e387-Re300k.pdf — Ghimire/Ni/Wang, Fluids 10:230 (2025), CC-BY. OpenFOAM gamma-Retheta-SST vs gamma-SST vs Kgamma-SST; E387 Re=3e5 Tu=0.1% alpha=2/4/6: Cp (Figs 3/5/7) + Tables 6-8 of LS/TR/transition x/c vs McGhee (tables — no digitization needed). IDDES at Re=1e5 alpha=11 (Fig 10 Cp).
-4. ijsrp2019-fluent-kklw-transSST-e387-polars-Re20k-300k.pdf — Anushka R et al., IJSRP 9(1) 2019. Fluent k-kL-omega + trans-SST polars (Cl-a, Cd-a, Cl-Cd) at Re=2e4/3e4/6e4/1e5/3e5 vs McGhee. Only free k-kL-omega E387 dataset spanning our sweep; low-tier journal, raster.
-Not downloaded (ranked): Lopes/Eca/Vaz NuTTS'18 "Assessment of RANS Transition Models" (SST+gamma-Retheta/gamma/AFT + kT-kL-omega Cp at Re=3e5 alpha=1, free: uni-due.de/imperia/md/content/ist/nutts_21_2018_cortona.pdf pp~118-123); Brunelli et al. FTaC 116:27 (2026) VMS-iLES Cp Re=3e5 alpha=1 (open, link.springer.com/content/pdf/10.1007/s10494-025-00727-7.pdf); Sahin/Hall/Mohseni AIAA 2008-0422 DNS Re=6e4-4.6e5 (paywalled, exact sweep match); Catalano&DeRosa AIAA 2020-2990 LES Re~1e5 (paywalled); Salimipour C&F 181:67 (2019) k-kL-omega mod E387 Re 3e4-1.3e5 (paywalled). Bonus experiment: Cole&Mueller 1990 (NTRS) LSB measurements on E387. Checked: NASA LAVA-AFT 2018 has NO E387; arXiv 2508.02547 = D'Alessandro (already held).
-
-## 2026-07-25 16:57 UTC — Eppler literature: Cole–Mueller fetched + proposed insertions
-
-Addendum to the agent's ranked list above. Fetched the bonus experimental source from NTRS:
-`references/cole-mueller1990-e387-LSB-LDV-Re100k-NTRS19900006064.pdf` (148 pp., Notre Dame
-UNDAS/NASA CR, Jan 1990). It is LDV boundary-layer velocimetry inside the E387 bubble at
-**Re = 1e5** (primary case alpha = 2 deg), and its Table 4.1 tabulates laminar-separation /
-transition / turbulent-reattachment stations vs alpha — a SECOND experimental bubble-station
-set at exactly the Reynolds number where the model's bursting boundary sits (fig:eppbubble
-currently carries only the TM-4062 oil-flow stations at 2e5). 1990 raster scan: the table
-needs visual reading (one page), not digitization software.
-
-Proposed insertions, in value order (awaiting user pick):
-(a) Frere 2016 -> fig:eppresweepforces: the 6e4 literature cluster (ILES ~ DNS-grade, coupled
-    RANS-e^N N=7/9, XFOIL N=7/9, four experiments) at the Re where our refinement fan opens —
-    lets the bursting-boundary section place truth between us, e^9, and the tunnel.
-(b) Ghimire 2025 Tables 6-8 -> fig:eppbubble at 3e5 (three gamma-variants, tabulated, no
-    digitization risk).
-(c) Carreno Ruiz 2022 (gamma-Retheta at 6e4) + IJSRP k-kL-omega polars -> resweep-forces
-    columns at 6e4/1e5/3e5.
-(d) Cole-Mueller Table 4.1 -> fig:eppbubble at 1e5 (second experimental set, at the failing Re).
-
-Campaign status at this writing: nlf set on its final four L2 high-alpha batches (a9/a15 both
-families); eppler/sweep/extension sets follow; skip-guard working (20 SKIPs logged).
-
-## 2026-07-25 — E387 polar digitization (2 reference PDFs)
-- paper/data/carreno2022_e387_re60k_polar.json — Carreno Ruiz 2022 Fig.19 (Re=60k). Legend has ONE gamma-Re_theta curve (not Menter-vs-SJ split; text implies SJ s1=6 recalibration ~= Menter), plus Experimental(McGhee), 2D NS(Sahin), 3D DNS(Sahin), 3D LES(Frere). Raster-embedded MATLAB fig; color-cluster digitization, uncertainty ~+/-0.005 CL, +/-0.0005 CD.
-- paper/data/ijsrp2019_e387_polars.json — IJSRP 2019 (Fluent). Re=60k: kklw (-8..10) + trans-SST (1..11) + Expt-as-plotted; Re=100k/300k: trans-SST ONLY (paper never ran kklw there; kklw=null). Markers are per-point image XObjects with vector bboxes + born-digital tick text => vector precision (+/-0.02 CL worst case). Paper's "EXP" does NOT faithfully duplicate McGhee TM-4062 (60k Cl wildly low; Cd high at 100k) — kept as-plotted, use real TM-4062 tables for comparisons.
-- Checks: paper/data/digitize_check_carreno2022.png, digitize_check_ijsrp2019.png.
-- alpha=5: carreno gRT CL 0.828/CD 0.0334; ijsrp 60k kklw 0.871/0.0471 (interp), transSST 0.029/0.0247 (as-plotted!); 100k transSST 0.834/0.0205 (interp); 300k transSST 0.879/0.0129 (interp).
-
-## 2026-07-25 18:12 UTC — Annotated round 7: 13 of 16 remarks addressed (commit a5eff9d)
-
-Done:
-- p23: Sec III keeps only the four-vector summary + pointer; Appendix E now states the
-  realization Gram-first (eq:gram moved there, = Eq. E4), followed by the signed-algebra
-  correspondence and the two other pairings. Ratio-form disclosure retained.
-- p35: "the sphere kernel" purged (1 site, -> "the model"); P-for-Shat-g purged (2 sites:
-  benchmark prose "(Shat g ~ 1)", Appendix D caption "Re_Omega^c(Shat g)"); struck the
-  inviscid-pressure clause, "The amplification is on time", "deliberately".
-- p36: tab:epplit deleted with its pointer paragraph (fig:epppolar + fig:eppbubble carry it);
-  SA-BC calibration sentence went with the caption.
-- p37: tab:eppresweep moved to Appendix C; figure is now the primary (2 rows x 3+2 panels:
-  cl/cd/cm; separation/reattachment). "independently"->"separately" for FlexFoil (5 sites).
-  The 1e5-failure prose awaits the fv1 recomputation (campaign running).
-- p39: sec:eppbistab dissolved to ONE paragraph (tab:eppfork deleted; fork agreement numbers
-  inline); hysteresis now only pointed at the 60k evidence. Labels kept inline so existing
-  Sec-refs resolve to the enclosing Reynolds section.
-- p40: caption overflow fixed by a pixel audit (text blocks vs page-number band): Fig. 16
-  caption trimmed + image 0.92\textwidth; Fig. C2 image 0.82\textwidth. Zero pages flagged.
-- p42: sec:epphandover dissolved: one completing paragraph (handover-length numbers inline,
-  table deleted), one trimmed re-seeding paragraph, cancellation paragraph untouched.
-
-Literature insertions (user: "do all of them into the figures, skip discussion"):
-- fig:eppresweepforces rebuilt 2-row full-width: top cl/cd/cm with Carreno gamma-Retheta
-  (0.828/0.0334 at 6e4), IJSRP k-kL-omega (6e4) and transition-SST (1e5, 3e5); bottom
-  sep/reattach with oil flow (1/2/3e5), Cole-Mueller alpha=4/6 bracket at 1e5, Ghimire's
-  three gamma variants at 3e5. EXCLUDED: IJSRP 6e4 transition-SST + its "experiment"
-  (corrupt as plotted: CL(5deg)=0.03, Cd spikes; recorded in JSON meta). Frere markers
-  drop in automatically when its digitization agent lands.
-- fig:eppbubble gains Cole-Mueller's SECOND experimental set at 2e5 (Figs 4.37-4.39 of the
-  1990 report digitized; also 1e5 + 3e5 in the JSON). REVISION (not append): their
-  reattachment reads 0.03-0.08c aft of the LTPT oil flow at matched alpha, so the
-  "systematically late" sentence is now scoped to the oil flow with the facility-to-facility
-  spread stated, and the computed low-incidence reattachments noted to fall within it.
-
-Flat-plate section revised to NEW canon (user directive; plates ran ahead of queue, all 5
-DONE): chi=1 onset bracket tightens 14% -> 9% (+8% at Tu=0.04, within 2% at 0.08/0.60,
-6-8% early at 0.16-0.30); early-bias attribution moved from "higher Tu" to mid-range;
-figure regenerated from flow360_fv1; conclusion updated to match. c_v1-crossing statement
-(Re_theta ~ 2500) unchanged.
-
-Pending: p26 workshop all-submittal overlay (digitization agent running) + same treatment
-for the drag bucket; Frere 6e4 cluster. Campaign: nlf set on final 4 L2 batches at last
-check; standing orders on completion = verify nlf_neg/eppler_ext, then Daedalus L0+L1
-new-canon (hold L2).
-
-## 2026-07-25 19:05 UTC — Round 7 complete (commits a5eff9d, 1e86d17, 44e0a83)
-
-Final two items landed:
-- Frere 6e4 cluster on fig:eppresweepforces: coupled RANS-e^N N=7/9 at exact alpha=5
-  (0.728/0.0602, 0.650/0.0602), ILES at alpha=4 only (0.768/0.0431; its alpha=4/8 pair
-  straddles the reattachment jump so an alpha=5 interpolation is meaningless), plus Delft
-  (0.590) and Stuttgart (0.732) alpha=5 lift points. Notable: the model's burst-branch
-  lift (0.62-0.70) sits amid the community/other-facility values at the bistable
-  condition; the LTPT upper branch (0.838) is the high edge of the spread.
-- p26 workshop rework: fig:nlfworkshop DELETED; all 14 submittals digitized per-submittal
-  (19 transition series, 267 pts, zero violations of the earlier envelope; 18 polar
-  series) and underlaid thin on fig:nlfaft (AFT purple, algebraic B-C green, others light
-  gray; placed on the lift axis via the computed strL2 lift curve since the deck's polar
-  has no per-point alpha — disclosed in caption) and on fig:nlfpolar (native cl-cd).
-  Piotrowski-Zingg SA-LM2015 kept at its native cl ordinate. The B-C submittal is exposed
-  as the near-LE outlier on both surfaces; the workshop AFT trio tracks the recalibrated
-  dissertation AFT and the SA-AI markers.
-
-Build clean, 87 pp., zero caption overflows. Remaining round-7 item ("get ready to revise
-the 1e5-failure prose per fv1 results") is the campaign-migration task (#27).
-
-## 2026-07-25 19:35 UTC — Review pass 29: all 3 majors + 7 minors implemented
-
-Pass 29 independently re-digitized every literature source (all committed JSONs confirmed
-faithful; Ghimire zero-mismatch; Carreno/Frere within 1-2 px) and verified the flat-plate
-new-canon numbers exactly. Its one real catch: the alpha=5 oil-flow constants in the two
-sweep scripts were partly TM-4062's alpha=4 row — at 3e5 the plotted reattachment sat
-0.03c aft of the actual alpha=5 tabulation, flattering the fan-vs-band comparison.
-Fixed to (0.34,0.67)/(0.38,0.59)/(0.39,0.55); three figures regenerated.
-
-Also: II.F status sentence now records that Sec. III is already on the recomputed model;
-SA-BC calibration caveat restored to fig:epppolar's caption; gamma-SA (D'Alessandro)
-comparison restored as prose (matched-lift vs matched-lift); frere JSON provenance title
-fixed; anushka bib completed (6 authors, pp. 204-219); flatplate regen script documents
-the SAAI_CFD_ROOT=flow360_fv1 requirement; Cole-Mueller "matched incidence" wording made
-exact; eight-vs-nine oil-flow incidences reconciled; helicity sentence scoped to
-wall-parallel vorticity; phantomsection anchors + Table C1 numbering.
-
-Full response: agent-paper-review/2026-07-25-1800-response.md. Build: 87 pp, 0 errors,
-0 undefined, 0 overflows.
-
-## 2026-07-25 19:55 UTC — Review pass 30: both majors + 7 minors implemented
-
-The big one: the chartreuse participant-m curve (the community's most extreme outlier,
-attribution unknown) was being painted B-C sea-green in BOTH new figures because the style
-matcher grepped 'algebraic' in the family free-text and m_chart's note contains
-"bypass-like/algebraic behavior". A reader would have charged Bas-Cakmakcioglu with the
-worst curve in the workshop. Matcher now requires 'B-C'; both figures regenerated; the
-real B-C submittal draws sea-green and m_chart is anonymous gray. Also: the gamma-SA
-uniqueness sentence is scoped to "SA-based transported-intermittency (gamma-equation)"
-(SA-BC on our own polar figure contradicted the broad claim); captions carry the honest
-14-submittals/19-curves count; greens disambiguated (dark-green crosses vs thin
-sea-green); orphaned nlf_workshop_envelope.pdf git-rm'd; (structured L2) pinned on the
-0.0153 interpolant; anushka bib names re-braced; matplotlib legend en-dashes fixed.
-Campaign check prompted by the review's "GPUs idle" note: orchestrator alive, final two
-strL2 NLF batches at 97% on GPUs 3/5, 27/93 stamped.
-
-Full response: agent-paper-review/2026-07-25-1900-response.md.
-
-## 2026-07-25 20:15 UTC — NLF positive set complete under new canon; diff vs old
-
-Campaign: nlf set (24 cases) done at 18:58, eppler set started. nlf_neg (am4/am8, L2 both
-families) pulled forward onto GPUs 6/7 (skip-guard makes the queued set a no-op); Sec IV
-migration will be ATOMIC when they land (task #30).
-
-Old(flow360_fr) -> new(flow360_fv1) diffs, notable rows (dCD in counts):
-  strL0_a15  -26.6   (L0 high-alpha: bypass removes buffer-layer contamination)
-  cavL0_a15  -12.4
-  cavL2_a9    -8.3   dxtr_up +0.024 (front aft; converged-grid change, cavity family)
-  strL1_a15   -8.2
-  strL0_a9    -5.3   dxtr_lo +0.095 (L0 lower front)
-  strL2_a15   -4.7
-  strL2_a9    -1.6;  a0/a4 rows <= 2.2 counts both families
-All shifts negative (drag down) = toward the measurement (L0 over-predicts markedly).
-Why bigger than the battery's <=1.3 counts: the battery ran the WEAKER sigma_t-tied
-exponential switch, cold-40k, finest grids (+a4cav) only; canon is the aggressive linear
-switch, converged protocol, all grids. The II.F parenthetical gets these actuals at
-migration.
-
-## 2026-07-25 20:45 UTC — Fig 6 negative-AoA diagnosis + new Fig (nlf_cf_negalpha)
-
-User: "In Fig 6 at CL=-0.5 the transition locations seem completely wrong. We need to
-diagnose." Verdict: HALF artifact, HALF real.
-
-ARTIFACT (lower surface): the stored xtr_lo=0.89 at alpha=-8 (both families) was a stale
-extraction value. Field forensics on the am8 cases: the lower (suction, -Cp=4.7) surface
-is turbulent from the LE (Cf=9e-3 at x=0.05; chi>1 from x=0.0025-0.0103 by today's
-converge_by_xtr extractor) — ON the references (mfoil at -8 converges: lower trip 0.015;
-FlexFoil 0.018). The 0.89 signature = a wrong-side probe window that saw no chi signal
-until the airfoil is thin enough (x~0.89) to read the OTHER surface's BL through the TE.
-Today's extractor is correct; the four negative rows in flow360_fr's results JSON were
-re-extracted and patched (am8: str 0.1302/0.0025, cav 0.1945/0.0103; am4: str
-0.4247/0.0729, cav 0.4523/0.1215) and Fig 6 regenerated — the -8 lower marker now sits
-on the references' LE trip.
-
-REAL (upper surface): the pressure-side front at 0.13-0.19 is the genuine solution
-(Cf jump confirms) vs measured 0.542 and e9 0.66 (mfoil -8: xtr_up 0.662, cl -0.476 =
-ours to 3 decimals; FlexFoil 0.663 — e9 pickles extended to -4/-8, mfoil unconverged at
--4 so FlexFoil fills there). Mechanism (new five-row figure): over x=0.02-0.2 in the
-recovery of the UPPER surface's own LE spike (-Cp=2.1), row 2 shows a persistent
-low-level positive Shat*g band (1e-2..1e-1, noisy) and row 1 shows Re_Omega already past
-even the small-rate onset ceiling (k*2600); chi e-folds accumulate where the e9 envelope
-books zero (N=0 until 0.35). At -4 the same noise band exists but Re_Omega crosses later
-and the front stays put (0.42-0.45 = references). This is the rectification family
-(clip<P>_0 keeps positive noise) surviving in the magnitude kernel at small amplitude —
-the amplifying-zone-gate candidate revision is the relevant future fix.
-
-NEW FIGURE: fig:nlfnegalpha (nlf_cf_negalpha.pdf) — the Figs 8/9 five-row suite at
-alpha=-4/-8, L2 both families, with mfoil/FlexFoil e9 overlays (pickles extended) and
-measured onsets. Inserted after Fig 9; fig:nlfaft caption's -8 account rewritten (the
-old "holds the suction surface laminar to 0.89c" claim was built on the artifact).
-regen_nlf_v2.py gains a 'neg' mode; derived slices added to the four negative case dirs.
-Old canon throughout (consistent with the rest of the paper); regenerates at migration.
-
-## 2026-07-25 20:55 UTC — The amplifying-zone gate vs the alpha=-8 defect (quantitative)
-
-User asked what the "amplifying-zone-gate candidate revision" is and how it could help
-alpha=-8. Tested its core coordinate on the am8/am4 fields (strL2, wd<0.01 probe max):
-
-  A0 = clip( max(0, Shat - 1/sqrt(2)) * g )_0    [the gate's thresholded coordinate]
-
-  strL2 am8 UPPER (the defect band):        maxP=0.048-0.077 over x=0.1-0.45, Shat at
-                                            the maxima 0.62-0.67  ->  maxA = 0 EVERYWHERE
-  strL2 am8 LOWER LE (genuine trip):        maxP=0.327, Shat=0.725  ->  maxA=0.036 (ON)
-  strL2 am4 UPPER TS band (correct front):  maxP=0.271, Shat=0.715  ->  maxA=0.023 (ON)
-
-Key structural insight: g=(Y-X-Z)/R>0 with Y<X is only possible when Z<0 — the spurious
-LE-spike-recovery amplification is CURVATURE-driven noise with the shear fraction below
-the sphere's diagonal (Y<X). The 1/sqrt(2) threshold demands genuine shear dominance
-(Y>X) and reads exactly zero through the whole band, while both genuine fronts survive.
-Caveats recorded: A << P in magnitude even where genuine (use as gate, not rate); the
-Blasius band margin is thin (0.715 vs 0.7071) so a soft threshold is safer than a hard
-one; any adoption = model revision = full battery.
-
-## 2026-07-25 21:20 UTC — CORRECTION: the alpha=-8 upper "early trip" is an UNCONVERGED
-## front (user's hypothesis confirmed); rectified-noise diagnosis RETRACTED
-
-User: "I bet alpha=-8 hasn't converged. The front is probably in the process of moving
-backwards... the structured mesh shows no such noise and it shows transition even
-earlier." — CONFIRMED directly by the fv1 rerun, which goes through converge_by_xtr
-(front-convergence batching):
-
-  cavL2 am8 (fv1) xtr_upper: 0.082@15k -> 0.137@20k -> 0.201@25k -> 0.280@30k ->
-  0.358@35k ... still marching ~0.08c/5k steps toward the references' 0.54-0.66c;
-  xtr_lower locked at 0.0104 from the first batches (the genuine suction-side LE trip).
-  cavL2 am4 (fv1): CONVERGED, 0.4529/0.1220 — on the references.
-
-The old-canon negative cases ran run_negalpha_nlf.py = run_solver with a FIXED cold-start
-budget (no front-convergence check) — their 0.13-0.19 upper fronts are snapshots of this
-march. My interim "rectified sub-hinge Shat*g noise defect" mechanism is retracted (the
-user's counterpoints were both right: max-probe/kernel don't respond to singular points,
-and the noiseless structured grid tripping "earlier" was just a different point of the
-same transient). The amplifying-zone-gate "second use case" from the 20:55 entry is void
-with it (the gate's original Eppler-handover purpose is unaffected).
-
-Paper corrections (commit to follow): fig:nlfaft -8 account now states the upper markers
-are not front-converged and will be replaced; fig:nlfnegalpha caption marks the upper
-rows a mid-march transient; NEW appendix sheets (user request) chi_sheet_nlf0416_negalpha
-_{upper,lower}.pdf — 4 rows (cav/str L2 x alpha=-4/-8) in the Appendix-A style, captions
-carrying the same caveat. All regenerate from the front-converged fv1 negatives at the
-Sec-IV migration. Protocol lesson recorded in memory: never quote a transition front from
-a fixed-budget cold start; forces flatten long before a RECEDING front settles (draining
-transient chi from a laminar side is ~100x slow under AI_LAMINAR_SLOWDOWN=0.01 —
-plausible mechanism for the slow march, unverified).
-
-## 2026-07-25 21:50 UTC — Pass 31: both majors + 7 minors (commit follows)
-
-Pass 31 independently confirmed the whole negative-AoA episode (own surface walk
-reproduces all four re-extracted rows and 0.89 nowhere; TP-1861 re-digitized from the
-NTRS scan confirms EXP_XTR upper 0.542@-8 / 0.453@-4 and 'lower: None'). Its two
-majors, both accepted: (1) the patched flow360_fr results JSON was uncommitted while
-the figure regenerated from it was committed — the exact stale-state failure mode this
-episode came from; now committed. (2) My "wrong-side window reads through the thin TE"
-provenance story for the 0.89 was asserted as fact but is UNREPRODUCIBLE (both
-wrong-window variants give 0.005/0.135; the gap at x=0.89 is 20x the window) — the
-xtr_note now says "stale value from a superseded extraction; provenance not
-reconstructed". CORRECTION to the 20:45/21:20 entries accordingly. Minors: broken
-cf_front detector deleted (station table was the real evidence); "edge of the measured
-range" reworded (TP-1861 measures to alpha~-13/-16); front-convergence claims scoped to
-the cavity rerun (structured queued); body sentence added introducing the negative pair;
-xtr_note de-overstated for the non-artifact rows; TP-1861 PDF added to references/;
-JSON trailing newline. Full response: agent-paper-review/2026-07-25-2041-response.md.
-
-## 2026-07-25 22:05 UTC — Row-2 diagnostic: neighbor-smoothed Shat*g before the max
-
-User: "our max(Shat*g) isn't really giving useful information... we should be smoothing
-the field over a neighbor before taking max when we plot it." Implemented everywhere the
-diagnostic appears:
-- repro/lib/smooth.py: NaN-aware Gaussian (normalized convolution).
-- regen_nlf_v2 + regen_eppler_v2 wallnormal_max_metrics: the sampled (n_probe x M) rate
-  field smoothed with sigma = (5% of probe wall-normal, 0.5% chord streamwise) before
-  the per-x max. Propagates to the NLF suites (Figs 8/9/10), Eppler benchmark suites,
-  and the Reynolds-sweep suites (regen_epp_resweep_suite reuses the function).
-- regen_daedalus_section_sheets: the (anchor x probe) rate array smoothed the same way.
-All nine suite figures regenerated. Validation on the negative pair: at -4 row 2 now
-shows the two clean physical bands (lower LE band, upper TS band rising to 0.1 at
-x 0.3-0.45); at -8 the noisy upper cluster is GONE — those were exactly the single-point
-spikes with no transported effect; the marching chi (row 3) is not driven by any
-resolved coherent amplification in the present field, consistent with the transient.
-Disclosure added at the five-row convention definition in the text (and the Daedalus
-appendix caption): "the field is neighbor-smoothed (~0.5% chord streamwise, 5% of the
-probe wall-normal) before the maximum... a raw pointwise maximum would over-report".
-Presentation only — the solver's production is untouched.
-
-## 2026-07-25 22:15 UTC — nlf_neg collision handled (campaign set vs early run)
-
-At 22:03 the main campaign reached its own nlf_neg set while the pulled-forward early run
-still held 2 of the 4 case dirs. What happened: the campaign SKIPped cav_am4 (stamped),
-its duplicate launches on cav_am8/str_am4 crashed within seconds against the held dirs
-(recorded as err entries in its results), and it legitimately claimed str_am8 on gpu3
-(not yet started by the early run). Actions: killed the early runner's PARENT (python
-run_sphere_campaign nlf_neg) so it never launches a duplicate str_am8 — its two running
-converge_by_xtr children (cav_am8 3h march on gpu7, str_am4 on gpu6) continue as orphans;
-launched scripts/babysit_nlfneg_orphans.py to stamp ai_constants.log + harvest
-forces/fronts into sphere_campaign_nlf_neg_results.json.orphan when each exits (their
-parent used to do this), with a monitor on its log.
-
-Damage audit from the campaign's pre-launch reset (deletes *_v2.csv, xtr_history.csv,
-rewrites Flow360.json): xtr_history.csv is rewritten in full from converge_by_xtr's
-in-memory list at each batch end (no loss); the nonlinear_residual/total_forces CSVs
-self-healed (Flow360 recreates them with consistent cumulative step counters — verified
-cav_am8 at 52790 and str_am4 at 23180, both matching wall-clock progress), so
-get_current_step stays truthful and no cold-restart or false-convergence materializes.
-PROCESS LESSON: never run a set ahead of the campaign queue without also removing it
-from the queued orchestrator's list (the skip-guard only protects COMPLETED cases;
-in-flight cases collide with the reset). The campaign's nlf_neg err entries for
-cav_am8/str_am4 will be repaired from the orphan harvest at migration.
-
-## 2026-07-25 23:05 UTC — cav alpha=-8 FRONT-CONVERGED: the model is RIGHT at -8
-
-cavL2 am8 (fv1, front-convergence protocol) settled: xtr_up = 0.561, xtr_lo = 0.0104,
-CL = -0.4426, CD = 0.00964. Against: measured upper onset 0.542 (TP-1861 Fig 9d),
-AFT(Ncrit=7.18) 0.569, e9 0.662-0.663; lower = LE trip (e9 0.015-0.018); measured cd
-~0.0105. The upper front marched 0.08 -> 0.561 over ~70k pseudo-steps and locked. The
-user's hypothesis is vindicated end-to-end: once front-converged the model lands ON the
-measurement at alpha=-8 on BOTH surfaces — the negative pair becomes a success case at
-migration (captions currently saying "not front-converged / markers to be replaced" get
-the converged story; fig:nlfaft -8 markers move to 0.561/0.0104 cav). str am8 (campaign
-instance) still marching; str am4 converged earlier at 0.4469/0.1089 (measured 0.453).
-Both orphans stamped; babysitter exited clean.
-
-## 2026-07-26 00:20 UTC — Naming g: "accumulated inflection" is not a metaphor, it's a theorem
-
-User asked whether the literature ever named our g, and whether "accumulated inflection"
-makes sense (defining pointwise inflection as (1/2)d^2 x the curvature derivative — the
-third-derivative contribution to the wall-to-point vorticity change).
-
-1. LITERATURE: no. g = (Y-X-Z)/R appears nowhere under any name; "Rayleigh coordinate"
-   is our own coinage. Classical stability theory has only sign CONDITIONS in this
-   neighborhood (Rayleigh's inflection-point criterion: u'' changes sign somewhere;
-   Fjortoft's sharpening: interior maximum of |vorticity|), never a pointwise quantity.
-   Nearest unnamed relatives: Y-X-Z is exactly minus the second-order Taylor
-   extrapolation of u to the wall (the "parabolic wall-velocity defect").
-
-2. THE IDENTITY (verified numerically to integration accuracy, and exact by
-   differentiation): with u(0)=0,
-       g R = d u'(d) - u(d) - (1/2) d^2 u''(d) = - (1/2) INT_0^d y^2 u'''(y) dy.
-   d/dd of the left side is exactly -(1/2) d^2 u'''(d). So defining the pointwise
-   inflection density iota(y) = -(1/2) y^2 u'''(y) — precisely the user's construction:
-   the third-derivative-induced part of the vorticity change from wall to y if that
-   third derivative persisted — g R IS the integral of iota from the wall to the probe
-   point. "Accumulated inflection" is literally what it is. Corollary: g vanishes
-   IDENTICALLY for every linear AND quadratic profile (Couette, channel-Poiseuille) —
-   only super-quadratic bending registers.
-
-3. "Inflection" generally: from Latin inflectere, "to bend" — the point where a curve's
-   curvature changes sign. For boundary layers: an inflectional profile IS defined as
-   one whose u(y) has an interior inflection point (u'' crossing zero, equivalently an
-   interior extremum of the vorticity u'); it is the gateway property of inviscid
-   (Rayleigh/Fjortoft) instability. Nobody in the literature defines a pointwise
-   AMOUNT of inflection — that definition is ours to make, and iota above is the one
-   that makes g its exact accumulation.
-
-4. NUANCE for the paper: the accumulated inflection proper is g*R (dimensional,
-   velocity units); g itself is the accumulated inflection NORMALIZED by the indicator
-   magnitude R (the sphere's projective normalization). Suggested wording: name
-   I = Y-X-Z the accumulated inflection, keep g = I/R as "the (normalized)
-   accumulated-inflection coordinate", retain one sentence tying it to Rayleigh's
-   criterion. Sites: nomenclature, Sec II (eq:indicators/eq:rate prose), App E, outlook.
-   Also noted: the initialism ("AI") folds back into the model's own name.
-
-Held for the user's go (naming is authorial; variants: which of g vs gR carries the
-name, and whether "integrated" beats "accumulated"). The identity itself is worth
-adding to the paper regardless — it derives the quadratic-blindness of g in one line.
-
-## 2026-07-26 00:40 UTC — Symbol proposal: I=Y-X-Z with I_hat=I/R replacing g; Omega_hat replacing S_hat
-
-Assessment (user asked; held for go before executing):
-
-WHY S_hat WAS WRONG ALL ALONG: "S" came from reading the parallel-layer Y = d|u'| as
-"shear" during development. But in the turbulence-modeling convention (SST literature),
-S = STRAIN-rate magnitude and Omega = ROTATION/vorticity magnitude — and our Y is built
-on vorticity (solver form Y = d|omega|, Gram form sqrt(<u,u><d,d><omega,omega>)). So
-S_hat actively suggests the wrong tensor invariant. Omega_hat fixes that, matches our
-own Re_Omega = d^2|omega|/nu (same Omega family), and de-crowds S, which the paper uses
-three ways (SA's S-tilde, the onset sigmoid S(zeta), and S_hat). Strong yes.
-
-I / I_hat: I = Y-X-Z is fresh in the paper (no \hat I collisions; I not otherwise used
-as a math symbol), reads as "accumulated Inflection", and the pair
-(Omega_hat, I_hat) = normalized vorticity fraction x normalized accumulated inflection
-makes the rate coordinate Omega_hat*I_hat self-describing. Only alternatives worth a
-thought before committing: lowercase omega_hat (rejected: suggests the unit vorticity
-VECTOR; uppercase matches Re_Omega), and whether I might be mistaken for identity /
-intensity (low risk here; Tu covers intensity).
-
-EXECUTION ORDER (once approved) — the one hazard is the RUNNING campaign:
-1. Paper: ~79 S_hat sites + g-coordinate sites (nomenclature, Sec II, App E, captions,
-   outlook; the g_w wall-function disambiguation note simplifies since g frees up);
-   add the exact identity g R = -(1/2) INT y^2 u''' dy as the definition of I.
-2. Figure row labels ("max S_hat g" -> "max Omega_hat I_hat") in the regen scripts +
-   regenerate all suite figures (cheap, postproc only).
-3. Python repro: variable names + the derived-slice FIELD names ('Shat','g_coord','P').
-   Field rename invalidates existing slice_with_derived.pvtu files -> writer emits new
-   names, readers accept BOTH during migration, re-augment lazily.
-4. Solver (compute repo): pure-rename commit (internal identifiers only, no behavior)
-   — ONLY AFTER the fv1 campaign completes, with the mandatory clean rebuild (SOP).
-5. Docs: ONBOARDING.md, memory files, the saai_extensions artifact kernel card.
-   RESPONSES.md stays append-only (historical entries unedited).
-
-## 2026-07-26 01:15 UTC — GLOBAL SYMBOL RENAME EXECUTED (user-approved)
-
-Ŝ → Ω̂ (vorticity fraction) and g → Î (accumulated-inflection coordinate), with
-I ≡ R·Î = du′−u−½d²u″ = −½∫y²u‴dy (the accumulated inflection; eq:g_integral now states
-the identity for the UNNORMALIZED combination, fixing a small rigor slip — the old text
-wrote the integral as equal to the normalized g). Executed:
-- Paper: 19 targeted definitional rewrites + 68 compound Ω̂Î sites + 3 singles;
-  nomenclature gains the I,Î entry; "shear fraction"→"vorticity fraction",
-  "shear pole"→"vorticity pole"; g_w footnote updated; grep- and RENDER-clean
-  (0 Ŝ, 0 "Rayleigh coordinate" in the built PDF); 91 pp, 0 errors, 0 overflows.
-- Figures: row-2 labels now "max Ω̂Î" — all nine suite figures + onset_graze
-  regenerated.
-- Repro code: add_derived_to_slice writes Omega_hat/I_hat/OmegaI (legacy
-  Shat/g_coord/P still READ by consumers for pre-rename case dirs).
-- Docs: ONBOARDING.md updated (with "formerly Ŝ" breadcrumb); memory updated.
-- QUEUED: solver-internal identifier rename — after ALL CFD lands (clean-rebuild SOP);
-  artifact kernel-card update rides the next artifact refresh.
-
-ALSO: user (going to sleep) ordered finishing ALL CFD without feedback except
-unstructured-L2 Daedalus → after the fv1 campaign closes: Daedalus alpha=4/5/6 at
-L0+L1 both families + L2 O-GRID under new canon, staged on /local_data.
-
-## 2026-07-26 01:45 UTC — Overnight plan armed (user asleep: ALL CFD except cavity-L2 Daedalus)
-
-Chain launched (runlogs/daedalus_fv1.log, monitored): waits for FV1-CANON-CAMPAIGN-DONE
--> repairs the nlf_neg results entries from the orphan harvest -> audits 93/93 stamps ->
-runs the 15 Daedalus cases in 3 phases (P1: six L0 @1 GPU + ogrid L1 a4/a5; P2: ogrid L1
-a6 + three cavity L1 @2 GPUs; P3: ogrid L2 a4/5/6 sequential @6 ranks). Staging
-pre-flighted NOW: 15 cases cloned to /local_data/qiqi/sa-ai/daedalus_fv1 (15G,
-mesh hardlinks, fresh cold-start configs, per-case alpha verified). New canon rides in
-via saai_env.canonical_ai_env() inside run_solution.py. Cavity L2 (111M elem, 8-GPU)
-HELD per order. Note: stages='all' re-partitions; hardlinked partition artifacts in the
-ORIGINAL dirs could be touched through shared inodes — they are derived, regenerable
-artifacts (original RESULTS untouched).
-
-SYMBOL AUDIT (omissions + other candidates, as requested):
-- Omissions: repo grep + rendered-PDF scan clean (0 Shat/S-hat, 0 "Rayleigh coordinate");
-  3 stale code comments fixed (march_sa_handover, fig04_shapefactor,
-  explore_sphere_favorable). Remaining intentional: ONBOARDING's "formerly S-hat"
-  breadcrumb; append-only RESPONSES history; solver identifiers (queued, task #31).
-- Other candidates spotted (NOT acted on):
-  1. S still double-booked: SA's S-tilde vs the onset sigmoid S(zeta) (eq:onset, App E).
-     Candidate: rename the gate to sigma_on(zeta) or W(zeta). Recommend: yes, low cost.
-  2. q = fv1-bypass gate ratio (Sec II.F) vs dynamic-pressure q convention — the paper
-     spells dynamic pressure out, so low risk; could rename to q_b if desired.
-  3. k = onset scale (0.712) — fine (no TKE in the paper), noted only.
-  4. R = indicator magnitude — local to Sec II/App E, fine.
-  Everything else (a, b, tau, chi, lambda) collision-free after the rename.
-
-## 2026-07-26 01:25 UTC — str am8 front-converged; negative pair CLOSED
-
-strL2 am8 (fv1): xtr_up = 0.5593 (locked to 7 digits over 3 batches), xtr_lo = 0.0040,
-CL = -0.4646, CD = 0.00962 (74985 steps). With cav (0.561/0.0104): the families agree to
-0.002c on the upper front, ON the measured 0.542 (e9 0.66, AFT-7.18 0.569). The
-negative-incidence pair is now grid-converged and correct on both surfaces under the new
-canon — Sec IV migration gets a success story where the draft had a "boundary of
-applicability". eppler_ext running (last 12 cases); Daedalus chain armed behind the
-completion marker.
-
-## 2026-07-26 02:15 UTC — Pass 32 (rename audit): 3 majors + minors 1-4,6 done; 5,7 deferred
-
-Majors: (1) pole/indicator scheme settled — Y = "vorticity (shear) indicator", mnemonic
-"vorticity−velocity−curvature", fig:model caption poles + the line-wrapped "shear pole"
-straggler fixed; (2) Daedalus legend Re_Omega^c(P) -> (Omega_hat I_hat), three sheets
-regenerated; (3) SIGN SLIP in the accumulated-inflection definitional sentence fixed
-(integrand is −½s²u‴ = +½s²ω″ — the reviewer caught the theorem sentence off by a sign).
-Minors: nomenclature/abstract naming drift fixed ("accumulated-inflection coordinate");
-stdout labels converted; comment sweep completed (incl. 3 more files found);
-eq:reomc now carries the ⟨·⟩₊ clip matching App E; Spalart's g RESTORED (g_w retired —
-the cleanest outcome of freeing the symbol). Deferred: eq label renames (churn);
-the 93/93 hard gate (script currently executing — bash incremental-read hazard; monitors
-serve as tonight's audit). CORRECTION to the 01:45 audit claim: "repo grep clean" was
-overstated — rendered-PDF clean; comments swept per pass-32's list.
-
-## 2026-07-26 02:30 UTC — 2D CAMPAIGN COMPLETE (93/93); Daedalus launched; root flipped
-
-FV1-CANON-CAMPAIGN-DONE at 02:14; chain audit: 93/93 stamped, nlf_neg results repaired
-from the orphan harvest. Daedalus Phase 1 launched 02:18 (six L0 + ogrid L1 a4/a5, one
-per GPU). Migration infrastructure armed:
-- paper/data/fv1_migration_comparison.txt: full old->new diff, every campaign set.
-- SAAI_CFD_ROOT defaults flipped to flow360_fv1 across repro/ (left as-is:
-  run_continuation_ladders' LOCAL_DATA and docstring mentions — those belong to the
-  old-canon continuation studies).
-- e9 reference pickles symlinked into flow360_fv1 (canon-independent).
-- Derived-field augmentation running over all fv1 slices; the full figure regeneration
-  (regenerate_cfd.py) chains behind it. Failures will be triaged — expected class:
-  scripts overlaying old-canon SPECIAL-STUDY artifacts (forks/ladders/warm-start rows)
-  whose files exist only in flow360_fr; those studies need new-canon reruns on GPUs
-  freed after Daedalus (queued).
-Prose migration (Secs II.F, IV, V, VI, VII quoted numbers) begins when figures land.
-
-## 2026-07-26 03:30 UTC — 2D NEW-CANON MIGRATION LANDED (Secs II.F, IV, V, VI + conclusion)
-
-All 2D figures regenerate from flow360_fv1 (driver 8/10 + the six scripts it lacked run
-by hand; two failures benign legacy diagnostics; L1 sweep naming unified with legacy
-fallback; the 1e5 App-C sheet renders without the warm-start fork rows until their
-new-canon rerun). Prose migrated with recomputed numbers:
-
-HEADLINES of the new canon (all toward the measurement):
-- Eppler benchmark at matched lift: +11% drag error -> +2.7% (str) / +0.7% (cav).
-  Bucket edges now sit 4-6% BELOW the data (bypass removes ~2-7 counts everywhere).
-- Reattachment margin at 2e5: 0.05-0.07c late -> 0.02-0.04c late (0.76/0.71/0.63 vs oil
-  0.74/0.67/0.59 at alpha=0/2/5) — inside the Cole-Mueller facility spread.
-- 1e5 bursting: still bursts, less badly: L2 drag +30%/+73% (was +44%/+87%); cavL1 +4%.
-- 6e4: cl 0.64/0.71 (was 0.62/0.70); separation ~0.32.
-- Handover lengths shorten (the bypass at work): half-saturation 0.03-0.05c at 2-4.6e5
-  (was 0.05-0.08), 1e5 full production 0.18-0.30c downstream (was 0.2-0.6).
-- Re-seeding flip intact: 21-27x above at <=1e5, 25-100x below at 3-4.6e5.
-- NLF fully-turbulent ratios: +144/+150/+67/+74% (was +142/147/64/71).
-- Negative pair: converged story in all captions/prose (0.559-0.561 on measured 0.542;
-  "within nine counts"; march ~0.5c over ~7e4 steps).
-- Table C1 SA-AI columns replaced; II.F now states the 2D adoption + that converged
-  moves exceeded the cold-budget battery bounds (up to 8 counts NLF high-alpha, 27 on
-  L0s, -10 counts Eppler benchmark); Sec VII (Daedalus) explicitly marked bypass-inactive
-  pending its recompute.
-- Bistability paragraph scoped: fork/ladder/extension probes ran at the pre-bypass canon
-  (states move +0.02-0.03 cl; branch structure unaffected; repetition queued).
-
-MORNING VERIFICATION LIST (own pass before user wakes): App-B double-peak numbers
-(feature survives smoothing+canon — visible notch at x~0.52 — but quoted y+/window
-numbers are old-field); 1e5 residual-unsteadiness amplitudes in the sweep narrative;
-epp resweep_low/high caption details; str am4 orphan-repair note (babysitter .orphan
-overwrite bug — values recovered from its log); fork/ladder new-canon reruns on freed
-GPUs; Daedalus migration when the chain lands.
-
-## 2026-07-26 03:50 UTC — Morning-list items 1-2 done (App-B double peak; 1e5 unsteadiness)
-
-App-B double-peak passage remeasured on the NEW fields with the NEW smoothed diagnostic:
-anatomy fully persists (window-top departure -> notch -> reattachment-layer peak; the
-full-depth envelope stays saturated — diag panel confirms). Numbers updated: first peak
-0.92@0.50 (was @0.48), notch min 0.28@0.54 (was 0.14@0.51 — the plotted trace is now the
-neighbor-smoothed one, noted in text), second peak 0.82@0.615 (was @0.645, "order of
-magnitude lower" clause corrected — smoothing changes the windowed trace's relative
-heights), attached level 0.08 (was 0.2), crossings 0.48/0.54/0.59 (were 0.47/0.52/0.57).
-1e5 unsteadiness sentence rewritten from fv1 windows: cavity family ripples (3e-4 L1,
-1e-3 L2 in cl), structured grids steady <=3e-5, and the structured-L1 limit cycle of the
-pre-bypass model DOES NOT RECUR (its "medians over the cycle" bookkeeping dropped).
-
-## 2026-07-26 04:30 UTC — Pass 33 (full-refresh audit): 6 majors + 10 minors done
-
-The audit verified the entire migration to the digit and caught the residual 15%:
-(1) the fully-turbulent SA curves silently vanished from both polars at the root flip
-(baselines lived only in flow360_fr) — symlinked (AI-off, canon-independent), polars
-regenerated, epppolar caption recomputed (77-97% bucket, +151% at 7, family agreement
-1-2e-4); (2) the alpha=7 Eppler bubble CHANGED QUALITATIVELY at the new canon — Cf
-crosses zero on only 3/6 grids (strL2 sliver 0.39-0.41c, 0.07c early; cavity finest has
-NO bubble): re-derived as edge-of-collapse physics, one incidence ahead of the
-experiment's alpha=8 NT point; (3) the three reattachment-margin statements harmonized
-at 0.02-0.04c (the 0.05-0.07 survivor killed) + conclusion drift sentence re-derived
-(improves to <=0.01c); (4) steadiness passage re-derived at the stated final-2000-step
-convention; (5) Appendix-C warm-start claims scoped to the pre-bypass study; (6) double
-peak already fixed pre-review (their independent numbers match). All ten minors done
-(convention unification makes the apex +3.7/+1.3%; scoping extended to tautest and the
-relaxation time; Sec VII carries its own bypass-inactive disclosure).
-Full response: agent-paper-review/2026-07-26-0258-response.md.
-
-## 2026-07-26 06:55 UTC — Special-study new-canon reruns launched (GPUs 6,7)
-
-Daedalus Phase 2 complete (all 12 L0/L1 cases, rc=0 throughout); Phase 3 (ogrid L2
-sequential, 6 ranks on GPUs 0-5) started 06:40. The freed GPUs 6/7 now run the queued
-Sec-VI special studies at the new canon: continuation ladders (descent+climb), the
-2e5->1e5/6e4 bistability forks, the 40k fork/descent extensions, and the tau=1
-oscillator pair — str chain on 6, cav chain on 7 (scripts/run_special_studies_fv1.sh;
-FR/LOCAL_DATA flipped to fv1; canonical env carries the bypass). On completion: the
-bistability/relaxation/tautest scope notes in Sec VI can drop their "pre-bypass" caveats
-if the conclusions transfer, the App-C warm-start rows return, and the "repetition is
-queued" clauses resolve.
-
-## 2026-07-26 08:05 UTC — INTERIM (unconverged): new-canon 1e5 fork/ladder states differ by path
-
-Ladders + forks done (rc=0, both families); 40k extensions running. PRELIMINARY 1e5
-states (fixed budgets, NOT yet extended): cold 0.795/0.876 (str/cav CL), fork-from-2e5
-0.730/0.828, descent 0.735/0.835, climb-from-6e4 0.836/0.915 — path spreads ~0.10 in CL
-vs the pre-bypass model's <=0.005 monostability. If the extensions hold these apart, the
-NEW canon is BISTABLE at 1e5 (a qualitatively new result — the two-state structure the
-experiment shows at 6e4 would exist in the model, still one Reynolds step high); if they
-converge, monostability survives and the Sec VI caveats simply drop. 6e4 spreads are
-small (0.017/0.008) — burst-branch monostable pending extensions. NO paper edits until
-the extensions decide.
-
-## 2026-07-26 08:40 UTC — SPECIAL STUDIES COMPLETE AT NEW CANON: monostability confirmed, caveats resolved
-
-All chains done (rc=0 throughout): ladders (descent+climb, both families), bistability
-forks, 40k fork/descent/climb extensions, tau=1 pair. VERDICT: the 1e5 path spread of the
-interim reading was TRANSIENT — extensions converge every path onto the cold state (str:
-0.7975/0.7974/0.7983 vs cold 0.7952, lift <=0.003, drag <=5e-4; cav: fork/descent
-0.8816/0.8813 vs cold 0.8763 <=0.005, climb 0.869 still drifting toward the pack at its
-40k end). MONOSTABLE at the recomputed canon; 6e4 collapses to the burst branch. The
-tau=1 oscillator is STRONGER at the new canon (dCl 0.34 at 1e5, 0.29 at 2e5 — was
-0.3/0.08): the memoryless-gate conclusion sharpens. Sec VI edits: pre-bypass caveats on
-the probes/relaxation/tautest all resolved with re-derived numbers; App-C warm-start
-rows restored (1e5 sheets regenerated with the new-canon fork extensions, 8 rows again).
-Build clean. Remaining CFD: Daedalus P3 (ogrid L2 a4 solving ~2h in, a5/a6 follow) —
-cavity L2 held per order. Remaining paper: Daedalus migration when P3 lands; solver
-identifier rename after that (clean rebuild).
-
-## 2026-07-26 09:25 UTC — Pass 34: tau-amplitude convention error fixed + record parity
-
-The reviewer caught a real one: my tau=1 amplitudes (0.34/0.29) used a final-50% window
-contaminated by the cold-start transient — at 2e5 that's ~5x the recurrent oscillation.
-At the paper's own final-20% convention: 0.30 at 1e5 (unchanged from pre-bypass 0.29)
-and 0.06 at 2e5 (WEAKER than pre-bypass 0.08). Text now prints 0.3/0.06 with "the
-oscillation persists" (my "stronger still" and the commit's "sharpening" claim are
-retracted — the qualitative relaxation-oscillator finding stands at both Re). Minors:
-drag bound ~5e-4; App-C "agree to within the residual unsteadiness" + warm-started
-terminology; generator docstrings no longer assert the refuted second branch (dead
-fork-overlay block deleted); AND the fv1 tree converted from a bare symlink to the
-fr layout (real dir, member symlinks) so the new-canon record — 10 results JSONs + 24
-ai_constants logs — is now IN GIT with pre-bypass parity.
-
-## 2026-07-26 09:40 UTC — User Q: 60k bistability, cold-start state, downward forking
-
-(1) Experiment bistable ONLY at 6e4 (TM-4062: both states over alpha 3-7 deg, selection
-environmental; Re>6e4 "turbulent reattachment always resulted"; 1e5 single-valued, three
-tunnel conditions coincide). (2) New-canon cold 6e4 = BURST both families (0.636/0.712,
-cd 0.053/0.051, no Cf recovery ahead of TE) — sits on the measured NON-reattaching
-branch (~0.64), not the reattaching one (0.838). (3) Forking downward from reattached Re:
-DONE this morning at the new canon (direct 2e5 forks + slow ladder 2e5->1.5->1->0.8->0.6
-+ 40k extensions). Branch-death located: descended bubble still CLOSES at 1.5e5
-(x_R 0.79/0.70 str/cav) but closure is LOST crossing to 1e5 and never returns (no upward
-Cf crossing at 1e5/8e4/6e4 on either family; 6e4 endpoints identical to cold burst).
-Model bursting boundary: between 1.5e5 and 1e5, vs measured between 6e4 and 1e5.
-(4) Mechanism: the SA sustainment floor (chi_eq ~ 0.09 Re_tau; 6e4 shear layer
-Re_theta 220-330 -> chi_eq 6-9 ~ c_v1, nu_t 3-4 nu) — the reattaching branch does not
-exist in the model at 6e4; no initialization can fork onto it. OFFERED: finer descent
-1.4/1.3/1.2/1.1e5 to pin the model boundary to a number (GPUs 6/7 free, ~1-2h).
-
-## 2026-07-26 10:20 UTC — Morning batch: Fig 6 negatives, figure order, ylims, 8.5 deg, spheroid L0
-
-- Fig 6 negatives restored (root-flip regression: nlf_neg results file not merged);
-  converged fronts: am4 upper 0.447/0.453 (measured 0.453), lower 0.109/0.122; am8 upper
-  0.559/0.561 (measured ~0.54, AFT-7.18 0.56, e9 0.66), lower 0.004/0.010 (LE trip).
-- Suite figures reordered ascending in AoA: negative pair (cols swapped to -8,-4) is now
-  Fig 8, then 0/4, then 9/15.
-- Row-2 max(Omega_hat I_hat) ylim standardized to [1e-3, 1] across all TEN five-row
-  figures; the resweep suites (Figs 16/17) also gained the log axis + the common panel
-  aspect (they had linear row 2 and a different figsize).
-- Eppler extension roster (user Q): ran SIX incidences at L2 both families — the
-  requested -2 and 8.5 PLUS 1/3/4/6 added as bracket angles for denser fig:eppbubble
-  coverage. 8.5 ran fine (cav 1.261/0.0215) but its markers were missing because the
-  station extractor's window (x in 0.05-0.85) misses the post-stall LE bubble; both
-  solutions carry it (str 0.032-0.038c, cav 0.020-0.049c vs oil flow 0.03-0.18 — the
-  model's LE bubble reattaches much earlier than measured); nose window added, figure
-  regenerated with the 8.5 stations.
-- User: the finer Re up-sweep not worth running (declined) — monostable burst confirmed.
-- SPHEROID (user: start the coarsest L0): the mesher + L0/L1 meshes already existed
-  (spheroid/ogrid_spheroid.py, Jul 24: 6:1 prolate half-model, symmetry y=0, sphere
-  farfield 30L, L0 150x40x60 ~0.37M nodes, h0=5e-6L for Re_L=1.5e6). Staged
-  spheroid_fv1/case_ogrid_L0_saai_a10: Re_L=1.5e6 (muRef 6.667e-8), alpha=10 (x-z
-  incidence plane per mesher convention), M=0.1, canonical seed 8.76e-6 (slowdown
-  pre-compensated), refArea = half frontal area 0.0109, 20k pseudo-steps, canon env via
-  run_solution.py saai. Prep rc=0; solver running on GPU 7. NOTE: no crossflow closure
-  in the model (outlook item) — the alpha=10 spheroid is exactly the crossflow-challenge
-  probe.
-
-## 2026-07-26 10:35 UTC — Spheroid L0 first solve COMPLETE
-
-case_ogrid_L0_saai_a10 (6:1 prolate half-model, Re_L=1.5e6, alpha=10, M=0.1, canon env
-with bypass — ai_constants stamped): full 20k pseudo-steps, rc=0, ~25 min on one V100.
-CL=0.2054, CD=0.08172 (half-frontal-area normalization, S_ref=0.0109). Next natural
-steps when wanted: transition-front extraction on the body (vs Kreplin/DFVLR hot-film
-maps), chi/Cf surface maps, the alpha ladder, L1, and the Re=6.5e6 workshop pair.
-
-## 2026-07-26 10:55 UTC — Fig 11 (Eppler polar): extension incidences added
-
-Same root-flip-era miss as Fig 6: the polar plotted only the original alpha {0,2,5,7}.
-The L2 pair now carries all ten computed incidences (-2,0,1,2,3,4,5,6,7,8.5); ladder
-levels keep the original four. Caption updated. The dense L2 polar tracks the measured
-bucket from cl 0.18 to the 8.5-deg knee. ALSO RUNNING: spheroid L1 (2 ranks, GPUs 6/7);
-L2 spheroid mesh (12.6M nodes) building on CPU — fits the 2 free GPUs at ~6.3M/rank.
-
-## 2026-07-26 11:05 UTC — Reference-range extensions (Figs 11/14/15) + spheroid maps + user edits
-
-FIG REFS (task: extend mfoil/xfoil/FlexFoil to match our data):
-- Fig 11 polar: mfoil now converges at ALL extension incidences except its
-  known alpha=7 failure (mfoil 8/8.5 cross-check xfoil to ~0.4% cl); dotted
-  curve spans -2..8.5 with a NaN break at 7, xfoil diamond fills. Legend
-  "alpha != 7".
-- Fig 14 bubble: the FlexFoil negative-alpha "failures" were an ARG BUG
-  (clap parses "--alpha -2.0" as a flag; fixed to --alpha=-2.0). FlexFoil
-  now converges -2..9; bubble stations -2..6.5, transition-ahead-of-
-  separation >= 7 (confirms the caption's regime finding).
-- Fig 15 forces-vs-Re: xfoil at all five Re (with cm; 60/460 entries
-  regenerated), mfoil 0.6-3e5 (460k solve fails outright). FlexFoil
-  limit-cycles at 1-3e5 (residual plateau 5e-3), not plotted there anyway.
-- Audit: Figs 6/7 runnable refs already span cl -0.47..1.9 (digitized
-  XFOIL/AFT + mfoil pkl -8..15); per-alpha/per-Re sheet refs match their
-  own conditions; all remaining short curves are digitized literature.
-USER EDITS: negalpha appendix sheets rows now ascend (-8 then -4) and lead
-Appendix A; all front-convergence-protocol language removed (5 sites).
-SPHEROID: L0+L1 literature-style surface maps done (Kreplin-convention
-unrolled cf/gamma_w/chi maps + 3D views); L2 (12.6M nodes) solving on
-GPUs 6,7. Daedalus P3: ogrid L2 a4 DONE, a5 solving.
-
-## 2026-07-26 11:25 UTC — Pass 35 addressed (3 majors, 6 minors)
-
-Polar text caught up with the ten-incidence L2 pair: agreement band
-re-scoped (<=2.4e-4 over -2..7 deg; 1.0e-3 at unsteady 8.5), tracking
-claim scoped to alpha=0-7 with endpoint caveats (-2 deg: ~14% below the
-measured curve, the model's bucket outlives the LTPT low-drag corner;
-8.5: matched lift ill-posed), extension set introduced in the setup +
-new post-stall paragraph (LE-bubble topology reproduced, reattachment
-~4x short at 0.032-0.049c vs 0.18c). Counts fixed (36 Eppler cases).
-CORRECTION to the 10:20 entry: 8.5 cav canon-window medians are
-1.2426/0.02258 (earlier 1.261/0.0215 was an instantaneous read).
-NOTE: reviewer's chain status wrong on cavity L2 — it is HELD; the
-new-canon chain runs ogrid L2 only.
-
-## 2026-07-26 11:30 UTC — Figs 12/13 recolumned; spheroid section drafted
-
-FIGS 12/13 (user order): alpha=2 dropped from the detailed suites —
-Fig 12 now {0,5}, Fig 13 {7,8.5} (8.5 on the L2 pair only; EXP_LSB
-band 0.03-0.18 added; mfoil envelope returns at 8.5 where it converges;
-double-peak anatomy ref retargeted eppcfhigh->eppcflow since the 5-deg
-column moved). All six per-family/convergence variants regenerated.
-SPHEROID SECTION (user order): new Sec "Toward crossflow: the 6:1
-prolate spheroid" before the Conclusion — setup sentence + two figures
-(L1 unrolled cf/gamma_w/max-chi maps in the Kreplin/DFVLR presentation;
-3D cf views), kreplin_1985 bib entry added; minimal text by design.
-CONDITIONS RUN SO FAR: Re_L=1.5e6, M=0.1, alpha=10 deg only; L0
-(CL 0.2054/CD 0.0817) and L1 (0.2082/0.0852) done, L2 solving GPUs 6/7.
-
-## 2026-07-26 11:40 UTC — Spheroid: authoritative literature
-
-Most authoritative physics treatment: Stock, AIAA J 44(1):108-118 (2006),
-"eN Transition Prediction in 3D Boundary Layers on Inclined Prolate
-Spheroids" (paywalled; the NTS-NCF interaction diagram everyone reuses).
-Open companion downloaded to references/: Krimmelbein & Krumbein 2010
-(DLR elib 67581) — Fig 5 has measured+computed fronts at EXACTLY our
-condition (Re 1.5e6, alpha 10; pure-TS per their analysis — fair first
-test for a crossflow-less model) and at the 6.5e6 workshop pair.
-PRELIMINARY: their leeward front hooks to x/L~0.35-0.5 at phi~130-160
-where our L1 chi front only reaches ~0.85 — model likely late under the
-leeward vortex; verify on L2 with a cf-rise front + digitized line
-before claiming. Data source: Kreplin/Vollmers/Meier 1985 (in bib).
-
-## 2026-07-26 11:55 UTC — Stock 2006 reviewed (user supplied paper/spheroid.pdf)
-
-Physics per Stock (AIAA J 44(1) 2006, DOI 10.2514/1.16026):
-- Mechanism map: pure TS at alpha<=2.5 (Re 7.2e6); alpha=5-15 at Re~6.5e6
-  mixed TS+CF (pure CF mid-body from alpha=10); alpha>=20-24 essentially
-  pure CF; Re to 43.5e6 has N_CF up to 45.
-- AT OUR CONDITION (Re=1.52e6, alpha=10): laminar UP TO the open
-  free-vortex-layer separation; measured fronts track the separation
-  line (Fig 15a squares): x/L ~0.28 at phi~150 -> ~0.8-0.95 windward.
-- Limiting N: DFVLR tunnel N_TS=8.0/N_CF=5.5 (F1: 7.0/6.0); linear
-  TS-CF interaction decay; curvature ruins the CF correlation (omitted).
-- alpha<7: closed separation line; alpha>7: open vortex-layer separation
-  from circumferential BL accumulation on the flanks.
-IMPLICATION: our L1 leeward chi front (~0.85) vs measured ~0.3-0.6 on
-the flank = the 3D open-separation analogue of the slow-handover story;
-the model sees the vortex-layer amplification but commits late. L2 +
-cf-rise front + digitized Fig 15a line = the quantitative comparison.
-stock_2006 added to bib + cited in the spheroid section with a
-mechanism-map sentence.
-
-## 2026-07-26 12:25 UTC — Q&A digest (recent questions, answered in one place)
-
-1. SPHEROID MESH FAMILY: structured O-grid only today. The unstructured
-   recipe survives from Daedalus: Flynn360 (BL prisms + tetgen glue +
-   octree farfield) on a watertight STL; configs/logs/STL generator on
-   017-v100-dev (~/flexcompute/sa-ai/scripts/daedalus, README has the
-   FLOW360_SOLVER_ONLY=OFF build note). Caveat: full-body only (no
-   symmetry plane) => ~0.7/4.4/25M nodes at L0/L1/L2.
-2. SPHEROID CONDITIONS RUN: Re_L=1.5e6, M=0.1, alpha=10 only. L0
-   CL=0.2054/CD=0.0817; L1 0.2082/0.0852; L2 (12.6M) finishing now.
-3. LITERATURE PRESENTATION: unrolled (x/L, phi) maps of cf, wall-shear
-   angle gamma_w, transition front + skin-friction lines + 3D cf views
-   (Kreplin/DFVLR; Krimmelbein-Krumbein; Hildebrand FUN3D-LASTRAC).
-   Replicated on L0/L1 (spheroid/surface_map.py); draft section in paper.
-4. AUTHORITATIVE PAPER: Stock 2006 (AIAA J 44(1), user-supplied
-   paper/spheroid.pdf) — reviewed 11:55 entry: N_TS=8.0/N_CF=5.5,
-   mechanism map, and 1.5e6 = laminar up to vortex-layer separation.
-5. DAEDALUS ETA: ogrid L2 a5 ~15:00, a6 ~19:00 tonight (a4 took 3h59m;
-   a5 tracking the same rate).
-6. SPHEROID PLAN: confirmed two-Re design. 1.5e6 at ALL measured alphas
-   {5, 10, 29.7} (transition never CF there; fronts track separation);
-   6.5e6 up to alpha=10: {5, 10} on the h0=1.5e-6 ladder (TS-primary at
-   5, CF onset mid-body at 10). Optional pure-TS anchor: 0/2.5 at 7.2e6.
-7. SPEED: measured 8.9 s per tool-call round trip (context-dominated;
-   shell startup 6 ms — innocent). Cleaned: 1 orphaned watcher process
-   killed, 4 dead log-tail monitors stopped, task list 17 -> 3 entries.
-   Biggest available speedup: fresh session (state carries via memory/
-   ONBOARDING/RESPONSES).
-8. SYMBOL RENAME (#31) — what keeps it open: the solver-internal
-   identifier rename in the compute repo (Shat -> OmegaHat etc.), held
-   until the CFD queue drains because it forces a full clean rebuild
-   (BUILD_CONSISTENCY SOP), plus one final omission sweep. Paper,
-   repro scripts, docs, memory: done.
-9. TASK BOOKKEEPING: #27 (new-canon campaign) closed — its remaining
-   scope is exactly #24 (Daedalus Sec VII migration) + #23 (spheroid).
-
-## 2026-07-26 12:55 UTC — Spheroid L2 done; day/night GPU split in effect
-
-SPHEROID L2 alpha=10 (12.6M nodes, GPUs 6/7): rc=0 at 20k steps.
-Final-window CL 0.1861 (ptp 2.6e-3), CD 0.08175. Ladder: L0 0.2054 ->
-L1 0.2082 -> L2 0.1861 — NON-monotone, CL drops 11% at L2; suspect the
-leeward front/vortex structure shifts with resolution; maps regenerating
-in background (first run hit a 10-min timeout; 2M probes on 12.6M cells).
-NOTE: mpirun chains don't capture the solver constants echo — L1/L2
-carry ai_constants.note (launcher env record); L0's ai_constants.log is
-the canon reference.
-USER ORDERS APPLIED: (1) Daedalus PAUSED after a5 — chain script killed
-(a5 solver untouched, ETA ~15:00; a6 tonight); watcher re-armed on the
-chain log. (2) Spheroid gets days: alpha=5 ladder (L0/L1/L2 sequential,
-GPUs 6/7) staged + launched 12:52; alpha=29.7 queued for GPUs 0-5 when
-a5 frees them. (3) OpenFOAM replication agent noted — its simpleFoam
-runs + flatplate watcher are its own; hands off.
-
-## 2026-07-26 OpenFOAM cross-solver flat plate: 10x chi normalization bug in regen_flatplate_flow360.py
-
-Diagnosed by regenerating the paper's flat_plate_batch_flow360 figure from the
-OpenFOAM SA-AI port (sa-ai/openfoam/scripts/regen_flatplate_compare.py) and
-overlaying max-chi(x): OpenFOAM sat a CONSTANT ~11.7x above Flow360 in the
-laminar fetch at all 5 Tu -- a pure offset, same growth slope.
-
-Root cause: paper/regen_flatplate_flow360.py uses NU = 1e-6 ("nu = 1/Re") to
-form chi = nuHat/NU, but Flow360 nuHat output is in c_inf*L units, so the
-correct divisor is NU = M/Re = 1e-7 (the ONBOARDING Sec. 5 convention used by
-the Eppler scripts). Verified directly: freestream nuHat in
-flatplate_sphere_Tu0040/volume.pvtu = 1.92e-11 => chi = 1.92e-4 with 1e-7
-(intended Mack seed 2.28e-4; -16% shortfall is real, fSlow-BC related) vs
-1.9e-5 with the script's 1e-6.
-
-Consequences:
-- The figure's chi(x) curves and chi=1 crossings are evaluated at ACTUAL
-  chi=10: crossings plotted/quoted from this script (ONSET_DIAG path) are
-  systematically late. Cf/Re_theta panels unaffected (velocity conversion
-  correct).
-- With the corrected convention, TRUE chi=1 crossings vs AGS steepen with Tu
-  in BOTH solvers (F360: +5% at Tu=0.04 to -22% at Tu=0.6); the flat-vs-Tu
-  behavior of the committed figure was partly the bug.
-- Cross-solver replication (corrected): OpenFOAM (cell-centered
-  pressure-based incompressible SIMPLE) vs Flow360 (node-centered
-  density-based compressible): chi=1 crossing Re_x uniformly -7..-10.5%
-  (Re_theta -3.5..-5%), Cf-min onset -4..-10%, no Tu trend. Also -16% F360
-  freestream seed shortfall vs exact seed in OpenFOAM explains ~2% of it.
-
-Paper script NOT edited (another agent owns that tree) -- fix is one line:
-NU = 1.0e-7 in regen_flatplate_flow360.py (and re-check any text numbers
-derived from its ONSET_DIAG output).
-
-## 2026-07-26 13:20 UTC — chi-normalization bug FIXED (10x); passes 36 + OpenFOAM report addressed
-
-FLAT PLATE (correctness): the OpenFOAM agent's report was right — both
-regen_flatplate_flow360.py copies divided nuHat (a_inf*L units) by the
-U-normalized 1e-6 instead of M/Re=1e-7, displaying chi a DECADE low.
-Verified on raw output (freestream nuHat ~1e-11, U_inf=0.1). Fixed
-(NU_CHI=0.1*NU), figure regenerated — chi curves now start exactly at
-the set seeds. Corrected onsets vs AGS (integrated Re_theta):
-chi=1: +2/-8/-17/-23/-27%(Tu 0.04..0.60) — drifts early as seed->1;
-chi=c_v1 (half-saturation, mid Cf-rise): +7/-2/-8/-10/-4% — WITHIN 10%.
-The old "chi=1 within 9%" was really the chi~10 crossing. Text, caption,
-conclusion rewritten to the c_v1 convention; seed-shortfall caveat added
-(realized inlet ambient ~15% below set; ~0.2 e-folds).
-PASS 36: spheroid section updated for the landed L2 (CL ladder
-0.205/0.208/0.186 quoted, non-converged flagged); all 8 minors done
-(unreferenced binaries untracked, Re label parameterized, docstring,
-wording). Responses in agent-paper-review/.
-
-## 2026-07-26 13:30 UTC — Pass 37 round: seed sentence retracted, guards added
-
-Pass 37 verified the chi fix end-to-end (every new tex number matches
-their independent recompute) but REFUTED the seed-shortfall sentence I
-had just added: at the BL edge the delivered seed is EXACT (2.2767e-4
-to 4 digits, all stations; re-verified myself on fv1 — my earlier -15%
-read was the FR canon's outer far-field cells, which never feed the BL).
-Sentence replaced with the verified statement. Also: guarding sentence
-for the chi=1 -> c_v1 convention switch (seed-sensitivity stated as the
-reason; c_v1 anchored via chi_inf=c_v1 e^-N); caption log10-chi fix;
-diag_lambda_H_lower.py had the same 10x bug (fixed; no tex numbers
-trace to it); stale paper/ flat-plate script deleted; 1253 record
-corrected (its global NU=1e-7 prescription would corrupt Re_theta/Cf);
-P1-18c CLOSED with the cross-solver same-grid sentence.
-
-## 2026-07-26 13:50 UTC — Eppler extension sheets in appendix; NLF neg L0/L1 staged
-
-EPPLER (user order): chi_sheet_eppler387_{am2,a8p5}_upper.pdf generated
-(L2 pair, Appendix-B conventions) and inserted in ascending alpha
-(-2 before 0; 8.5 after 7). The 8.5 sheet shows the trip inside the
-LE bubble (chi crosses c_v1 within the first few % chord) and the
-turbulent attached layer over the rest; -2 shows the aft-most bubble
-(~0.55-0.80c). Appendix intro updated. Build clean.
-NLF (user order): am4/am8 exist on L2 only -> 8 new cases staged
-(L0/L1 x str/cav x -4/-8), cloned from the fv1 a4 cases, canon env,
-campaign front-convergence protocol (converge_by_xtr). Launcher
-scripts/run_nlfneg_l0l1.sh runs them across GPUs 0-5 the moment
-Daedalus a5 lands (~15:00); appendix sheets then regenerate in the
-standard 6-grid per-alpha format (task #34).
-
-## 2026-07-26 14:15 UTC — Pass 38 (repro audit) actionable core done
-
-resweep-table e9 column fixed (mfoil-convergence branch + xfoil hard-fail;
-reproduces tex digit-for-digit incl. both XFOIL rows); constants_report
-rewritten to the sphere-kernel Appendix-E canon (v2 report retired);
-c_nu_ai=1/6 in the three II.E scripts (tie stays exact, no live digit
-moves); crossing guards in the flat-plate onset path; nlf_aft merge +
-interp hardened (no silent clamp); both regenerate suites rebuilt to the
-current figure inventory; SIX stale paper/-level duplicates deleted;
-ONBOARDING §5 repointed; README/cases.py corrections; committed junk
-purged. Queued: full README float table, silent-skip convention,
-landscape-machinery quarantine, lib migration. Response in
-agent-paper-review/2026-07-26-1330-response.md.
-
-## 2026-07-26 14:30 UTC — OpenFOAM integrated into Fig 5 (bottom panels)
-
-Per user order (figures only, no discussion): the OpenFOAM flat-plate
-sweep is exported to paper/data/openfoam_flatplate_summary.json
-(openfoam/scripts/export_flatplate_summary.py, same cf_and_retheta
-machinery) and overlaid as thin steel-blue curves in fig:flatplate_batch's
-two bottom panels — max-chi(x) and Cf(Re_theta) — one legend entry,
-one caption clause. Same seeds, same slopes, crossings a few % early:
-the cross-solver agreement reads at a glance. Contour rows stay Flow360.
-NEXT (task #36): appendix raw-number tables for every 1-D figure.
-
-## 2026-07-26 OpenFOAM NLF strL0 a0: bistability/hysteresis + final agreement
-
-1. Identical-mesh NLF(1)-0416 strL0 alpha=0 (gmshToFoam from the committed
-   mesh.msh, symmetry planes -> empty, true 2D, 8 ranks, 11 min/30k iters).
-   First run transitioned at x/c~0.05 (upper) vs Flow360 0.385. Kernel
-   diagnostics (aiRate/aiP/aiZ/aiReOmega now AUTO_WRITE fields in
-   SpalartAllmarasAI) showed NO active amplification in the converged state:
-   the LE turbulence was self-sustaining SA. Cause = SIMPLE startup transient
-   tripped chi>1 near the LE; the gated-max production then sustains it --
-   the natural-transition BISTABILITY. Flow360 avoids this via
-   AI_LAMINAR_SLOWDOWN timescale separation; SIMPLE under-relaxation is NOT
-   an fSlow analog for airfoil impulsive starts (flat plate got away with it).
-2. Fix (two-stage startup): converge the flow from uniform init, then reset
-   nuTilda AND nut to the seed (copy the 0/ fields into the latest time; do
-   NOT foamDictionary -set a binary field -- it fails silently) and continue.
-   The front then forms on the settled flow: Cd 0.0101 -> 0.00669, stable
-   15k iters.
-3. Final identical-mesh agreement (chi crossings, x/c):
-   upper chi=1: OF 0.376 vs F360 0.385 (-2.5%); chi=cv1: 0.381 vs 0.390
-   lower chi=1: OF 0.556 vs F360 0.575 (-3.4%); chi=cv1: 0.559 vs 0.581
-   Forces: Cl 0.517 vs 0.545 (-5%), Cd 0.00669 vs 0.00803 (-17%, L0-coarse;
-   pressure-drag + compressibility + scheme differences unseparated).
-4. Median-dual conversion of the cavity mesh: geometrically exact
-   (area-conserving; scripts/dual_mesh.py) but the dual of the sliver
-   triangulation is WORSE for compact cell-centered FV (non-orth 120 deg,
-   opposing owner-neighbour vectors); all scheme ladders diverge. Flow360's
-   robustness on cavity meshes is in its node-centered OPERATORS (LSQ
-   gradients, dual-face assembly), not the CV shape. Cavity family = no-go
-   for OpenFOAM; documented negative result.
-
-## 2026-07-26 14:40 UTC — OpenFOAM airfoil scope: mesh-family sentence + integration plan
-
-Added at the first mesh description (Sec. V): the two families separate
-the solver classes — the cavity BL triangles defeat cell-centered
-compact-stencil FV outright (diverges on primal AND median dual, stock
-SA identically; per openfoam-unstructured-failures.md), so the
-cross-solver replication carries the structured family only.
-INTEGRATION PLAN for the airfoil structured results when they arrive
-(same pattern as the flat plate): the OpenFOAM agent exports one
-committed JSON per comparison (paper/data/openfoam_<case>_summary.json);
-our regen scripts overlay steel-blue thin curves/markers, one legend
-entry, into the 1-D figures only — Fig 6 (xtr,cl points), Fig 7 + 11
-(polar points), Fig 14 (bubble stations), Fig 15 (forces vs Re) — NOT
-the five-row suites (already 6 lines deep); OpenFOAM columns join the
-new appendix raw-number tables (task #36). Steel-blue = cross-solver,
-everywhere.
-
-## 2026-07-26 14:45 UTC — Appendix F: raw-data tables for every 1-D figure
-
-New generator repro/cfd/emit_appendix_tables.py -> paper/tables/tab_*.tex,
-new Appendix F (\input fragments): F1 flat-plate onsets (chi=1 + c_v1
-crossings, Flow360 AND OpenFOAM, vs AGS), F2 NLF forces+fronts (all 28
-cases, negatives leading in ascending alpha), F3 Eppler polar (all ten
-incidences, L2-only extensions marked), F4 bubble stations, F5 Re-sweep
-forces+stations (all six grids; cm/e9/exp deferred to Table C1).
-The bubble and resweep figure scripts now dump their computed stations
-to paper/data/*.json so the tables can never drift from the plots; the
-NLF table auto-fills the L0/L1 negative rows when tonight's batch lands
-(rerun the emitter). 101 pages, builds clean.
-
-## 2026-07-26 14:55 UTC — Appendix G: OpenFOAM full-detail figure
-
-Per user question (should OpenFOAM get detailed appendix plots): YES —
-new Appendix G "cross-solver replication detail" holds the OpenFOAM
-agent's paper-identical five-row flat-plate figure (same 320x80 spec,
-correct chi normalization) for panel-by-panel comparison against Fig 5;
-it is the designated home for the airfoil comparison sheets when the
-structured-family OpenFOAM results arrive. Main text stays minimal
-(steel-blue overlay + one sentence + the mesh-family scope sentence).
-
-## 2026-07-26 15:10 UTC — Pass 39 addressed
-
-P1-18c sentence re-scoped (within 7% at chi=1, early, cites Table F1);
-OpenFOAM provenance COMMITTED (model source, scripts incl. the Appendix-G
-figure generator, README, failures doc — 21 files); emitter hardened
-(ext rows from the committed campaign JSON with asserts — the F3
-last-digit drift resolved in the record's favor; neg-L0/L1 whitelist
-self-expires); main-text anchors to F1/G added; F5 window footnote; F2
-conditional L2-only clause; a8p5 caption "past the experimental stall"
-+ 4x-short remark; G disclosure + 0.3-Omega clause. references/ PDFs
-never lost — they live at repo root, not paper/ (answered in file).
-
-## 2026-07-26 15:35 UTC — Spheroid: first quantitative literature comparison
-
-DIGITIZED Stock 2006 Fig 15a (blob-detect + zoom-verified, +-0.005 x/L):
-8 measured squares Re=1.52e6/alpha=10 (phi 63->132, x/L 0.93->0.40) +
-5 circles at 6.56e6 -> paper/data/stock2006_fig15a_digitized.json.
-COMPARISON (L2, cf-rise front vs measured; spheroid_front_compare.pdf):
-  phi=63:  meas 0.934  comp 0.939  (+0.004)   windward: EXCELLENT
-  phi=93:  meas 0.823  comp 0.851  (+0.028)
-  phi=99:  meas 0.739  comp 0.828  (+0.089)
-  phi=109: meas 0.653  comp 0.750  (+0.097)
-  phi=119: meas 0.481  comp 0.697  (+0.216)
-  phi=132: meas 0.396  comp 0.625  (+0.229)   leeward flank: LATE
-SEPARATION LINE: our cf-min trench sits ON the measured points mid-flank
-(delta -0.003..+0.045 at phi 99-113) — separation geometry captured;
-the lag is in the transition AFTER separation. PHYSICS READ: exactly the
-paper's slow-handover mechanism (fixed chi e-folds vs spot-driven
-breakdown), now in the 3D open vortex layer: lag grows toward the flank
-(0 -> 0.23 L), zero at the windward plane. The vortex-CORE transition
-tongue (phi 145-160, to x~0.45) is where K-K's e^N line also hooks.
-GRID CONVERGENCE (forces): a10 CL 0.2054/0.2082/0.1861, CD
-0.0817/0.0852/0.0817; a5 CL 0.0942/0.0876/0.0834, CD 0.054/0.053/0.058.
-CL(10)/CL(5) = 2.23 — superlinear, vortex lift onset, physical.
-CAMPAIGN: a5 ladder DONE (L2 15:17); a29p7 ladder LAUNCHED (GPUs 6/7);
-NLF neg batch 7/8 (strL1 am8 marching).
-
-## 2026-07-26 15:50 UTC — NLF negative pair complete on ALL SIX GRIDS
-
-All 8 L0/L1 cases front-converged (protocol: converge_by_xtr, same as
-L2). Fronts (xtr_up, alpha=-8): L0 0.14-0.20 (under-resolved trip, the
-known L0 artifact), L1 0.538/0.571, L2 0.559/0.561 vs measured 0.542 —
-L1/L2 bracket the measurement. alpha=-4 upper: 0.435-0.476 across all
-six grids (tight). Lower LE trips everywhere at -8. Results merged into
-sphere_campaign_nlf_neg_results.json (12 entries). Appendix sheets now
-STANDARD six-grid per-alpha format (4 figures, am8 then am4, replacing
-the two L2-pair sheets); Figs 6/7 now draw negatives at every level;
-Table F2 auto-filled (L2-only clause dropped); body text updated
-(36 NLF cases total). Build clean.
-SPHEROID: a29p7 L0 done 15:26 (fast), L1 running.
-
-## 2026-07-26 16:05 UTC — Pass 40: comparison wired into the paper
-
-Digitization gate PASSED by independent re-digitization (<0.002 x/L);
-Re pinned 1.52e6 (measured) vs 1.5e6 (computed), disclosed. New
-fig:spheroidfront + framing passage in the tex: comparison quantity =
-resultant-shear rise (k=1.5 x running-min, sub-cell interpolated;
-k=1.25-2 band shown), NOT the chi=c_v1 front (stays 0.92-0.97 —
-that gap IS the finding). Revised L2 deltas: +-0.02 windward,
-+0.06..+0.21 flank-ward. Criterion de-ad-hoc'd (no absolute offset);
-script folded into repro/cfd. Sheet labels harmonized (am8/am4),
-pointer range extended, superseded pair sheets removed, circle caveat
-in the JSON. Build clean. Spheroid a29p7: L1 done 15:54, L2 solving.
-
-## 2026-07-26 16:40 UTC — chi-crossing diagnostic (user question): mechanism RE-ATTRIBUTED
-
-Measured chi=1 and chi=c_v1 crossings per phi (L2): they nearly COINCIDE
-everywhere (gap <= 0.02 L; both 0.90-0.97 x/L at every azimuth). So on
-the leeward flank chi=1 is NOT just ahead of the measured Cf rise — it
-is 0.13-0.56 L AFT of it. The 2D slow-handover mechanism does NOT
-explain the flank lag (handover here is fast once amplification
-commits); the deficit is the AMPLIFICATION itself in the separated
-vortex layer — the wall-anchored kernel books only weak growth in the
-lifted layer whose breakdown the hot films detect at separation.
-Corollary: the flank part of the computed cf rise is laminar 3D
-structure, not modeled transition (as pass 40 suspected). Windward:
-chi=1 at 0.902 slightly ahead of measured 0.934 — classic. Paper
-passage corrected (slow-handover attribution REPLACED by the
-amplification-deficit finding); chi=1 front added to the figure and
-table; comparison script updated. Earlier RESPONSES entries (15:35)
-attributing the lag to slow handover are superseded by this one.
-
-## 2026-07-26 17:00 UTC — Pass 41: quantifiers fixed, cause -> hypotheses
-
-"At every azimuth" corrected to full-grid numbers (gap <= 0.05 L, fronts
-0.90-0.99); the kernel-causal clause replaced by the three live
-hypotheses (lifted layer beyond the wall-anchored kernel / probe reach
-0.04 L; in-bubble onset-gate arm; genuinely subcritical at 1.5e6) with
-the flank rate probe tied to the workshop step. Caption notes both cyan
-lines. Script hygiene done. Build clean.
-
-## 2026-07-26 17:55 UTC — Re=1.5e6 campaign COMPLETE; night shift launched
-
-SPHEROID a29p7 ladder done (L2 17:49): CL 1.1329/0.9705/1.2833,
-CD 0.5953/0.5404/0.6970 (L0/L1/L2) — strong level sensitivity in the
-massive-vortex regime, as expected. Full 1.5e6 matrix now computed:
-alpha = 5, 10, 29.7 x L0/L1/L2 (the three DFVLR-measured incidences).
-NIGHT SHIFT: Daedalus ogrid L2 a6 launched (GPUs 0-5, ~4 h — completes
-the new-canon Daedalus set); 6.5e6 spheroid meshes building on CPU
-(h0=1.5e-6 ladder, L0 first); a29p7 L2 maps generating.
-
-## 2026-07-26 18:35 UTC — alpha=0 added to the spheroid campaign (user order)
-
-alpha=0 IS measured — at Re=7.2e6 (Stock Fig 14a, pure TS, axisymmetric:
-the cleanest 3D anchor, no crossflow at all). Ladder staged on the
-re65 (h0=1.5e-6) meshes with muRef=0.1/7.2e6, launched mesh-gated on
-GPUs 6/7 (L0 starts now — its mesh is built; L1/L2 follow their mesh
-builds). Note alpha=2.5 at 7.2e6 is also measured (Fig 14b) — cheap
-add if wanted. Running tonight: Daedalus a6 (GPUs 0-5), re72a0 ladder
-(GPUs 6/7), re65 L1/L2 mesh builds (CPU).
-
-## 2026-07-26 19:00 UTC — Workshop pair armed; full spheroid campaign completes overnight
-
-All three re65 (h0=1.5e-6) meshes BUILT. re72a0 L0 solving: CL ~ 1e-6
-(exact axisymmetric zero lift — sanity PASS), CD 0.0189 at 5k steps.
-Workshop pair staged (re65a5, re65a10 x L0/L1/L2, muRef=0.1/6.5e6) and
-chained behind the re72a0 ladder on GPUs 6/7. Overnight queue: Daedalus
-a6 (~21:50, GPUs 0-5) -> spheroid re72a0 L1/L2 -> re65 pair (~04:00).
-By morning: the COMPLETE spheroid matrix (1.5e6 x {5,10,29.7} +
-7.2e6 x {0} + 6.5e6 x {5,10}, all on three grid levels) + the full
-new-canon Daedalus set.
-
-## 2026-07-26 19:20 UTC — alpha=2.5 (Re=7.2e6) added per user order
-
-re72a2p5 x L0/L1/L2 staged (Stock Fig 14b, pure TS) and armed behind
-the workshop pair on GPUs 6/7 — overnight queue is now: re72a0
-L1/L2 -> re65 a5+a10 ladders -> re72a2p5 ladder (~07:00). The full
-measured-condition matrix will then be: 1.5e6 x {5,10,29.7},
-7.2e6 x {0, 2.5}, 6.5e6 x {5, 10} — every DFVLR incidence with hot-film
-fronts, on three grid levels each (24 spheroid cases total).
-
-## 2026-07-26 19:55 UTC — Spheroid section built out (user orders: full results, macroscopic-first, contour style, comparisons)
-
-Section now: (1) setup + regime map + FULL measured-condition matrix;
-(2) MACROSCOPIC: tab:sphtotals (in-section, emitter-generated, dashes
-for the overnight runs) + fig:spheroidfront front comparison with the
-measured DFVLR points AND Stock's computed separation line (newly
-digitized, 14-pt polyline) + the full mechanism paragraph; (3) SELECTED
-DETAILS: L2 alpha=10 + L2 alpha=29.7 unrolled map figures + 3D view.
-ALL spheroid maps switched contourf -> labeled line contours (paper
-style; --from-npz replot path added). New Appendix-F table
-tab:data_spheroid (front stations at the measured azimuths, from the
-committed spheroid_front_summary.json the comparison script now
-exports). Forces harvested to sphere_campaign_spheroid_results.json
-(11 cases; note: re72a0 L0 CL=0.0062 median — check the tail for a slow
-transient at alpha=0). Build clean.
-
-## 2026-07-26 20:15 UTC — Pass 42 addressed (4 majors)
-
-Scope sentence corrected (no "every"; in-progress status inline; the
-un-run DFVLR incidences named); emitter prints dash rows (no silent
-drops) in prose order; alpha=0 claim replaced by the number (CL~0.006,
-decaying, under investigation); grid-convergence disclosure restored
-(up to 11% at alpha=10); deferral names the owed alpha=5/29.7
-comparisons. Minors: +-0.023 bound; compare-figure restyled to line
-contours (legend moved off the phi=132 square; black separation line);
-Re-SCALED probe rays (the overnight high-Re maps would have biased cf
-low — reviewer caught it pre-cut); dead code cleaned. Build clean.
-
-## 2026-07-26 20:35 UTC — Appendix H: spheroid station waterfalls (Stock Figs 2-5 style)
-
-Both L2 cases re-probed with wall Cp (Re-scaled rays per pass 42);
-four waterfall figures generated and inserted as Appendix H: Cp at the
-13 pressure stations (+0.14/-Cp per station) and Cft/gamma_w at the 7
-hot-film stations (-1.5e-3 / -15 deg per station), alpha=10 and 29.7,
-exact conventions of Stock Figs 2-5 (station lists from the figure
-legends). The model's c_v1-front marks are absent from the hot-film
-range at 1.5e6 — the amplification-deficit finding in the measured
-campaign's own presentation. Measured-symbol digitization = task #37.
-Section points to the appendix. 113 pages, builds clean.
-
-## 2026-07-26 20:55 UTC — Pass 43: waterfall conventions corrected to the PRINTED figures
-
-Reviewer digitized Stock's axes: Fig 5 uses -3.0/-20 offsets AND station
-5 at X/a=0.130 (array moved between runs); the printed Cp displacement
-is 0.42 (Stock's text says 0.14 — his own typo). Script now carries
-per-incidence conventions; H figures regenerated (29.7 tangle gone);
-appendix text states the printed-vs-text discrepancy; station-1
-edge-read noted; front sentence scoped per incidence; roadmap A-H.
-Task 37 (measured symbols) unblocked — offsets now match what will be
-digitized. Build clean.
-
-## 2026-07-26 21:35 UTC — alpha=0 (7.2e6) ladder complete: zero lift at L1/L2
-
-CL 0.0062/0.0000/0.0000 (L0 residual = coarse-grid asymmetry, RESOLVED);
-CD 0.0150/0.0169/0.0211 — rising 41% with refinement: the finer grids
-transition earlier at this pure-TS condition; the Stock Fig 14a front
-comparison quantifies it next. Totals table refreshed (dashes filled);
-L2 maps probing (Re-scaled rays). Workshop pair (re65) now starting on
-GPUs 6/7; Daedalus a6 minutes from landing.
-
-## 2026-07-26 22:00 UTC — Daedalus new-canon COMPLETE; Sec VII migration underway
-
-a6 landed 21:44 (CL 1.2282/CD 0.02474 final-500 mean). All 15 fv1 cases
-harvested (daedalus_fv1_results.json): CL within 0.3% of old canon, CD
-0.5-2% LOWER (the bypass signature). tab:daetotals migrated to fv1
-(cavity-L2 rows dashed — recomputation HELD per user order); AVL trim
-cells updated (reference drag unchanged at printed digits); the II.F
-exception and Sec VII opening disclosure NARROWED to exactly the held
-cavity-L2 solutions; App D note updated. Section sheets regenerating
-with split roots (str=fv1, cav=old, disclosed).
-QUESTION FOR USER: GPUs 0-5 are idle overnight after this — lift the
-cavity-L2 hold and run its 3 cases (~12 h, done by mid-morning)? That
-would close the last disclosure entirely.
-
-## 2026-07-26 22:30 UTC — Sec VII figures regenerated at the final kernel
-
-All Sec VII figures now carry the fv1 structured family: section sheets
-(eta 10/75/92), surface maps (a4/a5/a6, chi caches rebuilt on the fv1
-L2 volumes), and the polar/sectional figure (fv1 everywhere except the
-held cavity-L2; NOTE the sectional panel now uses fv1 cavity-L1 for
-a5/a6 where the old cavity-L2 slicing files are absent — finer canon,
-coarser grid; disclosed by the script's provenance print). Combined
-with the totals migration (c7129f6), task #24 is COMPLETE up to the
-held cavity-L2 runs. Build clean.
-
-## 2026-07-26 23:10 UTC — Pass 44: Sec VII PROSE migrated (the half I missed)
-
-The figures/table migration had left every quantitative Sec VII claim
-old-canon. Now migrated with independent verification (fv1 L1 chi
-caches built; canon_front_metrics root override; my station values ==
-reviewer's): drag ladder 15.6/10.3/5.6 counts; L1 gaps 0.46-0.53%
-(TIGHTER than predecessor); bubbles 0.49-0.65/0.47-0.64/0.46-0.62;
-sep<=0.017c, reatt<=0.009c; refinement 0.630->0.653 (not yet the
-strips' 0.660); L1 family bubble edges CORRECTED to 0.03c (was-true-
-now-false claim fixed honestly); predecessor residual 5.6-15.6 counts.
-Panel (b) now truly reads fv1 strips (native_strips root override —
-it had silently read the old tree); AVL reference RETRIMMED to fv1
-lifts (CD_ref unchanged at printed digits, now measured); daggers mark
-every predecessor solution in the figures. Build clean.
-
-## 2026-07-27 00:55 UTC — Cavity-L2 hold LIFTED (user order); spheroid runs paused
-
-Per user order: re65a10 L2 killed at 690/20000 steps (3.5%, well short
-of halfway; its ladder + the a2.5 ladder are POSTPONED — resume when
-GPUs free), chains + monitors stopped cleanly. The held cavity-L2
-recomputation launched: 3 cases sequential on ALL 8 GPUs
-(scripts/run_daedalus_cavL2_fv1.sh; staged from fv1 cavity-L1 configs +
-hardlinked meshes; a4 partitioning now). When it lands: totals table
-dashes fill, daggers come OFF the daepolar/daesurf/sheet captions, the
-Sec VII disclosure closes entirely, and the finest-grid two-family
-claims become computable at the final kernel.
-COMPLETED OVERNIGHT before the pause: re65a5 FULL ladder (L2 done
-00:00) and re65a10 L0/L1 — only re65a10 L2 and the a2.5 ladder remain
-from the spheroid matrix.
+## 2026-07-27 ~15:10 — response to the role-reversal order
+
+Acknowledged. Actions taken with this entry:
+
+1. **RESPONSES.md cleared** (this file); prior content preserved in git
+   history.
+2. **Awaiting the outgoing agent's handover document** — I will not
+   duplicate or preempt its in-flight work (known in flight: the
+   stagnation-bisection re-emit with verdict-based logic in
+   `runlogs/stag_rebisect.log`; the Stock Figs 2–5 digitization /
+   spheroid-section overhaul; the just-lifted cavity-L2 hold and
+   paused spheroid runs per 830ceee). On receipt I will confirm the
+   split of responsibilities: which CFD the outgoing agent continues to
+   babysit vs. what transfers to me.
+3. **My review loop reverses role**: the standing watch on
+   `agent-paper-review/` now triggers me to RESPOND to incoming review
+   files (fix the paper, write the `-response.md`) rather than to write
+   reviews. The verification standards I enforced as reviewer (verify
+   numbers before printing, move-don't-paraphrase, honest disclosures,
+   independent digitization, repro hygiene, length/organization
+   discipline) remain the house rules I will now be held to.
+4. **Known owed items I inherit unless the handover says otherwise**:
+   the bisection re-emit completion (update Sec. VII interval + every
+   2.8e5-leaning sentence; regenerate JSON/figure), the spheroid
+   overlay integration under the digitization gate, the pass-46 cut
+   plan's remaining user decisions (O1 supplemental, Sec VIII scoping),
+   the Eppler OpenFOAM L2 adoption decision when that ladder lands, and
+   the repro-refactor batch.
+
+## 2026-07-27 ~15:10 — handover received; taking up task B (spheroid overlays)
+
+Read `HANDOVER-paper-revision.md` in full. State check at takeover:
+- **D (critical-Re re-emit)**: rebisect RUNNING (log at 15:00: L=537.5
+  endpoint confirmed collapsed in 2 chunks; L=700 on chunk 2, maxchi
+  8.1 and still moving). Merge + the two tex numbers stay with the CFD
+  agent per the handover; I will not touch sec:bistability numbers
+  until their completion note appears here.
+- **A (cavity-L2)**: a6 running, harvest ~17:40; my tex work queues on
+  the CFD agent's completion note.
+- **C (OF Eppler L2)**: tomorrow morning.
+- **Starting now — B**: Stock Figs 2–3 (Cp waterfalls, 13 stations,
+  dCp=0.42/station) digitization via the existing
+  `digitize_stock_waterfalls.py` pipeline (tick-detected calibrations,
+  measured not assumed), then measured-symbol overlays on our
+  waterfalls via `regen_spheroid_station_profiles.py`, then the
+  main-vs-appendix split per the user's rule ("any figure without an
+  experimental comparison on top of it belongs to the appendix") —
+  split proposal will be posted here for sign-off per the handover's
+  pending-decisions note.
+All hard rules acknowledged; the review-thread watch continues (my
+monitor is alive and now serves as the response trigger).
+
+---
+
+## 2026-07-27 — Task B step 1-2: Stock Figs 2-3 digitized; measured overlays on all four spheroid waterfalls (implementation agent)
+
+- **Digitized Stock Figs 2-3** (Cp waterfalls, 13 stations each) with the
+  existing tracker pipeline: tick-detected calibrations (fig2: phi
+  250.5→1655 px for 0→180°, -Cp 28.5→2402.5 px for 6→-1, 339.1 px/unit;
+  fig3: 236→1495.5, 25→2153, 304.0 px/unit). New pipeline pieces for the
+  Cp figures: blob vertical-extent floor (symbols ~20 px vs 3-5 px
+  potential-theory strokes/grid dashes — the thick/thin roles are
+  inverted vs Figs 4-5), in-panel legend erase boxes, a stepped erase
+  along the dashed free-vortex curve (it hijacked the 0.212 tracker),
+  and manual seed rows for fig3 (the -0.9852/-0.9988 chains overlap at
+  the left edge). Chain identity verified station-by-station at full
+  resolution (per-station check PNGs in
+  /local_data/qiqi/sa-ai/stock_digitize/). fig2: all 13 chains clean
+  0-180°. fig3: seven chains truncated in the leeward dive tangle
+  (0.792@92°, 0.669@94°, 0.462@101°, 0.212@100°, -0.038@108°,
+  -0.288@108°, -0.865@122°); six clean over the full range.
+- **FINDING — the printed Cp waterfalls carry a +0.14 base displacement
+  on top of the 0.42/station step.** Exact potential theory on the 6:1
+  spheroid (matches our L2 RANS station Cp to ~0.005 away from
+  nose/tail) sits a uniform 0.12-0.15 below the as-printed chains at
+  BOTH incidences, and below Stock's own printed potential-theory
+  curves by 0.15. Stock's stated "0.14" is evidently the base
+  displacement, not a typo of the step (pass-43's 0.42 step stands;
+  its "0.14 = 3x typo" interpretation is revised). Digitization removes
+  0.14+0.42i; after removal, windward measured-minus-potential is
+  -0.01 +/- 0.015 at both incidences. Figs 4-5 carry no base shift
+  (gamma_w=0 symmetry anchors at phi=0 confirm).
+- **Overlays**: all four Appendix-H waterfalls regenerated with the
+  measured chains as open red circles (Cp from figs 2-3, Cft+gamma_w
+  from the committed figs 4-5 JSONs). Character: windward Cp and
+  gamma_w sit on the computed curves at both incidences; at alpha=10
+  the measured Cft transition rise (phi~120-150, aft stations) has no
+  computed counterpart — the amplification deficit in the campaign's
+  own presentation; at 29.7 the computed fronts track the measured
+  dives. Captions + Appendix F provenance entries added (all four
+  JSONs). pdflatex x2: 0 errors, 0 undefined, 116 pp.
+- **Main-vs-appendix split proposal (NOT executed, per sign-off rule)**:
+  the four waterfalls now carry experimental comparisons and qualify
+  for the main section. Propose promoting the two Cft/gamma_w
+  waterfalls (H2, H4) into Sec. IX — they carry the transition story;
+  keep the two Cp waterfalls in Appendix H as supporting validation
+  (they qualify; taste call). Per the rule, the three map figures in
+  Sec. IX (spheroid_maps_L2, _a29p7_L2, _L2_3d) carry no experimental
+  overlay and would move to the appendix — alternative: overlay the
+  already-digitized Fig. 15a measured transition points on
+  spheroid_maps_L2 so the alpha=10 map can stay.
+
+---
+
+## 2026-07-27 ~15:35 — review-folder audit + response to 1540 (drag-crisis feasibility)
+
+- **Audit (user request): every review through the handover cutoff is
+  answered.** The apparent gaps in a filename scan are naming
+  conventions (multi-pass responses: 1050 covered passes 3+4, 0930
+  covered 10–12, 1130 covered 1020+1031+1130), absorptions (pass 49 and
+  the 1315 memo inside the 1250-response addendum), and commit-resolved
+  items (pass 17 via 3220fc2; the 2340 follow-up via 060f7c1). The
+  cleanup record needs no response. One genuinely open file:
+  2026-07-27-1540 (arrived post-cutoff) — now answered
+  (1540-response.md).
+- **1540 response summary**: the cylinder drag-crisis campaign design is
+  sound and matches the outlook paragraph the paper already carries;
+  branch protocol (up/down continuation + cold reference) is the right
+  instrument; the quasi-2D Cd caveat is correctly front-loaded; risk 1
+  (kernel indicator semantics at wake distances) is the real gate.
+  **Decision for you**: (a) go/no-go on the cheap pilot pair — the
+  one-afternoon frozen-field kernel check + one Re=1e5 quasi-2D URANS
+  case — runnable in queue gaps; (b) the full ~60–80-case matrix is an
+  Eppler-scale GPU commitment, and (c) whether any results would enter
+  this paper or the follow-on. No draft changes made; all [mem] targets
+  must be source-verified before any number is quoted.
+- Also pending your sign-off (from the Task B entry above): the spheroid
+  main-vs-appendix figure split proposal.
+
+---
+
+## 2026-07-27 ~16:10 — pass-46 remainder executed: D9 seed pointers + Sec V language sweep (99a58b5)
+
+- **D9 remainder (both sites)**: the in-text seed restatements are now
+  one-clause pointers — Sec V "the same N_crit=9, LTPT-class anchor as
+  the NLF (Sec. IV)" and Sec VI "the paper-wide freestream seed
+  (Sec. IV)". The value 8.76e-4 lives at its Sec IV derivation plus the
+  two condition-stating captions (nlfcfhigh, eppcflow) only.
+- **L2 sweep, Sec V only** (5 sites): (1) mesh paragraph — the
+  spline/clustering description and "every length scale halving per
+  level" deferred to the Sec IV recipe home ("reuses the NLF recipe
+  verbatim" already opens the paragraph); the LE-and-TE clustering
+  qualifier MOVED into Sec IV's recipe parenthetical so nothing is
+  orphaned. (2) Skin-friction paragraph — the 7-deg three-of-six-grids
+  collapse telling deleted (homes: eppcfhigh caption + bubble-stations
+  paragraph); its unique number, the 0.014c sliver, MOVED verbatim into
+  the bubble-stations paragraph. (3) Rate-coordinate paragraph — final
+  clause restating its own sentence deleted. (4) "the ninth, alpha=8"
+  parenthetical deleted (caption home keeps the 0.32c fact). (5) The
+  lower-surface-laminar third telling deleted (full copy: eppcfhigh
+  caption; short copy: eppbubble caption); "That low-alpha margin"
+  added to keep the Cole-Mueller 0.03-0.08c comparison pinned to the
+  0.02-0.04c over-length, not the 7-deg 0.07c.
+- **Deleted vs moved**: ~5 sentences/clauses deleted (all with
+  surviving full-strength homes), 2 moved (0.014c, LE/TE qualifier),
+  0 paraphrased. Honesty disclosures untouched (matched-lift clause,
+  canceling-errors class all intact).
+- **Numeric-token diff vs pre-edit HEAD**: removals = the two 8.76e-4
+  restatements, the alpha=8 parenthetical, and the "L2" absorbed by
+  "structured-L2 sliver"; additions = none.
+- **Build**: pdflatex x2, 0 errors, 0 undefined, 116 pp -> 116 pp (the
+  ~11 saved lines reflowed inside the figure-dominated section; no page
+  boundary moved). Not touched per the task fence: sec:bistability,
+  tab:daetotals/daggers, Sec IX / Appendix H.
+
+---
+
+## 2026-07-27 ~17:00 — user go-ahead: drag-crisis pilot pair on 017-v100-dev
+
+User approved the cheap pilot pair from the 1540 response, on
+017-v100-dev (free GPUs), with the constraint: ONLY cheap runs
+remotely. Plan being executed:
+1. Cylinder contour + quasi-2D O-grid via the existing airfoil pipeline
+   (local, no GPU): D=1 circle, L1-class sizing per the 1540 design
+   (~1200 x ~150, y+<=1 at 1e5 with margin), one-cell span.
+2. ONE subcritical URANS case at Re_D=1e5 on 017-v100-dev (fv1 canon,
+   AI_LAMINAR_SLOWDOWN=0.01 with pre-compensated seed, two-stage
+   startup per Sec. VII protocol, dt ~ 0.01 D/U, >=10 flow-throughs
+   transient + >=30 shedding periods averaging). Deliverables: cost
+   calibration, mean Cd / St vs the subcritical experimental band
+   (Cd 1.2 +/- 0.05, St 0.19-0.20; the known 2D-URANS high bias
+   expected), separation angles from Cf.
+3. Frozen-field kernel check on the converged snapshot: evaluate the
+   indicator triple / P = Omega_hat*I_hat at wake distances d ~ O(D)
+   (risk 1 of the 1540 note) — does the kernel transition the separated
+   wake shear layers for the right reason, and do the wall-distance
+   semantics degrade?
+Nothing else runs remotely; the full matrix remains ungated pending
+pilot results.
+
+---
+
+## 2026-07-27 ~17:15 — response to "why go unsteady at all?" (drag-crisis pilot)
+
+Your point wins for this campaign's actual claims. Decomposition:
+- The classical URANS-on-bluff-body justification is that shedding
+  shapes the MEAN wake (steady forced solutions give too-long
+  recirculation, wrong base suction, subcritical Cd off the other way).
+- But the campaign already concedes the wake-dynamics-controlled
+  quantities (subcritical absolute Cd, rms CL, St amplitudes) to the
+  quasi-2D bias. The surviving claims — separation angles, Cf/Cp,
+  Re_crit(Tu), supercritical recovery — are BL-controlled, exactly
+  where this project has found steady pseudo-time medians match
+  unsteady means. The branch structure (one-bubble state, hysteresis)
+  is MEAN-state structure the steady continuation ladders probe more
+  cleanly than time marching. Steady is ~10x cheaper.
+- Remaining risk: steady non-convergence on the shedding mode, or the
+  too-long steady recirculation feeding back (via base suction) into
+  the shoulder Cp enough to move separation. Empirical — so the pilot
+  now answers it: the running URANS case gets a STEADY twin (same
+  mesh/canon, campaign driver; minutes of GPU), and the report compares
+  steady-median vs URANS-mean for Cd, separation angle, front location,
+  shoulder Cp, plus the steady solve's convergence character.
+- If they agree on the BL-controlled quantities: the matrix runs
+  STEADY-first with the existing ladder machinery + 2-3 URANS spot
+  checks. Pilot agent instructed accordingly; remote budget unchanged.
+
+## 2026-07-27 18:05 — CFD agent: cavity-L2 harvest COMPLETE (successor: go)
+
+All three cavity-L2 fv1 cases done + harvested (committed): a4
+1.0217/0.01979, a5 1.1231/0.02226, a6 1.2230/0.02497 (drifts <=
+3.4e-4). chi_surface.npz built for all three (17:54-17:59). HANDOVER
+sec A is now unblocked: de-dagger, fill tab:daetotals, close the
+held-solutions disclosures, regenerate the Daedalus figures (caches
+are ready — no race), compute the finest-grid two-family claims
+(L2 family gaps: CL 0.42/0.52/0.65%, CD 1.0/1.4/2.3 counts at
+a4/a5/a6). Spheroid runs resumed on GPUs 0-3 (re65a10-L2 + re72a2p5
+ladder). Stagnation re-bisection: one step from final; corrected
+bracket will be ~(677, 689] in L (Re_r ~4.6e5) — I'll re-emit the
+JSON/figure and the two sec:bistability numbers when it lands.
+
+
+---
+
+## 2026-07-27 ~18:40 — paper agent: cavity-L2 integrated; Daedalus de-daggered (HANDOVER A done)
+
+Verified the three cavity-L2 fv1 cases myself before printing anything.
+IMPORTANT — harvest-vs-canon discrepancy: the values in
+`flow360_fv1/daedalus_fv1_results.json` (a4 1.0217/0.01979, a5
+1.1231/0.02226, a6 1.2230/0.02497) are MEDIANS over roughly the last
+4,000 pseudo-steps, not the table's stated convention (MEAN over the
+final 500 pseudo-steps, 51 samples — which reproduces all nine
+previously printed tab:daetotals entries exactly). At the canon window
+the cavity-L2 cells are a4 1.0219/0.01976, a5 1.1236/0.02223, a6
+1.2238/0.02491 (differences up to 8e-4 in CL / 0.6 counts; final-1000-step
+CL peak-to-peak 4.4e-5/1.0e-4/1.8e-4 — converged, so the gap is pure
+window convention). The PAPER prints the canon-window values. CFD agent:
+please rebuild the JSON at the canon window when convenient so the two
+agree.
+
+Done on top of that:
+- tab:daetotals dashes filled (canon values above); caption's dash/dagger
+  legend removed; trim qualifier now "finest structured level" (matches
+  avl_fixed_cl_reference.py).
+- De-dagger sweep: II.F "Status" now closes with the 3D deployment
+  recomputed in full; Sec VIII opening parenthetical reduced to one line;
+  "Fifteen ... held" -> "Eighteen final-kernel RANS solutions"; dagger
+  legends dropped from daepolar / daesurf4 captions; daesurf5/6 "row
+  follows if the held recomputation lands" dropped; section-sheet
+  "where its field output is available" dropped. KEPT (historical/
+  diagnostic, per HANDOVER): Appendix D temporal-units ledger, the
+  pass-44 like-for-like correction paragraph (15-26 counts / 2-11
+  counts / bubble-shortening physics), tab:daemesh y+ provenance note,
+  L1 predecessor gap comparisons.
+- Two-family finest-grid claims (recomputed, fv1-vs-fv1): L2 totals agree
+  to 0.35-0.63% in CL and 0.7-1.7 counts (0.34-0.69%) in CD at a6/a5/a4
+  respectively (CL gap tightens, CD gap widens with incidence); bubble
+  edges at eta=0.31 via canon_front_metrics.py on the fv1 root:
+  separation within 0.008c and reattachment within 0.016c at every
+  incidence (replaces the fv1-vs-predecessor 0.008c-at-4-deg placeholder).
+- Figures regenerated from daedalus_fv1 (chi caches 17:54-17:59, no race):
+  polar/sectional now carries the unstructured-L2 line at all three
+  incidences (sectional panel used L2 for all six family/incidence
+  combos); surface maps a4/a5/a6 all three rows (a5/a6 gained the
+  unstructured-L2 row; a4's replaced the predecessor row); section
+  sheets regenerated with fv1 dashed curves at all alphas.
+- User directive (received mid-regen): D1-D3 section sheets restyled —
+  canvas narrowed from 17.28x13 in to 11.5x12.5 in, exactly the dominant
+  2D chi-sheet canvas (828x900 pt; both figure families sit at
+  width=0.99\textwidth, so on-page heights now match exactly); suptitle
+  and the per-column alpha titles removed (captions carry both). The
+  probe results now persist to section_sheet_probes.pkl in each fv1 case
+  dir, so future re-styles skip the ~2 h L2 volume probes. NOTE for the
+  paper-wide title sweep: daedalus_surface_a4/5/6 still carry their
+  suptitle + column titles (directive scoped to the section sheets).
+- Build: pdflatex x2, 0 errors, 0 undefined; 116 pp -> 114 pp (the
+  removed disclosure text let the [p] floats repack). Not touched per
+  the fence: sec:bistability, Sec IX / App H spheroid figures,
+  drag-crisis text.
+
+---
+
+## 2026-07-27 ~18:40 — USER CONSTRAINT: 4-GPU cap on all sa-ai work
+
+User: another user (vishal) is using 4 GPUs; restrict our own work to
+4 GPUs only. Interpretation and current state:
+- Local machine: spheroid ladders on GPUs 0-3 (CFD agent) = exactly at
+  the cap; GPUs 4-7 are vishal's (100% util, high mem) — do not touch.
+  CFD AGENT: keep all future local scheduling within 4 GPUs total
+  (0-3); no 8-GPU chains until the user lifts this.
+- 017-v100-dev: pilot on GPU 0 only; same 4-GPU cap applies there
+  (pilot agent instructed directly).
+
+---
+
+## 2026-07-27 ~19:05 — user directives batch (execution queued behind item A)
+
+1. **Spheroid split AGREED — executing**: promote the two Cft/gamma_w
+   waterfalls to Sec IX; Cp pair stays App H; overlay the digitized
+   Fig-15a measured points on the alpha=10 map so it stays in Sec IX;
+   the other two maps (a29p7, 3d) move to the appendix.
+2. **Daedalus L0**: the data EXISTS and is complete (all six L0 cases,
+   both families x a4/a5/a6, full 20k-step histories in daedalus_fv1)
+   — it simply never entered tab:daetotals/figures (L1/L2 only).
+   Adding L0 rows + ladder discussion with the L0 path-sensitivity
+   caveat (the paper's own Sec IV finding) in the next tex round.
+3. **Figs 20-22 (daesurf4/5/6) repetitive**: keep ONE in Sec VIII, move
+   two to the appendix (choice by text-reference density; executing in
+   the next round).
+4. **Figures D1-D3**: narrow the plots so on-page height matches the 2D
+   sheets — injected into the in-flight section-sheet regeneration.
+5. **ALL in-figure titles removed paper-wide** (captions suffice) —
+   layout-only regeneration batch in the next round.
+6. **CFD AGENT — new runs requested by the user**: Eppler alpha=-2 and
+   8.5 deg at L0 and L1, both families (8 quasi-2D cases), fv1 canon,
+   converge-by-xtr protocol. Queue under the 4-GPU cap (behind or
+   interleaved with the spheroid ladders at your discretion).
+
+7. **D1-D3 sheets: add L1 and L0 curves** (user directive). Data
+   availability verified: all six L0 and all six L1 cases complete in
+   daedalus_fv1 for both families. Queued for round 2 (needs L0/L1 chi
+   caches + one re-probe; rides with the title-strip regeneration so
+   the sheets re-render once, not twice).
+
+## 2026-07-27 19:25 — [CFD->successor] sec:bistability numbers corrected in working tree
+
+Verdict-based re-bisection final: critical Re_r = 4.66-4.74e5
+(L in (682.9, 688.5]). I edited THREE strings in your working-tree
+sa-ai.tex (surgical, non-conflicting): the interval sentence (+ a
+clause on the verdict method), the caption band value, and
+"L <~ 530" -> 685. JSON + figure + rebisect machinery committed
+separately; please include the tex lines in your next commit. Note
+the seed-fed opening clause is now stronger (NLF Re_r ~ 7e4 is 6.7x
+below threshold). Build checked clean at my edit points.
+
+---
+
+## 2026-07-27 ~19:30 — rebisect data landed (a0678b0); tex half moves to round 2
+
+The CFD agent committed the corrected-bracket JSON/figure/script
+(critical Re_r 4.66-4.74e5) WITHOUT the tex numbers — correct
+coordination, since item A holds sa-ai.tex uncommitted. I take the tex
+half into round 2: update the sec:bistability interval sentence + the
+caption band/"L ~ 530" text against the committed JSON, and re-check
+the seed-fed clause (which strengthens: NLF Re_r ~ 7e4 is now ~7x below
+the corrected threshold, not ~4x).
+
+---
+
+## 2026-07-27 ~19:55 — response to "does Fig 22 show we are completely wrong?" (spheroid a10 waterfall)
+
+Not a broken transition calibration — the figure shows the model's
+DISCLOSED weakness at its worst. Per Stock's mechanism reading (cited
+in the section), the measured chains at Re=1.52e6, alpha=10 mark
+essentially the laminar-separation line: transition happens in/near the
+separated layer, plus crossflow on the flanks — exactly the two
+mechanisms the model lacks (under-amplified detached shear layer =
+the conclusion's named clearest limitation; crossflow = explicit future
+work, the kernel's odd pairing). Quantified deficit on record: our
+chi=1 arrives 0.13-0.56 L aft of the hot-film line — amplification
+happens but far too slowly once the layer lifts/skews. Wrong at
+incidence for attributable, disclosed reasons — not silently wrong.
+
+USER'S CONTROL EXPERIMENT ADOPTED — alpha=0 comparison launched:
+axisymmetric, no crossflow, pure attached TS = the fair kernel test.
+Digitizing Stock Fig 14a (measured front at alpha=0), extracting our
+L0/L1/L2 fronts under both conventions, comparing at matched condition.
+If the model lands on the measured alpha=0 front, the incidence miss is
+demonstrated-attributable; the section gets restructured control-first
+so a reader with the user's (referee's) reaction meets the attribution
+immediately. Integration sequenced around the round-2 tex work.
+
+## 2026-07-27 20:15 — [CFD->successor] spheroid campaign nearly complete; 8 new harvests
+
+sphere_campaign_spheroid_results.json now carries: re65a5 L0/L1/L2,
+re65a10 L0/L1/L2 (the postponed L2 finished 20:04), re72a2p5 L0/L1.
+Only re72a2p5-L2 still running (~2/3 done, lands ~21:15) — after it,
+EVERY tab:sphtotals dash fills. This also unblocks the Stock Figs
+14/16/17 measured+computed front comparisons at 6.5e6/7.2e6 (HANDOVER
+sec B literature-overlay list) and the re65/re72 waterfall/map figures
+if you want them (surface field exports exist per case).
+
+---
+
+## 2026-07-27 ~20:10 — drag-crisis pilot COMPLETE (Re_D=1e5 cylinder: URANS + steady twin + kernel check)
+
+Full technical record: agent-paper-review/2026-07-27-2006-dragcrisis-pilot.md.
+Scripts committed under paper/repro/cfd/ (build/run/forces/kernel-check);
+case data on /local_data/qiqi/sa-ai/dragcrisis_pilot/ (both machines).
+GPU usage stayed within the constraint (never more than 1 GPU on
+017-v100-dev; vishal's 4-GPU allotment untouched).
+
+- **Cost calibration**: URANS 2.44 GPU-h/case (V100, 177.6k-quad O-grid,
+  22k dual-time steps = transient + 31 shedding periods, 0.393 s/step);
+  STEADY twin 0.08 GPU-h (30x cheaper). Matrix extrapolation: URANS
+  design ~150-190 GPU-h; steady-first design ~10-20 GPU-h + ~2.5 GPU-h
+  per URANS spot check.
+- **URANS vs subcritical band**: St 0.194 (exp 0.19-0.20, ON band);
+  Cd_mean 1.72 vs exp 1.2+-0.05 — the known 2D-URANS high bias, here
+  +43% (CL rms 1.18, mean Cp_base -2.03 vs -1.2); CL_mean 0.003
+  (symmetric limit cycle). Laminar separation: mean-Cf knee 81-84 deg,
+  instantaneous crossing 85 deg (exp 78-80). Mean-Cf ZERO-CROSSING and
+  the airfoil-style near-wall chi=1 front conventions both degrade on a
+  shedding bluff body (rectified mean Cf; lifted shear layer) — knee /
+  phase-resolved / off-wall conventions needed in the campaign extractor.
+- **STEADY twin** (user amendment): converges CLEANLY to the symmetric
+  branch — no limit cycle (CL ~1e-9, CD drift 5.8e-4/1000 pseudo steps at
+  stop). Cd 0.836, separation 73.8 deg, shoulder Cp -0.91, Cp_base -0.62.
+  BL-controlled quantities agree with URANS to a few degrees; wake-
+  controlled quantities (Cd, base suction) bracket the experiment from
+  below (-30%) while 2D URANS brackets from above (+43%).
+- **Kernel check (risk 1): NO BLOCKER.** In the separated shear layers
+  the free-shear pole carries the verdict: Y=omega*d dominance gives
+  P ~ 1 (saturated) with onset margin 10^3 (Re_Omega 3e4-3e5 vs crit
+  ~126) — transition completes within ~0.5 D of separation, chi 190->700
+  along the ridge. Wall-distance DIRECTION degradation is real
+  (grad d vs layer normal 50->80 deg with distance) but enters only the
+  subdominant Z indicator: P changes <10% when Z is recomputed along the
+  true layer normal, and clips to the same rate. P<0 in the attached FPG
+  BL; gate closed at the front stagnation zone; instantaneous P map
+  resolves amplifying braids vs stabilized cores. Caveat logged: at wake
+  distances Re_Omega makes the onset gate trivially open, so shear-layer
+  transition is immediate at ALL matrix Re — watch Cd/Cp_base at the
+  Re=6e4 end.
+- **Matrix go/no-go: GO, restructured steady-first.** (1) Full Re x Tu x
+  up/down continuation matrix with the STEADY protocol (~10% of URANS
+  cost) for Re_crit(Tu), separation angles, Cp/Cf, front families;
+  (2) URANS spot checks at 2-4 Re for St / hysteresis / one-bubble
+  physics (intrinsically unsteady-branch); (3) GATE: one steady+URANS
+  pair in the critical range (Re~3e5, ~3 GPU-h) to verify the steady
+  branch tracks the crisis before committing the matrix.
