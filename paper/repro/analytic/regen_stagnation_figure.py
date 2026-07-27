@@ -49,7 +49,8 @@ ax.set_ylim(FLOOR*0.6, 200)
 ax.set_xlabel('$L=x_{\\max}/\\delta=\\sqrt{Re_r}$')
 ax.set_ylabel('steady $\\max\\chi$')
 ax.legend(fontsize=8, loc='upper left', frameon=False)
-ax.set_title('surviving branch vs Reynolds number', fontsize=9)
+# no in-figure titles (removed paper-wide by user order); the caption
+# carries the panel assignment
 ax.grid(alpha=0.25, which='both')
 
 x, y, chi = fld['x'], fld['y'], fld['chi']
@@ -63,9 +64,6 @@ axf.contour(X, Y, lg, levels=[np.log10(7.1), np.log10(30.0)], colors='k',
 axf.set_xlabel('$x/\\delta$')
 axf.set_ylabel('$y/\\delta$')
 axf.set_ylim(0, 40)
-axf.set_title('sustained wedge at $L=3000$ '
-              f"($Re_r=9\\times10^6$): $\\max\\chi={float(fld['maxchi']):.0f}$,"
-              ' $\\chi_\\infty=0$', fontsize=9)
 fig.tight_layout()
 out = f'{PAPER}/figs/stagnation_bistability.pdf'
 fig.savefig(out)

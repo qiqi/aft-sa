@@ -588,7 +588,8 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
                 ax_P.plot(xs_l, P_l, ls=ls, lw=lw, color=LO_COLOR)
         ax_reo.axhline(RE_OMEGA_FLOOR, color='gray', ls='--', lw=0.6, alpha=0.5)
         ax_reo.set_ylim(1e2, 1e4); ax_reo.grid(alpha=0.3, which='both')
-        ax_reo.set_title(rf'$\alpha={alpha}^\circ$', fontsize=10)
+        # no in-figure column titles (removed paper-wide by user order);
+        # the caption carries the column assignment
         if col == 0: ax_reo.set_ylabel(r'$\max Re_\Omega$ (log)')
         # max P = Omega_hat*I_hat, the sphere rate coordinate: P>0 (above the dotted line)
         # is the amplifying, inflectional side; the rate is a_max clip<P>.

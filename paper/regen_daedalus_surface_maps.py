@@ -191,12 +191,8 @@ def make_fig(a, out):
         ax.set_ylim(0, HALF_SPAN * 1.005)
     for ax in axs[erow]:
         ax.set_xlabel('$x$ [m]')
-    titles = [r'$-C_p$', r'$C_{f,x}$ (bold: $C_{f,x}=0$)',
-              r'$\max_n\chi$ (bold: transition)']
-    for c_, t in enumerate(titles):
-        axs[0, c_].set_title(t, fontsize=10)
-    fig.suptitle(f'Daedalus wing, upper surface, $\\alpha={a:.0f}^\\circ$',
-                 fontsize=11)
+    # no in-figure titles (removed paper-wide by user order); the caption
+    # carries the column assignment (-Cp / C_fx / max chi) and the incidence
     fig.savefig(out)
     print('wrote', out)
 

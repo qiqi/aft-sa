@@ -10,7 +10,9 @@ from vtkmodules.util.numpy_support import vtk_to_numpy
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 
-B = "/home/qiqi/flexcompute/sa-ai/flow360_fr"
+# fv1 recomputation tree (same meshes; the legacy flow360_fr tree no
+# longer carries the .cgns files)
+B = "/home/qiqi/flexcompute/sa-ai/flow360_fv1"
 FAMILIES = {'nlf': ('nlf0416_Re4M', 'NLF(1)-0416'),
             'eppler': ('eppler387_Re200k', 'Eppler 387')}
 MESHERS = {'str': 'structured O-grid', 'cav': 'unstructured cavity'}
@@ -73,8 +75,8 @@ def make_figure(fam_key):
                 ax.add_collection(LineCollection(sc, colors='k', linewidths=LW[L]))
                 ax.set_xlim(win[0], win[1]); ax.set_ylim(win[2], win[3])
                 ax.set_aspect('equal'); ax.tick_params(labelsize=7)
-                if row == 0:
-                    ax.set_title(f"{'Leading' if name=='LE' else 'Trailing'} edge", fontsize=10)
+                # no in-figure column titles (removed paper-wide by
+                # user order); the caption carries the column assignment
                 if col == 0:
                     ax.set_ylabel(f"{L}\n$z/c$", fontsize=9)
                 if row == 2:

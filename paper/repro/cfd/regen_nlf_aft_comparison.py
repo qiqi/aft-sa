@@ -134,7 +134,9 @@ for ax, side, lab in ((axs[0], 'upper', 'upper surface'),
                 mfc='none', mec='steelblue', mew=1.1, zorder=4,
                 label=('OpenFOAM (str L1/L2 by size)'
                        if side == 'upper' and lv == 'L2' else None))
-    ax.set_xlabel('$x_t/c$'); ax.set_title(lab, fontsize=10)
+    ax.set_xlabel('$x_t/c$')
+    # no in-figure panel titles (removed paper-wide by user order); the
+    # caption carries the panel assignment (upper left, lower right)
     ax.grid(alpha=0.3); ax.set_xlim(0, 0.95)
 axs[0].set_ylabel('$c_l$'); axs[0].set_ylim(-0.6, 2.1)
 _h, _l = axs[0].get_legend_handles_labels()

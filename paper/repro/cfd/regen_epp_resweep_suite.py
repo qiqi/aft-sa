@@ -95,7 +95,8 @@ def make_fig(re_list, out):
             ax_P.plot(xs_l, P_l, ls=ls, lw=lw, color=LO)
         ax_reo.axhline(REOMC_FLOOR, color='gray', ls='--', lw=0.6, alpha=0.5)
         ax_reo.set_ylim(1e2, 1e4); ax_reo.grid(alpha=0.3, which='both')
-        ax_reo.set_title(f"Re = {Rk}k", fontsize=12)
+        # no in-figure column titles (removed paper-wide by user order);
+        # the caption carries the column assignment
         if col == 0: ax_reo.set_ylabel(r'$\max Re_\Omega$ (log)')
         ax_P.axhline(0.0, color='gray', ls=':', lw=0.6, alpha=0.5)
         ax_P.set_yscale('log'); ax_P.set_ylim(1e-3, 1.0); ax_P.grid(alpha=0.3, which='both')
