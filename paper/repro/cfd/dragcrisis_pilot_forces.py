@@ -117,6 +117,17 @@ def surface_mean_cfcp(case_dir, avg=True):
     return out
 
 
+def cf_knee(phi, cf_s, frac=0.2, phi_search_min=50.0):
+    """Separation marker validated on the pilot: the angle where cf_s first
+    falls below ``frac`` of the laminar peak (mean-Cf zero crossings are
+    rectified away under shedding; see the 2006 pilot record)."""
+    pk = cf_s[(phi > 30) & (phi < 70)].max()
+    m = phi > phi_search_min
+    if not (cf_s[m] < frac * pk).any():
+        return None
+    return float(phi[m][np.argmax(cf_s[m] < frac * pk)])
+
+
 def crossings(phi, cf_s, phi_min=10.0):
     """Sign-change angles of cf_s (aft of phi_min), linearly interpolated."""
     res = []

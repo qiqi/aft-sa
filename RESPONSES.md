@@ -763,3 +763,191 @@ Per the 2110-response decision, mirroring the NLF adoption:
   harvest (dash rows filled) and was REVERTED — that dash-filling
   belongs to the spheroid thread with its accompanying text work.
 - Build: pdflatex x2, 0 errors / 0 undefined, 117 pages (+1).
+
+---
+
+## 2026-07-27 ~22:20 — drag-crisis STEADY matrix: first up-ladder complete — THE MODEL PRODUCES THE CRISIS
+
+Milestone (campaign running on local GPUs 0-3 under the shared cap;
+driver paper/repro/cfd/run_dragcrisis_matrix.py; data
+/local_data/qiqi/sa-ai/dragcrisis_matrix/). Tu 0.2% up-continuation
+ladder, all 12 Re converged or bounded-limit-cycle:
+
+  Re:  6e4   1e5   1.5e5  2e5   2.5e5  3e5   3.5e5  4e5   5e5   7e5   1e6   2e6
+  Cd:  0.845 0.839 0.828  0.813 0.795  0.774 0.749  0.719 0.620 0.344 0.284 0.221
+  knee: 72    71    71     71    71     72    73     74    79    89    91    94
+  front:137   87    81     79    78     78    79     80    86    96    97    94-98
+  Cpb: -0.62 -0.62 -0.61  -0.61 -0.60  -0.60 -0.59  -0.58 -0.52 -0.40 -0.34 -0.26
+
+- The steady branch DOES track the drag crisis: Cd collapses 0.62 ->
+  0.34 between 5e5 and 7e5 (low-Tu crisis onset), reaching 0.221 at 2e6
+  — the experimental supercritical-minimum class (0.20-0.25). The
+  Re~3e5 gate-pair "no crisis" result was simply BELOW the model's
+  low-Tu crisis onset, consistent with the physical Re_crit at
+  LTPT-class Tu.
+- Tu family ordering is RIGHT: at Tu 0.7% the crisis onsets earlier
+  (Cd 0.677 at 3e5, 0.495 at 4e5, 0.430 at 5e5, 0.365 at 7e5) — the
+  Re_crit(Tu) family the campaign targets.
+- FINDING (as anticipated): in the crisis band the fSlow=0.01 polish
+  stage limit-cycles at several points (Tu0.7: 3-3.5e5+; Tu0.2/0.05:
+  5e5, and stage-1 cycles above 7e5 with stage-2 clean). Bounded cycles
+  (Cd tail p2p recorded per case in matrix_summary.jsonl); medians
+  reported; nothing tuned.
+- Known caveats already logged: subcritical steady Cd sits ~0.84 (no
+  shedding, -30% vs exp 1.2 — wake-dynamics, not BL); knee=separation
+  marker reads the LSB onset (~90-94 deg) post-crisis, not the final
+  turbulent separation — the per-case crossings field carries the
+  LSB/turb-sep structure for the full record.
+- Cost so far ~2 GPU-h across 4 GPUs; well inside the 10-20 GPU-h
+  estimate. dn-ladders (hysteresis) + cold refs + remaining seeds in
+  flight; full record + figures to agent-paper-review/ when the matrix
+  lands.
+
+---
+
+## 2026-07-27 ~21:50 — Spheroid kernel audit: alpha=0 kill chain (two Re) + flank skew/crossflow verdict
+
+Frozen-field audit of the live kernel on the committed L2 fields
+(script `paper/repro/cfd/spheroid_flank_kernel_audit.py`, pattern of the
+drag-crisis pilot check; figure+tables in `paper/repro/cfd/figs_explore/
+spheroid_flank_kernel_audit.{png,json}`; full record + per-station tables
+in `agent-paper-review/2026-07-27-2142-spheroid-flank-kernel-audit.md`).
+NO tex edits — framing waits for your read.
+
+**PART 1, alpha=0 first (your re-prioritization).** The deficit changes
+character with Re:
+- **7.2e6 a0: the onset gate is INNOCENT** (open, S=0.96-1.00, Re_Omega
+  1129-2458 vs threshold 528-1580 at every mid-body station). The kill is
+  the rate: P ~ 0.05 decaying to 0.02, kernel bound = 8.2 e-folds by the
+  measured front (0.438) — nearly Stock's e^N N=8 — but the transported
+  field realizes only 4.4, then FLAT-LINES (5.0->5.2 over x=0.55-0.85,
+  ~0.05 e-folds/L, while the pointwise bound still says 4-9/L), and the
+  flight-quiet seed needs 11.65. Front forms only in the tail adverse PG
+  (P->1.1 at 0.94) at 0.91.
+- **1.5e6 zero-skew (a10 windward meridian; NO a0 field exists at 1.5e6):
+  gate CLOSED** (0.07-0.12; Re_Omega ~400 vs ~700, small-P arm),
+  ~1 e-fold/L — laminar to the tail-PG gate opening at 0.90 = the
+  committed windward front. Consistent with Stock's laminar-to-separation
+  reading: defensible at this Re. 6.5e6 windward sits in between (gate
+  0.10-0.16, will miss the workshop windward front).
+- **Flat-plate difference at matched Re_theta ~1100** (plate x=3 vs a0
+  x/L=0.42): gate equal (1.0/1.0); P_i 0.074 vs 0.046 (-40%, about half
+  visible to the planar 2D forms too = real fuller-profile physics);
+  realization N_kernel/N_actual 1.42 (plate) vs 1.86 (body). **The 1/r
+  Laplacian (axisymmetric-curvature) contamination of Z is real but
+  second-order**: Z_vtk vs Z_ray ±10% at matched heights (plate baseline
+  1-3%), ~10-20% of P — not the driver. Conclusion: a threshold retune
+  would NOT move the 7.2e6 front; the a0 miss demands a small-P
+  laminar-RATE fix (plus the mid-body realization stall — sharpest new
+  fact, echoes the "amplification not grid-converged" note).
+
+**PART 2, the flank.** Your 3D-cancellation hypothesis is **refuted,
+cleanly**: I_hat computed (i) solver-way, (ii) fixed-edge-direction 2D
+way, (iii) local-rotating-frame way agrees to 1-8% at all six flank
+stations despite 28-35 deg wall skew — the max-P height sits where local
+skew is 0-1 deg. The flank kernel is the OPPOSITE of quiet: P=0.54-0.99,
+gate open (Re_Omega >> threshold), bound 50-110 e-folds/L. The quiet zone
+is transport: the amplifying wedge is fed by subcritical windward fluid
+(gate-closed at 1.5e6) with short streamline residence (crossflow 7-36%),
+so chi banks its 11.65 e-folds only along the sweep path and crosses 1 at
+0.92-0.96 = the committed front. Crossflow context: the kernel functional
+on the transverse profile SATURATES (P_cf 1.25-1.41, up to ~130
+e-folds/L) — huge in principle, but at 1.5e6 the measured flank line is
+Stock's separation line, so the crossflow gap doesn't explain THIS
+condition either; it becomes live at 6.5e6.
+
+Sec IX implications (held for your decision): the "wall-anchored kernel
+misses the lifted layer" hypothesis and the "in-bubble arm suppression"
+hypothesis are both eliminated for the flank; "genuinely subcritical at
+this Reynolds number" survives for the windward feed, plus the new
+transport/residence mechanism; the a0 paragraph's deficit should be
+re-attributed rate-side (gate exonerated at 7.2e6).
+
+---
+
+## 2026-07-27 ~21:50 — AUDIT VERDICT (alpha=0 two-Re + flank): full record in
+## agent-paper-review/2026-07-27-2142-spheroid-flank-kernel-audit.md
+
+Headlines (chat carries the full relay):
+1. alpha=0 deficit CHANGES CHARACTER with Re: 1.5e6 = onset-gated
+   (defensible; matches Stock's laminar-to-separation reading);
+   7.2e6 = gate fully open, kill is rate-side — and decomposed: the
+   POINTWISE kernel budget (8.2 e-folds by the measured front) nearly
+   matches Stock's e^N (N=8); the TRANSPORTED field realizes only 4.4
+   then flat-lines (0.05 e-folds/L over x=0.55-0.85); the flight-quiet
+   seed demands 11.65 e-folds vs the tunnel's ~6. 1/r Laplacian
+   contamination real but second-order (~10-20% of P). Fix must act on
+   delivered growth at small P; onset retuning would not move 7.2e6.
+2. USER'S SKEW-CANCELLATION HYPOTHESIS: REFUTED — three I_hat
+   formulations agree to 1-8% at all six flank stations despite
+   28-35 deg wall skew (the amplifying height is skew-aligned; rotation
+   lives in the X-dominated sublayer).
+3. The flank is the MOST amplifying place on the body (P 0.54-0.99,
+   gate open). The quiet zone is transport/feed: the wedge is fed by
+   gate-closed (subcritical at 1.5e6) windward fluid with short
+   residence; chi accumulates only along the sweep path and crosses 1
+   at 0.92-0.96 = exactly the committed front. "Amplification deficit"
+   = real as observed, but transport/feed, not kernel formulation.
+4. Crossflow channel would SATURATE the rate ceiling on the flank
+   (P_cf 1.25-1.41) — enormous in principle, but at 1.5e6 the measured
+   flank line is the separation line, so its absence doesn't explain
+   this condition; it goes live at 6.5e6.
+5. Sharpest new fact: the 7.2e6 realization STALL (transported envelope
+   frozen while the pointwise bound says 4-9 e-folds/L) — echoes the
+   non-grid-converged amplification; streamline-integrated budget or an
+   L1-vs-L2 audit repeat would separate sliver/diffusion physics from
+   grid effects.
+
+Sec IX reframing plan awaiting the user's read (no tex edits made).
+
+---
+
+## 2026-07-27 ~22:05 — user physics deep-dive request: 7.2e6 alpha=0
+
+Q: Re_theta during the amplification; what overwhelms the amplifying
+band given c_nu_ai=1/6 was tuned against laminar-viscosity overwhelm;
+figures for exp vs numerical vs e^N (onset, Re, H, chi(x,walldist)).
+A (immediate, from the audit tables): Re_theta = 584/736/902/1089/1363
+at x/L = 0.20/0.30/0.42/0.55/0.70 — the amplification range spans
+Re_theta ~ 600-1400, with the measured front at Re_theta ~ 900.
+Figure-package agent launched (BL character Re_theta/H; e^N march on
+our own edge conditions with N=6/8/11.65 crossings; log10-chi contour
+in (x/L, walldistance) with the P>0 band, gate contour, delta99; and
+the band-width/confinement-penalty quantification testing whether the
+stall is the II.D eigenvalue physics at small P — band too thin for
+ANY c_nu_ai — vs another leak, with a frozen-field chi transport
+balance at the stalled station). Deliverables to figs_explore PNGs +
+a thread md.
+
+---
+
+## 2026-07-28 ~00:15 — drag-crisis STEADY matrix COMPLETE: 84/84 cases, 5.8 GPU-h, crisis + Tu family + branch map delivered
+
+Full record: agent-paper-review/2026-07-28-0010-dragcrisis-steady-matrix.md.
+Figure: paper/repro/cfd/figs_explore/dragcrisis_matrix.png. Data:
+/local_data/qiqi/sa-ai/dragcrisis_matrix/ (5.7 GB after the disk-order
+cleanup; all GPUs released).
+
+Headlines:
+- THE MODEL PRODUCES THE DRAG CRISIS as a Tu-ordered family: crisis
+  center ~4e5 at Tu 0.7%, ~5.5-6.5e5 at Tu 0.05-0.2%; supercritical
+  floor 0.217-0.233 (experimental two-bubble class 0.20-0.25), rising
+  slightly with Tu — the correct facility/roughness trend. Post-crisis
+  wall structure is a genuine LSB (turbulent reattachment; bubble
+  shrinks 10 deg -> 1.5 deg from 7e5 to 2e6) + final turbulent
+  separation 107-118 deg (short of the experimental ~147 — the expected
+  SA curved-wall class of error, logged).
+- Branch map: up/dn/cold agree to <=0.003 Cd outside the crisis;
+  inside it a reproducible ~0.05 spread with 27/84 cases limit-cycling
+  (Cd tail p2p median 0.011 — weak breathers; all quantified per case).
+  The dn branch lands HIGH (opposite the experimental hysteresis
+  direction) — flagged as needing URANS continuation, not read as
+  physics. CL = 0 in all 84: the symmetric steady protocol cannot see
+  the one-bubble state (finding).
+- Findings ledger in the record: crisis-band limit cycles, subcritical
+  Cd wake bias (by design), dn anomaly, separation-angle gap, the
+  caught-and-fixed case-name collision (clean rerun), disk measures.
+- Cost 5.76 GPU-h total (est. 10-20), wall ~1.6 h on shared GPUs 0-3.
+- Suggested next: Achenbach Cf/Cp overlays from the retained surface
+  data; 2-4 URANS spot checks for St/one-bubble/hysteresis; cheap low-Re
+  extension for the 6e4 caveat.

@@ -39,6 +39,9 @@ sys.path.insert(0, "/home/qiqi/flexcompute/flexfoil/rans")
 sys.path.insert(0, "/home/qiqi/flexcompute/sa-ai/flow360")
 
 # ---- pilot constants ------------------------------------------------------
+# RE is the pilot default; --re overrides (critical-range gate pair = 3e5).
+# The mesh is Re-independent (one family serves the matrix, y+ checked in
+# mesh_stats); only muRef and the y+ estimates change with Re.
 RE = 1.0e5
 MACH = 0.1
 MU_REF = MACH / RE                     # 1e-6
@@ -189,10 +192,10 @@ def write_msh_from_arrays(X, Y, out_dir, wall=WALL, nspan=NSPAN, span=SPAN):
 
 
 # ---- Flow360 case patch (unsteady dual-time) ------------------------------
-def patch_flow360_unsteady(cfg_path):
+def patch_flow360_unsteady(cfg_path, re=RE):
     d = json.load(open(cfg_path))
     d['freestream']['Mach'] = MACH
-    d['freestream']['muRef'] = MU_REF
+    d['freestream']['muRef'] = MACH / re
     d['freestream']['alphaAngle'] = 0.0
     # seed: stage-dependent (chi_inf * fSlow); run_dragcrisis_pilot.py patches
     # per stage. Write the physical chi as a placeholder so a bare run is at
@@ -289,6 +292,8 @@ def main():
     ap.add_argument("--steady", action="store_true",
                     help="clone <out>/<name> into <out>/<name>_steady with the "
                          "campaign steady pseudo-transient settings (no re-mesh)")
+    ap.add_argument("--re", type=float, default=RE,
+                    help="Reynolds number based on D (sets muRef; mesh unchanged)")
     args = ap.parse_args()
     if args.steady:
         make_steady_twin(os.path.join(args.out, args.name),
@@ -320,7 +325,7 @@ def main():
     cfg = CaseConfig.load(CFG_JSON)
     cfg.flow.alpha_deg = 0.0
     cfg.flow.mach = MACH
-    cfg.flow.reynolds = RE
+    cfg.flow.reynolds = args.re
     cfg.elements[0].name = WALL
     _case.preprocess(case_dir, "mesh.cgns", find, env, cfg=cfg,
                      wall_names=[f"fluid/{WALL}"],
@@ -328,7 +333,7 @@ def main():
                                      "fluid/symmetry1", "fluid/symmetry2"],
                      timings={}, sdk_cache_dir=None,
                      sim_builder=_case.build_simulation_json)
-    patch_flow360_unsteady(f"{case_dir}/Flow360.json")
+    patch_flow360_unsteady(f"{case_dir}/Flow360.json", re=args.re)
     json.dump(stats, open(f"{case_dir}/mesh_stats.json", 'w'), indent=1)
     print(f"=== case ready: {case_dir} ===")
 
