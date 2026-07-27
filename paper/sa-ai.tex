@@ -2437,9 +2437,12 @@ the convergence protocol it dictates}
 
 Every laminar solution in this paper coexists with a second, spurious
 fixed point of the discretized equations: a turbulent wedge anchored
-at the leading-edge attachment point, self-sustained at high Reynolds
-number by \emph{standard} SA production with no help from the
-freestream, the transient, or the amplification kernel. This section
+at the leading-edge attachment point, sustained by \emph{standard} SA
+production with no help from the transient or the amplification
+kernel---at high enough nose Reynolds number with no help from the
+freestream either (the model problem below), and at this paper's
+wing-scale conditions by regrowth from the seed, whose $e$-fold
+budget the nose over-supplies. This section
 demonstrates the branch on a model problem, explains why it exists
 and why it is unphysical, and states the convergence protocol used
 throughout this paper to exclude it---which a reader implementing the
@@ -2463,8 +2466,8 @@ two-equation models. What appears to be undocumented---and is supplied
 here---is the \emph{turbulent}-side fixed point: that at a stagnation
 point the standard model sustains an anchored turbulent state at
 exactly zero freestream seed, above a computable critical Reynolds
-number, in a region where the same literature's own relaminarization
-findings~\cite{rumsey_spalart_2009} say turbulence cannot live.
+number, in a region whose conditions the same literature studies as
+relaminarizing~\cite{rumsey_spalart_2009,narasimha_sreenivasan_1979}.
 
 \paragraph{The model problem.} Plane stagnation flow $U_e\!=\!k s$ is
 the prescribed pressure distribution of a leading edge of radius $r$
@@ -2493,8 +2496,9 @@ decays or survives.
   saturated initialization---collapse to the laminar solution for
   $L\!\lesssim\!530$, a self-sustained turbulent wedge above (gray
   band: the bisected critical interval,
-  $Re_r\!=\!2.8$--$2.9\times10^5$), with the sustained level growing
-  as $\max\chi\!\approx\!0.025\,L$. Right: the sustained wedge at
+  $Re_r\!=\!2.8$--$2.9\times10^5$), with the sustained level
+  approaching $\max\chi\!\approx\!0.025\,L$ over the upper
+  decade. Right: the sustained wedge at
   $L\!=\!3000$ ($Re_r\!=\!9\times10^6$), $\max\chi\!=\!76$; line
   contours of $\log_{10}\chi$, dashed below $\chi\!=\!1$, solid at
   $1$, $c_{v1}$, and $30$. Nothing enters from the freestream; the
@@ -2504,7 +2508,7 @@ decays or survives.
 
 \paragraph{Result.} Figure~\ref{fig:stagbistab}: below a critical
 extent the wedge washes out; above it ($Re_r$ between $2.78$ and
-$2.89\times10^5$) it persists, machine-steady, with $\max\chi$
+$2.89\times10^5$) it persists, steady to the solver's tolerance, with $\max\chi$
 growing roughly linearly in $L$---$\chi\!\approx\!24$ at
 $Re_r\!=\!10^6$, $76$ at $9\times10^6$---from an exactly zero seed.
 The mechanics are those of a pulled reaction--diffusion front. The
@@ -2561,7 +2565,10 @@ fully turbulent behavior unmodified is bistable at high Reynolds
 number, and every result in this paper was therefore converged with
 the laminar dynamics deliberately slowed: the $\tilde\nu$-equation
 residual is scaled by $f^{\,1-g}$, where $g$ rises smoothly from $0$
-(laminar) to $1$ (turbulent) with $\chi$ and $f\!=\!10^{-2}$. The
+(laminar) to $1$ (turbulent) with $\chi$ and $f\!=\!10^{-2}$ (the
+solver uses $g\!=\!1-e^{-(\chi-c_{v1})/4}$ above $\chi\!=\!c_{v1}$,
+zero below; the gate's exact shape is immaterial because the scaling
+preserves fixed points). The
 scaling multiplies the residual, so every converged solution is a
 fixed point of the unmodified equations; it lets the pressure field
 and the slow laminar amplification equilibrate before the fast
@@ -3131,7 +3138,8 @@ no bubble). The Reynolds sweep
 also locates the model's low-$Re$ boundary: the Eppler bubble fails to
 close at $10^5$ on every grid, and an exhaustive initialization study
 (Sec.~\ref{sec:eppbistab}) shows the computed
-state is \emph{unique} at every swept Reynolds number---the model
+state is \emph{unique} at every swept Reynolds number (among
+protocol-admitted states, Sec.~\ref{sec:bistability})---the model
 places its bursting boundary one Reynolds step above the measurement
 and carries no counterpart of the two-state structure the experiment
 shows at $6\!\times\!10^4$---traced quantitatively to the length of the
@@ -3166,9 +3174,9 @@ terms, so removing it---rather than excluding it by protocol---means
 modifying SA's behavior even at high $\chi$; an acceleration-quench
 (relaminarization) gate on the production, driven by the parameter
 $K\!=\!(\nu/U_e^2)\,dU_e/ds$ that diverges toward an attachment
-point, is the candidate, since equilibrium turbulent layers sit two
-orders of magnitude below the quench threshold and would be
-untouched. A calibration against
+point, is the candidate, since equilibrium turbulent layers sit one
+to two orders of magnitude below the quench threshold and would be
+expected to be untouched. A calibration against
 linear-stability and $e^N$ databases beyond the anchors used here---and a
 direct comparison with the algebraic SA-BCM model on community-standard
 benchmarks---would establish accuracy beyond the present demonstration.
@@ -3183,7 +3191,7 @@ identically in two-dimensional flow, and measuring exactly the
 crossed shear a swept boundary layer adds---a second amplification
 channel in the same local language.
 
-One target deserves naming. The oldest manifestation of
+One target deserves naming. The oldest widely taught manifestation of
 boundary-layer transition---the drag crisis of smooth cylinders and
 spheres~\cite{achenbach_1968,achenbach_1972}---remains outside the
 validation canon of RANS transition modeling. Its computational
@@ -3203,7 +3211,9 @@ difficulties in its own terms: amplification is generated
 geometrically by the inflectional coordinate, with no separate
 separated-flow correction---the Eppler campaign of
 Secs.~\ref{sec:eppval}--\ref{sec:eppresweep} exercises exactly this
-mechanism at crisis-range Reynolds numbers---and the protocol of
+mechanism at crisis-range Reynolds numbers, and also locates its
+known quantitative weakness, the under-amplified detached shear
+layer above---and the protocol of
 Sec.~\ref{sec:bistability} provides the controlled branch selection the critical
 regime demands. A $C_d(Re)$ traverse of the sphere and cylinder,
 including the shift of the critical Reynolds number with the

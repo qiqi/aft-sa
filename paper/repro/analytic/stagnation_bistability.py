@@ -31,10 +31,12 @@ production along near-wall streamlines banks N ~ cb1 * const * L e-folds
 self-diffusion re-seeds the root where advection vanishes, so above a
 critical L the turbulent branch is a second stable fixed point.
 
-Numerics: first-order upwind advection + explicit x-diffusion/production,
-implicit y-diffusion (tridiagonal per column) + implicit (Patankar)
-destruction; stretched y grid. March to steady state; classify sustained
-vs collapsed; bisect the critical L.
+Numerics: fully explicit update with LOCAL pseudo-time steps (fixed
+points unchanged; only the transient path differs): first-order upwind
+advection, conservative (1+chi) diffusion in both directions, cb2
+gradient-squared, Patankar-style rate limit folded into the local step;
+stretched y grid. March to steady state; classify sustained vs
+collapsed; bisect the critical L.
 
 -> data/stagnation_bistability.json  + prints a summary table.
 Run from paper/: python3 repro/analytic/stagnation_bistability.py
@@ -44,7 +46,6 @@ import os
 
 import numpy as np
 from scipy.integrate import solve_ivp
-from scipy.linalg import solve_banded
 
 _H = os.path.dirname(os.path.abspath(__file__))
 PAPER = os.path.abspath(os.path.join(_H, '..', '..'))
