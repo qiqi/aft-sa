@@ -254,34 +254,27 @@ closure driven by freestream turbulence energy; Sec.~\ref{sec:flatplate}),
 crossflow transition on swept geometries, and compressible/transonic regimes lie
 outside the present formulation and are left to future work; the validation here is
 incompressible ($M\!=\!0.1$).
-Section~\ref{sec:model} formulates the model and fixes all its constants
-but the freestream seed in one pass: the blended production term that lets $\tilde\nu$ amplify in the laminar
-range and revert to standard SA past handover, with each constant anchored, as
-its form is introduced, to a canonical stability limit or established
-correlation---the free-shear growth ceiling, the Blasius $e^N$ envelope, Drela's
-critical Reynolds number, and the fully turbulent log law---rather than to the
-transition test cases.
-The model is exercised across three pressure-gradient regimes, all with the same
-solver and laminar seeding.
-Section~\ref{sec:flatplate} fixes the one input the model leaves to the
-boundary condition---the freestream seed, via Mack's receptivity
-map---and uses a zero-pressure-gradient flat plate to verify the
-resulting onsets against the Abu-Ghannam \& Shaw correlation over
-the natural-transition $Tu$ range.
-Section~\ref{sec:nlfval} uses the NLF(1)-0416 natural-laminar-flow airfoil to
-test the favorable rooftop---held laminar by $\hat\Omega \hat I\!\to\!0$ with no
-pressure-gradient parameter---against the $e^N$ rooftop ignition, and its
-handover in the recovery.
-Section~\ref{sec:eppval} uses the Eppler 387 at low Reynolds number to test the
-adverse-pressure-gradient, laminar-separation-bubble regime. The same
-constants (collected in Appendix~E) are used across all three
-regimes and across every coupled-RANS case run for each airfoil
-(cavity unstructured $+$ structured O-grid, three refinement levels, four
-incidences, plus finest-grid incidence extensions). Section~\ref{sec:eppresweep} sweeps the Eppler across the
-tunnel's Reynolds range at fixed incidence, locating the model's
+Section~\ref{sec:model} formulates the model and fixes all its
+constants but the freestream seed in one pass, each constant
+anchored, as its form is introduced, to a canonical stability limit
+or established correlation rather than to the transition test cases.
+Section~\ref{sec:flatplate} fixes the remaining input---the
+freestream seed, via Mack's receptivity map---and verifies the
+resulting flat-plate onsets against the Abu-Ghannam \& Shaw
+correlation. The model is then exercised with the same solver,
+constants (collected in Appendix~E), and seeding across every case of
+three pressure-gradient regimes---both mesh families, three
+refinement levels, all incidences: the favorable rooftop on the
+NLF(1)-0416 (Sec.~\ref{sec:nlfval}); the adverse-gradient,
+laminar-separation-bubble regime on the Eppler 387
+(Sec.~\ref{sec:eppval}); and the Eppler swept across the tunnel's
+Reynolds range (Sec.~\ref{sec:eppresweep}), locating the model's
 bubble-bursting boundary and the mechanism that misplaces it.
-Section~\ref{sec:daedalus} presents a three-dimensional
-deployment on the Daedalus human-powered-aircraft wing.
+Section~\ref{sec:daedalus} presents a three-dimensional deployment on
+the Daedalus human-powered-aircraft wing, and
+Sec.~\ref{sec:spheroid} closes with the inclined 6:1 prolate
+spheroid, probing the model's stated scope boundary where transition
+turns crossflow-dominated.
 
 \section{The amplification model}\label{sec:model}\label{sec:calib}
 
@@ -1662,10 +1655,8 @@ disturbance level rather than as a per-case tuning.
   weight (L0 thin $\to$ L2 thick). The mfoil reference (gray squares) is shown
   where its coupled solve converges to an attached solution ($\alpha\!\le\!7^\circ$);
   at $\alpha\!=\!9^\circ$ and $15^\circ$, where mfoil fails, the $e^9$ reference is
-  FlexFoil's (gray diamonds; FlexFoil is a separate implementation
-  of XFOIL's viscous--inviscid $e^9$
-  method~\cite{drela_xfoil_1989}, cross-checked against mfoil and
-  XFOIL to $<\!1\%$ where all three converge). The two gray AFT (OVERFLOW) polars are digitized from the same
+  FlexFoil's (gray diamonds; the substitution rule and three-way
+  cross-check are in the text). The two gray AFT (OVERFLOW) polars are digitized from the same
   dissertation source as Fig.~\ref{fig:nlfaft} (dashed:
   $N_\mathrm{crit}\!=\!10.07$; solid: the recalibrated $7.18$); they
   end mid-plot because the source figure's axis stops at
@@ -1692,7 +1683,19 @@ mfoil reference above $\alpha\!=\!7^\circ$ is a solver failure, not a
 method-class limit: FlexFoil converges at the identical conditions
 ($C_l\!=\!1.51$ at $\alpha\!=\!9^\circ$, consistent with the present
 RANS), as does XFOIL (its digitized $e^9$ curve in
-Fig.~\ref{fig:nlfaft} spans these incidences). The fully turbulent SA
+Fig.~\ref{fig:nlfaft} spans these incidences). This is the paper-wide
+substitution rule for the $e^9$ reference: mfoil~\cite{fidkowski_mfoil_2022}
+wherever its coupled solve converges, XFOIL~\cite{drela_xfoil_1989}
+(repaneled) or FlexFoil---Flexcompute's separately written Rust
+implementation of the XFOIL closure set---where it fails. All three
+implementations were run at every condition where mfoil serves as a
+reference in this paper and agree to better than $1\%$ in forces and
+$0.005\,c$ in $x_\mathrm{tr}$, with two catalogued exceptions: the
+bistable $Re\!=\!6\!\times\!10^4$ (the footnote of
+Table~\ref{tab:eppresweep}) and the NLF $\alpha\!=\!0^\circ$
+lower-surface front, whose near-flat envelope amplifies
+implementation differences (mfoil and FlexFoil read $0.62\,c$; an
+XFOIL run of the original study read $0.52\,c$). The fully turbulent SA
 polar on the same structured L2 grid closes on SA-AI only as the laminar
 run shrinks ($+144\%$ at $0^\circ$ narrowing to $+67$--$74\%$ at
 $9^\circ$--$15^\circ$).
@@ -1718,6 +1721,14 @@ mfoil~\cite{fidkowski_mfoil_2022}, a coupled viscous--inviscid $e^N$ panel solve
 on a linear right axis, the two linked by $N\!=\!\ln(\chi/\chi_\infty)$ so
 one unit on the right equals one $e$-fold on the left (vertical dotted lines:
 mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
+Line conventions, here and in every five-row figure: upper surface
+blue, lower red; O-grid solid, cavity dashed; L0--L2 by line weight;
+the $e^9$ reference dotted; triangles on the $C_f$ row mark measured
+onsets read at the computed lift (open where extrapolated beyond the
+recorded data). Wherever the reference $C_f$ comes from an XFOIL or
+FlexFoil surface dump (mfoil's is already freestream-normalized), it
+is converted from the dump's edge normalization to the freestream
+convention of the computed rows ($\times u_e^2$).
 
 \begin{figure}[tp]
   \centering
@@ -1725,18 +1736,12 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
   \caption{NLF(1)-0416 at the negative-incidence pair
   $\alpha\!=\!-8^\circ$ (left, well into the negative branch of the
   measured polar) and $-4^\circ$ (right, zero lift), finest (L2)
-  grids of both mesh families, with the five-row suite and line
-  conventions described in the text (rows: probe-max
-  $Re_\Omega$, probe-max $\hat\Omega \hat I$, near-wall $\max\chi$ with the
-  $e^9$ $N$ envelope, $-C_p$, signed $C_f$; upper surface blue, lower
-  red). The $e^9$ overlay is mfoil at $-8^\circ$ and FlexFoil at
-  $-4^\circ$, where mfoil's coupled solve does not converge; filled
-  triangle: measured onset at the computed lift. At $-4^\circ$ both
-  fronts land on the references. At $-8^\circ$ the suction (lower)
-  surface trips at $0.004$--$0.011\,c$, on the $e^9$ leading-edge
-  trip, while the pressure-side (upper) front settles at
-  $0.559$--$0.561\,c$, on the measured ${\approx}0.54\,c$ ($e^9$:
-  $0.66\,c$).
+  grids of both mesh families, in the five-row layout and line
+  conventions of the text. The $e^9$ overlay is mfoil at $-8^\circ$
+  and FlexFoil at $-4^\circ$, where mfoil's coupled solve does not
+  converge. At $-4^\circ$ both fronts land on the references; the
+  $-8^\circ$ front and drag comparison is in Fig.~\ref{fig:nlfaft}'s
+  caption.
   The wall-anchored contour sheets appear in Appendix~A
   (Figs.~\ref{fig:sheet_nlf0416_am8_upper}--\ref{fig:sheet_nlf0416_am4_lower}).}
   \label{fig:nlfnegalpha}
@@ -1747,15 +1752,9 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
   \includegraphics[width=0.99\textwidth]{nlf_cf_lowalpha.pdf}
   \caption{NLF(1)-0416 surface distributions at $\alpha\!\in\!\{0^\circ,4^\circ\}$,
   $Re\!=\!4\!\times\!10^6$, $\chi_\infty\!=\!8.76\!\times\!10^{-4}$. Five-row
-  layout and line conventions as described in the text (row~1 $\max Re_\Omega$,
-  row~2 $\max \hat\Omega \hat I$, row~3 $\chi$
-  with mfoil $N$, row~4 $-C_p$,
-  row~5 $C_f$; upper blue / lower red, O-grid solid / cavity dashed,
-  L0--L2 by thickness, mfoil $e^9$ dotted; triangles on the $C_f$ row mark
-  the measured onsets---Somers's transition orifices
-  (Fig.~9d of Ref.~\cite{somers_1981}) read at the
-  computed section $c_l$---open where extrapolated beyond the recorded
-  data). At $\alpha\!=\!0^\circ$ both
+  layout and line conventions as in the text; the measured onsets are
+  Somers's transition orifices (Fig.~9d of
+  Ref.~\cite{somers_1981}). At $\alpha\!=\!0^\circ$ both
   surfaces run laminar past a third of the chord (upper
   $x/c\!\approx\!0.38$--$0.39$, lower $0.56$--$0.57$), recovering the
   low-drag
@@ -1780,13 +1779,9 @@ mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
   $\alpha\!=\!9^\circ$ and is at the LE by $\alpha\!=\!15^\circ$, while the
   lower transition remains aft of mid-chord. mfoil does not converge at
   $\alpha\!=\!9^\circ$ and stalls at $15^\circ$, so the $e^9$ overlay
-  (dash-dot: $C_p$, $C_f$---converted from XFOIL's edge-normalized
-  dump to the freestream convention, $\times u_e^2$---and transition
-  location) is XFOIL's~\cite{drela_xfoil_1989}, and the continuous
-  amplification envelope $N(x)$ (row~3, dotted) is FlexFoil's---a
-  separately written implementation of the same closure set whose
-  envelopes match mfoil's where both exist
-  (Sec.~\ref{sec:eppresweep}). The L0 unstructured under-resolves
+  (dash-dot: $C_p$, $C_f$, transition location) is
+  XFOIL's, and the continuous amplification envelope $N(x)$ (row~3,
+  dotted) is FlexFoil's (the substitution rule is in the text). The L0 unstructured under-resolves
   the LE suction peak by $\sim\!1$ in $-C_p$ at $\alpha\!=\!15^\circ$ (thin
   dashed blue); L1/L2 collapse on both grids. The high-incidence cases test
   the amplification model under a strong adverse gradient:
@@ -1946,12 +1941,10 @@ regime.
   \includegraphics[width=0.99\textwidth]{eppler_cf_lowalpha.pdf}
   \caption{Eppler 387 surface distributions at $\alpha\!\in\!\{0^\circ,5^\circ\}$,
   $Re\!=\!2\!\times\!10^5$, $M\!=\!0.1$, $\chi_\infty\!=\!8.76\!\times\!10^{-4}$
-  (matched to $N_\mathrm{crit}\!=\!9$). Five-row layout and line conventions as
-  described in the text (row~1 $\max Re_\Omega$, row~2 $\max \hat\Omega \hat I$,
-  row~3 $\chi$ with mfoil $N$, row~4 $-C_p$, row~5 signed $C_f$; upper blue /
-  lower red, O-grid solid / cavity dashed, L0--L2 by thickness, mfoil $e^9$
-  dotted, and the tabulated experimental $C_p$ (NASA TM-4062 App.~D, column with
-  the nearest angle of attack) as open black circles on the $-C_p$ row). The signed $C_f$ (row~5) shows the laminar-separation bubble
+  (the paper-wide seed). Five-row layout and line
+  conventions as in the text; open black circles on the $-C_p$ row:
+  the tabulated experimental $C_p$ (NASA TM-4062 App.~D, column with
+  the nearest angle of attack). The signed $C_f$ (row~5) shows the laminar-separation bubble
   directly as the dip below zero on the upper surface. The bubble sits at
   $x/c\!\approx\!0.52$--$0.76$ at $\alpha\!=\!0^\circ$ and marches forward to
   $x/c\!\approx\!0.40$--$0.63$ at $\alpha\!=\!5^\circ$; both Flow360 and mfoil
@@ -1983,9 +1976,7 @@ regime.
   which stalls numerically there (Fig.~\ref{fig:eppbubble});
   the surface distributions carry no $N$ curve, so
   row~3 shows no envelope at $7^\circ$ (at $8.5^\circ$ mfoil converges
-  and the envelope returns). XFOIL's dumped $C_f$ is
-  edge-normalized and is converted to the freestream convention of the
-  computed rows ($\times u_e^2$).}
+  and the envelope returns).}
   \label{fig:eppcfhigh}
 \end{figure}
 
@@ -2025,9 +2016,8 @@ Fig.~\ref{fig:sheet_eppler387_a5_upper}.)
   the $e^9$ references: mfoil (dotted; drawn to $\alpha\!=\!6.5^\circ$,
   beyond which it is at the edge of its convergence regime---at
   $\alpha\!=\!7^\circ$ it returns $C_l\!=\!0.928$, below its $5^\circ$
-  value, while XFOIL~\cite{drela_xfoil_1989} converges there with
-  $C_l\!=\!1.17$) and FlexFoil, a separate implementation of the
-  same method (dash-dot). Past $\alpha\!=\!6.5^\circ$ the $e^9$
+  value, while XFOIL converges there with
+  $C_l\!=\!1.17$) and FlexFoil (dash-dot). Past $\alpha\!=\!6.5^\circ$ the $e^9$
   closure \emph{transitions ahead of laminar separation}---its signed
   $C_f$ never crosses zero (FlexFoil and XFOIL agree, minimum
   $+4.7\!\times\!10^{-4}$ in the freestream convention at $7^\circ$)---and so predicts no bubble
@@ -2100,20 +2090,16 @@ $\chi\!=\!1$ front sits mid-bubble,
 slightly \emph{ahead} of the $e^9$ crossing
 (Figs.~\ref{fig:eppcflow}--\ref{fig:eppcfhigh}, row~3), and the inflectional
 profile saturates the rate coordinate ($\hat\Omega \hat I\!\approx\!1$) across the
-mid-bubble. What is slow is the \emph{transition} itself: the
-model carries no closure for the transition process, so
-breakdown is represented by the transported-$\chi$ handover into SA
-production, and the handover needs a fixed number of $e$-folds of
-$\chi$ (${\approx}\ln c_{v1}$ to half commitment) whose physical
-length is macroscopic at this Reynolds number. The turbulent stress
-that closes the bubble therefore arrives aft of where spot-driven
-breakdown completes in the tunnel, and reattachment---the quantity the
-oil flow measures---lands $0.02$--$0.04\,c$ late even though the
-front is placed correctly. Where that handover length leads as the
-Reynolds number falls---to a bursting boundary, and to the loss of the
-two-state structure the experiment shows---is the subject of the next
-section, which quantifies it against the room the bubble has
-(Sec.~\ref{sec:epphandover}).
+mid-bubble. What is slow is the \emph{transition} itself: the model
+carries no closure for the transition process, and the turbulent
+stress that closes the bubble arrives aft of where spot-driven
+breakdown completes in the tunnel---reattachment, the quantity the
+oil flow measures, lands $0.02$--$0.04\,c$ late even though the front
+is placed correctly. The mechanism (the transported-$\chi$ handover's
+fixed $e$-fold count against its growing physical length), and where
+it leads as the Reynolds number falls---to a bursting boundary, and
+to the loss of the two-state structure the experiment shows---is
+quantified in the next section (Sec.~\ref{sec:epphandover}).
 
 \section{Reynolds-number study of the Eppler 387 at $\alpha\!=\!5^\circ$}\label{sec:eppresweep}
 
@@ -2151,15 +2137,12 @@ of the pre-bypass model does not recur under the recomputation.
 The section lift, drag, and quarter-chord pitching-moment
 coefficients are collected in Fig.~\ref{fig:eppresweepforces}, and
 tabulated at L2 against the $e^9$ reference and the tunnel data in
-Table~\ref{tab:eppresweep} (Appendix~C). The $e^9$ reference itself is
-cross-checked: XFOIL (repaneled) and FlexFoil (a separately written
-Rust implementation of the XFOIL closure set) were run at every
-condition where mfoil serves as the reference in this paper, and the
-three implementations agree to better than $1\%$ everywhere except
-$Re\!=\!6\!\times\!10^4$, where mfoil visibly departs from the other
-two; XFOIL---whose forces also sit closest to the measurement---is
-presented as the reference there, in the table (mfoil in the footnote)
-and in Fig.~\ref{fig:eppresweep_low}. \begin{figure}[tp]
+Table~\ref{tab:eppresweep} (Appendix~C). The three-way $e^9$
+cross-check of Sec.~\ref{sec:nlfval} has its one force-level
+exception here: at $Re\!=\!6\!\times\!10^4$ mfoil visibly departs
+from XFOIL and FlexFoil, and XFOIL---whose forces also sit closest to
+the measurement---is presented as the reference there, in the table
+(mfoil in the footnote) and in Fig.~\ref{fig:eppresweep_low}. \begin{figure}[tp]
   \centering
   \includegraphics[width=\textwidth]{eppler_resweep_forces.pdf}
   \caption{The $\alpha\!=\!5^\circ$ Reynolds sweep. \emph{Top row}:
@@ -2276,9 +2259,8 @@ transition, reattachment, and the forces that follow.
   \includegraphics[width=\textwidth]{eppler_resweep_lowRe.pdf}
   \caption{Eppler 387 at $\alpha\!=\!5^\circ$, $Re\!=\!6\!\times\!10^4$ (left) and
   $1\!\times\!10^5$ (right): the five-row suite and line conventions of
-  the benchmark figures (rows: $\max Re_\Omega$, $\max\hat\Omega \hat I$,
-  $\max\chi$ with the $e^9$ $N$ envelope, $-C_p$, signed $C_f$), both
-  mesh families, L0--L2 by line thickness. Dotted: the $e^9$
+  the benchmark figures (Sec.~\ref{sec:nlfval}), both
+  mesh families. Dotted: the $e^9$
   reference---XFOIL at $6\!\times\!10^4$ (Table~\ref{tab:eppresweep}),
   mfoil at $10^5$; the $N$ envelope at $6\!\times\!10^4$ is
   FlexFoil's. Open markers: \emph{every} TM-4062 repeat pressure
@@ -2974,24 +2956,21 @@ the NLF(1)-0416 at $Re\!=\!4\!\times\!10^6$ (Sec.~\ref{sec:nlfval}) the
 model holds the designed laminar rooftop---the favorable run held by
 $\hat\Omega \hat I\!\to\!0$ with no pressure-gradient term---and ignites at each recovery,
 tracking the Somers fronts (the lower front's aft-ward march with lift
-reproduced to within $0.02\,c$), and the
-handover held across $\alpha\!\in\!\{0^\circ,4^\circ,9^\circ,15^\circ\}$ on
-twenty-four cases (both mesh families, three refinement levels), plus the
-negative pair on the same six grids. On the Eppler
-387 at
+reproduced to within $0.02\,c$), with the handover held across the
+full incidence matrix, negative pair included. On the Eppler 387 at
 $Re\!=\!2\!\times\!10^5$ (Sec.~\ref{sec:eppval}) the
 model resolved the adverse-gradient, laminar-separation-bubble regime---the signed
-skin friction shows the recirculation directly---across another thirty-six cases
-on the same two-family ladder (twelve of them the finest-pair extension over
-$\alpha\!=\!-2^\circ$--$8.5^\circ$), though it reattaches late at low
-incidence---$0.02$--$0.04\,c$ aft of the measured oil-flow reattachment at
-$\alpha\!\le\!5^\circ$ ($0.76$ vs $0.74\,c$, $0.71$ vs $0.67\,c$, $0.63$ vs
-$0.59\,c$, inside the facility-to-facility spread of the two
-experiments on Fig.~\ref{fig:eppbubble}), and early at $7^\circ$
+skin friction shows the recirculation directly---though it reattaches late at low
+incidence ($0.02$--$0.04\,c$ aft of the measured oil-flow
+reattachment at $\alpha\!\le\!5^\circ$, inside the
+facility-to-facility spread of the two experiments on
+Fig.~\ref{fig:eppbubble}) and early at $7^\circ$
 (\S\ref{sec:calib_rate}); an $\alpha\!=\!5^\circ$ sweep across five Reynolds numbers,
 $Re\!=\!6\!\times\!10^4$ to $4.6\!\times\!10^5$, follows the bubble's march and
-shortening. The same constants (Appendix~E) were used
-throughout. Across both airfoils the L1$\to$L2 transition-location drift is at
+shortening. The same constants (Appendix~E) were used throughout the
+airfoil campaign's ninety-six solutions (both mesh families, three
+refinement levels, every incidence and Reynolds number, with the
+finest-pair extensions). Across both airfoils the L1$\to$L2 transition-location drift is at
 or below $0.01\,c$ (reaching $0.008\,c$ at the NLF's near-LE
 $\alpha\!=\!9^\circ$ front and $0.011\,c$ on the Eppler
 reattachment), and the two independently-generated mesh families
@@ -3001,8 +2980,7 @@ edge-of-collapse $7^\circ$ case excepted, where three grids retain
 no bubble). The Reynolds sweep
 also locates the model's low-$Re$ boundary: the Eppler bubble fails to
 close at $10^5$ on every grid, and an exhaustive initialization study
-(cold starts, Reynolds-number forks, slow continuation in both
-directions, each endpoint extended to convergence) shows the computed
+(Sec.~\ref{sec:eppbistab}) shows the computed
 state is \emph{unique} at every swept Reynolds number---the model
 places its bursting boundary one Reynolds step above the measurement
 and carries no counterpart of the two-state structure the experiment
@@ -3104,12 +3082,6 @@ interior only---the boundary spacing comes from the resampled
 contour---and $h_\infty$, unlike every near-wall scale, does not
 halve per level (it is reached only far outside the region the
 sheets and tables measure).
-
-Wherever a five-row figure's dotted or dash-dotted reference $C_f$
-comes from an XFOIL or FlexFoil surface dump (the mfoil references
-are already freestream-normalized), it is converted from the dumps'
-edge normalization to the freestream convention of the computed rows
-($\times u_e^2$).
 
 The contour sheets present the computed fields in the manner of the
 flat-plate figure (Fig.~\ref{fig:flatplate_batch}): line contours of
@@ -3429,17 +3401,9 @@ coefficients against the $e^9$ reference and the tunnel data
   closer to the measurement, is quoted as the reference. mfoil gives
   $c_l\!=\!0.889$, $c_d\!=\!0.0368$, $c_m\!=\!-0.097$---$11\%$ less
   drag---commensurate with the bistability of the flow at this Reynolds
-  number, while a third, separately written implementation of the
-  XFOIL closure set (FlexFoil, Flexcompute's Rust reimplementation)
-  sides with XFOIL: $c_l\!=\!0.868$, $c_d\!=\!0.0406$,
-  $c_m\!=\!-0.102$. At every other condition (both airfoils, all
-  incidences, the higher Reynolds numbers, and the wing sections of
-  Sec.~\ref{sec:daedalus}) all three agree to better than $1\%$ in
-  $c_l$ and $c_d$, and to $0.005\,c$ in $x_\mathrm{tr}$ with one
-  exception: the NLF $\alpha\!=\!0^\circ$ lower-surface front, whose
-  near-flat envelope amplifies implementation differences---mfoil and
-  FlexFoil both read $0.62\,c$, while an XFOIL run of the original study
-  read $0.52\,c$ (Sec.~\ref{sec:nlfval}).}
+  number, while FlexFoil sides with XFOIL: $c_l\!=\!0.868$,
+  $c_d\!=\!0.0406$, $c_m\!=\!-0.102$ (the cross-check statement is in
+  Sec.~\ref{sec:nlfval}).}
 \end{table}
 
 \begin{figure}[p]
