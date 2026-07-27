@@ -3922,6 +3922,25 @@ model in any solver will need in some form, because the printed
 transport equation alone does not determine which fixed point an
 initialization finds.
 
+The two halves of this bistability have separate histories.
+The laminar-side fixed point is documented: Rumsey's apparent-transition
+study~\cite{rumsey_2007_apparent} showed SA converging to a
+laminar-behavior state when the freestream level falls below a
+threshold, with grid-dependent extent and non-unique onset, and the
+follow-up with Spalart~\cite{rumsey_spalart_2009} concluded the model
+is not intended for transitional use---while Crivellini and
+D'Alessandro~\cite{crivellini_dalessandro_2014} turned the same
+low-seed behavior into a working laminar-separation-bubble predictor,
+the nearest published ancestor of the present model's premise. The
+propagation of model-turbulence fronts into quiescent fluid was
+analyzed by Cazalbou, Spalart, and Bradshaw~\cite{cazalbou_1994} for
+two-equation models. What appears to be undocumented---and is supplied
+here---is the \emph{turbulent}-side fixed point: that at a stagnation
+point the standard model sustains an anchored turbulent state at
+exactly zero freestream seed, above a computable critical Reynolds
+number, in a region where the same literature's own relaminarization
+findings~\cite{rumsey_spalart_2009} say turbulence cannot live.
+
 \paragraph{The model problem.} Plane stagnation flow $U_e\!=\!k s$ is
 the prescribed pressure distribution of a leading edge of radius $r$
 at strain rate $k\!\approx\!U_\infty/r$. The velocity field is the
