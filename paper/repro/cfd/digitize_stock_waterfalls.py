@@ -1,27 +1,31 @@
-"""[WIP -- tracker validated visually except the cft phi>125 tangle; next:
-legend-template symbol matching for chain identity]
+"""Digitize the MEASURED symbol chains from Stock (2006) Figs. 2-3
+(Cp vs phi, thirteen pressure stations) and Figs. 4-5 (total skin
+friction Cft and wall-shear direction gamma_w vs phi, seven hot-film
+stations) -- raster scans inside spheroid.pdf; the extracted images
+live in /local_data/qiqi/sa-ai/stock_digitize (regenerate with
+--extract).
 
-Digitize the MEASURED symbol chains from Stock (2006) Figs. 4-5
-(total skin friction Cft and wall-shear direction gamma_w vs phi, seven /
-eight stations, waterfall offsets) and Figs. 2-3 (Cp) -- raster scans
-inside spheroid.pdf; the extracted images live in
-/local_data/qiqi/sa-ai/stock_digitize (regenerate with --extract).
-
-Method per panel: binary dark mask of the plot interior; erase dashed
-grid bands (known tick rows/cols); split thick COMPUTATION strokes from
-thin measured symbol chains by morphological opening; run one
-continuity tracker per station seeded at the left edge, nearest-blob
-with a slope cap. Output: per-figure JSON with, per station, arrays of
+Method per panel: binary dark mask of the plot interior; erase grid
+bands and in-panel legend boxes; separate the measured chains from
+Stock's computed strokes (figs 4-5: morphological opening removes the
+THICK computation strokes; figs 2-3: a per-column blob vertical-extent
+floor removes the THIN potential-theory strokes and grid dashes,
+keeping the tall symbol glyphs); run one exclusive continuity tracker
+per station seeded at the left edge, nearest-blob with a slope cap and
+mutual exclusion. Output: per-figure JSON with, per station, arrays of
 (phi_deg, value) in PHYSICAL units (waterfall offset REMOVED using the
-printed per-station offsets), plus the tracker's pixel trace for the
-overlay-check PNG.
+printed per-station offsets; figs 2-3 additionally shed a +0.14 base
+displacement, derivation at FIGS below), plus full-resolution colored
+check overlays in stock_digitize/ -- chain identity was verified there
+per station, and every unrecoverable tangle is truncated via the
+per-figure truncate dicts.
 
 Calibrations measured from tick detection on the extracted images
 (fig4: Cft 5.0@y26 to -10.0@y1222, gamma 30@y1371 to -120@y2615,
-phi 0@x275 to 180@x2239).
+phi 0@x275 to 180@x2239; figs 2-3: per-entry comments below).
 
-Run from paper/: python3 repro/cfd/digitize_stock_waterfalls.py fig4
--> data/stock2006_fig4_digitized.json + check PNG in stock_digitize/.
+Run from paper/: python3 repro/cfd/digitize_stock_waterfalls.py fig2
+-> data/stock2006_fig2_digitized.json + check PNGs in stock_digitize/.
 """
 import json
 import os
@@ -36,7 +40,81 @@ _H = os.path.dirname(os.path.abspath(__file__))
 PAPER = os.path.abspath(os.path.join(_H, '..', '..'))
 
 # per-figure geometry: image file, panels, calibration, stations, offsets
+# Figs 2-3 (Cp): the plotted quantity is -Cp; the per-station step is
+# 0.42 (pass-43, printed axes) and the WHOLE family additionally sits
+# +0.14 above physical: off_i = 0.14 + 0.42*i bottom-up.  The base
+# displacement is Stock's stated "0.14" (not a typo of the step) and
+# was derived, not assumed: exact potential theory on the 6:1 spheroid
+# (v = (1+k1)Ucos(a)(x_hat - n_x n) + (1+k2)Usin(a)(z_hat - n_z n),
+# which matches our L2 RANS station Cp to ~0.005 away from nose/tail)
+# sits a uniform +0.12..0.15 below the as-printed chains at BOTH
+# incidences and below Stock's own printed potential-theory curves by
+# +0.15; subtracting 0.14 closes both to ~0.01.  Stations are listed
+# top-to-bottom (tracker order): off_i = off0 + i*doff, off0 =
+# 12*0.42 + 0.14 = 5.18, doff = -0.42.
+# The measured chains are ~20-px symbol glyphs while Stock's computed
+# potential-theory curves are 3-5-px thin strokes: min_extent keeps
+# only blobs tall enough to be symbols (mode='all', no thick/thin
+# opening -- the roles are inverted relative to figs 4-5).
 FIGS = {
+    'fig2': dict(
+        img='p3_img0_2219x2679.png',
+        # tick-detected: phi grid cols 250.5/483.5/719.5/953/1186/1419/
+        # 1655; -Cp rows 28.5 (6.0) .. 2402.5 (-1.0), 339.1 px/unit
+        x_cal=(250.5, 0.0, 1655.0, 180.0),
+        panels=dict(
+            cp=dict(y_cal=(28.5, 6.0, 2402.5, -1.0),
+                    yspan=(28, 2404), doff=-0.42, off0=5.18,
+                    gridstep=1.0, min_extent=8),
+        ),
+        # in-panel legend text ("Potential theory"/"Free vortex layer
+        # separation", top center) -- erase boxes in full-image px --
+        # plus a stepped band along the thick dashed free-vortex-
+        # separation curve where it crosses stations 0.212/-0.038/
+        # -0.288 (it otherwise hijacks the 0.212 tracker at phi~106)
+        erase=[(40, 230, 755, 1656),
+               (620, 680, 1000, 1060), (680, 740, 1035, 1095),
+               (740, 800, 1070, 1125), (800, 860, 1100, 1155),
+               (860, 920, 1130, 1185), (920, 980, 1155, 1210)],
+        stations=[0.79240, 0.66920, 0.46180, 0.21220, -0.03780,
+                  -0.28780, -0.53700, -0.74320, -0.86520, -0.92840,
+                  -0.96560, -0.98520, -0.99880],
+        truncate={},
+    ),
+    'fig3': dict(
+        img='p3_img1_1990x2414.png',
+        # tick-detected: phi grid cols 236/445.5/656/865.5/1073/1283/
+        # 1495.5; -Cp rows 25 (6.0) .. 2153 (-1.0), 304.0 px/unit
+        x_cal=(236.0, 0.0, 1495.5, 180.0),
+        panels=dict(
+            cp=dict(y_cal=(25.0, 6.0, 2153.0, -1.0),
+                    yspan=(25, 2155), doff=-0.42, off0=5.18,
+                    gridstep=1.0, min_extent=8),
+        ),
+        erase=[(1915, 2085, 700, 1492)],
+        stations=[0.79240, 0.66920, 0.46160, 0.21240, -0.03760,
+                  -0.28780, -0.53700, -0.74320, -0.86520, -0.92840,
+                  -0.96560, -0.98520, -0.99880],
+        # manual seeds (panel rows, top-to-bottom): the -0.9852 and
+        # -0.9988 symbol chains overlap into one band at the left edge
+        # (their printed symbols coincide below phi~25), so automatic
+        # left-edge clustering finds 12 rows for 13 chains; the pair is
+        # split here and identity is checked where they separate
+        seed_rows=[218, 302, 522, 671, 820, 968, 1127, 1292, 1459,
+                   1638, 1809, 1948, 1962],
+        # alpha=29.7 leeward dive tangle (phi~90-125): the aft-station
+        # chains plunge together with the thick dashed free-vortex
+        # curve and each other; identity verified per station at full
+        # resolution up to these azimuths (windward rise, suction peak
+        # and dive onset retained; post-tangle plateaus dropped where
+        # the tracker demonstrably switched carriers).  Stations
+        # -0.537/-0.743/-0.928/-0.966/-0.985/-0.999 verified clean over
+        # the full 0-180 range.
+        truncate={('cp', 0.79240): 92.0, ('cp', 0.66920): 94.0,
+                  ('cp', 0.46160): 101.0, ('cp', 0.21240): 100.0,
+                  ('cp', -0.03760): 108.0, ('cp', -0.28780): 108.0,
+                  ('cp', -0.86520): 122.0},
+    ),
     'fig4': dict(
         img='p3_img2_3092x2936.png',
         x_cal=(275.0, 0.0, 2239.0, 180.0),      # px0, phi0, px1, phi1
@@ -87,36 +165,52 @@ def load_dark(img):
 
 
 def clean_panel(dark, fig, panel):
-    """Interior mask with grid bands erased and thick strokes separated."""
+    """Interior mask with grid bands erased and thick strokes separated.
+
+    Panels with `min_extent` (the Cp figures) skip both the horizontal
+    grid erase and the thick/thin opening: there the measured chains
+    are tall symbol glyphs and everything thin (grid dashes, frame
+    rows, potential-theory strokes) is dropped later by the blob
+    vertical-extent filter, which avoids splitting symbols that sit on
+    a grid line.
+    """
     g = FIGS[fig]
     x0px = int(g['x_cal'][0]) + 4
     x1px = int(g['x_cal'][2]) - 4
     y0, y1 = g['panels'][panel]['yspan']
     m = dark[y0:y1, x0px:x1px].copy()
+    # erase in-panel legend boxes (full-image px)
+    for (ey0, ey1, ex0, ex1) in g.get('erase', []):
+        m[max(0, ey0-y0):max(0, ey1-y0),
+          max(0, ex0-x0px):max(0, ex1-x0px)] = False
     # erase dashed horizontal grid bands (at tick values) and vertical
     # 30-deg bands
     ycal = g['panels'][panel]['y_cal']
     py0, v0, py1, v1 = ycal
     px_per = (py1-py0)/(v1-v0)
-    # grid at each labeled tick value
-    step = g['panels'][panel].get('gridstep',
-                                  2.5 if panel == 'cft' else 30.0)
-    vals = np.arange(v0, v1 + np.sign(v1-v0)*0.1,
-                     (v1-v0)/abs(v1-v0) * step)
-    for v in vals:
-        r = int(py0 + (v-v0)*px_per) - y0
-        if -6 < r < m.shape[0]+6:
-            m[max(0, r-5):min(m.shape[0], r+6), :] = False
-    # frame rows (thick) get a wider erase
-    for v in (v0, v1):
-        r = int(py0 + (v-v0)*px_per) - y0
-        m[max(0, r-8):min(m.shape[0], r+9), :] = False
+    extent_mode = 'min_extent' in g['panels'][panel]
+    if not extent_mode:
+        # grid at each labeled tick value
+        step = g['panels'][panel].get('gridstep',
+                                      2.5 if panel == 'cft' else 30.0)
+        vals = np.arange(v0, v1 + np.sign(v1-v0)*0.1,
+                         (v1-v0)/abs(v1-v0) * step)
+        for v in vals:
+            r = int(py0 + (v-v0)*px_per) - y0
+            if -6 < r < m.shape[0]+6:
+                m[max(0, r-5):min(m.shape[0], r+6), :] = False
+        # frame rows (thick) get a wider erase
+        for v in (v0, v1):
+            r = int(py0 + (v-v0)*px_per) - y0
+            m[max(0, r-8):min(m.shape[0], r+9), :] = False
     xc = g['x_cal']
     pxdeg = (xc[2]-xc[0])/(xc[3]-xc[1])
     for phi in range(0, 181, 30):
         c = int(xc[0] + phi*pxdeg) - x0px
         if 6 < c < m.shape[1]-6:
             m[:, c-5:c+6] = False
+    if extent_mode:
+        return m, (y0, x0px)
     # thick computation strokes: survive a 2-iteration erosion
     thick = ndimage.binary_erosion(m, iterations=2)
     thick = ndimage.binary_dilation(thick, iterations=4)
@@ -124,21 +218,25 @@ def clean_panel(dark, fig, panel):
     return thin, (y0, x0px)
 
 
-def _blobs(col_rows):
-    """Cluster a column's dark rows into blob centroids."""
+def _blobs(col_rows, min_extent=0):
+    """Cluster a column's dark rows into blob centroids; blobs whose
+    vertical extent is below min_extent px are dropped (thin strokes)."""
     if not len(col_rows):
         return []
     out = []
     start = prev = col_rows[0]
     for r in col_rows[1:]:
         if r - prev > 6:
-            out.append((start+prev)/2.0); start = r
+            if prev - start >= min_extent:
+                out.append((start+prev)/2.0)
+            start = r
         prev = r
-    out.append((start+prev)/2.0)
+    if prev - start >= min_extent:
+        out.append((start+prev)/2.0)
     return out
 
 
-def track(thin, seeds, slope_cap=14, win0=26, hist=15):
+def track(thin, seeds, slope_cap=14, win0=26, hist=15, min_extent=0):
     """Simultaneous exclusive tracking: all chains advance column by
     column; blobs are assigned greedily by |prediction - blob| with
     mutual exclusion, so crossing chains cannot collapse onto one
@@ -152,7 +250,7 @@ def track(thin, seeds, slope_cap=14, win0=26, hist=15):
     recent = [[(0, float(s))] for s in seeds]
     tracks = [[] for _ in range(n)]
     for c in range(w):
-        blobs = _blobs(cols[c])
+        blobs = _blobs(cols[c], min_extent)
         if blobs:
             preds = [ys[i] + slopes[i]*min(miss[i]+1, 20) for i in range(n)]
             pairs = sorted((abs(preds[i]-b), i, bi)
@@ -331,15 +429,35 @@ def run_fig_symbols(fig):
 def run_fig(fig):
     g = FIGS[fig]
     dark = load_dark(g['img'])
+    note = ('; value is -Cp (as plotted)' if 'cp' in g['panels'] else '')
     out = {'source': f"Stock (2006) {fig}, raster digitization; "
-                     "waterfall offsets removed", 'stations': {}}
+                     f"waterfall offsets removed{note}", 'stations': {}}
     from PIL import ImageDraw
     im = Image.open(f"{DIG}/{g['img']}").convert('RGB')
     dr = ImageDraw.Draw(im)
+    colors = [(255, 0, 0), (0, 150, 0), (0, 0, 255), (200, 120, 0),
+              (160, 0, 200), (0, 160, 160), (220, 0, 120), (120, 80, 0),
+              (255, 120, 120), (0, 220, 80), (100, 100, 255),
+              (240, 180, 0), (255, 0, 255)]
     for pname, p in g['panels'].items():
         thin, (yoff, xoff) = clean_panel(dark, fig, pname)
-        seeds = seeds_at_left(thin, len(g['stations']))
-        tracks = track(thin, seeds)
+        seeds = g.get('seed_rows') or seeds_at_left(thin, len(g['stations']))
+        me = p.get('min_extent', 0)
+        if me and 'seed_rows' not in g:
+            # a valid seed must sit on a symbol blob (extent >= me) in
+            # the first columns -- grid-dash rows otherwise seed
+            # wandering trackers that steal blobs from real chains
+            good = []
+            for s in seeds:
+                for c in range(80):
+                    if any(abs(b - s) <= 15
+                           for b in _blobs(np.where(thin[:, c])[0], me)):
+                        good.append(s)
+                        break
+            print(f'{fig}/{pname}: seed extent filter {len(seeds)} -> '
+                  f'{len(good)}')
+            seeds = good
+        tracks = track(thin, seeds, min_extent=me)
         # filter: drop frame/spurious seeds -- tracks that are too short or
         # ride the panel edge with near-zero variation
         keep = []
@@ -379,16 +497,19 @@ def run_fig(fig):
             pmax = g.get('truncate', {}).get((pname, st), 999.0)
             pxdeg = (xc[2]-xc[0])/(xc[3]-xc[1])
             tr = [(c, y) for c, y in tr if (c+xoff-xc[0])/pxdeg <= pmax]
+            off = p.get('off0', 0.0) + i*p['doff']
             phi = [ (c+xoff-xc[0])/((xc[2]-xc[0])/(xc[3]-xc[1])) for c, _ in tr ]
-            val = [ v0 + ((y+yoff)-py0)*(v1-v0)/(py1-py0) - i*p['doff']
+            val = [ v0 + ((y+yoff)-py0)*(v1-v0)/(py1-py0) - off
                     for _, y in tr ]
             key = f'{pname}_x{st:+.3f}'
-            out['stations'][key] = dict(station=st, offset=i*p['doff'],
+            out['stations'][key] = dict(station=st, offset=off,
                                         phi=[round(q, 2) for q in phi],
                                         value=[round(q, 4) for q in val])
+            col = colors[i % len(colors)]
             for c, y in tr[::4]:
                 dr.ellipse([c+xoff-3, y+yoff-3, c+xoff+3, y+yoff+3],
-                           outline=(255, 0, 0))
+                           outline=col)
+    im.save(f'{DIG}/check_{fig}_full.png')
     im.thumbnail((1400, 1400))
     im.save(f'{DIG}/check_{fig}.png')
     path = f'{PAPER}/data/stock2006_{fig}_digitized.json'

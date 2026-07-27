@@ -4057,6 +4057,28 @@ record, and the captions carry only curve identity.
   separation line (Stock Fig.~15a at
   $Re\!=\!1.52\!\times\!10^6$~\cite{stock_2006}), digitized to
   ${\pm}0.005\,x/L$.
+\item \texttt{data/stock2006\_fig2\_digitized.json},
+  \texttt{data/stock2006\_fig3\_digitized.json}: the DFVLR measured
+  $C_p$ chains of Stock's Figs.~2--3 ($\alpha\!=\!10^\circ$ and
+  $29.7^\circ$)~\cite{stock_2006}, digitized from the raster scans
+  by per-station exclusive continuity tracking
+  (\texttt{repro/cfd/digitize\_stock\_waterfalls.py}, which records
+  every truncation). Waterfall displacements $0.14+0.42i$ removed: the
+  $0.42$ step is the printed-axes value, and the $0.14$ base (the
+  displacement Stock's text states) is derived by anchoring the
+  printed chains and Stock's own printed potential-theory curves to
+  exact potential theory. Chains truncated where the printed symbol
+  tangle makes chain identity unrecoverable ($\alpha\!=\!29.7^\circ$
+  leeward dives; the windward rises, suction peaks, and dive onsets
+  are retained).
+\item \texttt{data/stock2006\_fig4\_digitized.json},
+  \texttt{data/stock2006\_fig5\_digitized.json}: the DFVLR measured
+  $C_{ft}$ and $\gamma_w$ chains of Stock's
+  Figs.~4--5~\cite{stock_2006}, same pipeline and truncation record;
+  waterfall displacements ($-1.5\!\times\!10^{-3}$/$-15^\circ$ and
+  $-3\!\times\!10^{-3}$/$-20^\circ$ per station) removed; the
+  $\gamma_w\!=\!0$ symmetry values at $\phi\!=\!0$ confirm these
+  two figures carry no base displacement.
 \end{itemize}
 
 \input{tables/tab_flatplate_onsets}
@@ -4105,9 +4127,8 @@ computed spheroid solutions at the DFVLR measurement stations, in the
 waterfall presentation of the measured
 campaign~\cite{kreplin_1985,stock_2006} (Stock's Figs.~2--5): the
 pressure coefficient at the thirteen pressure-tap stations (curves
-displaced $+0.42$ in $-C_p$ per station---the displacement of the
-printed figures; Stock's text states $0.14$, contradicting his own
-axes) and the resultant skin
+displaced $+0.42$ in $-C_p$ per station---the per-station step of the
+printed figures) and the resultant skin
 friction and wall-shear direction at the hot-film stations
 (displaced $-1.5\!\times\!10^{-3}$/$-15^\circ$ per station at
 $\alpha\!=\!10^\circ$ and $-3\!\times\!10^{-3}$/$-20^\circ$ at
@@ -4121,15 +4142,29 @@ front crossing a station: at $\alpha\!=\!10^\circ$ none appear---the
 front sits aft of every hot-film station,
 Sec.~\ref{sec:spheroid}'s amplification-deficit finding in the
 campaign's own presentation---while at $29.7^\circ$ the front
-crosses every station on the leeward side. The measured-symbol
-overlays follow with the per-condition digitization.
+crosses every station on the leeward side.
+
+Open red circles are the DFVLR measured chains, digitized from the
+printed source figures into the four per-figure
+\texttt{stock2006\_fig$n$\_digitized.json} files in
+\texttt{data/} (provenance and truncation policy in Appendix~F). In the printed $C_p$ waterfalls the
+chains sit a uniform $0.12$--$0.15$ above exact potential theory at
+both incidences---as do Stock's own printed potential-theory
+curves---while exact potential theory matches the computed L2 station
+$C_p$ to ${\sim}0.005$ away from nose and tail; the printed figures
+therefore carry, in addition to the $0.42$ step, a uniform base
+displacement, equal to the $0.14$ Stock's text states, and the
+digitization removes $0.14+0.42i$ per station (which closes both
+comparisons to ${\sim}0.01$).
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.62\textwidth]{spheroid_stations_cp_a10.pdf}
   \caption{6:1 spheroid, $Re_L\!=\!1.5\!\times\!10^6$,
   $\alpha\!=\!10^\circ$ (L2): $C_p(\phi)$ at the DFVLR pressure
-  stations, presentation of Stock's Fig.~2.}
+  stations, presentation of Stock's Fig.~2. Lines: computed; open red
+  circles: DFVLR measurement, digitized from the printed figure
+  (Appendix~F).}
   \label{fig:sphstat_cp10}
 \end{figure}
 
@@ -4139,7 +4174,10 @@ overlays follow with the per-condition digitization.
   \caption{6:1 spheroid, $Re_L\!=\!1.5\!\times\!10^6$,
   $\alpha\!=\!10^\circ$ (L2): resultant skin friction (top) and
   wall-shear direction (bottom) at the DFVLR hot-film stations,
-  presentation of Stock's Fig.~4.}
+  presentation of Stock's Fig.~4. Lines: computed; open red circles:
+  DFVLR measurement, digitized from the printed figure (Appendix~F),
+  truncated where the printed post-transition tangle makes chain
+  identity unrecoverable.}
   \label{fig:sphstat_cfg10}
 \end{figure}
 
@@ -4147,7 +4185,10 @@ overlays follow with the per-condition digitization.
   \centering
   \includegraphics[width=0.62\textwidth]{spheroid_stations_cp_a29p7.pdf}
   \caption{As Fig.~\ref{fig:sphstat_cp10}, at $\alpha\!=\!29.7^\circ$
-  (presentation of Stock's Fig.~3).}
+  (presentation of Stock's Fig.~3); the measured chains of the seven
+  aft- and mid-body stations are truncated in the leeward dive
+  ($\phi\!\approx\!90$--$122^\circ$) where printed chain identity
+  is unrecoverable.}
   \label{fig:sphstat_cp297}
 \end{figure}
 
@@ -4155,7 +4196,8 @@ overlays follow with the per-condition digitization.
   \centering
   \includegraphics[width=0.66\textwidth]{spheroid_stations_cfgamma_a29p7.pdf}
   \caption{As Fig.~\ref{fig:sphstat_cfg10}, at $\alpha\!=\!29.7^\circ$
-  (presentation of Stock's Fig.~5).}
+  (presentation of Stock's Fig.~5); measured chains truncated in the
+  leeward tangle as in Fig.~\ref{fig:sphstat_cp297}.}
   \label{fig:sphstat_cfg297}
 \end{figure}
 
