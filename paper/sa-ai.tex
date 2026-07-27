@@ -263,6 +263,9 @@ laminar-separation-bubble regime on the Eppler 387
 (Sec.~\ref{sec:eppval}), with the Eppler then swept across the
 tunnel's Reynolds range (Sec.~\ref{sec:eppresweep}), locating the
 model's bubble-bursting boundary and the mechanism that misplaces it.
+Section~\ref{sec:dragcrisis} takes the same machinery to the
+circular cylinder and traverses the drag crisis in Reynolds number
+at three freestream seeds.
 Section~\ref{sec:bistability} isolates a bistability the model
 inherits from standard SA itself---an attachment-anchored turbulent
 branch at the leading edge---and states the convergence protocol
@@ -2440,6 +2443,134 @@ in this range should be read as the sum of two canceling errors, not
 as resolved transition physics.
 
 
+\section{The cylinder drag crisis}\label{sec:dragcrisis}
+
+The oldest widely taught manifestation of boundary-layer
+transition---the drag crisis of smooth cylinders and
+spheres~\cite{achenbach_1968,achenbach_1972}---remains outside the
+validation canon of RANS transition modeling. Its computational
+replications are recent and almost exclusively
+scale-resolving~\cite{rodriguez_2015,cheng_pullin_2017}, reproducing
+the crisis with the asymmetric single-bubble states and force jumps
+observed through the critical range~\cite{bearman_1969,schewe_1983};
+the founding detached-eddy study selected the laminar- or
+turbulent-separation branch by hand~\cite{travin_2000}, and the few
+correlation-based RANS attempts report strong sensitivity exactly
+there~\cite{zheng_lei_2016}, where separation-induced transition
+enters those models through a reattachment correction calibrated on
+turbine cascades and the regime itself is
+bistable~\cite{schewe_1983}. The present model brings no
+separated-flow correction to calibrate: amplification is generated
+geometrically by the inflectional coordinate---the mechanism the
+Eppler campaign exercised at these same Reynolds numbers---so the
+cylinder is a parameter-free traverse of the crisis, run here
+entirely on the steady branch.
+
+Twelve diameter Reynolds numbers,
+$Re_D\!=\!6\!\times\!10^4$--$2\!\times\!10^6$, are computed at three freestream
+seeds---$\chi_\infty\!=\!3.9\!\times\!10^{-4}$,
+$1.1\!\times\!10^{-2}$, and $0.22$, Mack's map
+(Sec.~\ref{sec:calib_tu}) at $Tu\!=\!0.05$, $0.2$, and
+$0.7\%$---on one quasi-two-dimensional O-grid ($1200\times148$,
+first spacing $8\!\times\!10^{-6}\,D$, outer boundary $100\,D$;
+$y^+\!\le\!0.64$ at the highest $Re_D$), with the solver settings,
+constants, and staged-seed branch-selection protocol used everywhere
+in this paper (Sec.~\ref{sec:bistability}). Each seed is swept as an
+upward and a downward continuation ladder, warm-started from the
+neighboring Reynolds number, plus twelve cold starts at the middle
+seed as a protocol-neutral reference---84 steady cases in all. A
+case is accepted when $C_d$ drifts by less than $10^{-3}$ over
+$1000$ pseudo-steps; otherwise it runs to a fixed cap and is flagged
+as a steady limit cycle. Every case lands on the symmetric branch,
+$|C_L|\!<\!2\!\times\!10^{-7}$.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{dragcrisis_cd_re.pdf}
+  \caption{Steady-branch drag coefficient of the circular cylinder
+    across the drag crisis: three freestream seeds ($\chi_\infty$
+    from Mack's map at the quoted $Tu$), each swept as an upward
+    (solid, filled) and a downward (dashed, open) continuation
+    ladder in $Re_D$, with cold protocol-neutral references at the
+    middle seed (open diamonds; they overlap the ladders except
+    inside the crisis band). Vertical bands: tail-window $C_d$ range
+    of the cases whose convergence monitor flagged a steady limit
+    cycle. Every point is tabulated in
+    Table~\ref{tab:data_dragcrisis}.}
+  \label{fig:dragcrisiscd}
+\end{figure}
+
+Figure~\ref{fig:dragcrisiscd} shows the traverse. The model produces
+the drag crisis as a seed-ordered family: the crisis moves from
+$Re_D\!\approx\!5$--$7\!\times\!10^5$ at the two quiet seeds down to
+$\approx\!3$--$4\!\times\!10^5$ at $Tu\!=\!0.7\%$, and the
+supercritical floor, $C_d\!=\!0.217$--$0.233$ at $2\!\times\!10^6$,
+rises with the seed---both classical trends of the phenomenon. The
+post-crisis wall sequence is a genuine laminar-separation bubble: at
+the middle seed, laminar separation at $92^\circ$, turbulent
+reattachment at $102^\circ$, and final separation at $107^\circ$ at
+$Re_D\!=\!7\!\times\!10^5$; the bubble shrinks to $1.5^\circ$
+($98$--$100^\circ$, final separation $118^\circ$) at
+$2\!\times\!10^6$ and gives way to attached transition at the
+highest seed. Through the crisis the shoulder suction deepens from
+$C_p\!=\!-0.90$ to $-2.43$ and the base pressure recovers from
+$-0.62$ to $-0.26$. Figure~\ref{fig:dragcrisisfields} shows the
+fields at three stations of the traverse: the separated shear layer
+transitioning at separation over the subcritical dead-air wake, then
+transition reaching the separation point, the wall turning turbulent
+through a shrinking bubble, and the wake narrowing.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{dragcrisis_fields.pdf}
+  \caption{Velocity magnitude (left) and $\log_{10}\chi$ (right;
+    white contour $\chi\!=\!1$) at center span, middle seed
+    ($Tu\!=\!0.2\%$), up-ladder. Top, subcritical $10^5$: the
+    laminar wall separates at $74^\circ$ and the lifted shear layer
+    amplifies immediately---the free-shear pole of the
+    kernel---over a dead-air wake, $C_d\!=\!0.84$. Middle,
+    mid-crisis $5\!\times\!10^5$: transition has reached the
+    separation point and the wake narrows ($C_d\!=\!0.62$; final
+    snapshot of a limit-cycling case, band in
+    Fig.~\ref{fig:dragcrisiscd}). Bottom, supercritical
+    $2\!\times\!10^6$: a $1.5^\circ$ laminar-separation bubble at
+    $98$--$100^\circ$ hands the wall to turbulence, final separation
+    $118^\circ$, $C_d\!=\!0.22$.}
+  \label{fig:dragcrisisfields}
+\end{figure}
+
+Four things are conceded, all visible in the figures. First, through
+the crisis band the steady branch is non-unique and weakly unsteady:
+$27$ of the $84$ cases end in a limit cycle (tail peak-to-peak
+median $0.011$, maximum $0.199$ in $C_d$---the vertical bands of
+Fig.~\ref{fig:dragcrisiscd}), and exactly there the three protocols
+separate by up to $0.055$ in $C_d$, against $0.003$ on the
+subcritical plateau and the supercritical floor. The downward
+ladder, initialized from the more-transitioned high-$Re$ state,
+lands at \emph{higher} drag---opposite to the physical hysteresis
+sense---so branch selection through the band is protocol-dependent,
+and no hysteresis claim is made: the measured folds and lift
+jumps~\cite{schewe_1983} belong to unsteady continuation, not to
+this solver. Second, the symmetric steady protocol cannot see the
+one-bubble asymmetric states of the critical
+range~\cite{bearman_1969,schewe_1983}: $C_L\!=\!0$ in all $84$ cases
+is a statement about the protocol, not the physics. Third, the
+subcritical plateau, $C_d\!\approx\!0.84$, sits well below
+measurement, as any steady symmetric (shedding-free) wake solution
+must; the boundary-layer-side quantities are the product there, and
+their seed dependence below $2\!\times\!10^5$ is weak because the
+separated shear layer amplifies essentially at separation at all
+three seeds. Fourth, the supercritical turbulent separation angles
+($106$--$118^\circ$) remain early against measurement---the
+familiar class of turbulent-$C_f$-on-curved-wall error, compounded
+by the steady dead-air base.
+% TODO(dragcrisis-exp): digitize Achenbach (1968) Cp/Cf traverses at
+% matched Re for a quantitative overlay (surface outputs are retained
+% for all 84 cases); the experimental separation angles, shoulder and
+% base pressures, and the supercritical Cd class are deliberately not
+% quoted numerically here pending that source-verified extraction.
+
+
 \section{The attachment-anchored turbulent branch, and
 the convergence protocol it dictates}
 \label{sec:bistability}
@@ -3204,35 +3335,15 @@ identically in two-dimensional flow, and measuring exactly the
 crossed shear a swept boundary layer adds---a second amplification
 channel in the same local language.
 
-One target deserves naming. The oldest widely taught manifestation of
-boundary-layer transition---the drag crisis of smooth cylinders and
-spheres~\cite{achenbach_1968,achenbach_1972}---remains outside the
-validation canon of RANS transition modeling. Its computational
-replications are recent and almost exclusively
-scale-resolving~\cite{rodriguez_2015,cheng_pullin_2017}, reproducing
-the crisis with the asymmetric single-bubble states and force jumps
-observed through the critical
-range~\cite{bearman_1969,schewe_1983}, while the founding
-detached-eddy study selected the laminar- or turbulent-separation
-branch by hand~\cite{travin_2000}, and the few correlation-based RANS
-attempts report strong sensitivity in the critical
-range~\cite{zheng_lei_2016}---where separation-induced transition
-enters those models through a reattachment correction calibrated on
-turbine cascades, and the regime itself is
-bistable~\cite{schewe_1983}. The present model meets both
-difficulties in its own terms: amplification is generated
-geometrically by the inflectional coordinate, with no separate
-separated-flow correction---the Eppler campaign of
-Secs.~\ref{sec:eppval}--\ref{sec:eppresweep} exercises exactly this
-mechanism at crisis-range Reynolds numbers, and also locates its
-known quantitative weakness, the under-amplified detached shear
-layer above---and the protocol of
-Sec.~\ref{sec:bistability} provides the controlled branch selection the critical
-regime demands. A $C_d(Re)$ traverse of the sphere and cylinder,
-including the shift of the critical Reynolds number with the
-freestream seed $\chi_\infty(Tu)$, is a natural next campaign, and
-would to our knowledge be the first such curve from a local
-single-equation transition closure.
+The cylinder traverse of Sec.~\ref{sec:dragcrisis}---to our
+knowledge the first $C_d(Re)$ drag-crisis family from a local
+single-equation transition closure---is deliberately a steady-branch
+result; its unsteady continuation, where the critical range's
+measured bistability and single-bubble lift states
+live~\cite{schewe_1983,bearman_1969}, the quantitative comparison
+against the measured pressure and skin-friction
+traverses~\cite{achenbach_1968}, and the sphere are the natural next
+campaign.
 
 \begin{center}
   \begin{minipage}{0.6\textwidth}\centering
@@ -4119,6 +4230,7 @@ record, and the captions carry only curve identity.
 \input{tables/tab_eppler_bubble}
 \input{tables/tab_openfoam_eppler}
 \input{tables/tab_eppler_resweep}
+\input{tables/tab_dragcrisis}
 \input{tables/tab_spheroid_fronts}
 
 \clearpage

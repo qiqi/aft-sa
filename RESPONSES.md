@@ -951,3 +951,87 @@ Headlines:
 - Suggested next: Achenbach Cf/Cp overlays from the retained surface
   data; 2-4 URANS spot checks for St/one-bubble/hysteresis; cheap low-Re
   extension for the 6e4 caveat.
+
+---
+
+## 2026-07-28 ~00:15 — STEADY DRAG-CRISIS MATRIX COMPLETE (84/84, 5.8 GPU-h)
+
+Record: agent-paper-review/2026-07-28-0010-dragcrisis-steady-matrix.md.
+Headline: the model PRODUCES the drag crisis as a Tu-ordered family —
+Re_crit decreasing with Tu (Achenbach-1971 class), supercritical floor
+0.217-0.233 (experimental two-bubble class 0.20-0.25) rising correctly
+with Tu, genuine LSB + turbulent-separation structure with physically
+shrinking bubble length, shoulder suction deepening to the experimental
+class — from chi_inf alone, no correlation, no extra equation. Honest
+ledger: steady branch non-unique through the crisis band (27/84
+limit-cycle flags, ~0.05 Cd spread, protocol-dependent — firm
+hysteresis claims need URANS); dn-branch-higher-Cd anomaly (opposite
+experimental sign — not to be read as physical); one-bubble state
+invisible to the symmetric steady protocol (CL=0 all 84); known misses
+= turbulent separation angle 107-118 vs ~147 [mem-unverified] and the
+conceded subcritical wake bias. Under budget 30x vs the URANS design.
+Suggested next steps (user-gated): Achenbach Cf/Cp digitized overlays,
+2-4 URANS spot checks (St/one-bubble/hysteresis), low-Re extension.
+All [mem] experimental targets remain source-unverified — nothing
+enters the paper without that.
+
+---
+
+## 2026-07-28 ~00:25 — user directives: FS beta=+0.10 comparison + drag-crisis section
+
+1. SPHEROID (sharpened question): the beta=+0.10 FS case is where the
+   PARABOLIZED marcher verifiably delivers e^N-class growth in mild FPG
+   — physics agent extended to tabulate spheroid H(x/L) and
+   max(Omega_hat*I_hat) at matched (planar) convention against the
+   committed FS beta=+0.10 table values. If they sit in the same class,
+   the pointwise profile physics is fine and the deficit is RANS
+   transport delivery (the realization stall) — marcher delivers,
+   transport doesn't.
+2. DRAG-CRISIS SECTION (user decision): own section placed just after
+   both airfoils (new Sec VII, bistability shifts down). Macroscopic
+   first: Cd vs Re figure (3 Tu levels, up/dn ladders, cold refs,
+   limit-cycle cases marked with vertical oscillation bands from
+   Cd_tail_p2p), then |u| + log10(chi) field panels for ~3 selected
+   cases (subcritical/crisis/supercritical). Minimal text; honest
+   non-uniqueness paragraph; NO unverified [mem] experimental numbers
+   (qualitative comparisons only until the Achenbach digitization);
+   Appendix F data table behind every plotted point. Section agent
+   launched.
+
+## 2026-07-28 ~07:30 — drag-crisis section DONE (new Sec VII, committed)
+
+The steady drag-crisis matrix is now a paper section, "The cylinder
+drag crisis" (Sec VII, after the Eppler Re-sweep; bistability shifts
+to VIII, Daedalus IX, spheroid X — all cross-refs label-based, build
+clean, 119 pp, 0 errors / 0 undefined).
+
+- Fig. 18 figs/dragcrisis_cd_re.pdf (regen_dragcrisis_cd_re.py):
+  Cd(Re_D) family, three seeds (CVD-validated color trio), up solid /
+  dn dashed-open / cold diamonds; the 27 limit-cycle cases carry
+  capped vertical bands = tail-window Cd min–max recomputed from each
+  case's force history. The script also syncs
+  data/dragcrisis_matrix_summary.jsonl (committed copy of the
+  campaign summary) + dumps data/dragcrisis_cd_re_computed.json.
+- Fig. 19 figs/dragcrisis_fields.pdf (regen_dragcrisis_fields.py):
+  |u|/U_inf + log10(chi) (white chi=1 contour) at Tu 0.2% up-ladder,
+  Re_D = 1e5 / 5e5 / 2e6 (subcritical dead-air wake with immediate
+  shear-layer amplification -> crisis -> supercritical LSB + narrow
+  wake). Rasterized fields (94 KB, no contour seams).
+- Table F8 tab_dragcrisis.tex (emit_appendix_tables.dragcrisis):
+  every plotted Cd point, bracketed tail p2p for flagged cases.
+- Text: minimal per directive — positioning para (literature moved
+  from the conclusion outlook, which is now a 4-line pointer),
+  protocol para, family result (Re_crit down with Tu; floor
+  0.217–0.233 rising with Tu; LSB 92/102/107 deg at 7e5 -> 1.5-deg
+  bubble + 118 deg at 2e6; shoulder −0.90 -> −2.43, base −0.62 ->
+  −0.26), honest para (27/84 limit cycles, ≤0.055 protocol spread in
+  the band vs 0.003 on the plateaus, dn-higher = no hysteresis claim,
+  CL=0 protocol blindness to one-bubble states, subcritical wake bias
+  conceded, separation 106–118 deg early QUALITATIVELY — no [mem]
+  experimental numbers; %TODO(dragcrisis-exp) marks the Achenbach
+  digitization step).
+- Every printed number re-verified from matrix_summary.jsonl +
+  per-case summary.json + independent Cd/p2p recomputation from the
+  force CSVs (7 spot cases exact); seeds re-verified against
+  lib.calibrate_kernel.chi_inf_from_Tu_pct; chi normalization
+  verified on the slice (far field reads 1.0835e-2 exactly).

@@ -347,6 +347,53 @@ def eppler_resweep():
           'tab:data_eppresweep', 'll cccc cccc')
 
 
+# ---------------- cylinder drag-crisis matrix ---------------------------------
+def dragcrisis():
+    """Every Cd point of fig:dragcrisiscd: 12 Re x (3 seeds x up/dn + cold).
+    Reads the committed copy of the campaign summary (synced by
+    regen_dragcrisis_cd_re.py); limit-cycle-flagged cases carry their
+    tail-window Cd peak-to-peak in brackets."""
+    rows_by = {}
+    with open(f'{PAPER}/data/dragcrisis_matrix_summary.jsonl') as f:
+        for ln in f:
+            r = json.loads(ln)
+            rows_by[(r['Tu'], r['dir'], r['re'])] = r    # later rows win
+    res = sorted({k[2] for k in rows_by})
+    assert len(rows_by) == 84 and len(res) == 12, \
+        f'{len(rows_by)} cases / {len(res)} Re values'
+
+    def cell(tu, d, re):
+        r = rows_by.get((tu, d, re))
+        if r is None:
+            return '--'
+        s = f"{r['Cd']:.3f}"
+        if any('limit_cycle' in v for v in r['verdicts']):
+            s += f"\\,[{r['Cd_tail_p2p']:.3f}]"
+        return s
+
+    rows = []
+    for re in res:
+        c = [f'${re/1e5:g}$']
+        for tu, dirs in (('0.05', ('up', 'dn')), ('0.2', ('up', 'dn', 'cold')),
+                         ('0.7', ('up', 'dn'))):
+            c += [cell(tu, d, re) for d in dirs]
+        rows.append(' & '.join(c))
+    write('tab_dragcrisis.tex',
+          r'$Re_D$ & \multicolumn{2}{c}{$Tu\,0.05\%$} &'
+          r' \multicolumn{3}{c}{$Tu\,0.2\%$} &'
+          r' \multicolumn{2}{c}{$Tu\,0.7\%$} \\'
+          r' \cmidrule(lr){2-3}\cmidrule(lr){4-6}\cmidrule(lr){7-8}'
+          r' $(\times10^5)$ & up & dn & up & dn & cold & up & dn',
+          rows,
+          r'Circular cylinder, steady drag-crisis matrix: $C_d$ (median '
+          r'over the final-stage tail window) for every case of '
+          r'Fig.~\ref{fig:dragcrisiscd}. Bracketed values: tail-window '
+          r'$C_d$ peak-to-peak for the cases whose convergence monitor '
+          r'flagged a steady limit cycle (the vertical bands of the '
+          r'figure); $|C_L|\!<\!2\times10^{-7}$ in all 84 cases.',
+          'tab:data_dragcrisis', 'l cc ccc cc')
+
+
 # ---------------- spheroid ----------------------------------------------------
 # prose order: the low-Re ladder, the pure-TS anchors, the workshop pair
 SPH_COND = [(1.5e6, '5', 'a5'), (1.5e6, '10', 'a10'), (1.5e6, '29.7', 'a29p7'),
@@ -408,6 +455,7 @@ if __name__ == '__main__':
     eppler_polar()
     eppler_bubble()
     eppler_resweep()
+    dragcrisis()
     spheroid_totals()
     spheroid_fronts()
     print('APPENDIX-TABLES-DONE')
