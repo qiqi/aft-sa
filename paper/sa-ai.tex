@@ -1546,7 +1546,11 @@ quantitatively.
   discussed above. On the finest grid
   every front lies within $0.016\,c$ and the lift within $0.9\%$
   (absolute $0.003$ at zero lift) of
-  the SA-AI values (Table~\ref{tab:data_openfoam_nlf}).
+  the SA-AI values (Table~\ref{tab:data_openfoam_nlf}); the
+  cross-solver replication spans thirty cases in all---both of the
+  paper's airfoil benchmarks, every incidence, all three grid
+  levels (the Eppler counterpart: Fig.~\ref{fig:epppolar} and
+  Table~\ref{tab:data_openfoam_eppler}).
   At $-8^\circ$ the drag sits $8$--$11$ counts below
   the measured polar at matched lift, the suction (lower) surface trips at
   $0.004$--$0.011\,c$, on the references' leading-edge trip ($e^9$:
@@ -1868,7 +1872,14 @@ Table~\ref{tab:eppmesh} lists the Eppler resolution quantitatively.
   $Tu\!=\!0.1\%$, digitized from
   Ref.~\cite{shahjahan_2024} (Appendix~F); the SA-BC
   intermittency correlation was calibrated in part on this
-  airfoil~\cite{cakmakcioglu_2017}.}
+  airfoil~\cite{cakmakcioglu_2017}. Small steel-blue circles: the
+  independent cell-centered incompressible (OpenFOAM) implementation
+  on the structured L1/L2 grids (by size), as in
+  Fig.~\ref{fig:nlfpolar}; the port omits the bypass of
+  Eq.~\ref{eq:fv1bypass}, worth $-6$ to $-10$ counts at
+  $\alpha\!=\!0$--$5^\circ$ here, and drag agreement is not
+  claimed---the visible offsets are consistent with that omission in
+  sign and magnitude (Table~\ref{tab:data_openfoam_eppler}).}
   \label{fig:epppolar}
 \end{figure}
 
@@ -2034,7 +2045,15 @@ Fig.~\ref{fig:sheet_eppler387_a5_upper}.)
   squares/triangles: SA-AI on all six grids (L0--L2 by marker size,
   both families); as on the polar, the $-2^\circ$--$8.5^\circ$
   extension incidences exist on the finest (L2) pair only, L0/L1
-  keeping $\alpha\!\in\!\{0^\circ,2^\circ,5^\circ,7^\circ\}$. The
+  keeping $\alpha\!\in\!\{0^\circ,2^\circ,5^\circ,7^\circ\}$.
+  Small steel-blue circles: the independent cell-centered
+  incompressible (OpenFOAM) implementation on the structured L1/L2
+  grids (by size), stations from the same signed-$C_f$ crossings; at
+  L2 its separation sits $0.030$--$0.037\,c$ ahead of and its
+  reattachment $0.033$--$0.045\,c$ behind the SA-AI stations
+  ($0.086\,c$ at $7^\circ$)---the bypass-less port (Eq.~\ref{eq:fv1bypass})
+  reattaching later at every incidence
+  (Table~\ref{tab:data_openfoam_eppler}). The
   lower surface stays attached and laminar to the
   trailing edge at every incidence.}
   \label{fig:eppbubble}
@@ -4098,6 +4117,7 @@ record, and the captions carry only curve identity.
 \input{tables/tab_openfoam_nlf}
 \input{tables/tab_eppler_polar}
 \input{tables/tab_eppler_bubble}
+\input{tables/tab_openfoam_eppler}
 \input{tables/tab_eppler_resweep}
 \input{tables/tab_spheroid_fronts}
 

@@ -1030,6 +1030,17 @@ def make_polar_figure(out_name='eppler_polar_compare'):
                 ax.plot([q[2] for q in pts], [q[1] for q in pts],
                         marker=mesh_mk[mesh], ms=4, ls=MESH_LS[mesh],
                         lw=POLAR_LW[level], color=mesh_col[mesh], zorder=3)
+    # Cross-solver overlay: OpenFOAM structured-family results (committed
+    # JSON; steel-blue L1+L2 by size, the NLF figures' convention -- L0
+    # excluded there for its breakaway states, kept out here for symmetry).
+    _ofp = f'{PD}/data/openfoam_airfoil_summary.json'
+    assert os.path.exists(_ofp), f'missing OpenFOAM summary: {_ofp}'
+    _OF = [v for k, v in _json.load(open(_ofp))['cases'].items()
+           if k.startswith('eppler_') and v['level'] in ('L1', 'L2')]
+    for _lv, _ms in (('L1', 3.6), ('L2', 5.4)):
+        _p = [v for v in _OF if v['level'] == _lv]
+        ax.plot([v['cd'] for v in _p], [v['cl'] for v in _p], 'o', ms=_ms,
+                mfc='none', mec='steelblue', mew=1.1, zorder=2.5)
     ax.set_xlim(0.0, 0.05); ax.set_ylim(0.0, 1.25)
     ax.set_xlabel('$C_d$'); ax.set_ylabel('$C_l$')
     ax.grid(alpha=0.3)
@@ -1041,6 +1052,7 @@ def make_polar_figure(out_name='eppler_polar_compare'):
                Line2D([],[],color='0.55', ls='-.', marker='v', mfc='none', ms=5, lw=1.2, label='SA, fully turbulent (str L2)'),
                Line2D([],[],color='C2', ls='-', lw=1.0, marker='x', ms=4, label='$\\gamma$\u2013$Re_\\theta$ (Shahjahan et al.)'),
                Line2D([],[],color='C4', ls='-', lw=1.0, marker='+', ms=5, label='SA-BC (Shahjahan et al.)'),
+               Line2D([],[],color='steelblue', marker='o', mfc='none', ls='none', ms=4, label='OpenFOAM (str L1/L2 by size)'),
                Line2D([],[],color='0.4', lw=POLAR_LW['L0'], label='L0'),
                Line2D([],[],color='0.4', lw=POLAR_LW['L1'], label='L1'),
                Line2D([],[],color='0.4', lw=POLAR_LW['L2'], label='L2')]

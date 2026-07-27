@@ -1,5 +1,5 @@
 {
- "source": "OpenFOAM v2412 SpalartAllmarasAI, structured (Construct2D) family. Forces from openfoam/sweep_results.csv (staged-protocol campaign, median final-20% forces); fronts re-extracted from the VTK fields at the paper convention (near-wall chi=1 crossing; None = laminar to the TE); Eppler bubble stations (ls, tr) from the VTK signed-Cfx zero crossings.",
+ "source": "OpenFOAM v2412 SpalartAllmarasAI, structured (Construct2D) family. Forces from openfoam/sweep_results.csv (staged-protocol campaign, final steady force sample); fronts re-extracted from the VTK fields at the paper convention (near-wall chi=1 crossing; None = laminar to the TE); Eppler bubble stations (ls, tr) from the VTK signed-Cfx zero crossings.",
  "cases": {
   "nlf_strL0_am8": {
    "alpha": -8,
@@ -54,10 +54,10 @@
    "level": "L0",
    "cl": 0.3887,
    "cd": 0.01167,
-   "xtr_up": 0.7129,
+   "xtr_up": 0.6377,
    "xtr_lo": null,
    "ls": 0.4929,
-   "tr": null
+   "tr": 0.784
   },
   "eppler_strL0_a2": {
    "alpha": 2,
@@ -145,7 +145,7 @@
    "xtr_up": 0.6046,
    "xtr_lo": null,
    "ls": 0.495,
-   "tr": null
+   "tr": 0.7746
   },
   "eppler_strL1_a2": {
    "alpha": 2,
@@ -224,6 +224,46 @@
    "cd": 0.02564,
    "xtr_up": 0.0,
    "xtr_lo": 0.6675
+  },
+  "eppler_strL2_a0": {
+   "alpha": 0,
+   "level": "L2",
+   "cl": 0.3857,
+   "cd": 0.01058,
+   "xtr_up": 0.6205,
+   "xtr_lo": null,
+   "ls": 0.4865,
+   "tr": 0.8061
+  },
+  "eppler_strL2_a2": {
+   "alpha": 2,
+   "level": "L2",
+   "cl": 0.6039,
+   "cd": 0.01229,
+   "xtr_up": 0.5635,
+   "xtr_lo": null,
+   "ls": 0.4429,
+   "tr": 0.7525
+  },
+  "eppler_strL2_a5": {
+   "alpha": 5,
+   "level": "L2",
+   "cl": 0.9234,
+   "cd": 0.01463,
+   "xtr_up": 0.4868,
+   "xtr_lo": null,
+   "ls": 0.3717,
+   "tr": 0.6669
+  },
+  "eppler_strL2_a7": {
+   "alpha": 7,
+   "level": "L2",
+   "cl": 1.1388,
+   "cd": 0.01363,
+   "xtr_up": 0.3794,
+   "xtr_lo": null,
+   "ls": 0.3514,
+   "tr": 0.4933
   }
  }
 }

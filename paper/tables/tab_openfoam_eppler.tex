@@ -1,0 +1,15 @@
+\begin{table}[tp]
+  \centering\small
+  \caption{Eppler 387, $Re\!=\!2\!\times\!10^5$: the independent cell-centered incompressible (OpenFOAM) implementation on the paper's structured L1 and L2 grids---the steel-blue circles of Figs.~\ref{fig:epppolar} and~\ref{fig:eppbubble}. Transition locations are read from the OpenFOAM fields at the same near-wall $\chi\!=\!1$ crossing as everywhere in this paper, and the bubble stations at the same signed-$C_f$ zero crossings as Table~\ref{tab:data_eppbubble}; the lower surface stays laminar to the trailing edge in both codes at every incidence. At L2 the lift agrees within $0.5\%$, separation sits $0.030$--$0.037\,c$ ahead of and reattachment $0.033$--$0.045\,c$ behind the SA-AI stations ($0.086\,c$ at the near-stall $7^\circ$, both codes' hardest condition). The port omits the bypass of Eq.~\ref{eq:fv1bypass}---worth $-6$ to $-10$ counts at $\alpha\!=\!0$--$5^\circ$ here and $-1$ at $7^\circ$ by the recomputation record of Sec.~\ref{sec:fv1bypass}---and the residuals are consistent with that omission in sign and magnitude: drag agreement is not claimed, with OpenFOAM above by $4.8$/$7.5$/$1.2$ counts at $\alpha\!=\!0^\circ$/$2^\circ$/$5^\circ$ and below by $6.8$ at $7^\circ$; the $\chi\!=\!1$ fronts read $0.006$--$0.044\,c$ ahead of the SA-AI values while the half-saturation $\chi\!=\!c_{v1}$ crossings of the two codes agree to $0.014\,c$ below $7^\circ$ ($0.028\,c$ there)---the stretched $\chi\!=\!1\!\to\!c_{v1}$ ramp is exactly the handover the bypass compresses.}
+  \label{tab:data_openfoam_eppler}
+  \begin{tabular}{c ccccc ccccc}
+    \toprule
+    $\alpha$ & \multicolumn{5}{c}{L1} & \multicolumn{5}{c}{L2} \\ \cmidrule(lr){2-6}\cmidrule(lr){7-11} & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_{LS}$ & $x_R$ & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_{LS}$ & $x_R$ \\
+    \midrule
+    $0$ & 0.3826 & 0.00978 & 0.605 & 0.495 & 0.775 & 0.3857 & 0.01058 & 0.621 & 0.486 & 0.806 \\
+    $2$ & 0.6037 & 0.01174 & 0.543 & 0.448 & 0.727 & 0.6039 & 0.01229 & 0.564 & 0.443 & 0.752 \\
+    $5$ & 0.9256 & 0.01394 & 0.468 & 0.371 & 0.651 & 0.9234 & 0.01463 & 0.487 & 0.372 & 0.667 \\
+    $7$ & 1.1391 & 0.01323 & 0.329 & 0.353 & 0.453 & 1.1388 & 0.01363 & 0.379 & 0.351 & 0.493 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

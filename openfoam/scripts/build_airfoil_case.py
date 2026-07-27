@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-"""Build an OpenFOAM SA-AI case (NLF or Eppler) from the SAME mesh Flow360
-used: the committed gmsh source (mesh.msh) in the flow360_fr case dir,
-converted with gmshToFoam, span planes relabeled `empty` (true 2D).
+"""Build an OpenFOAM SA-AI case (NLF or Eppler, any structured level, any
+alpha incl. negative) from the SAME mesh Flow360 used.
 
-Usage: build_airfoil_case.py {nlf|eppler} {0|1|2} <alpha>
+Usage: build_airfoil_case.py {nlf|eppler} {0|1|2} <alpha> [conservative]
 
-Paper condition: Re = 4e6, M = 0.1 (incompressible here), chi_inf = 8.76e-4
-(N_crit = 9). OpenFOAM: U_inf = 1, nu = 2.5e-7, nuTilda_inf = 2.19e-10.
-The case dir is written to /local_data (cases symlink); mesh conversion is
-done by the caller (needs the OpenFOAM env):
-    gmshToFoam mesh.msh && python3 fix_boundary.py <case>
+Mesh source: flow360_fr/strL{lvl}prop_..._a{alpha} (or am{|alpha|}); falls
+back to the a0 dir of the same level (the O-grid is alpha-independent).
+Freestream: chi_inf = 8.76e-4 (N_crit = 9), U_inf = 1, alpha via velocity
+rotation. Two-stage protocol handled by the driver (this writes stage-1
+endTime).
+
+'conservative' switches fvSolution to SIMPLE (not SIMPLEC), p 0.3 / U 0.7 /
+nuTilda 0.4 -- retry setting for LSB-marginal FPE cases.
 """
 import math
 import os
@@ -21,11 +23,16 @@ F360_ROOT = "/home/qiqi/flexcompute/sa-ai/flow360_fr"
 
 AIRFOILS = {
     "nlf": dict(re=4.0e6, wall="nlf0416",
-                src="strL{lvl}prop_nlf0416_Re4M_a{alpha}"),
+                src="strL{lvl}prop_nlf0416_Re4M_{atag}"),
     "eppler": dict(re=2.0e5, wall="eppler387",
-                   src="strL{lvl}prop_eppler387_Re200k_a{alpha}"),
+                   src="strL{lvl}prop_eppler387_Re200k_{atag}"),
 }
-CHI_INF = 7.1 * math.exp(-9.0)          # 8.7623e-4
+# per-level: ranks, decomp, stage-1 iters
+LEVELS = {0: (6, "(3 2 1)", 15000),
+          1: (8, "(4 2 1)", 15000),
+          2: (24, "(6 4 1)", 20000)}
+
+CHI_INF = 7.1 * math.exp(-9.0)
 
 FOAMFILE = """FoamFile
 {{
@@ -43,14 +50,29 @@ def write(path, content):
         f.write(content)
 
 
-def build(airfoil, lvl, alpha, n_ranks=6, n_steps=15000):
+def atag(alpha):
+    return f"a{alpha}" if alpha >= 0 else f"am{-alpha}"
+
+
+def build(airfoil, lvl, alpha, conservative=False):
     cfg = AIRFOILS[airfoil]
     RE, WALL = cfg["re"], cfg["wall"]
     NU = 1.0 / RE
     NUTILDA_INF = CHI_INF * NU
-    src = f"{F360_ROOT}/{cfg['src'].format(lvl=lvl, alpha=alpha)}"
-    assert os.path.isfile(f"{src}/mesh.msh"), f"no mesh.msh in {src}"
-    name = f"{airfoil}_strL{lvl}_a{alpha}"
+    n_ranks, decomp, n_steps = LEVELS[lvl]
+
+    src = None
+    for root in (F360_ROOT, F360_ROOT.replace("_fr", "_fv1")):
+        for at in (atag(alpha), "a0"):
+            cand = f"{root}/{cfg['src'].format(lvl=lvl, atag=at)}"
+            if os.path.isfile(f"{cand}/mesh.msh"):
+                src = cand
+                break
+        if src:
+            break
+    assert src, f"no mesh.msh found for {airfoil} L{lvl} {atag(alpha)}"
+
+    name = f"{airfoil}_strL{lvl}_{atag(alpha)}"
     cd = os.path.join(CASE_ROOT, name)
     if os.path.exists(cd):
         shutil.rmtree(cd)
@@ -76,7 +98,7 @@ dimensions [0 2 -2 0 0 0 0];
 internalField uniform 0;
 boundaryField
 {{
-    farfield {{  type freestreamPressure; freestreamValue uniform 0; }}
+    farfield {{ type freestreamPressure; freestreamValue uniform 0; }}
     {WALL}  {{ type zeroGradient; }}
     "(symmetry1|symmetry2)" {{ type empty; }}
 }}
@@ -176,27 +198,25 @@ interpolationSchemes { default linear; }
 snGradSchemes   { default limited corrected 0.5; }
 wallDist        { method meshWave; }
 """)
-    write(f"{cd}/system/fvSolution",
-          FOAMFILE.format(cls="dictionary", obj="fvSolution") + """
-solvers
+    if conservative:
+        simple = """SIMPLE
 {
-    p
-    {
-        solver          GAMG;
-        smoother        GaussSeidel;
-        tolerance       1e-10;
-        relTol          0.01;
-    }
-    "(U|nuTilda)"
-    {
-        solver          PBiCGStab;
-        preconditioner  DILU;
-        tolerance       1e-12;
-        relTol          0.01;
-    }
+    nNonOrthogonalCorrectors 1;
+    consistent      no;
+    residualControl { }
 }
 
-SIMPLE
+relaxationFactors
+{
+    fields { p 0.3; }
+    equations
+    {
+        U               0.7;
+        nuTilda         0.4;
+    }
+}"""
+    else:
+        simple = """SIMPLE
 {
     nNonOrthogonalCorrectors 1;
     consistent      yes;
@@ -210,17 +230,49 @@ relaxationFactors
         U               0.85;
         nuTilda         0.6;
     }
-}
+}"""
+    write(f"{cd}/system/fvSolution",
+          FOAMFILE.format(cls="dictionary", obj="fvSolution") + f"""
+solvers
+{{
+    p
+    {{
+        solver          GAMG;
+        smoother        GaussSeidel;
+        tolerance       1e-10;
+        relTol          0.01;
+    }}
+    "(U|nuTilda)"
+    {{
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-12;
+        relTol          0.01;
+    }}
+    Phi
+    {{
+        $p;
+    }}
+}}
+
+potentialFlow
+{{
+    nNonOrthogonalCorrectors 10;
+}}
+
+{simple}
 """)
     write(f"{cd}/system/decomposeParDict",
           FOAMFILE.format(cls="dictionary", obj="decomposeParDict") + f"""
 numberOfSubdomains {n_ranks};
 method          hierarchical;
-coeffs {{ n (3 2 1); }}
+coeffs {{ n {decomp}; }}
 """)
-    print(f"{name}: nuTilda_inf={v}  ranks={n_ranks}  src={src}")
+    print(f"{name}: ranks={n_ranks} stage1={n_steps} src={os.path.basename(src)}"
+          f"{' CONSERVATIVE' if conservative else ''}")
     return cd
 
 
 if __name__ == "__main__":
-    build(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
+    build(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]),
+          conservative=(len(sys.argv) > 4 and sys.argv[4] == "conservative"))

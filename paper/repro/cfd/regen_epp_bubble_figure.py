@@ -190,6 +190,22 @@ for mesh, col, mk in (('str', 'C0', 's'), ('cav', 'C1', '^')):
 json.dump(STATIONS, open(f'{PD}/data/eppbubble_stations_computed.json', 'w'),
           indent=1)
 
+# Cross-solver overlay: OpenFOAM structured L1+L2 (steel-blue by size, the
+# NLF figures' convention; L0 excluded as there). Stations come from the
+# same signed-Cfx zero crossings, extracted from the OF wall fields by
+# openfoam/scripts/export_airfoil_summary.py -- a convention shared exactly
+# between the two codes, unlike the chi-based fronts.
+_ofp = f'{PD}/data/openfoam_airfoil_summary.json'
+assert os.path.exists(_ofp), f'missing OpenFOAM summary: {_ofp}'
+_ofc = json.load(open(_ofp))['cases']
+for _lv, _ms in (('L1', 3.6), ('L2', 5.4)):
+    for _ax, _q in ((ax_ls, 'ls'), (ax_tr, 'tr')):
+        _pts = [(v[_q], v['alpha']) for k, v in _ofc.items()
+                if k.startswith('eppler_') and v['level'] == _lv
+                and v.get(_q) is not None]
+        _ax.plot([p[0] for p in _pts], [p[1] for p in _pts], 'o', ms=_ms,
+                 mfc='none', mec='steelblue', mew=1.1, zorder=5.5)
+
 for ax, lab in ((ax_ls, 'laminar separation $x_{LS}/c$'),
                 (ax_tr, 'turbulent reattachment $x_R/c$')):
     ax.set_xlabel(lab); ax.grid(alpha=0.3); ax.set_xlim(0, 0.9)
@@ -211,7 +227,9 @@ handles = [Line2D([], [], color='k', ls='-', lw=0.8, marker='o', mfc='none', ms=
            Line2D([], [], color='C0', ls='none', marker='s', mfc='none', ms=5.5,
                   label='SA-AI, O-grid (L0$\\to$L2 by size)'),
            Line2D([], [], color='C1', ls='none', marker='^', mfc='none', ms=5.5,
-                  label='SA-AI, unstructured (L0$\\to$L2 by size)')]
+                  label='SA-AI, unstructured (L0$\\to$L2 by size)'),
+           Line2D([], [], color='steelblue', ls='none', marker='o', mfc='none',
+                  ms=4.5, label='OpenFOAM (str L1/L2 by size)')]
 if XF_DRAWN:
     handles.insert(3, Line2D([], [], color='0.5', ls='-.', lw=1.1,
                              label='XFOIL ($e^9$, $\\alpha\\geq6.5^\\circ$)'))

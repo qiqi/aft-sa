@@ -12,9 +12,18 @@ read the lifted shear layer over the Eppler bubble the way a plain
 kd-tree near-wall band does (~0.07c forward bias, observed). Validated:
 nlf am8 L2 chi=1 = 0.567 vs the paper's 0.559-0.561.
 
+Upper/lower is decided against the airfoil's own midline z_c(x) (from
+the wall patch), NOT sign(z) or a global z threshold: the Eppler 387
+lower surface rises ABOVE z=0 aft of x ~ 0.58, so a sign(z) split lets
+below-airfoil fluid into the upper mask there (its min-z "wall" then
+hugs the LOWER surface), and a global z threshold truncates the aft
+upper surface before the alpha=0 reattachment (both observed). NLF rows
+are unaffected by construction (its fluid never crosses z=0 inside the
+chord band) and were verified unchanged after the fix.
+
 Per case (eppler|nlf)_str{L0,L1,L2}_{a,am}N:
-  cl, cd    : median over the final 20% of coefficient.dat rows
-              (as reported in sweep_results.csv)
+  cl, cd    : the CSV's final coefficient.dat sample (steady; the
+              median over the final 20% of rows agrees to <=0.5%)
   xtr_up/lo : near-wall chi=1 crossing per side (chi = nuTilda*Re; U=1,
               c=1); None when the side stays laminar to the TE
   ls, tr    : Eppler upper-surface signed-Cfx zero crossings (separation /
@@ -71,6 +80,26 @@ def airfoil_patch(case):
     return max(cands, key=os.path.getsize)
 
 
+def midline(case, nbins=400):
+    """z_c(x) interpolant of the airfoil midline from the wall patch:
+    per x-bin, the midpoint of the two surfaces' z. The side split must
+    use this, not sign(z) -- see the module docstring (Eppler aft lower
+    surface sits above z=0)."""
+    surf = read_any(airfoil_patch(case))
+    sp = cell_centers(surf)
+    xs, zs = sp[:, 0], sp[:, 2]
+    bins = np.linspace(0.0, 1.0, nbins + 1)
+    idx = np.clip(np.digitize(xs, bins) - 1, 0, nbins - 1)
+    xc, zc = [], []
+    for i in range(nbins):
+        k = idx == i
+        if not k.any():
+            continue
+        xc.append(0.5 * (bins[i] + bins[i + 1]))
+        zc.append(0.5 * (zs[k].min() + zs[k].max()))
+    return np.array(xc), np.array(zc)
+
+
 def chi1_fronts(case, re, band=0.003, x0=0.005, x1=0.995, nbins=240):
     """Near-wall chi=1 crossing per side (upper, lower), paper convention.
 
@@ -82,10 +111,12 @@ def chi1_fronts(case, re, band=0.003, x0=0.005, x1=0.995, nbins=240):
     p = cell_centers(vol)
     chi = vtk_to_numpy(vol.GetCellData().GetArray('nuTilda')) * re
     x, z = p[:, 0], p[:, 2]
+    xc_w, zc_w = midline(case)
+    z_c = np.interp(x, xc_w, zc_w)
     bins = np.linspace(x0, x1, nbins + 1)
     out = []
     for upper in (True, False):
-        side = (z > 0) if upper else (z < 0)
+        side = (z > z_c) if upper else (z < z_c)
         st = prev = prevx = None
         for i in range(nbins):
             k = side & (x >= bins[i]) & (x < bins[i + 1])
@@ -112,7 +143,10 @@ def bubble_stations(case):
     # OpenFOAM wallShearStress is the stress ON the wall: attached
     # forward flow gives tau_x < 0. Negate for the paper's C_{f,x}.
     cfx = -2.0 * tau[:, 0]
-    upper = z > np.median(z[np.abs(x - 0.4) < 0.1])
+    # Side split against the local midline (a global z threshold truncates
+    # the aft upper surface before the alpha=0 reattachment; see docstring).
+    xc_w, zc_w = midline(case)
+    upper = z > np.interp(x, xc_w, zc_w)
     o = np.argsort(x[upper])
     xu, cu = x[upper][o], cfx[upper][o]
     m = (xu > 0.05) & (xu < 0.995)
@@ -162,7 +196,7 @@ def main():
     json.dump({'source': 'OpenFOAM v2412 SpalartAllmarasAI, structured '
                          '(Construct2D) family. Forces from '
                          'openfoam/sweep_results.csv (staged-protocol '
-                         'campaign, median final-20% forces); fronts '
+                         'campaign, final steady force sample); fronts '
                          're-extracted from the VTK fields at the paper '
                          'convention (near-wall chi=1 crossing; None = '
                          'laminar to the TE); Eppler bubble stations '

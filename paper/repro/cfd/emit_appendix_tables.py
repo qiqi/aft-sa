@@ -6,6 +6,8 @@
   tab_nlf_data         : figs nlfaft/nlfpolar/nlfnegalpha (CL, CD, x_tr)
   tab_openfoam_nlf     : the steel-blue OpenFOAM L1+L2 overlay of figs
                          nlfaft/nlfpolar
+  tab_openfoam_eppler  : the steel-blue OpenFOAM L1+L2 overlay of figs
+                         epppolar/eppbubble
   tab_eppler_polar     : fig:epppolar (CL, CD, all ten incidences)
   tab_eppler_bubble    : fig:eppbubble (x_LS, x_R)
   tab_eppler_resweep   : fig:eppresweepforces (cl, cd, x_sep, x_R vs Re)
@@ -152,13 +154,15 @@ def nlf():
 
 # ---------------- OpenFOAM NLF (cross-solver overlay) ------------------------
 def openfoam_nlf():
-    """The L1 rows plotted as the steel-blue circles in figs nlfaft/nlfpolar.
+    """The L1+L2 rows plotted as the steel-blue circles in figs
+    nlfaft/nlfpolar.
 
-    The overlay (and this table) is curated to L1, the converged family of
-    the staged-protocol cross-solver runs: the OF L0 lower fronts include
-    the same coarse-grid breakaway states the fig:nlfaft caption discusses
-    for Flow360. Eppler columns are held until the port carries the fv1
-    bypass (a model term there worth 5-10 counts) and its L2 lands.
+    The overlay (and this table) is curated to L1+L2, the converged family
+    of the staged-protocol cross-solver runs: the OF L0 lower fronts
+    include the same coarse-grid breakaway states the fig:nlfaft caption
+    discusses for Flow360. The Eppler counterpart (openfoam_eppler below)
+    was held until the L2 ladder landed; adopted 2026-07-27 with the
+    missing-bypass scoping in its caption.
     """
     of = json.load(open(f'{PAPER}/data/openfoam_airfoil_summary.json'))['cases']
     rows = []
@@ -192,6 +196,63 @@ def openfoam_nlf():
           r'the codes differ by $14\%$ in $C_D$ at $-8^\circ$ at matched '
           r'fronts, and by $1.6$--$3.5\%$ elsewhere at L2.',
           'tab:data_openfoam_nlf', 'c cccc cccc')
+
+
+# ---------------- OpenFOAM Eppler (cross-solver overlay) ----------------------
+def openfoam_eppler():
+    """The L1+L2 rows plotted as the steel-blue circles in figs
+    epppolar/eppbubble. Same curation as openfoam_nlf (L0 excluded);
+    every quoted caption number verified against flow360_fv1/flow360_fr
+    campaign records on 2026-07-27 (adoption round).
+    """
+    of = json.load(open(f'{PAPER}/data/openfoam_airfoil_summary.json'))['cases']
+    rows = []
+    for a in (0, 2, 5, 7):
+        cells = [f'${a}$']
+        for lev in ('L1', 'L2'):
+            e = of[f'eppler_str{lev}_a{a}']
+            assert e['alpha'] == a and e['level'] == lev
+            assert e['xtr_lo'] is None, 'lower surface expected laminar to TE'
+            cells.append(f"{fmt(e['cl'])} & {fmt(e['cd'], 5)} & "
+                         f"{fmt(e['xtr_up'], 3)} & {fmt(e['ls'], 3)} & "
+                         f"{fmt(e['tr'], 3)}")
+        rows.append(' & '.join(cells))
+    write('tab_openfoam_eppler.tex',
+          r'$\alpha$ & \multicolumn{5}{c}{L1} & \multicolumn{5}{c}{L2} \\'
+          r' \cmidrule(lr){2-6}\cmidrule(lr){7-11}'
+          r' & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ &'
+          r' $x_{LS}$ & $x_R$'
+          r' & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ &'
+          r' $x_{LS}$ & $x_R$',
+          rows,
+          r'Eppler 387, $Re\!=\!2\!\times\!10^5$: the independent '
+          r'cell-centered incompressible (OpenFOAM) implementation on the '
+          "paper's structured L1 and L2 grids---the steel-blue circles of "
+          r'Figs.~\ref{fig:epppolar} and~\ref{fig:eppbubble}. Transition '
+          r'locations are read from the OpenFOAM fields at the same '
+          r'near-wall $\chi\!=\!1$ crossing as everywhere in this paper, '
+          r'and the bubble stations at the same signed-$C_f$ zero '
+          r'crossings as Table~\ref{tab:data_eppbubble}; the lower '
+          r'surface stays laminar to the trailing edge in both codes at '
+          r'every incidence. '
+          r'At L2 the lift agrees within $0.5\%$, separation sits '
+          r'$0.030$--$0.037\,c$ ahead of and reattachment '
+          r'$0.033$--$0.045\,c$ behind the SA-AI stations ($0.086\,c$ at '
+          "the near-stall $7^\\circ$, both codes' hardest condition). "
+          r'The port omits the bypass of Eq.~\ref{eq:fv1bypass}---worth '
+          r'$-6$ to $-10$ counts at $\alpha\!=\!0$--$5^\circ$ here and '
+          r'$-1$ at $7^\circ$ by the recomputation record of '
+          r'Sec.~\ref{sec:fv1bypass}---and the residuals are consistent with that '
+          r'omission in sign and magnitude: drag agreement is not '
+          r'claimed, with OpenFOAM above by $4.8$/$7.5$/$1.2$ counts at '
+          r'$\alpha\!=\!0^\circ$/$2^\circ$/$5^\circ$ and below by $6.8$ '
+          r'at $7^\circ$; the $\chi\!=\!1$ fronts read '
+          r'$0.006$--$0.044\,c$ ahead of the SA-AI values while the '
+          r'half-saturation $\chi\!=\!c_{v1}$ crossings of the two codes '
+          r'agree to $0.014\,c$ below $7^\circ$ ($0.028\,c$ there)---the '
+          r'stretched $\chi\!=\!1\!\to\!c_{v1}$ ramp is exactly the '
+          r'handover the bypass compresses.',
+          'tab:data_openfoam_eppler', 'c ccccc ccccc')
 
 
 # ---------------- Eppler polar ----------------------------------------------
@@ -279,8 +340,8 @@ def eppler_resweep():
           r'($x_R$ pinned near $1$ means no closure ahead of the trailing '
           r'edge; $c_m$ and the $e^9$/experiment columns are in '
           r'Table~\ref{tab:eppresweep}). The $2\times10^5$ rows are the '
-          r'figure script\'s own re-extraction of the benchmark histories '
-          r'and agree with Table~\ref{tab:data_epppolar}\'s campaign-record '
+          "figure script's own re-extraction of the benchmark histories "
+          "and agree with Table~\\ref{tab:data_epppolar}'s campaign-record "
           r'values to within one unit in the last digit (tail-window '
           r'rounding).',
           'tab:data_eppresweep', 'll cccc cccc')
@@ -343,6 +404,7 @@ if __name__ == '__main__':
     flatplate()
     nlf()
     openfoam_nlf()
+    openfoam_eppler()
     eppler_polar()
     eppler_bubble()
     eppler_resweep()
