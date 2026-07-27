@@ -103,9 +103,15 @@ def main():
                          'guessed from the case name L0/L1/L2)')
     ap.add_argument('--out', default=None, help='output prefix')
     ap.add_argument('--paper', action='store_true',
-                    help='paper-grade titles (no case tag)')
+                    help='paper-grade: no in-figure titles (captions carry '
+                         'the panel assignment)')
     ap.add_argument('--from-npz', action='store_true',
                     help='replot from the existing .npz (skip probing)')
+    ap.add_argument('--measured', default=None,
+                    help='digitized measured-transition JSON '
+                         '(stock2006_fig15a style); plots the measured '
+                         'points as open red squares on the c_f and chi '
+                         'panels')
     args = ap.parse_args()
     case = args.case_dir.rstrip('/')
     tag = os.path.basename(case)
@@ -213,11 +219,19 @@ def plot_all(out, args, case, tag, alpha, mach, muref,
         B * np.sqrt(np.clip(1 - ((-A + XL) / A)**2, 1e-6, None)), 1e-9)),
         color='0.55', linewidth=0.5, density=(2.2, 1.1), arrowsize=0.6)
     a.set_ylabel(r'$\phi$ [deg]  (0 = windward)')
-    head = '' if args.paper else f'{tag}:  '
-    re_l = mach / muref
-    re_str = f'{re_l/10**int(np.log10(re_l)):.3g}\\times10^{int(np.log10(re_l))}'
-    a.set_title(head + '$c_f\\times10^3$ (labeled) + skin-friction lines '
-                f'($\\alpha={alpha:g}^\\circ$, $Re_L={re_str}$)')
+    meas = None
+    if getattr(args, 'measured', None):
+        import json as _json
+        meas = _json.load(open(args.measured))['re_1p52e6_alpha10_squares']
+        a.plot([q['xL'] for q in meas], [q['phi_deg'] for q in meas], 's',
+               color='red', mfc='none', ms=8, mew=1.6, zorder=5)
+    if not args.paper:
+        re_l = mach / muref
+        re_str = (f'{re_l/10**int(np.log10(re_l)):.3g}'
+                  f'\\times10^{int(np.log10(re_l))}')
+        a.set_title(f'{tag}:  $c_f\\times10^3$ (labeled) + '
+                    'skin-friction lines '
+                    f'($\\alpha={alpha:g}^\\circ$, $Re_L={re_str}$)')
 
     a = axs[1]
     lev = np.arange(-60, 61, 10)
@@ -225,9 +239,10 @@ def plot_all(out, args, case, tag, alpha, mach, muref,
     a.clabel(cs, levels=lev[::2], fmt='%g', fontsize=7, inline_spacing=2)
     a.contour(xl, phd, gamma, levels=[0], colors='k', linewidths=1.6)
     a.set_ylabel(r'$\phi$ [deg]')
-    a.set_title(r'wall-shear direction $\gamma_w$ [deg] from local meridian '
-                r'(positive toward leeward; dashed negative; bold: '
-                r'$\gamma_w=0$)')
+    if not args.paper:
+        a.set_title(r'wall-shear direction $\gamma_w$ [deg] from local '
+                    r'meridian (positive toward leeward; dashed negative; '
+                    r'bold: $\gamma_w=0$)')
 
     a = axs[2]
     with np.errstate(all='ignore'):
@@ -244,10 +259,14 @@ def plot_all(out, args, case, tag, alpha, mach, muref,
                  f'$10^{{{lv:g}}}$')) for lv in major}
     a.clabel(cs, fmt=fmt, fontsize=7, inline_spacing=2)
     a.contour(xl, phd, chimax, levels=[CV1], colors='k', linewidths=1.6)
+    if meas is not None:
+        a.plot([q['xL'] for q in meas], [q['phi_deg'] for q in meas], 's',
+               color='red', mfc='none', ms=8, mew=1.6, zorder=5)
     a.set_ylabel(r'$\phi$ [deg]')
     a.set_xlabel(r'$x/L$')
-    a.set_title(r'near-wall $\max\chi$ (log labels); bold: '
-                r'$\chi=c_{v1}$ (model-native transition front)')
+    if not args.paper:
+        a.set_title(r'near-wall $\max\chi$ (log labels); bold: '
+                    r'$\chi=c_{v1}$ (model-native transition front)')
     for a in axs:
         a.set_ylim(0, 180)
         a.set_yticks([0, 45, 90, 135, 180])
@@ -272,7 +291,9 @@ def plot_all(out, args, case, tag, alpha, mach, muref,
         ax.view_init(el, azv)
         ax.set_box_aspect((6, 1.15, 1.15))
         ax.set_axis_off()
-        ax.set_title(f'$c_f$, {ttl} side', y=0.85)
+        # panel-identity label (kept in paper mode; the colorbar names c_f)
+        ax.set_title(f'{ttl} side' if args.paper else f'$c_f$, {ttl} side',
+                     y=0.85)
     sm = plt.cm.ScalarMappable(norm=norm, cmap='viridis')
     fig.colorbar(sm, ax=fig.axes, shrink=0.6, label=r'$c_f \times 10^3$')
     fig.savefig(out + '_3d.png', dpi=140, bbox_inches='tight')

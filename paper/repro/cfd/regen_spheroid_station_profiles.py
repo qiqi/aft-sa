@@ -104,7 +104,7 @@ def front_phi(xl, ph, chimax, Xa):
     return out
 
 
-def cp_waterfall(npz, out, title, meas):
+def cp_waterfall(npz, out, meas):
     xl, ph, d = load(npz)
     if 'cp' not in d:
         raise SystemExit(f'{npz} lacks cp -- re-probe with the updated '
@@ -125,14 +125,13 @@ def cp_waterfall(npz, out, title, meas):
     ax.set_xlabel(r'$\phi$ [deg]')
     ax.set_ylabel(rf'$-C_p$ (curves displaced by $+{DCP:g}$ per station)')
     ax.grid(alpha=0.3)
-    ax.set_title(title, fontsize=10)
     fig.tight_layout()
     fig.savefig(f'{PAPER}/figs/{out}.pdf')
     plt.close(fig)
     print('wrote', out)
 
 
-def cf_gamma_waterfall(npz, out, title, hf, dcf, dgam, meas):
+def cf_gamma_waterfall(npz, out, hf, dcf, dgam, meas):
     xl, ph, d = load(npz)
     fig, axs = plt.subplots(2, 1, figsize=(6.8, 9.2), sharex=True)
     for j, Xa in enumerate(hf):
@@ -163,7 +162,6 @@ def cf_gamma_waterfall(npz, out, title, hf, dcf, dgam, meas):
     axs[1].set_xticks([0, 30, 60, 90, 120, 150, 180])
     for a in axs:
         a.grid(alpha=0.3)
-    axs[0].set_title(title, fontsize=10)
     fig.tight_layout()
     fig.savefig(f'{PAPER}/figs/{out}.pdf')
     plt.close(fig)
@@ -177,17 +175,11 @@ def re_label(npz):
 
 
 if __name__ == '__main__':
-    for tag, base, ttl in (('L2', 'a10', r'$\alpha=10^\circ$'),
-                           ('a29p7_L2', 'a29p7', r'$\alpha=29.7^\circ$')):
+    for tag, base in (('L2', 'a10'), ('a29p7_L2', 'a29p7')):
         npz = f'{PAPER}/figs/spheroid_maps_{tag}.npz'
-        rs = re_label(npz)
         c = CASES[base]
         cp_waterfall(npz, f'spheroid_stations_cp_{base}',
-                     f'{ttl}, $Re_L={rs}$ (L2): '
-                     '$C_p$ at the DFVLR pressure stations',
                      load_meas(c['meas_cp']))
         cf_gamma_waterfall(npz, f'spheroid_stations_cfgamma_{base}',
-                           f'{ttl}, $Re_L={rs}$ (L2): wall shear '
-                           'at the DFVLR hot-film stations',
                            c['hf'], c['dcf'], c['dgam'],
                            load_meas(c['meas_cfg']))

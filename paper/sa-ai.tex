@@ -2779,22 +2779,10 @@ smooths over.
   \label{fig:daesurf4}
 \end{figure}
 
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.99\textwidth]{daedalus_surface_a5.pdf}
-  \caption{As Fig.~\ref{fig:daesurf4}, at $\alpha\!=\!5^\circ$.}
-  \label{fig:daesurf5}
-\end{figure}
-
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.99\textwidth]{daedalus_surface_a6.pdf}
-  \caption{As Fig.~\ref{fig:daesurf4}, at $\alpha\!=\!6^\circ$.}
-  \label{fig:daesurf6}
-\end{figure}
-
 The flow itself is read from the surface maps of
-Figs.~\ref{fig:daesurf4}--\ref{fig:daesurf6}: the finest
+Fig.~\ref{fig:daesurf4} and its $\alpha\!=\!5^\circ,6^\circ$
+companions (Figs.~\ref{fig:daesurf5} and~\ref{fig:daesurf6},
+Appendix~D): the finest
 RANS solutions against the $e^N$ strips, column by column. The $-C_p$
 maps
 agree on the loading and carry the bubble's
@@ -2852,8 +2840,8 @@ strips' $\sim\!0.2\,c$, and the $6$--$14$ counts of bubble drag that
 the predecessor was missing returned to the polar.
 
 Two spanwise phenomena, invisible to any sectional diagnostic, close
-the study; both are read directly off the maps of
-Figs.~\ref{fig:daesurf4}--\ref{fig:daesurf6}. Outboard of the taper
+the study; both are read directly off the surface maps
+(Fig.~\ref{fig:daesurf4} and the Appendix~D companions). Outboard of the taper
 break the falling chord Reynolds number stretches the bubble toward
 the trailing edge---at $\alpha\!=\!4^\circ$ its reattachment retreats
 from $0.66\,c$ at $\eta\!=\!0.31$ to $0.79\,c$ at $\eta\!=\!0.92$ and
@@ -2984,26 +2972,47 @@ Table~\ref{tab:data_spheroid}.
   \label{fig:spheroidfront}
 \end{figure}
 
-Figures~\ref{fig:spheroidmaps} and~\ref{fig:spheroidmaps297} show two
-selected cases in detail, in the presentation of the measured
+Figure~\ref{fig:spheroidmaps} shows the $\alpha\!=\!10^\circ$ case in
+detail, in the presentation of the measured
 campaign: the surface unrolled into $(x/L,\phi)$ with the
 skin-friction magnitude and friction lines (the oil-flow analogue),
 the wall-shear direction $\gamma_w$ (the hot-film quantity), and the
-wall-normal maximum of $\chi$ with the model front. At
-$\alpha\!=\!10^\circ$ (Fig.~\ref{fig:spheroidmaps}) the friction
+wall-normal maximum of $\chi$ with the model front---the measured
+transition points of Fig.~\ref{fig:spheroidfront} repeated on the
+$c_f$ and $\chi$ panels. The friction
 lines converge onto the leeward separation band at
 $\phi\!\approx\!100$--$135^\circ$, the crossflow reverses under the
 vortex ($\gamma_w\!=\!0$ line), and the amplification builds under
 the leeward vortex from mid-body without committing until near the
 tail---the deficit quantified above. At $\alpha\!=\!29.7^\circ$
-(Fig.~\ref{fig:spheroidmaps297}) the open separation covers most of
+(Fig.~\ref{fig:spheroidmaps297}, Appendix~H) the open separation covers most of
 the leeward half and the windward laminar run shortens; the
 level-to-level scatter of Table~\ref{tab:sphtotals} at this incidence
 reflects the vortex-dominated flow.
-Figure~\ref{fig:spheroid3d} shows the $\alpha\!=\!10^\circ$ skin
-friction on the body, and Appendix~H presents both solutions at the
-DFVLR measurement stations in the waterfall presentation of the
-measured campaign (Stock's Figs.~2--5).
+
+Figures~\ref{fig:sphstat_cfg10} and~\ref{fig:sphstat_cfg297} present
+both solutions at the DFVLR hot-film measurement stations, in the
+waterfall presentation of the measured
+campaign~\cite{kreplin_1985,stock_2006} (Stock's Figs.~4--5): the
+resultant skin friction and wall-shear direction
+(displaced $-1.5\!\times\!10^{-3}$/$-15^\circ$ per station at
+$\alpha\!=\!10^\circ$ and $-3\!\times\!10^{-3}$/$-20^\circ$ at
+$29.7^\circ$, following the respective source figures; the hot-film
+array's fifth station moved between the two runs, $X/a\!=\!0.304$
+vs $0.130$).
+Open red circles are the DFVLR measured chains, digitized from the
+printed source figures into the per-figure
+\texttt{stock2006\_fig$n$\_digitized.json} files in
+\texttt{data/} (provenance and truncation policy in Appendix~F).
+Filled squares, where present, mark the model's $\chi\!=\!c_{v1}$
+front crossing a station: at $\alpha\!=\!10^\circ$ none appear---the
+front sits aft of every hot-film station, the amplification-deficit
+finding above in the campaign's own presentation---while at
+$29.7^\circ$ the front crosses every station on the leeward side.
+(Computed views without a measured overlay belong to the
+appendix: the $\alpha\!=\!29.7^\circ$ map and the three-dimensional
+rendering are in Appendix~H, together with the supporting
+pressure-station waterfalls.)
 
 \begin{figure}[p]
   \centering
@@ -3025,28 +3034,32 @@ measured campaign (Stock's Figs.~2--5).
   supercritical solid): the body runs
   laminar to $x/L\!\approx\!0.9$ on the windward side, with
   amplification building (but not committing) under the leeward
-  vortex from mid-body.}
+  vortex from mid-body. Red squares on the $c_f$ and $\chi$ panels:
+  the measured DFVLR transition points of
+  Fig.~\ref{fig:spheroidfront} (Stock Fig.~15a, Appendix~F).}
   \label{fig:spheroidmaps}
 \end{figure}
 
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.99\textwidth]{spheroid_maps_a29p7_L2.pdf}
-  \caption{As Fig.~\ref{fig:spheroidmaps}, at $\alpha\!=\!29.7^\circ$
-  (finest grid): the open free-vortex separation covers most of the
-  leeward half, the windward laminar run shortens, and the
-  $\gamma_w$ field carries the full vortex signature.}
-  \label{fig:spheroidmaps297}
+  \includegraphics[width=0.66\textwidth]{spheroid_stations_cfgamma_a10.pdf}
+  \caption{6:1 spheroid, $Re_L\!=\!1.5\!\times\!10^6$,
+  $\alpha\!=\!10^\circ$ (L2): resultant skin friction (top) and
+  wall-shear direction (bottom) at the DFVLR hot-film stations,
+  presentation of Stock's Fig.~4. Lines: computed; open red circles:
+  DFVLR measurement, digitized from the printed figure (Appendix~F),
+  truncated where the printed post-transition tangle makes chain
+  identity unrecoverable.}
+  \label{fig:sphstat_cfg10}
 \end{figure}
 
-\begin{figure}[tp]
+\begin{figure}[p]
   \centering
-  \includegraphics[width=0.9\textwidth]{spheroid_maps_L2_3d.png}
-  \caption{The $c_f$ magnitude of Fig.~\ref{fig:spheroidmaps} rendered
-  on the body (leeward and windward views), the presentation of the
-  N-factor and skin-friction contour figures of the
-  transition-prediction literature on this case.}
-  \label{fig:spheroid3d}
+  \includegraphics[width=0.66\textwidth]{spheroid_stations_cfgamma_a29p7.pdf}
+  \caption{As Fig.~\ref{fig:sphstat_cfg10}, at $\alpha\!=\!29.7^\circ$
+  (presentation of Stock's Fig.~5); measured chains truncated in the
+  leeward tangle where printed chain identity is unrecoverable.}
+  \label{fig:sphstat_cfg297}
 \end{figure}
 
 \section{Conclusion}
@@ -3227,7 +3240,8 @@ and Appendix~D for the Daedalus wing (Sec.~\ref{sec:daedalus}).
 Appendix~E assembles the model equations and constants, Appendix~F
 tabulates the raw data behind the one-dimensional comparison figures,
 Appendix~G carries the cross-solver replication detail, and
-Appendix~H the spheroid station profiles.
+Appendix~H the spheroid pressure-station waterfalls and
+supplementary surface maps.
 
 Figures~\ref{fig:nlfmesh_str} and~\ref{fig:nlfmesh_cav} show the
 leading- and trailing-edge close-ups of the structured O-grid and
@@ -3721,14 +3735,32 @@ XFOIL at each station's local $c_l$, chord Reynolds number, and
 $N_\mathrm{crit}\!=\!13.6$, integrated over span. RANS transition
 fronts are read per spanwise strip as the $C_f$-rise location, and
 bubbles as intervals of negative streamwise $C_f$. The $\chi$ columns
-of Figs.~\ref{fig:daesurf4}--\ref{fig:daesurf6} map
+of Figs.~\ref{fig:daesurf4}, \ref{fig:daesurf5},
+and~\ref{fig:daesurf6} map
 $\max\tilde\nu/\nu$ over a band extending $5\%$ of local chord from
 the wall, each volume node scatter-reduced to its nearest wall node;
 the $e^N$ strip rows of the same figures use FlexFoil at each
 station's AVL $c_l$ and chord Reynolds number, its amplification drawn
 as $\chi_\infty e^{N}$ through the identical color map so the two
 transition contours ($\chi\!=\!1$ and $N\!=\!N_\mathrm{crit}$) are
-directly comparable.
+directly comparable. The $\alpha\!=\!5^\circ$ and $6^\circ$ surface
+maps (Figs.~\ref{fig:daesurf5} and~\ref{fig:daesurf6}; companions to
+Fig.~\ref{fig:daesurf4} of the main text) follow.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{daedalus_surface_a5.pdf}
+  \caption{As Fig.~\ref{fig:daesurf4}, at $\alpha\!=\!5^\circ$.}
+  \label{fig:daesurf5}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{daedalus_surface_a6.pdf}
+  \caption{As Fig.~\ref{fig:daesurf4}, at $\alpha\!=\!6^\circ$.}
+  \label{fig:daesurf6}
+\end{figure}
+
 
 \paragraph{Sectional diagnostic sheets.} Figures~\ref{fig:daesec10},
 \ref{fig:daesec75}, and~\ref{fig:daesec92} carry the section-cut
@@ -4087,34 +4119,19 @@ tabulated in Table~\ref{tab:data_flatplate}.
 \clearpage
 \renewcommand{\thefigure}{H\arabic{figure}}
 \setcounter{figure}{0}
-\section*{Appendix H: spheroid station profiles}
+\section*{Appendix H: spheroid pressure stations and supplementary
+maps}
 
-Figures~\ref{fig:sphstat_cp10}--\ref{fig:sphstat_cfg297} present the
-computed spheroid solutions at the DFVLR measurement stations, in the
-waterfall presentation of the measured
-campaign~\cite{kreplin_1985,stock_2006} (Stock's Figs.~2--5): the
-pressure coefficient at the thirteen pressure-tap stations (curves
+Figures~\ref{fig:sphstat_cp10} and~\ref{fig:sphstat_cp297} present
+the computed spheroid solutions at the thirteen DFVLR pressure-tap
+stations, in the waterfall presentation of the measured
+campaign~\cite{kreplin_1985,stock_2006} (Stock's Figs.~2--3): curves
 displaced $+0.42$ in $-C_p$ per station---the per-station step of the
-printed figures) and the resultant skin
-friction and wall-shear direction at the hot-film stations
-(displaced $-1.5\!\times\!10^{-3}$/$-15^\circ$ per station at
-$\alpha\!=\!10^\circ$ and $-3\!\times\!10^{-3}$/$-20^\circ$ at
-$29.7^\circ$, following the respective source figures; the hot-film
-array's fifth station moved between the two runs, $X/a\!=\!0.304$
-vs $0.130$). The first pressure station
+printed figures. The first pressure station
 ($X/a\!=\!-0.9988$) is read at the probe-grid edge
-($x/L\!=\!0.004$).
-Filled squares, where present, mark the model's $\chi\!=\!c_{v1}$
-front crossing a station: at $\alpha\!=\!10^\circ$ none appear---the
-front sits aft of every hot-film station,
-Sec.~\ref{sec:spheroid}'s amplification-deficit finding in the
-campaign's own presentation---while at $29.7^\circ$ the front
-crosses every station on the leeward side.
-
-Open red circles are the DFVLR measured chains, digitized from the
-printed source figures into the four per-figure
-\texttt{stock2006\_fig$n$\_digitized.json} files in
-\texttt{data/} (provenance and truncation policy in Appendix~F). In the printed $C_p$ waterfalls the
+($x/L\!=\!0.004$). Open red circles are the DFVLR measured chains,
+as in the hot-film waterfalls of Sec.~\ref{sec:spheroid}
+(Figs.~\ref{fig:sphstat_cfg10} and~\ref{fig:sphstat_cfg297}). In the printed $C_p$ waterfalls the
 chains sit a uniform $0.12$--$0.15$ above exact potential theory at
 both incidences---as do Stock's own printed potential-theory
 curves---while exact potential theory matches the computed L2 station
@@ -4123,6 +4140,11 @@ therefore carry, in addition to the $0.42$ step, a uniform base
 displacement, equal to the $0.14$ Stock's text states, and the
 digitization removes $0.14+0.42i$ per station (which closes both
 comparisons to ${\sim}0.01$).
+
+Figures~\ref{fig:spheroidmaps297} and~\ref{fig:spheroid3d} complete
+the surface-map views of Sec.~\ref{sec:spheroid}: the
+$\alpha\!=\!29.7^\circ$ unrolled map, and the $\alpha\!=\!10^\circ$
+skin-friction magnitude rendered on the body.
 
 \begin{figure}[p]
   \centering
@@ -4133,19 +4155,6 @@ comparisons to ${\sim}0.01$).
   circles: DFVLR measurement, digitized from the printed figure
   (Appendix~F).}
   \label{fig:sphstat_cp10}
-\end{figure}
-
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.66\textwidth]{spheroid_stations_cfgamma_a10.pdf}
-  \caption{6:1 spheroid, $Re_L\!=\!1.5\!\times\!10^6$,
-  $\alpha\!=\!10^\circ$ (L2): resultant skin friction (top) and
-  wall-shear direction (bottom) at the DFVLR hot-film stations,
-  presentation of Stock's Fig.~4. Lines: computed; open red circles:
-  DFVLR measurement, digitized from the printed figure (Appendix~F),
-  truncated where the printed post-transition tangle makes chain
-  identity unrecoverable.}
-  \label{fig:sphstat_cfg10}
 \end{figure}
 
 \begin{figure}[p]
@@ -4161,11 +4170,22 @@ comparisons to ${\sim}0.01$).
 
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.66\textwidth]{spheroid_stations_cfgamma_a29p7.pdf}
-  \caption{As Fig.~\ref{fig:sphstat_cfg10}, at $\alpha\!=\!29.7^\circ$
-  (presentation of Stock's Fig.~5); measured chains truncated in the
-  leeward tangle as in Fig.~\ref{fig:sphstat_cp297}.}
-  \label{fig:sphstat_cfg297}
+  \includegraphics[width=0.99\textwidth]{spheroid_maps_a29p7_L2.pdf}
+  \caption{As Fig.~\ref{fig:spheroidmaps}, at $\alpha\!=\!29.7^\circ$
+  (finest grid): the open free-vortex separation covers most of the
+  leeward half, the windward laminar run shortens, and the
+  $\gamma_w$ field carries the full vortex signature.}
+  \label{fig:spheroidmaps297}
+\end{figure}
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{spheroid_maps_L2_3d.png}
+  \caption{The $c_f$ magnitude of Fig.~\ref{fig:spheroidmaps} rendered
+  on the body (leeward and windward views), the presentation of the
+  N-factor and skin-friction contour figures of the
+  transition-prediction literature on this case.}
+  \label{fig:spheroid3d}
 \end{figure}
 
 \end{document}

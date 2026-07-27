@@ -133,8 +133,8 @@ ax.set_ylabel(r'$\phi$ [deg]  (0 = windward)')
 ax.set_ylim(0, 180)
 ax.set_xlim(0, 1)
 ax.legend(fontsize=8, loc='lower left', framealpha=0.9)
-ax.set_title(r'6:1 spheroid, $Re_L=1.5\times10^6$, $\alpha=10^\circ$: '
-             'computed fronts vs measured transition')
+# no in-figure title (removed paper-wide by user order); the caption
+# carries the condition
 fig.tight_layout()
 fig.savefig(f'{PAPER}/figs/spheroid_front_compare.pdf')
 fig.savefig(f'{PAPER}/figs/spheroid_front_compare.png', dpi=140)
