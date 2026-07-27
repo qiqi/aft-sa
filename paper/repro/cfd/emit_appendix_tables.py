@@ -164,23 +164,31 @@ def openfoam_nlf():
     rows = []
     for a, tag in ((-8, 'am8'), (-4, 'am4'), (0, 'a0'), (4, 'a4'),
                    (9, 'a9'), (15, 'a15')):
-        e = of[f'nlf_strL1_{tag}']
-        assert e['alpha'] == a and e['level'] == 'L1'
-        rows.append(f"${a}$ & {fmt(e['cl'])} & {fmt(e['cd'], 5)} & "
-                    f"{fmt(e['xtr_up'], 3)} & {fmt(e['xtr_lo'], 3)}")
+        cells = [f'${a}$']
+        for lev in ('L1', 'L2'):
+            e = of[f'nlf_str{lev}_{tag}']
+            assert e['alpha'] == a and e['level'] == lev
+            cells.append(f"{fmt(e['cl'])} & {fmt(e['cd'], 5)} & "
+                         f"{fmt(e['xtr_up'], 3)} & {fmt(e['xtr_lo'], 3)}")
+        rows.append(' & '.join(cells))
     write('tab_openfoam_nlf.tex',
-          r'$\alpha$ & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ &'
-          r' $x_\mathrm{tr}^\mathrm{lo}$',
+          r'$\alpha$ & \multicolumn{4}{c}{L1} & \multicolumn{4}{c}{L2} \\'
+          r' & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ &'
+          r' $x_\mathrm{tr}^\mathrm{lo}$ & $C_L$ & $C_D$ &'
+          r' $x_\mathrm{tr}^\mathrm{up}$ & $x_\mathrm{tr}^\mathrm{lo}$',
           rows,
           r'NLF(1)-0416, $Re\!=\!4\!\times\!10^6$: the independent '
           r'cell-centered incompressible (OpenFOAM) implementation on the '
-          "paper's structured L1 grid---the steel-blue circles of "
+          "paper's structured L1 and L2 grids---the steel-blue circles of "
           r'Figs.~\ref{fig:nlfaft} and~\ref{fig:nlfpolar}. Conventions as '
           r'in Table~\ref{tab:data_nlf}, with the transition locations '
           r'read from the OpenFOAM fields at the same near-wall '
           r'$\chi\!=\!1$ crossing; the port omits the bypass of '
-          r'Eq.~\ref{eq:fv1bypass}.',
-          'tab:data_openfoam_nlf', 'c cccc')
+          r'Eq.~\ref{eq:fv1bypass}. At L2 every front lies within '
+          r'$0.016\,c$ and the lift within $0.9\%$ ($0.003$ absolute at '
+          r'the zero-lift $-4^\circ$) of the corresponding Flow360 values '
+          r'in Table~\ref{tab:data_nlf}.',
+          'tab:data_openfoam_nlf', 'c cccc cccc')
 
 
 # ---------------- Eppler polar ----------------------------------------------

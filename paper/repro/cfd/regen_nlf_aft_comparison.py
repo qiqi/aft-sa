@@ -72,12 +72,12 @@ def ws_style(fam):
 # steel-blue, the Fig. 5 convention)
 _ofp = f'{PD}/data/openfoam_airfoil_summary.json'
 assert os.path.exists(_ofp), f'missing OpenFOAM summary: {_ofp}'
-# L1 only: the converged family of the staged-protocol cross-solver runs
-# (the OF L0 lower fronts include the same coarse-grid breakaway states the
-# caption discusses for Flow360; per-level curation keeps the overlay to the
-# grid the agreement statement is made on)
+# L1+L2 (size by level, matching the figure's own convention). L0 is
+# excluded: the OF L0 lower fronts include the same coarse-grid breakaway
+# states the caption discusses for Flow360 — per-level curation keeps the
+# overlay to the grids the agreement statement is made on.
 _OF = {k: v for k, v in json.load(open(_ofp))['cases'].items()
-       if k.startswith('nlf_') and v['level'] == 'L1'}
+       if k.startswith('nlf_') and v['level'] in ('L1', 'L2')}
 fig, axs = plt.subplots(1, 2, figsize=(10.5, 4.4), sharey=True)
 for ax, side, lab in ((axs[0], 'upper', 'upper surface'),
                       (axs[1], 'lower', 'lower surface')):
@@ -126,12 +126,14 @@ for ax, side, lab in ((axs[0], 'upper', 'upper surface'),
                     label=(f"SA-AI, {'O-grid' if fam=='str' else 'unstructured'}"
                            " (L0$\\to$L2 by size)") if lv == 2 else None,
                     zorder=5)
-    _pts = [(v['xtr_up' if side == 'upper' else 'xtr_lo'], v['cl'])
-            for v in _OF.values()
-            if v.get('xtr_up' if side == 'upper' else 'xtr_lo') is not None]
-    ax.plot([q[0] for q in _pts], [q[1] for q in _pts], 'o', ms=4,
-            mfc='none', mec='steelblue', mew=1.1, zorder=4,
-            label='OpenFOAM (str L1)' if side == 'upper' else None)
+    for lv, ms in (('L1', 3.6), ('L2', 5.4)):
+        _pts = [(v['xtr_up' if side == 'upper' else 'xtr_lo'], v['cl'])
+                for v in _OF.values() if v['level'] == lv
+                and v.get('xtr_up' if side == 'upper' else 'xtr_lo') is not None]
+        ax.plot([q[0] for q in _pts], [q[1] for q in _pts], 'o', ms=ms,
+                mfc='none', mec='steelblue', mew=1.1, zorder=4,
+                label=('OpenFOAM (str L1/L2 by size)'
+                       if side == 'upper' and lv == 'L2' else None))
     ax.set_xlabel('$x_t/c$'); ax.set_title(lab, fontsize=10)
     ax.grid(alpha=0.3); ax.set_xlim(0, 0.95)
 axs[0].set_ylabel('$c_l$'); axs[0].set_ylim(-0.6, 2.1)

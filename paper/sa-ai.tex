@@ -1523,10 +1523,12 @@ quantitatively.
   $0.05\,c$ aft where the front grows slowly (the $-8^\circ$ pressure
   side is the extreme case). Small steel-blue circles: the
   independent cell-centered incompressible (OpenFOAM) implementation
-  of Fig.~\ref{fig:flatplate_batch} on the same structured L1 grid at
-  all six incidences, fronts read from its fields at the same
-  near-wall $\chi\!=\!1$ convention (the port omits the bypass of
-  Eq.~\ref{eq:fv1bypass}; values in Table~\ref{tab:data_openfoam_nlf}).
+  of Fig.~\ref{fig:flatplate_batch} on the same structured L1 and L2
+  grids (by marker size) at all six incidences, fronts read from its
+  fields at the same near-wall $\chi\!=\!1$ convention (the port
+  omits the bypass of Eq.~\ref{eq:fv1bypass}); on the finest grid
+  every front lies within $0.016\,c$ and the lift within $0.9\%$ of
+  the SA-AI values (Table~\ref{tab:data_openfoam_nlf}).
   At $-8^\circ$ the drag sits $8$--$11$ counts below
   the measured polar at matched lift, the suction (lower) surface trips at
   $0.004$--$0.011\,c$, on the references' leading-edge trip ($e^9$:
@@ -1644,8 +1646,9 @@ disturbance level rather than as a per-case tuning.
   without the laminar run the drag sits $1.6$--$2.5\times$ above the
   SA-AI polar ($+144$/$+150\%$ in the bucket at $\alpha\!=\!0^\circ$/$4^\circ$,
   $+67$/$+74\%$ at $9^\circ$/$15^\circ$). Small steel-blue circles: the
-  independent OpenFOAM implementation on the structured L1 grid, as in
-  Fig.~\ref{fig:nlfaft} (Table~\ref{tab:data_openfoam_nlf}).}
+  independent OpenFOAM implementation on the structured L1/L2 grids
+  (by size), as in Fig.~\ref{fig:nlfaft}
+  (Table~\ref{tab:data_openfoam_nlf}).}
   \label{fig:nlfpolar}
 \end{figure}
 

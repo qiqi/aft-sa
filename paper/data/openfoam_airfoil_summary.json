@@ -184,6 +184,46 @@
    "cd": 0.00826,
    "xtr_up": 0.5678,
    "xtr_lo": 0.0
+  },
+  "nlf_strL2_am4": {
+   "alpha": -4,
+   "level": "L2",
+   "cl": 0.0239,
+   "cd": 0.00693,
+   "xtr_up": 0.4588,
+   "xtr_lo": 0.1113
+  },
+  "nlf_strL2_a0": {
+   "alpha": 0,
+   "level": "L2",
+   "cl": 0.5153,
+   "cd": 0.00573,
+   "xtr_up": 0.3945,
+   "xtr_lo": 0.5677
+  },
+  "nlf_strL2_a4": {
+   "alpha": 4,
+   "level": "L2",
+   "cl": 0.9793,
+   "cd": 0.00749,
+   "xtr_up": 0.261,
+   "xtr_lo": 0.6251
+  },
+  "nlf_strL2_a9": {
+   "alpha": 9,
+   "level": "L2",
+   "cl": 1.5151,
+   "cd": 0.0127,
+   "xtr_up": 0.075,
+   "xtr_lo": 0.6439
+  },
+  "nlf_strL2_a15": {
+   "alpha": 15,
+   "level": "L2",
+   "cl": 2.0221,
+   "cd": 0.02564,
+   "xtr_up": 0.0,
+   "xtr_lo": 0.6675
   }
  }
 }

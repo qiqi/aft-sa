@@ -98,11 +98,13 @@ for _name, _ser in _WS.items():
 
 _ofp = f'{PD}/data/openfoam_airfoil_summary.json'
 assert os.path.exists(_ofp), f'missing OpenFOAM summary: {_ofp}'
-# L1 only (the staged-protocol converged family; see regen_nlf_aft_comparison)
+# L1+L2, size by level (L0 excluded; see regen_nlf_aft_comparison)
 _OF = [v for k, v in __import__('json').load(open(_ofp))['cases'].items()
-       if k.startswith('nlf_') and v['level'] == 'L1']
-ax.plot([v['cd'] for v in _OF], [v['cl'] for v in _OF], 'o', ms=4,
-        mfc='none', mec='steelblue', mew=1.1, zorder=2.5)
+       if k.startswith('nlf_') and v['level'] in ('L1', 'L2')]
+for _lv, _ms in (('L1', 3.6), ('L2', 5.4)):
+    _p = [v for v in _OF if v['level'] == _lv]
+    ax.plot([v['cd'] for v in _p], [v['cl'] for v in _p], 'o', ms=_ms,
+            mfc='none', mec='steelblue', mew=1.1, zorder=2.5)
 for mesh in ['str','cav']:
     for level in ['L0','L1','L2']:
         cl,cd=[],[]
@@ -126,7 +128,7 @@ handles=[Line2D([],[],color='k',ls='-',marker='o',mfc='none',ms=4,label='Experim
          Line2D([],[],color='C0',ls='-', marker='o',ms=4,label='SA-AI, structured (O-grid)'),
          Line2D([],[],color='C1',ls='--',marker='^',ms=4,label='SA-AI, unstructured'),
          Line2D([],[],color='0.55',ls='-.',marker='v',mfc='none',ms=5,lw=1.2,label='SA, fully turbulent (str L2)'),
-         Line2D([],[],color='steelblue',marker='o',mfc='none',ls='none',ms=4,label='OpenFOAM (str L1)'),
+         Line2D([],[],color='steelblue',marker='o',mfc='none',ls='none',ms=4,label='OpenFOAM (str L1/L2 by size)'),
          Line2D([],[],color='0.82',lw=0.55,label='workshop submittals'),
          Line2D([],[],color='mediumpurple',lw=0.9,label='workshop AFT'),
          Line2D([],[],color='seagreen',lw=1.1,label='workshop B–C'),

@@ -142,7 +142,11 @@ def main():
         name = row['case']
         af = row['airfoil']
         case = os.path.join(CASES_DIR, name)
-        up, lo = chi1_fronts(case, RE[af])
+        try:
+            up, lo = chi1_fronts(case, RE[af])
+        except (AssertionError, OSError) as e:
+            print(f'{name}: no VTK yet, SKIP ({e})')
+            continue
         rec = dict(alpha=int(float(row['alpha'])), level=f"L{row['level']}",
                    cl=round(float(row['of_cl']), 4),
                    cd=round(float(row['of_cd']), 5),
