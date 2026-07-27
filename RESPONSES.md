@@ -3330,3 +3330,18 @@ Panel (b) now truly reads fv1 strips (native_strips root override —
 it had silently read the old tree); AVL reference RETRIMMED to fv1
 lifts (CD_ref unchanged at printed digits, now measured); daggers mark
 every predecessor solution in the figures. Build clean.
+
+## 2026-07-27 00:55 UTC — Cavity-L2 hold LIFTED (user order); spheroid runs paused
+
+Per user order: re65a10 L2 killed at 690/20000 steps (3.5%, well short
+of halfway; its ladder + the a2.5 ladder are POSTPONED — resume when
+GPUs free), chains + monitors stopped cleanly. The held cavity-L2
+recomputation launched: 3 cases sequential on ALL 8 GPUs
+(scripts/run_daedalus_cavL2_fv1.sh; staged from fv1 cavity-L1 configs +
+hardlinked meshes; a4 partitioning now). When it lands: totals table
+dashes fill, daggers come OFF the daepolar/daesurf/sheet captions, the
+Sec VII disclosure closes entirely, and the finest-grid two-family
+claims become computable at the final kernel.
+COMPLETED OVERNIGHT before the pause: re65a5 FULL ladder (L2 done
+00:00) and re65a10 L0/L1 — only re65a10 L2 and the a2.5 ladder remain
+from the spheroid matrix.
