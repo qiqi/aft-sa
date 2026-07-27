@@ -56,6 +56,28 @@ FIGS = {
                   ('gam', -0.382): 135.0, ('gam', -0.040): 135.0,
                   ('gam', 0.304): 140.0, ('gam', 0.650): 92.0},
     ),
+    'fig5': dict(
+        img='p4_img1_2600x2351.png',
+        x_cal=(230.0, 0.0, 1848.0, 180.0),
+        panels=dict(
+            cft=dict(y_cal=(28.0, 10.0, 1012.0, -20.0),
+                     yspan=(28, 1040), doff=-3.0, gridstep=10.0),
+            gam=dict(y_cal=(1130.0, 80.0, 2115.0, -160.0),
+                     yspan=(1120, 2160), doff=-20.0, gridstep=40.0),
+        ),
+        stations=[-0.894, -0.722, -0.382, -0.040, 0.130, 0.650, 0.766],
+        # alpha=29.7: identity is unrecoverable in the leeward tangle;
+        # verified at full resolution up to these azimuths (fronts and
+        # windward dives all retained)
+        truncate={('cft', -0.894): 138.0, ('cft', -0.722): 115.0,
+                  ('cft', -0.382): 112.0, ('cft', -0.040): 110.0,
+                  ('cft', 0.130): 118.0, ('cft', 0.650): 95.0,
+                  ('cft', 0.766): 95.0,
+                  ('gam', -0.894): 133.0, ('gam', -0.722): 110.0,
+                  ('gam', -0.382): 105.0, ('gam', -0.040): 110.0,
+                  ('gam', 0.130): 105.0, ('gam', 0.650): 100.0,
+                  ('gam', 0.766): 100.0},
+    ),
 }
 
 
@@ -77,8 +99,10 @@ def clean_panel(dark, fig, panel):
     py0, v0, py1, v1 = ycal
     px_per = (py1-py0)/(v1-v0)
     # grid at each labeled tick value
+    step = g['panels'][panel].get('gridstep',
+                                  2.5 if panel == 'cft' else 30.0)
     vals = np.arange(v0, v1 + np.sign(v1-v0)*0.1,
-                     (v1-v0)/abs(v1-v0) * (2.5 if panel == 'cft' else 30.0))
+                     (v1-v0)/abs(v1-v0) * step)
     for v in vals:
         r = int(py0 + (v-v0)*px_per) - y0
         if -6 < r < m.shape[0]+6:
@@ -163,16 +187,20 @@ def track(thin, seeds, slope_cap=14, win0=26, hist=15):
 
 
 def seeds_at_left(thin, n, look=60):
-    """Cluster dark rows in the first `look` columns into n seed rows."""
+    """Cluster dark rows in the first `look` columns into seed rows;
+    the merge gap adapts downward until at least n clusters emerge."""
     rows = np.where(thin[:, :look].sum(1) > 2)[0]
-    groups = []
-    if len(rows):
-        start = prev = rows[0]
-        for r in rows[1:]:
-            if r-prev > 28:
-                groups.append((start+prev)/2); start = r
-            prev = r
-        groups.append((start+prev)/2)
+    for gap in (28, 18, 12, 8):
+        groups = []
+        if len(rows):
+            start = prev = rows[0]
+            for r in rows[1:]:
+                if r-prev > gap:
+                    groups.append((start+prev)/2); start = r
+                prev = r
+            groups.append((start+prev)/2)
+        if len(groups) >= n:
+            return groups
     return groups
 
 
