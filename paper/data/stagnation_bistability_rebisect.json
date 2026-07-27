@@ -1,0 +1,58 @@
+{
+ "note": "verdict-based re-bisection (cap-proof); replaces the iteration-cap bracket",
+ "L_lo": 682.8779351173536,
+ "L_hi": 688.5382427167755,
+ "Re_r_lo": 466322.2742701405,
+ "Re_r_hi": 474084.9116835052,
+ "runs": [
+  {
+   "L": 537.5,
+   "Re_r": 288906.25,
+   "verdict": "collapsed",
+   "maxchi": 0.0003848317312652573,
+   "chunks": 2
+  },
+  {
+   "L": 700.0,
+   "Re_r": 490000.0,
+   "verdict": "sustained",
+   "maxchi": 6.1511661174378895,
+   "chunks": 5
+  },
+  {
+   "L": 613.3922073192649,
+   "Re_r": 376250.00000000006,
+   "verdict": "collapsed",
+   "maxchi": 0.0005254475083458365,
+   "chunks": 2
+  },
+  {
+   "L": 655.2667740115361,
+   "Re_r": 429374.5451234855,
+   "verdict": "collapsed",
+   "maxchi": 0.0008202915890185338,
+   "chunks": 2
+  },
+  {
+   "L": 677.2641595478646,
+   "Re_r": 458686.74180807534,
+   "verdict": "collapsed",
+   "maxchi": 0.0009366696460434702,
+   "chunks": 3
+  },
+  {
+   "L": 688.5382427167755,
+   "Re_r": 474084.9116835052,
+   "verdict": "sustained",
+   "maxchi": 2.194180140841379,
+   "chunks": 6
+  },
+  {
+   "L": 682.8779351173536,
+   "Re_r": 466322.2742701405,
+   "verdict": "collapsed",
+   "maxchi": 0.0009221979292678412,
+   "chunks": 4
+  }
+ ]
+}

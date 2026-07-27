@@ -76,7 +76,7 @@ def grids(L, nx, ny, H):
 
 
 def run_case(L, nx=192, ny=140, t_end=400.0, chi_init=None, verbose=False,
-             return_field=False):
+             return_field=False, niter=60000):
     H = max(40.0, 0.12*L)
     x, y = grids(L, nx, ny, H)
     dx = x[1]-x[0]
@@ -106,7 +106,7 @@ def run_case(L, nx=192, ny=140, t_end=400.0, chi_init=None, verbose=False,
     dym = np.diff(y)                 # y_{j+1}-y_j, len ny-1
     dyc2 = np.tile(dyc, (nx, 1))
 
-    niter = 60000
+    niter = int(niter)
     check = 500
     hist = []
     CFLLOC = 0.7
@@ -170,6 +170,59 @@ def run_case(L, nx=192, ny=140, t_end=400.0, chi_init=None, verbose=False,
     return out
 
 
+def verdict_case(L, max_chunks=10, chunk_iters=60000, verbose=True):
+    """Cap-proof classification: chain continuation chunks until the state
+    either collapses (max chi < 1e-3) or demonstrably locks (max chi > 2
+    and changing < 2% per chunk). Near-critical dynamics are exponentially
+    slow, so a fixed-cap 'still alive' is NOT evidence of sustainment
+    (pass-50 finding: the original 60k-cap bracket was an artifact).
+    Returns (verdict, maxchi, chunks)."""
+    chi = None
+    prev = None
+    for k in range(max_chunks):
+        r = run_case(L, chi_init=chi, return_field=True, niter=chunk_iters)
+        m = r['maxchi']
+        if verbose:
+            print(f'  L={L:7.1f} chunk {k+1}: maxchi={m:9.4f}', flush=True)
+        if m < 1e-3:
+            return 'collapsed', m, k+1
+        chi = r['field'][2]
+        if prev is not None and m > 2.0 and abs(m-prev) < 0.02*m:
+            return 'sustained', m, k+1
+        prev = m
+    return 'unresolved', prev, max_chunks
+
+
+def rebisect(lo=537.5, hi=700.0, steps=5):
+    """Verdict-based re-bisection of the critical L (pass-50 re-emit)."""
+    results = []
+    for L in (lo, hi):
+        v, m, k = verdict_case(L)
+        print(f'endpoint L={L}: {v} maxchi={m:.4f} ({k} chunks)', flush=True)
+        results.append(dict(L=L, Re_r=L*L, verdict=v, maxchi=m, chunks=k))
+    assert results[0]['verdict'] == 'collapsed'
+    assert results[1]['verdict'] == 'sustained'
+    for _ in range(steps):
+        mid = float(np.sqrt(lo*hi))
+        v, m, k = verdict_case(mid)
+        print(f'bisect L={mid:.1f}: {v} maxchi={m:.4f} ({k} chunks)',
+              flush=True)
+        results.append(dict(L=mid, Re_r=mid*mid, verdict=v, maxchi=m,
+                            chunks=k))
+        if v == 'sustained':
+            hi = mid
+        else:
+            lo = mid            # 'unresolved' conservatively widens upward
+    out = dict(note='verdict-based re-bisection (cap-proof); replaces the '
+                    'iteration-cap bracket', L_lo=lo, L_hi=hi,
+               Re_r_lo=lo*lo, Re_r_hi=hi*hi, runs=results)
+    p = os.path.join(PAPER, 'data', 'stagnation_bistability_rebisect.json')
+    json.dump(out, open(p, 'w'), indent=1)
+    print('critical L in (%.1f, %.1f], Re_r %.3e..%.3e' %
+          (lo, hi, lo*lo, hi*hi))
+    print('wrote', p)
+
+
 def main():
     turb = None
     results = []
@@ -212,7 +265,9 @@ def main():
 
 if __name__ == '__main__':
     import sys
-    if '--field' in sys.argv:
+    if '--rebisect' in sys.argv:
+        rebisect()
+    elif '--field' in sys.argv:
         # regenerate the L=3000 wedge snapshot for the appendix figure
         # (data/stagnation_field_L3000.npz is gitignored -- rebuild it here)
         r = run_case(3000.0, return_field=True)
