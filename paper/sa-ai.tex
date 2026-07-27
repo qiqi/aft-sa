@@ -3027,6 +3027,34 @@ identically in two-dimensional flow, and measuring exactly the
 crossed shear a swept boundary layer adds---a second amplification
 channel in the same local language.
 
+One target deserves naming. The oldest manifestation of
+boundary-layer transition---the drag crisis of smooth cylinders and
+spheres~\cite{achenbach_1968,achenbach_1972}---remains outside the
+validation canon of RANS transition modeling. Its computational
+replications are recent and almost exclusively
+scale-resolving~\cite{rodriguez_2015,cheng_pullin_2017}, reproducing
+the crisis with the asymmetric single-bubble states and force jumps
+observed through the critical
+range~\cite{bearman_1969,schewe_1983}, while the founding
+detached-eddy study selected the laminar- or turbulent-separation
+branch by hand~\cite{travin_2000}, and the few correlation-based RANS
+attempts report strong sensitivity in the critical
+range~\cite{zheng_lei_2016}---where separation-induced transition
+enters those models through a reattachment correction calibrated on
+turbine cascades, and the regime itself is
+bistable~\cite{schewe_1983}. The present model meets both
+difficulties in its own terms: amplification is generated
+geometrically by the inflectional coordinate, with no separate
+separated-flow correction---the Eppler campaign of
+Secs.~\ref{sec:eppval}--\ref{sec:eppresweep} exercises exactly this
+mechanism at crisis-range Reynolds numbers---and the protocol of
+Appendix~H provides the controlled branch selection the critical
+regime demands. A $C_d(Re)$ traverse of the sphere and cylinder,
+including the shift of the critical Reynolds number with the
+freestream seed $\chi_\infty(Tu)$, is a natural next campaign, and
+would to our knowledge be the first such curve from a local
+single-equation transition closure.
+
 \begin{center}
   \begin{minipage}{0.6\textwidth}\centering
   \begin{CJK}{UTF8}{bsmi}天下萬物生於有，有生於無。\end{CJK}\\[3pt]
