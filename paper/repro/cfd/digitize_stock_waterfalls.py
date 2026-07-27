@@ -47,6 +47,14 @@ FIGS = {
                      yspan=(1360, 2680), doff=-15.0),
         ),
         stations=[-0.894, -0.722, -0.382, -0.040, 0.304, 0.650, 0.766],
+        # chain identity in the post-transition tangle is not resolvable
+        # by continuity tracking; truncate these (panel, station) chains
+        # at phi_max deg and record it (the pre-transition rise and front
+        # region are complete)
+        truncate={('cft', -0.382): 125.0, ('cft', -0.040): 125.0,
+                  ('cft', 0.304): 125.0, ('cft', 0.650): 125.0,
+                  ('gam', -0.382): 135.0, ('gam', -0.040): 135.0,
+                  ('gam', 0.304): 140.0, ('gam', 0.650): 92.0},
     ),
 }
 
@@ -202,6 +210,96 @@ def bidi_confirm(thin, fwd, n, tol=7.0):
     return confirmed
 
 
+LEGEND_ROWS_FIG4 = [988, 1065, 1145, 1222, 1302, 1377, 1454]  # station order
+
+
+def legend_templates(dark, rows, x0=2255, x1=2470, half=15):
+    """Cut one template per legend symbol: the leftmost dark cluster in
+    the legend row is the glyph (drawn on its line segment)."""
+    tmpls = []
+    for y in rows:
+        strip = dark[y-half:y+half+1, x0:x1]
+        cols = np.where(strip.sum(0) > 0)[0]
+        # symbol center: centroid of the densest 30-px window
+        dens = np.convolve(strip.sum(0), np.ones(30), 'same')
+        cx = int(np.argmax(dens))
+        t = dark[y-half:y+half+1, x0+cx-half:x0+cx+half+1].astype(float)
+        tmpls.append(t - t.mean())
+    return tmpls
+
+
+def match_symbols(dark, fig, panel, tmpls, thr=0.34, nms=13):
+    """NCC template matching inside the panel; returns per-station
+    (col,row) marker centers in panel coordinates."""
+    from scipy.signal import fftconvolve
+    thin, (y0, x0px) = clean_panel(dark, fig, panel)
+    img = thin.astype(float)
+    imgm = img - img.mean()
+    # score map per template (energy floor guards FFT ringing in empty
+    # regions -- a real symbol window has >=50 dark px)
+    e_img = fftconvolve(img**2, np.ones_like(tmpls[0]), mode='same')
+    denom = np.sqrt(np.maximum(e_img, 30.0))
+    valid = e_img > 30.0
+    scores = []
+    for t in tmpls:
+        num = fftconvolve(imgm, t[::-1, ::-1], mode='same')
+        scores.append(np.where(valid, num/(denom*np.sqrt((t**2).sum())),
+                               -1.0))
+    scores = np.stack(scores)                      # (n_tmpl, H, W)
+    # joint: peaks of the max-over-templates map, label = argmax template
+    comb = scores.max(0)
+    lab = scores.argmax(0)
+    out = [[] for _ in tmpls]
+    s = comb.copy()
+    for _ in range(3000):
+        i = np.argmax(s)
+        r, c = np.unravel_index(i, s.shape)
+        if s[r, c] < thr:
+            break
+        out[lab[r, c]].append((int(c), int(r), float(s[r, c])))
+        s[max(0, r-nms):r+nms+1, max(0, c-nms):c+nms+1] = -1
+    return out, (y0, x0px)
+
+
+def run_fig_symbols(fig):
+    """Symbol-template digitization (chain identity from glyph shape)."""
+    g = FIGS[fig]
+    dark = load_dark(g['img'])
+    tmpls = legend_templates(dark, LEGEND_ROWS_FIG4)
+    out = {'source': f"Stock (2006) {fig}, raster digitization by "
+                     "legend-template symbol matching; waterfall offsets "
+                     "removed", 'stations': {}}
+    from PIL import ImageDraw
+    im = Image.open(f"{DIG}/{g['img']}").convert('RGB')
+    dr = ImageDraw.Draw(im)
+    colors = [(255, 0, 0), (0, 150, 0), (0, 0, 255), (200, 120, 0),
+              (160, 0, 200), (0, 160, 160), (220, 0, 120)]
+    for pname, p in g['panels'].items():
+        pts_by_st, (yoff, xoff) = match_symbols(dark, fig, pname, tmpls)
+        py0, v0, py1, v1 = p['y_cal']
+        xc = g['x_cal']
+        for i, (st, pts) in enumerate(zip(g['stations'], pts_by_st)):
+            pts = sorted(pts)
+            phi = [(c+xoff-xc[0])/((xc[2]-xc[0])/(xc[3]-xc[1]))
+                   for c, r, s in pts]
+            val = [v0 + ((r+yoff)-py0)*(v1-v0)/(py1-py0) - i*p['doff']
+                   for c, r, s in pts]
+            key = f'{pname}_x{st:+.3f}'
+            out['stations'][key] = dict(
+                station=st, offset=i*p['doff'],
+                phi=[round(q, 2) for q in phi],
+                value=[round(q, 4) for q in val])
+            for c, r, s in pts:
+                dr.ellipse([c+xoff-5, r+yoff-5, c+xoff+5, r+yoff+5],
+                           outline=colors[i % 7], width=2)
+            print(f'{fig}/{pname} station {st:+.3f}: {len(pts)} markers')
+    im.thumbnail((1500, 1500))
+    im.save(f'{DIG}/check_{fig}_symbols.png')
+    path = f'{PAPER}/data/stock2006_{fig}_digitized.json'
+    json.dump(out, open(path, 'w'))
+    print('wrote', path, 'and', f'{DIG}/check_{fig}_symbols.png')
+
+
 def run_fig(fig):
     g = FIGS[fig]
     dark = load_dark(g['img'])
@@ -246,11 +344,13 @@ def run_fig(fig):
         assert len(keep) == len(g['stations']), \
             f'station count mismatch in {fig}/{pname}'
         keep.sort(key=lambda st: st[0])          # top-to-bottom = station order
-        tracks = bidi_confirm(thin, [tr for _, tr in keep],
-                              len(g['stations']))
+        tracks = [tr for _, tr in keep]
         py0, v0, py1, v1 = p['y_cal']
         xc = g['x_cal']
         for i, (st, tr) in enumerate(zip(g['stations'], tracks)):
+            pmax = g.get('truncate', {}).get((pname, st), 999.0)
+            pxdeg = (xc[2]-xc[0])/(xc[3]-xc[1])
+            tr = [(c, y) for c, y in tr if (c+xoff-xc[0])/pxdeg <= pmax]
             phi = [ (c+xoff-xc[0])/((xc[2]-xc[0])/(xc[3]-xc[1])) for c, _ in tr ]
             val = [ v0 + ((y+yoff)-py0)*(v1-v0)/(py1-py0) - i*p['doff']
                     for _, y in tr ]
@@ -269,4 +369,7 @@ def run_fig(fig):
 
 
 if __name__ == '__main__':
-    run_fig(sys.argv[1] if len(sys.argv) > 1 else 'fig4')
+    if '--symbols' in sys.argv:
+        run_fig_symbols([a for a in sys.argv[1:] if not a.startswith('-')][0] if [a for a in sys.argv[1:] if not a.startswith('-')] else 'fig4')
+    else:
+        run_fig(sys.argv[1] if len(sys.argv) > 1 else 'fig4')
