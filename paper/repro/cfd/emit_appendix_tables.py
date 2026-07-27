@@ -238,7 +238,10 @@ def eppler_bubble():
           r'Eppler 387, $Re\!=\!2\!\times\!10^5$: computed upper-surface '
           r'laminar-separation and turbulent-reattachment stations behind '
           r'Fig.~\ref{fig:eppbubble} (signed-$C_f$ zero crossings; missing '
-          r'entries transition ahead of separation and have no bubble).',
+          r'entries transition ahead of separation and have no bubble). '
+          r'The measured oil-flow reattachments (TM-4062 Table~III) at '
+          r'$\alpha\!=\!0^\circ$/$2^\circ$/$5^\circ$ are '
+          r'$0.74$/$0.67$/$0.59\,c$.',
           'tab:data_eppbubble', 'll cc cc')
 
 

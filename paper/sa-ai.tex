@@ -261,15 +261,15 @@ or established correlation rather than to the transition test cases.
 Section~\ref{sec:flatplate} fixes the remaining input---the
 freestream seed, via Mack's receptivity map---and verifies the
 resulting flat-plate onsets against the Abu-Ghannam \& Shaw
-correlation. The model is then exercised with the same solver,
-constants (collected in Appendix~E), and seeding across every case of
-three pressure-gradient regimes---both mesh families, three
-refinement levels, all incidences: the favorable rooftop on the
-NLF(1)-0416 (Sec.~\ref{sec:nlfval}); the adverse-gradient,
+correlation---the zero-pressure-gradient regime. The same solver,
+constants (collected in Appendix~E), and seeding then carry the two
+airfoil regimes, each on both mesh families at three refinement
+levels and all incidences: the favorable rooftop on the NLF(1)-0416
+(Sec.~\ref{sec:nlfval}) and the adverse-gradient,
 laminar-separation-bubble regime on the Eppler 387
-(Sec.~\ref{sec:eppval}); and the Eppler swept across the tunnel's
-Reynolds range (Sec.~\ref{sec:eppresweep}), locating the model's
-bubble-bursting boundary and the mechanism that misplaces it.
+(Sec.~\ref{sec:eppval}), with the Eppler then swept across the
+tunnel's Reynolds range (Sec.~\ref{sec:eppresweep}), locating the
+model's bubble-bursting boundary and the mechanism that misplaces it.
 Section~\ref{sec:daedalus} presents a three-dimensional deployment on
 the Daedalus human-powered-aircraft wing, and
 Sec.~\ref{sec:spheroid} closes with the inclined 6:1 prolate
@@ -1090,7 +1090,9 @@ SA production it is tied against (largest at the separation limit,
 where the tied SA production is weakest). The calibration instrument
 of Sec.~\ref{sec:calib_onset} omits the term; marching with it
 included moves the anchor and prediction stations by less than $1\%$
-(within the solve residuals).
+(within the solve residuals; on an earlier anchor variant the
+favorable-family stations' mean moved $-2.6\%$, most of it
+accumulated past the $\chi\!=\!1$ crossing).
 
 Between its $\sigma_t\!=\!0$ and $\sigma_t\!=\!1$ limits the blend is
 an interpolation, and we claim no
@@ -1670,8 +1672,8 @@ wherever its coupled solve converges, XFOIL~\cite{drela_xfoil_1989}
 (repaneled) or FlexFoil---Flexcompute's separately written Rust
 implementation of the XFOIL closure set---where it fails. All three
 implementations were run at every condition where mfoil serves as a
-reference in this paper and agree to better than $1\%$ in forces and
-$0.005\,c$ in $x_\mathrm{tr}$, with two catalogued exceptions: the
+reference in this paper and agree to better than $1\%$ in $c_l$ and
+$c_d$ and $0.005\,c$ in $x_\mathrm{tr}$, with two catalogued exceptions: the
 bistable $Re\!=\!6\!\times\!10^4$ (the footnote of
 Table~\ref{tab:eppresweep}) and the NLF $\alpha\!=\!0^\circ$
 lower-surface front, whose near-flat envelope amplifies
@@ -1704,9 +1706,9 @@ one unit on the right equals one $e$-fold on the left (vertical dotted lines:
 mfoil $x_\mathrm{tr}$); \emph{row 4} $-C_p$; \emph{row 5} $C_f$.
 Line conventions, here and in every five-row figure: upper surface
 blue, lower red; O-grid solid, cavity dashed; L0--L2 by line weight;
-the $e^9$ reference dotted; triangles on the $C_f$ row mark measured
-onsets read at the computed lift (open where extrapolated beyond the
-recorded data). Wherever the reference $C_f$ comes from an XFOIL or
+the $e^9$ reference dotted; where measured onsets are plotted,
+triangles on the $C_f$ row mark them, read at the computed lift (open
+where extrapolated beyond the recorded data). Wherever the reference $C_f$ comes from an XFOIL or
 FlexFoil surface dump (mfoil's is already freestream-normalized), it
 is converted from the dump's edge normalization to the freestream
 convention of the computed rows ($\times u_e^2$).
@@ -1920,7 +1922,7 @@ regime.
   \includegraphics[width=0.99\textwidth]{eppler_cf_lowalpha.pdf}
   \caption{Eppler 387 surface distributions at $\alpha\!\in\!\{0^\circ,5^\circ\}$,
   $Re\!=\!2\!\times\!10^5$, $M\!=\!0.1$, $\chi_\infty\!=\!8.76\!\times\!10^{-4}$
-  (the paper-wide seed). Five-row layout and line
+  (the paper-wide seed, Sec.~\ref{sec:nlfval}). Five-row layout and line
   conventions as in the text; open black circles on the $-C_p$ row:
   the tabulated experimental $C_p$ (NASA TM-4062 App.~D, column with
   the nearest angle of attack). The signed $C_f$ (row~5) shows the laminar-separation bubble
@@ -3497,7 +3499,8 @@ profile ($H\!=\!3.98$: $\theta/\delta_s\!=\!0.585$,
 $f''_{\max}\!=\!0.361$, hence
 $\omega_\mathrm{peak}\theta/U_e\!=\!0.212$, $c\!=\!0.503\,U_e$) this
 gives $a_\mathrm{eff}\!=\!0.066\!=\!0.35\,a_{\max}$: the anchor
-condition of the \emph{predecessor} kernel (a shaped, sigmoidal rate;
+condition of the \emph{predecessor} kernel (a shaped, sigmoidal rate
+with its own three-anchor constants;
 cf.\ the linear clip of Eq.~\eqref{eq:rate}) pinned its sigmoid's flank at a
 third of the ceiling. Profiles extracted from the wing's bubble
 (the \emph{predecessor-kernel} campaign's structured L2,
