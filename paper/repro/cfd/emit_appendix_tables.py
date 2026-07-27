@@ -4,6 +4,8 @@
   tab_flatplate_onsets : fig:flatplate_batch bottom panels (chi=1 and c_v1
                          crossing Re_theta vs AGS, Flow360 + OpenFOAM)
   tab_nlf_data         : figs nlfaft/nlfpolar/nlfnegalpha (CL, CD, x_tr)
+  tab_openfoam_nlf     : the steel-blue OpenFOAM L1 overlay of figs
+                         nlfaft/nlfpolar
   tab_eppler_polar     : fig:epppolar (CL, CD, all ten incidences)
   tab_eppler_bubble    : fig:eppbubble (x_LS, x_R)
   tab_eppler_resweep   : fig:eppresweepforces (cl, cd, x_sep, x_R vs Re)
@@ -146,6 +148,39 @@ def nlf():
           r'Figs.~\ref{fig:nlfaft}, \ref{fig:nlfpolar}, '
           r'and~\ref{fig:nlfnegalpha}.' + negclause,
           'tab:data_nlf', 'll cccc cccc')
+
+
+# ---------------- OpenFOAM NLF (cross-solver overlay) ------------------------
+def openfoam_nlf():
+    """The L1 rows plotted as the steel-blue circles in figs nlfaft/nlfpolar.
+
+    The overlay (and this table) is curated to L1, the converged family of
+    the staged-protocol cross-solver runs: the OF L0 lower fronts include
+    the same coarse-grid breakaway states the fig:nlfaft caption discusses
+    for Flow360. Eppler columns are held until the port carries the fv1
+    bypass (a model term there worth 5-10 counts) and its L2 lands.
+    """
+    of = json.load(open(f'{PAPER}/data/openfoam_airfoil_summary.json'))['cases']
+    rows = []
+    for a, tag in ((-8, 'am8'), (-4, 'am4'), (0, 'a0'), (4, 'a4'),
+                   (9, 'a9'), (15, 'a15')):
+        e = of[f'nlf_strL1_{tag}']
+        assert e['alpha'] == a and e['level'] == 'L1'
+        rows.append(f"${a}$ & {fmt(e['cl'])} & {fmt(e['cd'], 5)} & "
+                    f"{fmt(e['xtr_up'], 3)} & {fmt(e['xtr_lo'], 3)}")
+    write('tab_openfoam_nlf.tex',
+          r'$\alpha$ & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ &'
+          r' $x_\mathrm{tr}^\mathrm{lo}$',
+          rows,
+          r'NLF(1)-0416, $Re\!=\!4\!\times\!10^6$: the independent '
+          r'cell-centered incompressible (OpenFOAM) implementation on the '
+          "paper's structured L1 grid---the steel-blue circles of "
+          r'Figs.~\ref{fig:nlfaft} and~\ref{fig:nlfpolar}. Conventions as '
+          r'in Table~\ref{tab:data_nlf}, with the transition locations '
+          r'read from the OpenFOAM fields at the same near-wall '
+          r'$\chi\!=\!1$ crossing; the port omits the bypass of '
+          r'Eq.~\ref{eq:fv1bypass}.',
+          'tab:data_openfoam_nlf', 'c cccc')
 
 
 # ---------------- Eppler polar ----------------------------------------------
@@ -293,6 +328,7 @@ def spheroid_fronts():
 if __name__ == '__main__':
     flatplate()
     nlf()
+    openfoam_nlf()
     eppler_polar()
     eppler_bubble()
     eppler_resweep()

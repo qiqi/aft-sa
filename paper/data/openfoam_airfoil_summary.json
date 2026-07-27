@@ -1,0 +1,189 @@
+{
+ "source": "OpenFOAM v2412 SpalartAllmarasAI, structured (Construct2D) family. Forces from openfoam/sweep_results.csv (staged-protocol campaign, median final-20% forces); fronts re-extracted from the VTK fields at the paper convention (near-wall chi=1 crossing; None = laminar to the TE); Eppler bubble stations (ls, tr) from the VTK signed-Cfx zero crossings.",
+ "cases": {
+  "nlf_strL0_am8": {
+   "alpha": -8,
+   "level": "L0",
+   "cl": -0.446,
+   "cd": 0.01241,
+   "xtr_up": 0.5559,
+   "xtr_lo": 0.0074
+  },
+  "nlf_strL0_am4": {
+   "alpha": -4,
+   "level": "L0",
+   "cl": 0.0388,
+   "cd": 0.00748,
+   "xtr_up": 0.4239,
+   "xtr_lo": 0.0184
+  },
+  "nlf_strL0_a0": {
+   "alpha": 0,
+   "level": "L0",
+   "cl": 0.5473,
+   "cd": 0.00669,
+   "xtr_up": 0.3867,
+   "xtr_lo": 0.5642
+  },
+  "nlf_strL0_a4": {
+   "alpha": 4,
+   "level": "L0",
+   "cl": 1.0114,
+   "cd": 0.00955,
+   "xtr_up": 0.2712,
+   "xtr_lo": 0.6178
+  },
+  "nlf_strL0_a9": {
+   "alpha": 9,
+   "level": "L0",
+   "cl": 1.5277,
+   "cd": 0.01496,
+   "xtr_up": 0.0632,
+   "xtr_lo": 0.6179
+  },
+  "nlf_strL0_a15": {
+   "alpha": 15,
+   "level": "L0",
+   "cl": 1.721,
+   "cd": 0.05409,
+   "xtr_up": 0.0,
+   "xtr_lo": 0.6344
+  },
+  "eppler_strL0_a0": {
+   "alpha": 0,
+   "level": "L0",
+   "cl": 0.3887,
+   "cd": 0.01167,
+   "xtr_up": 0.7129,
+   "xtr_lo": null,
+   "ls": 0.4929,
+   "tr": null
+  },
+  "eppler_strL0_a2": {
+   "alpha": 2,
+   "level": "L0",
+   "cl": 0.6133,
+   "cd": 0.01406,
+   "xtr_up": 0.568,
+   "xtr_lo": null,
+   "ls": 0.447,
+   "tr": 0.7391
+  },
+  "eppler_strL0_a5": {
+   "alpha": 5,
+   "level": "L0",
+   "cl": 0.9292,
+   "cd": 0.01665,
+   "xtr_up": 0.4565,
+   "xtr_lo": null,
+   "ls": 0.3435,
+   "tr": 0.6541
+  },
+  "eppler_strL0_a7": {
+   "alpha": 7,
+   "level": "L0",
+   "cl": 1.1173,
+   "cd": 0.01817,
+   "xtr_up": 0.1388,
+   "xtr_lo": null,
+   "ls": null,
+   "tr": 0.2011
+  },
+  "nlf_strL1_am8": {
+   "alpha": -8,
+   "level": "L1",
+   "cl": -0.4785,
+   "cd": 0.00781,
+   "xtr_up": 0.5759,
+   "xtr_lo": 0.0
+  },
+  "nlf_strL1_am4": {
+   "alpha": -4,
+   "level": "L1",
+   "cl": 0.0005,
+   "cd": 0.00634,
+   "xtr_up": 0.4636,
+   "xtr_lo": 0.1174
+  },
+  "nlf_strL1_a0": {
+   "alpha": 0,
+   "level": "L1",
+   "cl": 0.5034,
+   "cd": 0.00603,
+   "xtr_up": 0.3933,
+   "xtr_lo": 0.5721
+  },
+  "nlf_strL1_a4": {
+   "alpha": 4,
+   "level": "L1",
+   "cl": 0.967,
+   "cd": 0.00778,
+   "xtr_up": 0.266,
+   "xtr_lo": 0.6163
+  },
+  "nlf_strL1_a9": {
+   "alpha": 9,
+   "level": "L1",
+   "cl": 1.5066,
+   "cd": 0.01273,
+   "xtr_up": 0.0758,
+   "xtr_lo": 0.6328
+  },
+  "nlf_strL1_a15": {
+   "alpha": 15,
+   "level": "L1",
+   "cl": 1.978,
+   "cd": 0.02754,
+   "xtr_up": 0.0,
+   "xtr_lo": 0.6655
+  },
+  "eppler_strL1_a0": {
+   "alpha": 0,
+   "level": "L1",
+   "cl": 0.3826,
+   "cd": 0.00978,
+   "xtr_up": 0.6046,
+   "xtr_lo": null,
+   "ls": 0.495,
+   "tr": null
+  },
+  "eppler_strL1_a2": {
+   "alpha": 2,
+   "level": "L1",
+   "cl": 0.6037,
+   "cd": 0.01174,
+   "xtr_up": 0.543,
+   "xtr_lo": null,
+   "ls": 0.4479,
+   "tr": 0.727
+  },
+  "eppler_strL1_a5": {
+   "alpha": 5,
+   "level": "L1",
+   "cl": 0.9256,
+   "cd": 0.01394,
+   "xtr_up": 0.468,
+   "xtr_lo": null,
+   "ls": 0.371,
+   "tr": 0.6509
+  },
+  "eppler_strL1_a7": {
+   "alpha": 7,
+   "level": "L1",
+   "cl": 1.1391,
+   "cd": 0.01323,
+   "xtr_up": 0.3287,
+   "xtr_lo": null,
+   "ls": 0.3527,
+   "tr": 0.4527
+  },
+  "nlf_strL2_am8": {
+   "alpha": -8,
+   "level": "L2",
+   "cl": -0.4606,
+   "cd": 0.00826,
+   "xtr_up": 0.5678,
+   "xtr_lo": 0.0
+  }
+ }
+}
