@@ -787,15 +787,14 @@ its threshold a function of the \emph{same} product $\hat\Omega \hat I$ (the for
 \eqref{eq:reomc}, fixed below). The width is not a fitted quantity. We
 set $w\!=\!0.35$---the gate runs from $12\%$ to $88\%$ open as
 $Re_\Omega$ crosses from $0.65$ to $1.35$ of its threshold---and the
-model barely notices: along a growing layer the vorticity Reynolds
-number sweeps through the ramp quickly ($Re_\Omega$ grows like
-$Re_\theta^2$ at fixed shape), so the marched $N\!=\!1$ stations of the
-family (Sec.~\ref{sec:calib_onset}) move by under $1\%$ when $w$ is
-halved and under $2.5\%$ when it is doubled, shifts the anchor absorbs.
-A smooth ramp of finite width is still the right form: linear-stability
-onset is itself not sharp (the graze scatter below is $6$--$14\%$), and a
-near-discontinuous source is hostile to the coupled solver's meshes and
-Newton convergence. Rate and onset reinforce: near the
+model barely notices: $Re_\Omega$ sweeps through the ramp quickly
+along a growing layer (it grows like $Re_\theta^2$ at fixed shape),
+and the marched $N\!=\!1$ stations of the family
+(Sec.~\ref{sec:calib_onset}) move by under $1\%$ when $w$ is halved
+and under $2.5\%$ when it is doubled---shifts the anchor absorbs. The
+finite width itself is right: stability onset is not sharp (the graze
+scatter below is $6$--$14\%$), and a near-discontinuous source is
+hostile to the coupled solver's meshes and Newton convergence. Rate and onset reinforce: near the
 parabola a low rate \emph{and} a high threshold give the late, slow transition
 of a zero-pressure-gradient layer; inflectional profiles get a high rate
 \emph{and} a low threshold, hence early, fast transition. The complete source
@@ -1078,29 +1077,20 @@ $\sigma_t\!\to\!1$ recovers the unmodified SA
 equation and its fully turbulent calibration.
 
 The floor's inertness deserves its numbers, since it is the tie's one
-back-reaction on the laminar branch. $D_\mathrm{SA}$ is quadratic in
-$\tilde\nu$ and
-carries $f_w\!\approx\!0.7\,r$ with $r\!\ll\!1$ in the amplifying band,
-so its ratio to the amplification production grows like $\chi^2$ along
-the envelope. Measured at the $\tilde\nu$ peak of the frozen-profile
-marches of this section, across wedges from $\beta\!=\!+0.10$ to the
-separation limit and seeds $N_\mathrm{crit}\!=\!7$--$11$
-(\texttt{repro/analytic/floor\_backreaction\_table.py}): the ratio
-is $3\!\times\!10^{-6}$--$1.2\!\times\!10^{-5}$ at $\chi\!=\!0.1$,
-$(2$--$8)\!\times\!10^{-4}$ at the $\chi\!=\!1$ crossing---below
-$10^{-3}$ for every wedge and seed, growing toward lower seeds, whose
-crossings sit at smaller $Re_\Omega$---and
-$(0.9$--$2.3)\!\times\!10^{-2}$ at $\chi\!=\!c_{v1}$, where it is
-also at most $1.4\%$ of the $\sigma_P$-weighted SA production it is
-tied against (largest at the separation limit, where the tied SA
-production is weakest). The
-calibration instrument of
-Sec.~\ref{sec:calib_onset} omits the term; marching with it included
-moves the anchor and prediction stations by less than $1\%$
-(within the solve residuals) and the favorable-family stations' mean by
-$-2.6\%$ (measured on an earlier anchor variant; the ratios above
-bound the effect at the current canon), most of it accumulated past the $\chi\!=\!1$ crossing,
-where the coupled model starts handing production over to SA.
+back-reaction on the laminar branch. Measured at the $\tilde\nu$ peak
+of the frozen-profile marches of this section, across wedges from
+$\beta\!=\!+0.10$ to the separation limit and seeds
+$N_\mathrm{crit}\!=\!7$--$11$
+(\texttt{repro/analytic/floor\_backreaction\_table.py}), its ratio to
+the amplification production---quadratic in $\chi$ along the
+envelope---stays below $10^{-3}$ for every wedge and seed up to the
+$\chi\!=\!1$ crossing (largest at the lowest seeds), and at
+$\chi\!=\!c_{v1}$ is still at most $1.4\%$ of the $\sigma_P$-weighted
+SA production it is tied against (largest at the separation limit,
+where the tied SA production is weakest). The calibration instrument
+of Sec.~\ref{sec:calib_onset} omits the term; marching with it
+included moves the anchor and prediction stations by less than $1\%$
+(within the solve residuals).
 
 Between its $\sigma_t\!=\!0$ and $\sigma_t\!=\!1$ limits the blend is
 an interpolation, and we claim no
@@ -1273,11 +1263,8 @@ any consistent discretization and the source terms are pointwise, so
 the linear profile is an exact solution of the \emph{discretized} gated
 equation too, and SA-AI's inner-layer solution coincides with standard
 SA's to round-off independent of the numerical scheme and resolution
-(verified on the constant-stress layer with two unrelated
-discretizations---a second-order finite-difference solve on grids with
-first-cell $y^+$ from $0.25$ to $8$, and a fourth-order collocation
-BVP solve: both return the linear profile and identical log-law
-intercepts for both models, deviations below $10^{-10}$).
+(verified to below $10^{-10}$ in profile and log-law intercept with
+two unrelated discretizations of the constant-stress layer).
 
 The assembled equation, its closure functions, and the complete
 constant set are collected for reference in Appendix~E.
