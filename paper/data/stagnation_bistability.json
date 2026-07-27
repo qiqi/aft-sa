@@ -1,0 +1,96 @@
+{
+ "model": "standard SA, no ft2, 0.3*Omega Stilde floor",
+ "seed": "chi_freestream = 0 exactly; chi=0 is an exact fixed point at every L; turbulent init chi=50",
+ "parameter": "L = x_max/delta = sqrt(Re_r), delta=sqrt(nu/k)",
+ "results": [
+  {
+   "L": 30.0,
+   "sustained": false,
+   "maxchi": 0.0007020708517610034,
+   "iters": 12500,
+   "Re_r": 900
+  },
+  {
+   "L": 100.0,
+   "sustained": false,
+   "maxchi": 0.0007779917373482582,
+   "iters": 14000,
+   "Re_r": 10000
+  },
+  {
+   "L": 300.0,
+   "sustained": false,
+   "maxchi": 0.0005820979344717544,
+   "iters": 40500,
+   "Re_r": 90000
+  },
+  {
+   "L": 405.36004644211033,
+   "sustained": false,
+   "maxchi": 0.0005266204433927618,
+   "iters": 52000,
+   "Re_r": 164316.76725154984
+  },
+  {
+   "L": 471.19512025029036,
+   "sustained": false,
+   "maxchi": 0.000568963000262517,
+   "iters": 57500,
+   "Re_r": 222024.84134768558
+  },
+  {
+   "L": 508.0198779058191,
+   "sustained": false,
+   "maxchi": 0.007084241211180466,
+   "iters": 59999,
+   "chi_wallmax": 0.006333736065427964,
+   "Re_r": 258084.19634744336
+  },
+  {
+   "L": 527.4978168580772,
+   "sustained": false,
+   "maxchi": 0.6591907942953096,
+   "iters": 59999,
+   "chi_wallmax": 0.5936955229698812,
+   "Re_r": 278253.9467900375
+  },
+  {
+   "L": 537.515072651826,
+   "sustained": true,
+   "maxchi": 1.6265694064796825,
+   "iters": 59999,
+   "chi_wallmax": 1.2206886496012384,
+   "Re_r": 288922.4533278978
+  },
+  {
+   "L": 547.7225575051662,
+   "sustained": true,
+   "maxchi": 2.493395693383026,
+   "iters": 59999,
+   "chi_wallmax": 1.552022578983313,
+   "Re_r": 300000.00000000006
+  },
+  {
+   "L": 1000.0,
+   "sustained": true,
+   "maxchi": 24.1297169166401,
+   "iters": 20000,
+   "chi_wallmax": 12.67359081133739,
+   "Re_r": 1000000
+  },
+  {
+   "L": 3000.0,
+   "sustained": true,
+   "maxchi": 75.66732007019051,
+   "iters": 20000,
+   "chi_wallmax": 74.40770089294018,
+   "Re_r": 9000000
+  }
+ ],
+ "critical": {
+  "L_lo": 527.4978168580772,
+  "L_hi": 537.515072651826,
+  "Re_r_lo": 278253.9467900375,
+  "Re_r_hi": 288922.4533278978
+ }
+}

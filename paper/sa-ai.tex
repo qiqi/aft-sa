@@ -1098,6 +1098,13 @@ macroscopic aerodynamics that follow from it. Because the actively
 transitional region is often short on the scale of the geometry, the
 integrated quantities are often insensitive to how the interpolation crosses
 it, and $\sigma_t$ is asked only to cross smoothly and monotonically.
+One consequence of handing everything above $\chi\!\sim\!1$ to
+standard SA deserves flagging here: at a leading edge, standard SA
+itself admits a spurious self-sustained turbulent state at high
+Reynolds number, so the coupled model is bistable there and the
+solution an implementation finds depends on how it is initialized;
+Appendix~H quantifies the branch and states the convergence protocol
+used throughout this paper.
 The exception is a flow whose transitional zone itself occupies a
 macroscopic extent---a long laminar separation bubble may close or
 burst depending on how fast the handover completes;
@@ -2189,7 +2196,8 @@ and the stretching handover zone of Sec.~\ref{sec:epphandover}, which
 takes over as the Reynolds number falls: at this Reynolds number the
 model's extended laminar separation fails to close at all.
 The remainder of this section takes this failure apart: the computed state
-is unique---every initialization converges to it, on relaxation times
+is unique---every initialization admitted by the convergence protocol
+of Appendix~H converges to it, on relaxation times
 an order of magnitude longer than anywhere else in the sweep---and
 what makes that unique state the burst one is the length of the
 model's transition zone. The measured pressures confirm
@@ -2856,7 +2864,7 @@ the leeward half and the windward laminar run shortens; the
 level-to-level scatter of Table~\ref{tab:sphtotals} at this incidence
 reflects the vortex-dominated flow.
 Figure~\ref{fig:spheroid3d} shows the $\alpha\!=\!10^\circ$ skin
-friction on the body, and Appendix~H presents both solutions at the
+friction on the body, and Appendix~I presents both solutions at the
 DFVLR measurement stations in the waterfall presentation of the
 measured campaign (Stock's Figs.~2--5).
 
@@ -2996,7 +3004,15 @@ $\sigma_t$---a spot-growth or intermittency treatment replacing the
 memoryless fixed-$\chi$-width interpolation, whose narrowing alone only
 trades the bias for a relaxation oscillation---would move
 the bursting boundary toward the measured one
-(Sec.~\ref{sec:epphandover}). A calibration against
+(Sec.~\ref{sec:epphandover}). A third is the bistability of
+Appendix~H: it belongs to standard SA, not to the amplification
+terms, so removing it---rather than excluding it by protocol---means
+modifying SA's behavior even at high $\chi$; an acceleration-quench
+(relaminarization) gate on the production, driven by the parameter
+$K\!=\!(\nu/U_e^2)\,dU_e/ds$ that diverges toward an attachment
+point, is the candidate, since equilibrium turbulent layers sit two
+orders of magnitude below the quench threshold and would be
+untouched. A calibration against
 linear-stability and $e^N$ databases beyond the anchors used here---and a
 direct comparison with the algebraic SA-BCM model on community-standard
 benchmarks---would establish accuracy beyond the present demonstration.
@@ -3042,8 +3058,10 @@ Appendix~C for the Eppler Reynolds sweep (Sec.~\ref{sec:eppresweep}),
 and Appendix~D for the Daedalus wing (Sec.~\ref{sec:daedalus}).
 Appendix~E assembles the model equations and constants, Appendix~F
 tabulates the raw data behind the one-dimensional comparison figures,
-Appendix~G carries the cross-solver replication detail, and
-Appendix~H the spheroid station profiles.
+Appendix~G carries the cross-solver replication detail,
+Appendix~H the attachment-anchored turbulent branch and the
+convergence protocol, and
+Appendix~I the spheroid station profiles.
 
 Figures~\ref{fig:nlfmesh_str} and~\ref{fig:nlfmesh_cav} show the
 leading- and trailing-edge close-ups of the structured O-grid and
@@ -3888,7 +3906,137 @@ tabulated in Table~\ref{tab:data_flatplate}.
 \clearpage
 \renewcommand{\thefigure}{H\arabic{figure}}
 \setcounter{figure}{0}
-\section*{Appendix H: spheroid station profiles}
+\section*{Appendix H: the attachment-anchored turbulent branch, and
+the convergence protocol it dictates}
+\label{app:bistability}
+
+Every laminar solution in this paper coexists with a second, spurious
+fixed point of the discretized equations: a turbulent wedge anchored
+at the leading-edge attachment point, self-sustained at high Reynolds
+number by \emph{standard} SA production with no help from the
+freestream, the transient, or the amplification kernel. This appendix
+demonstrates the branch on a model problem, explains why it exists
+and why it is unphysical, and states the convergence protocol used
+throughout this paper to exclude it---which a reader implementing the
+model in any solver will need in some form, because the printed
+transport equation alone does not determine which fixed point an
+initialization finds.
+
+\paragraph{The model problem.} Plane stagnation flow $U_e\!=\!k s$ is
+the prescribed pressure distribution of a leading edge of radius $r$
+at strain rate $k\!\approx\!U_\infty/r$. The velocity field is the
+exact Hiemenz similarity solution, frozen; only the SA transport
+equation is solved on it---standard SA (no $f_{t2}$, the solver's
+$0.3\Omega$ floor on $\tilde S$; none of this paper's amplification
+terms)---by a plain Cartesian finite-difference
+solver (\texttt{repro/analytic/stagnation\_bistability.py}).
+Nondimensionalized on the stagnation-layer thickness
+$\delta\!=\!\sqrt{\nu/k}$ and time $1/k$, the steady equation for
+$\chi$ is parameter-free except for the domain half-extent: with the
+nose extent $x_{\max}\!\approx\!r$,
+$L\!\equiv\!x_{\max}/\delta\!=\!\sqrt{Re_r}$,
+$Re_r\!=\!U_\infty r/\nu$. The freestream boundary value is
+\emph{exactly zero}: $\chi\!=\!0$ everywhere is then an exact fixed
+point at every $L$ (production is multiplicative), and the experiment
+initializes a saturated layer ($\chi\!=\!50$) and asks whether it
+decays or survives.
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=\textwidth]{stagnation_bistability.pdf}
+  \caption{Standard SA on the frozen Hiemenz field with
+  $\chi_\infty\!=\!0$ exactly. Left: the steady state reached from a
+  saturated initialization---collapse to the laminar solution for
+  $L\!\lesssim\!530$, a self-sustained turbulent wedge above (gray
+  band: the bisected critical interval,
+  $Re_r\!=\!2.8$--$2.9\times10^5$), with the sustained level growing
+  as $\max\chi\!\approx\!0.025\,L$. Right: the sustained wedge at
+  $L\!=\!3000$ ($Re_r\!=\!9\times10^6$), $\max\chi\!=\!76$; line
+  contours of $\log_{10}\chi$, dashed below $\chi\!=\!1$, solid at
+  $1$, $c_{v1}$, and $30$. Nothing enters from the freestream; the
+  wedge root re-seeds itself.}
+  \label{fig:stagbistab}
+\end{figure}
+
+\paragraph{Result.} Figure~\ref{fig:stagbistab}: below a critical
+extent the wedge washes out; above it ($Re_r$ between $2.78$ and
+$2.89\times10^5$) it persists, machine-steady, with $\max\chi$
+growing roughly linearly in $L$---$\chi\!\approx\!24$ at
+$Re_r\!=\!10^6$, $76$ at $9\times10^6$---from an exactly zero seed.
+The mechanics are those of a pulled reaction--diffusion front. The
+$\tilde\nu$ equation is FKPP-like: linear reaction
+$r\!=\!c_{b1}\tilde S$ plus diffusion
+$D\!=\!(\nu+\tilde\nu)/\sigma$, giving a front that propagates into
+the laminar state at $c^*\!=\!2\sqrt{Dr}$; in an equilibrium
+turbulent layer ($\tilde\nu\!=\!\kappa u_\tau y$,
+$\tilde S\!=\!u_\tau/\kappa y$) the $y$-dependence cancels and
+$c^*\!=\!2\sqrt{c_{b1}/\sigma}\,u_\tau\!\approx\!0.90\,u_\tau$---finite
+and physically plausible. The trap is a geometric race: on the
+Hiemenz wall $u_\tau\!\propto\!\sqrt{s}$ while the opposing advection
+grows like $s$, so close enough to the attachment point any finite
+front speed wins and the front holds station; the wedge in
+Fig.~\ref{fig:stagbistab} anchors at exactly such a standoff. The
+same race read at wing scale banks
+$N\!\sim\!c_{b1}\sqrt{Re_r}$ $e$-folds of $\tilde\nu$ growth along
+near-wall streamlines through the nose---far more than the
+$\ln(1/\chi_\infty)\!\approx\!7$--$12$ that natural transition needs.
+
+\paragraph{Why it is spurious.} Physically a two-dimensional
+stagnation zone relaminarizes: the acceleration parameter
+$K\!=\!(\nu/U_e^2)\,dU_e/ds\!=\!\nu/(k s^2)$ diverges toward the
+attachment point and exceeds the relaminarization threshold
+($K_c\!\sim\!3\times10^{-6}$~\cite{narasimha_sreenivasan_1979})
+throughout a quench zone one to a few
+leading-edge radii wide at this paper's conditions, and outside that
+zone a real turbulent front spreading at $O(u_\tau)$ loses to
+$O(U_\infty)$ advection. (The genuinely bistable configuration is
+the \emph{swept} attachment line, where flow along the line sustains
+contamination---a three-dimensional phenomenon of which the SA trap
+is a zero-sweep impersonation.) SA's production carries no
+acceleration information, so the model happily sustains what the
+physics quenches. Two corroborations at wing scale: restarting this
+paper's structured-L0 NLF $\alpha\!=\!9^\circ$ case from its
+converged flow with $\tilde\nu$ reset to the seed moves both fronts
+from the trapped values to the fine-grid locations on the same mesh
+(Fig.~\ref{fig:nlfaft}); and the independent OpenFOAM implementation
+of Appendix~G, started impulsively, first landed on the trapped
+branch (transition at $0.05\,c$ with plausible-looking polars)
+before adopting the staged start below. The diagnostic is direct:
+under an established wedge the amplification rate of
+Sec.~\ref{sec:calib} is ${\approx}\,0$ at the front---a trapped
+state, not modeled transition.
+
+\paragraph{The protocol.} Because the branch belongs to standard SA
+at high $\chi$, \emph{any} transition model that leaves SA's
+fully turbulent behavior unmodified is bistable at high Reynolds
+number, and every result in this paper was therefore converged with
+the laminar dynamics deliberately slowed: the $\tilde\nu$-equation
+residual is scaled by $f^{\,1-g}$, where $g$ rises smoothly from $0$
+(laminar) to $1$ (turbulent) with $\chi$ and $f\!=\!10^{-2}$. The
+scaling multiplies the residual, so every converged solution is a
+fixed point of the unmodified equations; it lets the pressure field
+and the slow laminar amplification equilibrate before the fast
+turbulent branch can act on the startup transient---a branch
+selector, not an accelerator. Because the freestream boundary
+condition flows through the same scaling, the freestream viscosity
+ratio supplied to the solver is $\chi_\infty f$; the seeds quoted
+throughout this paper are the physical $\chi_\infty$, recovered at
+the boundary-layer edge (Sec.~\ref{sec:flatplate}). Equivalent
+protocols exist for solvers without residual scaling: advancing the
+turbulence equation at a reduced pseudo-time rate (CFL) relative to
+the mean flow during initial convergence, or---the route the
+OpenFOAM replication of Appendix~G takes---converging the flow,
+resetting $\tilde\nu$ to the seed, and continuing to convergence,
+at the cost of one extra partial solve. Under any of these the
+uniqueness statements of Sec.~\ref{sec:eppresweep} are to be read as
+uniqueness among the states these protocols admit; the trapped
+branch is excluded by construction, as Fig.~\ref{fig:stagbistab}
+says it must be.
+
+\clearpage
+\renewcommand{\thefigure}{I\arabic{figure}}
+\setcounter{figure}{0}
+\section*{Appendix I: spheroid station profiles}
 
 Figures~\ref{fig:sphstat_cp10}--\ref{fig:sphstat_cfg297} present the
 computed spheroid solutions at the DFVLR measurement stations, in the
