@@ -4,8 +4,8 @@ Left: Daedalus wing polar, both mesh families at L1/L2 (colour = family,
 line weight = level, house conventions) against the AVL+XFOIL strip-theory
 reference. Right: sectional lift on the finest available grids at the three
 incidences against the AVL distribution. Reads the CANON case tree at
-sa-ai/daedalus (final whole-equation kernel, 2026-07 recomputation) and the
-AVL work dir built by avl_compare.py. Cases whose runs have not completed
+/local_data/qiqi/sa-ai/daedalus_fv1 (final-kernel fv1 recomputation, both
+families) and the AVL work dir built by avl_compare.py. Cases whose runs have not completed
 (no complete 20k-step force history) are skipped, so the figure fills in automatically
 as the campaign finishes."""
 import os
@@ -15,12 +15,11 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-# all families/levels are the final-kernel (fv1) recomputation EXCEPT the
-# held cavity-L2 (old canon, disclosed)
+# all families/levels are the final-kernel (fv1) recomputation
+# (cavity-L2 landed 2026-07-27)
 D_FV1 = '/local_data/qiqi/sa-ai/daedalus_fv1'
-D_OLD = '/home/qiqi/flexcompute/sa-ai/daedalus'
 def _root(case):
-    return D_OLD if ('cavity_L2' in case) else D_FV1
+    return D_FV1
 sys.path.insert(0, '/home/qiqi/flexcompute/sa-ai/daedalus')
 import sectional_compare as SC
 from polar_compare import run_avl  # noqa: E402

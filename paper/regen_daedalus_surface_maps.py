@@ -21,9 +21,9 @@ import matplotlib.tri as mtri
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy
 
-# structured family = final-kernel (fv1) recomputation; cavity-L2 held
+# both families = final-kernel (fv1) recomputation (cavity-L2 landed 2026-07-27)
 D_STR = '/local_data/qiqi/sa-ai/daedalus_fv1'
-D_CAV = '/home/qiqi/flexcompute/sa-ai/daedalus'
+D_CAV = '/local_data/qiqi/sa-ai/daedalus_fv1'
 def _root(case):
     return D_STR if 'ogrid' in case else D_CAV
 sys.path.insert(0, '/home/qiqi/flexcompute/sa-ai/daedalus')

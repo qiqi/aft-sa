@@ -8,7 +8,7 @@ strips' XFOIL profile drag stays flat (the CD-vs-CL slope discrepancy of
 fig:daepolar).
 
 Columns: alpha = 4, 5, 6 deg. Curves: structured O-grid L2 (solid),
-unstructured L2 where complete (dashed); upper surface blue, lower red;
+unstructured L2 (dashed); upper surface blue, lower red;
 dotted = the FlexFoil e^N strip at the nearest station (N envelope
 truncated at its transition; Cp from Karman-Tsien-corrected u_e).
 Rows 1-2 probe the volume along in-plane surface normals to 0.01 c_loc
@@ -29,11 +29,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-# per-family roots: the structured family is the final-kernel (fv1)
-# recomputation; the cavity-L2 recomputation is HELD, so its solutions
-# remain the bypass-inactive model (disclosed in Sec. VII)
+# per-family roots: both families are the final-kernel (fv1) recomputation
+# (cavity-L2 landed 2026-07-27)
 D_STR = '/local_data/qiqi/sa-ai/daedalus_fv1'
-D_CAV = '/home/qiqi/flexcompute/sa-ai/daedalus'
+D_CAV = '/local_data/qiqi/sa-ai/daedalus_fv1'
 PD = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 sys.path.insert(0, os.path.join(PD, 'repro'))
 sys.path.insert(0, '/home/qiqi/flexcompute/sa-ai/daedalus')  # geometry modules
@@ -205,7 +204,10 @@ def strip_ref(a, eta_q):
 
 
 def make_sheet(eta_q):
-    fig, axs = plt.subplots(5, len(ALPHAS), figsize=(5.76 * len(ALPHAS), 13),
+    # canvas matches the 2D chi sheets (11.5 x 12.5 in = 828 x 900 pt):
+    # both are included at width=0.99\textwidth, so equal canvas aspect
+    # gives equal on-page height (user directive 2026-07-27)
+    fig, axs = plt.subplots(5, len(ALPHAS), figsize=(11.5, 12.5),
                             sharex=True)
     got_cav = False
     for col, a in enumerate(ALPHAS):
@@ -237,7 +239,8 @@ def make_sheet(eta_q):
             ax_cp.plot(ref['xc'], -ref['cp'], ':', color='0.35', lw=1.4)
             ax_cf.plot(ref['xc'], ref['cf'], ':', color='0.35', lw=1.4)
         ax_reo.set_ylim(1e2, 1e4); ax_reo.grid(alpha=0.3, which='both')
-        ax_reo.set_title(rf'$\alpha={a}^\circ$', fontsize=10)
+        # no in-figure titles (removed paper-wide by user order); the
+        # caption carries the column assignment (alpha = 4, 5, 6 deg)
         ax_P.set_ylim(1e-3, 1.0); ax_P.grid(alpha=0.3, which='both')
         ax_n.set_ylim(1e-6, 3e2); ax_n.grid(alpha=0.3)
         ax_n.axhline(CV1, color='gray', ls=':', lw=0.6, alpha=0.6)
@@ -260,15 +263,13 @@ def make_sheet(eta_q):
                Line2D([], [], color='0.3', ls='-', lw=1.5, label='O-grid L2')]
     if got_cav:
         handles.append(Line2D([], [], color='0.3', ls='--', lw=1.5,
-                              label='unstructured L2 (where complete)'))
+                              label='unstructured L2'))
     handles.append(Line2D([], [], color='0.5', ls='-.', lw=0.8,
                           label=r'onset threshold $Re_\Omega^c(\hat\Omega\hat I)$'))
     handles.append(Line2D([], [], color='0.35', ls=':', lw=1.4,
                           label=r'FlexFoil strip ($N$, $C_p$, $C_f$)'))
     axs[0, 0].legend(handles=handles, fontsize=7.5, loc='lower right')
-    fig.suptitle(rf'Daedalus wing section $\eta={eta_q:.2f}$ '
-                 rf'($Re_c={5e5*chord(eta_q)/chord(0):.2g}$)', fontsize=12)
-    fig.tight_layout(rect=[0, 0, 1, 0.985])
+    fig.tight_layout()
     out = f"{PD}/figs/daedalus_section_eta{int(round(eta_q*100)):02d}.pdf"
     fig.savefig(out)
     plt.close(fig)
@@ -279,16 +280,27 @@ CACHE = {}
 
 
 def probe_cached(case, surfname, etas, mu):
-    surf = load(f'{root}/{case}/{surfname}')
-    spts = vtk_to_numpy(surf.GetPoints().GetData())
-    vol = load(f'{root}/{case}/volume.pvtu')
+    # probe results persist next to the case (layout-independent, so the
+    # sheets can be re-styled without re-reading the L2 volumes)
+    cfn = f'{root}/{case}/section_sheet_probes.pkl'
     out = {}
-    for eta_q in etas:
-        contours, c_loc, x_le, mst = section_contour(spts, eta_q)
-        pr = probe_station(vol, case, contours, c_loc, x_le, mu)
-        sr = surface_rows(case, surfname, contours, c_loc, x_le, mst, mu)
-        out[eta_q] = (pr, sr)
-    del vol
+    if os.path.exists(cfn):
+        with open(cfn, 'rb') as f:
+            out = pickle.load(f)
+    need = [e for e in etas if e not in out]
+    if need:
+        surf = load(f'{root}/{case}/{surfname}')
+        spts = vtk_to_numpy(surf.GetPoints().GetData())
+        vol = load(f'{root}/{case}/volume.pvtu')
+        for eta_q in need:
+            contours, c_loc, x_le, mst = section_contour(spts, eta_q)
+            pr = probe_station(vol, case, contours, c_loc, x_le, mu)
+            sr = surface_rows(case, surfname, contours, c_loc, x_le, mst, mu)
+            out[eta_q] = (pr, sr)
+        del vol
+        with open(cfn + '.tmp', 'wb') as f:
+            pickle.dump(out, f)
+        os.replace(cfn + '.tmp', cfn)
     return out
 
 

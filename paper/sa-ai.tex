@@ -1182,11 +1182,9 @@ finest-grid results by more than the cold-budget batteries bounded:
 up to $8$ counts on the NLF at high incidence---$27$ on its coarsest
 grids---and $-10$ counts at the Eppler benchmark's
 $\alpha\!=\!5^\circ$, all toward the measurement); the
-three-dimensional deployment of Sec.~\ref{sec:daedalus} is now also
-recomputed---its tabulated totals and every structured-family figure
-and number are the final kernel---except the cavity-L2 solutions,
-whose recomputation is held; where those appear in the section
-figures they are the bypass-inactive model, and are so marked.
+three-dimensional deployment of Sec.~\ref{sec:daedalus} is likewise
+recomputed in full: its tabulated totals and every figure and number
+are the final kernel.
 
 \subsection{Preservation of the Spalart--Allmaras calibration}\label{sec:calib_diff}
 
@@ -2486,9 +2484,9 @@ decays or survives.
   \caption{Standard SA on the frozen Hiemenz field with
   $\chi_\infty\!=\!0$ exactly. Left: the steady state reached from a
   saturated initialization---collapse to the laminar solution for
-  $L\!\lesssim\!530$, a self-sustained turbulent wedge above (gray
+  $L\!\lesssim\!685$, a self-sustained turbulent wedge above (gray
   band: the bisected critical interval,
-  $Re_r\!=\!2.8$--$2.9\times10^5$), with the sustained level
+  $Re_r\!=\!4.66$--$4.74\times10^5$), with the sustained level
   approaching $\max\chi\!\approx\!0.025\,L$ over the upper
   decade. Right: the sustained wedge at
   $L\!=\!3000$ ($Re_r\!=\!9\times10^6$), $\max\chi\!=\!76$; line
@@ -2499,8 +2497,10 @@ decays or survives.
 \end{figure}
 
 \paragraph{Result.} Figure~\ref{fig:stagbistab}: below a critical
-extent the wedge washes out; above it ($Re_r$ between $2.78$ and
-$2.89\times10^5$) it persists, steady to the solver's tolerance, with $\max\chi$
+extent the wedge washes out; above it ($Re_r$ between $4.66$ and
+$4.74\times10^5$, each near-critical case classified by chained
+continuation until it either collapses or demonstrably locks) it
+persists, steady to the solver's tolerance, with $\max\chi$
 growing roughly linearly in $L$---$\chi\!\approx\!24$ at
 $Re_r\!=\!10^6$, $76$ at $9\times10^6$---from an exactly zero seed.
 The mechanics are those of a pulled reaction--diffusion front. The
@@ -2584,12 +2584,8 @@ says it must be.
 
 \section{Three-dimensional deployment: the Daedalus wing}\label{sec:daedalus}
 
-(This section's campaign is recomputed at the final kernel of
-\S\ref{sec:fv1bypass}---all tabulated totals and the structured
-family throughout---except the cavity-L2 solutions, whose
-recomputation is held: the dashed cavity-L2 rows of
-Table~\ref{tab:daetotals}, and the cavity-L2 curves of the section
-figures, which remain from the bypass-inactive model.)
+(This section's campaign---both mesh families, all levels---is
+recomputed at the final kernel of \S\ref{sec:fv1bypass}.)
 
 The model's first three-dimensional application is the wing of the
 Daedalus human-powered aircraft: half-span $17.07\,$m, root chord
@@ -2617,14 +2613,9 @@ is the same $e^N$ framework
 used throughout---a vortex-lattice model (AVL~\cite{drela_youngren_avl}) with strip-wise XFOIL
 section polars at matched
 local $c_l$ and $N_\mathrm{crit}$, and FlexFoil amplification envelopes at
-section conditions (Sec.~\ref{sec:eppresweep}). Fifteen final-kernel RANS
-solutions underlie the comparison---both families at L0 and L1 at all
-three incidences, and the structured family at L2 at all three; the
-unstructured-L2 recomputation is held, so where its predecessor
-(bypass-inactive) solutions appear---the $4^\circ$/$5^\circ$ points of
-the wing polar's unstructured-L2 line, the $4^\circ$ rows of the
-surface maps and sectional panel, and the section sheets' dashed
-curves---they are marked as such in the captions.
+section conditions (Sec.~\ref{sec:eppresweep}). Eighteen final-kernel RANS
+solutions underlie the comparison: both families at L0, L1, and L2 at
+all three incidences.
 
 \begin{table}[tp]
   \centering
@@ -2676,20 +2667,16 @@ curves---they are marked as such in the captions.
   \centering
   \includegraphics[width=0.99\textwidth]{daedalus_polar_sectional.pdf}
   \caption{The macroscopic comparison. \textbf{(a)} Wing polar: both
-  mesh families at L1 and, where completed, L2 (color = family, line
+  mesh families at L1 and L2 (color = family, line
   weight = level) against the AVL$+$XFOIL (vortex-lattice $+$ section
   polars) reference at matched $N_\mathrm{crit}$, trimmed to the RANS
   lift at each incidence (matched-lift reference). \textbf{(b)} Sectional lift on the finest
-  grid with sectional output available per family and incidence
-  against the AVL
+  grid per family and incidence against the AVL
   distribution (dotted), with sectional drag on the right axis (thin
   lines; the dotted reference is AVL induced drag, Trefftz-rescaled,
   plus the FlexFoil section profile drag): the loading agrees inboard
   to $\sim\!1\%$; the dip--recovery structure at the taper break
-  ($\eta\!=\!0.88$) is mesh-family independent. $\dagger$ The
-  unstructured-L2 entries ($4^\circ$/$5^\circ$ polar points; the
-  $4^\circ$ sectional row) are the held bypass-inactive
-  predecessor solutions.}
+  ($\eta\!=\!0.88$) is mesh-family independent.}
   \label{fig:daepolar}
 \end{figure}
 
@@ -2698,9 +2685,10 @@ per-level coefficients are tabulated in Appendix~D,
 Table~\ref{tab:daetotals}). The two families agree at L1 to
 $0.46$--$0.53\%$ in $C_L$ and $0.4$--$1.6$ counts
 ($0.18$--$0.65\%$) in $C_D$---tighter than the predecessor
-campaign's $0.6$--$0.8\%$/$0.9$--$1.8\%$. (A finest-grid
-two-family comparison awaits the held unstructured-L2 recomputation;
-its predecessor pair agreed to $0.6$--$0.7\%$ in $C_L$.) Against the
+campaign's $0.6$--$0.8\%$/$0.9$--$1.8\%$---and at L2 to
+$0.35$--$0.63\%$ in $C_L$ and $0.7$--$1.7$ counts
+($0.34$--$0.69\%$) in $C_D$ (the predecessor's finest-grid pair
+agreed to $0.6$--$0.7\%$ in $C_L$). Against the
 AVL$+$XFOIL reference trimmed to the same total lift (the
 lift-consistent comparison; the vortex lattice needs
 $\sim\!0.5^\circ$ more incidence to carry the RANS $C_L$), the RANS
@@ -2777,14 +2765,13 @@ smooths over.
   \centering
   \includegraphics[width=0.99\textwidth]{daedalus_surface_a4.pdf}
   \caption{Daedalus wing upper surface at $\alpha\!=\!4^\circ$, finest
-  completed grids, chord horizontal and span vertical (contour lines):
+  grids, chord horizontal and span vertical (contour lines):
   $-C_p$ (left), streamwise skin friction $C_{f,x}$ (middle; the
   laminar separation bubble is bounded by the bold $C_{f,x}\!=\!0$
   contour), and the near-wall amplification $\max_n\chi$ in decade
   contours (right; bold: the model's transition front
-  $\chi\!=\!1$). Rows: structured O-grid L2, unstructured
-  L2$^\dagger$ (the held bypass-inactive predecessor solution), and the
-  section-by-section $e^N$ reference---FlexFoil at each station's AVL
+  $\chi\!=\!1$). Rows: structured O-grid L2, unstructured L2, and
+  the section-by-section $e^N$ reference---FlexFoil at each station's AVL
   $c_l$, local chord Reynolds number, and
   $N_\mathrm{crit}\!=\!13.6$, its $C_p$ from the Karman--Tsien-corrected
   edge velocity and its amplification drawn as $\chi_\infty e^{N}$ at
@@ -2795,23 +2782,20 @@ smooths over.
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{daedalus_surface_a5.pdf}
-  \caption{As Fig.~\ref{fig:daesurf4}, at $\alpha\!=\!5^\circ$ (the
-  unstructured-L2 row follows if the held recomputation lands; its field output is
-  regenerated).}
+  \caption{As Fig.~\ref{fig:daesurf4}, at $\alpha\!=\!5^\circ$.}
   \label{fig:daesurf5}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{daedalus_surface_a6.pdf}
-  \caption{As Fig.~\ref{fig:daesurf4}, at $\alpha\!=\!6^\circ$ (the
-  unstructured-L2 row follows if the held recomputation lands).}
+  \caption{As Fig.~\ref{fig:daesurf4}, at $\alpha\!=\!6^\circ$.}
   \label{fig:daesurf6}
 \end{figure}
 
 The flow itself is read from the surface maps of
-Figs.~\ref{fig:daesurf4}--\ref{fig:daesurf6}: the finest completed
-RANS solution against the $e^N$ strips, column by column. The $-C_p$
+Figs.~\ref{fig:daesurf4}--\ref{fig:daesurf6}: the finest
+RANS solutions against the $e^N$ strips, column by column. The $-C_p$
 maps
 agree on the loading and carry the bubble's
 pressure plateau at mid-chord. The $C_{f,x}$ maps carry the bubble
@@ -2828,10 +2812,8 @@ the strips' $0.660$---while separation and the $\chi$ field are
 level-converged. The two families agree at L1 to $0.03\,c$ on
 both edges (the recomputation shortened the unstructured bubbles:
 gaps $0.023$--$0.032\,c$, up from the predecessor's
-$0.02\,c$); a finest-grid pair comparison awaits the held
-unstructured-L2 recomputation (against its predecessor solution the
-fv1 structured L2 sits within $0.008\,c$ on both edges at
-$4^\circ$). The $\chi$ maps show the interior anatomy: the bubble's
+$0.02\,c$); at L2 they tighten onto each other, separation agreeing
+to $0.008\,c$ and reattachment to $0.016\,c$ at every incidence. The $\chi$ maps show the interior anatomy: the bubble's
 \emph{extent} matches the strips' station by station, but the model's
 transition front ($\chi\!=\!1$, bold in the figure) sits near
 mid-bubble, $\sim\!0.09\,c$ ahead of the strips' $N_\mathrm{crit}$
@@ -3629,12 +3611,10 @@ the surface triangles and the prism stack terminated where its height
 reaches the local isotropic scale. Sizes, spanwise-station and
 around-the-section resolution are tabulated in the main text
 (Table~\ref{tab:daemesh}). All solutions use the airfoil-study solver
-settings with the final kernel (the recomputation scope noted at the opening
-of Sec.~\ref{sec:daedalus}; the completed set is the one tabulated in
-Table~\ref{tab:daetotals}, dashes marking the held cavity-L2 recomputation) and are
+settings with the final kernel (Sec.~\ref{sec:daedalus}) and are
 converged to steady or small-limit-cycle force histories (largest
 cycle: the structured-L1 $4^\circ$ case at $1.4\times10^{-2}$
-peak-to-peak in $C_L$, an order above the other fourteen); tabulated
+peak-to-peak in $C_L$, an order above the other seventeen); tabulated
 coefficients are means over the final 500 pseudo-steps (51 logged
 samples).
 
@@ -3643,17 +3623,13 @@ samples).
   \small
   \caption{Daedalus wing totals by grid level: SA-AI on both mesh
   families against the AVL$+$XFOIL reference trimmed to the RANS lift
-  (finest completed level) at each incidence: Trefftz-plane induced
+  (finest structured level) at each incidence: Trefftz-plane induced
   drag at the trim plus XFOIL profile drag at the trimmed strip
   loading, matched local $c_l$ and $N_\mathrm{crit}\!=\!13.6$,
   integrated over span
   (\texttt{daedalus/avl\_fixed\_cl\_reference.py}; the reference drag
   at the marginally shifted trim lifts is unchanged at the printed
-  digits). Dashes: the cavity-L2 recomputation is held; where its predecessor
-  solutions appear in the figures ($4^\circ$/$5^\circ$ polar points,
-  the $4^\circ$ surface-map and sectional rows, the sheets' dashed
-  curves) they are the bypass-inactive model, marked $\dagger$ in the
-  captions.}
+  digits).}
   \label{tab:daetotals}
   \begin{tabular}{cl cc cc}
     \toprule
@@ -3662,15 +3638,15 @@ samples).
     $\alpha$ & level & $C_L$ & $C_D$ & $C_L$ & $C_D$\\
     \midrule
     $4^\circ$ & L1 & 1.0279 & 0.01946 & 1.0232 & 0.01941\\
-              & L2 & 1.0284 & 0.01969 & --- & ---\\
+              & L2 & 1.0284 & 0.01969 & 1.0219 & 0.01976\\
               & AVL$+$XFOIL & 1.0284 & 0.02125 & &\\
     \midrule
     $5^\circ$ & L1 & 1.1307 & 0.02197 & 1.1248 & 0.02201\\
-              & L2 & 1.1290 & 0.02212 & --- & ---\\
+              & L2 & 1.1290 & 0.02212 & 1.1236 & 0.02223\\
               & AVL$+$XFOIL & 1.1290 & 0.02315 & &\\
     \midrule
     $6^\circ$ & L1 & 1.2321 & 0.02465 & 1.2256 & 0.02481\\
-              & L2 & 1.2282 & 0.02474 & --- & ---\\
+              & L2 & 1.2282 & 0.02474 & 1.2238 & 0.02491\\
               & AVL$+$XFOIL & 1.2282 & 0.02530 & &\\
     \bottomrule
   \end{tabular}
@@ -3767,16 +3743,15 @@ maximum, as the airfoil suites; log scale, as
 Fig.~\ref{fig:onsetgraze}), the
 near-wall $\max\chi$ with the strip's $e^{N}$ amplification, $-C_p$,
 and streamwise $C_f$. Solid lines are the structured L2 solution,
-dashed the unstructured-family L2 where its field output is
-available, dotted the AVL-trimmed FlexFoil/XFOIL strip at the same
-station.
+dashed the unstructured L2, dotted the AVL-trimmed FlexFoil/XFOIL
+strip at the same station.
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{daedalus_section_eta10.pdf}
   \caption{Daedalus wing section cut at $\eta=0.10$, $Re_c=5.0\times10^5$:
   sectional diagnostics on the finest grids (structured L2 solid;
-  unstructured L2$^\dagger$ dashed where its field output is available---the held bypass-inactive predecessor solutions) against
+  unstructured L2 dashed) against
   the AVL-trimmed FlexFoil/XFOIL strip (dotted) at $\alpha=4^\circ$,
   $5^\circ$, $6^\circ$ (columns).}
   \label{fig:daesec10}
