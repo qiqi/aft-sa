@@ -7,10 +7,16 @@ diagnose why the RANS sectional profile drag grows with lift while the
 strips' XFOIL profile drag stays flat (the CD-vs-CL slope discrepancy of
 fig:daepolar).
 
-Columns: alpha = 4, 5, 6 deg. Curves: structured O-grid L2 (solid),
-unstructured L2 (dashed); upper surface blue, lower red;
-dotted = the FlexFoil e^N strip at the nearest station (N envelope
-truncated at its transition; Cp from Karman-Tsien-corrected u_e).
+Columns: alpha = 4, 5, 6 deg. Curves: structured O-grid (solid),
+unstructured (dashed), the full L0/L1/L2 ladder with the 2D suites'
+line-weight convention (L0 thin -> L2 thick); upper surface blue,
+lower red; dotted = the FlexFoil e^N strip at the nearest station
+(N envelope truncated at its transition; Cp from
+Karman-Tsien-corrected u_e). The onset-threshold overlay (dash-dot)
+is drawn from the finest (L2) probes only. Sections snap to the
+nearest discrete spanwise ring (see section_contour); the L1/L2
+probe caches predate the snap but their fixed-count bands were
+already single-ring-dominated (verified clean).
 Rows 1-2 probe the volume along in-plane surface normals to 0.01 c_loc
 (the 2D convention); row 3 reads the near-wall band max chi from the
 committed chi_surface.npz (5% c band).
@@ -43,8 +49,11 @@ CHI_INF = 8.76e-6
 AMAX, C_ON, A_ON, B_ON, K_ON, W_ON = 0.19, 2600.0, 175.0, 2.0, 0.712, 0.35
 CV1 = 7.1
 ALPHAS = [4, 5, 6]
-CASES = {'str': (D_STR, 'case_ogrid_L2_saai_a{a}', 'surface_fluid_wing.pvtu', '-'),
-         'cav': (D_CAV, 'case_cavity_L2_saai_a{a}', 'surface_farfield_body.pvtu', '--')}
+LEVELS = ['L0', 'L1', 'L2']
+# per-level line THICKNESS -- the 2D suites' convention (regen_nlf_v2.py)
+LEVEL_LW = {'L0': 0.8, 'L1': 1.6, 'L2': 2.4}
+CASES = {'str': (D_STR, 'case_ogrid_{lvl}_saai_a{a}', 'surface_fluid_wing.pvtu', '-'),
+         'cav': (D_CAV, 'case_cavity_{lvl}_saai_a{a}', 'surface_farfield_body.pvtu', '--')}
 SIDCOL = {'upper': 'C0', 'lower': 'C3'}
 STRIPS = pickle.load(open('/home/qiqi/flexcompute/sa-ai/flow360_ai/'
                           'flexfoil_daedalus_strips.pkl', 'rb'))
@@ -65,12 +74,18 @@ def complete(root, case):
 
 
 def section_contour(surf_pts, eta_q):
-    """Ordered (x, z) upper/lower contours of the station's section."""
+    """Ordered (x, z) upper/lower contours of the station's section.
+
+    The station is snapped to the single nearest discrete spanwise
+    ring (both families carry exact stations): the previous
+    fixed-count |y| band spans 4-5 duplicate-section rings on the L0
+    grids, whose x-sorted near-coincident nodes break the neighbor
+    tangents (garbage normals -> probe rays into the body -> the
+    Re_Omega comb). Rings are exact to <1e-5 m in both families."""
     y0 = eta_q * HALF_SPAN
     yy = np.abs(surf_pts[:, 1])
-    dy = np.abs(yy - y0)
-    band = max(np.partition(dy, 800)[800], 1e-4)
-    m = dy <= band
+    y_star = yy[np.argmin(np.abs(yy - y0))]
+    m = np.abs(yy - y_star) <= 1e-4
     p = surf_pts[m]
     c_loc = float(chord(eta_q))
     x_le = XQC - 0.25 * c_loc
@@ -179,6 +194,24 @@ def surface_rows(case, surfname, contours, c_loc, x_le, mstation, mu):
     return rows
 
 
+def dedup_surface(sd):
+    """Merge partition-boundary duplicate wall nodes (exactly coincident
+    points in the .pvtu): every twin carries the same Cp/Cf, but the
+    chi_surface.npz scatter-max lands on ONE twin -- the kd-tree assigns
+    each volume node to a single duplicate -- so the others read the
+    leftovers (a square wave on the coarse L0 skin). Take the max chi
+    per position; Cp/Cf from the first twin."""
+    xs = sd['xc']
+    key = np.round(xs, 12)
+    uk, inv = np.unique(key, return_inverse=True)
+    chi = np.full(len(uk), -np.inf)
+    np.maximum.at(chi, inv, sd['chi'])
+    first = np.full(len(uk), -1)
+    for i in range(len(xs) - 1, -1, -1):
+        first[inv[i]] = i
+    return dict(xc=uk, cp=sd['cp'][first], cfx=sd['cfx'][first], chi=chi)
+
+
 def strip_ref(a, eta_q):
     s = STRIPS[float(a)]
     i = int(np.argmin(np.abs(np.asarray(s['eta']) - eta_q)))
@@ -214,25 +247,29 @@ def make_sheet(eta_q):
         ax_reo, ax_P, ax_n, ax_cp, ax_cf = axs[:, col]
         ax_nN = ax_n.twinx()
         for fam, (root, tpl, surfname, ls) in CASES.items():
-            case = tpl.format(a=a)
+          for lvl in LEVELS:
+            case = tpl.format(lvl=lvl, a=a)
             if not complete(root, case) or not os.path.exists(f'{root}/{case}/chi_surface.npz'):
                 continue
             if fam == 'cav':
                 got_cav = True
             if case not in CACHE or eta_q not in CACHE[case]:
                 continue
+            lw = LEVEL_LW[lvl]
             pr, sr = CACHE[case][eta_q]
             for side in ('upper', 'lower'):
                 cc = SIDCOL[side]
-                ax_reo.semilogy(pr[side]['xc'], pr[side]['reo'], ls, color=cc, lw=1.5)
-                ax_reo.semilogy(pr[side]['xc'], onset_threshold(pr[side]['pmax']),
-                                '-.', color=cc, lw=0.8, alpha=0.6)
+                sde = dedup_surface(sr[side])
+                ax_reo.semilogy(pr[side]['xc'], pr[side]['reo'], ls, color=cc, lw=lw)
+                if lvl == 'L2':
+                    ax_reo.semilogy(pr[side]['xc'], onset_threshold(pr[side]['pmax']),
+                                    '-.', color=cc, lw=0.8, alpha=0.6)
                 ax_P.semilogy(pr[side]['xc'],
-                              np.clip(pr[side]['pmax'], 1e-4, None), ls, color=cc, lw=1.5)
-                ax_n.semilogy(sr[side]['xc'], np.clip(sr[side]['chi'], 1e-6, None),
-                              ls, color=cc, lw=1.5)
-                ax_cp.plot(sr[side]['xc'], -sr[side]['cp'], ls, color=cc, lw=1.5)
-                ax_cf.plot(sr[side]['xc'], sr[side]['cfx'], ls, color=cc, lw=1.5)
+                              np.clip(pr[side]['pmax'], 1e-4, None), ls, color=cc, lw=lw)
+                ax_n.semilogy(sde['xc'], np.clip(sde['chi'], 1e-6, None),
+                              ls, color=cc, lw=lw)
+                ax_cp.plot(sde['xc'], -sde['cp'], ls, color=cc, lw=lw)
+                ax_cf.plot(sde['xc'], sde['cfx'], ls, color=cc, lw=lw)
         ref = strip_ref(a, eta_q)
         if ref is not None:
             ax_nN.plot(ref['xn'], ref['n'], ':', color='0.35', lw=1.4)
@@ -260,12 +297,14 @@ def make_sheet(eta_q):
             ax_nN.set_ylabel(r'strip $N$ (linear)')
     handles = [Line2D([], [], color='C0', lw=1.5, label='upper'),
                Line2D([], [], color='C3', lw=1.5, label='lower'),
-               Line2D([], [], color='0.3', ls='-', lw=1.5, label='O-grid L2')]
+               Line2D([], [], color='0.3', ls='-', lw=1.5, label='str (O-grid)')]
     if got_cav:
         handles.append(Line2D([], [], color='0.3', ls='--', lw=1.5,
-                              label='unstructured L2'))
+                              label='cav (unstructured)'))
+    handles += [Line2D([], [], color='0.3', lw=LEVEL_LW[l], label=l)
+                for l in LEVELS]
     handles.append(Line2D([], [], color='0.5', ls='-.', lw=0.8,
-                          label=r'onset threshold $Re_\Omega^c(\hat\Omega\hat I)$'))
+                          label=r'onset threshold $Re_\Omega^c(\hat\Omega\hat I)$ (L2)'))
     handles.append(Line2D([], [], color='0.35', ls=':', lw=1.4,
                           label=r'FlexFoil strip ($N$, $C_p$, $C_f$)'))
     axs[0, 0].legend(handles=handles, fontsize=7.5, loc='lower right')
@@ -308,7 +347,8 @@ if __name__ == '__main__':
     etas = [float(x) for x in sys.argv[1:]] or [0.10, 0.75, 0.92]
     for a in ALPHAS:
         for fam, (root, tpl, surfname, ls) in CASES.items():
-            case = tpl.format(a=a)
+          for lvl in LEVELS:
+            case = tpl.format(lvl=lvl, a=a)
             if complete(root, case) and os.path.exists(f'{root}/{case}/chi_surface.npz'):
                 mu = json.load(open(f'{root}/{case}/Flow360.json'))['freestream']['muRef']
                 CACHE[case] = probe_cached(case, surfname, etas, mu)

@@ -2607,7 +2607,7 @@ the final model. Two mesh families are used: a structured O-grid
 stacked spanwise and pinched to a line at the tip, and a classical
 three-dimensional unstructured mesh---anisotropic boundary-layer
 prisms at the wall, hexahedra in the far field, and tetrahedra joining
-the two---at the L1 and L2 refinement levels of
+the two---at the L0--L2 refinement levels of
 Table~\ref{tab:daemesh} (construction in Appendix~D); the reference
 is the same $e^N$ framework
 used throughout---a vortex-lattice model (AVL~\cite{drela_youngren_avl}) with strip-wise XFOIL
@@ -2688,7 +2688,14 @@ $0.46$--$0.53\%$ in $C_L$ and $0.4$--$1.6$ counts
 campaign's $0.6$--$0.8\%$/$0.9$--$1.8\%$---and at L2 to
 $0.35$--$0.63\%$ in $C_L$ and $0.7$--$1.7$ counts
 ($0.34$--$0.69\%$) in $C_D$ (the predecessor's finest-grid pair
-agreed to $0.6$--$0.7\%$ in $C_L$). Against the
+agreed to $0.6$--$0.7\%$ in $C_L$). At L0 the families sit
+$0.74$--$0.97\%$ apart in $C_L$ and $18$--$21$ counts
+($8$--$9\%$) apart in $C_D$ (Table~\ref{tab:daetotals}), the
+unstructured grid the high-drag member at every incidence; those
+rows complete the ladder but carry the coarse-grid caveat of
+Sec.~\ref{sec:nlfval}---grids this coarse admit path-sensitive
+front breakaways (Fig.~\ref{fig:nlfaft})---so no convergence claim
+rests on them. Against the
 AVL$+$XFOIL reference trimmed to the same total lift (the
 lift-consistent comparison; the vortex lattice needs
 $\sim\!0.5^\circ$ more incidence to carry the RANS $C_L$), the RANS
@@ -3651,15 +3658,18 @@ samples).
     \cmidrule(lr){3-4}\cmidrule(lr){5-6}
     $\alpha$ & level & $C_L$ & $C_D$ & $C_L$ & $C_D$\\
     \midrule
-    $4^\circ$ & L1 & 1.0279 & 0.01946 & 1.0232 & 0.01941\\
+    $4^\circ$ & L0 & 1.0244 & 0.01958 & 1.0156 & 0.02134\\
+              & L1 & 1.0279 & 0.01946 & 1.0232 & 0.01941\\
               & L2 & 1.0284 & 0.01969 & 1.0219 & 0.01976\\
               & AVL$+$XFOIL & 1.0284 & 0.02125 & &\\
     \midrule
-    $5^\circ$ & L1 & 1.1307 & 0.02197 & 1.1248 & 0.02201\\
+    $5^\circ$ & L0 & 1.1254 & 0.02219 & 1.1145 & 0.02427\\
+              & L1 & 1.1307 & 0.02197 & 1.1248 & 0.02201\\
               & L2 & 1.1290 & 0.02212 & 1.1236 & 0.02223\\
               & AVL$+$XFOIL & 1.1290 & 0.02315 & &\\
     \midrule
-    $6^\circ$ & L1 & 1.2321 & 0.02465 & 1.2256 & 0.02481\\
+    $6^\circ$ & L0 & 1.2262 & 0.02505 & 1.2171 & 0.02713\\
+              & L1 & 1.2321 & 0.02465 & 1.2256 & 0.02481\\
               & L2 & 1.2282 & 0.02474 & 1.2238 & 0.02491\\
               & AVL$+$XFOIL & 1.2282 & 0.02530 & &\\
     \bottomrule
@@ -3769,21 +3779,24 @@ Sec.~\ref{sec:daedalus}: at $\eta=0.10$, $0.75$, and $0.92$ (the last
 in the taper, at its locally reduced chord Reynolds number), columns
 $\alpha=4^\circ$, $5^\circ$, $6^\circ$, five rows per
 station---the probe-maximum $Re_\Omega$ against the onset threshold
-$Re_\Omega^c(\hat\Omega \hat I)$ evaluated at the local rate (dash-dotted), the
+$Re_\Omega^c(\hat\Omega \hat I)$ evaluated at the local rate (dash-dotted; drawn
+from the finest-grid probes), the
 probe-maximum $\hat\Omega \hat I$ rate (neighbor-smoothed before the
 maximum, as the airfoil suites; log scale, as
 Fig.~\ref{fig:onsetgraze}), the
 near-wall $\max\chi$ with the strip's $e^{N}$ amplification, $-C_p$,
-and streamwise $C_f$. Solid lines are the structured L2 solution,
-dashed the unstructured L2, dotted the AVL-trimmed FlexFoil/XFOIL
+and streamwise $C_f$. Solid lines are the structured family, dashed
+the unstructured, all three grid levels with line weight increasing
+under refinement (the line-weight convention of the airfoil suites);
+dotted the AVL-trimmed FlexFoil/XFOIL
 strip at the same station.
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{daedalus_section_eta10.pdf}
   \caption{Daedalus wing section cut at $\eta=0.10$, $Re_c=5.0\times10^5$:
-  sectional diagnostics on the finest grids (structured L2 solid;
-  unstructured L2 dashed) against
+  sectional diagnostics on all six grids (structured solid,
+  unstructured dashed; line weight L0$\to$L2 by refinement) against
   the AVL-trimmed FlexFoil/XFOIL strip (dotted) at $\alpha=4^\circ$,
   $5^\circ$, $6^\circ$ (columns).}
   \label{fig:daesec10}
