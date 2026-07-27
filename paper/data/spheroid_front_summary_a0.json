@@ -1,0 +1,119 @@
+{
+ "levels": {
+  "L0": {
+   "cf_k1.25": {
+    "median": 0.896,
+    "spread": 0.0144
+   },
+   "cf_k1.5": {
+    "median": 0.8971,
+    "spread": 0.0181
+   },
+   "cf_k2.0": {
+    "median": 0.8984,
+    "spread": 0.0229
+   },
+   "chi1": {
+    "median": 0.9077,
+    "spread": 0.0481
+   },
+   "cv1": {
+    "median": 0.9107,
+    "spread": 0.0567
+   },
+   "chi1_remap_as_run_N13.6": {
+    "median": 0.9077,
+    "spread": 0.0481
+   },
+   "chi1_remap_airfoil_N9.0": {
+    "median": 0.7528,
+    "spread": 0.0534
+   },
+   "chi1_remap_tunnel_N8.0": {
+    "median": 0.6354,
+    "spread": 0.0511
+   }
+  },
+  "L1": {
+   "cf_k1.25": {
+    "median": 0.9076,
+    "spread": 0.003
+   },
+   "cf_k1.5": {
+    "median": 0.9076,
+    "spread": 0.0033
+   },
+   "cf_k2.0": {
+    "median": 0.9077,
+    "spread": 0.0038
+   },
+   "chi1": {
+    "median": 0.9177,
+    "spread": 0.0012
+   },
+   "cv1": {
+    "median": 0.9247,
+    "spread": 0.0012
+   },
+   "chi1_remap_as_run_N13.6": {
+    "median": 0.9177,
+    "spread": 0.0012
+   },
+   "chi1_remap_airfoil_N9.0": {
+    "median": 0.6911,
+    "spread": 0.0117
+   },
+   "chi1_remap_tunnel_N8.0": {
+    "median": 0.5423,
+    "spread": 0.0166
+   }
+  },
+  "L2": {
+   "cf_k1.25": {
+    "median": 0.9135,
+    "spread": 0.0012
+   },
+   "cf_k1.5": {
+    "median": 0.9138,
+    "spread": 0.0022
+   },
+   "cf_k2.0": {
+    "median": 0.9146,
+    "spread": 0.0023
+   },
+   "chi1": {
+    "median": 0.9245,
+    "spread": 0.0013
+   },
+   "cv1": {
+    "median": 0.9304,
+    "spread": 0.0007
+   },
+   "chi1_remap_as_run_N13.6": {
+    "median": 0.9245,
+    "spread": 0.0013
+   },
+   "chi1_remap_airfoil_N9.0": {
+    "median": 0.9165,
+    "spread": 0.0027
+   },
+   "chi1_remap_tunnel_N8.0": {
+    "median": 0.913,
+    "spread": 0.0062
+   }
+  }
+ },
+ "condition": "Re_L=7.2e6, alpha=0 (measured 7.20e6 -- exact match)",
+ "seed_note": "physical delivered seed chi_inf=8.76e-6 (N~13.6); chi1_remap_* = linear-amplification front estimates at the named physical seeds (see script docstring)",
+ "measured_xL": {
+  "mean": 0.4384,
+  "std": 0.0005,
+  "n": 17
+ },
+ "stock_eN_xL": {
+  "mean": 0.4248,
+  "std": 0.0004,
+  "N_TS": 8.0
+ },
+ "criterion": "cf-rise k=1.5 x running min, band k=1.25-2; chi=1 / chi=c_v1 crossings of wall-normal max chi"
+}
