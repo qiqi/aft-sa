@@ -4,7 +4,7 @@
   tab_flatplate_onsets : fig:flatplate_batch bottom panels (chi=1 and c_v1
                          crossing Re_theta vs AGS, Flow360 + OpenFOAM)
   tab_nlf_data         : figs nlfaft/nlfpolar/nlfnegalpha (CL, CD, x_tr)
-  tab_openfoam_nlf     : the steel-blue OpenFOAM L1 overlay of figs
+  tab_openfoam_nlf     : the steel-blue OpenFOAM L1+L2 overlay of figs
                          nlfaft/nlfpolar
   tab_eppler_polar     : fig:epppolar (CL, CD, all ten incidences)
   tab_eppler_bubble    : fig:eppbubble (x_LS, x_R)
@@ -173,6 +173,7 @@ def openfoam_nlf():
         rows.append(' & '.join(cells))
     write('tab_openfoam_nlf.tex',
           r'$\alpha$ & \multicolumn{4}{c}{L1} & \multicolumn{4}{c}{L2} \\'
+          r' \cmidrule(lr){2-5}\cmidrule(lr){6-9}'
           r' & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ &'
           r' $x_\mathrm{tr}^\mathrm{lo}$ & $C_L$ & $C_D$ &'
           r' $x_\mathrm{tr}^\mathrm{up}$ & $x_\mathrm{tr}^\mathrm{lo}$',
@@ -187,7 +188,9 @@ def openfoam_nlf():
           r'Eq.~\ref{eq:fv1bypass}. At L2 every front lies within '
           r'$0.016\,c$ and the lift within $0.9\%$ ($0.003$ absolute at '
           r'the zero-lift $-4^\circ$) of the corresponding Flow360 values '
-          r'in Table~\ref{tab:data_nlf}.',
+          r'in Table~\ref{tab:data_nlf}. Drag agreement is not claimed: '
+          r'the codes differ by $14\%$ in $C_D$ at $-8^\circ$ at matched '
+          r'fronts, and by $1.6$--$3.5\%$ elsewhere at L2.',
           'tab:data_openfoam_nlf', 'c cccc cccc')
 
 

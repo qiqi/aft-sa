@@ -1526,8 +1526,11 @@ quantitatively.
   of Fig.~\ref{fig:flatplate_batch} on the same structured L1 and L2
   grids (by marker size) at all six incidences, fronts read from its
   fields at the same near-wall $\chi\!=\!1$ convention (the port
-  omits the bypass of Eq.~\ref{eq:fv1bypass}); on the finest grid
-  every front lies within $0.016\,c$ and the lift within $0.9\%$ of
+  omits the bypass of Eq.~\ref{eq:fv1bypass}); its L0 solutions are
+  excluded---they include the same coarse-grid breakaway states
+  discussed above. On the finest grid
+  every front lies within $0.016\,c$ and the lift within $0.9\%$
+  (absolute $0.003$ at zero lift) of
   the SA-AI values (Table~\ref{tab:data_openfoam_nlf}).
   At $-8^\circ$ the drag sits $8$--$11$ counts below
   the measured polar at matched lift, the suction (lower) surface trips at
@@ -1820,7 +1823,8 @@ $100\,c$. The resulting grids range
 from $1.5\!\times\!10^4$ nodes at L0 to $2.6\!\times\!10^5$ at L2.
 The mesh close-ups mirror the NLF's
 (Figs.~\ref{fig:nlfmesh_str} and~\ref{fig:nlfmesh_cav}: the same
-recipe, every length scale halving per level);
+recipe, the NLF's blunt-TE handling aside, with every length scale
+halving per level);
 Table~\ref{tab:eppmesh} lists the Eppler resolution quantitatively.
 
 \begin{figure}[tp]
