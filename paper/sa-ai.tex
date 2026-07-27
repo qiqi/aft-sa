@@ -1511,7 +1511,13 @@ quantitatively.
   per-source caveats for every digitized series: Appendix~F. No published SA-BCM incidence
   \emph{sweep} exists at this condition; the one open SA-BCM result
   is a single-incidence ($\alpha\!=\!0^\circ$) mesh-adaptation
-  study~\cite{tarsia_2025}. The isolated coarse-grid points at incidence are under-resolved-front artifacts (cf.\ the L0 discussion of Fig.~\ref{fig:nlfcflow}); the cavity-L1 $15^\circ$ lower front is the one unsettled case of the twenty-four, still drifting over $0.65$--$0.67\,c$ (the final value is plotted). Open squares/triangles:
+  study~\cite{tarsia_2025}. The isolated coarse-grid points at
+  incidence are path-sensitive front breakaways that the coarse grids
+  admit but do not force: restarting the structured-L0 $9^\circ$ case
+  from its converged flow with $\tilde\nu$ reset to the seed recovers
+  the fine-grid fronts on the same mesh ($0.66$/$0.075\,c$ lower/upper
+  against L1--L2's $0.63$--$0.64$/$0.07$--$0.08\,c$), machine-converged;
+  the cavity-L1 $15^\circ$ lower front is the one unsettled case of the twenty-four, still drifting over $0.65$--$0.67\,c$ (the final value is plotted). Open squares/triangles:
   SA-AI on all six grids (L0--L2 by marker size, both families) at
   $\alpha\!=\!0^\circ,4^\circ,9^\circ,15^\circ$, plus the
   negative-incidence pair $\alpha\!=\!-8^\circ$ (well into the
@@ -1660,7 +1666,11 @@ qualification. The $\alpha\!=\!15^\circ$ point lies beyond the measured
 stall ($C_{l,\max}\!\approx\!1.68$ in the tunnel data), where the quasi-2D
 computation does not capture stall and returns a higher
 $C_l$ at elevated drag; and the coarse L0 mesh over-predicts drag at
-$\alpha\!\ge\!9^\circ$ (under-resolved transition front). The absence of an
+$\alpha\!\ge\!9^\circ$ (partly the front breakaway of
+Fig.~\ref{fig:nlfaft}'s caption, though most of the drag excess
+survives the recovered front---$0.0208$ against the breakaway state's
+$0.0225$ and L1's $0.0144$ at $9^\circ$---and is resolution
+proper). The absence of an
 mfoil reference above $\alpha\!=\!7^\circ$ is a solver failure, not a
 method-class limit: FlexFoil converges at the identical conditions
 ($C_l\!=\!1.51$ at $\alpha\!=\!9^\circ$, consistent with the present
@@ -3106,8 +3116,8 @@ handover above the lifted bubble shear layer stays in frame.
   six grids. This (pressure) surface holds a long laminar run before
   its front settles at $0.54$--$0.57\,c$ on L1/L2
   (Fig.~\ref{fig:nlfnegalpha}); the L0 grids trip at
-  $0.14$--$0.20\,c$, the under-resolved-front artifact of the
-  coarsest level (cf.\ Fig.~\ref{fig:nlfcflow}).}
+  $0.14$--$0.20\,c$, the coarse-grid front breakaway of
+  Fig.~\ref{fig:nlfaft}'s caption.}
   \label{fig:sheet_nlf0416_am8_upper}
 \end{figure}
 
