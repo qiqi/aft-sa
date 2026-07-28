@@ -251,10 +251,10 @@ def overlay_literature(ax):
     if os.path.exists(path):
         d = json.load(open(path))['dns3d']
         cd_fin = d.get('Cd_finest', 0.5 * (d['Cd_min'] + d['Cd_max']))
-        hw = 0.035   # stub half-width in decades of Re
+        hw = 0.07    # stub half-width in decades of Re (longer = readable)
         ax.plot([10.0 ** (4 - hw), 10.0 ** (4 + hw)], [cd_fin, cd_fin],
-                '-', color=GREEN, lw=1.4, alpha=ALPHA_LIT, zorder=z)
-        hs.append(Line2D([], [], color=GREEN, lw=1.4,
+                '-', color=GREEN, lw=2.8, alpha=ALPHA_LIT, zorder=z + 1)
+        hs.append(Line2D([], [], color=GREEN, lw=2.8,
                          label='3-D DNS (Dong–Karniadakis 2005)'))
     else:
         print(f'  [lit] MISSING {path} -- run digitize_dragcrisis_lit.py')
@@ -371,7 +371,7 @@ def main():
                         ax.errorbar([reval], [r["Cd"]],
                                     yerr=[[r["Cd"] - lo], [hi - r["Cd"]]],
                                     fmt='none', ecolor=c, elinewidth=1.4,
-                                    capsize=3.5, capthick=1.4, zorder=3)
+                                    capsize=0, zorder=3)
                 dump[r["case"]] = ent
 
     # FT-SA control (this work, AI_SA=0, chi_inf=3): a fully-turbulent SA
