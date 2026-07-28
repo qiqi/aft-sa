@@ -3,8 +3,8 @@
 The drag-crisis steady matrix, macroscopic view: Cd(Re_D) for the three
 freestream seeds chi_inf(Tu) (color per Tu, CVD-validated trio), up-ladder
 solid/filled vs dn-ladder dashed/open. Cases whose convergence monitor
-flagged a steady limit cycle carry a capped vertical band spanning the
-tail-window Cd min--max (the band, not a legend entry, is the limit-cycle
+flagged a steady limit cycle have their tail-window Cd min--max
+recorded in the JSON/appendix (the bar is NOT drawn -- the non-uniqueness
 marking; described in the caption). Cold two-stage reference cases are
 loaded into the JSON dump but NOT plotted (user directive 2026-07-28).
 
@@ -30,8 +30,7 @@ SEMANTIC (user directive 2026-07-28):
                   the gray/black experiment symbols
 Every series (symbols AND lines, literature AND SA-AI) is drawn slightly
 transparent (crowded figure): SA-AI at ALPHA_SAAI (top of the band, stays
-readable as the subject), literature at ALPHA_LIT. The limit-cycle bands
-keep their own (opaque) styling.
+readable as the subject), literature at ALPHA_LIT.
 Only ONE chromatic hue is added (#3f8a4f, validated against the Tu trio:
 adjacent normal-vision dE 18; the orange<->green protan pair sits in the
 6-8 secondary-encoding band, carried by line weight + style).
@@ -373,13 +372,12 @@ def main():
                 ent = {"Cd": r["Cd"], "Cd_tail_p2p": r["Cd_tail_p2p"],
                        "limit_cycle": lc, "verdicts": r["verdicts"]}
                 if lc:
+                    # tail min/max still recorded in the JSON dump / appendix
+                    # table; the limit-cycle bar is NOT drawn (user directive
+                    # 2026-07-28: the crowded full-span overlay reads cleaner
+                    # without it -- the non-uniqueness is a text concession).
                     lo, hi = tail_minmax(os.path.join(args.root, r["case"]))
                     ent["Cd_tail_min"], ent["Cd_tail_max"] = lo, hi
-                    if ls is not None:
-                        ax.errorbar([reval], [r["Cd"]],
-                                    yerr=[[r["Cd"] - lo], [hi - r["Cd"]]],
-                                    fmt='none', ecolor=c, elinewidth=1.4,
-                                    capsize=0, zorder=3)
                 dump[r["case"]] = ent
 
     # FT-SA control (this work, AI_SA=0, chi_inf=3): a fully-turbulent SA
@@ -464,7 +462,7 @@ def main():
                          'w'), indent=1)
     n_lc = sum(1 for e in dump.values() if e["limit_cycle"])
     print(f"wrote {OUT}/dragcrisis_cd_re.pdf ({len(dump)} cases, "
-          f"{n_lc} limit-cycle bands, lit={'off' if args.no_lit else 'on'})")
+          f"{n_lc} limit-cycle cases [bars off], lit={'off' if args.no_lit else 'on'})")
 
 
 if __name__ == "__main__":
