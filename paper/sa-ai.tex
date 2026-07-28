@@ -3416,6 +3416,93 @@ pressure-station waterfalls.)
   \label{fig:sphstat_cfg297}
 \end{figure}
 
+\subsection{The axisymmetric pure-TS anchor: transition as a
+freestream-disturbance calibration}\label{sec:sphts}
+
+At zero incidence and $Re_L\!=\!7.2\!\times\!10^6$ the spheroid is a
+pure Tollmien--Schlichting case~\cite{stock_2006}, the cleanest test of
+the amplification rate stripped of crossflow. Run at the airfoil
+campaign's flight-quiet seed ($\chi_\infty\!=\!8.76\!\times\!10^{-6}$,
+Mack $Tu\!=\!0.01\%$), the converged model places the $\chi\!=\!1$
+front at $x/L\!=\!0.858$, far aft of the measured
+$0.438$~\cite{kreplin_1985,stock_2006}. (The front is quoted from the
+settled-$C_d$ state; a fixed-budget solve leaves the whole aft laminar
+region mid-transient and places it further aft still.)
+
+The gap is not a rate deficit. Marching the Drela--Giles envelope and
+the model's own frozen-profile rate along a validated laminar march of
+the converged mean flow (Fig.~\ref{fig:sphthreeway}) shows the
+transported $\chi$ tracking the $e^N$ envelope one-for-one to
+$x/L\!\approx\!0.7$: the model is $e^N$-faithful on its own mean flow,
+and even a perfect envelope tracker at this seed's budget
+$N\!=\!\ln(1/\chi_\infty)\!=\!11.6$ commits only at $x/L\!=\!0.735$.
+The front sits aft because the demanded amplification factor is large,
+not because the kernel under-amplifies.
+
+That demanded factor is set by the disturbance environment, and here
+the paper's economy meets its sharpest calibration question. No
+freestream turbulence intensity is published for the DFVLR measurement
+chain~\cite{kreplin_1985}; the documented disturbance level is the
+limiting amplification factor that reproduces the data, and it is
+method-relative. Stock's pure-TS $e^N$ matches with
+$N_{\mathrm{TS}}\!=\!8.0$~\cite{stock_2006}; the automatic-transition
+literature uses $N\!\approx\!7.5$ for the same
+case~\cite{krimmelbein_2010}; and the present kernel, whose envelope is
+calibrated to Drela--Giles---about $2.8$ factors slower than a pure-TS
+$e^N$ by mid-body---requires $N_{\mathrm{crit}}\!\approx\!7$
+($Tu\!\approx\!0.17\%$). There is no universal ``tunnel $N$'': each
+closure carries its own calibrated factor, and absent a measured $Tu$
+the number is a calibration handle, not a datum.
+
+Re-seeding to that tunnel-class disturbance is decisive
+(Fig.~\ref{fig:sphreseed}). A three-seed bracket from $Tu\!=\!0.05\%$
+to $0.21\%$ moves the converged front monotonically---$0.628$,
+$0.511$, $0.400$---tracking the envelope prediction at full $e^N$
+strength and crossing the measured $0.438$ at $Tu\!\approx\!0.17\%$; at
+Stock's documented $N\!=\!8$ ($Tu\!=\!0.106\%$) the front is $0.511$,
+$0.07\,L$ aft. No rate or transport constant is touched: the
+axisymmetric ``miss'' is a freestream-turbulence mis-specification, not
+a model deficiency.
+
+Incidence begins to separate the two effects. At $\alpha\!=\!2.5^\circ$
+(still pure-TS by Stock's reading) the same tunnel-class seed lands the
+windward front on the measurement ($0.444$ vs $0.450$) but leaves a
+converged $0.13\,L$ azimuthal spread---the leeward flank transitioning
+late ($0.576$) where the measurement stays nearly uniform---that the
+seed does not remove. That leeward lateness is a genuine amplification
+shortfall on the mild-adverse crossflow meridian rather than a
+disturbance-level effect: the crossflow economy's first visible cost,
+and the entry to the fully three-dimensional cases above.
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{spheroid_threeway_N.pdf}
+  \caption{Axisymmetric spheroid, $\alpha\!=\!0$,
+  $Re_L\!=\!7.2\!\times\!10^6$, converged solution: transported
+  near-wall $\chi$ (log, left axis) and, on the matched linear right
+  axis ($N\!=\!\ln(\chi/\chi_\infty)$), the Drela--Giles envelope and
+  the model's frozen-profile rate, all on a validated laminar march of
+  the field's own edge velocity. The transported curve tracks the
+  envelope to $x/L\!\approx\!0.7$; the budget $N\!=\!\ln(1/\chi_\infty)$
+  and the $\chi\!=\!1$ level coincide by construction, and $N\!=\!9,7$
+  mark tunnel-class budgets. Triangles: measured transition $0.438$
+  (filled) and Stock's $e^N$ front (open).}
+  \label{fig:sphthreeway}
+\end{figure}
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{spheroid_reseed_front_vs_seed.pdf}
+  \caption{Axisymmetric spheroid, $\alpha\!=\!0$,
+  $Re_L\!=\!7.2\!\times\!10^6$: the $\chi\!=\!1$ front (filled) and
+  $C_f$-rise front (open) of a three-seed converged bracket against the
+  freestream budget $N$, on the seed-lever prediction (envelope and
+  transported-rate curves). The bracket tracks the prediction and
+  crosses the measured $0.438$ at $Tu\!\approx\!0.17\%$; the documented
+  DFVLR level ($N\!=\!8$, $Tu\!=\!0.106\%$) lands at $0.511$.}
+  \label{fig:sphreseed}
+\end{figure}
+
 \section{Conclusion}
 
 The Spalart--Allmaras working variable can, it turns out, serve as its
