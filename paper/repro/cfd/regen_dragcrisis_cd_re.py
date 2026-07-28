@@ -310,7 +310,15 @@ def main():
                          "still running (HANDOVER rule 4); default "
                          "drops them and leaves the committed jsonl "
                          "copy untouched")
+    ap.add_argument("--seeds", default="0.2",
+                    help="comma-separated Tu seeds to plot (default '0.2', "
+                         "the cleanest-converging middle seed; the seed "
+                         "spread is invisible outside the crisis band, so "
+                         "one seed declutters the full-span overlay. Use "
+                         "'0.05,0.2,0.7' for the whole family; the Tu-shift "
+                         "of the crisis is carried by the angle figure)")
     args = ap.parse_args()
+    seeds_list = [s for s in args.seeds.split(",") if s in TU_ORDER]
     rows, n_ultra = load_rows(args.root,
                               exclude_highre=args.re_window != 'full',
                               mesh_key=args.re_window == 'full',
@@ -341,7 +349,7 @@ def main():
     fig, ax = plt.subplots(figsize=(7.4, 5.4))
     dump = {}
     remin, remax = np.inf, 0.0
-    for tu in TU_ORDER:
+    for tu in seeds_list:
         c = TU_COLOR[tu]
         # SA-AI family is LINE-ONLY (user directive 2026-07-28): no markers,
         # up=solid / dn=dashed, seed color per Tu. It stays visually distinct
@@ -419,13 +427,16 @@ def main():
     ax.set_ylabel(r'$C_d$')
     ax.grid(alpha=0.3, which='major')
 
-    # direct family labels where the three seeds separate
-    ax.text(2.3e5, 0.50, r'$Tu\,0.7\%$', color=TU_COLOR["0.7"],
-            fontsize=11, ha='right')
-    ax.text(6.6e5, 0.60, r'$Tu\,0.2\%$', color=TU_COLOR["0.2"],
-            fontsize=11, ha='left')
-    ax.text(4.4e5, 0.78, r'$Tu\,0.05\%$', color=TU_COLOR["0.05"],
-            fontsize=11, ha='left')
+    # direct family labels where the seeds separate (only for plotted seeds)
+    if "0.7" in seeds_list:
+        ax.text(2.3e5, 0.50, r'$Tu\,0.7\%$', color=TU_COLOR["0.7"],
+                fontsize=11, ha='right')
+    if "0.2" in seeds_list:
+        ax.text(6.6e5, 0.60, r'$Tu\,0.2\%$', color=TU_COLOR["0.2"],
+                fontsize=11, ha='left')
+    if "0.05" in seeds_list:
+        ax.text(4.4e5, 0.78, r'$Tu\,0.05\%$', color=TU_COLOR["0.05"],
+                fontsize=11, ha='left')
 
     ours = [
         Line2D([], [], color='0.25', ls='-', lw=1.6,
