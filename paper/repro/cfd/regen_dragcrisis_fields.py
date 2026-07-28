@@ -5,9 +5,11 @@ at the middle seed (Tu 0.2%, up-ladder): subcritical Re_D = 1e5, mid-crisis
 5e5 (steady limit cycle; the plotted field is the final snapshot), and
 supercritical 2e6. Rows = cases, columns = velocity magnitude |u|/U_inf and
 log10(chi); the chi = 1 contour (the paper's transition-front level) is
-overdrawn in white on the chi panels. chi = nuHat/muRef (freestream check:
-the far field reads chi_inf = 1.0835e-2 exactly). Fields are probed from
-slice_centerSpan.pvtu onto a uniform Cartesian window; colormap ranges are
+overdrawn thick blue on the chi panels. Line contours (not filled), the
+paper-wide convention; Re per row lives in the caption, not the axes.
+chi = nuHat/muRef (freestream check: the far field reads
+chi_inf = 1.0835e-2 exactly). Fields are probed from
+slice_centerSpan.pvtu onto a uniform Cartesian window; contour levels are
 shared by all rows.
 
 Run from anywhere: python3 repro/cfd/regen_dragcrisis_fields.py
@@ -29,15 +31,15 @@ OUT = os.path.abspath(os.path.join(HERE, '..', '..', 'figs'))
 PREV = os.path.join(HERE, 'figs_explore')
 
 MACH = 0.1
-CASES = [("cyl_Re100000_Tu0.2_up", r"$Re_D=10^5$"),
-         ("cyl_Re500000_Tu0.2_up", r"$Re_D=5\times10^5$"),
-         ("cyl_Re2000000_Tu0.2_up", r"$Re_D=2\times10^6$")]
+CASES = ["cyl_Re100000_Tu0.2_up",
+         "cyl_Re500000_Tu0.2_up",
+         "cyl_Re2000000_Tu0.2_up"]
 # window in D around the cylinder (center x=0.5, z=0)
 XW = (-1.0, 4.0)
 ZW = (-1.55, 1.55)
 NX, NZ = 1100, 682
-ULEV = np.linspace(0.0, 1.9, 39)
-CLEV = np.linspace(-2.5, 4.5, 36)
+ULEV = np.linspace(0.1, 1.9, 13)
+CLEV = np.arange(-2.0, 4.51, 0.5)
 
 
 def probe(case_dir):
@@ -78,38 +80,39 @@ def main():
     args = ap.parse_args()
 
     plt.rcParams.update({"font.size": 11})
-    fig, axs = plt.subplots(3, 2, figsize=(10.6, 6.9), sharex=True,
+    fig, axs = plt.subplots(3, 2, figsize=(7.4, 6.9), sharex=True,
                             sharey=True, gridspec_kw=dict(hspace=0.06,
                                                           wspace=0.04))
     imu = imc = None
-    for row, (case, relabel) in enumerate(CASES):
+    for row, case in enumerate(CASES):
         xs, zs, u, lchi = probe(os.path.join(args.root, case))
         axU, axC = axs[row]
-        imu = axU.contourf(xs, zs, u, levels=ULEV, cmap="viridis",
-                           extend="max", zorder=1)
-        imc = axC.contourf(xs, zs, lchi, levels=CLEV, cmap="magma",
-                           extend="both", zorder=1)
-        axC.contour(xs, zs, lchi, levels=[0.0], colors="w", linewidths=1.1,
-                    zorder=2)
+        imu = axU.contour(xs, zs, u, levels=ULEV, cmap="viridis",
+                          linewidths=0.55, zorder=1)
+        imc = axC.contour(xs, zs, lchi, levels=CLEV, cmap="magma",
+                          linewidths=0.55, zorder=1)
+        axC.contour(xs, zs, lchi, levels=[0.0], colors="tab:blue",
+                    linewidths=1.4, zorder=2)
         for ax in (axU, axC):
-            # rasterize the filled fields (vector contourf shows polygon
-            # seams in the compiled PDF and weighs several MB)
-            ax.set_rasterization_zorder(1.5)
             ax.add_patch(plt.Circle((0.5, 0.0), 0.5, fc="0.85", ec="k",
                                     lw=0.6, zorder=5))
             ax.set_aspect("equal")
             ax.set_xlim(*XW)
             ax.set_ylim(*ZW)
-        axU.set_ylabel(relabel + "\n$z/D$")
+        axU.set_ylabel("$z/D$")
         print(f"  {case}: probed", flush=True)
     for ax in axs[-1]:
         ax.set_xlabel("$x/D$")
-    cbu = fig.colorbar(imu, ax=axs[:, 0], location="bottom", fraction=0.05,
-                       pad=0.11, aspect=34, ticks=[0, 0.5, 1.0, 1.5, 1.9])
+    # continuous gradient bars (a ContourSet colorbar renders line
+    # contours as sparse ticks on white)
+    smu = plt.cm.ScalarMappable(plt.Normalize(ULEV[0], ULEV[-1]), "viridis")
+    smc = plt.cm.ScalarMappable(plt.Normalize(CLEV[0], CLEV[-1]), "magma")
+    cbu = fig.colorbar(smu, ax=axs[:, 0], location="bottom", fraction=0.05,
+                       pad=0.11, aspect=34, ticks=[0.5, 1.0, 1.5])
     cbu.set_label(r"$|\mathbf{u}|/U_\infty$")
-    cbc = fig.colorbar(imc, ax=axs[:, 1], location="bottom", fraction=0.05,
+    cbc = fig.colorbar(smc, ax=axs[:, 1], location="bottom", fraction=0.05,
                        pad=0.11, aspect=34, ticks=[-2, -1, 0, 1, 2, 3, 4])
-    cbc.set_label(r"$\log_{10}\chi$ (white: $\chi=1$)")
+    cbc.set_label(r"$\log_{10}\chi$ (blue: $\chi=1$)")
     os.makedirs(PREV, exist_ok=True)
     fig.savefig(os.path.join(OUT, "dragcrisis_fields.pdf"),
                 bbox_inches="tight", dpi=220)
