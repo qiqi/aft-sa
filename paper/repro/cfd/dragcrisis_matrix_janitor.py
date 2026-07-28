@@ -55,6 +55,43 @@ def relink(case: Path, tmpl: Path, fname: str) -> int:
     return 0
 
 
+def truncate_solver_log(case: Path) -> int:
+    """Preserve the SA-AI constants echo, then truncate solver.log to its
+    last 200 KB. Returns bytes freed. (Shared with the extension driver.)"""
+    freed = 0
+    slog = case / "solver.log"
+    if slog.exists() and slog.stat().st_size > 300_000:
+        echo = case / "ai_constants_echo.log"
+        if not echo.exists():
+            out = subprocess.run(
+                ["grep", "-a", "-m1", "-A", "17",
+                 "SA-AI transition constants", str(slog)],
+                capture_output=True, text=True).stdout
+            echo.write_text(out)
+        sz = slog.stat().st_size
+        data = slog.read_bytes()[-200_000:]
+        slog.write_bytes(b"[janitor: truncated to last 200KB]\n" + data)
+        freed = sz - slog.stat().st_size
+    return freed
+
+
+def purge_restarts(case: Path) -> int:
+    """Delete a superseded case's restart files. Returns bytes freed.
+    (Shared with the extension driver.)"""
+    freed = 0
+    ro = case / "restartOutput"
+    if ro.is_dir():
+        for f in ro.iterdir():
+            freed += f.stat().st_size
+            f.unlink()
+        ro.rmdir()
+    for f in list(case.glob("restart*")):
+        if f.is_file():
+            freed += f.stat().st_size
+            f.unlink()
+    return freed
+
+
 def pass_once(root: Path) -> int:
     tmpl = root / "template_case"
     freed = 0
@@ -66,35 +103,14 @@ def pass_once(root: Path) -> int:
         done = (case / "summary.json").exists()
         if not done:
             continue
-        slog = case / "solver.log"
-        if slog.exists() and slog.stat().st_size > 300_000:
-            echo = case / "ai_constants_echo.log"
-            if not echo.exists():
-                out = subprocess.run(
-                    ["grep", "-a", "-m1", "-A", "17",
-                     "SA-AI transition constants", str(slog)],
-                    capture_output=True, text=True).stdout
-                echo.write_text(out)
-            sz = slog.stat().st_size
-            data = slog.read_bytes()[-200_000:]
-            slog.write_bytes(b"[janitor: truncated to last 200KB]\n" + data)
-            freed += sz - slog.stat().st_size
+        freed += truncate_solver_log(case)
         for v in case.glob("volume*"):
             if v.is_file():
                 freed += v.stat().st_size
                 v.unlink()
         succ = successor(case.name)
         if succ and (root / succ / "summary.json").exists():
-            ro = case / "restartOutput"
-            if ro.is_dir():
-                for f in ro.iterdir():
-                    freed += f.stat().st_size
-                    f.unlink()
-                ro.rmdir()
-            for f in list(case.glob("restart*")):
-                if f.is_file():
-                    freed += f.stat().st_size
-                    f.unlink()
+            freed += purge_restarts(case)
     return freed
 
 

@@ -105,14 +105,14 @@ def write_p3d(X, Y, path):
                 f.write(" ".join(f"{v:.16e}" for v in flat[i:i + 6]) + "\n")
 
 
-def mesh_stats(X, Y, g, n_cells):
+def mesh_stats(X, Y, g, n_cells, y1=Y1, r_out=R_OUT):
     """Print + return the mesh statistics the pilot must verify before running."""
     r = np.hypot(X - 0.5, Y)
     ds = np.hypot(np.diff(X[:, 0]), np.diff(Y[:, 0]))
     h1 = r[:, 1] - r[:, 0]
     # y+ estimate: y+ = (y1/D) * Re * sqrt(Cf/2); laminar shoulder Cf ~ 0.01
     # at 1e5, turbulent Cf ~ 3.2e-3 at 2e6 (flat-plate 0.026/Re^(1/7)).
-    yp = lambda Re, Cf: Y1 * Re * np.sqrt(Cf / 2.0)
+    yp = lambda Re, Cf: y1 * Re * np.sqrt(Cf / 2.0)
     stats = {
         "n_surf": X.shape[0] - 1, "n_layers": n_cells,
         "cells2d": (X.shape[0] - 1) * n_cells,
@@ -123,12 +123,14 @@ def mesh_stats(X, Y, g, n_cells):
         "wall_AR": float(ds.mean() / h1.mean()),
         "yplus_est_Re1e5_lamCf0.01": float(yp(1e5, 0.01)),
         "yplus_est_Re2e6_turbCf3.2e-3": float(yp(2e6, 3.2e-3)),
+        "yplus_est_Re1e7_turbCf2.6e-3": float(yp(1e7, 2.6e-3)),
+        "yplus_est_Re2e7_turbCf2.4e-3": float(yp(2e7, 2.4e-3)),
     }
     for k, v in stats.items():
         print(f"  {k:32s} {v}")
-    assert abs(stats["y1"] - Y1) < 1e-9 and stats["y1_spread"] < 1e-12
+    assert abs(stats["y1"] - y1) < 1e-9 and stats["y1_spread"] < 1e-12
     assert stats["growth"] <= 1.15 and stats["ds_uniformity"] < 1.0 + 1e-9
-    assert abs(stats["outer_radius"] - R_OUT) < 1e-6
+    assert abs(stats["outer_radius"] - r_out) < 1e-6 * r_out
     return stats
 
 
@@ -294,6 +296,14 @@ def main():
                          "campaign steady pseudo-transient settings (no re-mesh)")
     ap.add_argument("--re", type=float, default=RE,
                     help="Reynolds number based on D (sets muRef; mesh unchanged)")
+    # matrix-extension mesh families (2026-07-28): 'lowre' (creeping/steady
+    # arm, R_OUT=1000 for logarithmic low-Re blockage; y1=1e-3, BL is
+    # O(D/sqrt(Re))), 'lowre300' (R_OUT=300 far-field-sensitivity twin),
+    # 'highre' (transcritical arm to 1-2e7: y1=1e-6 for y+<=1, N_SURF=1600
+    # for the shrinking shoulder LSB). Same growth<=1.1 solve as the pilot.
+    ap.add_argument("--nsurf", type=int, default=N_SURF)
+    ap.add_argument("--y1", type=float, default=Y1)
+    ap.add_argument("--rout", type=float, default=R_OUT)
     args = ap.parse_args()
     if args.steady:
         make_steady_twin(os.path.join(args.out, args.name),
@@ -306,8 +316,9 @@ def main():
     os.makedirs(case_dir, exist_ok=True)
 
     print("=== analytic O-grid (circle D=1) ===")
-    X, Y, g, n_cells = build_ogrid()
-    stats = mesh_stats(X, Y, g, n_cells)
+    X, Y, g, n_cells = build_ogrid(n_surf=args.nsurf, y1=args.y1,
+                                   r_out=args.rout)
+    stats = mesh_stats(X, Y, g, n_cells, y1=args.y1, r_out=args.rout)
     write_p3d(X, Y, os.path.join(case_dir, "cylinder_ogrid.p3d"))
     n_quads = write_msh_from_arrays(X, Y, case_dir)
     print(f"  wrote mesh.msh ({n_quads} quads, quasi-2D span {SPAN})")

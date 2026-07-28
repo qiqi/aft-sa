@@ -61,16 +61,22 @@ CHARCOAL = '#3f3f3f'   # fully-turbulent RANS (neutral by design)
 GRAY = '0.42'          # experiments
 
 
-def load_rows(root, exclude_highre=False):
+def load_rows(root, exclude_highre=False, mesh_key=False):
     """later rows win per (Tu,dir,Re) key; with exclude_highre the
     extension campaign's '_highre' warm-start anchor re-runs are NOT
     allowed to displace the published matrix rows (they re-use the
-    same keys, e.g. cyl_Re2000000_Tu0.2_dn_highre)."""
+    same keys, e.g. cyl_Re2000000_Tu0.2_dn_highre). With mesh_key
+    (--re-window full) the mesh family joins the key, so the seam-overlap
+    duplicates (same Re+Tu+dir on two meshes: Re 300/1e3 lowre+pilot,
+    2e6/4e6 pilot+highre) COEXIST instead of displacing each other; they
+    plot as overlapping markers whose offset is the measured seam delta."""
     rows = {}
     with open(os.path.join(root, "matrix_summary.jsonl")) as f:
         for ln in f:
             r = json.loads(ln)
-            k = (r["Tu"], r["dir"], r["re"])
+            r.setdefault("mesh", "pilot")
+            k = (r["Tu"], r["dir"], r["re"]) + \
+                ((r["mesh"],) if mesh_key else ())
             if exclude_highre and "_highre" in r.get("case", "") and \
                     k in rows and "_highre" not in rows[k]["case"]:
                 continue
@@ -213,7 +219,8 @@ def main():
                          "from a running campaign is forbidden, "
                          "HANDOVER rule 4)")
     args = ap.parse_args()
-    rows = load_rows(args.root, exclude_highre=args.re_window != 'full')
+    rows = load_rows(args.root, exclude_highre=args.re_window != 'full',
+                     mesh_key=args.re_window == 'full')
     if args.re_window != 'full':
         lo, hi = (float(v) for v in args.re_window.split(':'))
         n0 = len(rows)
@@ -242,8 +249,9 @@ def main():
         # appendix table, NOT plotted (user directive 2026-07-28)
         for d, ls, mk_, mfc in (("up", "-", "o", c), ("dn", "--", "s", "none"),
                                 ("cold", None, None, None)):
-            pts = sorted((re, r) for (t, dd, re), r in rows.items()
-                         if t == tu and dd == d)
+            pts = sorted(((r["re"], r) for r in rows.values()
+                          if r["Tu"] == tu and r["dir"] == d),
+                         key=lambda p: (p[0], p[1]["Cd"]))
             if not pts:
                 continue
             re = np.array([p[0] for p in pts])
@@ -275,7 +283,8 @@ def main():
     ax.set_xlim(xmin, xmax)
     if args.logy:
         ax.set_yscale('log')
-        ax.set_ylim(0.1, 4.0)
+        cds = [r["Cd"] for r in rows.values()]
+        ax.set_ylim(0.75 * min(cds), 1.35 * max(cds))
     else:
         ax.set_ylim(0.1, 1.52)
         ax.yaxis.set_major_locator(mticker.MultipleLocator(0.2))

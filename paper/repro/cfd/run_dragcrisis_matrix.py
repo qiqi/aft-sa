@@ -101,10 +101,11 @@ def wait_for_gpu(gpu: int):
 
 
 # ---------------------------------------------------------------------------
-def make_case(case_dir: Path, re: float, chi_inf: float):
+def make_case(case_dir: Path, re: float, chi_inf: float, tmpl: Path | None = None):
     """Clone the steady template: hardlink big mesh files, copy the small
-    preprocess products, patch muRef. Seeds/fSlow are patched per stage."""
-    tmpl = OUT / "template_case"
+    preprocess products, patch muRef. Seeds/fSlow are patched per stage.
+    tmpl: alternate mesh-family template (extension arms); default = pilot."""
+    tmpl = tmpl or OUT / "template_case"
     if case_dir.exists():
         shutil.rmtree(case_dir)
     case_dir.mkdir(parents=True)
