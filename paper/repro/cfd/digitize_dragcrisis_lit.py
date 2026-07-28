@@ -27,6 +27,10 @@ Datasets (one JSON each, litdata/dragcrisis/<name>.json):
   vector  veysey_fig7_lowre       Tritton/Finn/Jayaweera low-Re drag
                                   [secondary replot, arXiv physics/0609138]
   table   rodriguez2015_les       WRLES Table 2 transcription (primary)
+  table   qu2013_dns              2-D unsteady DNS-class sweep Re 50-200,
+                                  Qu et al. 2013 Table 3 (primary)
+  table   dong_karniadakis2005_dns3d  3-D spectral DNS, Re=1e4 resolution
+                                  study, Dong & Karniadakis 2005 Table 2
   raster  iop2020_models          Stabnikov-Garbaruk fig 3 left: SST
                                   (fully turbulent), SST gamma-Re_theta,
                                   SST KD sweeps + their Schewe replot
@@ -478,6 +482,92 @@ def d_rodriguez2015_les():
                  points=[dict(Re=r, Cd=c) for r, c in rows]),
     ))
     print('  rodriguez table2: 6 pts')
+
+
+def _assert_in_pdf(pdf, pageno, needles):
+    """Transcription QA: every needle string must appear verbatim in the
+    PDF page text (guards against transcription typos)."""
+    page = fitz.open(os.path.join(LIT, pdf))[pageno]
+    txt = page.get_text()
+    missing = [n for n in needles if n not in txt]
+    assert not missing, f'{pdf} p{pageno}: not found in text: {missing}'
+
+
+def d_qu2013_dns():
+    """Qu, Norberg, Davidson, Peng & Wang 2013 Table 3 (author ms.
+    p. 19) -- direct transcription of the 2-D unsteady DNS-class sweep
+    (finite volume, mesh 386x322, dt=0.01), mean drag CD vs Re. Every
+    value is asserted verbatim against the PDF text. Re=150 appears
+    twice (domain H=100 and H=160); the larger-domain row is the
+    plotted point, both are kept."""
+    rows = [  # (Re, H, CD)
+        (50, 200, 1.397), (60, 160, 1.377), (80, 160, 1.336),
+        (100, 120, 1.317), (120, 120, 1.306), (150, 100, 1.305),
+        (150, 160, 1.301), (180, 100, 1.310), (200, 100, 1.316)]
+    _assert_in_pdf('qu2013_jfs.pdf', 18,
+                   [f'{cd:.3f}' for _, _, cd in rows] +
+                   ['Table 3: Global results'])
+    plotted = [(re, cd) for re, h, cd in rows if (re, h) != (150, 100)]
+    dump('qu2013_dns', dict(
+        source='Qu, Norberg, Davidson, Peng & Wang, "Quantitative '
+               'numerical analysis of flow past a circular cylinder at '
+               'Reynolds number between 50 and 200", J. Fluids Struct. '
+               '39 (2013) 347-370, doi 10.1016/j.jfluidstructs.2013.'
+               '02.007; TABLE 3 (author-ms. p. 19), transcribed '
+               f'{TODAY} (no digitization -- tabulated values, each '
+               'asserted verbatim against the PDF text).',
+        method='transcription of Table 3 column CD (mesh 386x322, '
+               'dt=0.01, domain H per row)',
+        caveats='their own Table 2 domain study at Re=100 puts the '
+                'H-dependence below 1% (H=200: 1.310 vs H=120: 1.317); '
+                'at Re=150 the H=160 row (1.301) is the plotted point, '
+                'the H=100 row (1.305) kept in all_rows',
+        dns2d=dict(cls='2-D unsteady DNS-class (laminar shedding)',
+                   access='primary',
+                   points=[dict(Re=r, Cd=c) for r, c in plotted]),
+        all_rows=[dict(Re=r, H=h, Cd=c) for r, h, c in rows],
+    ))
+    print(f'  qu2013 table3: {len(plotted)} plotted pts '
+          f'({len(rows)} rows incl. Re=150 domain pair)')
+
+
+def d_dong2005_dns3d():
+    """Dong & Karniadakis 2005 Table 2 (p. 524 = pdf page 5) -- direct
+    transcription: 3-D spectral DNS of the stationary cylinder at
+    Re=10,000, mean drag Cd across their resolution study. Plotted as
+    a vertical tick spanning the spanwise-resolved cases (Nz>=64);
+    coarse-spanwise cases (Nz<=32) kept separately."""
+    cases = [  # (case, P, Nz, K, Cd)
+        ('DNS-A1', 5, 16, 6272, 1.155), ('DNS-A2', 5, 64, 6272, 1.110),
+        ('DNS-A3', 5, 128, 6272, 1.128), ('DNS-B1', 5, 32, 9272, 1.208),
+        ('DNS-B2', 4, 64, 9272, 1.120), ('DNS-B3', 5, 128, 9272, 1.143)]
+    _assert_in_pdf('dong_karniadakis2005_jfs.pdf', 5,
+                   [c for c, *_ in cases] + ['Table 2'])
+    # values are typeset as "1:155" (colon decimal sep in this PDF font)
+    _assert_in_pdf('dong_karniadakis2005_jfs.pdf', 5,
+                   [f'{cd:.3f}'.replace('.', ':') for *_, cd in cases])
+    fine = [cd for _, _, nz, _, cd in cases if nz >= 64]
+    dump('dong_karniadakis2005_dns3d', dict(
+        source='Dong & Karniadakis, "DNS of flow past a stationary and '
+               'oscillating cylinder at Re=10000", J. Fluids Struct. 20 '
+               '(2005) 519-531, doi 10.1016/j.jfluidstructs.2005.02.004; '
+               f'TABLE 2 (p. 524), transcribed {TODAY} (no digitization '
+               '-- tabulated values, asserted against the PDF text, '
+               'whose font renders the decimal point as a colon).',
+        method='transcription of Table 2 column Cd (stationary '
+               'cylinder, Re=10,000, spectral/Fourier 3-D DNS)',
+        caveats='plotted as a vertical tick spanning the Nz>=64 cases '
+                '(1.110-1.143, finest DNS-B3 = 1.143); coarse-spanwise '
+                'Nz<=32 cases (1.155, 1.208) excluded from the tick',
+        dns3d=dict(cls='3-D DNS', access='primary',
+                   points=[dict(Re=1.0e4, Cd=c, case=n)
+                           for n, _, nz, _, c in cases if nz >= 64],
+                   Cd_min=min(fine), Cd_max=max(fine), Cd_finest=1.143),
+        all_rows=[dict(case=n, P=p, Nz=nz, K=k, Cd=c)
+                  for n, p, nz, k, c in cases],
+    ))
+    print(f'  dong2005 table2: {len(fine)} resolved cases, '
+          f'tick {min(fine)}-{max(fine)}')
 
 
 # -------------------------------------------------------- raster datasets
@@ -1397,6 +1487,8 @@ REG = {
     'rodriguez2015_fig4_exp': d_rodriguez2015_fig4,
     'veysey_fig7_lowre': d_veysey_fig7,
     'rodriguez2015_les': d_rodriguez2015_les,
+    'qu2013_dns': d_qu2013_dns,
+    'dong_karniadakis2005_dns3d': d_dong2005_dns3d,
     'iop2020_models': d_iop2020_models,
     'stringer2014_urans': d_stringer2014,
     'henderson1995': d_henderson1995,

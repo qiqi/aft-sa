@@ -1,0 +1,78 @@
+{
+ "source": "Dong & Karniadakis, \"DNS of flow past a stationary and oscillating cylinder at Re=10000\", J. Fluids Struct. 20 (2005) 519-531, doi 10.1016/j.jfluidstructs.2005.02.004; TABLE 2 (p. 524), transcribed 2026-07-28 (no digitization -- tabulated values, asserted against the PDF text, whose font renders the decimal point as a colon).",
+ "method": "transcription of Table 2 column Cd (stationary cylinder, Re=10,000, spectral/Fourier 3-D DNS)",
+ "caveats": "plotted as a vertical tick spanning the Nz>=64 cases (1.110-1.143, finest DNS-B3 = 1.143); coarse-spanwise Nz<=32 cases (1.155, 1.208) excluded from the tick",
+ "dns3d": {
+  "cls": "3-D DNS",
+  "access": "primary",
+  "points": [
+   {
+    "Re": 10000.0,
+    "Cd": 1.11,
+    "case": "DNS-A2"
+   },
+   {
+    "Re": 10000.0,
+    "Cd": 1.128,
+    "case": "DNS-A3"
+   },
+   {
+    "Re": 10000.0,
+    "Cd": 1.12,
+    "case": "DNS-B2"
+   },
+   {
+    "Re": 10000.0,
+    "Cd": 1.143,
+    "case": "DNS-B3"
+   }
+  ],
+  "Cd_min": 1.11,
+  "Cd_max": 1.143,
+  "Cd_finest": 1.143
+ },
+ "all_rows": [
+  {
+   "case": "DNS-A1",
+   "P": 5,
+   "Nz": 16,
+   "K": 6272,
+   "Cd": 1.155
+  },
+  {
+   "case": "DNS-A2",
+   "P": 5,
+   "Nz": 64,
+   "K": 6272,
+   "Cd": 1.11
+  },
+  {
+   "case": "DNS-A3",
+   "P": 5,
+   "Nz": 128,
+   "K": 6272,
+   "Cd": 1.128
+  },
+  {
+   "case": "DNS-B1",
+   "P": 5,
+   "Nz": 32,
+   "K": 9272,
+   "Cd": 1.208
+  },
+  {
+   "case": "DNS-B2",
+   "P": 4,
+   "Nz": 64,
+   "K": 9272,
+   "Cd": 1.12
+  },
+  {
+   "case": "DNS-B3",
+   "P": 5,
+   "Nz": 128,
+   "K": 9272,
+   "Cd": 1.143
+  }
+ ]
+}

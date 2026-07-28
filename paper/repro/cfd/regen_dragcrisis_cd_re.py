@@ -11,17 +11,26 @@ loaded into the JSON dump but NOT plotted (user directive 2026-07-28).
 Literature overlay (light, small, background): independently digitized
 Cd(Re) datasets from repro/cfd/litdata/dragcrisis/ (see README.md there
 and digitize_dragcrisis_lit.py; every dataset has a calibration +
-check-PNG audit trail). Classes:
-  experiments        gray/black open symbols per source + thin gray lines
-  scale-resolving    green symbols (WRLES filled, WMLES open star)
-  transition RANS    green thin line (SST gamma-Re_theta sweep)
-  fully-turb. RANS   charcoal x / dotted line
+check-PNG audit trail, tables are transcribed + text-asserted). STRICT
+SEMANTIC (user directive 2026-07-28):
+  EXPERIMENTS   = gray/black symbols WITHOUT connecting lines (digitized
+                  faired curves -- Wieselsberger TN-84, Achenbach 1968 --
+                  render as sparse symbols resampled along the polyline)
+  COMPUTATIONS  = lines WITHOUT symbols; green = transition-resolving/
+                  scale-resolving (2-D unsteady Henderson 1995 + Qu 2013
+                  in the shedding band, WRLES/WMLES + SST gamma-Re_theta
+                  at the crisis; the single-Re 3-D DNS of Dong &
+                  Karniadakis 2005 is a capped vertical tick at Re 1e4
+                  spanning their resolution study -- a line, not a
+                  symbol); charcoal dotted = fully-turbulent SST
+  SA-AI family  = untouched (the subject: Tu-colored solid/dashed
+                  ladders with filled/open markers, distinct from both)
 Only ONE chromatic hue is added (#3f8a4f, validated against the Tu trio:
 adjacent normal-vision dE 18; the orange<->green protan pair sits in the
 6-8 secondary-encoding band, carried by marker shape + line weight).
-Low-Re sets (Henderson 1995, Tritton/Finn/Jayaweera) are loaded but only
-enter the frame when the axis window reaches them (they will, once the
-Re 1-1e7 extension campaign lands); use --xmin/--xmax/--logy then.
+The 2-D unsteady lines cover Re ~50-1000, where the experiments are
+shedding means and OUR steady branch knowingly sits below (caption's
+continuity-not-validation statement).
 
 Data: matrix_summary.jsonl of the 84-case campaign
 (repro/cfd/run_dragcrisis_matrix.py); the band extents are recomputed here
@@ -61,7 +70,8 @@ CHARCOAL = '#3f3f3f'   # fully-turbulent RANS (neutral by design)
 GRAY = '0.42'          # experiments
 
 
-def load_rows(root, exclude_highre=False, mesh_key=False):
+def load_rows(root, exclude_highre=False, mesh_key=False,
+              include_ultra=False):
     """later rows win per (Tu,dir,Re) key; with exclude_highre the
     extension campaign's '_highre' warm-start anchor re-runs are NOT
     allowed to displace the published matrix rows (they re-use the
@@ -69,19 +79,27 @@ def load_rows(root, exclude_highre=False, mesh_key=False):
     (--re-window full) the mesh family joins the key, so the seam-overlap
     duplicates (same Re+Tu+dir on two meshes: Re 300/1e3 lowre+pilot,
     2e6/4e6 pilot+highre) COEXIST instead of displacing each other; they
-    plot as overlapping markers whose offset is the measured seam delta."""
-    rows = {}
+    plot as overlapping markers whose offset is the measured seam delta.
+
+    'ultra'-mesh rows (the RUNNING Re>2e7 ultra campaign, appended to
+    the live jsonl from 2026-07-28 on) are DROPPED unless include_ultra:
+    regenerating from an in-progress campaign is forbidden (HANDOVER
+    rule 4). Returns (rows, n_ultra_dropped)."""
+    rows, n_ultra = {}, 0
     with open(os.path.join(root, "matrix_summary.jsonl")) as f:
         for ln in f:
             r = json.loads(ln)
             r.setdefault("mesh", "pilot")
+            if r["mesh"] == "ultra" and not include_ultra:
+                n_ultra += 1
+                continue
             k = (r["Tu"], r["dir"], r["re"]) + \
                 ((r["mesh"],) if mesh_key else ())
             if exclude_highre and "_highre" in r.get("case", "") and \
                     k in rows and "_highre" not in rows[k]["case"]:
                 continue
             rows[k] = r
-    return rows
+    return rows, n_ultra
 
 
 def tail_minmax(case_dir):
@@ -103,8 +121,9 @@ def tail_minmax(case_dir):
     return float(w.min()), float(w.max())
 
 
-def lit(name, *keys):
-    """(Re[], Cd[]) arrays from a litdata JSON series; [] if absent."""
+def lit(name, *keys, where=None):
+    """(Re[], Cd[]) arrays from a litdata JSON series; [] if absent.
+    where: optional point-dict predicate (e.g. branch selection)."""
     path = os.path.join(LIT, name + '.json')
     if not os.path.exists(path):
         print(f'  [lit] MISSING {path} -- run digitize_dragcrisis_lit.py')
@@ -113,23 +132,47 @@ def lit(name, *keys):
     for k in keys:
         d = d[k]
     pts = d['points']
+    if where is not None:
+        pts = [p for p in pts if where(p)]
     return (np.array([p['Re'] for p in pts]),
             np.array([p['Cd'] for p in pts]))
 
 
+def logsample(re_, cd, step):
+    """Sparse symbols along a digitized experimental faired curve:
+    resample the polyline at ~step decades in Re (interp in log-log =
+    on the chords as drawn on the log-log axes), keeping both endpoints
+    and the polyline's own Cd-minimum vertex (the crisis dip must not
+    be interpolated away)."""
+    o = np.argsort(re_)
+    lr, lc = np.log10(re_[o]), np.log10(cd[o])
+    s = np.arange(lr[0], lr[-1], step)
+    s = np.unique(np.concatenate([s, [lr[-1], lr[np.argmin(lc)]]]))
+    return 10.0 ** s, 10.0 ** np.interp(s, lr, lc)
+
+
 def overlay_literature(ax):
     """Background literature marks; returns legend handles (compact,
-    one per source/class per the 2026-07-28 user directive)."""
+    one per source/class). STRICT SEMANTIC (user directive 2026-07-28):
+    experiments = symbols WITHOUT connecting lines (digitized faired
+    curves render as sparse symbols along the polyline); computations =
+    lines WITHOUT symbols (the single-Re 3-D DNS renders as a capped
+    vertical tick spanning its resolution study -- a line, not a
+    symbol). The SA-AI family keeps its own distinct styling."""
     z = 1.5   # everything behind our family (zorder 3/4)
     hs = []
     mk = dict(lw=0, mew=0.8, alpha=0.85, zorder=z, ls='none')
+    ln = dict(alpha=0.9, zorder=z)
 
-    # --- experiments: gray, identity by marker shape ------------------
+    # --- experiments: gray/black SYMBOLS ONLY -------------------------
+    # TN-84 faired curve (Re 4.2-3e3): sparse symbols along the
+    # digitized polyline, same glyph as the TN-84 symbol series
     re_, cd = lit('tn84_wieselsberger', 'wieselsberger_curve')
-    ax.plot(re_, cd, '-', color='0.55', lw=0.9, alpha=0.9, zorder=z)
+    rs, cs = logsample(re_, cd, 0.10)
+    ax.plot(rs, cs, marker='o', ms=2.6, mfc='0.55', mec='0.55', **mk)
     re2, cd2 = lit('tn84_wieselsberger', 'wieselsberger_symbols')
     ax.plot(re2, cd2, marker='o', ms=2.6, mfc='0.55', mec='0.55', **mk)
-    hs.append(Line2D([], [], color='0.55', lw=0.9, marker='o', ms=2.6,
+    hs.append(Line2D([], [], ls='none', marker='o', ms=2.6,
                      mfc='0.55', mec='0.55',
                      label='Wieselsberger 1921'))
 
@@ -155,49 +198,75 @@ def overlay_literature(ax):
                      mec=GRAY, mew=0.8,
                      label='Achenbach–Heinecke 1981 [R15]'))
 
+    # Achenbach-1968 faired curve (an EXPERIMENT: sparse symbols along
+    # the digitized polyline, not a line that would read as computation)
     re_, cd = lit('catalano2001_wmles', 'achenbach1968_curve')
-    ax.plot(re_, cd, '--', color='0.55', lw=0.9, alpha=0.9, zorder=z)
-    hs.append(Line2D([], [], color='0.55', lw=0.9, ls='--',
-                     label='Achenbach 1968 curve [C03]'))
+    rs, cs = logsample(re_, cd, 0.08)
+    ax.plot(rs, cs, marker='o', ms=3.0, mfc='none', mec=GRAY, **mk)
+    hs.append(Line2D([], [], ls='none', marker='o', ms=3.4, mfc='none',
+                     mec=GRAY, mew=0.8,
+                     label='Achenbach 1968 [dig. C03]'))
 
-    # --- scale-resolving: green symbols -------------------------------
-    re_, cd = lit('rodriguez2015_les', 'les')
-    ax.plot(re_, cd, marker='v', ms=4.6, mfc=GREEN, mec=GREEN, **mk)
-    hs.append(Line2D([], [], ls='none', marker='v', ms=4.6, mfc=GREEN,
-                     mec=GREEN, label='WRLES (Rodríguez 2015)'))
-
-    re_, cd = lit('catalano2001_wmles', 'wmles')
-    ax.plot(re_, cd, marker='*', ms=6.5, mfc='none', mec=GREEN,
-            mew=1.0, lw=0, alpha=0.9, zorder=z, ls='none')
-    hs.append(Line2D([], [], ls='none', marker='*', ms=7, mfc='none',
-                     mec=GREEN, mew=1.0, label='WMLES (Catalano 2003)'))
-
-    # --- transition-model RANS: green thin line -----------------------
-    re_, cd = lit('iop2020_models', 'sst_gamma_retheta')
-    ax.plot(re_, cd, '-', color=GREEN, lw=1.0, marker='.', ms=3,
-            alpha=0.9, zorder=z)
-    hs.append(Line2D([], [], color=GREEN, lw=1.0, marker='.', ms=3,
-                     label='SST $\\gamma$–$Re_\\theta$ URANS [SG20]'))
-
-    # --- fully-turbulent RANS: charcoal -------------------------------
-    re_, cd = lit('iop2020_models', 'sst_fully_turbulent')
-    ax.plot(re_, cd, ':', color=CHARCOAL, lw=1.1, alpha=0.9, zorder=z)
-    re2, cd2 = lit('stringer2014_urans', 'cfx')
-    re3, cd3 = lit('stringer2014_urans', 'openfoam')
-    ax.plot(re2, cd2, marker='x', ms=4.0, mec=CHARCOAL, mew=1.0,
-            lw=0, alpha=0.9, zorder=z, ls='none')
-    ax.plot(re3, cd3, marker='x', ms=4.0, mec=CHARCOAL, mew=1.0,
-            lw=0, alpha=0.9, zorder=z, ls='none')
-    hs.append(Line2D([], [], color=CHARCOAL, lw=1.1, ls=':', marker='x',
-                     ms=4.4, mew=1.0,
-                     label='fully-turb. SST [SG20; S14]'))
-
-    # low-Re sets: plotted too -- visible only if the window reaches them
-    re_, cd = lit('henderson1995', 'totals')
-    ax.plot(re_, cd, marker='o', ms=3.0, mfc='none', mec=GREEN, **mk)
+    # low-Re experiments (Re 0.05-6), symbols as always
     for nm in ('tritton1959', 'finn1953', 'jayaweera_mason1965'):
         re_, cd = lit('veysey_fig7_lowre', nm)
         ax.plot(re_, cd, marker='o', ms=2.4, mfc='0.55', mec='0.55', **mk)
+
+    # --- computations: LINES ONLY --------------------------------------
+    # 2-D unsteady band (Re ~50-1000): shedding-mean drag, where the
+    # experiments are shedding means and OUR steady branch sits below
+    re_, cd = lit('henderson1995', 'totals',
+                  where=lambda p: p['branch'] == 'shedding')
+    ax.plot(re_, cd, '-', color=GREEN, lw=1.1, **ln)
+    hs.append(Line2D([], [], color=GREEN, lw=1.1,
+                     label='2-D spectral, shedding mean (Henderson 1995)'))
+
+    re_, cd = lit('qu2013_dns', 'dns2d')
+    ax.plot(re_, cd, '--', color=GREEN, lw=1.1, **ln)
+    hs.append(Line2D([], [], color=GREEN, lw=1.1, ls='--',
+                     label='2-D DNS (Qu et al. 2013)'))
+
+    # 3-D DNS anchor at Re=1e4: capped vertical tick spanning the
+    # Nz>=64 resolution study (Cd 1.110-1.143, finest 1.143)
+    path = os.path.join(LIT, 'dong_karniadakis2005_dns3d.json')
+    if os.path.exists(path):
+        d = json.load(open(path))['dns3d']
+        mid = 0.5 * (d['Cd_min'] + d['Cd_max'])
+        ax.errorbar([1.0e4], [mid],
+                    yerr=[[mid - d['Cd_min']], [d['Cd_max'] - mid]],
+                    fmt='none', ecolor=GREEN, elinewidth=1.4,
+                    capsize=3, capthick=1.4, alpha=0.9, zorder=z)
+        hs.append(Line2D([], [], ls='none', marker='|', ms=9,
+                         mec=GREEN, mew=1.4,
+                         label='3-D DNS (Dong–Karniadakis 2005)'))
+    else:
+        print(f'  [lit] MISSING {path} -- run digitize_dragcrisis_lit.py')
+
+    # crisis-range scale-resolving
+    re_, cd = lit('rodriguez2015_les', 'les')
+    ax.plot(re_, cd, '-', color=GREEN, lw=1.8, **ln)
+    hs.append(Line2D([], [], color=GREEN, lw=1.8,
+                     label='WRLES (Rodríguez 2015)'))
+
+    re_, cd = lit('catalano2001_wmles', 'wmles')
+    ax.plot(re_, cd, '--', color=GREEN, lw=1.8, **ln)
+    hs.append(Line2D([], [], color=GREEN, lw=1.8, ls='--',
+                     label='WMLES (Catalano 2003)'))
+
+    # transition-model RANS
+    re_, cd = lit('iop2020_models', 'sst_gamma_retheta')
+    ax.plot(re_, cd, '-.', color=GREEN, lw=1.1, **ln)
+    hs.append(Line2D([], [], color=GREEN, lw=1.1, ls='-.',
+                     label='SST $\\gamma$–$Re_\\theta$ URANS [SG20]'))
+
+    # fully-turbulent RANS: charcoal dotted (3 series, one class entry)
+    re_, cd = lit('iop2020_models', 'sst_fully_turbulent')
+    ax.plot(re_, cd, ':', color=CHARCOAL, lw=1.1, **ln)
+    for series in ('cfx', 'openfoam'):
+        re_, cd = lit('stringer2014_urans', series)
+        ax.plot(re_, cd, ':', color=CHARCOAL, lw=1.1, **ln)
+    hs.append(Line2D([], [], color=CHARCOAL, lw=1.1, ls=':',
+                     label='fully-turb. SST [SG20; S14]'))
     return hs
 
 
@@ -218,9 +287,21 @@ def main():
                          "in-progress extension rows, and regenerating "
                          "from a running campaign is forbidden, "
                          "HANDOVER rule 4)")
+    ap.add_argument("--include-ultra", action="store_true",
+                    help="admit 'ultra'-mesh rows (the Re>2e7 ultra "
+                         "campaign). FORBIDDEN while that campaign is "
+                         "still running (HANDOVER rule 4); default "
+                         "drops them and leaves the committed jsonl "
+                         "copy untouched")
     args = ap.parse_args()
-    rows = load_rows(args.root, exclude_highre=args.re_window != 'full',
-                     mesh_key=args.re_window == 'full')
+    rows, n_ultra = load_rows(args.root,
+                              exclude_highre=args.re_window != 'full',
+                              mesh_key=args.re_window == 'full',
+                              include_ultra=args.include_ultra)
+    if n_ultra:
+        print(f'  NOTE: {n_ultra} ultra-campaign rows dropped '
+              f'(in progress; rerun with --include-ultra when the '
+              f'ultra campaign is declared harvested)')
     if args.re_window != 'full':
         lo, hi = (float(v) for v in args.re_window.split(':'))
         n0 = len(rows)
@@ -231,8 +312,8 @@ def main():
                   f'rerun with --re-window full when it completes)')
     # keep the committed copy of the campaign summary in sync (small file;
     # the case trees themselves stay on /local_data) -- but NOT while the
-    # live file carries in-progress extension rows we are excluding
-    if args.re_window == 'full':
+    # live file carries in-progress rows we are excluding
+    if args.re_window == 'full' and n_ultra == 0:
         shutil.copy2(os.path.join(args.root, "matrix_summary.jsonl"),
                      os.path.join(DATA, "dragcrisis_matrix_summary.jsonl"))
     else:

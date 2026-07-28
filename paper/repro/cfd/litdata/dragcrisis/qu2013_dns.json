@@ -1,0 +1,90 @@
+{
+ "source": "Qu, Norberg, Davidson, Peng & Wang, \"Quantitative numerical analysis of flow past a circular cylinder at Reynolds number between 50 and 200\", J. Fluids Struct. 39 (2013) 347-370, doi 10.1016/j.jfluidstructs.2013.02.007; TABLE 3 (author-ms. p. 19), transcribed 2026-07-28 (no digitization -- tabulated values, each asserted verbatim against the PDF text).",
+ "method": "transcription of Table 3 column CD (mesh 386x322, dt=0.01, domain H per row)",
+ "caveats": "their own Table 2 domain study at Re=100 puts the H-dependence below 1% (H=200: 1.310 vs H=120: 1.317); at Re=150 the H=160 row (1.301) is the plotted point, the H=100 row (1.305) kept in all_rows",
+ "dns2d": {
+  "cls": "2-D unsteady DNS-class (laminar shedding)",
+  "access": "primary",
+  "points": [
+   {
+    "Re": 50,
+    "Cd": 1.397
+   },
+   {
+    "Re": 60,
+    "Cd": 1.377
+   },
+   {
+    "Re": 80,
+    "Cd": 1.336
+   },
+   {
+    "Re": 100,
+    "Cd": 1.317
+   },
+   {
+    "Re": 120,
+    "Cd": 1.306
+   },
+   {
+    "Re": 150,
+    "Cd": 1.301
+   },
+   {
+    "Re": 180,
+    "Cd": 1.31
+   },
+   {
+    "Re": 200,
+    "Cd": 1.316
+   }
+  ]
+ },
+ "all_rows": [
+  {
+   "Re": 50,
+   "H": 200,
+   "Cd": 1.397
+  },
+  {
+   "Re": 60,
+   "H": 160,
+   "Cd": 1.377
+  },
+  {
+   "Re": 80,
+   "H": 160,
+   "Cd": 1.336
+  },
+  {
+   "Re": 100,
+   "H": 120,
+   "Cd": 1.317
+  },
+  {
+   "Re": 120,
+   "H": 120,
+   "Cd": 1.306
+  },
+  {
+   "Re": 150,
+   "H": 100,
+   "Cd": 1.305
+  },
+  {
+   "Re": 150,
+   "H": 160,
+   "Cd": 1.301
+  },
+  {
+   "Re": 180,
+   "H": 100,
+   "Cd": 1.31
+  },
+  {
+   "Re": 200,
+   "H": 100,
+   "Cd": 1.316
+  }
+ ]
+}

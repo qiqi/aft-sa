@@ -20,6 +20,8 @@ on disk (not committed); re-acquire with the URLs below.
 | stringer2014_oceaneng.pdf | Stringer, Zang & Hillis, Ocean Eng. 87:1-9 (2014), author-accepted ms. | https://core.ac.uk/download/161912606.pdf (Bath portal copy is Cloudflare-gated) | green OA |
 | iop2020_transition_ddes.pdf | Stabnikov & Garbaruk, J. Phys.: Conf. Ser. 1697:012224 (2020) | https://iopscience.iop.org/article/10.1088/1742-6596/1697/1/012224/pdf | open access |
 | wieselsberger_replot_physics0609138.pdf | Veysey & Goldenfeld, Rev. Mod. Phys. 79:883 (2007) | https://arxiv.org/pdf/physics/0609138 | open (arXiv) |
+| qu2013_jfs.pdf | Qu, Norberg, Davidson, Peng & Wang, J. Fluids Struct. 39:347-370 (2013), author ms., doi 10.1016/j.jfluidstructs.2013.02.007 | https://publications.lib.chalmers.se/records/fulltext/180053/local_180053.pdf | green OA (Chalmers CPL) |
+| dong_karniadakis2005_jfs.pdf | Dong & Karniadakis, J. Fluids Struct. 20(4):519-531 (2005), doi 10.1016/j.jfluidstructs.2005.02.004 | https://www.math.purdue.edu/~sdong/PDF/DNS10k_JFS05.pdf | open (author's page) |
 
 ## Datasets (JSON), class and provenance grade
 
@@ -34,6 +36,8 @@ on disk (not committed); re-acquire with the URLs below.
 | stringer2014_urans.json | CFX + OpenFOAM SST URANS, Re 40-1e6 | RANS fully turbulent | primary |
 | iop2020_models.json | SST (fully turb.), SST gamma-Re_theta, SST KD sweeps 5e4-1.3e6 + Schewe replot | RANS FT + transition | primary |
 | henderson1995.json | 2-D spectral totals, steady + shedding branches Re 25-1000 | 2-D numerical | primary |
+| qu2013_dns.json | 2-D unsteady DNS-class sweep Re 50-200 (Table 3, transcribed + text-asserted; Re=150 domain pair kept) | 2-D numerical | primary (tabulated) |
+| dong_karniadakis2005_dns3d.json | 3-D spectral DNS at Re=1e4, Table 2 resolution study (transcribed + text-asserted; colon-decimal PDF font) | 3-D DNS | primary (tabulated) |
 | veysey_fig7_lowre.json | Tritton/Finn/Jayaweera drag, Re 0.05-6 | experiment | secondary (vector-exact replot) |
 
 Unreachable primaries, noted: Achenbach 1968 (JFM 34, paywalled;
