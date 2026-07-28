@@ -2584,6 +2584,26 @@ branch, $|C_L|\!<\!2\!\times\!10^{-7}$.
   \label{fig:dragcrisisangles}
 \end{figure}
 
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{dragcrisis_fpg.pdf}
+  \caption{Favorable-pressure-gradient amplification audit. Left:
+    frozen-profile envelope slope $dN/dRe_\theta$ on Falkner--Skan
+    wedges---the model (mean-secant and late-window estimates)
+    against the Drela--Giles envelope fit and its mfoil
+    implementation; open triangle: below the axis floor. The upper
+    axis gives the wedge shape factor $H$. Right: amplification
+    budget $N(\theta)$ on a validated laminar march of the measured
+    cylinder nose flow at $Re_D\!=\!2\!\times\!10^6$,
+    $7\!\times\!10^6$, $2\!\times\!10^7$ (middle seed): the Drela
+    envelope (solid) and the model's frozen-profile instrument
+    (dashed) against the transition budget
+    $N\!=\!\ln(1/\chi_\infty)\!=\!4.53$; dotted verticals mark the
+    computed solver fronts, which sit at or ahead of the $e^N$
+    crossing on the same mean flow.}
+  \label{fig:dragcrisisfpg}
+\end{figure}
+
 Figure~\ref{fig:dragcrisiscd} shows the traverse. The model produces
 the drag crisis as a seed-ordered family: the crisis moves from
 $Re_D\!\approx\!5$--$7\!\times\!10^5$ at the two quiet seeds down to
@@ -2689,6 +2709,29 @@ $120.4^\circ$, base pressure $-0.18$ against $-0.23$ at $10^7$)---
 the protocol-dependence of the first concession extends past the
 crisis band, and branch adjudication there again belongs to
 unsteady continuation.
+
+The fifth concession invites the question of whether the transition
+front itself should be further forward, and
+Fig.~\ref{fig:dragcrisisfpg} answers it in two parts. On
+Falkner--Skan wedges the model's frozen-profile envelope slope
+tracks the Drela--Giles fit through $\beta\!\le\!0.1$, halves at
+$\beta\!=\!0.2$, and collapses three orders of magnitude by
+$\beta\!=\!0.5$---in strongly favorable gradients the inflectional
+coordinate has no amplification to book while the $e^N$ envelope
+retains a floor near $5\!\times\!10^{-3}$ per unit $Re_\theta$; the
+onset gate is not the binding element (it opens ahead of the
+envelope's critical $Re_\theta$ through $\beta\!=\!0.2$ and
+saturates at $Re_\Omega\!=\!1851$ beyond). On the cylinder nose,
+however, this deficit is not yet exercised: integrating the Drela
+envelope along a validated laminar march of the measured nose flow
+puts the $N\!=\!\ln(1/\chi_\infty)$ crossing \emph{behind} the
+computed front at all three Reynolds numbers shown---at
+$2\!\times\!10^7$ the solver front sits $10^\circ$ ahead of the
+$e^N$ station on its own mean flow. Within envelope-method physics
+at these seeds the front has nowhere forward to go below
+$Re_D\!\sim\!10^8$; the far-forward transition of the transcritical
+measurements at accessible $Re_D$ carries disturbance content beyond
+the envelope class.
 % TODO(dragcrisis-exp): digitize Achenbach (1968) Cp/Cf traverses at
 % matched Re for a quantitative overlay (surface outputs are retained
 % for all 84 cases); the experimental separation angles, shoulder and
