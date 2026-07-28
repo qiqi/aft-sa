@@ -87,6 +87,33 @@ def draw_segments(ax, h, v, w, col, lw, band=None, eta=None):
         _plot(bm & ~near, ':', lw*3.2, 5)
 
 
+def shade_sphere(rgb, cx, cy, r):
+    """Light-marble shading: per-pixel hemisphere normals inside the
+    silhouette circle; Lambertian diffuse composited by MULTIPLY (white
+    interior rounds into a body, dark ink stays dark), tight Blinn-Phong
+    specular + Fresnel rim composited by ADD (the glints). Kept very
+    light: ambient floor 0.82."""
+    ny_, nx_ = np.mgrid[0:rgb.shape[0], 0:rgb.shape[1]].astype(float)
+    nx = (nx_ - cx)/r
+    ny = (cy - ny_)/r                       # image rows grow downward
+    rr2 = nx*nx + ny*ny
+    inside = rr2 < 1.0
+    nz = np.sqrt(np.clip(1.0 - rr2, 0.0, None))
+    L = np.array([-0.45, 0.55, 0.70]); L /= np.linalg.norm(L)
+    H = L + np.array([0.0, 0.0, 1.0]);  H /= np.linalg.norm(H)
+    ndl = np.clip(nx*L[0] + ny*L[1] + nz*L[2], 0.0, None)
+    ndh = np.clip(nx*H[0] + ny*H[1] + nz*H[2], 0.0, None)
+    diffuse = 0.82 + 0.18*ndl               # multiply term, floor 0.82
+    spec = 0.20 * ndh**42                   # tight upper-left glint
+    rim = 0.09 * (1.0 - nz)**3              # steel-like edge light
+    # soft edge so the shading fades over the last ~1.5 px of radius
+    w = np.zeros_like(nz)
+    w[inside] = np.clip((1.0 - np.sqrt(rr2[inside]))*r/1.5, 0.0, 1.0)
+    mult = 1.0 + w*(diffuse - 1.0)
+    add = w*(spec + rim)
+    return np.clip(rgb*mult[..., None] + add[..., None], 0.0, 1.0)
+
+
 def main():
     fig, ax = plt.subplots(figsize=(7.2, 7.2))
     # silhouette + poles
@@ -124,9 +151,38 @@ def main():
     ax.set_aspect('equal'); ax.set_xlim(-1.25, 1.25); ax.set_ylim(-1.2, 1.15)
     ax.axis('off')
     plt.tight_layout()
-    plt.savefig('figs/indicator_sphere.pdf')
-    plt.savefig('repro/analytic/figs_explore/indicator_sphere_new.png', dpi=140)
-    print('wrote figs/indicator_sphere.pdf')
+
+    # rasterize the line drawing, shade it as a lit marble hemisphere,
+    # then rebuild the figure as raster + crisp vector pole labels on top
+    DPI = 350
+    fig.canvas.draw()
+    cx, cy_top = ax.transData.transform((0.0, 0.0))
+    ex, _ = ax.transData.transform((1.0, 0.0))
+    import io
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', dpi=DPI)
+    buf.seek(0)
+    img = plt.imread(buf)                    # RGBA float in [0,1]
+    s = DPI/fig.dpi                          # canvas->saved-png pixel scale
+    cxp, cyp, rp = cx*s, img.shape[0] - cy_top*s, (ex - cx)*s
+    shaded = img.copy()
+    shaded[..., :3] = shade_sphere(img[..., :3], cxp, cyp, rp)
+    plt.close(fig)
+
+    fig2, ax2 = plt.subplots(figsize=(7.2, 7.2))
+    ax2.imshow(shaded, extent=[-1.25, 1.25, -1.2, 1.15], zorder=1,
+               interpolation='lanczos')
+    for x, y, txt, ha, va in [(-1/SQ2 - 0.05, 0.05, '$X$', 'right', 'bottom'),
+                              (+1/SQ2 + 0.05, 0.05, '$Y$', 'left', 'bottom'),
+                              (0.06, 1.03, '$+Z$', 'left', 'bottom'),
+                              (0.06, -1.06, '$-Z$', 'left', 'top')]:
+        ax2.text(x, y, txt, fontsize=13, color='0.15', ha=ha, va=va, zorder=5)
+    ax2.set_aspect('equal'); ax2.set_xlim(-1.25, 1.25); ax2.set_ylim(-1.2, 1.15)
+    ax2.axis('off')
+    plt.tight_layout()
+    fig2.savefig('figs/indicator_sphere.pdf', dpi=DPI)
+    fig2.savefig('repro/analytic/figs_explore/indicator_sphere_new.png', dpi=140)
+    print('wrote figs/indicator_sphere.pdf (marble-shaded)')
 
 
 if __name__ == '__main__':
