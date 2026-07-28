@@ -741,3 +741,168 @@ only split the difference across the family.
    count grew 9 → 13 — flag for the caption at integration.
 5. The exact-curvature refactor changes legacy members' curves by less
    than the line width (graze ratios reproduce to printed digits).
+
+---
+
+# PART V (appended same day) — the blended gate argument: coordinate death cured, ceiling retired
+
+*USER DESIGN, responding to the Part-IV diagnosis: exchange the softmin
+ceiling for a BLENDED gate argument
+P_gate = ⟨Ω̂Î⟩₊ + c_o·Ω̂⟨−Z⟩₊/R (linear headline; softmax₂ alternative
+evaluated), Re_Ω^c = 124.6 + 1.424/P_gate², NO ceiling — net constant
+count zero vs canon (C exchanged for c_o). SIGN CONVENTION verified: the
+viscous coordinate is the SAME ⟨−Z⟩₊ clip the Part-III rate kernel uses
+(−Z > 0 in favorable-curvature layers, u″ < 0); the user's "Ω̂Z/R" read
+as loose shorthand. Rate = Part-III two-branch, unchanged
+(a_inv = 0.19, a_visc = 0.0276). Forms `vb` (linear) / `vbs` (softmax₂)
+in the study script; stage `--partv` = the c_o graze calibration; JSONs
+`fpg_recalibration_vb.json`, `fpg_recalibration_vbs.json`; log
+`fpg_recal_partv.log`.*
+
+## The user's quantitative check — VERIFIED to ±10%
+
+Tracking Drela's rising critical curve requires the gate argument at the
+neutral points to be √(B/(Re_Ω*−A)) ≈ √(1.424/Re_Ω*) (k-carrying;
+2/Re_Ω* at the k=1 graze scale). Against the Part-IV members:
+
+| β | Re_Ω* | required P_gate* | measured max P_o | required/measured |
+|---|---|---|---|---|
+| +0.35 | 4685 | 0.0211 | 0.1648 | 0.128 |
+| +0.50 | 6053 | 0.0184 | 0.1556 | 0.118 |
+| +0.70 | 7630 | 0.0164 | 0.1488 | 0.110 |
+| +1.00 | 9624 | 0.0145 | 0.1435 | 0.101 |
+
+The ratio is constant to ±12% across the strong-FPG family — the viscous
+coordinate's narrow variation has almost exactly the right slope, as the
+user estimated: the blend buys genuine H-tracking in strong FPG, not just
+boundedness. **c_o = 0.1046**, determined by anchoring the stagnation
+member's graze at exactly 1 on the no-ceiling k=1 shape (at β = 1 the
+inviscid term is zero, so linear and softmax₂ share the anchor).
+
+## Graze calibration across the enriched family (requirement 1)
+
+At c_o = 0.1046, graze ratios (canon values in Part-IV table):
+
+| β | linear blend | softmax₂ blend | canon (ceiling) |
+|---|---|---|---|
+| +1.00 | 0.996 | 0.996 | 3.70 |
+| +0.70 | 0.865 | 0.865 | 2.94 |
+| +0.50 | 0.762 | 0.762 | 2.33 |
+| +0.35 | 0.668 | 0.668 | 1.27 |
+| +0.15 | **1.634** | 0.885 | 1.004 |
+| +0.10 | **1.887** | 1.135 | 1.085 |
+| +0.05 | **1.759** | 1.204 | 1.137 |
+| 0 | **1.384** | 1.072 | 1.035 |
+| −0.05 | 1.135 | 0.974 | 0.959 |
+| −0.10 | 1.084 | 1.000 | 0.996 |
+| −0.15 | 1.074 | 1.037 | 1.037 |
+| −0.19 | 0.994 | 0.982 | 0.984 |
+| −0.1988 | 0.937 | 0.930 | 0.932 |
+| −0.19 lower | 0.912 | 0.909 | 0.911 |
+
+The strong-FPG side is cured by construction (0.67–1.00 both blends, vs
+1.27–3.70 over any ceiling). But the LINEAR blend breaks the legacy
+mild-favorable band: there the viscous term is 30–81% of the inviscid one
+(c_o·P_o/P = 0.81/0.55/0.40/0.30 at β = 0.15/0.10/0.05/0), inflating the
+gate argument and collapsing the threshold — graze 1.38–1.89, i.e. those
+members would ignite well before their LST stations. The softmax₂ blend
+suppresses the cross-term quadratically exactly there and keeps the
+legacy family at 0.89–1.20 (canon 0.93–1.14); adverse/separated members
+are perturbed < 1% under either blend (c_o·P_o/P = 0.08–0.14).
+
+## Marched Fig-4 family (requirement 2) — flatness resolved; softmax₂ wins
+
+Rate constants unchanged; late secants x DG / N=1 x DG-N=1 station,
+β order 1/0.55/0.35/0.2/0.1/0.05/0:
+
+- **linear (vb)**: late [0.61 0.69 0.75 0.96 1.05 1.07 1.06]; onset
+  [0.62 0.85 1.05 **0.74 0.61 0.69 0.87**] — devs (1.63x, 1.65x); the
+  graze-predicted mild-band earliness materializes and **Blasius Rt1
+  −15.7%** (anchor broken). Rejected on legacy grounds despite the good
+  minimax.
+- **softmax₂ (vbs)**: late [0.61 0.69 0.74 0.91 1.03 1.06 1.05]; onset
+  [0.62 0.85 1.05 1.13 0.82 0.84 0.98] — devs **(1.63x, 1.62x), max
+  1.63x — the best form of the entire study**, with Blasius late +5.0%,
+  Rt1 −5.0%, Re_x(N9) −9.6%. The Part-IV low-H flatness is RESOLVED: the
+  onset curve now rises with the members (no flat segment; the residual
+  β = 1 earliness (0.62x) is a RAMP-TAIL interaction — with the threshold
+  finally grazing AT the DG station, the tanh ramp's partially-open tail
+  (gate 2–16% at Re_Ω/Re_Ω^c = 0.5–0.7) lets the floored rate book N=1
+  before nominal opening, an effect the canon never exposed because its
+  ceiling sat far below the stations. A march-anchored c_o (calibrate on
+  the β=1 marched N=1 instead of the frozen graze, the paper's k-anchor
+  philosophy) would trade this against mid-band lateness; the surface is
+  flat and it was not run.)
+
+## Wall behavior (requirement 3)
+
+P_gate → 0 at the wall (⟨Î⟩₊ ~ y³-class, ⟨−Z⟩₊/R ~ y) → Re_Ω^c → ∞ →
+gate CLOSED at the wall. Desirable on all three counts: it reinforces the
+rate floor's own wall-vanishing (production doubly zero at the wall), it
+keeps the frozen eigenproblem interior-anchored — boundedness gate PASSES
+(sup b/u′_max saturates at 1.798e-3, peak fixed at y*/θ = 2.005 from
+Rt = 1e5 to 1e7, wall fraction 5.7e-5) — and in the solver the canonical
+max(P, tiny) clip keeps the 1/P² arithmetic finite while the tanh onset
+→ 0 smoothly; no new singularity.
+
+## Log-layer / zero-suite (requirement 4) — the leak stays closed
+
+In a log layer Î < 0, so P_gate = c_o·Ω̂⟨−Z⟩₊/R alone ≈ 0.105·0.114/(2κu⁺)
+~ 9e-4 at y+ = 100 → threshold ≈ 1.7e6, and Re_Ω = y+/κ never reaches it:
+**raw max P_AI/P_SA = 4.3–4.6e-4 at ALL Re_τ (180/1000/5200), canon
+4.0e-4; σ_t-blended 2.9–3.1e-4** — unlike the canon-ceiling gate (zb raw
+3.9e-3 from y+ ≈ 760 opening) and even the C = 8000 retune (3.2e-3
+residual at Re_τ = 5200). The no-ceiling blended gate closes the
+parasitic path entirely, because the threshold in stable layers is set by
+the small viscous coordinate, not by any constant.
+
+## Full regression + impact at (a_inv, a_visc, c_o) = (0.19, 0.0276, 0.1046), softmax₂ blend
+
+- Families: attached-adverse ≤ 3.7%/3.6%, lower branch ≤ 0.2%/0.1%.
+- Cylinder noses: 2e6/7e6/2e7 clean (N_sup(80°) = 0.03/0.08/0.28, no
+  seed-threshold crossings) — best-in-study alongside zc; ultra arm 1e9:
+  crossing at 29.8° (handover 32.5°) — the experimental transcritical
+  class, between zc (25.6°) and zb-joint (35.4°).
+- Spheroid re72a0: ΔN = +1.29 (~0.011 L); Hiemenz/Sec VIII: 0.013
+  e-folds — untouched.
+- Mack map: unchanged by construction.
+
+**Four-way summary (max both-panel dev / constants / leak / noses):**
+canon-gate B: 4.40x / +1 / 3.9e-3 raw / 2e7 spurious; zb-joint C=8000:
+1.77x / +1 / partial / clean; zc single-ε: 1.90x / net 0 / closed /
+clean; **vbs blended gate: 1.63x / net 0 / closed / clean — RECOMMENDED,
+superseding the Part-III recommendation.** The one deviation from the
+user's stated preference: the LINEAR blend is not adoptable (legacy
+mild-favorable band and the Blasius anchor break); the softmax₂
+alternative the user themselves flagged is the working variant.
+
+## Naming (requirement 6)
+
+**c_o** as the user wrote it — "the viscous branch's weight in the onset
+coordinate" — value 0.105 (graze-anchored at the stagnation member).
+It is a dimensionless weight inside a coordinate, not a rate, so the
+a_-prefix class (a_visc,o) would misclassify it; c_visc,o is verbose.
+The adopted trio: **a_inv = 0.19, a_visc = 0.0276, c_o = 0.105**, and the
+full form:
+
+    rate  = min(a_inv, softmax₂(a_inv·Ω̂⟨Î⟩₊, a_visc·Ω̂⟨−Z⟩₊/R))
+    gate  = ½[1 + tanh((Re_Ω/Re_Ω^c − 1)/0.35)]
+    Re_Ω^c = 124.6 + 1.424 / softmax₂(⟨Ω̂Î⟩₊, c_o·Ω̂⟨−Z⟩₊/R)²   [NO ceiling]
+
+Curious observation, recorded without a claim: c_o/ε_r = 0.1046/0.1455 =
+0.719 ≈ k = 0.712 — the gate's viscous weight is the rate's times the
+drain-compensation scale, to 1%. Different anchors produced it; possibly
+coincidence.
+
+## Part V honest ledger
+
+1. The c_o determination is frozen-graze-anchored; the marched β=1 onset
+   lands 0.62x from the ramp-tail interaction (quantified above). The
+   march-anchored alternative was not run (flat trade against mid-band).
+2. The strong-FPG graze slope mismatch (0.67 at β = 0.35 rising to 1.00
+   at β = 1) is the residual of the ±12% slope agreement — the blend
+   tracks, but not perfectly; β = 0.35's marched onset (1.05x) benefits
+   from rate-lag cancellation.
+3. Linear-blend results are complete and recorded (vb JSON) for the
+   user's inspection despite the rejection.
+4. Impact/zero instruments and their caveats identical to Parts I–III.

@@ -93,6 +93,16 @@ EPS_O = [0.0]      # variant-A onset epsilon (form zc2 only)
 # scale); None = canon. Results computed with it are stored under keys
 # suffixed _C<value>.
 CEIL_B = [None]
+# USER DESIGN (Part V): BLENDED GATE ARGUMENT, exchanging the ceiling for
+# c_o (net constant count zero vs canon). The gate coordinate becomes
+#   vb  (linear, headline):  P_gate = <Omega_hat*I_hat>+ + c_o*Omega_hat*<-Z>+/R
+#   vbs (softmax_2 variant): P_gate = Omega_hat*softmax_2(<I_hat>+, c_o*<-Z>+/R)
+# with Re_Omega_c = 124.6 + 1.424/P_gate^2, NO ceiling. SIGN CONVENTION:
+# the viscous coordinate is the SAME one the Part-III rate kernel uses,
+# Omega_hat*<-Z>+/R (clip of MINUS Z; -Z > 0 in favorable-curvature layers
+# where u'' < 0) -- the user's "Omega_hat Z/R" read as loose shorthand.
+# The rate is the Part-III two-branch form unchanged (EPS = eps_r).
+CO = [0.10]        # c_o, the viscous weight in the onset coordinate
 # re-anchoring knobs (--reanchor only; 1.0 = canonical constants)
 ASCALE = [1.0]     # multiplies a_max
 KSCALE = [1.0]     # multiplies the whole onset threshold (the paper's k)
@@ -130,6 +140,16 @@ def _P_and_thresh(Shat, g, Zn=None):
         C = REOM_CEIL if CEIL_B[0] is None else CEIL_B[0]
         _pw = REOM_A + REOM_B*np.maximum(Pc, 1e-6)**(-2.0)
         reomc = (C**(-REOM_N) + _pw**(-REOM_N))**(-1.0/REOM_N)
+        return P, reomc
+    elif form in ('vb', 'vbs'):              # PART V: blended gate argument
+        gg = np.clip(g, 0.0, None)
+        zz = np.clip(-Zn, 0.0, None)
+        P = Shat*np.sqrt(gg*gg + (eps*zz)**2)          # Part-III rate, unchanged
+        if form == 'vb':                               # linear blend (headline)
+            Pgate = Shat*(gg + CO[0]*zz)
+        else:                                          # softmax_2 variant
+            Pgate = Shat*np.sqrt(gg*gg + (CO[0]*zz)**2)
+        reomc = REOM_A + REOM_B/np.maximum(Pgate, 1e-9)**2   # NO ceiling
         return P, reomc
     else:                                    # zc / zc_ceil
         gg = np.clip(g, 0.0, None)
@@ -377,7 +397,10 @@ def candidate_figure(rows_c, rows_0, eps):
                       r'+\langle\epsilon(-Z)/R\rangle_+^2}$, softmin gate',
            'zc2': r'two-$\epsilon$: rate $\epsilon_r$, gate $\epsilon_o$'
                   ' (no ceiling)',
-           'zb': r'rate-only floor $\epsilon_r$; CANON gate'}
+           'zb': r'rate-only floor $\epsilon_r$; CANON gate',
+           'vb': r'blended gate $P_g=\langle\hat\Omega\hat I\rangle_+'
+                 r'+c_o\hat\Omega\langle -Z\rangle_+/R$, no ceiling',
+           'vbs': r'blended gate (softmax$_2$), no ceiling'}
     fig.suptitle('CANDIDATE (not canon): ' + lab[FORM[0]]
                  + rf', $\epsilon={eps:g}$', fontsize=10, y=1.0)
     plt.tight_layout()
@@ -642,6 +665,73 @@ def tune_variants(db, which):
     return db['variantA' if which == 'A' else _ck('variantB')]
 
 
+def partv_gatecal(db):
+    """Part V requirement 1: calibrate c_o on the ENRICHED graze family
+    (Part-IV members incl. stagnation), for the linear blend (headline) and
+    the softmax_2 variant. Determination: the stagnation member (beta = 1)
+    grazes the no-ceiling threshold 175 + 2/P_gate^2 (k = 1 shape) at
+    exactly 1; every other member's ratio is then a prediction. Also runs
+    the user's slope check: tracking Drela requires the gate argument at
+    the neutral points ~ sqrt(B/Re_Omega*) -- compare with the measured
+    viscous coordinate's variation."""
+    from fig02_onset_graze_enriched import curve, NEW
+    from fig02_onset_graze import A_, B_
+    members = ([(b, None) for b in NEW]
+               + [(0.15, None), (0.10, None), (0.05, None), (0.0, None),
+                  (-0.05, None), (-0.10, None), (-0.15, None), (-0.19, None),
+                  (-0.1988, None), (-0.19, -0.03)])
+    cvs = {m: curve(*m) for m in members}
+
+    def ratio(m, co, blend):
+        c = cvs[m]
+        gg = np.clip(c['P'], 0.0, None)      # <Omega_hat*I_hat>+
+        if blend == 'linear':
+            Pg = gg + co*c['Pz']
+        else:
+            Pg = np.sqrt(gg*gg + (co*c['Pz'])**2)
+        thr = A_ + B_/np.maximum(Pg, 1e-12)**2
+        return float(np.max(c['ReOm']/thr))
+
+    # user's slope check (verify precisely): required argument at the
+    # neutral point = sqrt(B/(ReOm* - A)) vs the measured max P_o
+    print('  slope check (required gate argument vs measured P_o):',
+          flush=True)
+    for b in NEW:
+        c = cvs[(b, None)]
+        i = int(np.argmax(c['ReOm']))
+        need = float(np.sqrt(B_/max(c['ReOm'][i] - A_, 1.0)))
+        print(f"    beta=+{b:g}: ReOm*={c['ReOm'][i]:.0f} -> required "
+              f"P_gate*={need:.4f}; measured max P_o={c['Pz'].max():.4f}",
+              flush=True)
+
+    out = {}
+    for blend in ('linear', 'sm2'):
+        co, _ = _secant(lambda x: ratio((1.0, None), x, blend),
+                        0.06, 0.12, 1.0, 0.005, lo=1e-3, hi=2.0)
+        rows = []
+        for m in members:
+            c = cvs[m]
+            r = ratio(m, co, blend)
+            # legacy perturbation: co*P_o vs P at the canon neutral point
+            gg = np.clip(c['P'], 0.0, None)
+            j = int(np.argmax(c['ReOm']/np.maximum(
+                A_ + B_/np.maximum(gg + co*c['Pz'], 1e-12)**2, 1e-12)))
+            pert = float(co*c['Pz'][j]/max(gg[j], 1e-12)) if gg[j] > 1e-4 \
+                else None
+            rows.append(dict(beta=m[0], lower=m[1] is not None, H=c['H'],
+                             graze=r, gate_arg_at_np=float(gg[j]
+                                                           + co*c['Pz'][j]),
+                             visc_over_invisc=pert))
+            print(f"    [{blend}] c_o={co:.4f} beta={m[0]:+.3f} "
+                  f"H={c['H']:5.3f} graze={r:.3f}"
+                  + (f"  (c_o*P_o/P = {pert:.3f})" if pert is not None
+                     else '  (P<=0: viscous-only)'), flush=True)
+        out[blend] = dict(c_o=float(co), rows=rows)
+    db['partv_gatecal'] = out
+    save(db)
+    return out
+
+
 def reanchor(eps, db):
     """Joint re-anchoring at fixed eps: a_max scale from the Blasius late
     secant, threshold scale k' from the Blasius N=1 crossing (grid-matched
@@ -812,7 +902,8 @@ def tradeoff_figure(db):
            'zc': r'$P=\hat\Omega\sqrt{\langle\hat I\rangle_+^2'
                  r'+\langle\epsilon(-Z)/R\rangle_+^2}$',
            'zc_ceil': r'zc + softmin gate',
-           'zc2': r'two-$\epsilon$ (A)', 'zb': r'rate-only floor (B)'}
+           'zc2': r'two-$\epsilon$ (A)', 'zb': r'rate-only floor (B)',
+           'vb': 'blended gate (V)', 'vbs': 'blended gate sm2 (V)'}
     fig.suptitle('trade-off: ' + lab[FORM[0]], fontsize=10)
     plt.tight_layout()
     fp = os.path.join(OUT_DIR, 'fpg_recal_tradeoff.png' if FORM[0] == 'zc'
@@ -858,8 +949,13 @@ def main():
                     help='joint (a_max, k) re-anchoring at this eps')
     ap.add_argument('--tradeoff', action='store_true')
     ap.add_argument('--form', choices=['add', 'sm2raw', 'sm2clip',
-                                       'zc', 'zc_ceil', 'zc2', 'zb'],
+                                       'zc', 'zc_ceil', 'zc2', 'zb',
+                                       'vb', 'vbs'],
                     default='add')
+    ap.add_argument('--co', type=float, default=None,
+                    help='Part-V gate blend coefficient c_o (forms vb/vbs)')
+    ap.add_argument('--partv', action='store_true',
+                    help='Part-V c_o graze calibration (both blends)')
     ap.add_argument('--eps-o', type=float, default=None,
                     help='variant-A onset epsilon (form zc2)')
     ap.add_argument('--tune', choices=['A', 'B'], default=None,
@@ -883,13 +979,16 @@ def main():
                    or args.tradeoff or args.signcheck is not None
                    or args.boundedness is not None
                    or args.signmap is not None or args.tune is not None
-                   or args.zb_figure)
+                   or args.zb_figure or args.partv)
     FORM[0] = args.form
     if args.eps_o is not None:
         EPS_O[0] = args.eps_o
     if args.ceil is not None:
         assert args.form == 'zb', '--ceil is a zb (variant B) knob'
         CEIL_B[0] = args.ceil
+    if args.co is not None:
+        assert args.form in ('vb', 'vbs'), '--co is a Part-V (vb/vbs) knob'
+        CO[0] = args.co
     global OUT_JSON, OUT_FIG
     if args.form != 'add':
         OUT_JSON = os.path.join(OUT_DIR,
@@ -907,6 +1006,11 @@ def main():
                 if k in leg:
                     db[k] = leg[k]       # canon (FORM='add', eps=0) reference
             save(db)
+
+    if args.partv:
+        print('== Part V: c_o graze calibration (enriched family) ==',
+              flush=True)
+        partv_gatecal(db)
 
     if args.tune is not None:
         print(f'== variant {args.tune} joint tuning (beta = 1) ==',
