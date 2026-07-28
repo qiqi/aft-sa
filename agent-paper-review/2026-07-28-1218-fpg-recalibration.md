@@ -619,3 +619,125 @@ fallback with nearly the same quality.
 5. The zb ypos diagnostic ("floored P>0 for y+ <= 0.0") is inert for this
    form (its threshold convention doesn't apply); rate/gate values are
    unaffected.
+
+---
+
+# PART IV (appended same day) — enriched onset-graze figure and the low-H flatness diagnosis
+
+*USER DIRECTIVE: panel (b) of `model_calibrate_candidate_zb.png` goes too
+flat vs H at low H. First step: enrich the whitepaper's Figure 2 (the
+paper's fig:onsetgraze, regen `repro/analytic/fig02_onset_graze.py`) with
+FS beta = {0.35, 0.5, 0.7, 1.0}, same method, same styling; deliver a
+candidate PDF + a diagnostic companion; quantify. Canon `paper/figs/
+onset_graze.pdf` and tex UNTOUCHED. Script:
+`repro/analytic/fig02_onset_graze_enriched.py`; artifacts in
+`repro/analytic/figs_explore/`: `onset_graze_enriched.pdf` (adoption
+candidate), `.png` (preview), `onset_graze_flatness.png` (diagnostic),
+`onset_graze_enriched.json` (tables).*
+
+## Method for the new neutral points (requirement 1)
+
+The canonical figure's "LST neutral point" is each profile evaluated at
+its **Drela–Giles Eq. 30 critical Re_theta0(H)** (repo fit,
+`lib/correlations.py`) — a correlation distilled from Drela's
+Orr–Sommerfeld database, not a per-profile OS solve. The new members use
+the SAME method: Eq. 30 is smooth down to H = 2.216 (Re_theta0 = 6640 on
+the rig's H). Cross-check at the stagnation profile: the published OS
+critical for Hiemenz flow (Wazzan–Okamura–Smith 1968, Re_delta*_crit ≈
+12490 → Re_theta0 ≈ 5640 at H = 2.216) sits ~15% below the correlation —
+same decade, extension defensible [literature memory; citation to be
+verified at integration]. NUMERICAL FIX required and applied: the strong-
+FPG members' P ~ 1e-4-class is delicate, so the curvature indicator Z is
+computed from the repo's FS ODE exactly
+(f''' = −[f·f'' + β(1−f'²)]/(2−β), Blasius-consistent eta — NOTE the
+repo's normalization; the Hartree form corrupts the Y−X−Z cancellation,
+found the hard way). Legacy members verified to reproduce the canon graze
+ratios to <2% (printed digits identical).
+
+## The structural finding that reframes the request
+
+With exact curvature, **max_y(Ω̂Î) = 1.7e-3 at β = 0.35 and P ≤ 0 over the
+ENTIRE profile for β ≥ 0.5** — the 1041 audit's ~5e-4 readings at β ≥ 0.5
+were RANS-field estimator noise; on the clean rig profile the amplifying
+coordinate simply does not exist beyond β ≈ 0.4. So β = 0.35 joins the
+canon (P, Re_Ω) plane normally, while β = 0.5/0.7/1.0 have NO locus in
+the plane: they are drawn as left-edge arrows at their profile-max Re_Ω
+and quantified against the P→0 threshold limit (the ceiling).
+
+## Graze-ratio table, old + new (canon shape at k = 1; C8000 = Part-III retuned ceiling, k=1 scale 11236)
+
+| β | H | Re_θ0 (DG) | Re_Ω* | P* | graze vs canon | vs C=8000 |
+|---|---|---|---|---|---|---|
+| **+1.00** | 2.216 | 6640 | 9624 | P ≤ 0 interior | **3.70** | 0.86 |
+| **+0.70** | 2.256 | 4991 | 7630 | P ≤ 0 interior | **2.94** | 0.68 |
+| **+0.50** | 2.297 | 3756 | 6053 | P ≤ 0 interior | **2.33** | 0.54 |
+| **+0.35** | 2.342 | 2752 | 3312 | 1.5e-4 | **1.27** | 0.30 |
+| +0.15 | 2.442 | 1235 | 2177 | 2.3e-2 | 1.004 | 0.59 |
+| +0.10 | 2.481 | 827 | 1531 | 3.7e-2 | 1.085 | 0.92 |
+| +0.05 | 2.529 | 471 | 933 | 5.4e-2 | 1.137 | 1.08 |
+| 0 (Blasius) | 2.591 | 242 | 515 | 7.8e-2 | 1.035 | 1.02 |
+| −0.05 | 2.676 | 138 | 320 | 0.111 | 0.959 | 0.95 |
+| −0.10 | 2.801 | 97 | 250 | 0.161 | 0.996 | 0.99 |
+| −0.15 | 3.021 | 72 | 216 | 0.244 | 1.037 | 1.03 |
+| −0.19 | 3.481 | 49 | 185 | 0.390 | 0.984 | 0.98 |
+| −0.1988 | 3.982 | 36 | 170 | 0.509 | 0.932 | 0.93 |
+| −0.19 lower | 4.922 | 26 | 163 | 0.656 | 0.911 | 0.91 |
+
+(β ≥ 0.5 "graze" convention: Re_Ω*_max / ceiling — the value every
+P-threshold presents as P → 0. β = 0.35's 1.27 lands exactly on the
+paper's flagged "β ≥ +0.25 graze 1.27–1.34 high", and the miss grows
+2.33 → 2.94 → 3.70 toward stagnation. Against the retuned C = 8000 the
+strong-FPG members sit at 0.54–0.86 — why the Part-III joint retune
+centers their marched onsets — while β = 0.15/0.35 drop to 0.59/0.30,
+the mild-favorable price Part III already measured.)
+
+## Flatness diagnosis
+
+Toward stagnation the members' neutral points keep rising —
+**Re_Ω* ≈ 1.2–1.6 × Re_θ0(H)**, up to 9624 at H = 2.216 (diagnostic left
+panel: the neutral locus vs any flat ceiling) — while beyond β ≈ 0.4 the
+gate coordinate Ω̂Î is ≤ 0 across the whole profile: every threshold
+Re_Ω^c(P), capped or uncapped, presents its constant P→0 limit to exactly
+the layers whose critical Reynolds number grows fastest. The flatness is
+therefore NOT a mis-set ceiling value but the death of the gate
+coordinate at low H; a constant C (any value, incl. Part III's 8000) can
+only split the difference across the family.
+
+## Shape candidates (diagnosis only — nothing adopted, canon constants untouched)
+
+1. **Un-capped 175 + 2/P² branch: NOT viable** — the coordinate is dead
+   (P ≤ 0) at β ≥ 0.5; where it exists (β = 0.35, P* = 1.5e-4) the branch
+   overshoots the neutral point by ~e4.
+2. **Different softmin exponent: NOT viable** — any softmin_n limit as
+   P → 0 is still the constant C.
+3. **Added rising branch in the Part-III viscous coordinate
+   P_o = Ω̂⟨−Z⟩₊/R**: a locus EXISTS there for all members (diagnostic
+   right panel of the earlier draft; JSON `viscous_pts`), and a power law
+   through the four new neutral points gives Re_Ω* ~ 12·P_o^−3.2 — but
+   the fit is ILL-CONDITIONED (P_o spans only 0.129–0.160 across
+   β = 0.35→1.0): the viscous coordinate barely varies while Re_Ω* rises
+   2.9x, so a P_o-branch alone is a fragile lever.
+4. **The observed law is Re_Ω* ≈ 1.45·Re_θ0** (diagnostic right panel):
+   a threshold carrying a Re_θ-like integral scale would track trivially,
+   but leaves the pointwise-local model class — recorded as the structural
+   tension any Part-V gate redesign must resolve.
+
+## Part IV honest ledger
+
+1. Eq. 30's low-H validity is inherited, not established: the one
+   available OS cross-check (Hiemenz, Wazzan et al. 1968 ≈ 12490 in
+   Re_δ*) is literature memory pending citation; it brackets the DG value
+   within ~15%.
+2. The audit-vs-rig maxP discrepancy at β ≥ 0.5 (5e-4 vs ≤ 0) is an
+   ERRATUM against the 1041 audit's frozen-profile column (its marched
+   rates and verdicts are unaffected — they used the transported
+   instrument); the "noise floor" footnote there was the right instinct.
+3. β = 0.35's neutral point sits at the extreme low-P end of its locus
+   (P* = 1.5e-4), i.e. its graze is already ceiling-dominated; its
+   in-plane placement is a boundary case.
+4. Enriched-figure styling: identical construction/colors/masks; the
+   x-range is extended (1e-4 vs 3e-3) and y-range raised (1e5) to admit
+   the new members, and the colormap indices shift because the attached
+   count grew 9 → 13 — flag for the caption at integration.
+5. The exact-curvature refactor changes legacy members' curves by less
+   than the line width (graze ratios reproduce to printed digits).
