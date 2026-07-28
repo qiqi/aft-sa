@@ -906,3 +906,184 @@ coincidence.
 3. Linear-blend results are complete and recorded (vb JSON) for the
    user's inspection despite the rejection.
 4. Impact/zero instruments and their caveats identical to Parts I–III.
+
+---
+
+# PART VI (appended same day) — a_visc sweep, physical grounding, the c_o/eps_r=k question, and the P_o(H) flatness bound
+
+*USER QUESTIONS on the Part-V vbs form (rate = the Part-III two-branch,
+gate = blended no-ceiling softmax2). Rate constants a_inv=0.19,
+a_visc=0.0276, gate c_o=0.1046. All offline on the analytic rigs; no
+tex/solver edits. New study stage `--partv`/`--co`; forms vb/vbs already
+present. Log `fpg_recal_partvi.log`; numbers in
+`fpg_recalibration_vbs.json` (sweep keys eps=a_visc/a_inv).*
+
+## Q1 — sweeping a_visc (a_inv=0.19 fixed, c_o=0.1046; the gate is a_visc-independent)
+
+FIRST, a structural note that simplifies the whole sweep: in the vbs form
+a_visc enters ONLY the rate (via eps_r=a_visc/a_inv in the softmax2 rate
+coordinate); the gate coordinate uses c_o alone. So **the graze family is
+identical for every a_visc** (Part V's table stands unchanged) — only the
+marched panels and the rate-side impact move. The late secant is the
+rate-controlled panel; the N=1 onset is gate-controlled.
+
+| a_visc | eps_r | stagn. late (β=1) | stagn. early (β=1) | Blasius Rt1 | Blasius Re_x(N9) | mild β=0.10 late | dev_a | dev_b |
+|---|---|---|---|---|---|---|---|---|
+| **0.0276** | 0.145 | 0.61x | 0.34x | **−5.0%** | −9.6% | 1.03x | 1.63 | 1.62 |
+| 0.035 | 0.184 | 0.70x | ~0.37x | −7.0% | −14.8% | 1.12x | 1.43 | 1.71 |
+| 0.040 | 0.211 | 0.74x | ~0.38x | −8.4% | −18.5% | 1.19x | 1.35 | 1.77 |
+| 0.045 | 0.237 | 0.78x | ~0.39x | −9.8% | −22.3% | 1.27x | 1.29 | 1.82 |
+| 0.050 | 0.263 | 0.82x | 0.40x | −11.1% | −26.1% | 1.34x | 1.39 | 1.87 |
+
+**Why a_visc can't simply be raised — three findings:**
+
+1. **The late secant saturates sublinearly and never reaches Drela.**
+   0.0276→0.050 is ×1.8 in a_visc but the stagnation late secant rises
+   only 0.61→0.82x (×1.34). The pointwise rate a = a_visc·P_o IS linear in
+   a_visc (nowhere near the a_inv ceiling: a_visc·P_o ≈ 0.007 << 0.19), but
+   raising it pulls the N=1 and N=9 stations to lower Re_θ, compressing
+   ΔRe_θ so the secant ΔN/ΔRe_θ grows sublinearly. Linear-in-log
+   extrapolation needs a_visc ≳ 0.09 to reach 1.0x — where Blasius is
+   already destroyed. **No reachable a_visc matches Drela's stagnation
+   slope.**
+2. **The EARLY secant is gate/ramp-limited, not rate-limited** — it barely
+   moves (0.34→0.40x for ×1.8 a_visc). Near N=1 the disturbance sits in
+   the tanh onset ramp's partially-open tail, so the deficit the user
+   noted ("~3x low early at H=2.2") cannot be closed by ANY rate constant;
+   it is the same ramp-tail interaction Part V flagged.
+3. **The cost is a steady Blasius/mild-FPG over-amplification** driven by
+   softmax2 bleed. Viscous fraction of the rate coordinate at the driving
+   point (100% = pure viscous, i.e. Î≤0):
+
+   | β | H | a_v=0.0276 | 0.035 | 0.04 | 0.05 |
+   |---|---|---|---|---|---|
+   | +1.0 | 2.216 | 100% | 100% | 100% | 100% |
+   | +0.35 | 2.342 | 100% | 100% | 100% | 100% |
+   | +0.20 | 2.411 | 78% | 90% | 95% | 99% |
+   | +0.10 | 2.481 | 35% | 47% | 55% | 68% |
+   | 0 (Blasius) | 2.591 | 14% | 20% | 25% | 35% |
+   | −0.10 | 2.801 | 5% | 8% | 11% | 16% |
+
+   Where Î already dominates (Blasius, mild FPG) the softmax2 quadrature
+   adds a growing viscous term the inviscid branch does not need: Blasius
+   Re_x(N9) drifts −10%→−26%, mild β=0.10 late over-amplifies to 1.34x.
+
+**Impact rows (rate-side, a_visc-dependent), at a_visc=0.04 with the
+a_visc=0.0276 / 0.05 zero-suite trend:**
+- Cylinder noses 2e6/7e6/2e7 still clean at a_visc=0.04 (N_sup(80°) =
+  0.04/0.11/0.40, no seed crossings); ultra 1e9 crossing 27.3° (0.0276:
+  29.8°). Spheroid re72a0 ΔN = +2.6 (0.0276: +1.29). Hiemenz 0.018
+  (Sec VIII still untouched).
+- Zero-suite raw / blended max P_AI/P_SA: 4.6e-4/3.1e-4 (0.0276) →
+  5.4e-4/3.5e-4 (0.04) → 6.2e-4/4.0e-4 (0.05) — the log-layer path stays
+  closed (no ceiling); the rise is the buffer-layer floor scaling with
+  a_visc, still ≤ 0.1% of SA production.
+
+**Verdict on Q1:** no a_visc fixes the stagnation rate without moving
+Blasius > 5% — even a_visc=0.035 already drifts Blasius Rt1 −7%
+(Re_x −15%) while stagnation is still only 0.70x; **a_visc=0.0276 is the
+largest value holding Blasius within ~5%.** The trade is fundamental to
+the softmax2 blend, because that norm mixes the viscous term into
+low-but-nonzero-(−Z) layers. CANDIDATE (noted, not refit): a sharpened
+crossover — softmax_p with p>2, or a hinge that activates the viscous rate
+only where Î≤0 — would suppress the Blasius bleed (Î-dominated) while
+preserving the pure-viscous stagnation gain, possibly allowing a higher
+a_visc at lower Blasius cost. Worth a Part-VII probe if the stagnation
+late secant matters more than constant economy.
+
+## Q2 — is a_visc=0.0276 physically grounded? PLAINLY: no, it is a fit
+
+- **a_inv = 0.19 IS a measured eigenvalue**: the Michalke (1964)
+  hyperbolic-tangent free-shear layer has most-amplified temporal growth
+  ω_i,max = 0.1897 U₀/δ against peak vorticity U₀/δ, a normalization-
+  independent ratio with NO free constant (paper Sec. II, cite
+  michalke_1964). It is the inviscid Kelvin–Helmholtz / inflectional
+  branch's eigenvalue.
+- **a_visc = 0.0276 is PURELY EMPIRICAL** — determined by requiring the
+  marched β=1 (stagnation) late secant to match Drela–Giles Eq. 29. It is
+  a knob, not a measured growth rate. The only physical statement that can
+  be made is order-of-magnitude: a_visc/a_inv = 0.145 puts the viscous
+  branch at ~1/7 of the inflectional eigenvalue, consistent with the known
+  fact that viscous Tollmien–Schlichting growth rates run roughly an order
+  below inflectional/KH rates — but 0.0276 itself carries no eigenvalue
+  provenance. If the paper adopts it, it must be presented as a
+  Drela-anchored calibration constant (like k), NOT as a measured
+  eigenvalue (like a_inv). This is the honest distinction the user asked
+  for.
+
+## Q3 — c_o/eps_r ≈ k: COINCIDENCE, not a removable constant
+
+Definitions (as the user set them): eps_r = a_visc/a_inv = 0.145 (the
+rate-floor viscous weight); k = 0.712 (the onset-gate scale in the CANON
+Re_Ω^c = k·softmin2(...), anchored by the Blasius marched N=1 at
+Re_θ=338); c_o = 0.1046 (the gate blend's viscous weight). Numerically
+c_o/eps_r = 0.1046/0.1453 = 0.720 ≈ k = 0.712 (1%).
+
+**The verdict is coincidence, and the algebra shows why cleanly.** c_o is
+GRAZE-anchored: it is fixed by requiring the stagnation member to graze
+the no-ceiling shape at 1, which uses only (Re_Ω*, P_o, Drela's Re_θ0) —
+**none of which depends on a_visc**. Direct computation: the graze-anchored
+c_o = 0.1048 for EVERY a_visc. Therefore c_o/eps_r = c_o·a_inv/a_visc
+scales as 1/a_visc:
+
+| a_visc | eps_r | c_o (graze) | c_o/eps_r | k·a_visc/a_inv |
+|---|---|---|---|---|
+| 0.0276 | 0.145 | 0.1048 | **0.721** | 0.103 |
+| 0.035 | 0.184 | 0.1048 | 0.569 | 0.131 |
+| 0.040 | 0.211 | 0.1048 | 0.498 | 0.150 |
+| 0.050 | 0.263 | 0.1048 | 0.398 | 0.187 |
+
+The proposed identity c_o = k·a_visc/a_inv would require c_o ∝ a_visc;
+the graze anchor makes c_o CONSTANT in a_visc, so the identity holds at
+exactly one a_visc (≈0.0276) and fails everywhere else. The three
+constants are set by three unrelated anchors — β=1 marched RATE (a_visc),
+β=1 frozen GRAZE (c_o), Blasius marched ONSET (k) — with no shared
+determination; "sharing the Blasius anchor" does not occur (neither a_visc
+nor c_o is set at Blasius). **c_o cannot be removed; it is an independent
+constant.** (The near-miss is genuinely a numerical accident of the
+current a_visc.)
+
+## Q4 — P_o(H) flattens toward stagnation; this BOUNDS any c_o
+
+The gate's viscous coordinate max_y P_o = Ω̂⟨−Z⟩₊/R vs H, with the
+Drela-required gate argument √(B/(Re_Ω*−A)):
+
+| β | H | Re_θ0 | Re_Ω* | max P_o | required arg | req/P_o |
+|---|---|---|---|---|---|---|
+| +1.00 | 2.216 | 6640 | 9624 | 0.1435 | 0.0145 | 0.101 |
+| +0.70 | 2.256 | 4991 | 7630 | 0.1488 | 0.0164 | 0.110 |
+| +0.50 | 2.297 | 3756 | 6053 | 0.1556 | 0.0184 | 0.118 |
+| +0.35 | 2.342 | 2752 | 4685 | 0.1648 | 0.0211 | 0.128 |
+| +0.20 | 2.411 | 1641 | 3018 | 0.1810 | 0.0265 | 0.147 |
+| +0.10 | 2.481 | 827 | 1633 | 0.1992 | 0.0370 | 0.186 |
+| 0 | 2.591 | 242 | 529 | 0.2292 | 0.0752 | 0.328 |
+
+**Confirmed: P_o is nearly H-insensitive at low H.** Over β 0.35→1.0
+(H 2.342→2.216) max P_o falls only −13% (0.1648→0.1435) while Re_θ0 rises
++141% and the required gate argument (∝1/√Re_Ω*) must fall −31%. So P_o
+supplies only ~13/31 ≈ 42% of the variation Drela demands across the
+strong-FPG band. **Residual bound:** a single graze-anchored c_o leaves
+the gate argument ~(1−0.13)/(1−0.31) = 1.26× too large at the stagnation
+end, i.e. the threshold ~1/1.26² ≈ 0.63× too low — matching the marched
+β=1 onset (0.62x, Part V). No c_o can do better than this with P_o as the
+carrier: the required per-member weight req/P_o rises monotonically
+0.101→0.328 from stagnation to Blasius, so any single c_o matches exactly
+one station. Fully tracking Drela's low-H rise would need a gate
+coordinate steeper in H than P_o — e.g. the Re_θ-integral scale flagged in
+Part IV — which leaves the pointwise-local model class. **The Part-V vbs
+form's residual low-H onset earliness is therefore intrinsic to the
+viscous coordinate's flatness, not a mis-set c_o.**
+
+## Part VI honest ledger
+
+1. Q1 early-secant values at intermediate a_visc are read to ±0.02 (the
+   early secant is noisy near onset); the endpoints (0.34, 0.40) are solid.
+2. The "Drela-match a_visc" does not exist in a physical range (late
+   secant asymptotes ≈0.82x); the interpolation endpoint is reported as
+   such, not as a usable value.
+3. Impact cylinder/spheroid rows are stored for a_visc=0.04 only (the
+   0.05 call overwrote them; zero-suite is keyed per-a_visc so both
+   survive) — the trend 0.0276→0.04 is monotone and sufficient.
+4. Q3's graze-anchored c_o=0.1048 vs Part V's marched-context 0.1046
+   differ at the 4th digit (brentq vs secant); immaterial.
+5. All instruments and caveats identical to Parts I–V.
