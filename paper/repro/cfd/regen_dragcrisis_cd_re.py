@@ -75,6 +75,9 @@ TU_ORDER = ("0.05", "0.2", "0.7")
 GREEN = '#3f8a4f'      # the single added literature-CFD hue (validated)
 CHARCOAL = '#3f3f3f'   # fully-turbulent RANS (neutral by design)
 GRAY = '0.42'          # experiments
+FT_COLOR = '#8c2d04'   # FT-SA control (this work, AI off): dark rust,
+#                        distinct from SA-AI blue/orange/purple, lit-CFD
+#                        green, and SST charcoal; line-only per paper rule
 # transparency (user directive 2026-07-28): the figure is crowded, so every
 # series is slightly transparent. SA-AI (the subject) sits at the top of the
 # requested band so it stays readable; the literature sits just below it.
@@ -376,13 +379,16 @@ def main():
     # rise, record 2026-07-28 ultra). Charcoal + dot markers to sit with the
     # other fully-turbulent computations without colliding with the
     # digitized Stringer/SG20 charcoal-dotted line.
+    # LINE-ONLY (paper rule: all computations are lines, no markers). Our
+    # FT-SA control is a distinct color (steel blue) dash-dot so it reads
+    # against both the SA-AI colored lines and the charcoal-dotted SST.
     ft = sorted(((r["re"], r["Cd"]) for r in rows.values()
                  if r.get("Tu") == "ft"), key=lambda p: p[0])
     if ft:
         fre = np.array([p[0] for p in ft])
         fcd = np.array([p[1] for p in ft])
-        ax.plot(fre, fcd, ls='-.', color=CHARCOAL, lw=1.5, marker='D',
-                ms=4.0, mfc=CHARCOAL, alpha=0.9, zorder=4)
+        ax.plot(fre, fcd, ls='-.', color=FT_COLOR, lw=1.7, alpha=0.95,
+                zorder=4)
         for reval, r in ((r["re"], r) for r in rows.values()
                          if r.get("Tu") == "ft"):
             dump[r["case"]] = {"Cd": r["Cd"],
@@ -428,8 +434,7 @@ def main():
                label='SA-AI dn-ladder'),
     ]
     if ft:
-        ours.append(Line2D([], [], color=CHARCOAL, ls='-.', lw=1.5,
-                           marker='D', ms=4.0,
+        ours.append(Line2D([], [], color=FT_COLOR, ls='-.', lw=1.7,
                            label='FT-SA (this work, AI off)'))
     leg1 = ax.legend(handles=ours, fontsize=9, frameon=False,
                      loc='upper right', handlelength=2.4,

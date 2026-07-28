@@ -230,3 +230,93 @@ Campaign grand total (matrix + all extensions): 173 cases.
   hook), `dragcrisis_extension_harvest.py` (seed-collapse + FT sections),
   `regen_dragcrisis_cd_re.py` (FT line), `build_dragcrisis_pilot.py`,
   `regen_dragcrisis_matrix_figs.py`, `dragcrisis_matrix_janitor.py`.
+
+---
+
+## Addendum (2026-07-28, coordinator follow-ups)
+
+### A. Figure fix — FT-SA is now line-only
+
+`regen_dragcrisis_cd_re.py`: FT-SA control changed from filled-diamond +
+dash-dot to a LINE ONLY (dark rust `#8c2d04`, dash-dot, no markers), per the
+paper rule that all computations are lines. Distinct from SA-AI
+blue/orange/purple, lit-CFD green, and SST charcoal-dotted. FT-SA has 6
+points spanning 2e6-1e10 so the line is continuous (no single-point stubs
+needed). `paper/figs/dragcrisis_cd_re.pdf` + preview regenerated; data md5
+(dragcrisis_cd_re_computed.json, dragcrisis_matrix_summary.jsonl) verified
+UNCHANGED.
+
+### B. Ladder spread: not-yet-converged vs genuine bistability
+
+Per-case decomposition (script `/tmp/ladder_decomp.py`, rerunnable; inputs
+are total_forces_v2.csv final-stage tails + jsonl Cd_tail_p2p). For every Re
+where up and dn coexist on one mesh with |ΔCd| > 0.01: end-drift = |dCD| over
+the last 1000 pseudo steps of the final stage (the campaign's own FLAT_TOL =
+1e-3 convention); classify NOT-CONVERGED if either branch's end-drift > 1e-3
+OR tail p2p > 0.02, else genuine BISTABLE (both CD-flat). Where CD is flat and
+the field symmetric (CL~1e-8), the chi=1 front is stationary by construction
+(a flat converged field cannot have a moving front); the CD-drift is thus a
+valid front-motion proxy — no separate front time-series was needed.
+
+**Crisis band (3e5-1e6, pilot) — the spread is NON-CONVERGENCE, not two
+clean states.** Every crisis-band up/dn pair is NOT-CONVERGED: the up branch
+limit-cycles hard (Cd_tail_p2p 0.07-0.20, end-drift 1e-2..5e-2 per 1000) while
+dn is quieter. Examples (Tu0.2): 5e5 up Cd 0.620 (drift 2.3e-2, p2p 0.129) vs
+dn 0.668 (drift 3.6e-4, p2p 0.047); Tu0.7 4e5 up 0.495 (drift 4.9e-2, p2p
+0.122). The ~0.05 crisis-band spread is therefore DOMINATED by the steady
+solver being weakly unstable there — it would shrink (not to zero) with more
+steps / URANS, it is not evidence of two flat branches. **This sharpens
+Sec VII concession 1: the crisis-band non-uniqueness is unsteadiness, quantified
+by p2p 0.05-0.20, not clean bistability.** Only 7e5 pilot is already BISTABLE
+(both flat: up 0.344 drift 8.5e-4 p2p 0.002 vs dn 0.355 drift 1.5e-5 — a
+genuine but small 0.011 two-state).
+
+**Supercritical + ultra (7e6-3e9) — the spread is GENUINE BISTABILITY.** The
+majority of pairs are both CD-flat (end-drift < 1e-3/1000, p2p < 0.01) yet
+separated by 0.025-0.055 in Cd — two real steady wake states, not a
+convergence artifact. Tu0.2 examples: 7e6 up 0.197 (drift 2.7e-4, p2p 0.0006)
+vs dn 0.154 (2.5e-4, 0.0017) → Δ0.043 both flat; 1e9 up 0.206 (5.6e-4) vs dn
+0.170 (1.5e-4) → Δ0.036 both flat; 3e9 up 0.200 vs dn 0.173 both flat. Across
+all three seeds, of the supercritical/ultra pairs with |ΔCd|>0.01: ~2/3 are
+BISTABLE (both flat), ~1/3 NOT-CONVERGED (the dn-ladder at 5e7/1e8 ultra still
+settling, p2p 0.011-0.016, drift ~1-2e-3; and the 4e6 highre up point, p2p
+0.027). **This sharpens Sec VII concession 6: above the crisis the up/dn
+spread is a real two-state multiplicity (separated vs deeper-recovery attached
+wake), CD-flat on both branches — genuine bistability the steady solver
+resolves, distinct from the crisis-band unsteadiness.** Split in one line:
+crisis band = unsteadiness (would-shrink), supercritical = bistability
+(would-persist).
+
+### C. Why FT-SA is LOWER than SA-AI at 1e10 — branch selection, not a trend
+
+The figure crossover (FT-SA ~0.125 at 1e10 vs SA-AI up-ladder ~0.189, but
+FT-SA HIGHER at 2e6-2e7) is NOT like-for-like: FT-SA points are all COLD
+two-stage, SA-AI's plotted line is the WARM up-ladder. The three 1e10 states:
+
+| 1e10 state          | Cd    | separation | base Cp | shoulder Cp | wall front |
+|---------------------|-------|------------|---------|-------------|------------|
+| SA-AI up (warm)     | 0.189 | 121°       | -0.212  | -2.518      | 2°         |
+| SA-AI cold          | 0.108 | ~180°      | -0.018  | -2.743      | 83°        |
+| FT-SA cold          | 0.125 | ~180°      | -0.078  | -2.681      | 0°         |
+
+FT-SA at 1e10 (cold) sits on the ATTACHED branch — single separation at 180°,
+base Cp near zero — the SAME low-drag attached state SA-AI cold finds (0.108,
+180°). It is NOT a fully-turbulent-thins-and-attaches Re-trend. The FT-SA
+ladder makes this explicit: at 2e6-2e7 the cold FT-SA finds a SEPARATED state
+with an aft turbulent-reattachment bubble (separation 108-116° → reattachment
+132-134° → final separation 139-153°), Cd 0.25-0.37, base Cp -0.32..-0.42;
+by 1e10 the cold FT-SA has jumped to the fully-attached branch (no
+intermediate separation, base Cp -0.08). SA-AI cold makes the identical jump
+(0.227 separated at 2e6 → 0.108 attached at 1e10). **So FT-SA-lower-at-1e10 is
+BRANCH MULTIPLICITY: the cold start landed on the attached branch, exactly as
+SA-AI cold does.** On the MATCHED branch, FT-SA is still slightly HIGHER than
+SA-AI (attached: 0.125 vs 0.108; and everywhere on the separated branch
+0.25-0.37 vs 0.19-0.23) — consistent with fully-turbulent SA carrying more
+drag than SA-AI at fixed wake topology, the same-branch relationship reported
+in the FT-SA control table above. **For Sec VII: the FT-SA/SA-AI crossover at
+1e10 is a plotting-branch artifact (FT cold vs SA-AI warm), not a physical
+FT-drag-drop; state the comparison on matched branches, where FT-SA ≥ SA-AI
+throughout.** (A warm FT-SA up-ladder would be needed to place FT-SA on the
+separated branch at 1e10 for a strict like-for-like line; not run — the FT-SA
+control's purpose, earlier-separation + higher-drag attribution, is already
+settled on the 2e6-2e7 separated points and the matched-branch 1e10 pair.)
