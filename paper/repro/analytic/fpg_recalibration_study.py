@@ -77,7 +77,16 @@ EPS = [0.0]
 # an APG wall (u''(0) > 0 -> clipped to 0, inert), and zero in the free
 # stream. CLIP CONVENTION: both softmax arguments are clipped at 0
 # (clip(g,0) per redesign #1's sign-check verdict; clip(-Z,0) per #2).
+# USER FOLLOW-UP variants (a single eps cannot serve both panels):
+#   zc2  VARIANT A: rate uses P_r = zc floor with EPS (eps_r); the gate uses
+#        its own P_o = zc floor with EPS_O (eps_o), no-ceiling threshold
+#        124.6 + 1.424/P_o^2. Tuned jointly: eps_r -> panel (a) at
+#        stagnation, eps_o -> N=1 crossing ON the DG station at low H.
+#   zb   VARIANT B: rate uses the zc floor with EPS (eps_r); the gate keeps
+#        the CANON form untouched -- softmin(1851.2, 124.6+1.424/P^2) on the
+#        UN-floored canon P = Shat*g (canon max(P,1e-6) clip).
 FORM = ['add']
+EPS_O = [0.0]      # variant-A onset epsilon (form zc2 only)
 # re-anchoring knobs (--reanchor only; 1.0 = canonical constants)
 ASCALE = [1.0]     # multiplies a_max
 KSCALE = [1.0]     # multiplies the whole onset threshold (the paper's k)
@@ -99,6 +108,22 @@ def _P_and_thresh(Shat, g, Zn=None):
     elif form in ('sm2raw', 'sm2clip'):
         gg = g if form == 'sm2raw' else np.clip(g, 0.0, None)
         P = Shat*np.sqrt(gg*gg + eps*eps)
+    elif form == 'zc2':                      # VARIANT A: two epsilons
+        gg = np.clip(g, 0.0, None)
+        fl_r = np.clip(-eps*Zn, 0.0, None)
+        P = Shat*np.sqrt(gg*gg + fl_r*fl_r)            # rate coordinate
+        fl_o = np.clip(-EPS_O[0]*Zn, 0.0, None)
+        P_o = Shat*np.sqrt(gg*gg + fl_o*fl_o)          # onset coordinate
+        reomc = REOM_A + REOM_B/np.maximum(P_o, 1e-9)**2
+        return P, reomc
+    elif form == 'zb':                       # VARIANT B: rate-only floor
+        gg = np.clip(g, 0.0, None)
+        fl = np.clip(-eps*Zn, 0.0, None)
+        P = Shat*np.sqrt(gg*gg + fl*fl)                # rate coordinate
+        Pc = Shat*g                                    # CANON gate coordinate
+        _pw = REOM_A + REOM_B*np.maximum(Pc, 1e-6)**(-2.0)
+        reomc = (REOM_CEIL**(-REOM_N) + _pw**(-REOM_N))**(-1.0/REOM_N)
+        return P, reomc
     else:                                    # zc / zc_ceil
         gg = np.clip(g, 0.0, None)
         fl = np.clip(-eps*Zn, 0.0, None)
@@ -342,7 +367,10 @@ def candidate_figure(rows_c, rows_0, eps):
            'zc': r'$P=\hat\Omega\sqrt{\langle\hat I\rangle_+^2'
                  r'+\langle\epsilon(-Z)/R\rangle_+^2}$, no-ceiling gate',
            'zc_ceil': r'$P=\hat\Omega\sqrt{\langle\hat I\rangle_+^2'
-                      r'+\langle\epsilon(-Z)/R\rangle_+^2}$, softmin gate'}
+                      r'+\langle\epsilon(-Z)/R\rangle_+^2}$, softmin gate',
+           'zc2': r'two-$\epsilon$: rate $\epsilon_r$, gate $\epsilon_o$'
+                  ' (no ceiling)',
+           'zb': r'rate-only floor $\epsilon_r$; CANON gate'}
     fig.suptitle('CANDIDATE (not canon): ' + lab[FORM[0]]
                  + rf', $\epsilon={eps:g}$', fontsize=10, y=1.0)
     plt.tight_layout()
@@ -527,6 +555,74 @@ def signmap(eps):
     return out
 
 
+def _secant(fun, x0, x1, target, tol, lo=1e-3, hi=1.0, iters=6):
+    """Secant-solve fun(x) = target; returns (x, fun(x))."""
+    f0, f1 = fun(x0) - target, fun(x1) - target
+    for _ in range(iters):
+        if abs(f1) < tol or abs(f1 - f0) < 1e-12:
+            break
+        x2 = min(max(x1 - f1*(x1 - x0)/(f1 - f0), lo), hi)
+        x0, f0 = x1, f1
+        x1, f1 = x2, fun(x2) - target
+    return x1, f1 + target
+
+
+def tune_variants(db, which):
+    """USER FOLLOW-UP: joint tuning at the stagnation wedge (beta = 1).
+    Variant A (form zc2): eps_r -> late secant = Drela (panel a), then
+    eps_o -> N=1 crossing ON the DG station (panel b), then one re-check
+    of eps_r. Variant B (form zb): eps_r -> late secant = Drela; panel (b)
+    is whatever the canon gate gives (reported honestly)."""
+    cache = {}
+
+    def b1(er, eo=None):
+        key = (round(er, 5), None if eo is None else round(eo, 5))
+        if key not in cache:
+            EPS[0] = er
+            if eo is not None:
+                EPS_O[0] = eo
+            cache[key] = row(1.0)
+        return cache[key]
+
+    if which == 'A':
+        # GATE FIRST: with a late gate the [5,9] window is rate-driven and
+        # the two constants decouple; rate-first diverges (a weak gate makes
+        # the late secant onset-limited -- no eps_r can reach Drela's slope,
+        # found the hard way). Analytic start: opening at DG-critical needs
+        # P_o ~ 5e-3 -> eps_o ~ 0.02-0.03.
+        FORM[0] = 'zc2'
+        er = 0.17                                     # informed rate start
+        eo, _ = _secant(lambda x: b1(er, x)['Rt1']/b1(er, x)['Rt1_DG'],
+                        0.02, 0.04, 1.0, 0.03, lo=0.005, hi=0.12)
+        print(f"  A step 1: eps_o = {eo:.4f} (Rt1 ratio "
+              f"{b1(er, eo)['Rt1']/b1(er, eo)['Rt1_DG']:.3f})", flush=True)
+        er, _ = _secant(lambda x: b1(x, eo)['s_late']/b1(x, eo)['s_DG'],
+                        0.15, 0.19, 1.0, 0.02, lo=0.05, hi=0.35)
+        print(f"  A step 2: eps_r = {er:.4f} (late ratio "
+              f"{b1(er, eo)['s_late']/b1(er, eo)['s_DG']:.3f})", flush=True)
+        rr = b1(er, eo)['Rt1']/b1(er, eo)['Rt1_DG']
+        if abs(rr - 1.0) > 0.05:                      # one re-check pass
+            eo, _ = _secant(lambda x: b1(er, x)['Rt1']/b1(er, x)['Rt1_DG'],
+                            eo, 0.85*eo, 1.0, 0.03, lo=0.005, hi=0.12)
+            print(f"  A re-check: eps_o = {eo:.4f} (Rt1 ratio "
+                  f"{b1(er, eo)['Rt1']/b1(er, eo)['Rt1_DG']:.3f}, late "
+                  f"{b1(er, eo)['s_late']/b1(er, eo)['s_DG']:.3f})",
+                  flush=True)
+        EPS_O[0] = eo
+        db['variantA'] = dict(eps_r=er, eps_o=eo)
+    else:
+        FORM[0] = 'zb'
+        er, _ = _secant(lambda x: b1(x)['s_late']/b1(x)['s_DG'],
+                        0.16, 0.20, 1.0, 0.02)
+        r = b1(er)
+        print(f"  B: eps_r = {er:.4f} (late {r['s_late']/r['s_DG']:.3f}x, "
+              f"Rt1 {r['Rt1']:.0f} = {r['Rt1']/r['Rt1_DG']:.2f}x DG N=1)",
+              flush=True)
+        db['variantB'] = dict(eps_r=er)
+    save(db)
+    return db['variantA' if which == 'A' else 'variantB']
+
+
 def reanchor(eps, db):
     """Joint re-anchoring at fixed eps: a_max scale from the Blasius late
     secant, threshold scale k' from the Blasius N=1 crossing (grid-matched
@@ -602,7 +698,8 @@ def tradeoff_figure(db):
            'sm2clip': r'$P=\hat\Omega\sqrt{\langle\hat I\rangle_+^2+\epsilon^2}$',
            'zc': r'$P=\hat\Omega\sqrt{\langle\hat I\rangle_+^2'
                  r'+\langle\epsilon(-Z)/R\rangle_+^2}$',
-           'zc_ceil': r'zc + softmin gate'}
+           'zc_ceil': r'zc + softmin gate',
+           'zc2': r'two-$\epsilon$ (A)', 'zb': r'rate-only floor (B)'}
     fig.suptitle('trade-off: ' + lab[FORM[0]], fontsize=10)
     plt.tight_layout()
     fp = os.path.join(OUT_DIR, 'fpg_recal_tradeoff.png' if FORM[0] == 'zc'
@@ -643,7 +740,12 @@ def main():
                     help='joint (a_max, k) re-anchoring at this eps')
     ap.add_argument('--tradeoff', action='store_true')
     ap.add_argument('--form', choices=['add', 'sm2raw', 'sm2clip',
-                                       'zc', 'zc_ceil'], default='add')
+                                       'zc', 'zc_ceil', 'zc2', 'zb'],
+                    default='add')
+    ap.add_argument('--eps-o', type=float, default=None,
+                    help='variant-A onset epsilon (form zc2)')
+    ap.add_argument('--tune', choices=['A', 'B'], default=None,
+                    help='joint tuning of the follow-up variants')
     ap.add_argument('--signcheck', type=float, default=None,
                     help='sm2raw sign-convention check at this eps '
                          '(zero-suite + Blasius + beta=1 rows)')
@@ -657,8 +759,10 @@ def main():
                    or args.impact is not None or args.reanchor is not None
                    or args.tradeoff or args.signcheck is not None
                    or args.boundedness is not None
-                   or args.signmap is not None)
+                   or args.signmap is not None or args.tune is not None)
     FORM[0] = args.form
+    if args.eps_o is not None:
+        EPS_O[0] = args.eps_o
     global OUT_JSON, OUT_FIG
     if args.form != 'add':
         OUT_JSON = os.path.join(OUT_DIR,
@@ -676,6 +780,11 @@ def main():
                 if k in leg:
                     db[k] = leg[k]       # canon (FORM='add', eps=0) reference
             save(db)
+
+    if args.tune is not None:
+        print(f'== variant {args.tune} joint tuning (beta = 1) ==',
+              flush=True)
+        tune_variants(db, args.tune)
 
     if args.signcheck is not None:
         print(f'== sm2raw sign-convention check at eps={args.signcheck:g} '

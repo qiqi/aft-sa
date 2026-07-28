@@ -299,3 +299,143 @@ are untouched; the sweep runs export `AI_ZFLOOR_EPS=0.12 AI_REOMC_CEIL=1e30`.
 - Cross-referenced: 2026-07-28-1041 (FPG rate audit), 1033 (field-side FPG),
   0412 (drag-crisis Cd ledger), 0105/1030 (spheroid a0 meanflow marcher +
   u_e; the re72a0 budget reuses the committed a0phys cache chain)
+
+---
+
+# PART II (appended same day) — two-epsilon variant A, rate-only variant B, and the two-branch naming refactor
+
+*USER FOLLOW-UP: the single ε cannot serve both panels (growth wants
+~0.16-0.17, onset then runs early). Two variants evaluated with the same
+instruments and regression suite; forms `zc2` (A) and `zb` (B) in the study
+script; JSONs `fpg_recalibration_zc2.json`, `fpg_recalibration_zb.json`;
+logs `fpg_recal_variantA.log`, `fpg_recal_variants.log` (B).*
+
+## Variant A (two epsilons; rate P_r with ε_r, no-ceiling gate on its own P_o with ε_o)
+
+**The as-directed tuning is structurally infeasible at stagnation** — the
+central Part-II finding. Tuned gate-first (rate-first diverges: with a weak
+gate the late secant is onset-limited and no ε_r reaches Drela's slope —
+the tuner ran to ε_r = 1 at late = 0.56x, found the hard way): ε_o = 0.0639
+puts the β=1 N=1 crossing ON the DG station (0.995x). But with the gate
+there, the threshold (~1.1e4) is the same order as the available
+Re_Ω = y²u′/ν over the ENTIRE march — the tanh ramp never saturates — and
+the late secant asymptotes far below Drela no matter the rate constant:
+late = 0.42x / 0.46x / 0.53x at ε_r = 0.15 / 0.19 / 0.35 (ε_o ≈ 0.055).
+The separability expectation ("ε_r for panel a, ε_o for panel b") holds
+only where the gate saturates early, i.e. mild β — exactly where the
+single-ε form already works.
+
+At the bounded compromise (ε_r = 0.35, ε_o = 0.0639; onset pinned):
+
+- Ladder: β=1: 0.43x/0.99x; 0.55: 0.61x/1.40x; 0.35: 0.80x/1.76x;
+  0.20: 1.48x/1.36x; 0.10: 1.60x/0.76x; Blasius: 1.30x/0.88x.
+  Family devs (2.35x, 1.76x) — worse than single-ε zc@0.12 on panel (a)
+  and barely better on (b); the stagnation-sized ε_r overheats the whole
+  mild band.
+- Regression: Blasius late +29.8%, Rt1 −14.5%, Re_x(N9) −37.2% (anchor
+  destroyed); attached-adverse family 21.9%/12.6%; lower branch 1.4%/1.1%.
+- Off-target: cylinder nose clean (0.26 sup e-folds by 80° at 2e7 — the
+  small-ε_o no-ceiling gate protects it), Hiemenz 0.030, spheroid +6.6,
+  zero-suite raw 7.8e-4; boundedness PASSES (sup saturates 4.3e-3,
+  y*/θ = 2.005, wall 2.4e-5).
+
+## Variant B (rate-only floor ε_r; CANON gate untouched — softmin(1851.2, ...) on un-floored P)
+
+Tuned: **ε_r = 0.1455** (β=1 late = 0.994x). Panel (a) is essentially
+perfect FAMILY-WIDE: late secants 0.99–1.09x over H ∈ [2.216, 2.591]
+(dev 1.09x — the best panel (a) of the whole study). Panel (b), honestly:
+exactly the predicted ceiling failure — the un-floored canon P → 0 in
+strong FPG saturates the softmin at 1851.2, the gate opens at Rt ≈ 1150–1280
+and the floored rate amplifies immediately: N=1 at Rt = 1540/1480/1422 =
+**0.23x/0.35x/0.48x DG** at β = 1/0.55/0.35 (dev 4.40x); mild band
+0.71–0.86x; Blasius 0.99x (late +5.9%, Rt1 −3.8%, Re_x(N9) −10.0%).
+
+- Regression: attached-adverse 4.1%/2.9%, lower 0.2%/0.2% (isolated);
+  boundedness PASSES (rate floor is the zc form; sup saturates 1.80e-3 at
+  y*/θ = 2.005 from Rt = 1e4, wall 5.7e-5 — the canon gate is a ≤1 factor
+  and cannot unbound it).
+- Off-target — two NEW strikes from the kept ceiling: (i) cylinder nose at
+  2e7 books 4.0 spurious sup e-folds by 80° (2e6: 0.07; 1e9: 140 — ultra
+  arm hottest of the recommended-class forms); (ii) in high-Re_τ log
+  layers the canon gate OPENS at y+ ≈ κ·1851 ≈ 760 (Re_Ω = y+/κ crosses
+  the saturated ceiling) and the floored rate leaks: zero-suite raw max
+  P_AI/P_SA = 3.9e-3 at Re_τ ≥ 1000 — 10x the zc/canon level — though
+  σ_t-blending still crushes it to 3.2e-4. Hiemenz 0.013, spheroid +1.28
+  (both fine — same rate floor as zc).
+
+## A vs B vs single-ε zc@0.12 — the decision table
+
+| criterion | zc@0.12 (Part I) | A (0.35, 0.0639) | B (0.1455) |
+|---|---|---|---|
+| panel (a) worst, H ≤ 2.6 | 1.67x | 2.35x | **1.09x** |
+| panel (b) worst | **1.90x** | 1.76x (β=0.35; β=1 pinned 0.99x) | 4.40x |
+| Blasius (late / Re_x(N9)) | +3.2% / −7.1% | +30% / −37% | +5.9% / −10.0% |
+| adverse+lower family | **≤2.4%/3.2% ; 0.2%** | 22%/13% ; 1.4% | 4.1%/2.9% ; 0.2% |
+| constants bookkeeping | **net 0** (−1851.2, +ε) | net +1 (−1851.2, +ε_r, +ε_o) | net +1 (+ε_r, ceiling kept) |
+| wall-boundedness | PASS | PASS | PASS |
+| cylinder nose 2e7 (sup N by 80°) | **0.44** | 0.26 | 3.99 |
+| Sec VIII Hiemenz | 0.010 | 0.030 | 0.013 |
+| spheroid re72a0 ΔN | **+1.29** | +6.6 | +1.45 |
+| Spalart zero-suite raw | **4.4e-4** | 7.8e-4 | 3.9e-3 (log-layer leak) |
+| ultra arm 1e9 (80°) | 69 | 53 | 140 |
+
+**Recommendation: keep the single-ε zc@0.12.** A is dominated (its one
+win, the pinned β=1 onset, costs the Blasius anchor, the mild band, and a
++1 constant). B is the choice ONLY if panel-(a) exactness family-wide is
+the overriding goal — its price is 4.4x-early strong-FPG onset, spurious
+nose amplification at practical Re (the bypass content zc avoids), the
+log-layer gate leak, and a +1 constant. The single-ε form remains the
+only net-zero-constants, both-panels-balanced, clean-off-target option;
+its known residual (H ≤ 2.29) is smaller than either variant's worst
+defect.
+
+## The two-branch refactor (RECOMMENDED FINAL FORM) and naming
+
+Per the user's naming preference the ε-form should be presented with the
+prefactor inside the softmax, so each classical instability branch carries
+its own named rate and ε disappears as a symbol:
+
+    Q  = Ω̂ · softmax₂( a_R·⟨Î⟩₊ ,  a_TS·⟨−Z⟩₊/R )
+    a  = min( a_R , ⟨Q⟩₊ )                       [rate; gate unchanged on P = Q/a_R]
+
+- **a_R = 0.19** — the Rayleigh (inviscid-inflectional) branch rate: the
+  renamed a_max, its Michalke free-shear eigenvalue determination
+  untouched. (Alternative if "Rayleigh" overclaims: a_I, inflectional.
+  a_invisc rejected as too long — user's own note.)
+- **a_TS = a_max·ε = 0.0228** at ε = 0.12 (0.0304 at the slope-priority
+  0.16) — the Tollmien–Schlichting (viscous) branch rate, with its own
+  determination: the Drela-stagnation trade-off of Part I. The name states
+  the mechanism, matching the paper's convention (a_max named for the
+  free-shear eigenvalue it caps; c_ν,ai the retained laminar diffusion):
+  the floor holds exactly the viscous TS branch that survives where the
+  inviscid inflectional coordinate dies, keyed to the favorable curvature
+  (−Z) that kills it. c_TS/c_curv/c_FPG were considered and rejected: the
+  constant IS a rate (same units and role as a_max), so the a_ prefix is
+  the honest one; c_curv names the lever, c_FPG a regime.
+- **Identity VERIFIED, composition matters**: by degree-1 homogeneity of
+  softmax₂, Q = a_max·P exactly, and a = min(a_R, ⟨Q⟩₊) reproduces
+  a_max·min(1, ⟨P⟩₊) to ≤ 5e-18 relative on the full FS family (numerical
+  check in the study log). The clip CEILING must be a_R, NOT 1 — writing
+  clip(Q, 0, 1) would raise the strongly-inflected ceiling 5x. The onset
+  gate keeps the dimensionless coordinate (P = Q/a_R, threshold constants
+  unchanged); under variant A the onset branch would carry its own
+  a_TS,o = a_max·ε_o = 0.0121, but A is not recommended.
+- The rename a_max → a_R (paper-wide + ModelConstants.h + AI_RATESCALE
+  env naming) is a single-commit mechanical change at adoption time, not
+  performed now.
+
+## Part II honest ledger additions
+
+1. A's tuning bound: ε_r capped at 0.35 in the secant; the late-ratio
+   trend (0.42→0.46→0.53 per 0.15→0.19→0.35) is saturating, so the
+   infeasibility is structural, not a bound artifact.
+2. B's zero-suite log-layer leak (3.9e-3) is a RAW-kernel number at the
+   solver's σ_t-suppressed fringe; the blended value (3.2e-4) is
+   comparable to the other forms. It is still a 10x raw regression and
+   lives exactly where relaminarizing/transitional fringes have σ_t < 1.
+3. A/B impact rows use the same sup-bound instruments as Part I (same
+   caveats); B's cylinder ε=0 baseline rows differ slightly from Part I's
+   zc rows because the gate form differs at ε=0 (softmin vs no-ceiling).
+4. Naming judgment (a_TS vs a_visc) is taste on top of convention; both
+   are defensible — a_TS is more specific about WHICH viscous instability
+   the floor represents, and pairs with a_R without inventing a_invisc.
