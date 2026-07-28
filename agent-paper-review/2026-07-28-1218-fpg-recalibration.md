@@ -1087,3 +1087,140 @@ viscous coordinate's flatness, not a mis-set c_o.**
 4. Q3's graze-anchored c_o=0.1048 vs Part V's marched-context 0.1046
    differ at the 4th digit (brentq vs secant); immaterial.
 5. All instruments and caveats identical to Parts I–V.
+
+---
+
+# PART VII (appended same day) — c_nu,ai sensitivity: low-H IS more susceptible at fixed Re_theta, but NOT in the realizable rate
+
+*USER UNDERSTANDING QUESTION (diagnosis only, explicitly NOT a request to
+change c_nu,ai): is the low-H/strong-FPG growth more susceptible to
+c_nu,ai than the rest of the family — does lowering c_nu,ai below 1/6 gain
+the most at low H? Two instruments: (1)/(2) the frozen-profile generalized
+eigenvalue (tab_frozen_slope machinery, [diag(b)+D d^2]v = s diag(u)v,
+D = c_nu,ai I_th/(sigma Re_theta)) with the Part-V vbs rate*gate kernel;
+(3) the marched late secant. Reference form vbs (a_inv=0.19, a_visc=0.0276,
+c_o=0.1046). Numbers in fpg_recalibration_vbs.json (partvii_Rt4000/8000)
+and figs_explore/partvii_march.json. No tex/solver edits.*
+
+## Q1/Q2 — frozen eigenvalue at fixed Re_theta: YES, low-H is far more susceptible (mechanism confirmed)
+
+At fixed Re_theta = 8000 (above the model onset for all H >= 2.41):
+
+| H | β | Rt0 | gate | s/DG | d(ln s)/d(ln c_nu,ai) | P_band | band w | confine/P |
+|---|---|---|---|---|---|---|---|---|
+| 2.216 | +1.0 | 6644 | 0.98 | ~0 (dead) | ~0 | 7e-7 | — | ∞ |
+| 2.297 | +0.5 | 3757 | 1.00 | ~0 (dead) | ~0 | 3e-7 | — | ∞ |
+| **2.411** | +0.2 | 1642 | 0.97 | 0.66 | **−0.141** | 6.3e-4 | 1.08 | **0.227** |
+| 2.481 | +0.1 | 827 | 0.99 | 1.16 | −0.057 | 1.3e-3 | 1.73 | 0.049 |
+| 2.529 | +0.05 | 471 | 0.99 | 1.28 | −0.042 | 1.7e-3 | 2.05 | 0.028 |
+| 2.591 | 0 | 242 | 0.99 | 1.32 | −0.034 | 2.2e-3 | 2.38 | 0.017 |
+| 2.801 | −0.10 | 97 | 1.00 | 1.23 | −0.023 | 3.9e-3 | 3.07 | 0.006 |
+| 3.021 | −0.15 | 72 | 1.00 | 1.11 | −0.019 | 5.5e-3 | 3.45 | 0.004 |
+| 3.481 | −0.19 | 49 | 1.00 | 0.96 | −0.015 | 8.7e-3 | 3.73 | 0.002 |
+| 3.982 | −0.1988 | 36 | 1.00 | 0.94 | −0.013 | 1.1e-2 | 3.86 | 0.002 |
+
+**The decomposition confirms the user's hypothesis exactly.** As H drops
+toward stagnation the kernel production P_band falls monotonically
+(1.1e-2 → 6.3e-4 over H 3.98 → 2.41) AND the amplifying band thins
+(w: 3.86 → 1.08), so the confinement drain c_nu,ai·(I_th/σ/Re_θ)·(π/w)²
+grows from 0.2% of production at H=3.98 to **23% at H=2.41** — a ~100×
+rise. The relative sensitivity |d(ln s)/d(ln c_nu,ai)| tracks it: **0.013
+at H=3.98 → 0.14 at H=2.41, a ~10× increase toward low H.** (At
+Re_θ=4000 the same ranking, ~50% stronger: confinement ∝ 1/Re_θ.) So at
+EQUAL Re_theta, low-H growth is unambiguously more c_nu,ai-susceptible,
+by the thin-band/small-production mechanism the user proposed.
+
+**The caveat that reframes it:** at H ≤ 2.30 (β ≥ 0.5) the vbs production
+is essentially zero even above onset (P_band ~ 1e-7; the gate is open,
+gate_band ≈ 1, but the viscous-only rate is negligible), so confine/P is
+formally infinite and the eigenvalue is dead — there is nothing for
+c_nu,ai to relieve. The susceptibility PEAKS in the transitional band
+(H ≈ 2.41), not at the stagnation point itself: at stagnation the deficit
+is production (an a_visc/rate-magnitude problem), not drain.
+
+## Q3 — the realizable (marched) rate REVERSES the ranking; c_nu,ai is a weak, non-selective low-H lever
+
+Marching the vbs form with c_nu,ai swept (a_visc, c_o held; NOT re-anchored
+— diagnosis), late secant / DG:
+
+| β | H | c=1/6 | c=1/10 | c=1/16 | boost 1/6→1/16 |
+|---|---|---|---|---|---|
+| +1.0 | 2.216 | 0.61 | 0.62 | 0.63 | **+3%** |
+| +0.2 | 2.411 | 0.91 | 0.95 | 0.98 | +8% |
+| 0 | 2.591 | 1.05 | 1.09 | 1.12 | +7% |
+| −0.1988 | 3.982 | 0.73 | 0.75 | 0.76 | +4% |
+
+marched N=1 station / DG: stagnation 0.62→0.57, H=2.41 1.13→1.06,
+**Blasius 0.98→0.89** (11% early — the anchor breaks), separated 1.17→1.11.
+
+**The realizable ranking is the OPPOSITE of the frozen one at the
+stagnation end.** Lowering c_nu,ai from 1/6 to 1/16 (×2.7) boosts the
+stagnation late secant by only +3% (0.61→0.63 — nowhere near the 1.0
+target) while boosting Blasius +7% and moderate-FPG +8%. The reason is
+exactly the "even at high Re_theta onset" clause in the question: the
+low-H members transition at very high Re_theta (marched Rt1 ≈ 4200 at
+stagnation vs ≈ 330 at Blasius), and the confinement drain ∝ 1/Re_theta
+is ALREADY negligible there — so the drain the frozen map sees at a
+common Re_θ=8000 is not the drain the low-H layer actually experiences
+along its (much-higher-Re_θ) transition. **No c_nu,ai brings the H=2.216
+late secant to Drela**: even at 1/16 (below which the resolvable nuHat
+band collapses) it is 0.63x, and closing to 1.0 would need c_nu,ai far
+under the molecular floor.
+
+**c_nu,ai vs a_visc as a low-H lever (the comparison the user wants):**
+
+| lever | stagnation late-secant gain | selectivity | Blasius cost |
+|---|---|---|---|
+| a_visc 0.0276→0.05 (Part VI) | 0.61→0.82 (+34%) | low-H via Î≤0, but softmax2 bleeds | Re_x(N9) −10%→−26% |
+| c_nu,ai 1/6→1/16 | 0.61→0.63 (+3%) | **inverted**: helps Blasius/mod more | anchor breaks (N=1 −11%), band collapses |
+
+**Plain verdict: c_nu,ai is BOTH weaker AND less selective than a_visc at
+low H, in the realizable rate.** a_visc at least moves the stagnation
+secant (though with bleed); c_nu,ai barely moves it and preferentially
+helps Blasius/moderate FPG — the reverse of what the fixed-Re_theta
+susceptibility suggests. The user's frozen-Re_theta intuition is correct
+as stated but is defeated in practice by low-H transitioning at high
+Re_theta.
+
+## Q4 — what 1/6 optimized, and whether low-H susceptibility means it under-serves low H
+
+c_nu,ai = 1/6 was frozen-profile-eigenvalue-selected (paper Sec. II.D,
+fig02 machinery): c=1 is excluded structurally (Blasius inception becomes
+diffusion-limited past the Drela N=1 station — unanchorable); below that,
+the marched-envelope flatness improves as c falls while the resolvable
+nuHat band thins as √c, and 1/6 keeps the Blasius N=9 crossing within ~7%
+of Drela at twice the molecular floor of the previous 1/12. So it
+optimized the BLASIUS N=9 tracking and the resolvable-band margin — a
+Blasius-anchored diffusion compromise.
+
+Does the low-H susceptibility mean 1/6 under-serves low H, same structural
+story as a_visc? **No — the story is different.** In the frozen (equal-
+Re_theta) sense low-H is more susceptible, but in the REALIZED rate 1/6
+does NOT under-serve low H: lowering it would help Blasius/moderate FPG
+slightly and barely touch stagnation, so 1/6 is not a compromise that
+short-changes the low-H realized rate. This is UNLIKE a_visc, which
+genuinely under-serves low H (a family-compromise rate constant whose
+Part-VI increase does lift the stagnation rate). The low-H rate deficit
+is a PRODUCTION problem (a_visc, and the softmax2 rate-magnitude at Î≤0),
+not a DIFFUSION-confinement problem — the confinement is only a large
+fraction of production at low H because production is small, not because
+the drain is large in absolute realized terms. Lowering c_nu,ai is
+therefore not the lever for the low-H deficit.
+
+## Part VII honest ledger
+
+1. Two instruments deliberately: the frozen eigenvalue at fixed Re_theta
+   (isolates the confinement mechanism — confirms the hypothesis) and the
+   march (the realizable rate — reverses it at the stagnation end). Both
+   are reported; the realizable one is the operative answer.
+2. The frozen band diagnostic uses the gated kernel b (not b/u); b/u
+   inflates near the wall where u→0 but the gate is closed, mislocating
+   the band (first-pass artifact, corrected — the H≤2.30 "dead" rows are
+   genuine near-zero production, gate_band≈1 confirms the gate is open).
+3. The marched sweep is NOT re-anchored (k fixed at its 1/6 value), so the
+   N=1 shifts include the un-compensated onset drift — that is the honest
+   raw effect of moving c_nu,ai, and it shows the Blasius anchor would
+   need re-anchoring, reinforcing that 1/6 is Blasius-tied.
+4. All at the vbs reference form; the qualitative conclusion (production-
+   limited low-H, confinement negligible in the realized rate) is
+   rate-form-independent.

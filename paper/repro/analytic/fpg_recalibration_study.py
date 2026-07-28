@@ -665,6 +665,105 @@ def tune_variants(db, which):
     return db['variantA' if which == 'A' else _ck('variantB')]
 
 
+def partvii_cnu_sensitivity(db, Re_theta=4000.0,
+                            cnu_list=(1/6, 1/8, 1/10, 1/12, 1/16)):
+    """Part VII (diagnosis only): is the low-H rate more susceptible to
+    c_nu,ai than the rest of the family? Frozen-profile generalized
+    eigenvalue [diag(b) + D d^2] v = s diag(u) v (tab_frozen_slope machinery),
+    with b the Part-V vbs rate*gate kernel and D = c_nu,ai*I_th/(sigma*Rt).
+    Reports per H: the eigenvalue rate vs Drela, d(ln s)/d(ln c_nu,ai), and
+    the production/band-width/confinement decomposition of the user's model
+    s ~ P - c_nu,ai*(nu/sigma)*(pi/w)^2."""
+    from scipy.linalg import eigh_tridiagonal
+    from lib.correlations import dN_dRe_theta as _dN, Re_theta0 as _Rt0
+    SIGMA_SA = 2.0/3.0
+    eps_r, co = EPS[0], CO[0]
+    UFLOOR = 0.02
+    # requested H -> nearest FS beta
+    betas = [1.0, 0.5, 0.2, 0.1, 0.05, 0.0, -0.10, -0.15, -0.19, -0.1988]
+
+    def build(beta, N=6000):
+        fs = FalknerSkanWedge(beta)
+        y0, u0, up0 = fs.eta, fs.u, fs.dudeta
+        y = np.linspace(0.0, float(y0[-1]), N)
+        u = np.interp(y, y0, u0); up = np.interp(y, y0, up0)
+        # exact FS-ODE curvature (Part-IV lesson: gradient noise floors P)
+        f = np.concatenate([[0.0], np.cumsum(0.5*(u0[1:]+u0[:-1])*np.diff(y0))])
+        upp0 = -(f*up0 + beta*(1.0 - u0*u0))/(2.0 - beta)
+        upp = np.interp(y, y0, upp0)
+        I_th = float(np.trapezoid(u*(1-u), y)); H = float(np.trapezoid(1-u, y))/I_th
+        X, Y, Z = u, y*up, 0.5*y**2*upp
+        R = np.sqrt(X*X+Y*Y+Z*Z)+1e-30
+        Shat = Y/np.sqrt(X*X+Y*Y+1e-30); g = (Y-X-Z)/R
+        gg = np.clip(g, 0, None); zz = np.clip(-Z/R, 0, None)
+        Prate = Shat*np.sqrt(gg*gg + (eps_r*zz)**2)
+        a = A_MAX*np.minimum(1.0, np.clip(Prate, 0, None))
+        Pgate = Shat*np.sqrt(gg*gg + (co*zz)**2)
+        ReOm = y*y*np.abs(up)*(Re_theta/I_th)
+        reomc = REOM_A + REOM_B/np.maximum(Pgate, 1e-9)**2      # no ceiling
+        gate = 0.5*(1.0 + np.tanh((ReOm/reomc - 1.0)/RAMP_W))
+        b = a*gate*np.abs(up)
+        ell = (6.54*H - 14.07)/H**2
+        m = (0.058*(H-4.0)**2/(H-1.0) - 0.068)/ell
+        sDG = float(_dN(H))*0.5*(m+1.0)*ell
+        return dict(y=y, h=y[1]-y[0], u=u, up=up, b=b, a=a, gate=gate,
+                    Prate=Prate, I_th=I_th, H=H, sDG=sDG,
+                    Rt0=float(np.asarray(_Rt0(H))))
+
+    def s_rate(pr, cnu):
+        D = cnu*pr['I_th']/(SIGMA_SA*Re_theta); h = pr['h']
+        uf = np.maximum(pr['u'], UFLOOR)[1:-1]
+        d = (pr['b'][1:-1] - 2.0*D/h**2)/uf
+        e = (D/h**2)/np.sqrt(uf[:-1]*uf[1:])
+        w = eigh_tridiagonal(d, e, select='i',
+                             select_range=(len(d)-1, len(d)-1))[0]
+        return float(w[0])                       # realizable dN/dRe_x-ish; /sDG below
+
+    rows = []
+    for beta in betas:
+        pr = build(beta)
+        srates = {c: s_rate(pr, c) for c in cnu_list}
+        ratios = {c: srates[c]*pr['I_th']/pr['sDG'] for c in cnu_list}
+        # relative sensitivity d(ln s)/d(ln cnu) central in log at canon 1/6
+        cc = sorted(cnu_list, reverse=True)
+        i6 = cc.index(1/6)
+        lo, hi = cc[min(i6+1, len(cc)-1)], cc[max(i6-1, 0)]
+        s_lo, s_hi = max(srates[lo], 1e-30), max(srates[hi], 1e-30)
+        sens = (np.log(s_hi) - np.log(s_lo))/(np.log(hi) - np.log(lo))
+        # decomposition at canon: production, band width, confinement fraction.
+        # Use the GATED kernel b directly (b/u inflates near the wall where
+        # u->0 but the gate is closed -- it mislocates the band). The band is
+        # where the gated production is significant AND the gate is open.
+        b, u, y = pr['b'], np.maximum(pr['u'], UFLOOR), pr['y']
+        pk = float(np.max(b)); ipk = int(np.argmax(b))
+        band = (b > 0.1*pk) & (pr['gate'] > 0.5)
+        if band.sum() > 1:
+            w = float(y[band].max() - y[band].min())
+            Pband = float(np.mean(b[band]))
+            gate_band = float(np.mean(pr['gate'][band]))
+        else:                                       # below model onset: dead
+            w = float('nan'); Pband = pk; gate_band = float(np.max(pr['gate']))
+        D6 = (1/6)*pr['I_th']/(SIGMA_SA*Re_theta)
+        confine = D6*(np.pi/w)**2 if w == w else float('inf')
+        cfrac = confine/max(Pband, 1e-30)
+        rows.append(dict(beta=beta, H=pr['H'], Rt0=pr['Rt0'],
+                         gate_band=gate_band, above_onset=bool(band.sum() > 1),
+                         ratio_canon=ratios[1/6],
+                         ratios={f'{c:.4f}': ratios[c] for c in cnu_list},
+                         sensitivity=float(sens),
+                         production_band=Pband, band_width=w,
+                         confine=float(confine), confine_frac=float(cfrac)))
+        wtxt = f"{w:.2f}" if w == w else " dead"
+        print(f"  H={pr['H']:5.3f} (b={beta:+.3f}) Rt0={pr['Rt0']:5.0f} "
+              f"gate_band={gate_band:.2f} | s/DG={ratios[1/6]:+6.3f} "
+              f"dlns/dlnc={sens:+.3f} | P_band={Pband:.3e} w={wtxt} "
+              f"conf/P={cfrac:.3f}", flush=True)
+    db[f'partvii_Rt{Re_theta:.0f}'] = dict(Re_theta=Re_theta, rows=rows,
+                                           cnu_list=list(cnu_list))
+    save(db)
+    return rows
+
+
 def partv_gatecal(db):
     """Part V requirement 1: calibrate c_o on the ENRICHED graze family
     (Part-IV members incl. stagnation), for the linear blend (headline) and
@@ -956,6 +1055,8 @@ def main():
                     help='Part-V gate blend coefficient c_o (forms vb/vbs)')
     ap.add_argument('--partv', action='store_true',
                     help='Part-V c_o graze calibration (both blends)')
+    ap.add_argument('--partvii', type=float, default=None,
+                    help='Part-VII c_nu,ai sensitivity map at this Re_theta')
     ap.add_argument('--eps-o', type=float, default=None,
                     help='variant-A onset epsilon (form zc2)')
     ap.add_argument('--tune', choices=['A', 'B'], default=None,
@@ -979,7 +1080,8 @@ def main():
                    or args.tradeoff or args.signcheck is not None
                    or args.boundedness is not None
                    or args.signmap is not None or args.tune is not None
-                   or args.zb_figure or args.partv)
+                   or args.zb_figure or args.partv
+                   or args.partvii is not None)
     FORM[0] = args.form
     if args.eps_o is not None:
         EPS_O[0] = args.eps_o
@@ -1011,6 +1113,11 @@ def main():
         print('== Part V: c_o graze calibration (enriched family) ==',
               flush=True)
         partv_gatecal(db)
+
+    if args.partvii is not None:
+        print(f'== Part VII: c_nu,ai sensitivity at Re_theta='
+              f'{args.partvii:.0f} ==', flush=True)
+        partvii_cnu_sensitivity(db, Re_theta=args.partvii)
 
     if args.tune is not None:
         print(f'== variant {args.tune} joint tuning (beta = 1) ==',
