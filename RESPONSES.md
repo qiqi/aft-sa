@@ -1035,3 +1035,49 @@ clean, 119 pp, 0 errors / 0 undefined).
   force CSVs (7 spot cases exact); seeds re-verified against
   lib.calibrate_kernel.chi_inf_from_Tu_pct; chi normalization
   verified on the slice (far field reads 1.0835e-2 exactly).
+
+---
+
+## 2026-07-28 ~00:45 — spheroid a0 physics deep-dive DONE (re72a0 L2): the band is never overwhelmed; the mean flow is
+
+Full record: agent-paper-review/2026-07-28-0040-spheroid-a0-physics.md;
+script paper/repro/cfd/spheroid_a0_physics.py; five READABLE figures +
+captions + JSON in paper/repro/cfd/figs_explore/spheroid_a0_physics_*.
+
+1. c_nu_ai VERDICT: the Sec-II.D eigenvalue solved on the EXTRACTED
+   profiles stays positive at every station for EVERY c_nu_ai (even 1.0;
+   min 0.48/L at x/L=0.70; at 1/6: 9.2/L at the front station, 2.0/L at
+   the trough). Confinement costs more than at calibration (retention
+   0.50-0.61 vs FS-class 0.72-0.80; w/theta 2.8-4.4 vs 5.0-5.6) but
+   NEVER wins; c_nu_ai->0 only doubles the trough growth vs an ~e^7
+   deficit. No c_nu_ai retune addresses this case.
+2. THE NEW ISOLATED LINK — the RANS laminar MEAN PROFILE is anomalously
+   full: H=2.49 at the measured front (plate operator-control reads
+   2.60; Thwaites-Mangler on the SAME u_e says 2.59-2.61; grid-stable
+   L0/L1/L2 and the aft anomaly DEEPENS with refinement: P at 0.70
+   0.060/0.046/0.022). Sharpened FS check: spheroid H=2.49 ~ FS
+   beta=+0.10 H=2.481, and its planar max(OmegaI)=0.056 > FS 0.037 —
+   the kernel reads its profile fairly (pointwise physics fine, per
+   the user's marcher-delivers hypothesis); the profile itself is the
+   stabler class.
+3. e^N ON OUR OWN FIELD: on Thwaites shapes from OUR u_e: onset 0.059,
+   N8 at 0.492 (Stock 0.425, measured 0.438 — same class), N11.65 at
+   0.661. On the field's OWN H/Re_theta: onset 0.197, N8 at 0.842,
+   N11.65 unreached by 0.88 — an exact Drela envelope on the RANS mean
+   flow would front at ~0.84-0.9+; the model's chi=1 front 0.9244 is
+   e^N-CONSISTENT with its own mean flow.
+4. TRANSPORT BALANCE at x/L=0.70 (stall): production +1.00; wall-normal
+   diffusion -0.79 at the chi peak (eigenmode would pay ~0.50 —
+   the transported profile is sub-eigenmode-shaped, inherited from the
+   upstream wider band); conv_s +0.36, conv_n -0.24 (redistribution);
+   destruction/cb2 inert (<1e-8/1e-4). Realized 0.67-1.36/L vs eig 2.0
+   vs sup 4.1. Realization stall = honest non-parallel transport, not
+   a leak.
+5. ESTIMATOR CORRECTION recorded: the flank audit's raw planar P_ii
+   values were noise-inflated ~1.3-1.6x (double-np.gradient on probed
+   profiles; converged smoothed values match the solver's compact
+   Laplacian). Audit's P_i chain and verdicts unaffected.
+6. FOLLOW-ON POINTED AT (no action): laminar mean-flow fidelity on
+   curved bodies — a standalone laminar BL march / OpenFOAM laminar
+   cross-solve on this geometry would discriminate solver numerics vs
+   real non-equilibrium physics in hours.
