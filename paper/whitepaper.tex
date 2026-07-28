@@ -30,7 +30,9 @@ from \texttt{repro/analytic/} alone; the coupled-RANS results
 additionally require the Flow360 solver binary (\texttt{repro/driver/}
 re-runs the cases, \texttt{repro/cfd/} regenerates the figures); the
 independent cross-solver replication runs from \texttt{openfoam/}. The
-6:1 prolate spheroid (crossflow) study is under revision and is
+appendix collects the main paper's appendix figure sets (meshes,
+wall-anchored contour sheets, Daedalus surface and section sheets).
+The 6:1 prolate spheroid (crossflow) study is under revision and is
 omitted here.
 
 \section{Model}
@@ -133,6 +135,11 @@ Fig.~\ref{f:sphere} shows the Falkner--Skan family, its
 linear-stability amplifying bands, and the contours of
 $\hat\Omega\hat I$ on the indicator sphere.
 
+\begin{figure}[H]\centering
+\includegraphics[width=0.68\textwidth]{indicator_sphere.pdf}
+\caption{Indicator sphere.}\label{f:sphere}
+\end{figure}
+
 In the solver the triple is assembled from four local vector-calculus
 objects: the velocity $\mathbf u$ (relative to the nearest wall point,
 which makes the indicators Galilean invariant), the vorticity
@@ -216,6 +223,21 @@ critical $Re_\theta$; by $\beta\approx0.45$ transition has retreated
 beyond any station of practical relevance, and stronger favorable
 wedges are suppressed outright
 (Figs.~\ref{f:nuhat}--\ref{f:calibrate}).
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.62\textwidth]{onset_graze.pdf}
+\caption{Onset-threshold graze.}\label{f:graze}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{fs_nuHat_rows.pdf}
+\caption{Disturbance transport, three wedges.}\label{f:nuhat}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{model_calibrate.pdf}
+\caption{Calibrated model vs Drela--Giles.}\label{f:calibrate}
+\end{figure}
 
 \subsection{Reduced laminar diffusion}
 
@@ -381,6 +403,11 @@ high Reynolds number. An implementer needs a branch-selection
 protocol; the printed transport equation alone does not determine
 which fixed point an initialization finds.
 
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{stagnation_bistability.pdf}
+\caption{Attachment-anchored turbulent branch.}\label{f:stagbistab}
+\end{figure}
+
 The protocol used for every result in this paper: the
 $\tilde\nu$-equation residual is scaled by $f^{\,1-g}$, where $g$
 rises smoothly from $0$ (laminar) to $1$ (turbulent) with $\chi$ and
@@ -413,37 +440,40 @@ convergence protocol above everywhere. Airfoil cases:
 $\chi_\infty=c_{v1}e^{-9}\approx8.76\times10^{-4}$ (the
 $N_\mathrm{crit}=9$ anchor; via Mack's map, $Tu\approx0.07\%$); two
 independently generated mesh families---all-triangular unstructured
-cavity meshes (constrained-Delaunay through the boundary layer,
-$O(10^2$--$10^3)\!:\!1$ anisotropy) and all-quadrilateral structured
-O-grids (Construct2D)---at three refinement levels, $1.5\times10^4$
-to $2.6\times10^5$ nodes. Transition locations are the solver's
-near-wall $\chi=1$ crossing (the $\chi=c_{v1}$ crossing sits up to
-$0.05\,c$ aft where the front grows slowly); bubble stations are
-signed-$C_f$ zero crossings. The independent cross-solver replication
-is a cell-centered, pressure-based, incompressible OpenFOAM
-implementation of the model, run on the same flat-plate grid
-specification and the same structured airfoil grids (the port omits
-the $f_{v1}$ bypass of Eq.~\eqref{w:fv1bypass}); the cross-solver set
-spans thirty airfoil cases plus the five-level flat-plate sweep.
+cavity meshes, constrained-Delaunay through the boundary layer, and
+all-quadri\-lateral structured O-grids---at three refinement levels,
+$1.5\times10^4$ to $2.6\times10^5$ nodes (meshes in the appendix).
+Transition locations are the solver's near-wall $\chi=1$ crossing
+(the $\chi=c_{v1}$ crossing sits up to $0.05\,c$ aft where the front
+grows slowly); bubble stations are signed-$C_f$ zero crossings. The
+cross-solver replication is a cell-centered, pressure-based,
+incompressible OpenFOAM implementation of the model on the same
+flat-plate grid specification and the same structured airfoil grids
+(the port omits the $f_{v1}$ bypass); thirty airfoil cases plus the
+flat-plate sweep.
 
 \subsection{Flat plate, $Tu=0.04$--$0.60\%$}
 
 Structured $320\times80$ grid, $Re_x\le6\times10^6$,
 $y^+\lesssim0.3$; five seeds from Mack's map
 ($\chi_\infty\approx2.3\times10^{-4}$, $1.2\times10^{-3}$,
-$6.3\times10^{-3}$, $2.9\times10^{-2}$, $1.5\times10^{-1}$;
-Fig.~\ref{f:flatplate}). Against the Abu-Ghannam \& Shaw correlation,
-at the $\chi=c_{v1}$ half-saturation crossing the model brackets the
-correlation within $10\%$ across the sweep: $+7\%$ late at
-$Tu=0.04\%$, $-2\%$ at $0.08\%$, and $4$--$10\%$ early over
-$0.16$--$0.60\%$. At the $\chi=1$ crossing it reads $+2\%$ late at
-$0.04\%$ and drifts early as the seed grows, $-8\%$ at $0.08\%$ to
-$-27\%$ at $0.60\%$. The OpenFOAM implementation reproduces the
-$\chi=1$ crossings within $7\%$ in $Re_\theta$, consistently slightly
-early, across the whole sweep (Fig.~\ref{f:flatplateof};
-Table~\ref{t:flatplate}). The $C_f$ follows the laminar branch and
-recovers the turbulent correlation; baseline SA, with no laminar
-branch, does not produce this.
+$6.3\times10^{-3}$, $2.9\times10^{-2}$, $1.5\times10^{-1}$).
+Figure~\ref{f:flatplate}: the Flow360 sweep---at the $\chi=c_{v1}$
+crossing the onset brackets the Abu-Ghannam \& Shaw correlation
+within $10\%$ across the range. Figure~\ref{f:flatplateof}: the
+OpenFOAM replication---$\chi=1$ crossings within $7\%$ in
+$Re_\theta$, consistently slightly early. Table~\ref{t:flatplate}:
+both solvers' crossings.
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.90\textwidth]{flat_plate_batch_flow360.pdf}
+\caption{Flat plate, Flow360.}\label{f:flatplate}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.90\textwidth]{flat_plate_batch_openfoam.pdf}
+\caption{Flat plate, OpenFOAM.}\label{f:flatplateof}
+\end{figure}
 
 \begin{table}[H]
   \centering\small
@@ -467,35 +497,45 @@ branch, does not produce this.
 
 \subsection{NLF(1)-0416 at $Re=4\times10^6$}
 
-Twenty-four cases ($\alpha\in\{0^\circ,4^\circ,9^\circ,15^\circ\}$,
-both families, L0--L2) plus the negative-incidence pair
-$\alpha=-8^\circ,-4^\circ$ on all six grids (twelve further cases).
-Figure~\ref{f:nlfaft} shows the transition fronts against the LTPT
-microphone measurements, Coder's AFT (OVERFLOW) sweeps at
-$N_\mathrm{crit}=10.07$ and recalibrated $7.18$, all fourteen First
-AIAA Transition Modeling Workshop submittals, the SA-LM2015 and
-Langtry--Menter references, and XFOIL; Table~\ref{t:nlf} tabulates
-forces and fronts, and Fig.~\ref{f:nlfpolar} the drag polar against
-Somers TP-1861. SA-AI's fronts, at the untuned $N=9$-class seed, land
-on the measurements where the recalibrated AFT lands, on both surfaces
-and both mesh families; at L1 and L2 the cavity markers land on the
-O-grid markers on every front. The lower front's aft-ward march with
-lift is reproduced to within $0.02\,c$; across both airfoils the
-L1$\to$L2 transition-location drift is at or below $0.01\,c$. At
-$\alpha=-8^\circ$ the pressure-side front converges at
-$0.559$--$0.561\,c$ (families agreeing to $0.002\,c$) against the
-measured ${\approx}0.54\,c$, with the recalibrated AFT at $0.57$ and
-$e^9$ at $0.66\,c$; the drag sits $8$--$11$ counts below the measured
-polar at matched lift. Fully turbulent SA on the same structured L2
-grid sits $+144$/$+150\%$ above the SA-AI drag in the bucket at
-$\alpha=0^\circ$/$4^\circ$ and $+67$/$+74\%$ at $9^\circ$/$15^\circ$.
-The OpenFOAM implementation on the structured L1/L2 grids at all six
-incidences: at L2 every front lies within $0.016\,c$ and the lift
-within $0.9\%$ ($0.003$ absolute at zero lift) of the SA-AI values;
-the codes differ by $14\%$ in $C_D$ at $-8^\circ$ at matched fronts
-and by $1.6$--$3.5\%$ elsewhere at L2
-(Table~\ref{t:nlfof}). Surface distributions:
-Figs.~\ref{f:nlfcflow}--\ref{f:nlfnegalpha}.
+$\alpha\in\{0^\circ,4^\circ,9^\circ,15^\circ\}$ on both families at
+L0--L2 plus $\alpha=-8^\circ,-4^\circ$ on all six grids (thirty-six
+cases). Figure~\ref{f:nlfaft}: transition fronts against the LTPT
+microphone measurements, Coder's AFT (OVERFLOW) at
+$N_\mathrm{crit}=10.07$ and recalibrated $7.18$, the fourteen First
+AIAA Transition Modeling Workshop submittals, SA-LM2015,
+Langtry--Menter, and XFOIL---the untuned $N\!=\!9$-class fronts land
+on the measurements where the recalibrated AFT lands.
+Figure~\ref{f:nlfpolar}: drag polar against Somers TP-1861, the $e^9$
+reference, and fully turbulent SA.
+Figures~\ref{f:nlfcflow}--\ref{f:nlfnegalpha}: surface distributions
+(five-row suites). Table~\ref{t:nlf}: forces and fronts.
+Table~\ref{t:nlfof}: the OpenFOAM replication---at L2 every front
+within $0.016\,c$ and the lift within $0.9\%$ of the SA-AI values.
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{nlf_aft_transition.pdf}
+\caption{NLF(1)-0416 transition fronts.}\label{f:nlfaft}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.62\textwidth]{nlf_polar_compare.pdf}
+\caption{NLF(1)-0416 drag polar.}\label{f:nlfpolar}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{nlf_cf_lowalpha.pdf}
+\caption{NLF(1)-0416, $\alpha=0^\circ,4^\circ$.}\label{f:nlfcflow}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{nlf_cf_highalpha.pdf}
+\caption{NLF(1)-0416, $\alpha=9^\circ,15^\circ$.}\label{f:nlfcfhigh}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.96\textwidth]{nlf_cf_negalpha.pdf}
+\caption{NLF(1)-0416, $\alpha=-8^\circ,-4^\circ$.}\label{f:nlfnegalpha}
+\end{figure}
 
 \begin{table}[H]
   \centering\small
@@ -550,45 +590,44 @@ Figs.~\ref{f:nlfcflow}--\ref{f:nlfnegalpha}.
 
 \subsection{Eppler 387 at $Re=2\times10^5$}
 
-Twenty-four cases ($\alpha\in\{0^\circ,2^\circ,5^\circ,7^\circ\}$,
-both families, L0--L2) plus six extension incidences ($-2^\circ$,
-$1^\circ$, $3^\circ$, $4^\circ$, $6^\circ$, $8.5^\circ$) on the
-finest pair; same seed. Figure~\ref{f:epppolar} shows the drag polar against
-the LTPT measurement (McGhee et al., TM-4062), the mfoil/XFOIL $e^9$
-reference, and the digitized $\gamma$--$Re_\theta$ and SA-BC curves;
-Fig.~\ref{f:eppbubble} the bubble stations; Tables~\ref{t:epppolar}
-and~\ref{t:eppbubble} the forces and stations. On the finest grids
-the polar tracks the measured low-drag bucket at matched lift:
-$-5.8\%$/$-4.3\%$ (structured/unstructured) at $\alpha=0^\circ$,
-$-4.4\%$/$-3.8\%$ at $2^\circ$, $+3.7\%$/$+1.3\%$ at the $5^\circ$
-bubble apex, $-3.7\%$/$-6.4\%$ at $7^\circ$; at $-2^\circ$ the
-computed drag sits ${\approx}14\%$ below the measured curve, and at
-$8.5^\circ$ the solutions are unsteady and the plotted points are
-medians. The two mesh families agree to
-$\Delta C_d\le2.4\times10^{-4}$ across $\alpha=-2^\circ$--$7^\circ$
-and to $1.0\times10^{-3}$ at $8.5^\circ$. Fully turbulent SA is
-$77$--$97\%$ above the SA-AI drag in the bucket and $+151\%$ at
-$7^\circ$. Laminar separation is reproduced to a few percent of chord
-at every incidence; reattachment at $\alpha\le5^\circ$ is
-$0.02$--$0.04\,c$ late against the oil flow at grid
-convergence---inside the facility-to-facility spread (Cole--Mueller
-reads $0.03$--$0.08\,c$ aft of the LTPT oil flow)---and at $7^\circ$
-the model sits at the edge of bubble collapse: three of six grids
-transition ahead of separation, and the surviving structured-L2
-sliver reattaches ${\sim}0.07\,c$ early. At $8.5^\circ$ both families
-reproduce the post-stall leading-edge-bubble topology (oil flow:
-$0.03$--$0.18\,c$) but reattach at $0.032$--$0.049\,c$. The lower
-surface stays attached and laminar to the trailing edge at every
-incidence, matching $e^9$. OpenFOAM on the structured L1/L2 grids: at
-L2 the lift agrees within $0.5\%$, separation sits
+$\alpha\in\{0^\circ,2^\circ,5^\circ,7^\circ\}$ on both families at
+L0--L2 plus six extension incidences ($-2^\circ$, $1^\circ$,
+$3^\circ$, $4^\circ$, $6^\circ$, $8.5^\circ$) on the finest pair;
+same seed. Figure~\ref{f:epppolar}: drag polar against the LTPT
+measurement (McGhee et al., TM-4062), the $e^9$ reference, fully
+turbulent SA, and the digitized $\gamma$--$Re_\theta$ and SA-BC
+curves---the finest grids track the measured bucket at matched lift
+($-6.4\%$ to $+3.7\%$ over $\alpha=0^\circ$--$7^\circ$).
+Figure~\ref{f:eppbubble}: bubble stations against the oil flow,
+Selig et al., Cole--Mueller, and the $e^9$ references---separation
+reproduced to a few percent of chord everywhere; reattachment
+$0.02$--$0.04\,c$ late at $\alpha\le5^\circ$, at the edge of bubble
+collapse at $7^\circ$. Figures~\ref{f:eppcflow}--\ref{f:eppcfhigh}:
+surface suites. Table~\ref{t:epppolar}: forces.
+Table~\ref{t:eppbubble}: bubble stations. Table~\ref{t:eppof}: the
+OpenFOAM replication---at L2 lift within $0.5\%$, separation
 $0.030$--$0.037\,c$ ahead of and reattachment $0.033$--$0.045\,c$
-behind the SA-AI stations ($0.086\,c$ at $7^\circ$); the bypass-less
-port's drag differs by $+4.8$/$+7.5$/$+1.2$ counts at
-$\alpha=0^\circ$/$2^\circ$/$5^\circ$ and $-6.8$ at $7^\circ$,
-consistent in sign and magnitude with the omitted bypass (worth $-6$
-to $-10$ counts at $\alpha=0$--$5^\circ$ here)
-(Table~\ref{t:eppof}). Surface distributions:
-Figs.~\ref{f:eppcflow}--\ref{f:eppcfhigh}.
+behind the SA-AI stations.
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.62\textwidth]{eppler_polar_compare.pdf}
+\caption{Eppler 387 drag polar.}\label{f:epppolar}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{eppler_bubble_stations.pdf}
+\caption{Eppler 387 bubble stations.}\label{f:eppbubble}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{eppler_cf_lowalpha.pdf}
+\caption{Eppler 387, $\alpha=0^\circ,5^\circ$.}\label{f:eppcflow}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{eppler_cf_highalpha.pdf}
+\caption{Eppler 387, $\alpha=7^\circ,8.5^\circ$.}\label{f:eppcfhigh}
+\end{figure}
 
 \begin{table}[H]
   \centering\small
@@ -678,37 +717,31 @@ Figs.~\ref{f:eppcflow}--\ref{f:eppcfhigh}.
 
 \subsection{Eppler 387 Reynolds sweep at $\alpha=5^\circ$}
 
-The four other tabulated Reynolds numbers of the McGhee experiment,
-$Re\in\{6\times10^4,\,10^5,\,3\times10^5,\,4.6\times10^5\}$, on the
-same grids (24 further solutions); Fig.~\ref{f:eppresweepforces}
-collects the forces and bubble stations, Figs.~\ref{f:eppresweeplow}
-and~\ref{f:eppresweephigh} the surface suites, and
-Table~\ref{t:eppresweep} the L2 coefficients. The sweep traces the
-bubble progression: open, non-reattaching separation from
-$x/c\approx0.32$ at $6\times10^4$; an incompletely closing separation
-at $10^5$, the signed $C_f$ regaining zero only within $0.05\,c$ of
-the trailing edge on every grid against the measured oil-flow
-reattachment near $0.67\,c$, with the L2 drag $+30\%$ (unstructured)
-to $+73\%$ (structured) above the measurement; short, shallow bubbles
-recovering, on the two finer levels, at $x/c\approx0.55$
-($3\times10^5$) and $x/c\approx0.48$ ($4.6\times10^5$). The model's
-bursting boundary thus sits one Reynolds step above the
-measurement's ($6\times10^4$). At $6\times10^4$ the open separation
-gives $C_l=0.71$ unstructured vs.\ $0.64$ structured at L2, against
-$\Delta C_d\le2\times10^{-4}$ at $3$--$4.6\times10^5$; the experiment
-itself is bistable there (repeat points at $\alpha=4.00^\circ$ give
-$c_l=0.643$, $0.697$, $0.721$). The computed state is unique among
-protocol-admitted states: direct forks, slow one-step Reynolds
-descents and climbs, and $40\,000$-iteration extensions of every
-$10^5$ endpoint converge to one family-specific state at $10^5$ and
-collapse onto the burst branch at $6\times10^4$---the model is
-monostable throughout the sweep and carries no counterpart of the
-experiment's two-state structure at $6\times10^4$. Measured
-half-saturation handover lengths on the structured-L2 solutions:
-$0.025$--$0.05\,c$ at $2$--$4.6\times10^5$; at $10^5$,
-half-saturation alone costs $0.05$--$0.10\,c$ and full production
-arrives only $0.18$--$0.30\,c$ downstream; at $6\times10^4$ full
-production is never reached on the airfoil.
+$Re\in\{6\times10^4,\,10^5,\,3\times10^5,\,4.6\times10^5\}$ on the
+same grids (24 further solutions).
+Figure~\ref{f:eppresweepforces}: forces and bubble stations across
+the sweep---the refinement fan closes onto the measurement at
+$2$--$4.6\times10^5$ and opens at $10^5$, the model's bursting
+boundary, one Reynolds step above the measurement's ($6\times10^4$);
+the computed state at every swept Reynolds number is unique among
+protocol-admitted initializations.
+Figures~\ref{f:eppresweeplow}--\ref{f:eppresweephigh}: surface
+suites. Table~\ref{t:eppresweep}: L2 coefficients.
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{eppler_resweep_forces.pdf}
+\caption{Reynolds-sweep forces and stations.}\label{f:eppresweepforces}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{eppler_resweep_lowRe.pdf}
+\caption{Reynolds sweep, $Re=6\times10^4$, $10^5$.}\label{f:eppresweeplow}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{eppler_resweep_highRe.pdf}
+\caption{Reynolds sweep, $Re=3$, $4.6\times10^5$.}\label{f:eppresweephigh}
+\end{figure}
 
 \begin{table}[H]
   \centering\footnotesize
@@ -741,86 +774,96 @@ production is never reached on the airfoil.
 
 \subsection{Cylinder drag crisis, $Re_D=1$--$2\times10^7$}
 
-A steady-branch traverse of the drag crisis over $7.3$ decades with
-one closure and one set of constants
-(Fig.~\ref{f:dragcrisiscd}). Twelve diameter Reynolds numbers,
-$Re_D=6\times10^4$--$2\times10^6$, at three freestream seeds
+A steady-branch traverse over $7.3$ decades with one closure and one
+set of constants. Twelve Reynolds numbers,
+$Re_D=6\times10^4$--$2\times10^6$, at three seeds
 ($\chi_\infty=3.9\times10^{-4}$, $1.1\times10^{-2}$, $0.22$; Mack's
-map at $Tu=0.05$, $0.2$, $0.7\%$) on one quasi-two-dimensional O-grid
-($1200\times148$, first spacing $8\times10^{-6}\,D$, outer boundary
-$100\,D$; $y^+\le0.64$ at $2\times10^6$), each seed swept as an
-upward and a downward continuation ladder plus twelve cold starts at
-the middle seed---84 steady cases (Table~\ref{t:dragcrisis}). Two
-further grids of the same analytic construction extend the traverse:
-a large-domain laminar grid ($600\times121$, first spacing
-$10^{-3}\,D$, outer boundary $1000\,D$) carrying $Re_D=1$--$10^3$,
-and a fine supercritical grid ($1600\times170$, first spacing
-$10^{-6}\,D$; measured $y^+\le0.71$ at $10^7$, $1.4$ at the
-$2\times10^7$ endpoint, quoted with that caveat) carrying
-$4\times10^6$--$2\times10^7$---45 further cases, 129 in all. The
-families are run past each other at their seams: $C_d$ agrees to
-$0.5$--$0.6\%$ at $Re_D=300$ and $10^3$, and to $2.9\%$ between
-cold-started pairs at $2\times10^6$, the finer grid higher. A case is
-accepted when $C_d$ drifts by less than $10^{-3}$ over $1000$
-pseudo-steps; otherwise it is flagged as a steady limit cycle ($37$
-of $129$). Every case lands on the symmetric branch,
-$|C_L|<2\times10^{-7}$.
+map at $Tu=0.05$, $0.2$, $0.7\%$) on one quasi-two-dimensional
+O-grid ($1200\times148$, first spacing $8\times10^{-6}\,D$, outer
+boundary $100\,D$; $y^+\le0.64$ at $2\times10^6$), each seed swept
+as an upward and a downward continuation ladder plus twelve cold
+starts at the middle seed---84 steady cases; a large-domain laminar
+grid ($600\times121$, outer boundary $1000\,D$) carries
+$Re_D=1$--$10^3$ and a fine supercritical grid ($1600\times170$,
+first spacing $10^{-6}\,D$; $y^+\le0.71$ at $10^7$, $1.4$ at the
+$2\times10^7$ endpoint, quoted with that caveat) carries
+$4\times10^6$--$2\times10^7$---129 cases in all. At the grid seams
+$C_d$ agrees to $0.5$--$0.6\%$ at $Re_D=300$ and $10^3$ and to
+$2.9\%$ between cold-started pairs at $2\times10^6$; $37$ of $129$
+cases are flagged steady limit cycles; every case lands on the
+symmetric branch, $|C_L|<2\times10^{-7}$.
 
-The model produces the crisis as a seed-ordered family: the crisis
-moves from $Re_D\approx5$--$7\times10^5$ at the two quiet seeds down
-to $\approx3$--$4\times10^5$ at $Tu=0.7\%$, and the supercritical
-floor, $C_d=0.217$--$0.233$ at $2\times10^6$, rises with the seed.
-The post-crisis wall sequence is a laminar-separation bubble: at the
-middle seed, laminar separation at $92^\circ$, turbulent reattachment
-at $102^\circ$, final separation at $107^\circ$ at
-$Re_D=7\times10^5$; the bubble shrinks to $1.5^\circ$
-($98$--$100^\circ$, final separation $118^\circ$) at $2\times10^6$
-and gives way to attached transition at the highest seed. Through the
-crisis the shoulder suction deepens from $C_p=-0.90$ to $-2.43$ and
-the base pressure recovers from $-0.62$ to $-0.26$
-(fields: Fig.~\ref{f:dragcrisisfields}). Below the shedding onset
+Figure~\ref{f:dragcrisiscd}: the traverse---the crisis moves from
+$Re_D\approx5$--$7\times10^5$ at the two quiet seeds to
+$\approx3$--$4\times10^5$ at $Tu=0.7\%$, and the supercritical floor
+($C_d=0.217$--$0.233$ at $2\times10^6$) rises with the seed.
+Figure~\ref{f:dragcrisisangles}: the transition and separation angles
+across the whole traverse, with the radial-ray $\chi$ profiles that
+define the transition angle.
+Figure~\ref{f:dragcrisisfpg}: the favorable-pressure-gradient
+amplification audit---the model's frozen-profile envelope slope
+tracks the Drela--Giles fit through $\beta\le0.1$, halves at
+$\beta=0.2$, and collapses three orders of magnitude by $\beta=0.5$,
+while on the cylinder nose the $e^N$
+$N=\ln(1/\chi_\infty)$ crossing sits behind the computed front at
+all three Reynolds numbers shown. Figure~\ref{f:dragcrisisfields}:
+fields at three stations of the traverse.
+Table~\ref{t:dragcrisis}: the matrix $C_d$. Below the shedding onset
 ($Re_D\approx46$) the steady solution is the physical flow:
 $C_d=10.67$ at $Re_D=1$ and $2.797$ at $10$, $-1.7\%$ against the
-steady benchmark of Dennis \& Chang ($+6.4\%$ at $100$, where the
-lengthening steady eddy outruns the grid's radial resolution), with
-near-wall $\chi_{\max}\le10^{-4}$ through $Re_D=30$ and
-$\le2.5\times10^{-2}$ through $10^3$; moving the far-field radius
-from $300$ to $1000\,D$ moves $C_d$ by $0.54\%$ at $Re_D=1$. Between
-the shedding onset and roughly $10^3$ the steady-branch points are
-drawn for continuity, not validation. Seed independence holds to
-$0.2\%$ from $10^4$ to $4\times10^4$, and $\chi$ first crosses unity
-at $4\times10^4$, in the base region.
+steady benchmark of Dennis \& Chang ($+6.4\%$ at $100$); between the
+onset and roughly $10^3$ the steady-branch points are drawn for
+continuity, not validation. Seed independence holds to $0.2\%$ from
+$10^4$ to $4\times10^4$, and $\chi$ first crosses unity at
+$4\times10^4$, in the base region.
 
 Six concessions, all visible in the figures:
 \begin{enumerate}
 \item Through the crisis band the steady branch is non-unique and
 weakly unsteady: $27$ of the $84$ matrix cases end in a limit cycle
-(tail peak-to-peak median $0.011$, maximum $0.199$ in $C_d$), and
-exactly there the three protocols separate by up to $0.055$ in $C_d$,
-against $0.003$ on the subcritical plateau and the supercritical
-floor; the downward ladder lands at higher drag---opposite to the
-physical hysteresis sense---so branch selection through the band is
-protocol-dependent and no hysteresis claim is made.
-\item The symmetric steady protocol cannot see the one-bubble
-asymmetric states of the critical range: $C_L=0$ in all $84$ cases is
-a statement about the protocol, not the physics.
+(tail peak-to-peak median $0.011$, maximum $0.199$ in $C_d$), the
+three protocols separate by up to $0.055$ in $C_d$ there (against
+$0.003$ elsewhere), and the downward ladder lands at higher
+drag---opposite to the physical hysteresis sense---so no hysteresis
+claim is made.
+\item $C_L=0$ in all $84$ matrix cases is a statement about the
+symmetric steady protocol, not the physics.
 \item The subcritical plateau, $C_d\approx0.84$, sits well below
 measurement, as any steady symmetric (shedding-free) wake solution
-must; the boundary-layer-side quantities are the product there.
+must.
 \item The supercritical turbulent separation angles
 ($106$--$118^\circ$) remain early against measurement.
-\item There is no transcritical recovery: measurement rebuilds toward
-$C_d\approx0.7$ while the computed floors sit flat at
-$0.185/0.199/0.215$ (by seed) through $2\times10^7$; the $\chi=1$
-front marches from $101^\circ$ at $2\times10^6$ to $82^\circ$ at
-$2\times10^7$ at the middle seed, so the failure is the turbulent
-separation, pinned near $120^\circ$ with base pressure
-$\approx-0.23$, not the transition content.
-\item On the fine grid the supercritical regime carries a second
-steady wake state: the downward ladder sits $13$--$22\%$ lower in
-$C_d$ (separation $123.5^\circ$ against $120.4^\circ$, base pressure
-$-0.18$ against $-0.23$ at $10^7$).
+\item There is no transcritical recovery: the computed floors sit
+flat at $0.185/0.199/0.215$ (by seed) through $2\times10^7$ while
+measurement rebuilds toward $C_d\approx0.7$; the $\chi=1$ front
+marches from $101^\circ$ to $82^\circ$ over
+$2\times10^6$--$2\times10^7$, so the failure is the turbulent
+separation, pinned near $120^\circ$, not the transition content.
+\item On the fine grid the downward ladder finds a second
+supercritical steady state, $13$--$22\%$ lower in $C_d$ (separation
+$123.5^\circ$ against $120.4^\circ$, base pressure $-0.18$ against
+$-0.23$ at $10^7$).
 \end{enumerate}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.82\textwidth]{dragcrisis_cd_re.pdf}
+\caption{Cylinder drag crisis.}\label{f:dragcrisiscd}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{dragcrisis_angles.pdf}
+\caption{Transition and separation angles.}\label{f:dragcrisisangles}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{dragcrisis_fpg.pdf}
+\caption{Favorable-gradient amplification audit.}\label{f:dragcrisisfpg}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{dragcrisis_fields.pdf}
+\caption{Drag-crisis fields.}\label{f:dragcrisisfields}
+\end{figure}
 
 \begin{table}[H]
   \centering\small
@@ -851,49 +894,40 @@ $-0.18$ against $-0.23$ at $10^7$).
 
 \subsection{Daedalus wing (three-dimensional deployment)}
 
-The wing of the Daedalus human-powered aircraft: half-span
-$17.07\,$m, root chord $0.917\,$m, aspect ratio $37.8$, DAE-11/21/31
-sections blended along the span; $Re_\mathrm{root}=5\times10^5$,
+The Daedalus human-powered-aircraft wing: half-span $17.07\,$m, root
+chord $0.917\,$m, aspect ratio $37.8$, DAE-11/21/31 sections;
+$Re_\mathrm{root}=5\times10^5$,
 $\alpha\in\{4^\circ,5^\circ,6^\circ\}$ ($C_L\approx1.02$--$1.23$),
 flight-quiet seed $\chi_\infty=8.76\times10^{-6}$
-($N_\mathrm{crit}\approx13.6$). Two mesh families (spanwise-stacked
-structured O-grid, $0.72$--$36.7$M nodes; unstructured
-prism/tet/hex, $1.70$--$54.9$M nodes) at three levels, both
-recomputed in full at the final kernel: eighteen RANS solutions. The
-reference is AVL (vortex lattice) with strip-wise XFOIL section
-polars at matched local $c_l$ and $N_\mathrm{crit}$, trimmed to the
-RANS lift. Figure~\ref{f:daepolar} shows the polar and sectional
-comparison; Fig.~\ref{f:daesurf} the surface maps at
-$\alpha=4^\circ$; Table~\ref{t:daetotals} the totals.
+($N_\mathrm{crit}\approx13.6$); two mesh families
+(spanwise-stacked structured O-grid, $0.72$--$36.7$M nodes;
+unstructured prism/tet/hex, $1.70$--$54.9$M nodes) at three levels,
+eighteen solutions; the reference is AVL with strip-wise XFOIL
+section polars at matched local $c_l$ and $N_\mathrm{crit}$, trimmed
+to the RANS lift. Figure~\ref{f:daepolar}: wing polar and sectional
+loading---the families agree at L2 to $0.35$--$0.63\%$ in $C_L$ and
+$0.7$--$1.7$ counts in $C_D$, and the finest-grid drag runs
+$15.6$/$10.3$/$5.6$ counts ($7.3$/$4.4$/$2.2\%$) below the
+matched-lift reference at $\alpha=4^\circ$/$5^\circ$/$6^\circ$.
+Figure~\ref{f:daesurf}: surface maps at $\alpha=4^\circ$ against the
+$e^N$ strips---the bubble matches station by station (at
+$\eta=0.31$, separation within $0.017\,c$ and reattachment within
+$0.009\,c$ at every incidence), the $\chi=1$ front sits
+$\sim0.09\,c$ ahead of the strips' $N_\mathrm{crit}$ contour (the
+seed convention), and the tip vortex trips transition to the leading
+edge for $\eta\gtrsim0.992$. Table~\ref{t:daetotals}: totals by
+level ($\alpha=5^\circ$, $6^\circ$ surface maps and section sheets:
+appendix).
 
-The two families agree at L1 to $0.46$--$0.53\%$ in $C_L$ and
-$0.4$--$1.6$ counts ($0.18$--$0.65\%$) in $C_D$, and at L2 to
-$0.35$--$0.63\%$ in $C_L$ and $0.7$--$1.7$ counts
-($0.34$--$0.69\%$) in $C_D$; at L0 they sit $0.74$--$0.97\%$ apart
-in $C_L$ and $18$--$21$ counts ($8$--$9\%$) apart in $C_D$ (grids
-that coarse admit path-sensitive front breakaways). Against the
-matched-lift reference the RANS drag runs $15.6$ counts ($7.3\%$)
-low at $\alpha=4^\circ$, $10.3$ ($4.4\%$) at $5^\circ$, and $5.6$
-($2.2\%$) at $6^\circ$ on the finest grid. Sectional lift matches the
-vortex-lattice distribution inboard to $\sim1\%$. The mid-span bubble
-matches the strips station by station: at $\eta=0.31$ the RANS bubble
-spans $0.49$--$0.65\,c$ against the strips' $0.47$--$0.66\,c$ at
-$4^\circ$, $0.47$--$0.64$ against $0.47$--$0.65\,c$ at $5^\circ$,
-and $0.46$--$0.62$ against $0.46$--$0.63\,c$ at
-$6^\circ$---separation within $0.017\,c$ and reattachment within
-$0.009\,c$ at every incidence; the two families agree at L2 to
-$0.008\,c$ on separation and $0.016\,c$ on reattachment. The model's
-transition front ($\chi=1$) sits near mid-bubble, $\sim0.09\,c$ ahead
-of the strips' $N_\mathrm{crit}$ contour---the seed convention
-($\chi=1$ sits $\ln(1/\chi_\infty)=11.7$ $e$-folds up the same
-envelope against the strips' $13.6$). Two spanwise mechanisms
-invisible to any sectional method are captured: outboard of the taper
-break the falling chord Reynolds number stretches the bubble
-(reattachment $0.66\to0.79\to0.95\,c$ at
-$\eta=0.31/0.92/0.97$, mirroring the strips'
-$0.66\to0.74\to0.84$), and over the last half-percent of span the tip
-vortex trips the boundary layer, pulling transition to the leading
-edge for $\eta\gtrsim0.992$.
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{daedalus_polar_sectional.pdf}
+\caption{Daedalus polar and sections.}\label{f:daepolar}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{daedalus_surface_a4.pdf}
+\caption{Daedalus surface maps, $\alpha=4^\circ$.}\label{f:daesurf}
+\end{figure}
 
 \begin{table}[H]
   \centering\small
@@ -927,123 +961,101 @@ edge for $\eta\gtrsim0.992$.
 
 \clearpage
 \appendix
-\renewcommand{\thefigure}{A\arabic{figure}}
-\setcounter{figure}{0}
-\section*{Appendix: figures}
+\section*{Appendix}
 
+% NLF(1)-0416 meshes and wall-anchored contour sheets (main paper Appendix A)
 \begin{figure}[H]\centering
-\includegraphics[width=0.68\textwidth]{indicator_sphere.pdf}
-\caption{Indicator sphere.}\label{f:sphere}
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{mesh_nlf_str.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{mesh_nlf_cav.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am8_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am8_lower.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am4_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am4_lower.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a0_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a0_lower.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a4_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a4_lower.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a9_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a9_lower.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a15_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a15_lower.pdf}
 \end{figure}
 
+% Eppler 387 benchmark contour sheets (main paper Appendix B)
 \begin{figure}[H]\centering
-\includegraphics[width=0.62\textwidth]{onset_graze.pdf}
-\caption{Onset-threshold graze.}\label{f:graze}
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_am2_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a0_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a2_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a5_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a7_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a8p5_upper.pdf}
 \end{figure}
 
+% Eppler 387 Reynolds-sweep contour sheets (main paper Appendix C)
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{fs_nuHat_rows.pdf}
-\caption{Disturbance transport, three wedges.}\label{f:nuhat}
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re60k_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.82\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re460k_upper.pdf}
 \end{figure}
 
+% Daedalus wing surface maps and section sheets (main paper Appendix D)
 \begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{model_calibrate.pdf}
-\caption{Calibrated model vs Drela--Giles.}\label{f:calibrate}
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_surface_a5.pdf}
 \end{figure}
-
 \begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{stagnation_bistability.pdf}
-\caption{Attachment-anchored turbulent branch.}\label{f:stagbistab}
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_surface_a6.pdf}
 \end{figure}
-
 \begin{figure}[H]\centering
-\includegraphics[width=0.90\textwidth]{flat_plate_batch_flow360.pdf}
-\caption{Flat plate, Flow360.}\label{f:flatplate}
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_section_eta10.pdf}
 \end{figure}
-
 \begin{figure}[H]\centering
-\includegraphics[width=0.90\textwidth]{flat_plate_batch_openfoam.pdf}
-\caption{Flat plate, OpenFOAM.}\label{f:flatplateof}
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_section_eta75.pdf}
 \end{figure}
-
 \begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{nlf_aft_transition.pdf}
-\caption{NLF(1)-0416 transition fronts.}\label{f:nlfaft}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.62\textwidth]{nlf_polar_compare.pdf}
-\caption{NLF(1)-0416 drag polar.}\label{f:nlfpolar}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{nlf_cf_lowalpha.pdf}
-\caption{NLF(1)-0416, $\alpha=0^\circ,4^\circ$.}\label{f:nlfcflow}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{nlf_cf_highalpha.pdf}
-\caption{NLF(1)-0416, $\alpha=9^\circ,15^\circ$.}\label{f:nlfcfhigh}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.96\textwidth]{nlf_cf_negalpha.pdf}
-\caption{NLF(1)-0416, $\alpha=-8^\circ,-4^\circ$.}\label{f:nlfnegalpha}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.62\textwidth]{eppler_polar_compare.pdf}
-\caption{Eppler 387 drag polar.}\label{f:epppolar}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{eppler_bubble_stations.pdf}
-\caption{Eppler 387 bubble stations.}\label{f:eppbubble}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{eppler_cf_lowalpha.pdf}
-\caption{Eppler 387, $\alpha=0^\circ,5^\circ$.}\label{f:eppcflow}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{eppler_cf_highalpha.pdf}
-\caption{Eppler 387, $\alpha=7^\circ,8.5^\circ$.}\label{f:eppcfhigh}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{eppler_resweep_forces.pdf}
-\caption{Reynolds-sweep forces and stations.}\label{f:eppresweepforces}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{eppler_resweep_lowRe.pdf}
-\caption{Reynolds sweep, $Re=6\times10^4$, $10^5$.}\label{f:eppresweeplow}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{eppler_resweep_highRe.pdf}
-\caption{Reynolds sweep, $Re=3$, $4.6\times10^5$.}\label{f:eppresweephigh}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.82\textwidth]{dragcrisis_cd_re.pdf}
-\caption{Cylinder drag crisis.}\label{f:dragcrisiscd}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{dragcrisis_fields.pdf}
-\caption{Drag-crisis fields.}\label{f:dragcrisisfields}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{daedalus_polar_sectional.pdf}
-\caption{Daedalus polar and sections.}\label{f:daepolar}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{daedalus_surface_a4.pdf}
-\caption{Daedalus surface maps, $\alpha=4^\circ$.}\label{f:daesurf}
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_section_eta92.pdf}
 \end{figure}
 
 \end{document}
