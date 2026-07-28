@@ -34,20 +34,114 @@ import os
 import sys
 
 import numpy as np
+from scipy.spatial import cKDTree
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from spheroid_a0_physics import (                    # noqa: E402
-    XS, YBAND, extract_meridian, front_crossing, planar_kernel_smooth)
+    XS, YBAND, extract_meridian, extract_rays, front_crossing,
+    planar_kernel_smooth)
 from spheroid_flank_kernel_audit import load_case_with_derived  # noqa: E402
+from surface_map import surface_frame               # noqa: E402
 
 CASE = sys.argv[1] if len(sys.argv) > 1 else \
     "/local_data/qiqi/sa-ai/spheroid_fv1/case_unstr_L1_saai_re72a0"
 OGRID_JSON = os.path.join(HERE, "figs_explore", "spheroid_a0_physics.json")
+MARCH_JSON = os.path.join(HERE, "figs_explore", "spheroid_a0_meanflow.json")
 STATIONS = (0.20, 0.42, 0.70)
 THWAITES_H = 2.59            # Blasius-class equilibrium on this u_e
                              # (2.59-2.61 across the mid-body, record Sec 1)
+# The sharper laminar reference landed in parallel (2026-07-28-0105
+# spheroid-a0-meanflow): validated axisymmetric BL march on the field's own
+# u_e, operator-matched to the SAME ray/edge/integral machinery used here.
+
+
+# ------------------------------------------------ wall-origin correction
+# The extractor's rays originate on the ANALYTIC spheroid surface, but the
+# mesh wall is the piecewise-linear facet surface INSCRIBED in it: facets
+# sag below the analytic surface by up to dc^2*kappa/8 (circumferential
+# curvature kappa = 1/B = 12/L dominates).  At unstr-L0 resolution the sag
+# (~6e-5 L) is 11% of the fore-body delta99 and the probed profile shows a
+# spurious slip offset that biases H LOW; at L1-class resolution it is
+# still ~2%.  The correction: intersect each ray with the ACTUAL wall
+# facets of the case's mesh and start the ray at that point.  Applied to
+# BOTH families (the O-grid's bilinear wall faces sag identically at
+# matched arc), so the comparison stays convention-fair.
+
+def load_wall_facets(mesh_cgns):
+    """(points, tris) of the wall patch; O-grid quads are split."""
+    import h5py
+    f = h5py.File(mesh_cgns, "r")
+    base = f["Base"]
+    zname = [k for k in base if isinstance(base[k], h5py.Group)
+             and dict(base[k].attrs).get("label") == b"Zone_t"][0]
+    z = base[zname]
+    P = np.column_stack([z[f"GridCoordinates/Coordinate{c}/ data"][:]
+                         for c in "XYZ"])
+    tris = []
+    if "bodyTriangle" in z:                              # Flynn360 family
+        tris.append(z["bodyTriangle/ElementConnectivity/ data"][:]
+                    .reshape(-1, 3) - 1)
+    elif "wall" in z:                                    # O-grid (MIXED)
+        conn = z["wall/ElementConnectivity/ data"][:]
+        off = z["wall/ElementStartOffset/ data"][:]
+        for a, b in zip(off[:-1], off[1:]):
+            el = conn[a + 1:b] - 1                       # first entry = type
+            if len(el) == 3:
+                tris.append(el[None, :])
+            elif len(el) == 4:
+                tris.append(np.array([[el[0], el[1], el[2]],
+                                      [el[0], el[2], el[3]]]))
+    T = np.concatenate(tris)
+    return P, T
+
+
+def wall_offsets(P0s, n3s, wall_pts, wall_tris, rad=6e-3):
+    """Signed distance t0 (along +n) from each analytic base point to the
+    facet wall: Moller-Trumbore over the triangles incident to nearby wall
+    nodes.  Facets are inscribed, so t0 <= 0 (|t0| = local sag)."""
+    node2tri = {}
+    for it, t in enumerate(wall_tris):
+        for v in t:
+            node2tri.setdefault(v, []).append(it)
+    kdt = cKDTree(wall_pts[np.unique(wall_tris)])
+    uniq = np.unique(wall_tris)
+    t0s = []
+    for P0, n in zip(P0s, n3s):
+        idx = kdt.query_ball_point(P0, rad)
+        cand = sorted({it for i in idx for it in node2tri[uniq[i]]})
+        best = np.nan
+        for it in cand:
+            a, b, c = wall_pts[wall_tris[it]]
+            e1, e2 = b - a, c - a
+            pv = np.cross(n, e2)
+            det = e1 @ pv
+            if abs(det) < 1e-14:
+                continue
+            tv = P0 - a
+            u = (tv @ pv) / det
+            if u < -1e-9 or u > 1 + 1e-9:
+                continue
+            qv = np.cross(tv, e1)
+            v = (n @ qv) / det
+            if v < -1e-9 or u + v > 1 + 1e-9:
+                continue
+            t = (e2 @ qv) / det
+            if abs(t) < 5e-4 and (np.isnan(best) or abs(t) < abs(best)):
+                best = t
+        t0s.append(best if not np.isnan(best) else 0.0)
+    return np.array(t0s)
+
+
+def stations_corrected(grid, nu_ref, mesh_cgns, xs, phi_deg=90.0):
+    """Station extraction with the ray origin moved to the facet wall."""
+    P, n3, t_s, _ = surface_frame(np.asarray(xs, float),
+                                  np.full(len(xs), np.radians(phi_deg)))
+    wp, wt = load_wall_facets(mesh_cgns)
+    t0 = wall_offsets(P, n3, wp, wt)
+    specs = [(P[k] + t0[k] * n3[k], n3[k], t_s[k]) for k in range(len(xs))]
+    return extract_rays(grid, nu_ref, specs), t0
 
 
 def forces_tail(case, n=200):
@@ -89,44 +183,91 @@ def main():
     bt = {round(r["x"], 2): r for r in og["band_table"]}
     rc = og["reference_checks"]
     ogl = {lev: {round(r["x"], 2): r for r in rc[lev]} for lev in ("L0", "L1")}
+    march = json.load(open(MARCH_JSON))["operator_matched_H_march_axi"]
+    name = os.path.basename(CASE).replace("case_", "").replace(
+        "_saai_re72a0", "")
 
-    rows = []
-    print("\n== VERDICT TABLE: laminar mean-flow shape factor H "
-          "(phi=90 meridian, alpha=0, Re_L=7.2e6) ==")
-    print(f"{'x/L':>5} | {'unstr L1':>9} | {'O-grid L0':>9} | "
-          f"{'O-grid L1':>9} | {'O-grid L2':>9} | {'Thwaites':>8} | "
-          f"{'P unstr':>8} {'P og-L2':>8}")
-    for xq in STATIONS:
-        st = sw[int(np.argmin(np.abs(x - xq)))]
+    def station_row(st, xq, t0=0.0):
         bnd = (st["y"] >= 1e-5) & (st["y"] <= YBAND)
         j = int(np.argmax(np.where(bnd, st["P"], -np.inf)))
         kp = planar_kernel_smooth(st)
         jp = int(np.argmax(np.where(kp["y"] >= 1e-5, kp["P"], -np.inf)))
-        r = dict(x=xq, H=float(st["H"]),
-                 Rt=float(st["u_e"] * st["theta"] / np.median(st["nu"])),
-                 d99=float(st["d99"]), edge_ok=bool(st["edge_ok"]),
-                 P_solver=float(st["P"][j]), P_planar=float(kp["P"][jp]),
-                 chimax=float(np.interp(xq, x, chimax)))
-        rows.append(r)
-        print(f"{xq:5.2f} | {r['H']:9.3f} | {ogl['L0'][xq]['H']:9.3f} | "
-              f"{ogl['L1'][xq]['H']:9.3f} | {bt[xq]['H']:9.3f} | "
-              f"{THWAITES_H:8.2f} | {r['P_solver']:8.4f} "
-              f"{bt[xq]['Pmax']:8.4f}")
-    print(f"\nfronts: unstructured chi=1 = {front:.4f}  "
+        return dict(x=xq, H=float(st["H"]),
+                    Rt=float(st["u_e"] * st["theta"]
+                             / np.median(st["nu"])),
+                    d99=float(st["d99"]), edge_ok=bool(st["edge_ok"]),
+                    P_solver=float(st["P"][j]), P_planar=float(kp["P"][jp]),
+                    wall_offset=float(t0))
+
+    # raw (verbatim-convention) stations from the sweep
+    rows_raw = []
+    for xq in STATIONS:
+        st = sw[int(np.argmin(np.abs(x - xq)))]
+        r = station_row(st, xq)
+        r["chimax"] = float(np.interp(xq, x, chimax))
+        rows_raw.append(r)
+
+    # wall-origin-corrected stations (facet-sag correction, this mesh)
+    sts_c, t0 = stations_corrected(grid, nu_ref,
+                                   os.path.join(CASE, "mesh.cgns"), STATIONS)
+    rows_cor = [station_row(st, xq, t)
+                for st, xq, t in zip(sts_c, STATIONS, t0)]
+    del grid
+
+    # O-grid corrected references at the same stations (both meshes carry
+    # the same inscribed-facet sag; correct them identically)
+    og_cor = {}
+    for lev in ("L1", "L2"):
+        cdir = os.path.join(os.path.dirname(CASE.rstrip("/")),
+                            f"case_ogrid_{lev}_saai_re72a0")
+        if not os.path.isdir(cdir):
+            continue
+        g2, nu2, _ = load_case_with_derived(cdir)
+        sts2, t02 = stations_corrected(g2, nu2,
+                                       os.path.join(cdir, "mesh.cgns"),
+                                       STATIONS)
+        og_cor[lev] = [station_row(st, xq, t)
+                       for st, xq, t in zip(sts2, STATIONS, t02)]
+        del g2
+
+    print("\n== VERDICT TABLE: laminar mean-flow shape factor H "
+          "(phi=90 meridian, alpha=0, Re_L=7.2e6) ==")
+    print("   [corr] = ray origin moved to the facet wall (sag corr.); "
+          "raw = committed convention (analytic-surface origin)")
+    print(f"{'x/L':>5} | {name+' raw':>12} {'corr':>6} | "
+          f"{'og-L1 raw':>9} {'corr':>6} | {'og-L2 raw':>9} {'corr':>6} | "
+          f"{'BL march':>8} | {'Thwaites':>8}")
+    for k, xq in enumerate(STATIONS):
+        c1 = og_cor.get("L1", [{}] * 3)[k].get("H", np.nan)
+        c2 = og_cor.get("L2", [{}] * 3)[k].get("H", np.nan)
+        print(f"{xq:5.2f} | {rows_raw[k]['H']:12.3f} "
+              f"{rows_cor[k]['H']:6.3f} | {ogl['L1'][xq]['H']:9.3f} "
+              f"{c1:6.3f} | {bt[xq]['H']:9.3f} {c2:6.3f} | "
+              f"{march[f'{xq:g}']['H_op']:8.3f} | {THWAITES_H:8.2f}")
+    print(f"\nP (solver-read kernel coordinate) at the stations: "
+          + "  ".join(f"x={r['x']:g}: {r['P_solver']:.4f} (corr "
+                      f"{rc_['P_solver']:.4f}; og-L2 {bt[r['x']]['Pmax']:.4f})"
+                      for r, rc_ in zip(rows_raw, rows_cor)), flush=True)
+    print(f"\nfronts: {name} chi=1 = {front:.4f}  "
           f"(O-grid L2: {og['fronts']['chi1']:.4f}; measured "
           f"{og['fronts']['meas']:.4f}; Stock e^N(8) "
           f"{og['fronts']['stock']:.4f})", flush=True)
 
     out = dict(case=CASE, forces=frc, front_chi1=float(front),
-               stations=rows,
+               stations_raw=rows_raw, stations_corrected=rows_cor,
+               ogrid_corrected=og_cor,
+               march_H_op={k: march[k]["H_op"] for k in march},
                sweep=dict(x=x.tolist(), H=H.tolist(), Rt=Rt.tolist(),
                           chimax=chimax.tolist()),
                ogrid_fronts=og["fronts"], thwaites_H=THWAITES_H,
-               conventions="spheroid_a0_physics.py extractor verbatim: "
-                           "edge=first speed max, H from integrals to i_e, "
-                           "P=kernel on VTK chained gradients, front="
-                           "near-wall (y<=0.04) chi max crossing 1")
-    op = os.path.join(HERE, "figs_explore", "spheroid_unstruct_a0_verdict.json")
+               conventions="spheroid_a0_physics.py extractor: edge=first "
+                           "speed max, H from integrals to i_e, P=kernel on "
+                           "VTK chained gradients, front=near-wall (y<=0.04)"
+                           " chi max crossing 1; corrected variant moves "
+                           "each ray origin to the mesh's facet wall "
+                           "(inscribed-chord sag, dc^2*kappa/8 class)")
+    op = os.path.join(HERE, "figs_explore",
+                      f"spheroid_unstruct_a0_verdict_{name}.json")
     json.dump(out, open(op, "w"), indent=1)
     print(f"wrote {op}", flush=True)
 
