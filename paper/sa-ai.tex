@@ -2492,23 +2492,26 @@ in this paper (Sec.~\ref{sec:bistability}). Each seed is swept as an
 upward and a downward continuation ladder, warm-started from the
 neighboring Reynolds number, plus twelve cold starts at the middle
 seed as a protocol-neutral reference---84 steady cases. The traverse
-is then extended on two further grids of the same analytic
+is then extended on three further grids of the same analytic
 construction: a large-domain laminar grid ($600\times121$, first
 spacing $10^{-3}\,D$, outer boundary $1000\,D$) carrying
-$Re_D\!=\!1$--$10^3$, and a fine supercritical grid ($1600\times170$,
-first spacing $10^{-6}\,D$; measured $y^+\!\le\!0.71$ at $10^7$,
-$1.4$ at the $2\!\times\!10^7$ endpoint, which is therefore quoted
-with that caveat) carrying $4\!\times\!10^6$--$2\!\times\!10^7$---45
-further cases, 129 in all. The families are run past each other at
-their seams: $C_d$ agrees to $0.5$--$0.6\%$ at $Re_D\!=\!300$ and
-$10^3$, and to $2.9\%$ between cold-started pairs at
-$2\!\times\!10^6$, the finer grid higher---the supercritical floor
-carries a few-percent grid sensitivity, in the direction of
-measurement. A case is accepted when $C_d$ drifts by less than
-$10^{-3}$ over $1000$ pseudo-steps; otherwise it runs to a fixed cap
-and is flagged as a steady limit cycle ($37$ of $129$, concentrated
-in and above the crisis band). Every case lands on the symmetric
-branch, $|C_L|\!<\!2\!\times\!10^{-7}$.
+$Re_D\!=\!1$--$10^3$, a fine supercritical grid ($1600\times170$,
+first spacing $10^{-6}\,D$) carrying $4\!\times\!10^6$--$2\!\times\!10^7$,
+and an ultra grid ($1600\times170$, first spacing $10^{-9}\,D$;
+measured $y^+\!\le\!0.47$ at $10^{10}$) carrying
+$5\!\times\!10^7$--$10^{10}$---the full traverse spans
+$Re_D\!=\!1$--$10^{10}$, ten decades on one closure. The families are
+run past each other at their seams: $C_d$ agrees to $0.5$--$0.6\%$ at
+$Re_D\!=\!300$ and $10^3$, and to a few percent between cold-started
+pairs across the supercritical seams, the finer grid higher---the
+supercritical floor carries a few-percent grid sensitivity, in the
+direction of measurement. A case is accepted when $C_d$ drifts by
+less than $10^{-3}$ over $1000$ pseudo-steps; otherwise it runs to a
+fixed cap and is flagged as a steady limit cycle, concentrated in and
+above the crisis band. Below $Re_D\!\approx\!7\!\times\!10^5$ every
+case lands on the symmetric branch, $|C_L|\!<\!2\!\times\!10^{-7}$;
+the branch multiplicity that appears above it is the sixth concession
+below.
 
 \begin{figure}[tbp]
   \centering
@@ -2706,21 +2709,33 @@ familiar class of turbulent-$C_f$-on-curved-wall error, compounded
 by the steady dead-air base. Fifth, there is no transcritical
 recovery: measurement rebuilds toward
 $C_d\!\approx\!0.7$~\cite{roshko_1961,schewe_1983} while the
-computed floors sit flat at $0.185/0.199/0.215$ (by seed) through
-$2\!\times\!10^7$. The failure is not the transition content---the
-$\chi\!=\!1$ front marches from $101^\circ$ at $2\!\times\!10^6$ to
-$82^\circ$ at $2\!\times\!10^7$ at the middle seed, reaching the
-attached boundary layer as it should---but the turbulent
-separation, pinned near $120^\circ$ with base pressure
-$\approx\!-0.23$: the fourth concession, controlling the drag level
-outright once the crisis is spent. Sixth, on the fine grid the
-supercritical regime carries a second steady wake state: the
-downward ladder, descending from the $2\!\times\!10^7$ state, sits
-$13$--$22\%$ lower in $C_d$ (separation $123.5^\circ$ against
-$120.4^\circ$, base pressure $-0.18$ against $-0.23$ at $10^7$)---
-the protocol-dependence of the first concession extends past the
-crisis band, and branch adjudication there again belongs to
-unsteady continuation.
+computed floors sit flat at $0.185/0.199/0.215$ (by seed) all the way
+to $10^{10}$. That this is \emph{not} the transition content is now
+settled two ways. The $\chi\!=\!1$ front marches monotonically to the
+nose---$101^\circ$ at $2\!\times\!10^6$, $82^\circ$ at
+$2\!\times\!10^7$, $2^\circ$ at $10^{10}$ (middle seed)---and yet the
+drag does not move; and a fully-turbulent control (the same solver
+with the amplification kernel disabled, freestream
+$\chi_\infty\!=\!3$) separates \emph{earlier} ($105$--$112^\circ$)
+and drags \emph{higher} ($0.25$--$0.37$) than the transitional model,
+so SA-AI is not merely reproducing the turbulent baseline---yet even
+that control sits about a factor of two below the measured
+transcritical level and separates at $105$--$123^\circ$ against the
+observed ${\approx}147^\circ$. The missing rise is therefore the
+baseline turbulent-$C_f$-on-curved-wall separation of concession four
+plus the steady symmetric dead-air wake, not the transition closure,
+whose front is already $e^N$-consistent and, marched to the nose at
+$10^{10}$, leaves $C_d$ unchanged. Sixth, the supercritical regime
+carries a second, lower-drag steady state that the protocol selects
+against: on the fine grid the downward ladder from $2\!\times\!10^7$
+sits $13$--$22\%$ below the up-ladder (separation $123.5^\circ$ vs
+$120.4^\circ$, base pressure $-0.18$ vs $-0.23$ at $10^7$), and at
+$10^{10}$ a cold start relaminarizes to a near-attached state
+($C_d\!=\!0.108$, separation ${\approx}180^\circ$) while the warm
+ladder holds the separated state ($C_d\!=\!0.189$)---a spread wider
+than the crisis band, so the ultra-$Re$ asymptote is a
+protocol-dependent band ($0.11$--$0.21$), not a level, and its
+adjudication belongs to unsteady continuation.
 
 The fifth concession invites the question of whether the transition
 front itself should be further forward, and
@@ -2734,14 +2749,16 @@ retains a floor near $5\!\times\!10^{-3}$ per unit $Re_\theta$; the
 onset gate is not the binding element (it opens ahead of the
 envelope's critical $Re_\theta$ through $\beta\!=\!0.2$ and
 saturates at $Re_\Omega\!=\!1851$ beyond). On the cylinder nose,
-however, this deficit is not yet exercised: integrating the Drela
+however, this deficit does not drive the drag: integrating the Drela
 envelope along a validated laminar march of the measured nose flow
 puts the $N\!=\!\ln(1/\chi_\infty)$ crossing \emph{behind} the
 computed front at all three Reynolds numbers shown---at
 $2\!\times\!10^7$ the solver front sits $10^\circ$ ahead of the
-$e^N$ station on its own mean flow. Within envelope-method physics
-at these seeds the front has nowhere forward to go below
-$Re_D\!\sim\!10^8$; the far-forward transition of the transcritical
+$e^N$ station on its own mean flow---and where the ultra-$Re$ arm
+does march the front onto the nose ($2^\circ$ at $10^{10}$), $C_d$ is
+unmoved (concession five). Within envelope-method physics
+at these seeds the front has nowhere useful forward to go; the
+far-forward transition of the transcritical
 measurements at accessible $Re_D$ carries disturbance content beyond
 the envelope class.
 % TODO(dragcrisis-exp): digitize Achenbach (1968) Cp/Cf traverses at
