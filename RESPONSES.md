@@ -1081,3 +1081,131 @@ captions + JSON in paper/repro/cfd/figs_explore/spheroid_a0_physics_*.
    curved bodies — a standalone laminar BL march / OpenFOAM laminar
    cross-solve on this geometry would discriminate solver numerics vs
    real non-equilibrium physics in hours.
+
+---
+
+## 2026-07-28 ~00:45 — ALPHA=0 PHYSICS VERDICT: the mean flow carries the miss
+
+Record: agent-paper-review/2026-07-28-0040-spheroid-a0-physics.md;
+figures figs_explore/spheroid_a0_physics_{blchar,eN,chifield,band,
+balance}.png (+captions.md).
+1. NOTHING overwhelms the amplifying band: the II.D eigenvalue stays
+   positive at every station and every c_nu_ai (penalty 13-44% of
+   production, never 100%); no c_nu_ai retune addresses this case.
+2. DOMINANT NEW LINK: the RANS laminar mean profile is anomalously FULL
+   — H = 2.49 where Thwaites on the SAME u_e (and the plate-control
+   extraction, 2.60) says Blasius-class 2.59. That halves the amplifying
+   coordinate (0.046 vs 0.078) and moves ANY H-based envelope's N=8
+   station from 0.49 to 0.84. An exact Drela-Giles tracker on the RANS
+   mean flow would put the front at 0.84-0.9+; the model's 0.924 is
+   e^N-CONSISTENT GIVEN ITS MEAN FLOW. Not grid-converged: refinement
+   DEEPENS the fullness anomaly.
+3. FS beta=+0.10 (user's discriminator): the spheroid profile IS that
+   class (H 2.49 vs 2.48) and the kernel reads it fairly (0.056 planar
+   vs FS-table 0.037) — pointwise profile physics fine; the marcher
+   delivers on this class.
+4. Transport realization: the transported chi pays 79% of production to
+   wall-normal diffusion at the stalled station vs the eigenmode's ~50%
+   — honest non-parallel/history transport of a sub-eigenmode shape
+   through a thinning band; not a leak, not the coefficient.
+5. Correction to the audit thread: its raw planar-P numbers were
+   noise-inflated 1.3-1.6x (savgol-validated estimator now canonical).
+FOLLOW-ON LAUNCHED (cheap, CPU): why is the RANS laminar BL full —
+standalone axisymmetric laminar BL profile march on the extracted u_e
+vs the RANS profiles + a momentum-balance probe at mid-body to find the
+term feeding the fullness (candidates: low-Mach/O-grid numerics,
+axisymmetric metric handling, genuine non-equilibrium). Sec IX/X
+reframing HELD until this discriminator + user read.
+
+---
+
+## 2026-07-28 ~00:50 — user directive: unstructured spheroid family
+
+Q: what mesh does the spheroid use; shouldn't we build an unstructured
+family too (triangulated skin + the in-house unstructured pipeline)?
+A: the spheroid currently has ONE family — spheroid/ogrid_spheroid.py,
+an analytic structured O-grid (meridian half-plane revolved, pole
+prisms, 0.37/2.2/12.6M ladder, sphere far field 30L) — the only
+single-family case in the paper. Agreed and launched: an unstructured
+family (triangulated surface + prisms, Daedalus-cavity-style pipeline,
+matched h0/clustering), running alpha=0 at 7.2e6 first as the
+DISCRIMINATOR for the mean-flow fullness anomaly: unstructured
+H ~ 2.49 convicts solver-core/physics; H ~ 2.59 convicts the O-grid
+discretization. One GPU under the team cap; runs alongside the
+Keller-box/momentum-balance discriminator.
+
+## 2026-07-28 ~00:55 — amendment: unstructured spheroid = FULL circumference
+
+User: revolve the full 360 (no y=0 symmetry plane) — half-body issues
+have occurred before, and it is cheap. Build agent amended: wall +
+farfield BCs only, ~2x nodes (fit-checked for one GPU, L0-class
+fallback), and the alpha=0 run now doubles as a no-symmetry-enforced
+zero-lift/side-force check (any residual asymmetry is diagnostic).
+Incidence-plane convention documented for later alpha>0 parity with the
+O-grid.
+
+## 2026-07-28 ~01:00 — user challenges the band-figure physics (folded into the discriminator)
+
+User's expected picture on a 6:1 spheroid at alpha=0: suction peak at or
+slightly upstream of x/L=0.5; FPG to the peak, APG past it; hence
+equilibrium H below Blasius on the front half rising past the peak, and
+max(Omega_hat I_hat) rising MONOTONICALLY into the adverse region. The
+band table shows the opposite trend (maxP 0.058->0.022 by 0.70, field H
+2.51->2.44) and a suspiciously flat claimed equilibrium H. Discriminator
+agent instructed to arbitrate first: extract/plot Cp(x) and u_e(x) (peak
+location + PG-sign bands), Keller-box equilibrium H vs field H with
+lambda(x)/beta_H(x) quantifying the slender-body PG, and re-verify the
+aft-station extraction (thickening layer + tail curvature = likeliest
+artifact zone). If the downstream maxP fall is extraction-real, a RANS
+profile getting FULLER into an adverse gradient is a strong strange
+signature to state plainly.
+
+## 2026-07-28 ~01:05 — user addition: spheroid mesh cross-section figures
+
+Build agent instructed: meridian-plane (x-r) and transverse (y-z at
+x/L~0.5) cuts for BOTH families (O-grid + the new unstructured
+full-circumference), with near-wall/nose zooms showing growth, pole
+treatment, prism layers, and the tet transition; plus a first-cell
+height/growth comparison strip vs x/L. PNGs to figs_explore with a
+captions md; paths in the report.
+
+## 2026-07-28 ~01:20 — alpha=0 mean-flow discriminator COMPLETE: solver numerics convicted (record 0105)
+
+Full chain in agent-paper-review/2026-07-28-0105-spheroid-a0-meanflow.md;
+script paper/repro/cfd/spheroid_a0_meanflow.py; six figures + JSON in
+figs_explore (spheroid_a0_meanflow_*).
+
+1. Laminar BL PROFILE march (validated to Blasius 4th decimal; full
+   history + Mangler + transverse curvature) on the field's own u_e:
+   H = 2.56/2.58/2.63 at x/L 0.2/0.42/0.7 vs RANS L2 2.51/2.49/2.44.
+   History and axisymmetric terms are real but an order too small:
+   candidates (b) and (c) eliminated; (d) eliminated by the plate
+   operator control + edge/convention ladders + Cp/u_e checks.
+2. Momentum-balance probe (closes 0.5% on the plate): the spheroid L2
+   field carries a NEAR-WALL NUMERICAL MOMENTUM SOURCE (+33% of the
+   local viscous term at 0.42, +83% at 0.70, hx-robust) — the force
+   holding the profile full. Not a uniform nu_eff excess.
+3. Direct staggering signature: cell-locked tangential wiggle, dominated
+   by the AZIMUTHAL one-cell mode (du/u p2p 2.6% at 0.15 d99 at L2;
+   3.7x bigger at L1; should be exactly zero on an axisymmetric flow);
+   surface faceting sagitta ~10 first-cell heights at L2.
+4. Airfoil control: NLF's low favorable-region H (2.44-2.51) matches a
+   march on ITS OWN u_e to 0.02 — genuine LE history, airfoils clean;
+   anomaly is spheroid-specific. Plate is the COARSEST streamwise
+   (0.22 cells/d99) yet exact — cells/d99 is not the discriminator.
+5. USER CHALLENGE answered point by point (record Sec 4): u_e peak at
+   x/L = 0.489 (as expected; extraction right); proper laminar H does
+   dip below Blasius fore and rise aft (the 0040 note's "2.59-2.61
+   flat" corrected — fore gap smaller, aft gap larger); aft fall of
+   field H/maxP is extraction-real (dense rays, convention ladder), and
+   YES, stated plainly: the RANS layer gets FULLER into the adverse
+   gradient (maxP 0.044->0.026 where marched profiles rise
+   0.078->0.127) — wrong-signed response, coinciding with the largest
+   measured numerical source.
+6. RECOMMENDED RUN (not launched): re72a0 L1 with
+   lowMachPreconditioner=true, byte-identical otherwise (~1/8 L2 cost).
+   H(0.42) -> 2.58 convicts low-Mach Roe dissipation; unchanged ->
+   faceting/staggering truncation (then: azimuthal x2 L1 stripe).
+   Complements the build agent's unstructured full-circumference
+   discriminator: preconditioner flag vs grid family, two orthogonal
+   knobs on the same anomaly.
