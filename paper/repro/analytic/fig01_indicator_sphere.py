@@ -103,9 +103,10 @@ def shade_sphere(rgb, cx, cy, r):
     H = L + np.array([0.0, 0.0, 1.0]);  H /= np.linalg.norm(H)
     ndl = np.clip(nx*L[0] + ny*L[1] + nz*L[2], 0.0, None)
     ndh = np.clip(nx*H[0] + ny*H[1] + nz*H[2], 0.0, None)
-    diffuse = 0.82 + 0.18*ndl               # multiply term, floor 0.82
-    spec = 0.20 * ndh**42                   # tight upper-left glint
-    rim = 0.09 * (1.0 - nz)**3              # steel-like edge light
+    diffuse = 0.66 + 0.31*ndl               # multiply term: floor 0.66,
+    # lit side tops out at 0.97 so even the bright side reads off-white
+    spec = 0.26 * ndh**42                   # tight upper-left glint
+    rim = 0.12 * (1.0 - nz)**3              # steel-like edge light
     # soft edge so the shading fades over the last ~1.5 px of radius
     w = np.zeros_like(nz)
     w[inside] = np.clip((1.0 - np.sqrt(rr2[inside]))*r/1.5, 0.0, 1.0)
