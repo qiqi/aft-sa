@@ -24,8 +24,9 @@ FIGD = os.path.join(HERE, "figs_explore")
 TU_COLOR = {"0.05": "#1f77b4", "0.2": "#ff7f0e", "0.7": "#2ca02c"}
 DIR_STYLE = {"up": "-o", "dn": "--s", "cold": ":^"}
 # mesh-family membership markers for the full-span composite
-MESH_MARK = {"pilot": "o", "lowre": "v", "lowre300": "P", "highre": "D"}
-MESHES = ("lowre", "lowre300", "pilot", "highre")
+MESH_MARK = {"pilot": "o", "lowre": "v", "lowre300": "P", "highre": "D",
+             "ultra": "^"}
+MESHES = ("lowre", "lowre300", "pilot", "highre", "ultra")
 
 # Low-Re steady-branch benchmarks (litrange record 2026-07-28-0117 Sec. 2):
 # Dennis & Chang 1970 JFM 42 (Cd(20), Cd(40) verified; 10/100 widely

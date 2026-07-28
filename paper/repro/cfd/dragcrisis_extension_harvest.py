@@ -20,12 +20,16 @@ sys.path.insert(0, HERE)
 import dragcrisis_pilot_forces as F                            # noqa: E402
 
 MACH = 0.1
-Y1 = {"pilot": 8e-6, "lowre": 1e-3, "lowre300": 1e-3, "highre": 1e-6}
+Y1 = {"pilot": 8e-6, "lowre": 1e-3, "lowre300": 1e-3, "highre": 1e-6,
+      "ultra": 1e-9}
 # steady-branch benchmarks; DC 20/40 + Fornberg 20/40 verified (litrange),
 # DC 10/100 widely-reproduced [mem]
 DENNIS_CHANG = {10: 2.846, 20: 2.045, 40: 1.522, 100: 1.056}
 FORNBERG = {20: 2.00, 40: 1.498}
-SEAMS = [(300.0, "0.2"), (1e3, "0.2"), (2e6, "0.2"), (4e6, "0.2")]
+SEAMS = [(300.0, "0.2"), (1e3, "0.2"), (2e6, "0.2"), (4e6, "0.2"),
+         # phase 3: highre/ultra overlaps (2e7 all seeds; 5e7 highre is a
+         # continuity check only -- highre y+ ~ 3.5 there)
+         (2e7, "0.05"), (2e7, "0.2"), (2e7, "0.7"), (5e7, "0.2")]
 
 
 def load(root):
@@ -99,8 +103,8 @@ def main():
 
     print("\n== measured y+ ladder (y1 * Re * sqrt(Cf_max/2), final field) ==")
     for r in sorted(ext, key=lambda r: r["re"]):
-        if r["mesh"] not in ("highre", "pilot") or r["re"] < 1e6 or \
-                r["dir"] != "up":
+        if r["mesh"] not in ("highre", "pilot", "ultra") or r["re"] < 1e6 \
+                or r["dir"] not in ("up", "cold"):
             continue
         case = os.path.join(args.root, r["case"])
         try:
@@ -110,6 +114,22 @@ def main():
             print(f"  {r['case']:38s} Cf_max={cfmax:.2e} y+max={yp:.2f}")
         except Exception as e:                                 # noqa: BLE001
             print(f"  {r['case']:38s} ({e!r})")
+
+    print("\n== seed collapse across Tu (ultra arm; phase-3 prediction: "
+          "seeds collapse as transition saturates toward the nose) ==")
+    for d in ("up", "dn"):
+        res = sorted({r["re"] for r in ext
+                      if r["mesh"] == "ultra" and r["dir"] == d})
+        for re_v in res:
+            cds = {r["Tu"]: r["Cd"] for r in ext if r["mesh"] == "ultra"
+                   and r["dir"] == d and r["re"] == re_v}
+            if len(cds) < 2:
+                continue
+            v = sorted(cds.values())
+            print(f"  {d:2s} Re={re_v:<8g} " +
+                  " ".join(f"Tu{t}={cds[t]:.4f}" for t in sorted(cds)) +
+                  f"  spread={v[-1] - v[0]:.4f} "
+                  f"({200 * (v[-1] - v[0]) / (v[-1] + v[0]):.2f}%)")
 
     print("\n== ai_constants echo diff vs campaign canon ==")
 
@@ -121,6 +141,14 @@ def main():
     ndiff = 0
     for r in sorted(ext, key=lambda r: r["case"]):
         echo = os.path.join(args.root, r["case"], "ai_constants_echo.log")
+        if r["Tu"] == "ft":
+            # FT-SA control: the AI echo must be ABSENT (AI_SA=0 suppresses
+            # the block at the source) -- absence IS the verification
+            if os.path.exists(echo) and "SA-AI" in open(echo).read():
+                print(f"  {r['case']}: FT case but SA-AI echo PRESENT "
+                      f"-- AI was NOT off!")
+                ndiff += 1
+            continue
         if not os.path.exists(echo):
             print(f"  {r['case']}: NO ECHO")
             ndiff += 1
@@ -137,6 +165,20 @@ def main():
     print(f"  {len(ext)} cases checked, {ndiff} deviations" if ndiff else
           f"  all {len(ext)} extension echoes identical to canon "
           f"(timestamps stripped)")
+
+    ftr = [r for r in ext if r["Tu"] == "ft"]
+    if ftr:
+        print("\n== FT-SA control vs SA-AI at matched Re (fault attribution) ==")
+        for r in sorted(ftr, key=lambda r: r["re"]):
+            mates = [q for q in ext if q["Tu"] != "ft" and q["re"] == r["re"]
+                     and q["mesh"] == r["mesh"] and q["dir"] in ("up", "cold")]
+            ai = "; ".join(
+                f"Tu{q['Tu']}/{q['dir']}: Cd={q['Cd']:.3f} "
+                f"knee={q.get('knee_upper')}" for q in mates)
+            print(f"  Re={r['re']:<8g} FT: Cd={r['Cd']:.4f} "
+                  f"knee={r.get('knee_upper')} Cpb={r.get('Cp_base_upper')} "
+                  f"Cpsh={r.get('Cp_shoulder_upper')}\n"
+                  f"    vs SA-AI: {ai}")
 
     wall = sum(r["wall_s"] for r in ext)
     print(f"\n== cost: {len(ext)} extension cases, {wall / 3600:.2f} GPU-h ==")

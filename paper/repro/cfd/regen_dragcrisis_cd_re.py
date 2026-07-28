@@ -371,6 +371,26 @@ def main():
                                     capsize=3.5, capthick=1.4, zorder=3)
                 dump[r["case"]] = ent
 
+    # FT-SA control (this work, AI_SA=0, chi_inf=3): a fully-turbulent SA
+    # computation LINE (fault-attribution for the missing transcritical
+    # rise, record 2026-07-28 ultra). Charcoal + dot markers to sit with the
+    # other fully-turbulent computations without colliding with the
+    # digitized Stringer/SG20 charcoal-dotted line.
+    ft = sorted(((r["re"], r["Cd"]) for r in rows.values()
+                 if r.get("Tu") == "ft"), key=lambda p: p[0])
+    if ft:
+        fre = np.array([p[0] for p in ft])
+        fcd = np.array([p[1] for p in ft])
+        ax.plot(fre, fcd, ls='-.', color=CHARCOAL, lw=1.5, marker='D',
+                ms=4.0, mfc=CHARCOAL, alpha=0.9, zorder=4)
+        for reval, r in ((r["re"], r) for r in rows.values()
+                         if r.get("Tu") == "ft"):
+            dump[r["case"]] = {"Cd": r["Cd"],
+                               "Cd_tail_p2p": r["Cd_tail_p2p"],
+                               "limit_cycle": any("limit_cycle" in v
+                                                  for v in r["verdicts"]),
+                               "verdicts": r["verdicts"]}
+
     lit_handles = [] if args.no_lit else overlay_literature(ax)
 
     ax.set_xscale("log")
@@ -407,6 +427,10 @@ def main():
         Line2D([], [], color='0.25', ls='--', lw=1.6,
                label='SA-AI dn-ladder'),
     ]
+    if ft:
+        ours.append(Line2D([], [], color=CHARCOAL, ls='-.', lw=1.5,
+                           marker='D', ms=4.0,
+                           label='FT-SA (this work, AI off)'))
     leg1 = ax.legend(handles=ours, fontsize=9, frameon=False,
                      loc='upper right', handlelength=2.4,
                      borderaxespad=0.4)

@@ -250,7 +250,11 @@ def solve_stage(case_dir: Path, env: dict, gpu: int, min_pseudo: int,
 
 
 def run_case(case_dir: Path, chi_inf: float, gpu: int, stages,
-             warm_from: Path | None) -> dict:
+             warm_from: Path | None, env_fn=None) -> dict:
+    """env_fn(chi_inf, fslow) -> model env dict; default = the canonical
+    SA-AI env. The FT-SA control passes {'AI_SA': '0'} (classical SA;
+    source gate SATurbulenceSolverResidual.cpp) with fslow=1 stages."""
+    env_fn = env_fn or canonical_env
     env, find = make_env()
     env["_find"] = find
     restart = False
@@ -271,7 +275,7 @@ def run_case(case_dir: Path, chi_inf: float, gpu: int, stages,
         patch_stage_json(case_dir, chi_inf, fslow, cap,
                          restart or si > 0)
         e = dict(env)
-        e.update(canonical_env(chi_inf, fslow))
+        e.update(env_fn(chi_inf, fslow))
         v = solve_stage(case_dir, e, gpu, min_pseudo, cap, FLAT_TOL)
         verdicts.append(f"fSlow{fslow}:{v}")
         # promote restart for the next stage

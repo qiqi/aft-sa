@@ -68,7 +68,8 @@ MESHBUILD = OUT / "meshbuild"
 TEMPLATES = {"pilot": OUT / "template_case",
              "lowre": OUT / "template_lowre",
              "lowre300": OUT / "template_lowre300",
-             "highre": OUT / "template_highre"}
+             "highre": OUT / "template_highre",
+             "ultra": OUT / "template_ultra"}
 MIN_FREE_GB = 6.0
 
 # fam, tu, dir, Re list, warm-seed case dir (None = cold first point)
@@ -86,10 +87,41 @@ PLAN = {
     # alone conflates the mesh-family offset with the up/dn branch spread
     # seen on highre through the supercritical band
     "seam2e6h":  ("highre", "0.2", "cold", [2e6], None),
+    # --- phase 3 (ultra arm, 2026-07-28 directive) ---
+    # solver-sanity pilot BEFORE laddering: muRef = 1e-11 at Re 1e10
+    "sanity1e10": ("ultra", "0.2", "cold", [1e10], None),
+    # second seam: 5e7 on highre -- OUT of highre y+ validity (y+~3.5),
+    # run as a continuity/direction check only, reported with the caveat
+    "seam5e7h":  ("highre", "0.2", "cold", [5e7], None),
 }
 HIGH_TU = {"high005": "0.05", "high02": "0.2", "high07": "0.7"}
 HIGH_UP = [4e6, 7e6, 1e7]
 HIGH_STRETCH = 2e7
+# ultra arm: up-ladder STARTS at 2e7 (cold two-stage) so the first point IS
+# the highre/ultra seam overlap, replacing the y+=1.4-caveated highre 2e7
+# points with in-validity ones (ultra y+ ~ 0.02 there); dn back to 5e7
+ULTRA_TU = {"ultra005": "0.05", "ultra02": "0.2", "ultra07": "0.7"}
+ULTRA_UP = [2e7, 5e7, 1e8, 3e8, 1e9, 3e9, 1e10]
+ULTRA_DN = [3e9, 1e9, 3e8, 1e8, 5e7]
+
+# --- FT-SA control (fault attribution for the missing transcritical rise) --
+# Classical fully-turbulent SA: AI_SA=0 (source gate in
+# SATurbulenceSolverResidual.cpp -- the model is default-ON, 0 disables; the
+# repo's own *_turb_* baselines use AI_SA=0 with chi_inf=3, ONBOARDING.md).
+# Freestream chi_inf = 3.0 (the SA-recommended fully-turbulent level, 3-5
+# class); NO fSlow seed scaling (laminar-slowdown pre-compensation is an
+# AI-term device): stages keep the cold two-stage budgets with fslow=1, so
+# the JSON BC seed is exactly 3.0 in both stages. Verification per case:
+# solver.log carries NO "SA-AI transition constants" echo (absence = proof
+# classical SA ran) while the SA coefficients block still prints.
+FT_CHI = 3.0
+FT_STAGES = [(6000, 30000, 1.0), (4000, 15000, 1.0)]
+FT_CASES = {"ftsa": ("highre", [2e6, 4e6, 7e6, 1e7, 2e7]),
+            "ftsa1e10": ("ultra", [1e10])}
+
+
+def ft_env(chi_inf: float, fslow: float) -> dict:
+    return {"AI_SA": "0"}
 
 
 def case_name(fam: str, re: float, tu: str, direction: str) -> str:
@@ -193,22 +225,26 @@ def chi_max_nearwall(case_dir: Path, re: float) -> float | None:
 
 
 def run_one(fam: str, re: float, tu: str, direction: str, chain: str,
-            warm_dir: Path | None) -> Path:
+            warm_dir: Path | None, ft: bool = False) -> Path:
     name = case_name(fam, re, tu, direction)
     case_dir = OUT / name
     if (case_dir / "summary.json").exists():
         print(f"=== {name} already done, skipping ===", flush=True)
         return case_dir
     disk_guard()
-    chi = SEEDS[tu]
+    chi = FT_CHI if ft else SEEDS[tu]
     gpu = acquire_gpu(name)
     try:
         make_case(case_dir, re, chi, tmpl=TEMPLATES[fam])
-        stages = WARM_STAGES if warm_dir is not None else COLD_STAGES
+        if ft:
+            stages = FT_STAGES
+        else:
+            stages = WARM_STAGES if warm_dir is not None else COLD_STAGES
         print(f"=== {name} (gpu {gpu}, "
-              f"{'warm<-' + warm_dir.name if warm_dir else 'cold'}) ===",
-              flush=True)
-        info = run_case(case_dir, chi, gpu, stages, warm_dir)
+              f"{'warm<-' + warm_dir.name if warm_dir else 'cold'}"
+              f"{', FT-SA' if ft else ''}) ===", flush=True)
+        info = run_case(case_dir, chi, gpu, stages, warm_dir,
+                        env_fn=ft_env if ft else None)
     finally:
         release_gpu(gpu)
     row = {"case": name, "re": re, "Tu": tu, "dir": direction, "mesh": fam,
@@ -244,6 +280,19 @@ def final_stage_converged(case_dir: Path) -> bool:
 
 
 def run_chain(chain: str):
+    if chain in FT_CASES:
+        fam, res = FT_CASES[chain]
+        for re in res:
+            run_one(fam, re, "ft", "cold", chain, None, ft=True)
+        return
+    if chain in ULTRA_TU:
+        tu = ULTRA_TU[chain]
+        prev = None
+        for re in ULTRA_UP:
+            prev = run_one("ultra", re, tu, "up", chain, prev)
+        for re in ULTRA_DN:
+            prev = run_one("ultra", re, tu, "dn", chain, prev)
+        return
     if chain in HIGH_TU:
         tu = HIGH_TU[chain]
         prev = None
@@ -272,7 +321,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--chains", default="",
                     help="comma list from: " + ",".join(
-                        list(PLAN) + list(HIGH_TU)))
+                        list(PLAN) + list(HIGH_TU) + list(ULTRA_TU)
+                        + list(FT_CASES)))
     ap.add_argument("--templates-only", action="store_true")
     args = ap.parse_args()
     for fam in TEMPLATES:
