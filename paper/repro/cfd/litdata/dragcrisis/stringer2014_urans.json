@@ -1,0 +1,88 @@
+{
+ "source": "Stringer, Zang & Hillis, \"Unsteady RANS computations of flow around a circular cylinder for a wide range of Reynolds numbers\", Ocean Eng. 87 (2014) 1-9; author-accepted manuscript (Bath/CORE, see README), Fig. 5 (p. 15 scan, embedded plot layer); digitized 2026-07-28. Computed points at Re = 40/100/1e3/1e4/1e5/1e6; Re=40 laminar, Re=100 laminar shedding, SST above.",
+ "method": "raster: decade-gridline calibration (detected, log-log); Re taken from the stated run matrix, Cd digitized by NCC template match (open square = CFX, solid triangle = OpenFOAM) in +-20 px windows around each Re column; scan skew +5-8 px absorbed by the windows, residual Cd uncertainty ~2%; symbols at Re=40/100 overlap each other and the reference curves -- verify in checks/check_stringer.png",
+ "calibration": {
+  "x": {
+   "kind": "log",
+   "slope": 0.009202036536774576,
+   "intercept": -1.7781347902182805,
+   "max_residual": 0.003856863392234011
+  },
+  "y": {
+   "kind": "log",
+   "slope": -0.004020088320734365,
+   "intercept": 1.7326580662365116,
+   "max_residual": 0.002010044160366986
+  },
+  "x_decades_px": [
+   302.0,
+   410.5,
+   519.5,
+   627.5,
+   736.5,
+   845.5
+  ],
+  "y_decades_px": [
+   182.0,
+   431.5,
+   679.5
+  ]
+ },
+ "cfx": {
+  "cls": "RANS fully turbulent (2D URANS, CFX SST)",
+  "access": "primary",
+  "points": [
+   {
+    "Re": 40.0,
+    "Cd": 1.55
+   },
+   {
+    "Re": 100.0,
+    "Cd": 1.2145680561429195
+   },
+   {
+    "Re": 1000.0,
+    "Cd": 1.2603820458497152
+   },
+   {
+    "Re": 10000.0,
+    "Cd": 1.5594240916983224
+   },
+   {
+    "Re": 100000.0,
+    "Cd": 0.800788597029454
+   },
+   {
+    "Re": 1000000.0,
+    "Cd": 0.5428429111172446
+   }
+  ]
+ },
+ "openfoam": {
+  "cls": "RANS fully turbulent (2D URANS, OF SST)",
+  "access": "primary",
+  "points": [
+   {
+    "Re": 40.0,
+    "Cd": 1.55
+   },
+   {
+    "Re": 100.0,
+    "Cd": 1.4481166029110717
+   },
+   {
+    "Re": 1000.0,
+    "Cd": 1.0000000000000004
+   },
+   {
+    "Re": 10000.0,
+    "Cd": 1.0092995702171055
+   },
+   {
+    "Re": 1000000.0,
+    "Cd": 0.1513219686087498
+   }
+  ]
+ },
+ "caveats": "Re=40 for BOTH solvers transcribed from Table 3 (CD=1.55/1.55), not digitized (symbols coincide); Re=100 symbols overlap each other and the reference curves -- solver attribution there may be swapped (both lie in 1.2-1.45); OpenFOAM Re=1e5 is absent from fig. 5 (total Cd ~0.08 is below the 0.1 axis floor; see their fig. 6 components) and is NOT included; Re<=100 runs are laminar (no SST)."
+}

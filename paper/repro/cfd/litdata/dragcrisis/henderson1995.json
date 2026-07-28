@@ -1,0 +1,210 @@
+{
+ "source": "Henderson, \"Details of the drag curve near the onset of vortex shedding\", Phys. Fluids 7(9) (1995) 2102-2104 (open copy via Caltech CODA, see README), Fig. 1 (scan p. 3 at 300 dpi); digitized 2026-07-28.",
+ "method": "raster: frame+tick detection (x log 10/100/1000, y linear 0..2); pressure/viscous split at Cd=0.8 (bands are disjoint in Fig. 1); filled(steady, Re<47) vs open(shedding mean) by symbol-core fill; totals = pressure+viscous paired at equal Re (1.5% log-Re tolerance); the drawn Total curve is NOT traced -- the summed points must lie on it in the check PNG (checks/check_henderson.png); dotted fit-line dots are below the blob size window",
+ "calibration": {
+  "x": {
+   "kind": "log",
+   "slope": 0.0014847799037005774,
+   "intercept": 0.11160742581014835,
+   "max_residual": 0.0009898532691332562
+  },
+  "y": {
+   "kind": "linear",
+   "slope": -0.001847737170654165,
+   "intercept": 2.3312946314563248,
+   "max_residual": 0.0020348325087014008
+  },
+  "frame": {
+   "top": 172,
+   "bottom": 1258,
+   "left": 598,
+   "right": 2006
+  },
+  "xticks": [
+   598.0,
+   1272.5,
+   1945.0
+  ],
+  "yticks": [
+   180.0,
+   449.0,
+   721.0,
+   990.0,
+   1262.5
+  ]
+ },
+ "totals": {
+  "cls": "2-D spectral computation",
+  "access": "primary",
+  "points": [
+   {
+    "Re": 29.751651380441814,
+    "Cd": 1.7442692892180962,
+    "branch": "steady"
+   },
+   {
+    "Re": 34.712451498490694,
+    "Cd": 1.634287331809085,
+    "branch": "steady"
+   },
+   {
+    "Re": 39.74219529742696,
+    "Cd": 1.5506453520236425,
+    "branch": "steady"
+   },
+   {
+    "Re": 44.709549938523324,
+    "Cd": 1.4812306524143628,
+    "branch": "steady"
+   },
+   {
+    "Re": 49.64909899499226,
+    "Cd": 1.4259288092181555,
+    "branch": "steady"
+   },
+   {
+    "Re": 54.637943486543634,
+    "Cd": 1.3796799833715947,
+    "branch": "steady"
+   },
+   {
+    "Re": 64.49930821463082,
+    "Cd": 1.410879798756428,
+    "branch": "shedding"
+   },
+   {
+    "Re": 69.51810636112084,
+    "Cd": 1.4011205887463465,
+    "branch": "shedding"
+   },
+   {
+    "Re": 89.27980331142544,
+    "Cd": 1.369270858459744,
+    "branch": "shedding"
+   },
+   {
+    "Re": 99.10135425062931,
+    "Cd": 1.3592979729131531,
+    "branch": "shedding"
+   },
+   {
+    "Re": 123.86640345375295,
+    "Cd": 1.3475801477400016,
+    "branch": "shedding"
+   },
+   {
+    "Re": 148.49895627742868,
+    "Cd": 1.347318950500817,
+    "branch": "shedding"
+   },
+   {
+    "Re": 247.48293036889467,
+    "Cd": 1.3777845608203096,
+    "branch": "shedding"
+   },
+   {
+    "Re": 493.9290275937761,
+    "Cd": 1.4628102485325742,
+    "branch": "shedding"
+   },
+   {
+    "Re": 985.5651667085839,
+    "Cd": 1.5437863537609395,
+    "branch": "shedding"
+   }
+  ]
+ },
+ "components": [
+  {
+   "Re": 29.751651380441814,
+   "Cd_pressure": 1.1037761892895264,
+   "Cd_viscous": 0.6404930999285698,
+   "branch": "steady"
+  },
+  {
+   "Re": 34.712451498490694,
+   "Cd_pressure": 1.0538668832188631,
+   "Cd_viscous": 0.5804204485902218,
+   "branch": "steady"
+  },
+  {
+   "Re": 39.74219529742696,
+   "Cd_pressure": 1.016437420266456,
+   "Cd_viscous": 0.5342079317571866,
+   "branch": "steady"
+  },
+  {
+   "Re": 44.709549938523324,
+   "Cd_pressure": 0.9837384106729004,
+   "Cd_viscous": 0.49749224174146245,
+   "branch": "steady"
+  },
+  {
+   "Re": 49.64909899499226,
+   "Cd_pressure": 0.954756835564267,
+   "Cd_viscous": 0.4711719736538884,
+   "branch": "steady"
+  },
+  {
+   "Re": 54.637943486543634,
+   "Cd_pressure": 0.9334741873006589,
+   "Cd_viscous": 0.4462057960709358,
+   "branch": "steady"
+  },
+  {
+   "Re": 64.49930821463082,
+   "Cd_pressure": 0.9873737960005287,
+   "Cd_viscous": 0.42350600275589945,
+   "branch": "shedding"
+  },
+  {
+   "Re": 69.51810636112084,
+   "Cd_pressure": 0.9912279144423479,
+   "Cd_viscous": 0.40989267430399856,
+   "branch": "shedding"
+  },
+  {
+   "Re": 89.27980331142544,
+   "Cd_pressure": 1.0029563794730456,
+   "Cd_viscous": 0.36631447898669833,
+   "branch": "shedding"
+  },
+  {
+   "Re": 99.10135425062931,
+   "Cd_pressure": 1.0092194385910755,
+   "Cd_viscous": 0.3500785343220776,
+   "branch": "shedding"
+  },
+  {
+   "Re": 123.86640345375295,
+   "Cd_pressure": 1.0283210273441117,
+   "Cd_viscous": 0.3192591203958899,
+   "branch": "shedding"
+  },
+  {
+   "Re": 148.49895627742868,
+   "Cd_pressure": 1.0503628051099796,
+   "Cd_viscous": 0.29695614539083737,
+   "branch": "shedding"
+  },
+  {
+   "Re": 247.48293036889467,
+   "Cd_pressure": 1.1369489998398266,
+   "Cd_viscous": 0.2408355609804831,
+   "branch": "shedding"
+  },
+  {
+   "Re": 493.9290275937761,
+   "Cd_pressure": 1.2792503959809758,
+   "Cd_viscous": 0.18355985255159846,
+   "branch": "shedding"
+  },
+  {
+   "Re": 985.5651667085839,
+   "Cd_pressure": 1.405298999851396,
+   "Cd_viscous": 0.13848735390954348,
+   "branch": "shedding"
+  }
+ ],
+ "note": "steady-branch totals (filled) are the exact steady solution; shedding-branch totals (open) are cycle means -- match our steady solver only below Re~47"
+}

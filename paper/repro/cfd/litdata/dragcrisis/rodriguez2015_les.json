@@ -1,0 +1,34 @@
+{
+ "source": "Rodriguez, Lehmkuhl, Chiva, Borrell & Oliva, \"On the flow past a circular cylinder from critical to super-critical Reynolds numbers: wake topology and vortex shedding\", Int. J. Heat Fluid Flow 55 (2015) 91-103; TABLE 2 (accepted-manuscript p. 16), transcribed 2026-07-28 (no digitization -- tabulated values).",
+ "method": "transcription of Table 2 column CD",
+ "les": {
+  "cls": "LES",
+  "access": "primary",
+  "points": [
+   {
+    "Re": 250000.0,
+    "Cd": 0.833
+   },
+   {
+    "Re": 380000.0,
+    "Cd": 0.481
+   },
+   {
+    "Re": 530000.0,
+    "Cd": 0.296
+   },
+   {
+    "Re": 650000.0,
+    "Cd": 0.232
+   },
+   {
+    "Re": 720000.0,
+    "Cd": 0.213
+   },
+   {
+    "Re": 850000.0,
+    "Cd": 0.218
+   }
+  ]
+ }
+}

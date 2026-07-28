@@ -1,0 +1,124 @@
+{
+ "source": "Catalano, Wang & Iaccarino, CTR Annual Research Briefs 2001, pp. 45-50 (open PDF, see README); journal version Catalano et al., Int. J. Heat Fluid Flow 24 (2003) 463-469. Fig. 3, p. 49 (PDF p. 5); vector extraction from the drawing stream, 2026-07-28.",
+ "method": "vector: blue 12-segment filled circles = WMLES points; calibration from the seven evenly-spaced decade labels (std of gaps < 0.15 pt) and the 0..2 y labels; check PNG checks/check_catalano2001.png",
+ "calibration": {
+  "x": {
+   "kind": "log",
+   "slope": 0.02692307294037382,
+   "intercept": -3.9869218954257497,
+   "max_residual": 0.001154141841100298
+  },
+  "y": {
+   "kind": "linear",
+   "slope": -0.015615931411540853,
+   "intercept": 4.164032592485908,
+   "max_residual": 9.071751360090197e-05
+  }
+ },
+ "wmles": {
+  "cls": "WMLES",
+  "access": "primary",
+  "points": [
+   {
+    "Re": 500023.0802488701,
+    "Cd": 0.3466869918841389
+   },
+   {
+    "Re": 999946.2668764855,
+    "Cd": 0.3166107880476594
+   },
+   {
+    "Re": 1999628.4539370101,
+    "Cd": 0.32657375991318904
+   }
+  ],
+  "note": "Table 1 (p. 48) states CD=0.31 at Re=1e6; the extracted middle point must match to ~0.005"
+ },
+ "achenbach1968_curve": {
+  "cls": "experiment",
+  "access": "secondary via Catalano fig. 3",
+  "points": [
+   {
+    "Re": 71701.8541533284,
+    "Cd": 1.064051942628713
+   },
+   {
+    "Re": 112291.36471274169,
+    "Cd": 1.0721248759206903
+   },
+   {
+    "Re": 154736.37354186043,
+    "Cd": 1.0721248759206903
+   },
+   {
+    "Re": 186988.58333129127,
+    "Cd": 1.0611001274687069
+   },
+   {
+    "Re": 189169.02326185608,
+    "Cd": 1.055212700202527
+   },
+   {
+    "Re": 211330.0282054323,
+    "Cd": 1.028087834965647
+   },
+   {
+    "Re": 230633.7404167129,
+    "Cd": 0.9651094240800897
+   },
+   {
+    "Re": 247338.55483912196,
+    "Cd": 0.8640900552784303
+   },
+   {
+    "Re": 299783.50762235315,
+    "Cd": 0.6013356156012599
+   },
+   {
+    "Re": 396537.68277684774,
+    "Cd": 0.39985921927801904
+   },
+   {
+    "Re": 448157.41256928694,
+    "Cd": 0.33152426941950885
+   },
+   {
+    "Re": 489093.865334911,
+    "Cd": 0.3163763203274912
+   },
+   {
+    "Re": 543182.3882937399,
+    "Cd": 0.3114887167948752
+   },
+   {
+    "Re": 603253.6616270652,
+    "Cd": 0.3114887167948752
+   },
+   {
+    "Re": 681782.8717425453,
+    "Cd": 0.32134207976683005
+   },
+   {
+    "Re": 1019222.3386721567,
+    "Cd": 0.37562326322744166
+   },
+   {
+    "Re": 1722126.360046417,
+    "Cd": 0.45323398484480926
+   },
+   {
+    "Re": 2809632.340052859,
+    "Cd": 0.5558622215799822
+   },
+   {
+    "Re": 3526548.810537056,
+    "Cd": 0.6303972223315633
+   },
+   {
+    "Re": 4274299.94822592,
+    "Cd": 0.6820544641920789
+   }
+  ],
+  "note": "the red curve is labeled \"Achenbach (1968)\" by Catalano et al.; kept only inside Achenbach's measured range 6e4 <= Re <= 5e6 (JFM 34:625-639); plot as a faint line, not symbols"
+ }
+}

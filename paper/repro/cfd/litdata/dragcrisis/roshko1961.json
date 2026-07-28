@@ -1,0 +1,119 @@
+{
+ "source": "Roshko, \"Experiments on the flow past a circular cylinder at very high Reynolds number\", J. Fluid Mech. 10 (1961) 345-356 (open copy via Caltech CODA, see README), Figure 2 (p. 348, scan p. 4); digitized 2026-07-28.",
+ "method": "raster: calibration from the printed grid (8 rows Cd 0..1.4; 28 log-spaced columns, decade identity verified via the log10(2) spacing); grid lines stripped by >=25 px run removal; every detection hand-labelled at 5-6x zoom (MANUAL dict in the script: plain p=1/2/4 atm kept, splitter-plate flagged symbols separated, one merged pair dropped as ambiguous); Dryden & Hill + excluded; the two lowest-Re 1-atm points (Cd~0.3-0.35 near 1e6) were NOT recoverable (buried in the D&S dashed curves); check checks/check_roshko.png (green = kept)",
+ "calibration": {
+  "x": {
+   "kind": "log",
+   "slope": 0.00238720267886425,
+   "intercept": 3.101458108411144,
+   "max_residual": 0.001671440787088585
+  },
+  "y": {
+   "kind": "linear",
+   "slope": -0.0015779811125635763,
+   "intercept": 2.891914389170342,
+   "max_residual": 0.0010529909538701254
+  },
+  "h_rows": [
+   945.5,
+   1072.0,
+   1199.0,
+   1325.5,
+   1452.5,
+   1579.5,
+   1706.5,
+   1832.0
+  ],
+  "decade_cols": [
+   376.5,
+   795.5,
+   1213.5,
+   1633.5
+  ]
+ },
+ "roshko": {
+  "cls": "experiment",
+  "access": "primary",
+  "points": [
+   {
+    "Re": 1812855.2838590678,
+    "Cd": 0.4289112983318226
+   },
+   {
+    "Re": 2215211.8425894524,
+    "Cd": 0.51929520897475
+   },
+   {
+    "Re": 3511119.19572045,
+    "Cd": 0.6920114706176461
+   },
+   {
+    "Re": 3644733.3678720267,
+    "Cd": 0.6715540726226257
+   },
+   {
+    "Re": 3672893.605176159,
+    "Cd": 0.7309156667237171
+   },
+   {
+    "Re": 4443928.348523157,
+    "Cd": 0.7378912714654322
+   },
+   {
+    "Re": 5031358.644936799,
+    "Cd": 0.7404805950183206
+   },
+   {
+    "Re": 5196165.369982502,
+    "Cd": 0.6790279348458919
+   },
+   {
+    "Re": 6167951.534485145,
+    "Cd": 0.7015263210166158
+   },
+   {
+    "Re": 6907405.221150016,
+    "Cd": 0.6811628504687715
+   },
+   {
+    "Re": 8375151.4749975875,
+    "Cd": 0.7129716276325531
+   },
+   {
+    "Re": 8655555.515687482,
+    "Cd": 0.7413891295982817
+   }
+  ]
+ },
+ "splitter_plate": {
+  "cls": "experiment (splitter plate -- do not overlay)",
+  "access": "primary",
+  "points": [
+   {
+    "Re": 1807170.0518765613,
+    "Cd": 0.4493686963268435
+   },
+   {
+    "Re": 1876954.1676854242,
+    "Cd": 0.4586675135973075
+   },
+   {
+    "Re": 2292213.2034956077,
+    "Cd": 0.5555380207852383
+   },
+   {
+    "Re": 2671969.153139825,
+    "Cd": 0.5709533275018313
+   },
+   {
+    "Re": 2728367.1395515734,
+    "Cd": 0.5901133402738532
+   },
+   {
+    "Re": 4187793.5056141475,
+    "Cd": 0.6242766313608548
+   }
+  ]
+ },
+ "note": "plain/splitter classes are HAND-verified per symbol (MANUAL dict); Cd accuracy limited by the ~13 px symbol size ~ +-0.01"
+}
