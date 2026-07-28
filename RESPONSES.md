@@ -1209,3 +1209,319 @@ figs_explore (spheroid_a0_meanflow_*).
    Complements the build agent's unstructured full-circumference
    discriminator: preconditioner flag vs grid family, two orthogonal
    knobs on the same anomaly.
+
+---
+
+## 2026-07-28 ~01:10 — MEAN-FLOW DISCRIMINATOR VERDICT: solver numerics convicted
+
+Record: agent-paper-review/2026-07-28-0105-spheroid-a0-meanflow.md.
+1. Validated axisymmetric Keller-box march (Blasius to 4 digits;
+   Mangler + transverse curvature included) on the field's own u_e:
+   H = 2.56-2.63 across 0.2-0.7 vs RANS 2.49-2.44. History, Mangler,
+   transverse curvature, extraction: all real, all captured, all an
+   order too small. Airfoils exonerated properly (their low favorable-H
+   is genuine LE history, march-consistent to 0.02).
+2. Momentum-balance probe (plate-validated to 0.5%): a structured
+   NEAR-WALL STREAMWISE MOMENTUM SOURCE of numerical origin (+0.33 and
+   +0.83 of max-viscous at x/L 0.42/0.70) — the force holding the
+   profile full, largest where the anomaly is deepest.
+3. Discrete signature: cell-locked AZIMUTHAL staggering (du/u p2p 2.6%
+   at 0.15 d99 — should be exactly zero on axisymmetric flow); the
+   surface is azimuthally faceted at ~10 wall units of sagitta.
+4. USER'S CHALLENGE CONFIRMED point by point: suction peak at 0.489;
+   the marched laminar kernel RISES monotonically into the adverse
+   region (0.078 -> 0.246) exactly as expected; the RANS layer getting
+   FULLER into the APG is the wrong-signed response — extraction-robust
+   and coinciding with the largest momentum source. The 0040 note's
+   flat-equilibrium claim corrected (fore gap -0.02, aft -0.18).
+5. VERDICT: the alpha=0 front miss is carried by a SOLVER-NUMERICS
+   mean-flow artifact of the axisymmetric O-grid class — not model
+   physics, not BL theory, not the pressure distribution. Model
+   constants owe this case nothing.
+6. PROPOSED DISCRIMINATING RUN (awaiting user go): re72a0 L1 with
+   lowMachPreconditioner=true, config-only, ~minutes (1/8 L2 cost).
+   H -> 2.56-2.58 convicts low-Mach Roe dissipation (L2 rerun would
+   then pull the front from 0.92 toward ~0.5); H unchanged convicts
+   faceting/staggering (follow-up: azimuthal x2 L1 stripe). The
+   unstructured full-circumference family (building) is the independent
+   topology arm.
+
+## 2026-07-28 ~01:15 — artifact-path convention (user order) + retrofit
+
+From now on every RESPONSES.md entry lists FULL PATHS of generated
+artifacts. Retrofit for tonight's sets:
+- alpha=0 physics package (ffdd99c):
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_a0_physics_blchar.png
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_a0_physics_eN.png
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_a0_physics_chifield.png
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_a0_physics_band.png
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_a0_physics_balance.png
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_a0_physics_captions.md
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_a0_physics.json
+- mean-flow discriminator:
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_a0_meanflow_march.png
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_a0_meanflow_profiles.png
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_a0_meanflow_balance.png
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_a0_meanflow_resolution.png
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_a0_meanflow_wiggle.png
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_a0_meanflow_cp_pg.png
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_a0_meanflow.json
+- alpha=0 control comparison (d736cec):
+  /home/qiqi/flexcompute/sa-ai/paper/figs/spheroid_front_compare_a0.pdf (+.png)
+- drag-crisis section (edb8bc5):
+  /home/qiqi/flexcompute/sa-ai/paper/figs/dragcrisis_cd_re.pdf
+  /home/qiqi/flexcompute/sa-ai/paper/figs/dragcrisis_fields.pdf
+
+---
+
+## 2026-07-28 — Drag-crisis Re-range extension + spheroid Mach answer + full-body directive
+
+**User prompts:** (1) extend the drag-crisis section to small and large Re with exactly
+the same model (mesh regen with different first-layer thickness allowed); (2) check what
+Re range standard textbooks/surveys cover — the composite curve spans many orders of
+magnitude, no single method covers it (no WRLES at high Re, no fully-turbulent RANS at
+low Re) — this model might be the first; (3) what Mach was the spheroid run at
+(density-based solver, best at Mach >= 0.1)?; (4) run the spheroid discriminator on a
+FULL spheroid, not half.
+
+**Answers/actions:**
+
+- **Spheroid Mach:** 0.1 in every case — O-grid L0/L1/L2 and the unstructured build
+  (`/local_data/qiqi/sa-ai/spheroid_fv1/case_ogrid_L{0,1,2}_saai_re72a0/Flow360.json`:
+  Mach 0.1, muRef 1.389e-8, lowMachPreconditioner false). So we are at the recommended
+  floor for the density-based solver; the low-Mach-Roe suspect concerns LOCAL Mach in
+  the near-wall laminar layer (~0.01–0.03), not the freestream choice.
+- **Half-body confirmed:** the structured O-grid family is a half-model — meridian
+  half-plane revolved phi in [0, pi] with symmetry sheets at y=0
+  (`/home/qiqi/flexcompute/sa-ai/spheroid/ogrid_spheroid.py`). Every published spheroid
+  number rides on symmetry BCs; given the measured azimuthal one-cell staggering, the
+  full-body control is well chosen.
+- **LAUNCHED — full-body spheroid discriminator** (background agent): new
+  `spheroid/ogrid_spheroid_full.py` (L1, phi in [0,2pi), periodic closure, 2x azimuthal
+  count, no symmetry boundaries), re72a0 case byte-comparable to the half-model, two
+  arms: (A) settings identical (half-vs-full discriminator), (B) lowMachPreconditioner
+  true (low-Mach arm). Harvest = 0105-record instruments: H at x/L 0.20/0.42/0.70,
+  chi=1 front, azimuthal staggering spectrum at 0.15 delta99. Record will land in
+  agent-paper-review/ with full paths.
+- **LAUNCHED — drag-crisis Re extension** (background agent): three-arm design on the
+  matrix driver. Low arm Re 1e3–4e4 on the pilot mesh; creeping/steady arm Re 1–300 on
+  a new R_OUT=1000D mesh (physical flow is steady below Re~47 — a true validation
+  against Dennis & Chang 1970 / Tritton); high arm Re 4e6–1e7 (stretch 2e7) on a new
+  y1=1e-6 D mesh. Mandatory mesh-seam overlap runs at Re 300/1e3 and 2e6/4e6; lossless
+  integer Re tags; steady-only, canon env, volume off, <=2 GPUs, occupancy-checked.
+  Target span: Re 1 -> 1e7 (7 decades) with one model, one set of constants.
+- **LAUNCHED — literature survey** (background agent): the canonical composite Cd(Re)
+  datasets with exact ranges (Wieselsberger 1921/Schlichting, Tritton 1959, Delany &
+  Sorensen 1953, Achenbach 1968/71, Roshko 1961, Schewe 1983, Zdravkovich regime
+  taxonomy), low-Re steady benchmarks (Dennis & Chang, Fornberg), and an adversarial
+  novelty check: highest-Re published WRLES/WMLES of the crisis and every
+  transition-RANS cylinder/sphere drag-crisis attempt with its Re range — to scope the
+  "first single-model sweep" claim defensibly. Record will land in agent-paper-review/.
+- **Disk flag (user decision needed):** /local_data is 100% full (14G free). Largest
+  reclaimable: `/local_data/qiqi/sa-ai/daedalus_fv1/` = 308G, dominated by the L2
+  cavity/ogrid cases (34–64G each: mesh.cgns >1G, restartOutput, volume outputs). These
+  back the Daedalus field figures' repro chain, so deletion is user-gated. All three
+  running campaigns are under strict lean-output discipline (volume off, log
+  truncation, restart janitor, free-space checks before every launch).
+
+**GPU status at launch:** 3 busy (unstructured-spheroid arm + vishal), 5 idle; all our
+agents occupancy-check per launch under the 4-GPU own cap.
+
+---
+
+## 2026-07-28 — Literature ground truth landed: the composite is 7.3 decades and nobody spans it
+
+Record: /home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-0117-dragcrisis-litrange.md
+
+- Composite Cd(Re) curve = Re 0.5 -> 1e7 (~7.3 decades), a stitch of >=4 facilities
+  (Tritton 0.5-100; Relf ~1-1e3; Wieselsberger ~50-8e5; Delany-Sorensen 1.1e4-2.3e6;
+  Achenbach 6e4-5e6; Roshko 1e6-1e7; Schewe 2.3e4-7.1e6; Shih to 8e6). No single
+  dataset covers more than ~2.5 decades; ~2x facility scatter in Re_crit.
+- Scale-resolving ceiling (verified): WRLES max = 8.5e5 (Cheng-Pullin-Samtaney 2017);
+  WMLES reached 2e6 and was already wrong/Re-insensitive there (Catalano 2003); NOBODY
+  has scale-resolved Roshko's transcritical range.
+- Transition-RANS (verified by adversarial absence): widest pure-RANS transition sweep
+  ~1 decade around the crisis, isolated spot Re, often non-convergent in the critical
+  band (gamma-Re_theta sphere study "unstable in the critical and supercritical
+  range"); no single-model curve across even 3 decades anywhere; no controlled Tu
+  study.
+- Fully-turbulent RANS: covers the span but premature-crisis at subcritical
+  (Stringer 2014 Re 40-1e6 = the wrong baseline our Sec VII exploits).
+- VERDICT: no published single model/method of any kind has produced the curve from
+  steady-laminar through transcritical — the user's "this model might be the first"
+  is supported, with scoped wording options (record Sec 4) and landmines: never claim
+  "first prediction of the crisis" (LES did it); caption 47<Re<1e3 as steady-branch
+  continuity, not validation (inset strategy recommended); frame the Tu family as
+  spanning the experimental Re_crit band.
+- Low-Re steady truth: below Re~47 steady IS physical — match Dennis-Chang/Fornberg
+  to ~1% (SA-AI must stay passive; consistency check for the paper).
+- Open-access digitization shortlist: Delany-Sorensen NTRS PDF, Roshko Caltech PDF,
+  Henderson 1995, Cheng 2017 (Achenbach stays user-gated).
+
+---
+
+## 2026-07-28 — Daedalus L2 cleanup executed (user-directed)
+
+Deleted from all six L2 cases (case_{cavity,ogrid}_L2_saai_a{4,5,6} under
+/local_data/qiqi/sa-ai/daedalus_fv1/), biggest + least-likely-needed only:
+- mesh.cgns_rank_*_of_*.dmp — solver partition dumps, regenerated automatically at
+  launch from the retained mesh.cgns (~168G);
+- restartOutput/ — continuation checkpoints; campaign complete (~33G);
+- volume.pvtu + volume_proc*.vtu — raw volume output (~31G). Safe because the derived
+  chi_surface.npz (verified present in all six cases) is what every paper regen script
+  reads (paper/regen_daedalus_surface_maps.py, paper/repro/cfd/
+  regen_daedalus_section_sheets.py); the only volume reader is
+  daedalus/chi_surface_map.py, which built the npz.
+
+KEPT per case: mesh.cgns (rerun capability), all surface_*.pvtu, chi_surface.npz, all
+csv histories, Flow360.json, figures, logs.
+
+Result: /local_data free 14G -> 274G; daedalus_fv1 308G -> 74G. The three running
+campaigns (drag-crisis extension, full-body spheroid, unstructured spheroid) now have
+ample headroom.
+
+---
+
+## 2026-07-28 — Global mesh-partition-dump cleanup (user-directed)
+
+Swept all of /local_data/qiqi for `mesh.cgns*_rank_*_of_*.dmp` (solver partition
+dumps — launch-time artifacts, regenerated automatically from the retained mesh.cgns):
+deleted 242 files / 163 GB nominal (some were hardlinked across staged cases, so disk
+actually freed = 114 GB). Skipped: anything written today (the active unstructured-
+spheroid case) and all `restartOutput/restart_rank_*.dmp` checkpoint files — those
+hold solution state, a different class, left untouched outside the already-approved
+Daedalus L2 deletion. Remaining small dumps (<100 MB each, 3.6 GB total, mostly 2D
+airfoil cases with active ladder relaunches) left in place as negligible.
+
+/local_data: 273G -> 387G free (79% used). Combined with the Daedalus L2 sweep:
+14G -> 387G free today.
+
+---
+
+## 2026-07-28 — Fig 19 restyled (line contours); Fig 18 literature overlay launched
+
+**User prompts:** (1) Fig 19: contour not contourf like the rest of the paper; remove
+per-row Re notes (caption carries them); panels at ~half-page width. (2) Fig 18:
+generously overlay literature — experiments, LES, fully-turbulent RANS, transition
+models. (3) Fig 18: drop the cold-start points, keep up/dn sweeps only; no vertical-
+band legend entry — describe in caption.
+
+**Done — Fig 19 (commit fc085d2):**
+- /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/regen_dragcrisis_fields.py: contourf ->
+  contour both columns (13 |u| levels, 14 log10-chi levels); per-row Re labels removed
+  from the y-axes; chi=1 overdraw white -> BLUE (magma's low end is near-black on the
+  now-white background); colorbars -> continuous gradients; figsize 10.6 -> 7.4 wide
+  so each panel sits at ~0.47 textwidth with no dead space.
+- /home/qiqi/flexcompute/sa-ai/paper/figs/dragcrisis_fields.pdf regenerated; preview
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/dragcrisis_fields.png.
+- sa-ai.tex caption: "white contour" -> "blue contour" (rows' Re already in caption).
+
+**Launched — Fig 18 overlay (background agent):** acquires + independently digitizes
+(tick-calibrated, per-dataset check PNGs, provenance JSONs under
+paper/repro/cfd/litdata/dragcrisis/) the canonical experiments (Wieselsberger,
+Delany-Sorensen TN3038, Achenbach 1968, Roshko 1961, Schewe 1983), LES (Cheng 2017
+WRLES, Rodriguez/Lehmkuhl, Catalano WMLES), fully-turbulent RANS (Stringer 2014), and
+transition-RANS (gamma-Re_theta FTC 2016); extends regen_dragcrisis_cd_re.py with
+class-grouped background markers; ALSO removes cold-start points and the limit-cycle-
+band legend entry per (3), delivering a draft caption amendment. I integrate the tex
+after reviewing its record.
+
+---
+
+## 2026-07-28 — Unstructured spheroid family landed: topology cleared, and the 20k budget convicted
+
+Record: /home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-0350-spheroid-unstruct-family.md
+
+Two findings, the second bigger than the assignment:
+1. TOPOLOGY CLEARED: full-circumference Flynn360 prism/tet/octree family (no symmetry
+   plane) reproduces the O-grid at matched level+budget to extraction precision —
+   chi=1 front 0.9176 (unstr L1) vs 0.9177 (og L1 median). The late front is NOT an
+   O-grid artifact. Full-body zero-lift clean at L1 (CL ~3e-4); the L0 asymmetry
+   episode reproduces in full-body form (grid-level artifact, both families).
+2. THE 20k PSEUDO-STEP BUDGET IS A COLD-START ARTIFACT at this condition: the same
+   unstructured L1 continued to 43k steps moves the front 0.9176 -> 0.8584, settles
+   CD (0.0193 -> 0.0153), and relaxes the laminar mean flow ONTO the 0105 BL-march
+   solution (H at x/L 0.2/0.42/0.7 = 2.515/2.556/2.611 vs march 2.533/2.561/2.613).
+   The "anomalously full mean flow" (0040) and the 0105 solver-numerics conviction
+   were largely diagnosing a TRANSIENT; the committed campaign fronts
+   (0.908/0.918/0.925 L0/L1/L2) were unconverged — "never quote fronts from
+   fixed-budget cold starts" applies to our own campaign.
+   Residual truth: even converged, front 0.86 vs measured 0.438 — the remaining
+   ~0.42 L miss is transport-realization + seed content, not mean flow.
+3. Extraction hazard fixed: faceted-wall probes need facet-intersection ray re-basing
+   (sag up to 11% of delta99 at unstr L0 faked H=2.18); committed O-grid station
+   numbers verified safe (<=1.2e-6 L offsets).
+
+Artifacts (full paths): mesh cross-sections
+/home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_mesh_xsec_{ogrid,unstr,transverse,spacing}.png
+(+ captions .md same dir); verdict JSONs
+/home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/spheroid_unstruct_a0_verdict_unstr_L{0,1}.json;
+scripts spheroid/unstruct_spheroid.py, spheroid/build_unstruct_case.py,
+paper/repro/cfd/spheroid_unstruct_a0_verdict.py, paper/repro/cfd/regen_spheroid_mesh_xsec.py;
+cases /local_data/qiqi/sa-ai/spheroid_fv1/case_unstr_L{0,1}_saai_re72a0.
+
+ACTIONS taken: full-body O-grid discriminator agent re-briefed (converge-by-CD-drift
+instead of fixed 20k, facet-sag-corrected harvest, wiggle probe on converged field).
+PROPOSED (user decision): converged-budget restart legs for ALL committed spheroid
+campaign cases (~0.5-1 GPU-h per L1 leg, ~5 GPU-h L2) before fig:spheroidfront /
+tab:sphtotals numbers are re-printed; Sec IX/X reframing stays HELD and now points to
+transport-realization + seed (not mean flow / not solver numerics) as the carrier.
+
+---
+
+## 2026-07-28 — Fig 18 literature overlay LANDED and integrated (commits 6c9b82e, 28d8e93)
+
+Overlay agent record: /home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-0317-dragcrisis-overlay.md
+
+- 12 series / ~940 points digitized (tick/gridline-detected calibrations, residual
+  asserts, per-dataset check PNGs): Wieselsberger TN-84 (186), Delany-Sorensen TN 3038
+  (219, incl. both hysteresis loops), Roshko 1961 (12, splitter runs excluded), Schewe
+  + Achenbach-Heinecke (vector-exact via the Rodriguez 2015 replot), Achenbach 1968
+  curve (via Catalano 2003), Rodriguez WRLES (Table 2), Catalano WMLES (3, asserted
+  vs their Table 1), Stabnikov-Garbaruk SST/gamma-Re_theta/SST-KD sweeps, Stringer
+  CFX+OpenFOAM, Henderson 1995, Tritton/Finn/Jayaweera low-Re (for the coming axis).
+  QA: Schewe two-secondary agreement mean dCd 0.029; D&S primary-vs-secondary -0.012.
+- User directives executed: cold-start diamonds REMOVED (up/dn sweeps only);
+  limit-cycle bands kept with NO legend entry; legend minimal, description moved to
+  caption.
+- Figure: /home/qiqi/flexcompute/sa-ai/paper/figs/dragcrisis_cd_re.pdf
+  (preview /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/dragcrisis_cd_re.png)
+  — our 3-seed family threads the experimental crisis band; the missing transcritical
+  rise (experiments climb to 0.5-0.7 above 1e6, we stay ~0.22) is now VISIBLE.
+- Data/provenance: /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/litdata/dragcrisis/
+  (9 open PDFs + README + JSONs + checks/), script
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/digitize_dragcrisis_lit.py.
+- Guard: regen defaults to the completed-84-case window; rerun with --re-window full
+  after the extension harvest (the live jsonl already carries 36 in-progress rows).
+- MY integration (28d8e93): caption rewritten to carry the full legend description
+  (sources named + digitization provenance line); 8 new bib entries, every field
+  Crossref/NTRS-verified this session (wieselsberger_1921 TN-84, delany_sorensen_1953,
+  roshko_1961, achenbach_heinecke_1981, catalano_2003, stringer_2014,
+  stabnikov_garbaruk_2020). Build clean: 0 undefined refs, 120 pp.
+
+## 2026-07-28 ~03:45 — UNSTRUCTURED spheroid family DONE (Flynn360 cavity pipeline) + a0 verdict: topology exonerated, the 20k BUDGET convicted
+
+- Built the Daedalus cavity-family (Flynn360: STL skin -> BL prisms -> tet glue ->
+  octree far field) spheroid meshes, FULL-circumference per your directive (no y=0
+  symmetry plane): L0 0.74M / L1 2.81M nodes, ds_pole + h0/growth = the O-grid
+  re65/re72 ladder values exactly, first-cell height node-exact 7.5e-7 L, MeshProcessor
+  closedness + 0 bad LSQ nodes. Mesh cross-section figures (both families):
+  paper/repro/cfd/figs_explore/spheroid_mesh_xsec_{ogrid,unstr,transverse,spacing}.png.
+- alpha=0 Re 7.2e6, campaign case verbatim (ai_constants diff-identical): at MATCHED
+  20k budget, unstr L1 = og L1 to extraction precision: chi=1 front 0.9176 vs 0.9177,
+  H/P/drift all matched. The late front is NOT an O-grid artifact.
+- THE BIG ONE: 20k is a cold-start artifact at this condition. Restarting BOTH
+  families to 43k: fronts move 0.918 -> 0.8584 (unstr) / 0.8582 (og-L1), CD settles
+  (0.0153 / 0.0127, drift 2e-5/1k), and the laminar mean flow lands ON the 0105 BL
+  march (H_corr 2.52/2.55/2.61 at 0.2/0.42/0.7, gap <= 0.018): the "anomalously full
+  mean flow" (0040/0105) and the committed a0 campaign fronts (0.908/0.918/0.925) are
+  CONVERGENCE-STATE artifacts. Converged, the model still misses (0.86 vs measured
+  0.438) — the residual is transport realization + seed, not the mean flow. Spheroid
+  campaign numbers need converged-budget re-runs (a restart leg is ~0.5-1 GPU-h at L1).
+- Also found+fixed an extraction hazard: analytic-origin rays on faceted walls read a
+  spurious slip (facet sag dc^2*kappa/8) — H down to 2.18 on unstr L0 raw. Corrected
+  extractor (Moller-Trumbore to the case's actual wall facets) committed; committed
+  O-grid station numbers are safe (dH <= +0.01).
+- Full record: agent-paper-review/2026-07-28-0350-spheroid-unstruct-family.md.
+  Cases: /local_data/qiqi/sa-ai/spheroid_fv1/case_unstr_L{0,1}_saai_re72a0 (+snap20k),
+  case_ogrid_L1_saai_re72a0_ext (campaign case untouched). GPUs 2/3 only, now free.
