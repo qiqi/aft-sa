@@ -20,14 +20,21 @@ SEMANTIC (user directive 2026-07-28):
                   scale-resolving (2-D unsteady Henderson 1995 + Qu 2013
                   in the shedding band, WRLES/WMLES + SST gamma-Re_theta
                   at the crisis; the single-Re 3-D DNS of Dong &
-                  Karniadakis 2005 is a capped vertical tick at Re 1e4
-                  spanning their resolution study -- a line, not a
+                  Karniadakis 2005 is a SHORT HORIZONTAL LINE STUB at
+                  Re 1e4 -- a few % of a decade wide, at the finest-grid
+                  value -- so even a single point reads as a line, not a
                   symbol); charcoal dotted = fully-turbulent SST
-  SA-AI family  = untouched (the subject: Tu-colored solid/dashed
-                  ladders with filled/open markers, distinct from both)
+  SA-AI family  = the subject: LINE-ONLY (no markers), Tu-colored
+                  up=solid / dn=dashed ladders -- the only COLORED lines,
+                  distinct from the green/charcoal literature lines and
+                  the gray/black experiment symbols
+Every series (symbols AND lines, literature AND SA-AI) is drawn slightly
+transparent (crowded figure): SA-AI at ALPHA_SAAI (top of the band, stays
+readable as the subject), literature at ALPHA_LIT. The limit-cycle bands
+keep their own (opaque) styling.
 Only ONE chromatic hue is added (#3f8a4f, validated against the Tu trio:
 adjacent normal-vision dE 18; the orange<->green protan pair sits in the
-6-8 secondary-encoding band, carried by marker shape + line weight).
+6-8 secondary-encoding band, carried by line weight + style).
 The 2-D unsteady lines cover Re ~50-1000, where the experiments are
 shedding means and OUR steady branch knowingly sits below (caption's
 continuity-not-validation statement).
@@ -68,6 +75,11 @@ TU_ORDER = ("0.05", "0.2", "0.7")
 GREEN = '#3f8a4f'      # the single added literature-CFD hue (validated)
 CHARCOAL = '#3f3f3f'   # fully-turbulent RANS (neutral by design)
 GRAY = '0.42'          # experiments
+# transparency (user directive 2026-07-28): the figure is crowded, so every
+# series is slightly transparent. SA-AI (the subject) sits at the top of the
+# requested band so it stays readable; the literature sits just below it.
+ALPHA_SAAI = 0.75
+ALPHA_LIT = 0.62
 
 
 def load_rows(root, exclude_highre=False, mesh_key=False,
@@ -161,8 +173,8 @@ def overlay_literature(ax):
     symbol). The SA-AI family keeps its own distinct styling."""
     z = 1.5   # everything behind our family (zorder 3/4)
     hs = []
-    mk = dict(lw=0, mew=0.8, alpha=0.85, zorder=z, ls='none')
-    ln = dict(alpha=0.9, zorder=z)
+    mk = dict(lw=0, mew=0.8, alpha=ALPHA_LIT, zorder=z, ls='none')
+    ln = dict(alpha=ALPHA_LIT, zorder=z)
 
     # --- experiments: gray/black SYMBOLS ONLY -------------------------
     # TN-84 faired curve (Re 4.2-3e3): sparse symbols along the
@@ -188,7 +200,7 @@ def overlay_literature(ax):
 
     re_, cd = lit('rodriguez2015_fig4_exp', 'schewe1983')
     ax.plot(re_, cd, marker='+', ms=4.2, mec='0.25', mew=0.9,
-            lw=0, alpha=0.85, zorder=z, ls='none')
+            lw=0, alpha=ALPHA_LIT, zorder=z, ls='none')
     hs.append(Line2D([], [], ls='none', marker='+', ms=4.6, mec='0.25',
                      mew=0.9, label='Schewe 1983 [dig. R15]'))
 
@@ -226,18 +238,20 @@ def overlay_literature(ax):
     hs.append(Line2D([], [], color=GREEN, lw=1.1, ls='--',
                      label='2-D DNS (Qu et al. 2013)'))
 
-    # 3-D DNS anchor at Re=1e4: capped vertical tick spanning the
-    # Nz>=64 resolution study (Cd 1.110-1.143, finest 1.143)
+    # 3-D DNS anchor at Re=1e4: a SINGLE-Re computation. Per the strict
+    # lines=computations rule (user directive 2026-07-28) it is drawn as a
+    # SHORT HORIZONTAL LINE STUB (a few % of a decade wide, centered on
+    # Re=1e4) rather than a marker/tick -- so even a single point reads as
+    # a line. The stub sits at the finest-grid DNS value (Cd_finest=1.143;
+    # the Nz>=64 resolution span 1.110-1.143 is recorded in the JSON).
     path = os.path.join(LIT, 'dong_karniadakis2005_dns3d.json')
     if os.path.exists(path):
         d = json.load(open(path))['dns3d']
-        mid = 0.5 * (d['Cd_min'] + d['Cd_max'])
-        ax.errorbar([1.0e4], [mid],
-                    yerr=[[mid - d['Cd_min']], [d['Cd_max'] - mid]],
-                    fmt='none', ecolor=GREEN, elinewidth=1.4,
-                    capsize=3, capthick=1.4, alpha=0.9, zorder=z)
-        hs.append(Line2D([], [], ls='none', marker='|', ms=9,
-                         mec=GREEN, mew=1.4,
+        cd_fin = d.get('Cd_finest', 0.5 * (d['Cd_min'] + d['Cd_max']))
+        hw = 0.035   # stub half-width in decades of Re
+        ax.plot([10.0 ** (4 - hw), 10.0 ** (4 + hw)], [cd_fin, cd_fin],
+                '-', color=GREEN, lw=1.4, alpha=ALPHA_LIT, zorder=z)
+        hs.append(Line2D([], [], color=GREEN, lw=1.4,
                          label='3-D DNS (Dong–Karniadakis 2005)'))
     else:
         print(f'  [lit] MISSING {path} -- run digitize_dragcrisis_lit.py')
@@ -326,10 +340,12 @@ def main():
     remin, remax = np.inf, 0.0
     for tu in TU_ORDER:
         c = TU_COLOR[tu]
-        # cold two-stage reference cases: kept in the JSON dump for the
-        # appendix table, NOT plotted (user directive 2026-07-28)
-        for d, ls, mk_, mfc in (("up", "-", "o", c), ("dn", "--", "s", "none"),
-                                ("cold", None, None, None)):
+        # SA-AI family is LINE-ONLY (user directive 2026-07-28): no markers,
+        # up=solid / dn=dashed, seed color per Tu. It stays visually distinct
+        # from the literature by being the only COLORED lines (literature
+        # computations are green/charcoal). Cold two-stage reference cases:
+        # kept in the JSON dump for the appendix table, NOT plotted.
+        for d, ls in (("up", "-"), ("dn", "--"), ("cold", None)):
             pts = sorted(((r["re"], r) for r in rows.values()
                           if r["Tu"] == tu and r["dir"] == d),
                          key=lambda p: (p[0], p[1]["Cd"]))
@@ -339,8 +355,8 @@ def main():
             cd = np.array([p[1]["Cd"] for p in pts])
             if ls is not None:
                 remin, remax = min(remin, re.min()), max(remax, re.max())
-                ax.plot(re, cd, ls=ls, marker=mk_, color=c, mfc=mfc,
-                        mew=1.3, ms=5.5, lw=1.6, zorder=4)
+                ax.plot(re, cd, ls=ls, color=c, lw=1.6,
+                        alpha=ALPHA_SAAI, zorder=4)
             for reval, r in pts:
                 lc = any("limit_cycle" in v for v in r["verdicts"])
                 ent = {"Cd": r["Cd"], "Cd_tail_p2p": r["Cd_tail_p2p"],
@@ -386,10 +402,10 @@ def main():
             fontsize=11, ha='left')
 
     ours = [
-        Line2D([], [], color='0.25', ls='-', marker='o', ms=5.5,
+        Line2D([], [], color='0.25', ls='-', lw=1.6,
                label='SA-AI up-ladder'),
-        Line2D([], [], color='0.25', ls='--', marker='s', mfc='none',
-               mew=1.3, ms=5.5, label='SA-AI dn-ladder'),
+        Line2D([], [], color='0.25', ls='--', lw=1.6,
+               label='SA-AI dn-ladder'),
     ]
     leg1 = ax.legend(handles=ours, fontsize=9, frameon=False,
                      loc='upper right', handlelength=2.4,
