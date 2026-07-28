@@ -3443,19 +3443,29 @@ The front sits aft because the demanded amplification factor is large,
 not because the kernel under-amplifies.
 
 That demanded factor is set by the disturbance environment, and here
-the paper's economy meets its sharpest calibration question. No
-freestream turbulence intensity is published for the DFVLR measurement
-chain~\cite{kreplin_1985}; the documented disturbance level is the
-limiting amplification factor that reproduces the data, and it is
-method-relative. Stock's pure-TS $e^N$ matches with
-$N_{\mathrm{TS}}\!=\!8.0$~\cite{stock_2006}; the automatic-transition
-literature uses $N\!\approx\!7.5$ for the same
-case~\cite{krimmelbein_2010}; and the present kernel, whose envelope is
-calibrated to Drela--Giles---about $2.8$ factors slower than a pure-TS
-$e^N$ by mid-body---requires $N_{\mathrm{crit}}\!\approx\!7$
-($Tu\!\approx\!0.17\%$). There is no universal ``tunnel $N$'': each
-closure carries its own calibrated factor, and absent a measured $Tu$
-the number is a calibration handle, not a datum.
+the paper's economy meets its sharpest calibration question. What the
+transition-modeling community uses for this benchmark is not a measured
+tunnel turbulence level but a calibrated one, and the values form a
+band. Stock's $e^N$ takes a facility-specific limiting factor---
+$N_{\mathrm{TS}}\!=\!8.0$ for the DFVLR G\"ottingen data and
+$N_{\mathrm{TS}}\!=\!7.0$ for his second (CEAT) facility, a spread
+within one author~\cite{stock_2006}---while the correlation-based
+transition workshops prescribe a $\gamma$--$Re_\theta$ inflow
+$Tu\!\approx\!0.10$--$0.15\%$ for the same
+case~\cite{denison_2021_overflow,tarsia_2025}. Mapped through the
+common Mack relation these agree: $N\!\approx\!7$--$8$ is
+$Tu\!\approx\!0.10$--$0.16\%$, a factor of about $1.6$. The present
+kernel, whose envelope is calibrated to Drela--Giles---about $2.8$
+factors slower than a pure-TS $e^N$ by mid-body---requires
+$N_{\mathrm{crit}}\!\approx\!7$ ($Tu\!\approx\!0.17\%$), interior to
+that band: on Stock's own second-facility limit and just above the
+workshop $\gamma$--$Re_\theta$ standard. There is no universal
+``tunnel $N$''---Stock's $N\!=\!8$ is the quiet endpoint, not a
+consensus---and the underlying disturbance was in fact measured
+(hot-wire and microphone across three tunnels~\cite{meier_michel_kreplin_1987}),
+but no transition model draws on it; each closure carries its own
+calibrated factor, and our value lands in the middle of the
+documented spread.
 
 Re-seeding to that tunnel-class disturbance is decisive
 (Fig.~\ref{fig:sphreseed}). A three-seed bracket from $Tu\!=\!0.05\%$
