@@ -2464,7 +2464,21 @@ separated-flow correction to calibrate: amplification is generated
 geometrically by the inflectional coordinate---the mechanism the
 Eppler campaign exercised at these same Reynolds numbers---so the
 cylinder is a parameter-free traverse of the crisis, run here
-entirely on the steady branch.
+entirely on the steady branch and extended to the full span of the
+classical composite curve: $Re_D\!=\!1$--$2\!\times\!10^7$, $7.3$
+decades, one closure and one set of constants. The measured
+composite is itself a stitch of many
+facilities~\cite{wieselsberger_1921,delany_sorensen_1953,achenbach_1968,roshko_1961,schewe_1983},
+no one of which spans more than about two and a half decades; on the
+computational side, wall-resolved LES reaches
+$8.5\!\times\!10^5$~\cite{rodriguez_2015,cheng_pullin_2017},
+wall-modeled LES lost accuracy by
+$2\!\times\!10^6$~\cite{catalano_2003}, and correlation-based RANS
+studies report isolated points near the
+crisis~\cite{zheng_lei_2016,stabnikov_garbaruk_2020}. To our
+knowledge no single model of any kind has produced this curve across
+these regimes before, and the concessions that price the present one
+are stated below.
 
 Twelve diameter Reynolds numbers,
 $Re_D\!=\!6\!\times\!10^4$--$2\!\times\!10^6$, are computed at three freestream
@@ -2473,26 +2487,43 @@ $1.1\!\times\!10^{-2}$, and $0.22$, Mack's map
 (Sec.~\ref{sec:calib_tu}) at $Tu\!=\!0.05$, $0.2$, and
 $0.7\%$---on one quasi-two-dimensional O-grid ($1200\times148$,
 first spacing $8\!\times\!10^{-6}\,D$, outer boundary $100\,D$;
-$y^+\!\le\!0.64$ at the highest $Re_D$), with the solver settings,
+$y^+\!\le\!0.64$ at $2\!\times\!10^6$), with the solver settings,
 constants, and staged-seed branch-selection protocol used everywhere
 in this paper (Sec.~\ref{sec:bistability}). Each seed is swept as an
 upward and a downward continuation ladder, warm-started from the
 neighboring Reynolds number, plus twelve cold starts at the middle
-seed as a protocol-neutral reference---84 steady cases in all. A
-case is accepted when $C_d$ drifts by less than $10^{-3}$ over
-$1000$ pseudo-steps; otherwise it runs to a fixed cap and is flagged
-as a steady limit cycle. Every case lands on the symmetric branch,
-$|C_L|\!<\!2\!\times\!10^{-7}$.
+seed as a protocol-neutral reference---84 steady cases. The traverse
+is then extended on two further grids of the same analytic
+construction: a large-domain laminar grid ($600\times121$, first
+spacing $10^{-3}\,D$, outer boundary $1000\,D$) carrying
+$Re_D\!=\!1$--$10^3$, and a fine supercritical grid ($1600\times170$,
+first spacing $10^{-6}\,D$; measured $y^+\!\le\!0.71$ at $10^7$,
+$1.4$ at the $2\!\times\!10^7$ endpoint, which is therefore quoted
+with that caveat) carrying $4\!\times\!10^6$--$2\!\times\!10^7$---45
+further cases, 129 in all. The families are run past each other at
+their seams: $C_d$ agrees to $0.5$--$0.6\%$ at $Re_D\!=\!300$ and
+$10^3$, and to $2.9\%$ between cold-started pairs at
+$2\!\times\!10^6$, the finer grid higher---the supercritical floor
+carries a few-percent grid sensitivity, in the direction of
+measurement. A case is accepted when $C_d$ drifts by less than
+$10^{-3}$ over $1000$ pseudo-steps; otherwise it runs to a fixed cap
+and is flagged as a steady limit cycle ($37$ of $129$, concentrated
+in and above the crisis band). Every case lands on the symmetric
+branch, $|C_L|\!<\!2\!\times\!10^{-7}$.
 
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=0.82\textwidth]{dragcrisis_cd_re.pdf}
-  \caption{Steady-branch drag coefficient of the circular cylinder
-    across the drag crisis: three freestream seeds ($\chi_\infty$
-    from Mack's map at the quoted $Tu$), each swept as an upward
-    (solid, filled) and a downward (dashed, open) continuation
-    ladder in $Re_D$, overlaid on the experimental and computational
-    literature. Cases whose convergence monitor flagged a steady
+  \caption{Steady-branch drag coefficient of the circular cylinder,
+    $Re_D\!=\!1$--$2\!\times\!10^7$: three freestream seeds
+    ($\chi_\infty$ from Mack's map at the quoted $Tu$), each swept
+    as an upward (solid, filled) and a downward (dashed, open)
+    continuation ladder in $Re_D$ on three grid families run past
+    each other at their seams (coincident markers), overlaid on the
+    experimental and computational literature. Below
+    $Re_D\!\approx\!46$ the steady solution is the physical flow;
+    between there and $\sim\!10^3$ the steady-branch points are
+    drawn for continuity, not validation. Cases whose convergence monitor flagged a steady
     limit cycle carry a vertical band spanning the tail-window $C_d$
     range. Gray and black open symbols are experiments, digitized
     independently from the sources: Wieselsberger's nine-diameter
@@ -2540,6 +2571,27 @@ transitioning at separation over the subcritical dead-air wake, then
 transition reaching the separation point, the wall turning turbulent
 through a shrinking bubble, and the wake narrowing.
 
+The two ends of the span read differently from the middle. Below the
+shedding onset ($Re_D\!\approx\!46$~\cite{henderson_1995}) the steady
+solution \emph{is} the physical flow and the traverse is a laminar
+validation with the model provably passive: $C_d\!=\!10.67$ at
+$Re_D\!=\!1$ and $2.797$ at $10$, $-1.7\%$ against the steady
+benchmark of Dennis \& Chang~\cite{dennis_chang_1970} ($+6.4\%$ at
+$100$, where the lengthening steady eddy outruns the grid's radial
+resolution), with near-wall $\chi_{\max}\!\le\!10^{-4}$ through
+$Re_D\!=\!30$ and $\le\!2.5\!\times\!10^{-2}$ through $10^3$---no
+switch tells the model to stand down there. Doubling the far-field
+radius from $300$ to $1000\,D$ moves $C_d$ by $0.54\%$ at
+$Re_D\!=\!1$. Between the onset and roughly $10^3$ the solver
+converges to the steady symmetric branch that nature abandons for
+shedding---and not to the exact decaying branch of that family
+either, whose recirculation length outgrows any practical
+domain~\cite{fornberg_1980}---so those points are drawn for
+continuity, not validation. Seed independence holds to $0.2\%$ from
+$10^4$ to $4\!\times\!10^4$, and $\chi$ first crosses unity at
+$4\!\times\!10^4$, in the base region: the subcritical plateau is
+seed-blind exactly as far down as it should be.
+
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=\textwidth]{dragcrisis_fields.pdf}
@@ -2559,9 +2611,9 @@ through a shrinking bubble, and the wake narrowing.
   \label{fig:dragcrisisfields}
 \end{figure}
 
-Four things are conceded, all visible in the figures. First, through
+Six things are conceded, all visible in the figures. First, through
 the crisis band the steady branch is non-unique and weakly unsteady:
-$27$ of the $84$ cases end in a limit cycle (tail peak-to-peak
+$27$ of the $84$ matrix cases end in a limit cycle (tail peak-to-peak
 median $0.011$, maximum $0.199$ in $C_d$---the vertical bands of
 Fig.~\ref{fig:dragcrisiscd}), and exactly there the three protocols
 separate by up to $0.055$ in $C_d$, against $0.003$ on the
@@ -2583,7 +2635,24 @@ separated shear layer amplifies essentially at separation at all
 three seeds. Fourth, the supercritical turbulent separation angles
 ($106$--$118^\circ$) remain early against measurement---the
 familiar class of turbulent-$C_f$-on-curved-wall error, compounded
-by the steady dead-air base.
+by the steady dead-air base. Fifth, there is no transcritical
+recovery: measurement rebuilds toward
+$C_d\!\approx\!0.7$~\cite{roshko_1961,schewe_1983} while the
+computed floors sit flat at $0.185/0.199/0.215$ (by seed) through
+$2\!\times\!10^7$. The failure is not the transition content---the
+$\chi\!=\!1$ front marches from $101^\circ$ at $2\!\times\!10^6$ to
+$82^\circ$ at $2\!\times\!10^7$ at the middle seed, reaching the
+attached boundary layer as it should---but the turbulent
+separation, pinned near $120^\circ$ with base pressure
+$\approx\!-0.23$: the fourth concession, controlling the drag level
+outright once the crisis is spent. Sixth, on the fine grid the
+supercritical regime carries a second steady wake state: the
+downward ladder, descending from the $2\!\times\!10^7$ state, sits
+$13$--$22\%$ lower in $C_d$ (separation $123.5^\circ$ against
+$120.4^\circ$, base pressure $-0.18$ against $-0.23$ at $10^7$)---
+the protocol-dependence of the first concession extends past the
+crisis band, and branch adjudication there again belongs to
+unsteady continuation.
 % TODO(dragcrisis-exp): digitize Achenbach (1968) Cp/Cf traverses at
 % matched Re for a quantitative overlay (surface outputs are retained
 % for all 84 cases); the experimental separation angles, shoulder and
