@@ -87,6 +87,12 @@ EPS = [0.0]
 #        UN-floored canon P = Shat*g (canon max(P,1e-6) clip).
 FORM = ['add']
 EPS_O = [0.0]      # variant-A onset epsilon (form zc2 only)
+# USER EXTENSION (Part III): in the B structure the ceiling is NOT sacred --
+# joint (a_visc, C) optimization. CEIL_B, when set, replaces the canon
+# 1851.2 in the zb gate (k-carrying units, i.e. the compiled-constant
+# scale); None = canon. Results computed with it are stored under keys
+# suffixed _C<value>.
+CEIL_B = [None]
 # re-anchoring knobs (--reanchor only; 1.0 = canonical constants)
 ASCALE = [1.0]     # multiplies a_max
 KSCALE = [1.0]     # multiplies the whole onset threshold (the paper's k)
@@ -121,8 +127,9 @@ def _P_and_thresh(Shat, g, Zn=None):
         fl = np.clip(-eps*Zn, 0.0, None)
         P = Shat*np.sqrt(gg*gg + fl*fl)                # rate coordinate
         Pc = Shat*g                                    # CANON gate coordinate
+        C = REOM_CEIL if CEIL_B[0] is None else CEIL_B[0]
         _pw = REOM_A + REOM_B*np.maximum(Pc, 1e-6)**(-2.0)
-        reomc = (REOM_CEIL**(-REOM_N) + _pw**(-REOM_N))**(-1.0/REOM_N)
+        reomc = (C**(-REOM_N) + _pw**(-REOM_N))**(-1.0/REOM_N)
         return P, reomc
     else:                                    # zc / zc_ceil
         gg = np.clip(g, 0.0, None)
@@ -394,7 +401,8 @@ def _sup_rate(y, u, ue, nu, eps):
     return float(np.nanmax(rr))
 
 
-def cylinder_budget(eps_list, Re_Ds=(2e6, 2e7, 1e9)):
+def cylinder_budget(eps_list, Re_Ds=(2e6, 7e6, 2e7, 1e9),
+                    seeds=(4.525, 6.485)):
     """Potential-flow cylinder nose (u_e = 2 sin theta, D = 1, U = 1):
     sup-bound e-folds N(theta) booked up to 80 deg and to the (potential)
     suction peak 90 deg, per eps. Laminar planar march (bl_march, the 1041
@@ -423,9 +431,20 @@ def cylinder_budget(eps_list, Re_Ds=(2e6, 2e7, 1e9)):
             thd = sx/Rcyl*180/np.pi
             N80 = float(np.interp(80.0, thd, N))
             N90 = float(np.interp(90.0, thd, N))
-            out[f'ReD{Re_D:g}_eps{eps:g}'] = dict(N80=N80, N90=N90)
+            # sup-bound front estimates: theta where N first reaches the
+            # Tu 0.2% seed thresholds (4.525 = chi=1 convention, 6.485 =
+            # chi=c_v1 handover; eq:tumap numbers per the 1041 audit)
+            cross = {f'N{s:g}': (float(np.interp(s, N, thd))
+                                 if N[-1] >= s else None) for s in seeds}
+            out[f'ReD{Re_D:g}_eps{eps:g}'] = dict(
+                N80=N80, N90=N90, cross_deg=cross,
+                theta_deg=[round(float(t), 2) for t in thd[::4]],
+                N_sup=[round(float(n), 3) for n in N[::4]])
+            cs = ' '.join(f'{k}@{v:.1f}deg' if v else f'{k}@none'
+                          for k, v in cross.items())
             print(f"  cylinder Re_D={Re_D:g} eps={eps:g}: N_sup(80deg)="
-                  f"{N80:.2f}  N_sup(90deg)={N90:.2f}", flush=True)
+                  f"{N80:.2f}  N_sup(90deg)={N90:.2f}  fronts: {cs}",
+                  flush=True)
     return out
 
 
@@ -618,9 +637,9 @@ def tune_variants(db, which):
         print(f"  B: eps_r = {er:.4f} (late {r['s_late']/r['s_DG']:.3f}x, "
               f"Rt1 {r['Rt1']:.0f} = {r['Rt1']/r['Rt1_DG']:.2f}x DG N=1)",
               flush=True)
-        db['variantB'] = dict(eps_r=er)
+        db[_ck('variantB')] = dict(eps_r=er)
     save(db)
-    return db['variantA' if which == 'A' else 'variantB']
+    return db['variantA' if which == 'A' else _ck('variantB')]
 
 
 def reanchor(eps, db):
@@ -661,6 +680,97 @@ def reanchor(eps, db):
     return res
 
 
+def zb_figure(db):
+    """Part III: variant-B first-class candidate Fig 4 -- BOTH panels,
+    full family, at a_visc = 0.0276 (eps_r = 0.1455, panel-(a)-optimal)
+    and the leaner a_visc = 0.0230 (eps_r = 0.121)."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
+    def cols(rows):
+        H = np.array([r['H'] for r in rows])
+        sl = np.array([r['s_late'] for r in rows])
+        R = np.array([r['Rt1'] for r in rows])
+        o = np.argsort(H)
+        return H[o], sl[o], R[o]
+
+    H1, sl1, R1 = cols(db['final'])                       # 0.1455, canon C
+    H2, sl2, R2 = cols(db['sweep']['0.121'] + db['family_0.121'])
+    H0, sl0, R0 = cols(db['baseline'])
+    joint = None                       # Part III extension: retuned ceiling
+    jk = [k for k in db if k.startswith('final_C')
+          and not k.startswith('final_eps')]
+    if jk:
+        C = jk[0].split('_C')[1]
+        joint = (cols(db[jk[0]]),
+                 rf'joint opt: $a_\mathrm{{visc}}='
+                 rf'{0.19*db["final_eps" + "_C" + C]:.4f}$, $C={C}$')
+    fig, (axa, axb) = plt.subplots(1, 2, figsize=(11.2, 4.3))
+    fig.patch.set_facecolor('white')
+    Hg = np.geomspace(2.2, 10.6, 300)
+    drela_g = np.asarray(dN_dRe_theta(Hg)); Rtc_g = np.asarray(Re_theta0(Hg))
+
+    def style(ax, ylabel, ylim):
+        ax.axvspan(4.03, 11.0, color='0.92', zorder=0)
+        ax.axvline(4.03, color='0.6', lw=0.9, ls=':')
+        ax.set_xscale('log'); ax.set_xticks([2.2, 2.6, 3, 3.5, 4, 5, 7, 10])
+        ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        ax.get_xaxis().set_minor_formatter(matplotlib.ticker.NullFormatter())
+        ax.set_xlim(2.12, 11.0)
+        ax.set_xlabel(r'shape factor $H=\delta^*/\theta$')
+        ax.set_ylabel(ylabel); ax.set_ylim(*ylim)
+        ax.grid(alpha=0.3, which='both')
+
+    axa.semilogy(Hg, drela_g, 'k--', lw=1.8, label=r'Drela--Giles $dN/dRe_\theta$')
+    m = np.isfinite(sl0)
+    axa.semilogy(H0[m], sl0[m], '-', color='0.75', lw=1.1, label='canon, late')
+    m = np.isfinite(sl1)
+    axa.semilogy(H1[m], sl1[m], '-^', color='C0', ms=4.5, lw=1.3,
+                 label=r'$a_\mathrm{visc}=0.0276$, late')
+    m = np.isfinite(sl2)
+    axa.semilogy(H2[m], sl2[m], '-v', color='C1', ms=4.0, lw=1.1, mfc='white',
+                 label=r'$a_\mathrm{visc}=0.0230$, late')
+    if joint is not None:
+        (Hj, slj, Rj), jlab = joint
+        m = np.isfinite(slj)
+        axa.semilogy(Hj[m], slj[m], '-s', color='C2', ms=4.0, lw=1.2,
+                     label=jlab + ', late')
+    style(axa, r'$dN/dRe_\theta$', (drela_g.min()/12.0, drela_g.max()*1.3))
+    axa.legend(fontsize=8.0, loc='upper left')
+    axa.text(0.96, 0.06, '(a)', transform=axa.transAxes, fontsize=12,
+             fontweight='bold', ha='right')
+
+    N1_g = Rtc_g + 1.0/drela_g
+    axb.semilogy(Hg, Rtc_g, '--', color='0.55', lw=1.4,
+                 label=r'Drela critical $Re_{\theta 0}$')
+    axb.semilogy(Hg, N1_g, 'k--', lw=1.8, label=r'Drela--Giles $N\!=\!1$ station')
+    axb.semilogy(H0[np.isfinite(R0)], R0[np.isfinite(R0)], '-', color='0.75',
+                 lw=1.1, label='canon')
+    axb.semilogy(H1[np.isfinite(R1)], R1[np.isfinite(R1)], '-^', color='C0',
+                 ms=4.5, lw=1.3, label=r'$a_\mathrm{visc}=0.0276$')
+    axb.semilogy(H2[np.isfinite(R2)], R2[np.isfinite(R2)], '-v', color='C1',
+                 ms=4.0, lw=1.1, mfc='white', label=r'$a_\mathrm{visc}=0.0230$')
+    if joint is not None:
+        (Hj, slj, Rj), jlab = joint
+        m = np.isfinite(Rj)
+        axb.semilogy(Hj[m], Rj[m], '-s', color='C2', ms=4.0, lw=1.2,
+                     label=jlab)
+    style(axb, r'onset $Re_\theta$', (Rtc_g.min(), N1_g.max()*4.0))
+    axb.legend(fontsize=8.0, loc='upper right')
+    axb.text(0.96, 0.06, '(b)', transform=axb.transAxes, fontsize=12,
+             fontweight='bold', ha='right')
+    fig.suptitle(r'CANDIDATE (not canon), variant B: rate '
+                 r'$=\mathrm{softmax}_2(a_\mathrm{inv}\hat\Omega\langle\hat I'
+                 r'\rangle_+,\,a_\mathrm{visc}\hat\Omega\langle -Z\rangle_+/R)'
+                 r'\cdot$ canon gate (ceiling kept, gate blind to the viscous '
+                 'term)', fontsize=9, y=1.0)
+    plt.tight_layout()
+    fp = os.path.join(OUT_DIR, 'model_calibrate_candidate_zb.png')
+    plt.savefig(fp, dpi=150, facecolor='white')
+    print(f'wrote {fp}', flush=True)
+
+
 def tradeoff_figure(db):
     """The record's centerpiece: eps -> Fig-4 match (both panels) and
     Blasius perturbation."""
@@ -669,7 +779,10 @@ def tradeoff_figure(db):
     import matplotlib.pyplot as plt
     eps, da, dbv, blr, blo = [], [], [], [], []
     b0 = [r for r in db['baseline'] if r['beta'] == 0.0][0]
-    for key, rows in sorted(db['sweep'].items(), key=lambda kv: float(kv[0])):
+    for key, rows in sorted(db['sweep'].items(),
+                            key=lambda kv: float(kv[0].split('_C')[0])):
+        if '_C' in key:
+            continue                    # retuned-ceiling rows: not this curve
         a, b = scores(rows)
         r0 = [r for r in rows if r['beta'] == 0.0][0]
         eps.append(float(key)); da.append(a); dbv.append(b)
@@ -706,6 +819,11 @@ def tradeoff_figure(db):
                       else f'fpg_recal_tradeoff_{FORM[0]}.png')
     plt.savefig(fp, dpi=150, facecolor='white')
     print(f'wrote {fp}', flush=True)
+
+
+def _ck(base):
+    """Storage-key suffix for a retuned ceiling (Part III extension)."""
+    return base if CEIL_B[0] is None else f'{base}_C{CEIL_B[0]:g}'
 
 
 def load():
@@ -753,16 +871,25 @@ def main():
                     help='high-Re wall-boundedness gate at this eps')
     ap.add_argument('--signmap', type=float, default=None,
                     help='-Z/R sign chart across profile classes')
+    ap.add_argument('--zb-figure', action='store_true',
+                    help='Part III two-value variant-B candidate figure')
+    ap.add_argument('--ceil', type=float, default=None,
+                    help='retuned gate ceiling C for form zb (k-carrying '
+                         'units; canon 1851.2); results keyed _C<value>')
     args = ap.parse_args()
     run_all = not (args.smoke or args.baseline or args.sweep
                    or args.final is not None or args.family is not None
                    or args.impact is not None or args.reanchor is not None
                    or args.tradeoff or args.signcheck is not None
                    or args.boundedness is not None
-                   or args.signmap is not None or args.tune is not None)
+                   or args.signmap is not None or args.tune is not None
+                   or args.zb_figure)
     FORM[0] = args.form
     if args.eps_o is not None:
         EPS_O[0] = args.eps_o
+    if args.ceil is not None:
+        assert args.form == 'zb', '--ceil is a zb (variant B) knob'
+        CEIL_B[0] = args.ceil
     global OUT_JSON, OUT_FIG
     if args.form != 'add':
         OUT_JSON = os.path.join(OUT_DIR,
@@ -811,7 +938,7 @@ def main():
         print('== sweep: favorable ladder ==', flush=True)
         sw = db.get('sweep', {})
         for eps in args.eps_list:
-            key = f'{eps:g}'
+            key = _ck(f'{eps:g}')
             if key in sw:
                 continue
             sw[key] = ladder(FAVORABLE, eps)
@@ -820,7 +947,8 @@ def main():
                   f'(log-space, worst H<=2.6)', flush=True)
             db['sweep'] = sw; save(db)
         print('== sweep summary ==')
-        for key, rows in sorted(db['sweep'].items(), key=lambda kv: float(kv[0])):
+        for key, rows in sorted(db['sweep'].items(),
+                                key=lambda kv: float(kv[0].split('_C')[0])):
             da, dbv = scores(rows)
             print(f'  eps={key:>6}: dev_a={da:6.3f} dev_b={dbv:6.3f} '
                   f'max={max(da, dbv):6.3f}')
@@ -833,32 +961,32 @@ def main():
             eps = min(cand)[1]
             print(f'== minimax eps from sweep: {eps:g} ==', flush=True)
         print(f'== final stage at eps={eps:g} ==', flush=True)
-        db['final_eps'] = eps
-        db['final'] = ladder(FAVORABLE + ADVERSE, eps, lower=LOWER)
-        db['zero_suite_final'] = zero_suite(eps)
+        db[_ck('final_eps')] = eps
+        db[_ck('final')] = ladder(FAVORABLE + ADVERSE, eps, lower=LOWER)
+        db[_ck('zero_suite_final')] = zero_suite(eps)
         db['graze_eps0'] = graze_check(0.0)
-        db['graze_final'] = graze_check(eps)
+        db[_ck('graze_final')] = graze_check(eps)
         save(db)
         if 'baseline' not in db:
             raise SystemExit('run --baseline first for the overlay figure')
-        candidate_figure(db['final'], db['baseline'], eps)
+        candidate_figure(db[_ck('final')], db['baseline'], eps)
         save(db)
 
     if args.family is not None:
         print(f'== adverse+lower family at eps={args.family:g} ==', flush=True)
-        db[f'family_{args.family:g}'] = ladder(ADVERSE, args.family,
-                                               lower=LOWER)
+        db[_ck(f'family_{args.family:g}')] = ladder(ADVERSE, args.family,
+                                                    lower=LOWER)
         save(db)
 
     if args.impact is not None:
         print(f'== impact budgets at eps={args.impact} ==', flush=True)
-        imp = db.get('impact', {})
+        imp = db.get(_ck('impact'), {})
         imp['cylinder'] = cylinder_budget([0.0] + list(args.impact))
         imp['spheroid_re72a0'] = spheroid_budget([0.0] + list(args.impact))
         imp['hiemenz'] = hiemenz_budget(list(args.impact))
         for eps in args.impact:
             imp[f'zero_suite_eps{eps:g}'] = zero_suite(eps)
-        db['impact'] = imp
+        db[_ck('impact')] = imp
         save(db)
 
     if args.reanchor is not None:
@@ -873,6 +1001,9 @@ def main():
     if args.signmap is not None:
         db[f'signmap_{args.signmap:g}'] = signmap(args.signmap)
         save(db)
+
+    if args.zb_figure:
+        zb_figure(db)
 
     if args.tradeoff:
         tradeoff_figure(db)

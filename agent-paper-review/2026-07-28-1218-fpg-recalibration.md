@@ -424,6 +424,11 @@ its own named rate and ε disappears as a symbol:
   env naming) is a single-commit mechanical change at adoption time, not
   performed now.
 
+## Part II erratum (found in Part III)
+
+The decision table's B-spheroid entry should read **+1.28** sup e-folds
+(24.43 − 23.15), not +1.45.
+
 ## Part II honest ledger additions
 
 1. A's tuning bound: ε_r capped at 0.35 in the secant; the late-ratio
@@ -439,3 +444,178 @@ its own named rate and ε disappears as a symbol:
 4. Naming judgment (a_TS vs a_visc) is taste on top of convention; both
    are defensible — a_TS is more specific about WHICH viscous instability
    the floor represents, and pairs with a_R without inventing a_invisc.
+
+---
+
+# PART III (appended same day) — variant B first-class, the joint (a_visc, C) retune, and the adopted notation
+
+*USER CLARIFICATION: variant B is the INTENDED design — rate =
+softmax₂(a_inviscid·Ω̂⟨Î⟩₊, a_visc·Ω̂⟨−Z⟩₊/R) · OnsetGate(Re_Ω/Re_Ω^c(Ω̂Î));
+the gate never sees the viscous term. The Part-II `zb` form is exactly this
+by degree-1 homogeneity (a_visc = a_max·ε_r). USER EXTENSION: within B the
+1851.2 ceiling is NOT sacred — joint (a_visc, C) optimization. Both are
+delivered here. softmax₂ CONFIRMED as the two-argument 2-norm,
+softmax₂(x,y) = √(x²+y²) — the user's "softmax(x+y)" read as shorthand.
+Figure: `figs_explore/model_calibrate_candidate_zb.png` (canon-C at
+a_visc = 0.0276 and 0.0230, plus the joint optimum). Data keys with a
+retuned ceiling carry the suffix `_C<value>` in `fpg_recalibration_zb.json`.*
+
+## B at the canon gate (C = 1851.2) — first-class summary
+
+a_visc = 0.0276 (ε_r = 0.1455, β=1 late secant = 0.994x Drela; lean value
+0.0230 also plotted): **panel (a) is the best of the entire study —
+late secants 0.99–1.09x family-wide** (dev 1.09x). Panel (b): 0.23x/0.35x/
+0.48x DG at β = 1/0.55/0.35 (dev 4.40x), mild band 0.71–0.86x, Blasius
+0.99x (late +5.9%, Re_x(N9) −10.0%). Families: attached 4.1%/2.9%, lower
+0.2%/0.2%. Boundedness PASSES (sup saturates 1.80e-3, y*/θ = 2.005,
+wall fraction 5.7e-5 — the gate is a ≤1 factor and cannot unbound the rate).
+
+**Wart (i), front-shift translation (sup-bound instrument, potential u_e,
+Tu 0.2% thresholds N = 4.525 chi=1 / 6.485 handover; baselines: solver
+front 82–83° at 2e7, 90° at 7e6; DG chi=1 crossing 91.8° at 2e7, none at
+7e6):** at 2e7 canon-C B books N = 4.53 by **82.5°** (handover 88.6°) —
+i.e. it can spuriously advance the 2e7 front up to ~9° ahead of the DG
+station (coincidentally ON the current solver front, for the wrong reason;
+the 4 e-folds booked forward of 80° are where DG books ~0). At **7e6: NO
+crossing** (N_sup(90°) = 2.0 < 4.53) — the front stays
+separation-controlled, matching the solver's 90°; 2e6 clean. Ultra arm
+1e9: crossing at 12.0° — gate opens essentially at the leading edge
+(subcritical per DG even at 1e9; zc gives 25.6°, the canon kernel's own
+crossing is 77–79°).
+
+**Wart (ii), σ_t-blended leak:** raw 3.9e-3 at Re_τ ≥ 1000 lives at
+y+ ≈ Re_τ (gate opens at y+ ≈ κ·1851 ≈ 760, ratio keeps growing outward);
+the BLENDED max stays at the buffer-layer value **3.2e-4 at y+ ≈ 6**
+(canon 2.8e-4, +14%) because χ_eq(760) = min(0.41·760, 0.08·Re_τ) ≥ 61
+gives (1−σ_t) ≤ e^{−15} ≈ 2.6e-9 → blended leak ~1e-11, seven orders below
+visibility. Flows exercising y+~760 gate opening: any turbulent layer with
+Re_τ ≳ 900 (the suite's Re_τ = 1000 and 5200 rows). Exposure is confined
+to σ_t < 1 fringes that simultaneously reach Re_Ω ≈ 1851 — very-high-Re
+transitional shoulders, where amplification is the intended behavior.
+
+## The joint (a_visc, C) retune — extension results
+
+C-scan at fixed a_visc = 0.0276 (favorable ladder; onsets as x DG N=1
+station, order β = 1/0.55/0.35/0.2):
+
+| C | late secants (β=1…0) | onsets | worst onset | worst late |
+|---|---|---|---|---|
+| 1851.2 (canon) | 0.99…1.06 | 0.23/0.35/0.48/0.71 | 4.40x | 1.09x |
+| 4000 | 0.78…1.06 | 0.41/0.62/0.85/1.20 | 2.46x | 1.28x |
+| **8000** | **0.56…1.06** | **0.69/1.05/1.45/1.73** | **1.73x** | **1.79x** |
+| 20000 | 0.31…1.06 | 1.37/2.10/2.90/2.11 | 2.90x | 3.2x |
+
+Expectation (1) verified with the predicted residual: raising C delays the
+strong-FPG opening toward Drela's Rt0, but a fixed C cannot track the
+rising Rt0(H) — at C = 8000 the family straddles it (β=1 0.69x early,
+β=0.2 1.73x late; β=0.2's threshold saturates on its own 1/P² branch
+(≈6450) above C ≈ 6450, capping what larger C can do there). RATE-GATE
+COUPLING (same physics as variant A, milder): the later gate narrows the
+open band and the late secant sags (0.99 → 0.56x at β=1); re-tuning ε_r at
+C = 8000 SATURATES — even a_visc = a_R = 0.19 reaches only late 0.93x while
+dragging the onset back to 0.40x — so "late = 1 at β=1" is not attainable
+and the joint optimum is the balanced compromise. Interior probe
+(a_visc = 0.0418, C = 6000): devs (1.26x, 1.99x) — the surface is flat;
+**joint optimum adopted: (a_visc, C) = (0.0276, 8000)**, devs
+**(1.77x, 1.73x)**, max **1.77x**.
+
+At the optimum, full package:
+- Blasius intact: late +5.1%, Rt1 −2.6% (Rt1 = 340), Re_x(N9) −8.2%.
+- Families: attached-adverse 3.8%/2.3%, lower 0.2%/0.1%.
+- **Wart (i) CURED at practical Re**: 2e7 N_sup(80°) = 0.15, N(90°) = 2.42
+  < 4.53 — NO spurious crossing at 2e7/7e6/2e6 (the canon-C 82.5° front is
+  gone). Ultra arm: crossing at **35.4°** (handover 38.6°) — the
+  transcritical forward collapse retained, now landing in the experimental
+  25–35° class [mem: Achenbach digitization still gated] rather than at
+  the leading edge.
+- **Wart (ii) essentially cured**: gate needs y+ ≈ 0.41·C ≈ 3300 — leak
+  GONE at Re_τ ≤ ~2700 (Re_τ = 1000 raw back to 4.5e-4, canon level);
+  residual edge value 3.2e-3 raw at Re_τ = 5200 (blended 2.9e-4 ≈ canon).
+- Graze re-check at C = 8000 (k=1 shape 11236): mild favorable members
+  move TOWARD their LST anchors (β=0.10: 1.085→0.923; β=0.05: 1.137→1.082;
+  Blasius 1.035→1.017; and the paper's flagged β ≥ 0.25 members, grazing
+  1.27–1.34 high at canon C, move toward 1 by construction); β=0.15
+  overshoots downward (1.004→0.607 — its closest approach saturates on the
+  raised ceiling). Adverse/separated side pinned EXACTLY (0.951/0.991/
+  1.034/0.982/0.930; lower branch 0.909) — threshold → 124.6 at large P,
+  ceiling-independent, confirmed.
+- Boundedness PASSES unchanged (1.80e-3 saturated, y*/θ = 2.005,
+  wall 5.7e-5).
+- Spheroid ΔN = +1.27 (front shift ~0.011 L); Hiemenz 0.013 e-folds
+  (Sec VIII untouched); zero-suite blended 3.1e-4.
+
+## Final three-way table (symmetric rows)
+
+| criterion | zc@0.12 (net 0) | B canon-C (0.0276) | **B joint (0.0276, C=8000)** |
+|---|---|---|---|
+| panel (a) worst | 1.67x | **1.09x** | 1.79x |
+| panel (b) worst | 1.90x | 4.40x | **1.73x** |
+| max of both | 1.90x | 4.40x | **1.77x** |
+| Blasius late / Re_x(N9) | +3.2% / −7.1% | +5.9% / −10.0% | +5.1% / −8.2% |
+| families (att; lower) | 2.4%/3.2%; 0.2% | 4.1%/2.9%; 0.2% | 3.8%/2.3%; 0.2% |
+| nose 2e7 (sup N80; front) | 0.44; none | 3.99; 82.5° spurious | **0.15; none** |
+| nose 7e6 / 2e6 | none / none | none / none | none / none |
+| ultra 1e9 front (sup) | 25.6° | 12.0° | 35.4° |
+| Sec VIII / spheroid ΔN | 0.010 / +1.29 | 0.013 / +1.28 | 0.013 / +1.27 |
+| zero-suite raw / blended | 4.4e-4 / 3.0e-4 | 3.9e-3 / 3.2e-4 | 3.2e-3 (Re_τ=5200 only) / 3.1e-4 |
+| boundedness | PASS | PASS | PASS |
+| constants | net 0 (−C, +ε) | net +1 (+a_visc) | net +1 (+a_visc; C retuned) |
+
+**Recommendation: adopt the joint-retuned variant B, (a_visc, C) =
+(0.0276, 8000)** — it is the user's intended structure, it now beats the
+single-ε zc on the combined Fig-4 metric (1.77x vs 1.90x), both warts are
+cured or invisible at the retuned C, and it keeps the onset gate a purely
+inviscid-LST object (the gate never sees the viscous branch — the graze
+construction survives as a concept, with C's determination changed from
+"favorable-side graze saturation" to "centers the Drela–Giles critical
+stations of the favorable family"). Cost vs zc: one net extra constant
+and the β=0.15 graze undershoot. zc@0.12 remains the net-zero-constants
+fallback with nearly the same quality.
+
+## Adopted notation (one block)
+
+    Q      = softmax₂( a_inv·Ω̂·⟨Î⟩₊ ,  a_visc·Ω̂·⟨−Z⟩₊/R ),   softmax₂(x,y) = √(x²+y²)
+    rate a = min( a_inv , Q )                                  [ceiling clip RETAINED from canon;
+                                                                the user's loose formula omitted it —
+                                                                without it free-shear rates overshoot
+                                                                a_inv by ~30%]
+    gate   = ½[1 + tanh((Re_Ω/Re_Ω^c − 1)/0.35)],
+    Re_Ω^c = softmin₂( C , 124.6 + 1.424/⟨Ω̂Î⟩₊² )              [gate BLIND to the viscous term]
+
+- **a_inv = 0.19** — the inviscid (inflectional) branch rate; rename of
+  a_max, its Michalke free-shear eigenvalue determination untouched.
+  Short forms considered: a_R (Rayleigh; most mechanistic, risks
+  overclaiming), a_I (collides visually with Î and reads as "index"),
+  **a_inv (RECOMMENDED)** — self-explanatory, three characters, and pairs
+  with a_visc as the classical inviscid/viscous instability dichotomy.
+- **a_visc = 0.0276** — the viscous-branch rate (a_max·ε_r, promoted to a
+  first-class constant). Determination: β=1 (stagnation) late secant =
+  Drela–Giles at the canon gate. More specific alternative name: a_TS
+  (Tollmien–Schlichting); a_visc adopted per the user's formula.
+- **C = 8000** (k-carrying units; 11236 at the k=1 graze scale) —
+  determination CHANGED: retuned to center the Drela–Giles critical
+  stations of the favorable family (β=1 opens 0.69x early ↔ β=0.2 1.73x
+  late), superseding the LST-graze favorable-side saturation (which the
+  paper already flagged as 1.27–1.34 high for β ≥ 0.25).
+- Constant bookkeeping: C retuned (existing constant), a_visc added —
+  net +1.
+- Two-epsilon naming (variant A, NOT adopted): the onset branch would
+  carry its own a_visc,o; recorded for completeness only.
+
+## Part III honest ledger
+
+1. Front estimates are sup-bounds on potential-flow u_e (no diffusion
+   drain): transported fronts sit later; "cured" rows (no crossing) are
+   robust to this (the bound overbooks), the 1e9 angles are not.
+2. The joint optimum is a flat-surface pick from a coarse (ε_r, C) grid
+   plus one interior probe and one failed exact-target retune; ±20% moves
+   in either constant change the max dev by < 0.1 in log units.
+3. β=0.2's onset lateness (1.73x) at the optimum is branch-limited
+   (its own 1/P² threshold ≈ 6450), not C-limited — a C retune cannot
+   remove it; it is the fixed-shape residual the extension predicted.
+4. The Re_τ = 5200 residual raw leak sits in the outer 20% of the layer
+   where the C¹-tail profile closure is least trustworthy (Part I
+   instrument note); the blended value is the operative one.
+5. The zb ypos diagnostic ("floored P>0 for y+ <= 0.0") is inert for this
+   form (its threshold convention doesn't apply); rate/gate values are
+   unaffected.
