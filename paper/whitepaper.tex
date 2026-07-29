@@ -19,32 +19,10 @@ Technical Summary\vspace{-0.5em}}
 \begin{document}
 \maketitle
 
-Technical summary of the SA-AI one-equation transition model: the
-complete formulation with every constant and its determination, the
-protocol needed to run it, and the results. Derivations, discussion,
-and the reference list are in the full paper (\texttt{sa-ai.tex});
-references below are given by author/report name only. Every number is
-copied from the paper or its committed data tables and is reproducible
-from \texttt{paper/repro/} in the repository: the analytic figures
-from \texttt{repro/analytic/} alone; the coupled-RANS results
-additionally require the Flow360 solver binary (\texttt{repro/driver/}
-re-runs the cases, \texttt{repro/cfd/} regenerates the figures); the
-independent cross-solver replication runs from \texttt{openfoam/}. The
-appendix collects the main paper's appendix figure sets (meshes,
-wall-anchored contour sheets, Daedalus surface and section sheets).
-The 6:1 prolate spheroid (crossflow) study is under revision and is
-omitted here.
-
 \section{Model}
 
 \subsection{Transport equation and blended sources}
 
-The model is the Spalart--Allmaras (SA) transport equation for the
-working variable $\tilde\nu$, with the laminar sub-$O(1)$ range of
-$\chi=\tilde\nu/\nu$ repurposed as an $e^N$-style envelope
-amplification: $\ln(\tilde\nu/\tilde\nu_\infty)$ accumulates as an
-amplification factor, and the working variable gives rise to its own
-transition at $\chi\sim1$. The single equation is
 \begin{equation}
   \frac{D\tilde\nu}{Dt} = P - D
   + \frac{1}{\sigma}\nabla\!\cdot\!\big[(c_{\nu,\mathrm{ai}}\,\nu+\tilde\nu)\,\nabla\tilde\nu\big]
@@ -57,15 +35,9 @@ transition at $\chi\sim1$. The single equation is
   D = \sigma_D\,D_\mathrm{SA},
   \label{w:blend}
 \end{equation}
-identical in form to standard SA except in four places: the blended
-production $P$ (its amplification branch built on the rate coordinate
-$\hat\Omega\hat I$ below), the tied destruction $D$, the factor
-$c_{\nu,\mathrm{ai}}$ on the molecular diffusion, and the lifted-layer
-bypass weight $b$ in the eddy-viscosity assembly.
 $\sigma_P\!\equiv\!1$ (and with it $\sigma_D\!=\!1$),
 $c_{\nu,\mathrm{ai}}\!=\!1$, and $b\!\equiv\!0$ recover baseline SA
-exactly. The baseline SA production, destruction, and closure
-functions are carried over unchanged:
+exactly.
 \begin{gather}
   P_\mathrm{SA} = c_{b1}\tilde S\,\tilde\nu, \qquad
   D_\mathrm{SA} = c_{w1}f_w\!\left(\frac{\tilde\nu}{d}\right)^{\!2}, \qquad
@@ -77,13 +49,13 @@ functions are carried over unchanged:
   r = \min\!\left(\frac{\tilde\nu}{\tilde S\,\kappa^2 d^2},\,10\right),
   \label{w:closure}
 \end{gather}
-with $\omega$ the vorticity magnitude and $d$ the wall distance. The
+The
 non-negative $\tilde S$ modification and the negative-$\tilde\nu$
 safeguards of Allmaras et al.\ (2012) are retained, with one
 consistency requirement: the negative-branch diffusion factor $f_n$ is
 formed with the scaled coefficient $c_{\nu,\mathrm{ai}}\,\nu$, which
 keeps the total diffusivity positive,
-$c_{\nu,\mathrm{ai}}\nu+f_n\tilde\nu>0$. The handover weights are
+$c_{\nu,\mathrm{ai}}\nu+f_n\tilde\nu>0$.
 \begin{equation}
   \sigma_P = \sigma_t(\chi;\tau), \qquad
   \sigma_t(\chi;\tau) = \max\!\left[\,1-e^{-(\chi-1)/\tau},\;0\right], \qquad
@@ -103,10 +75,6 @@ on the unit sphere of directions
   (X,Y,Z) = \big(u,\;d\,u',\;\tfrac12 d^2u''\big)\big/R,
   \label{w:ind}
 \end{equation}
-a direction defined only up to sign (a layer and its mirror are
-equally unstable): a point of the real projective plane
-$\mathbb{RP}^2$, on which only even products of odd sphere functions
-are single-valued. Two odd functions carry the model:
 \begin{equation}
   \hat\Omega = \frac{Y}{\sqrt{X^2+Y^2}}
   \qquad\text{(vorticity fraction)},
@@ -115,39 +83,33 @@ are single-valued. Two odd functions carry the model:
   \qquad\text{(accumulated inflection)}.
   \label{w:omhat}
 \end{equation}
-A near-wall parabola $u=By+Cy^2$ satisfies $\hat I=0$ identically, so
-the parabola great circle $\hat I=0$ is the neutral locus; the
-unnormalized combination integrates the third derivative,
+A near-wall parabola $u=By+Cy^2$ satisfies $\hat I=0$ identically.
 \begin{equation}
   I(d) \equiv R\,\hat I = d\,u'-u-\tfrac12 d^2u''
   = -\int_0^d \tfrac12\,s^2\,u'''(s)\,\mathrm{d}s,
   \label{w:integral}
 \end{equation}
-the accumulated curvature of the vorticity profile---the inflectional
-content Rayleigh's theorem ties to inviscid instability; $\hat I>0$
-marks the inflectional side. Every profile leaves the wall with
-$\hat I$ third-order small ($u'''_w=0$ on a steady wall), so the
-kernel produces nothing at the wall by construction. The fourth local
-number, the vorticity Reynolds number $Re_\Omega=d^2\omega/\nu$, does
-not enter the rate (the envelope rate is Reynolds-independent beyond
-its viscous cutoff) and is reserved for the onset gate.
-Fig.~\ref{f:sphere} shows the Falkner--Skan family, its
-linear-stability amplifying bands, and the contours of
-$\hat\Omega\hat I$ on the indicator sphere.
+Every profile leaves the wall with
+$\hat I$ third-order small ($u'''_w=0$ on a steady wall). The vorticity
+Reynolds number $Re_\Omega=d^2\omega/\nu$ is reserved for the onset
+gate. Fig.~\ref{f:sphere}.
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.68\textwidth]{indicator_sphere.pdf}
-\caption{Indicator sphere.}\label{f:sphere}
+\caption{Indicator sphere. Falkner--Skan profiles $\beta=+0.30$, $0$,
+$-0.10$, $-0.16$, $-0.19$, $-0.1988$; separated Stewartson
+$\beta=-0.19$, $H\approx4.9$. Attached profiles at $Re_\theta=500$,
+reversed-flow at $Re_\theta=200$; $\hat\Omega\hat I$ contours
+$\{0.025,0.2,0.4,0.6,0.8,1.0\}$.}\label{f:sphere}
 \end{figure}
 
 In the solver the triple is assembled from four local vector-calculus
-objects: the velocity $\mathbf u$ (relative to the nearest wall point,
-which makes the indicators Galilean invariant), the vorticity
+objects: the velocity $\mathbf u$, the vorticity
 $\boldsymbol\omega$, the wall-distance vector
 $\mathbf d=d\,\nabla d$, and the curvature vector
 $\boldsymbol\ell=\tfrac12\langle\mathbf d,\mathbf d\rangle\,\nabla^2\mathbf u$,
 with $\nabla^2\mathbf u=-\nabla\times\boldsymbol\omega$ supplying the
-second derivative. The division-free Gram form is
+second derivative.
 \begin{equation}
   (X,\,Y,\,Z) \;=\;
   \Big(\,\langle\mathbf u,\mathbf u\rangle,\;
@@ -160,14 +122,9 @@ second derivative. The division-free Gram form is
   \hat I = \frac{Y-X-Z}{\sqrt{X^2+Y^2+Z^2}},
   \label{w:gram}
 \end{equation}
-homogeneous of degree zero, with no unit vector, no division by a
-vanishing magnitude, and the only radical over a non-negative product;
-the solver's equivalent ratio realization
+The solver's equivalent ratio realization
 $(|\mathbf u|,\,d|\boldsymbol\omega|,\,\tfrac12 d^2(\nabla^2\mathbf u)\!\cdot\!\hat{\mathbf u})$
-coincides with it wherever $\mathbf u\neq0$. Because the rate depends
-on the frozen mean flow and never on $\tilde\nu$, the production's
-$\tilde\nu$-derivative is analytic and is treated implicitly with the
-same clipping as the baseline SA production.
+coincides with it wherever $\mathbf u\neq0$.
 
 \subsection{Amplification rate and onset threshold}
 
@@ -188,55 +145,46 @@ The complete amplification source is
   \qquad \langle x\rangle_+=\max(x,0).
   \label{w:onset}
 \end{equation}
-Two functions of the one even coordinate $\hat\Omega\hat I$---the rate
-and the onset threshold---carry the whole model. A favorable gradient
-keeps the profile's curvature single-signed, so $\hat\Omega\hat I\to0$
-and both shut off geometrically, with no pressure-gradient parameter
-anywhere.
-
-The ceiling $a_{\max}=0.19$ is an eigenvalue, not a fit: the
-hyperbolic-tangent free shear layer's most-amplified temporal
-Kelvin--Helmholtz mode grows at
-$\omega_{i,\max}/\omega_{\mathrm{peak}}=0.1897$ (Michalke), reached
-where $\hat\Omega\hat I\ge1$ at the vorticity pole, the free-shear
-limit of the profile continuum. The onset threshold's shape
-$(C,A,B)=(2600,\,175,\,2)$ is the common outer envelope that the
-attached Falkner--Skan profiles, each evaluated at its Drela--Giles
-critical Reynolds number, graze in the
-$(\hat\Omega\hat I,Re_\Omega)$ plane (graze ratios $0.93$--$1.14$,
+Fig.~\ref{f:graze}: graze ratios $0.93$--$1.14$,
 root-mean-square $\sim6\%$, from incipient separation through
-$\beta=+0.15$; Fig.~\ref{f:graze}); the shape constants are never
-refit. The ramp width $w=0.35$ is not fitted either: the marched
-$N\!=\!1$ stations move by under $1\%$ when $w$ is halved and under
-$2.5\%$ when doubled. The single scale $k=0.712$ compensates the
-retained laminar diffusion: it is chosen so that the model's own
-disturbance transport, marched on the Blasius layer at the committed
-$c_{\nu,\mathrm{ai}}=\tfrac16$, crosses $N\!=\!1$ at the Drela--Giles
-station $Re_\theta=338$. Everything after that anchor is prediction:
-the marched Blasius $N\!=\!9$ crossing lands at $Re_\theta=1181$,
-$7\%$ past Drela's $1108$; across the attached family the $N\!=\!1$
-stations land on the Drela--Giles stations to $6\%$ root-mean-square
-(adverse wedges within $\pm4\%$, the favorable pair $11$--$12\%$
-early). The strongly favorable branch degrades: by $\beta=+0.35$ the
-rate is $\approx0.1\times$ Drela and the onset $\approx3\times$ its
-critical $Re_\theta$; by $\beta\approx0.45$ transition has retreated
-beyond any station of practical relevance, and stronger favorable
-wedges are suppressed outright
-(Figs.~\ref{f:nuhat}--\ref{f:calibrate}).
+$\beta=+0.15$. The marched Blasius $N\!=\!9$ crossing lands at
+$Re_\theta=1181$, $7\%$ past Drela's $1108$; across the attached
+family the $N\!=\!1$ stations land on the Drela--Giles stations to
+$6\%$ root-mean-square (adverse wedges within $\pm4\%$, the favorable
+pair $11$--$12\%$ early). By $\beta=+0.35$ the rate is
+$\approx0.1\times$ Drela and the onset $\approx3\times$ its critical
+$Re_\theta$; by $\beta\approx0.45$ transition has retreated beyond any
+station of practical relevance, and stronger favorable wedges are
+suppressed outright (Figs.~\ref{f:nuhat}--\ref{f:calibrate}).
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.62\textwidth]{onset_graze.pdf}
-\caption{Onset-threshold graze.}\label{f:graze}
+\caption{Onset-threshold graze. Attached family $\beta=+0.15$,
+$+0.10$, $+0.05$, $0$, $-0.05$, $-0.10$, $-0.15$, $-0.19$, $-0.1988$,
+each at its Drela--Giles $Re_{\theta 0}(H)$; separated Stewartson
+$\beta=-0.19$ ($H\approx4.9$, $Re_{\theta 0}\approx26$).
+$\max_y\hat\Omega\hat I=0.162$/$0.078$/$0.037$ at $\beta=-0.10$/$0$/$+0.10$.
+Envelope $k=1$; model threshold $k=0.712$.}\label{f:graze}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth]{fs_nuHat_rows.pdf}
-\caption{Disturbance transport, three wedges.}\label{f:nuhat}
+\caption{Disturbance transport, three wedges. Adverse $\beta=-0.10$
+($\max_y\hat\Omega\hat I=0.162$), Blasius $\beta=0$ ($0.078$),
+favorable $\beta=+0.10$ ($0.037$); seeded $\hat\nu_\infty=1$,
+$a_{\max}=0.19$, $(c_{\nu,\mathrm{ai}},k)=(\tfrac16,\,0.712)$. Anchor
+$N\!=\!9$ crossing $7\%$ past Drela; favorable $N\!=\!1$ station
+${\sim}11\%$ early.}\label{f:nuhat}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{model_calibrate.pdf}
-\caption{Calibrated model vs Drela--Giles.}\label{f:calibrate}
+\caption{Calibrated model vs Drela--Giles. Stagnation $H\approx2.2$,
+Blasius $H\approx2.59$, separation limit $H=3.98$, reversed-flow
+Stewartson $H\approx10.6$; $a_{\max}=0.19$, $c_{\nu,\mathrm{ai}}=1/6$.
+(b)~onset tracks the Drela--Giles $N\!=\!1$ stations within
+${\sim}\pm12\%$ from $H=2.44$ ($\beta=+0.15$) to
+$H=3.98$.}\label{f:calibrate}
 \end{figure}
 
 \subsection{Reduced laminar diffusion}
@@ -244,8 +192,7 @@ wedges are suppressed outright
 The molecular coefficient in the diffusion term of Eq.~\eqref{w:sa}
 only is scaled by $c_{\nu,\mathrm{ai}}<1$, leaving the mean-flow
 viscosity, the SA production and destruction, and
-$\chi=\tilde\nu/\nu$ (formed with the true $\nu$) untouched. At full
-molecular diffusion the drain overwhelms the gentle amplification: the
+$\chi=\tilde\nu/\nu$ (formed with the true $\nu$) untouched. The
 frozen-profile growth eigenvalue on Blasius at $Re_\theta=400$
 delivers only $0.49$ of the Drela--Giles rate, and the marched
 inception fails outright (the Blasius $N\!=\!1$ crossing sits at
@@ -257,23 +204,14 @@ $0.49,\,0.75,\,0.87,\,1.02,\,1.13$: the value
   c_{\nu,\mathrm{ai}}=\tfrac16
 \end{equation*}
 puts the just-past-critical stations on the correlation (the
-separation branch holds $0.82$--$0.91$). Pressing further costs mesh:
-the equilibrium disturbance-band thickness scales as
+separation branch holds $0.82$--$0.91$). The equilibrium
+disturbance-band thickness scales as
 $\sqrt{c_{\nu,\mathrm{ai}}}$, so every halving thins the band the grid
 must resolve by $\sqrt2$.
 
 \subsection{Handover blend and destruction tie}
 
-The $\max$ in Eq.~\eqref{w:blend} hands production from amplification
-to SA at the crossover: for $\chi\le1$ ($\sigma_P=0$) it returns
-$P_\mathrm{AI}$, and once $\sigma_P P_\mathrm{SA}$ overtakes it just
-past $\chi=1$ the source reverts to standard SA with no laminar
-residue. The production width $\tau=4$ is a numerics bracket: too wide
-throttles SA production past $\chi=c_{v1}$, too narrow compresses the
-transition zone into a front steeper than the streamwise mesh can
-resolve; at $\tau=4$ the handover is $78\%$ complete where $f_{v1}$
-is half active ($\chi=c_{v1}$) and $97\%$ complete where $f_{v1}$
-reaches $90\%$ ($\chi\approx14.8$). The destruction is not gated off
+The destruction is not gated off
 but tied: $\sigma_D$ tracks $\sigma_P$ with slope
 $c_{b1}/(\kappa^2c_{w1})\approx0.249$ from the floor
 $(1+c_{b2})/(\sigma c_{w1})\approx0.751$, the two summing to one by
@@ -287,10 +225,7 @@ hold pointwise gives Eq.~\eqref{w:sigma}, under which the linear
 profile is an exact solution of the gated equation at every height and
 for any $\tau$---continuously and discretely (verified to below
 $10^{-10}$ in profile and log-law intercept with two unrelated
-discretizations). The linear profile has zero curvature, so the
-reduced molecular diffusion does not act on the inner layer at all:
-the inner-layer eddy viscosity, and with it the log law, is standard
-SA's exactly. In the laminar range the destruction floor is inert at
+discretizations). In the laminar range the destruction floor is inert at
 the disturbance's quadratic scale: its ratio to the amplification
 production stays below $10^{-3}$ up to the $\chi=1$ crossing for
 every wedge and seed tested, and at $\chi=c_{v1}$ is at most $1.4\%$
@@ -301,12 +236,7 @@ and prediction stations by less than $1\%$.
 \subsection{Eddy-viscosity assembly in lifted transitional layers}
 
 The near-wall damping $f_{v1}$ enforces the attached-wall-layer
-identity $\chi=\kappa y^+$; in a lifted transitional shear layer (the
-free shear layer over a laminar separation bubble in mid-handover)
-that identity is void and the damping is an unearned sink on the young
-turbulence that must close the bubble. Whether a point is in an
-attached wall layer is decidable from the state itself, with no new
-calibrated constants: writing $y^+:=\chi/\kappa$, the reconstruction
+identity $\chi=\kappa y^+$. Writing $y^+:=\chi/\kappa$, the reconstruction
 \begin{equation}
   q = \frac{|\mathbf u|\,d/\nu}{\,y^+\,U^+(y^+)\,},
   \qquad
@@ -315,8 +245,7 @@ calibrated constants: writing $y^+:=\chi/\kappa$, the reconstruction
   \;\;\text{(Reichardt)},
   \label{w:fv1q}
 \end{equation}
-equals unity identically in an attached equilibrium layer and is many
-times larger in a lifted layer. The assembly is blended,
+The assembly is blended,
 \begin{equation}
   \mu_t = \big[(1-b)\,f_{v1}(\chi)+b\big]\,\rho\tilde\nu,
   \qquad
@@ -327,32 +256,22 @@ times larger in a lifted layer. The assembly is blended,
 \end{equation}
 inert for $\chi<1$ (negligible $\mu_t$ either way), for
 $\chi\gtrsim30$ ($f_{v1}\to1$), and in the attached inner layer
-($q=1$, $G$ shut). The $s$ ramp is deliberately faster than the
-$\sigma_t$ handover: $\sigma_t$ encodes turbulence maturity and is
-already applied to the production, while $f_{v1}$ encodes wall
-proximity. Controlled on/off batteries bound the net effect on
+($q=1$, $G$ shut). Controlled on/off batteries bound the net effect on
 attached-layer outer edges below $1.5$ drag counts (flat plate and
-NLF at their cold-budget protocol); every result below is from the
-bypass-active model.
+NLF at their cold-budget protocol).
 
 \subsection{Freestream seed}
 
-A higher freestream turbulence intensity is a larger seed
-$\chi_\infty$ and thus fewer $e$-folds to the handover: a case seeded
+A case seeded
 with $\chi_\infty$ reaches the handover where its envelope crosses
-$N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)$. The map is Mack's $e^N$
-critical-$N$-factor correlation, adopted unchanged:
+$N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)$.
 \begin{equation}
   N_\mathrm{crit}(Tu) = -8.43 - 2.4\,\ln(Tu_{\mathrm{frac}}),
   \qquad
   \chi_\infty = c_{v1}\,e^{-N_\mathrm{crit}},
   \label{w:mack}
 \end{equation}
-with $Tu_{\mathrm{frac}}$ the rms turbulence intensity as a fraction.
-The correspondence is not exact: $e^N$ methods declare transition at a
-sharp $N_\mathrm{crit}$, while the model's threshold is smeared over
-the $\chi=1\to O(c_{v1})$ handover---several $e$-folds of the
-envelope. Sensitivity to the seed is that of any $e^N$ method: one
+One
 $e$-fold in $\chi_\infty$ is one unit of $N_\mathrm{crit}$, which on
 the Blasius envelope ($dN/dRe_\theta\approx10^{-2}$) shifts onset by
 $\Delta Re_\theta\approx100$. Strongly bypass-dominated conditions
@@ -390,34 +309,26 @@ $(A,B)_\mathrm{Mack}$ & $(-8.43,\,2.4)$ & Mack 1977 $e^N$ correlation, wholesale
 
 \subsection{Running the model: branch selection and seed handling}
 
-Every laminar solution may coexist with a second, spurious fixed point
-of the discretized equations: a turbulent wedge anchored at the
-leading-edge attachment point, sustained by \emph{standard} SA
-production. On the frozen Hiemenz stagnation field with the freestream
+On the frozen Hiemenz stagnation field with the freestream
 seed exactly zero, standard SA sustains the wedge above a critical
 nose Reynolds number bisected to $Re_r=4.66$--$4.74\times10^5$
-(Fig.~\ref{f:stagbistab}); physically the stagnation zone
-relaminarizes, so the branch is spurious, and any transition model
-that leaves SA's fully turbulent behavior unmodified is bistable at
-high Reynolds number. An implementer needs a branch-selection
-protocol; the printed transport equation alone does not determine
-which fixed point an initialization finds.
+(Fig.~\ref{f:stagbistab}).
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{stagnation_bistability.pdf}
-\caption{Attachment-anchored turbulent branch.}\label{f:stagbistab}
+\caption{Attachment-anchored turbulent branch. Standard SA, frozen
+Hiemenz, $\chi_\infty=0$; laminar for $L\lesssim685$, critical band
+$Re_r=4.66$--$4.74\times10^5$, $\max\chi\approx0.025\,L$. Right:
+$L=3000$ ($Re_r=9\times10^6$), $\max\chi=76$; $\log_{10}\chi$ contours
+dashed below $\chi=1$, solid at $1$, $c_{v1}$, $30$. $\max\chi\approx24$
+at $Re_r=10^6$, $76$ at $9\times10^6$.}\label{f:stagbistab}
 \end{figure}
 
 The protocol used for every result in this paper: the
 $\tilde\nu$-equation residual is scaled by $f^{\,1-g}$, where $g$
 rises smoothly from $0$ (laminar) to $1$ (turbulent) with $\chi$ and
 $f=10^{-2}$ (the solver uses $g=1-e^{-(\chi-c_{v1})/4}$ above
-$\chi=c_{v1}$, zero below; the gate's exact shape is immaterial
-because the scaling preserves fixed points). The scaling multiplies
-the residual, so every converged solution is a fixed point of the
-unmodified equations; it lets the pressure field and the slow laminar
-amplification equilibrate before the fast turbulent branch can act on
-the startup transient---a branch selector, not an accelerator. Because
+$\chi=c_{v1}$, zero below). Because
 the freestream boundary condition flows through the same scaling, the
 freestream viscosity ratio supplied to the solver is $\chi_\infty f$;
 the seeds quoted throughout are the physical $\chi_\infty$, recovered
@@ -425,24 +336,18 @@ at the boundary-layer edge. (In the reference implementation the
 scaling is \texttt{AI\_LAMINAR\_SLOWDOWN}$\,=f$, and the case files
 carry the pre-multiplied boundary seed $\chi_\infty f$; running a
 committed case at $f=1$ without rescaling the seed mis-seeds it by
-$1/f$.) Equivalent protocols for solvers without residual scaling:
-advance the turbulence equation at a reduced pseudo-time rate (CFL)
-relative to the mean flow during initial convergence, or---the route
-the OpenFOAM replication takes---converge the flow, reset $\tilde\nu$
-to the seed, and continue to convergence, at the cost of one extra
-partial solve.
+$1/f$.)
 
 \section{Results}
 
 Coupled RANS: Flow360, unstructured node-centered second-order
-finite volume, Roe flux, $M=0.1$; the same constants and the
-convergence protocol above everywhere. Airfoil cases:
+finite volume, Roe flux, $M=0.1$. Airfoil cases:
 $\chi_\infty=c_{v1}e^{-9}\approx8.76\times10^{-4}$ (the
 $N_\mathrm{crit}=9$ anchor; via Mack's map, $Tu\approx0.07\%$); two
 independently generated mesh families---all-triangular unstructured
 cavity meshes, constrained-Delaunay through the boundary layer, and
 all-quadri\-lateral structured O-grids---at three refinement levels,
-$1.5\times10^4$ to $2.6\times10^5$ nodes (meshes in the appendix).
+$1.5\times10^4$ to $2.6\times10^5$ nodes.
 Transition locations are the solver's near-wall $\chi=1$ crossing
 (the $\chi=c_{v1}$ crossing sits up to $0.05\,c$ aft where the front
 grows slowly); bubble stations are signed-$C_f$ zero crossings. The
@@ -458,21 +363,25 @@ Structured $320\times80$ grid, $Re_x\le6\times10^6$,
 $y^+\lesssim0.3$; five seeds from Mack's map
 ($\chi_\infty\approx2.3\times10^{-4}$, $1.2\times10^{-3}$,
 $6.3\times10^{-3}$, $2.9\times10^{-2}$, $1.5\times10^{-1}$).
-Figure~\ref{f:flatplate}: the Flow360 sweep---at the $\chi=c_{v1}$
+Figure~\ref{f:flatplate}: at the $\chi=c_{v1}$
 crossing the onset brackets the Abu-Ghannam \& Shaw correlation
-within $10\%$ across the range. Figure~\ref{f:flatplateof}: the
-OpenFOAM replication---$\chi=1$ crossings within $7\%$ in
-$Re_\theta$, consistently slightly early. Table~\ref{t:flatplate}:
-both solvers' crossings.
+within $10\%$ across the range. Figure~\ref{f:flatplateof}: $\chi=1$
+crossings within $7\%$ in $Re_\theta$. Table~\ref{t:flatplate}: both
+solvers' crossings.
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.90\textwidth]{flat_plate_batch_flow360.pdf}
-\caption{Flat plate, Flow360.}\label{f:flatplate}
+\caption{Flat plate, Flow360. Five levels $Tu=0.04$--$0.60\%$;
+references $\chi=1$ and $\chi=c_{v1}=7.1$; laminar
+$C_f=0.441/Re_\theta$, turbulent
+$C_f=2[(\ln Re_\theta)/0.38+3.7]^{-2}$; $\chi=c_{v1}$ onset brackets
+Abu-Ghannam \& Shaw within $10\%$.}\label{f:flatplate}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.90\textwidth]{flat_plate_batch_openfoam.pdf}
-\caption{Flat plate, OpenFOAM.}\label{f:flatplateof}
+\caption{Flat plate, OpenFOAM. Same sweep as Fig.~\ref{f:flatplate},
+five levels $Tu=0.04$--$0.60\%$.}\label{f:flatplateof}
 \end{figure}
 
 \begin{table}[H]
@@ -503,38 +412,43 @@ cases). Figure~\ref{f:nlfaft}: transition fronts against the LTPT
 microphone measurements, Coder's AFT (OVERFLOW) at
 $N_\mathrm{crit}=10.07$ and recalibrated $7.18$, the fourteen First
 AIAA Transition Modeling Workshop submittals, SA-LM2015,
-Langtry--Menter, and XFOIL---the untuned $N\!=\!9$-class fronts land
-on the measurements where the recalibrated AFT lands.
+Langtry--Menter, and XFOIL.
 Figure~\ref{f:nlfpolar}: drag polar against Somers TP-1861, the $e^9$
 reference, and fully turbulent SA.
-Figures~\ref{f:nlfcflow}--\ref{f:nlfnegalpha}: surface distributions
-(five-row suites). Table~\ref{t:nlf}: forces and fronts.
-Table~\ref{t:nlfof}: the OpenFOAM replication---at L2 every front
+Figures~\ref{f:nlfcflow}--\ref{f:nlfnegalpha}: surface distributions.
+Table~\ref{t:nlf}: forces and fronts.
+Table~\ref{t:nlfof}: at L2 every front
 within $0.016\,c$ and the lift within $0.9\%$ of the SA-AI values.
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{nlf_aft_transition.pdf}
-\caption{NLF(1)-0416 transition fronts.}\label{f:nlfaft}
+\caption{NLF(1)-0416 transition fronts, $Re=4\times10^6$; near-wall
+$\chi=1$ convention. SA-AI at
+$\alpha=0^\circ,4^\circ,9^\circ,15^\circ,-8^\circ,-4^\circ$; workshop
+sweep $\alpha=-4^\circ$--$8^\circ$.}\label{f:nlfaft}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.62\textwidth]{nlf_polar_compare.pdf}
-\caption{NLF(1)-0416 drag polar.}\label{f:nlfpolar}
+\caption{NLF(1)-0416 drag polar, $Re=4\times10^6$. Fully turbulent SA
+($\chi_\infty=3$): $1.6$--$2.5\times$ above the SA-AI drag,
+$+144$/$+150\%$ in the bucket at $\alpha=0^\circ$/$4^\circ$,
+$+67$/$+74\%$ at $9^\circ$/$15^\circ$.}\label{f:nlfpolar}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth]{nlf_cf_lowalpha.pdf}
-\caption{NLF(1)-0416, $\alpha=0^\circ,4^\circ$.}\label{f:nlfcflow}
+\caption{NLF(1)-0416, $\alpha=0^\circ,4^\circ$, $Re=4\times10^6$.}\label{f:nlfcflow}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth]{nlf_cf_highalpha.pdf}
-\caption{NLF(1)-0416, $\alpha=9^\circ,15^\circ$.}\label{f:nlfcfhigh}
+\caption{NLF(1)-0416, $\alpha=9^\circ,15^\circ$, $Re=4\times10^6$.}\label{f:nlfcfhigh}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.96\textwidth]{nlf_cf_negalpha.pdf}
-\caption{NLF(1)-0416, $\alpha=-8^\circ,-4^\circ$.}\label{f:nlfnegalpha}
+\caption{NLF(1)-0416, $\alpha=-8^\circ,-4^\circ$, $Re=4\times10^6$.}\label{f:nlfnegalpha}
 \end{figure}
 
 \begin{table}[H]
@@ -596,37 +510,43 @@ $3^\circ$, $4^\circ$, $6^\circ$, $8.5^\circ$) on the finest pair;
 same seed. Figure~\ref{f:epppolar}: drag polar against the LTPT
 measurement (McGhee et al., TM-4062), the $e^9$ reference, fully
 turbulent SA, and the digitized $\gamma$--$Re_\theta$ and SA-BC
-curves---the finest grids track the measured bucket at matched lift
-($-6.4\%$ to $+3.7\%$ over $\alpha=0^\circ$--$7^\circ$).
+curves ($-6.4\%$ to $+3.7\%$ over $\alpha=0^\circ$--$7^\circ$).
 Figure~\ref{f:eppbubble}: bubble stations against the oil flow,
-Selig et al., Cole--Mueller, and the $e^9$ references---separation
-reproduced to a few percent of chord everywhere; reattachment
+Selig et al., Cole--Mueller, and the $e^9$ references---reattachment
 $0.02$--$0.04\,c$ late at $\alpha\le5^\circ$, at the edge of bubble
 collapse at $7^\circ$. Figures~\ref{f:eppcflow}--\ref{f:eppcfhigh}:
 surface suites. Table~\ref{t:epppolar}: forces.
-Table~\ref{t:eppbubble}: bubble stations. Table~\ref{t:eppof}: the
-OpenFOAM replication---at L2 lift within $0.5\%$, separation
+Table~\ref{t:eppbubble}: bubble stations. Table~\ref{t:eppof}: at L2
+lift within $0.5\%$, separation
 $0.030$--$0.037\,c$ ahead of and reattachment $0.033$--$0.045\,c$
 behind the SA-AI stations.
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.62\textwidth]{eppler_polar_compare.pdf}
-\caption{Eppler 387 drag polar.}\label{f:epppolar}
+\caption{Eppler 387 drag polar, $Re=2\times10^5$. Fully turbulent SA
+($\chi_\infty=3$) $77$--$97\%$ above the SA-AI drag in the bucket,
+$+151\%$ at $\alpha=7^\circ$; mesh families agree to $\Delta C_d\le
+2.4\times10^{-4}$ over $\alpha=-2^\circ$--$7^\circ$ and
+$1.0\times10^{-3}$ at $8.5^\circ$; OpenFOAM port omits the bypass,
+worth $-6$ to $-10$ counts at $\alpha=0$--$5^\circ$.}\label{f:epppolar}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{eppler_bubble_stations.pdf}
-\caption{Eppler 387 bubble stations.}\label{f:eppbubble}
+\caption{Eppler 387 bubble stations, $Re=2\times10^5$; signed-$C_f$
+zero crossings against oil flow (TM-4062 Table~III), Selig,
+Cole--Mueller, $e^9$. At $\alpha=7^\circ$ XFOIL $C_l=1.17$, mfoil
+$C_l=0.928$.}\label{f:eppbubble}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth]{eppler_cf_lowalpha.pdf}
-\caption{Eppler 387, $\alpha=0^\circ,5^\circ$.}\label{f:eppcflow}
+\caption{Eppler 387, $\alpha=0^\circ,5^\circ$, $Re=2\times10^5$.}\label{f:eppcflow}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth]{eppler_cf_highalpha.pdf}
-\caption{Eppler 387, $\alpha=7^\circ,8.5^\circ$.}\label{f:eppcfhigh}
+\caption{Eppler 387, $\alpha=7^\circ,8.5^\circ$, $Re=2\times10^5$.}\label{f:eppcfhigh}
 \end{figure}
 
 \begin{table}[H]
@@ -719,18 +639,18 @@ behind the SA-AI stations.
 
 $Re\in\{6\times10^4,\,10^5,\,3\times10^5,\,4.6\times10^5\}$ on the
 same grids (24 further solutions).
-Figure~\ref{f:eppresweepforces}: forces and bubble stations across
-the sweep---the refinement fan closes onto the measurement at
-$2$--$4.6\times10^5$ and opens at $10^5$, the model's bursting
-boundary, one Reynolds step above the measurement's ($6\times10^4$);
-the computed state at every swept Reynolds number is unique among
-protocol-admitted initializations.
+Figure~\ref{f:eppresweepforces}: the refinement fan closes onto the
+measurement at $2$--$4.6\times10^5$ and opens at $10^5$, the model's
+bursting boundary, one Reynolds step above the measurement's
+($6\times10^4$).
 Figures~\ref{f:eppresweeplow}--\ref{f:eppresweephigh}: surface
 suites. Table~\ref{t:eppresweep}: L2 coefficients.
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{eppler_resweep_forces.pdf}
-\caption{Reynolds-sweep forces and stations.}\label{f:eppresweepforces}
+\caption{Reynolds-sweep forces and stations, $\alpha=5^\circ$,
+$Re=6\times10^4$--$4.6\times10^5$. LTPT runs $1$/$2$/$4$/$1$/$1$ at
+$0.6$/$1$/$2$/$3$/$4.6\times10^5$.}\label{f:eppresweepforces}
 \end{figure}
 
 \begin{figure}[H]\centering
@@ -774,8 +694,7 @@ suites. Table~\ref{t:eppresweep}: L2 coefficients.
 
 \subsection{Cylinder drag crisis, $Re_D=1$--$2\times10^7$}
 
-A steady-branch traverse over $7.3$ decades with one closure and one
-set of constants. Twelve Reynolds numbers,
+A steady-branch traverse over $7.3$ decades. Twelve Reynolds numbers,
 $Re_D=6\times10^4$--$2\times10^6$, at three seeds
 ($\chi_\infty=3.9\times10^{-4}$, $1.1\times10^{-2}$, $0.22$; Mack's
 map at $Tu=0.05$, $0.2$, $0.7\%$) on one quasi-two-dimensional
@@ -793,16 +712,13 @@ $2.9\%$ between cold-started pairs at $2\times10^6$; $37$ of $129$
 cases are flagged steady limit cycles; every case lands on the
 symmetric branch, $|C_L|<2\times10^{-7}$.
 
-Figure~\ref{f:dragcrisiscd}: the traverse---the crisis moves from
+Figure~\ref{f:dragcrisiscd}: the crisis moves from
 $Re_D\approx5$--$7\times10^5$ at the two quiet seeds to
 $\approx3$--$4\times10^5$ at $Tu=0.7\%$, and the supercritical floor
 ($C_d=0.217$--$0.233$ at $2\times10^6$) rises with the seed.
-Figure~\ref{f:dragcrisisangles}: the transition and separation angles
-across the whole traverse, with the radial-ray $\chi$ profiles that
-define the transition angle.
-Figure~\ref{f:dragcrisisfpg}: the favorable-pressure-gradient
-amplification audit---the model's frozen-profile envelope slope
-tracks the Drela--Giles fit through $\beta\le0.1$, halves at
+Figure~\ref{f:dragcrisisangles}: the transition and separation angles.
+Figure~\ref{f:dragcrisisfpg}: the model's frozen-profile envelope
+slope tracks the Drela--Giles fit through $\beta\le0.1$, halves at
 $\beta=0.2$, and collapses three orders of magnitude by $\beta=0.5$,
 while on the cylinder nose the $e^N$
 $N=\ln(1/\chi_\infty)$ crossing sits behind the computed front at
@@ -811,34 +727,28 @@ fields at three stations of the traverse.
 Table~\ref{t:dragcrisis}: the matrix $C_d$. Below the shedding onset
 ($Re_D\approx46$) the steady solution is the physical flow:
 $C_d=10.67$ at $Re_D=1$ and $2.797$ at $10$, $-1.7\%$ against the
-steady benchmark of Dennis \& Chang ($+6.4\%$ at $100$); between the
-onset and roughly $10^3$ the steady-branch points are drawn for
-continuity, not validation. Seed independence holds to $0.2\%$ from
+steady benchmark of Dennis \& Chang ($+6.4\%$ at $100$). Seed
+independence holds to $0.2\%$ from
 $10^4$ to $4\times10^4$, and $\chi$ first crosses unity at
-$4\times10^4$, in the base region.
+$4\times10^4$.
 
-Six concessions, all visible in the figures:
+Six concessions:
 \begin{enumerate}
 \item Through the crisis band the steady branch is non-unique and
 weakly unsteady: $27$ of the $84$ matrix cases end in a limit cycle
 (tail peak-to-peak median $0.011$, maximum $0.199$ in $C_d$), the
 three protocols separate by up to $0.055$ in $C_d$ there (against
-$0.003$ elsewhere), and the downward ladder lands at higher
-drag---opposite to the physical hysteresis sense---so no hysteresis
-claim is made.
-\item $C_L=0$ in all $84$ matrix cases is a statement about the
-symmetric steady protocol, not the physics.
-\item The subcritical plateau, $C_d\approx0.84$, sits well below
-measurement, as any steady symmetric (shedding-free) wake solution
-must.
+$0.003$ elsewhere), and the downward ladder lands at higher drag.
+\item $C_L=0$ in all $84$ matrix cases.
+\item The subcritical plateau, $C_d\approx0.84$.
 \item The supercritical turbulent separation angles
-($106$--$118^\circ$) remain early against measurement.
-\item There is no transcritical recovery: the computed floors sit
+($106$--$118^\circ$).
+\item The computed floors sit
 flat at $0.185/0.199/0.215$ (by seed) through $2\times10^7$ while
 measurement rebuilds toward $C_d\approx0.7$; the $\chi=1$ front
 marches from $101^\circ$ to $82^\circ$ over
 $2\times10^6$--$2\times10^7$, so the failure is the turbulent
-separation, pinned near $120^\circ$, not the transition content.
+separation, pinned near $120^\circ$.
 \item On the fine grid the downward ladder finds a second
 supercritical steady state, $13$--$22\%$ lower in $C_d$ (separation
 $123.5^\circ$ against $120.4^\circ$, base pressure $-0.18$ against
@@ -847,17 +757,21 @@ $-0.23$ at $10^7$).
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.82\textwidth]{dragcrisis_cd_re.pdf}
-\caption{Cylinder drag crisis.}\label{f:dragcrisiscd}
+\caption{Cylinder drag crisis, $Re_D=1$--$10^{10}$; middle seed
+$Tu=0.2\%$, up (solid)/down (dashed) ladders.}\label{f:dragcrisiscd}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{dragcrisis_angles.pdf}
-\caption{Transition and separation angles.}\label{f:dragcrisisangles}
+\caption{Transition and separation angles; three seeds $Tu=0.05$,
+$0.2$, $0.7\%$.}\label{f:dragcrisisangles}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{dragcrisis_fpg.pdf}
-\caption{Favorable-gradient amplification audit.}\label{f:dragcrisisfpg}
+\caption{Favorable-gradient amplification audit; cylinder nose at
+$Re_D=2\times10^6$, $7\times10^6$, $2\times10^7$ (middle seed),
+transition budget $N=\ln(1/\chi_\infty)=4.53$.}\label{f:dragcrisisfpg}
 \end{figure}
 
 \begin{figure}[H]\centering
@@ -904,29 +818,33 @@ flight-quiet seed $\chi_\infty=8.76\times10^{-6}$
 unstructured prism/tet/hex, $1.70$--$54.9$M nodes) at three levels,
 eighteen solutions; the reference is AVL with strip-wise XFOIL
 section polars at matched local $c_l$ and $N_\mathrm{crit}$, trimmed
-to the RANS lift. Figure~\ref{f:daepolar}: wing polar and sectional
-loading---the families agree at L2 to $0.35$--$0.63\%$ in $C_L$ and
+to the RANS lift. Figure~\ref{f:daepolar}: the families agree at L2
+to $0.35$--$0.63\%$ in $C_L$ and
 $0.7$--$1.7$ counts in $C_D$, and the finest-grid drag runs
 $15.6$/$10.3$/$5.6$ counts ($7.3$/$4.4$/$2.2\%$) below the
 matched-lift reference at $\alpha=4^\circ$/$5^\circ$/$6^\circ$.
 Figure~\ref{f:daesurf}: surface maps at $\alpha=4^\circ$ against the
-$e^N$ strips---the bubble matches station by station (at
+$e^N$ strips---at
 $\eta=0.31$, separation within $0.017\,c$ and reattachment within
-$0.009\,c$ at every incidence), the $\chi=1$ front sits
-$\sim0.09\,c$ ahead of the strips' $N_\mathrm{crit}$ contour (the
-seed convention), and the tip vortex trips transition to the leading
+$0.009\,c$ at every incidence, the $\chi=1$ front sits
+$\sim0.09\,c$ ahead of the strips' $N_\mathrm{crit}$ contour, and the
+tip vortex trips transition to the leading
 edge for $\eta\gtrsim0.992$. Table~\ref{t:daetotals}: totals by
 level ($\alpha=5^\circ$, $6^\circ$ surface maps and section sheets:
 appendix).
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth]{daedalus_polar_sectional.pdf}
-\caption{Daedalus polar and sections.}\label{f:daepolar}
+\caption{Daedalus polar and sections. Families agree at L1 to
+$0.46$--$0.53\%$ in $C_L$ and $0.4$--$1.6$ counts in $C_D$, at L0 to
+$0.74$--$0.97\%$ and $18$--$21$ counts; taper break at
+$\eta=0.88$.}\label{f:daepolar}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth]{daedalus_surface_a4.pdf}
-\caption{Daedalus surface maps, $\alpha=4^\circ$.}\label{f:daesurf}
+\caption{Daedalus surface maps, $\alpha=4^\circ$,
+$Re_\mathrm{root}=5\times10^5$.}\label{f:daesurf}
 \end{figure}
 
 \begin{table}[H]
