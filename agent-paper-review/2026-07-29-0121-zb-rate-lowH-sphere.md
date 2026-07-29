@@ -383,3 +383,78 @@ plotted, per the coordinator's B_c=130).
 - Figure: `figs_explore/onset_graze_2branch.png`
 - Table: `figs_explore/onset_graze_2branch.json` (left inflectional +
   right curvature graze rows)
+
+---
+
+# PART X (appended 2026-07-29) — CANDIDATE Fig 3 (fig:nuhat) under the vg form
+
+*USER wants to SEE the adopted candidate's Fig 3 (disturbance-transport rows,
+script fig03_fs_transport_rows.py). Built a candidate that marches the transport
+with the vg two-branch RATE+GATE (imported from fpg_recalibration_study, form
+'vg', a_visc=0.0276, B_c=129.74, c_nu,ai=1/6 unchanged) instead of the canon
+single-branch kernel. Keeps the three canon rows (β=−0.10/0/+0.10) + ADDS the
+strong-FPG payoff row β=+1.0 (stagnation, H=2.216). Candidate only — canon
+`figs/fs_nuHat_rows.pdf` UNTOUCHED. Script
+`repro/analytic/fig03_fs_transport_rows_candidate.py`; figure
+`figs_explore/fs_nuHat_rows_candidate.png`; data `..._candidate.json`.*
+
+## Per-row marched crossings vs Drela–Giles (candidate)
+
+| row | β | H | N=1: cand / DG | N=9: cand / DG |
+|---|---|---|---|---|
+| adverse | −0.10 | 2.801 | 167 / 147 = **1.14×** | 614 / 540 = **1.14×** |
+| Blasius | 0.00 | 2.591 | 340 / 338 = **1.01×** | 1143 / 1108 = **1.03×** |
+| **favorable** | +0.10 | 2.481 | 897 / 978 = **0.92×** | 2231 / 2192 = **1.02×** |
+| **stagnation** | +1.00 | 2.216 | 4180 / 6775 = **0.62×** | 6633 / 7850 = **0.85×** |
+
+Readings:
+- **Canon is preserved where it should be**: the adverse (β=−0.10) and Blasius
+  (β=0) rows are essentially unchanged — Blasius N=1/N=9 = 1.01×/1.03× (the
+  anchor holds), adverse 1.14×/1.14× (a hair late from the small a_visc-floor
+  contribution, well within the family band).
+- **β=+0.10 favorable — payoff #1**: the a_visc floor lifts the favorable rate
+  so the marched envelope now RISES and tracks Drela (N=9 = 1.02×, N=1 = 0.92×),
+  where the canonical model holds this layer near-laminar / far below Drela.
+- **β=+1.0 stagnation — payoff #2**: the row the whole recalibration targets.
+  Under the candidate the envelope IGNITES and climbs to N=9 (crossings 0.62×
+  N=1, 0.85× N=9 vs Drela), tracking the Drela envelope; the canonical model
+  cannot ignite this layer at all (P_I=Ω̂Î ≤ 0 interior → rate ≈ 0, envelope
+  stays flat). The residual (0.62× N=1 = onset somewhat early) is the same
+  ramp-tail / P_curv-flatness residual quantified in Parts V/VIII/IX; the N=9
+  location is within 15% of Drela.
+
+The left-column N=ln(ν̂) contour panels show the same story structurally: the
+strong-FPG row (g) now carries a full N=1…13 contour fan reaching the domain
+corner (an igniting layer), where the canon β=+1 field would show no closed
+contours.
+
+## Draft caption (for tex integration)
+
+> **Figure. Candidate disturbance transport under the two-branch (vg) form.**
+> Four Falkner–Skan layers (adverse β=−0.10, Blasius, favorable β=+0.10,
+> stagnation β=+1.0) marched with the candidate kernel (rate =
+> softmax₂(a_inv Ω̂⟨Î⟩₊, a_visc Ω̂⟨−Z⟩₊/R), a_inv=0.19, a_visc=0.0276; gate
+> Re_Ω^c = softmin(A+B/P_I², A+B_c/P_curv²), B_c=130; c_ν,ai=1/6 unchanged).
+> Left: N=ln ν̂ contours in the local-Re plane (θ dashed, δ₉₉ solid). Right:
+> marched max_y ν̂ envelope (black) vs the Drela–Giles envelope (red dashed);
+> marched N=1/N=9 crossings annotated against Drela. The adverse and Blasius
+> rows are unchanged from canon; the a_visc floor lifts the favorable β=+0.10
+> row onto Drela (N=9 1.02×); and the stagnation β=+1.0 row — which the
+> single-branch canon model cannot ignite — now amplifies and tracks Drela
+> (N=9 0.85×).
+
+## Part X artifacts
+
+- Script: `paper/repro/analytic/fig03_fs_transport_rows_candidate.py`
+- Figure: `figs_explore/fs_nuHat_rows_candidate.png`
+- Data: `figs_explore/fs_nuHat_rows_candidate.json`
+
+## Part X honest ledger
+
+1. c_nu,ai kept at 1/6 (the recalibration changed only the rate floor + gate);
+   the candidate march reuses the canon diffusion constant.
+2. The stagnation N=1 earliness (0.62×) is the ramp-tail residual (Parts
+   V/VIII); it is a real candidate feature, not a march artifact — the N=9
+   location (0.85×) is the more physically meaningful crossing.
+3. Envelope/domain sizing is the fig03 adaptive scheme (N→~14); crossings are
+   interpolated on the marched N(Re_θ). Same 1600×1200 grid as canon Fig 3.
