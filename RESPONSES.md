@@ -1525,3 +1525,1282 @@ Overlay agent record: /home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28
 - Full record: agent-paper-review/2026-07-28-0350-spheroid-unstruct-family.md.
   Cases: /local_data/qiqi/sa-ai/spheroid_fv1/case_unstr_L{0,1}_saai_re72a0 (+snap20k),
   case_ogrid_L1_saai_re72a0_ext (campaign case untouched). GPUs 2/3 only, now free.
+
+---
+
+## 2026-07-28 — Extension harvest + full-body discriminator LANDED; Sec VII rewritten (4e5d39e)
+
+**Drag-crisis extension complete** (record /home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-0412-dragcrisis-extension.md, commit 1440422):
+45 cases, 3.09 GPU-h; campaign total 129 cases / 8.85 GPU-h. Span Re 1 -> 2e7 = 7.3
+decades, one model/constants/protocol. Creep arm validates (Re=10: -1.7% vs
+Dennis-Chang; chi provably inert); seams 0.5-0.6% (300/1e3), 2.9% (2e6 cold-cold,
+finer higher); NO transcritical rise in any seed/branch (floors 0.185/0.199/0.215;
+chi front marches 101->82 deg but SA separation pinned ~120 deg, base Cp -0.23);
+second supercritical steady state on the fine grid (dn 13-22% lower). Full-span
+log-log figure with literature overlay:
+/home/qiqi/flexcompute/sa-ai/paper/figs/dragcrisis_cd_re.pdf
+(preview /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/dragcrisis_cd_re.png).
+
+**Sec VII rewritten** (commit 4e5d39e, build clean 120pp/0 undefined/0 overfull):
+scoped first-single-model-curve claim per litrange; mesh-family + seam paragraph;
+low-Re validation paragraph (Dennis-Chang/Fornberg/Henderson now Crossref-verified
+bib entries); concessions extended four -> six (no-transcritical-recovery with the
+separation-not-transition attribution; second steady wake state); caption carries
+the span + continuity band.
+
+**Full-body spheroid discriminator complete** (record
+/home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-0413-spheroid-fullbody.md,
+commit b5f591a): full-circumference L1 O-grid (4.35M nodes, periodic, watertight).
+At 43k converged: arm A front 0.8581 / H 2.525/2.555/2.607 = half-model-ext 0.8582 =
+unstructured 0.8584 = march-consistent. Arm B (lowMachPreconditioner) converged state
+UNCHANGED (front 0.8555, CD +3.4e-4) — only accelerates convergence ~2.5x. The 0105
+azimuthal one-cell wiggle COLLAPSES 500x when probe rings are re-based on wall facets
+— it was facet-sag wall-distance modulation of the probe, not a flow mode. VERDICT
+CHAIN CLOSED: symmetry sheets, topology, low-Mach dissipation, solver numerics ALL
+exonerated; the alpha=0 story = 20k cold-start transient (+probe artifacts) on top of
+a real remaining model miss (0.86 vs 0.438) owned by transport realization + seed.
+Cases /local_data/qiqi/sa-ai/spheroid_fv1/case_ogridfull_L1_saai_re72a0{,_lowmach};
+harvest /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/spheroid_fullbody_check.py.
+
+**Standing user decisions:** (a) converged restart legs for all committed spheroid
+campaign cases (bonus from arm B: the preconditioner legally accelerates the legs
+~2.5x, though published numbers should keep canon settings); (b) Sec IX/X rewrite
+direction — all discriminators now in, ready to draft on your word.
+
+---
+
+## 2026-07-28 — Transcritical questions answered; theta_tr(Re) extraction launched
+
+**User prompts:** (1) is the missing transcritical rise consistent with other RANS
+codes/models, and why? (2) shouldn't a higher-Re BL be MORE prone to separation at
+the same angle? (3) was y+ low enough? (4) measure the transition angle vs Re by
+radial rays from the surface, max-chi along each ray.
+
+**(1) Consistency — verified from our own digitized overlay data
+(/home/qiqi/flexcompute/sa-ai/paper/repro/cfd/litdata/dragcrisis/):**
+- Experiment rises: Achenbach curve 0.45->0.68 over 1.7-4.3e6; Roshko 0.70-0.74 at
+  6-8.7e6.
+- Catalano WMLES: 0.347/0.317/0.327 at 0.5/1/2e6 — FLAT, Re-insensitive, no rise
+  (their own conclusion).
+- Stabnikov-Garbaruk gamma-Re_theta URANS: 0.319 at 1.29e6 and still FALLING where
+  experiment rises; sweep stops at 1.3e6.
+- SG20 fully-turbulent SST: 0.49 at 1.29e6, falling.
+NO published computation of any class in our overlay reproduces the transcritical
+rise; transitional URANS never even reaches the regime. Our result is consistent
+with — and extends two decades beyond — the computational state of the art.
+
+**(2) The physics:** for a turbulent BL at FIXED transition location, higher Re =>
+relatively thinner, fuller profile => separates LATER, drag falls — that is what our
+computation does (front creeps 101->82 deg while separation stays ~120 deg). The
+experimental rise is the OTHER competitor winning: transition marches far forward
+(toward the front quarter of the body), so the turbulent run lengthens faster than
+Re thins it; theta at the shoulder grows, separation moves forward, base pressure
+drops, Cd rebuilds. So the discriminating quantity is exactly the transition
+LOCATION vs Re — the user's proposed plot — and the open question splits in two:
+(a) does the model's attached-BL amplification move the front forward fast enough
+(TS content in a favorable-gradient nose region at smooth-quiet seeds may genuinely
+saturate — the experimental forward creep may carry bypass/roughness content); and
+(b) SA's late turbulent separation (107-118 vs ~147 deg class) caps the rise even
+given a forward front.
+
+**(3) y+ — yes, measured from final fields (0412 record):** highre mesh y1=1e-6 D
+gives y+max 0.26 / 0.49 / 0.71 at 4e6 / 7e6 / 1e7; the 2e7 stretch point runs at
+1.42 (above the <=1 target, caveated inline in Sec VII; a y1=5e-7 re-mesh is the
+fix if 2e7 is ever promoted beyond outlook).
+
+**(4) LAUNCHED — theta_tr(Re) extraction (background agent, CPU-only):** radial rays
+from the wall (r=0.5D, angles from forward stagnation, <=0.5 deg steps, reach
+>=20 D), max-chi per ray, theta_tr = smallest angle with max-chi >= 1 (companion
+threshold chi >= c_v1), across ALL 129 cases x 3 seeds x up/dn. Deliverables:
+theta_tr vs Re plot (crisis band marked, house style), per-case JSON, script
+paper/repro/cfd/dragcrisis_transition_angle.py, record in agent-paper-review/.
+The radial-max convention also captures the subcritical lifted-shear-layer
+transition the near-wall front convention misses — the record will quantify that
+gap.
+
+---
+
+## 2026-07-28 — Spheroid uniformity + Cp(x) + BL-profile series LAUNCHED (user directive)
+
+Package running (background agent, CPU-only) on the CONVERGED 43k full-body case
+/local_data/qiqi/sa-ai/spheroid_fv1/case_ogridfull_L1_saai_re72a0 (arm B lowmach and
+the converged unstructured case as one-line cross-checks):
+1. Circumferential uniformity: u and p around full azimuth rings at x/L 0.20/0.42/
+   0.70(/0.90), three wall-normal heights, facet-re-based origins (showing the raw
+   convention once for contrast — the 0413 record proved raw analytic origins
+   manufacture a fake 2.6-3% one-cell mode that collapses 500x under re-basing);
+   rms + p2p per ring.
+2. Surface Cp(x/L) nose to tail, meridian + azimuthal average, converged
+   suction-peak location (20k field had u_e peak at x/L=0.489).
+3. BL profile series: surface-normal rays at x/L ~0.10-0.88 straddling the converged
+   front (0.858), tangential velocity u_t/u_e vs wall-normal distance, shared-axes
+   panel series, thin-dashed Keller-box march overlay as the validated laminar
+   reference; per-station H, delta99, Re_theta.
+Deliverables: figures paper/repro/cfd/figs_explore/spheroid_{uniformity_*,cp_x,
+bl_profiles}.png, script paper/repro/cfd/spheroid_uniformity_profiles.py, record in
+agent-paper-review/, committed.
+
+---
+
+## 2026-07-28 — Drag crisis: separation/kernel probes added; FPG rate/onset audit launched
+
+**User prompts:** (1) when probing transition location, also probe separation
+location, max xi, max Re_Omega, and max(Omega_hat I_hat); (2) hypothesis: the FPG
+behavior isn't carefully tuned — rate abysmally low vs Drela, onset possibly high;
+the high-Re cylinder is the tuning case.
+
+**Actions:**
+- theta_tr extraction agent RE-BRIEFED: per case now also extracts separation
+  angle(s) from wall Cf (laminar sep / reattachment / final sep, 0412 conventions),
+  per-angle max chi, max Re_Omega, and max P = max(Omega_hat I_hat) along each
+  radial ray (attached-region-restricted AND unrestricted); for the high-Re cases
+  (4e6-2e7) it plots the theta-profiles of maxP and maxRe_Omega in the
+  favorable-gradient nose region against the onset gate
+  Re_Omega_c = softmin(1851.2, 124.6+1.424/P^2) — gate-blocked vs rate-starved is
+  the discriminator. Headline figure now carries separation angle AND transition
+  angle vs Re on one axes (their convergence through the crisis is the macroscopic
+  story).
+- LAUNCHED — FPG rate/onset audit vs Drela (background agent, CPU-only, DIAGNOSIS
+  ONLY, no constant changes): (a) Falkner-Skan FPG ladder beta = 0..1: model
+  frozen-profile rate vs Drela's e^N envelope dN/dRe_theta(H) (the repo's mfoil
+  implementation), rate ratios + gate-opening Re_theta vs Drela's critical
+  Re_theta_0; (b) cylinder nose map at Re_D 2e6/7e6/2e7: validated laminar march on
+  the measured u_e(theta), then the three-way transition-location decomposition —
+  where Drela's envelope puts it, where the model's frozen rate puts it, where the
+  solver front actually sits (101->82 deg). Outcome classes: physics-limited (even
+  e^N says no forward creep at smooth-quiet seeds -> experimental creep is
+  bypass/roughness content), rate-limited (Drela forward, model rate too low), or
+  gate-limited (onset blocks). Tuning implications will be SKETCHED (which
+  constants the cylinder constrains) but not implemented pending user read.
+
+---
+
+## 2026-07-28 — Ultra-high-Re extension (to 1e10) launched; FPG epsilon-floor brainstorm
+
+**User prompts:** (1) extend the drag-crisis sweep to Re = 1e10 (crisis lands
+mid-span; different freestream turbulence should collapse; mesh shouldn't grow
+much); (2) brainstorm FPG rate improvement — hunch: P = <Omega_hat (epsilon +
+I_hat)> with epsilon = the rate an extreme FPG should have.
+
+**(1) LAUNCHED — phase 3** (extension coordinator resumed): new 'ultra' mesh family
+(y1 ~ 1e-9 D class, sized from measured Cf for y+ <= ~0.7 at 1e10, ~230 layers —
+indeed a modest increase), Re ladder 5e7..1e10 x 3 seeds x up/dn, solver-sanity
+pilot first (muRef ~ 1e-11 float-health check), 2e7 re-run on ultra to retire the
+y+=1.42 caveat, seed-collapse verdict + front-angle merge with the theta_tr
+convention, full-span figure axis 1 -> 1e10.
+
+**(2) Brainstorm on P = Omega_hat (epsilon + I_hat)** — assessment (no
+implementation; would be env-gated AI_* experimental constant defaulting to 0):
+- COHERENT ON BOTH LEVERS: the onset gate is Re_Omega_c = softmin(1851.2,
+  124.6 + 1.424/P^2); with I_hat ~ 0 in FPG, P -> 0 makes Re_Omega_c -> infinity —
+  the gate NEVER opens in non-inflectional layers, independent of rate. Flooring P
+  at Omega_hat*epsilon simultaneously (a) gives FPG layers a finite rate and (b)
+  makes the gate threshold finite — one constant fixes both suspects.
+- SAFETY BY CONSTRUCTION: the floor multiplies Omega_hat = Y/sqrt(X^2+Y^2), which
+  vanishes in the freestream (Y -> 0), so no far-field contamination. In turbulent
+  log layers Omega_hat ~ 0.2-0.3, so the floor adds ~0.19*0.25*epsilon of extra
+  production — must be verified negligible in the Spalart-flow zero-suite before
+  any adoption.
+- SIZING CONSTRAINT: epsilon must sit well below the Blasius I_hat so the ZPG/TS
+  calibration (and everything downstream of it) doesn't move; the FPG audit's FS
+  beta-ladder (running) delivers exactly the I_hat(beta) and Drela-rate targets
+  needed to size it — epsilon calibrates to Drela's envelope slope at H ~ 2.2
+  (extreme FPG), which is small but nonzero above Drela's (large) critical
+  Re_theta_0.
+- THE 1e10 SWEEP IS THE INTEGRATION TEST: on the nose at Re_D = 1e10, Re_theta
+  reaches the 1e4 class even in strong FPG — above Drela's FPG onset — so e^N
+  itself predicts forward transition there. If the model's seeds fail to collapse
+  at the top decades with epsilon = 0, and collapse with a Drela-sized epsilon,
+  that is the tuning story; the three-way decomposition (Drela / model-rate /
+  solver-front) from the running audit tells us whether epsilon is even the
+  binding constraint at 2e7 vs 1e10.
+- ALTERNATIVE SHAPES to keep on the table: epsilon entering the GATE only (lower
+  onset, leave rate); a higher power of Omega_hat on the floor (biases toward
+  BL-like shear, further protects turbulent zones); or epsilon(H)-free forms tied
+  to existing local quantities. The audit record will carry the numbers to choose.
+
+---
+
+## 2026-07-28 — CORRECTION (user): the gate saturates, it does not blow up
+
+My previous entry's claim "P -> 0 makes Re_Omega_c -> infinity, the gate NEVER opens
+in FPG" is WRONG: the softmin caps the onset at Re_Omega_c = 1851.2, so in FPG the
+gate opens once Re_Omega exceeds ~1851 — the correct value, just reached normally.
+The FPG deficiency is therefore purely the RATE: with I_hat ~ 0 the growth through
+an open gate is orders of magnitude too slow. The epsilon floor's primary action is
+on the rate; its gate-side effect is secondary (a floored P lowers 124.6+1.424/P^2,
+which can only move onset earlier, never later). The "gate-blocked vs rate-starved"
+discriminator in the running theta_tr and FPG-audit briefs still resolves this —
+expect it to return "rate-starved."
+
+---
+
+## 2026-07-28 — Whitepaper update launched (user directive)
+
+Background agent updating /home/qiqi/flexcompute/sa-ai/paper/whitepaper.tex from the
+current sa-ai.tex: (1) distilled Sec II — all descriptions (equations, constants
+with values + one-line determinations, seed map, fv1-bypass/slowdown practicalities,
+the branch-selection protocol recipe), no discussion or philosophizing; (2) all
+results EXCEPT the spheroid (under revision) — flat plate incl. OpenFOAM
+cross-solver, NLF, Eppler + Re-sweep + overlays, full-span drag crisis (as of
+4e5d39e), Daedalus — matter-of-fact numbers/tables/figure refs copied verbatim, no
+interpretation; (3) appendix — just plots, no text. Build-verified before commit;
+whitepaper.tex only.
+
+Also this hour: ultra-Re phase staged (759 MB template hardlinked; chains defined;
+1e10 muRef=1e-11 sanity pilot queued behind vishal's jobs — no ladders until it
+passes; the 2e7 ultra re-run doubles as the highre/ultra seam and retires the
+y+=1.42 caveat).
+
+---
+
+## 2026-07-28 — GPU relocation (user directive): all GPU tasks -> 017-v100-dev GPUs 0-3
+
+Vishal is using all local GPUs. The extension coordinator is re-briefed: the ultra
+campaign (1e10 sanity pilot + ladders) moves to 017-v100-dev, GPUs 0-3 ONLY,
+following the 2026-07-27-2006 pilot record's working pattern; remote solver must
+produce a canon-identical ai_constants echo (stop-and-report if stale); local
+sanity-pilot dequeued; results sync back into /local_data/qiqi/sa-ai/
+dragcrisis_matrix/ so harvest/figures/theta_tr stay unified. The CPU-only agents
+(theta_tr extraction, FPG audit, spheroid uniformity/profiles, whitepaper) are
+unaffected and stay local. This 017-v100-dev/GPUs-0-3 rule applies to ALL upcoming
+GPU work (incl. the spheroid converged restart legs when approved).
+
+---
+
+## 2026-07-28 — Spheroid uniformity + Cp(x) + BL profiles LANDED (record 1030)
+
+Record: /home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-1030-spheroid-uniformity-profiles.md
+
+1. UNIFORMITY VERIFIED (converged full-body arm A): corrected u_s rings uniform to
+   rms <= 5.8e-5 (p2p <= 2.2e-4) at all stations/heights; ring dCp at float32
+   storage precision (several rings exactly 0); chi front azimuthally uniform to
+   rms 3.9e-4 in x/L (6.4e-5 on the fully-settled arm B). The raw analytic-origin
+   convention's 3.1e-2 "mode-160 wiggle" collapses 554x under facet re-basing —
+   0413 mechanism confirmed on the converged state. Only surviving flow mode: an
+   azimuthal mode-1 at 4e-5 class = arm A's residual transient (CL +4.7e-4).
+2. Cp(x): converged suction peak at x/L = 0.4974 (u_e max; the 20k transient read
+   0.489), wall Cp_min -0.0924 at 0.4948; meridian = azimuthal average to 1.4e-4;
+   Bernoulli-consistent.
+3. BL PROFILE SERIES (10 stations, 0.10-0.88): the converged RANS laminar BL IS the
+   marched laminar solution at PROFILE level — |dH| <= 0.008 through x/L = 0.5,
+   +0.013/+0.038 at 0.80/0.84 approaching the front (chi thickening + march nearing
+   its own separation at 0.880), profiles overlay point-by-point; maxP rises
+   monotonically 0.074 -> 0.21 into the adverse region (no aft collapse). At 0.88
+   (just aft of chi=1 at 0.858) the profile is still laminar-shaped; Cf rise
+   completes at 0.888.
+Figures: /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/
+spheroid_uniformity_rings.png, spheroid_uniformity_contrast.png, spheroid_cp_x.png,
+spheroid_bl_profiles.png (+captions .md, +.json). Instrument bug ledger in the
+record (per-azimuth Cf-front grouping/window bugs found+fixed before quoting).
+
+---
+
+## 2026-07-28 — theta_tr(Re) extraction LANDED (record 1033): V-shaped front, FPG verdict = rate-starved
+
+Record: /home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-1033-dragcrisis-thetatr.md
+Figures: /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/figs_explore/dragcrisis_theta_tr.png
+(+ dragcrisis_thetatr_fpg.png); data figs_explore/data/dragcrisis_theta_tr.json;
+script paper/repro/cfd/dragcrisis_transition_angle.py. All 129 cases, ~56 min CPU.
+
+1. theta_tr(Re) IS V-SHAPED: subcritical aloft front creeps forward 96.5 (1e4) ->
+   79 (2e5), saturating 4-6 deg aft of laminar separation (73-75) — "immediate
+   shear-layer transition" now measured as an angle; retreats through the crisis to
+   ~98-101 (the Cd minimum = the front's local max retreat); then the transcritical
+   march is MONOTONIC 2e6 -> 2e7: 13-17.5 deg forward per decade, Tu-ordered. At
+   2e7 the front reaches the suction peak (83-87 deg) but no further (experimental
+   transcritical class ~25-35 deg [mem]).
+2. RADIAL-MAX vs NEAR-WALL convention: identical (+-1.5 deg) at Re >= 1.5e5; at
+   4e4-6e4 the near-wall number is a base-region echo 53-65 deg AFT of the actual
+   aloft transition; below 4e4 near-wall reports "no transition" while the shear
+   layer aloft is turbulent. The user's radial convention is strictly better
+   subcritically.
+3. MACROSCOPIC STORY on one axes: separation and transition converge through the
+   crisis, lock as the LSB supercritically (98.3/98.0 at 2e6 Tu0.2), then the LSB
+   VANISHES (2e6->4e6 at Tu0.2): the wall sequence is ALREADY transcritical
+   (attached transition ahead of a single turbulent separation) while Cd stays at
+   the floor because that separation is pinned at ~120 deg — the 0412 verdict
+   sharpened.
+4. FPG HYPOTHESIS VERDICT (user's split confirmed, post-correction): the onset gate
+   OPENS 15-36 deg ahead of the front at all high-arm Re (front is NOT
+   onset-blocked where it sits); the RATE is the binder — max_bl rate 0.008-0.022
+   vs a_max 0.19 (factor 10-20 low) because P ~ I_hat stays 0.01-0.05 in the
+   uninflected FPG layer. The saturated gate ceiling (1851.2) additionally seals
+   the deep nose (theta < 46.5 even at 2e7; gate alone would not open at 30 deg
+   until Re ~ 1e8). Constant tuning cannot reach the 25-35 deg class; the epsilon
+   floor (rate) + its gate side-effect, or the amplifying-zone-gate revision, is
+   the required class of change.
+5. Ledger highlights: solver-implemented Z (chained VTK gradients) is
+   noise-dominated in the thin high-Re FPG layer — the ray-operator (exact
+   wall-normal d2u/ds2) is quantitative there, both stored; stagnation-ray P~0.5 is
+   a U->0 coordinate artifact (gated off by Re_Omega~0, excluded via theta>=10);
+   Tu0.7 4e6 up separation row is a limit-cycle breather snapshot.
+
+---
+
+## 2026-07-28 — Whitepaper rewritten (commit e5f9382)
+
+/home/qiqi/flexcompute/sa-ai/paper/whitepaper.tex (+ whitepaper.pdf, tracked): full
+rewrite — the old version predated the sphere kernel entirely (retired
+Gamma/lambda_p kernel, stale constants, superseded Eppler tables). New: 30 pp = 11
+text + 19 plots.
+- Sec 1 Model (distilled Sec II + App E): equations, sphere indicators (profile +
+  solver Gram forms), every constant with one-line determination, fv1 bypass, Mack
+  seed map, the branch-selection protocol statement (incl. the chi_inf*f
+  pre-multiplied seed convention flagged as the AI_LAMINAR_SLOWDOWN pairing), one
+  factual sentence on the spurious branch (Re_r 4.66-4.74e5). No discussion, no
+  philosophy.
+- Sec 2 Results, matter-of-fact, spheroid omitted (one under-revision line): flat
+  plate + NLF + Eppler (all incl. OpenFOAM tables), Re-sweep, drag crisis Re 1-2e7
+  (129 cases, seams, Dennis-Chang benchmarks, six concessions as a factual list,
+  Cd table), Daedalus totals.
+- Appendix: 23 plots, bare includegraphics, <=5-word identity captions, no text.
+Verification: nine copied tables diffed numerically identical to paper/tables/ by
+script; build 0 errors / 0 undefined / 0 overfull.
+
+---
+
+## 2026-07-28 — Angles figure in the paper (ddf72ce); "may coexist" fix; FPG audit LANDED
+
+**User prompts:** (1) new plot just after the Cd plot: transition AND separation
+angle vs Re, plus a plot of max-xi vs angle at representative Res; (2) qualify
+"Every laminar solution coexists" -> "may coexist" in whitepaper AND paper.
+
+**Done (commit ddf72ce, build 121pp clean / whitepaper 31pp clean):**
+- NEW fig:dragcrisisangles directly after fig:dragcrisiscd, two panels: (a)
+  theta_tr + first/final separation vs Re_D, 3 seeds, up/dn, authoritative grid
+  families, crisis band shaded; (b) max_s chi along the radial ray vs angle at Re_D
+  = 1e4/6e4/2e5/5e5/2e6/2e7 (middle seed), chi=1 dotted. Caption carries the full
+  story (V-shape, saturation 4-6 deg aft of laminar separation, 13-17.5 deg/decade
+  transcritical march, LSB vanishing near 120 deg, convention comparison, the Tu0.7
+  4e6 limit-cycle outlier). Script:
+  /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/regen_dragcrisis_angles.py ->
+  /home/qiqi/flexcompute/sa-ai/paper/figs/dragcrisis_angles.pdf (preview
+  figs_explore/dragcrisis_angles.png). Plots straight from the committed theta_tr
+  JSON.
+- "may coexist" applied at sa-ai.tex sec:bistability opener and the whitepaper
+  protocol section.
+
+**FPG rate audit LANDED** (record /home/qiqi/flexcompute/sa-ai/agent-paper-review/
+2026-07-28-1041-fpg-rate-audit.md, commit 43dae78):
+- FS ladder: kernel tracks Drela through beta<=0.1 (ratio 0.74-1.0), HALVES at 0.2,
+  COLLAPSES 3 orders of magnitude between beta 0.2-0.5, zero at beta=1 — while
+  Drela holds a >=5e-3 envelope floor. Killer located: the I_hat curvature term
+  (-Z for Z>0), not a_max, not the gate constants. Onset NOT binding (gate opens
+  before Drela's critical Rt through beta=0.2), per the user's softmin correction.
+- Cylinder three-way at 2e6/7e6/2e7 (Tu 0.2, N=4.53 — the brief's 6.73 was
+  misassigned, agent re-verified from eq:tumap): PHYSICS-LIMITED at all three —
+  the nose is Drela-subcritical to ~79-85 deg, and at 2e7 the solver front (82) is
+  10 deg AHEAD of e^N's chi=1 station (91.8) on its own mean flow. The high-Re
+  cylinder at accessible Re CANNOT tune the FPG rate; the experimental 25-35 deg
+  transcritical class is bypass/roughness content. Implication: the epsilon tuning
+  case is the ULTRA arm (Re >= 1e8-1e10, where nose Re_theta clears Drela onset),
+  exactly the sweep now running on 017-v100-dev; calibration instrument = beta
+  0.2-0.5 wedges at Rt 2000-8000.
+- Artifacts: paper/repro/cfd/fpg_rate_audit.py,
+  figs_explore/fpg_rate_audit_{ladder,cylinder}.png, figs_explore/fpg_rate_audit.json.
+
+---
+
+## 2026-07-28 — New drag-crisis figures integrated (user directive; commit d6a344f)
+
+- Paper now carries BOTH new figures: fig:dragcrisisangles (ddf72ce, after the Cd
+  plot) and NEW fig:dragcrisisfpg (d6a344f, after it): left = FS-ladder envelope
+  slope, model vs Drela-Giles/mfoil (the 3-decade collapse by beta=0.5, below-floor
+  marker at beta=1); right = N(theta) budgets on the marched cylinder nose at
+  2e6/7e6/2e7 vs N=4.53, solver fronts marked (they sit AT/AHEAD of the e^N
+  crossing). A short factual paragraph after the six concessions states the
+  verdict: FS-ladder deficit real but unexercised at accessible Re — the
+  transcritical forward-transition gap at these Re is disturbance content beyond
+  the envelope class. Build: 122 pp, 0 undefined, 0 overfull.
+  Script: /home/qiqi/flexcompute/sa-ai/paper/repro/cfd/regen_dragcrisis_fpg.py ->
+  /home/qiqi/flexcompute/sa-ai/paper/figs/dragcrisis_fpg.pdf
+  (preview .../figs_explore/dragcrisis_fpg.png).
+- Whitepaper revision agent re-briefed to inline BOTH new figures in its
+  drag-crisis block (its full revision — figures into sections, minimal Sec 2,
+  appendix = main-paper appendix figures, no text — is in progress).
+
+---
+
+## 2026-07-28 — Why separation doesn't follow the front; FT-SA control launched
+
+**User prompts:** transition moves upstream supercritically but separation doesn't
+move forward — why? Is the missing rise the transition model's fault or SA's? Run
+fully-turbulent SA on the high-Re cylinders for separation angle and drag.
+
+**Why (mechanics):** moving transition 100 -> 82 deg adds only ~20 deg of turbulent
+run ahead of the separation point, while each decade of Re thins the turbulent
+layer; in SA's modeled balance the thinning wins and the turbulent layer stays
+attached to ~120 deg regardless. The experimental transcritical rise rides on
+transition moving to the 25-35 deg class — tripling/quadrupling the turbulent run —
+which the 1041 audit shows is beyond envelope (e^N) physics at these Re and seeds.
+Quasi-evidence already in hand: at 2e7 the three seeds' fronts span 77-87 deg yet
+Cd spans only 0.185-0.215 — the drag barely feels the front.
+
+**LAUNCHED — fully-turbulent SA control** (coordinator, 017-v100-dev GPUs 0-3):
+standard SA (AI terms off via the canonical switch, chi_inf = 3-5 fully-turbulent
+freestream), Re = 2e6/4e6/7e6/1e7/2e7 on the highre mesh (+1e10 on ultra if the
+sanity gate has passed), steady, cold two-stage, harvest Cd / separation / base Cp
+/ shoulder Cp vs the SA-AI values. Discriminator, stated in advance: FT-SA at ~120
+deg / Cd ~0.2 / base Cp ~ -0.23 convicts baseline-SA turbulent separation + the
+steady dead-air wake and exonerates the transition model (whose front is already
+e^N-consistent); a materially different FT-SA separation re-opens the question.
+
+---
+
+## 2026-07-28 — FPG kernel recalibration study launched (user directive: Fig 4 to match Drela-Giles at stagnation H)
+
+Target = fig:calibrate, BOTH panels at H down to 2.216: (a) rate must not collapse
+below Drela in the favorable regime; (b) the N=1 onset Re_theta must track the
+Drela-Giles station instead of departing above. Study agent (offline, analytic
+rigs, no solver/tex changes) explores: (1) the user's epsilon floor
+P = Omega_hat(epsilon + I_hat) — may also improve the low-beta mean-secant (0.84 at
+Blasius); (2) the harder onset half: a naive floor + existing gate books ~15
+spurious e-folds in strong FPG (gate opens Rt 1150-1280 vs Drela critical
+3757-6644) — candidate fix conditions the softmin ceiling on the inflection state
+so non-inflectional layers keep the rising 1/P^2 branch; (3) hard regression
+constraints: Blasius anchor unchanged, attached family +-12% tracking, separated/
+Stewartson branch untouched, Spalart zero-suite (parasitic production from
+Omega_hat~0.25 in log layers quantified), Mack map unshifted. Deliverables:
+candidate-form table, CANDIDATE Figure 4 (figs_explore only), constants +
+determinations, env-gated (default-OFF) solver sketch; in-solver validation
+testbeds = the running ultra-Re cylinder sweep + spheroid re72a0. Ledger must state
+the DG-vs-mfoil ~60% target ambiguity at stagnation H.
+
+**User clarification:** the recalibration is exactly the substitution
+P = Omega_hat*(I_hat + epsilon) everywhere P appears (rate AND gate, the floored P
+flowing into both; no separately designed gate branch). Study agent re-briefed:
+headline = best single-epsilon fit of both Fig-4 panels under this exact
+substitution + full regression suite at that epsilon; any residual panel-(b)
+mismatch quantified honestly with the minimal closing change noted as a secondary
+observation only.
+
+---
+
+## 2026-07-28 — Scenario walkthrough for the epsilon floor (user: does eps ~ 1e-2 make a
+## visible difference? best guess now 0.03)
+
+Study agent evaluating at eps = 0.03 (headline), 0.01, and the trade-off optimum.
+My scenario-by-scenario expectation (crude slope(P) mapping from the 1041 ladder —
+the study's instrument numbers supersede these):
+- Blasius/flat plate: band P_floor ~ Omega_hat*eps ~ 0.02 at eps=0.03 on top of
+  maxP 0.078 -> rate +25-30%; late-window secant (currently 1.00 vs Drela) -> ~1.27
+  — VISIBLE regression of the ZPG anchor; all flat-plate onsets move ~20% in Re_x.
+  At eps=0.01: +6-13% — borderline visible.
+- Mild FPG beta 0.05-0.1 (NLF/Daedalus LE, spheroid mid-body): +40-60% rate at 0.03
+  -> spheroid front from 0.858 toward ~0.7-0.75 class, airfoil fronts visibly
+  upstream. At 0.01: +13-19%.
+- Stagnation H (Fig 4 target): eps=0.03 -> slope ~0.003-0.0044 vs Drela 0.0074 —
+  about HALF; eps=0.01 -> ~0.0011-0.0017, a fifth. Full match needs eps ~ 0.06-0.10
+  which would near-double Blasius. The single-eps tension is real; the trade-off
+  curve is the decision instrument.
+- Onset side-effect at 0.03: floored P makes 1.424/P^2 ~ 1600-3200, comparable to
+  the 1851 ceiling -> gate opens Rt ~ 1100-1500 in strong FPG vs Drela critical
+  3757-6644 -> up to ~16 spurious e-folds available on LONG high-Rt FPG runs
+  (only very-high-Re noses have such runs: ultra-arm cylinder — where it is the
+  DESIRED effect; airfoil LEs at Re_c few-e6 have Rt < 300, gate closed, safe).
+- Inflected side (Eppler LSBs, subcritical cylinder shear layers, separated
+  branch): P 0.2-1 -> +2-10% at 0.03 — largely invisible; bubble physics intact.
+- Transcritical cylinder 2e6-2e7: nose gate opens ~Rt 1150-1500; extra nose
+  e-folds ~0.003*(Rt_shoulder - Rt_gate): ~0.2 at 2e6 (invisible), ~2-7 at 2e7
+  (front pulled visibly forward); at 1e8-1e10 (ultra) the floor books the full
+  budget on the nose -> forward creep + seed collapse arrive — the desired
+  transcritical content.
+- Frozen-Hiemenz / Sec VIII: stagnation flow is exactly the eps-active zone — the
+  AI term now assists the attachment wedge; the critical bracket 4.66-4.74e5 and
+  the protocol section numbers need re-verification under any adopted eps.
+- Spalart zero-suite: log-layer Omega_hat ~ 0.2-0.3 -> parasitic P ~ 0.006-0.009 at
+  0.03; production increment expected small vs SA's own — must be verified.
+NET: eps = 0.03 is NOT a free tweak — it visibly perturbs the calibrated ZPG/mild-
+FPG suite (unless jointly re-anchored) while buying ~half of Drela's stagnation
+rate; eps = 0.01 is nearly free on existing results and still decisive on the ultra
+arm. The study's trade-off curve + impact table (both eps values) will make this a
+numbers decision; in-solver validation testbeds: ultra cylinder + spheroid re72a0.
+
+---
+
+## 2026-07-28 — Spheroid three-way DECOMPOSITION LANDED (record 1122): the model is
+## e^N-faithful on this flow; nothing envelope-class transitions at 0.438 at this seed
+
+Record: /home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-1122-spheroid-threeway.md
+Figure (paper-quality, airfoil-style dual axis, per user directive):
+/home/qiqi/flexcompute/sa-ai/paper/figs/spheroid_threeway_N.pdf
+(preview .../repro/cfd/figs_explore/spheroid_threeway_N.png; JSON spheroid_threeway.json;
+script paper/repro/cfd/spheroid_threeway.py)
+
+HEADLINE: on the converged mean flow the transported chi TRACKS THE DRELA-GILES
+ENVELOPE ONE-FOR-ONE to x/L ~ 0.7; even a perfect envelope tracker at this case's
+flight-quiet budget N = ln(1/chi_inf) = 11.645 (seed verified from the case JSON +
+in-field plateau) commits only at 0.735 vs measured 0.4381. Decomposition of the
+0.420 L: +0.162 envelope-method offset (Stock's own TS e^N books N=8 by 0.425
+where the Drela-fit family books ~5) + 0.135 seed budget (tunnel N=8 vs flight
+11.65) - 0.061 frozen-rate SURPLUS (instrument runs 0.9-1.45x Drela mid-body)
++ 0.185 transport realization (3.5 e-folds). The only deficient model physics on
+this flow is the aft steepening-adverse run 0.70-0.86 (envelope demands 30->126
+e-folds/L, model delivers ~20) — why the front parks at 0.858 just ahead of
+laminar separation (0.880). SEED LEVER AT FULL STRENGTH on the converged field:
+N=9 -> front 0.689, N=7 -> 0.537, and at the measurement-implied budget (N~5.6,
+Tu~0.13%, DFVLR-tunnel class) the model's own front lands ON 0.438. No rate or
+transport fix can reach 0.438 at the flight-quiet seed (6.4 e-folds forbidden by
+the correlations). Supersedes the 0040 e^N section (20k-transient state). The
+1041 FPG cliff is NOT implicated (mild gradients here; the aft deficit is
+steep-ADVERSE, a different regime).
+
+Figure + draft caption staged for the Sec IX/X rewrite (held per user read).
+
+---
+
+## 2026-07-28 — Re-seeded spheroid campaign LAUNCHED (user directive)
+
+**User prompt:** is re72a0 purely a freestream-turbulence mis-specification? Rerun
+with the correct freestream; also the lower-Re alpha=0 case and the alpha=2.5 case
+if freestream+IC chi is confirmed as the main fix.
+
+**Answer given:** operationally yes with a qualifier — 0.30 of the 0.42 L is
+disturbance-content class, 0.12 L is model residual (transport + aft-adverse) that
+largely cancels at tunnel-class seed on this flow; per-case verification rides
+with the reruns.
+
+**LAUNCHED (background agent, 017-v100-dev GPUs 2-3):** 5 converged-protocol L1
+runs (CD-drift criterion, ~40-45k steps — the 0350 lesson applied): re72a0 with a
+3-seed bracket (center from the DOCUMENTED DFVLR tunnel Tu if found in
+references/, else the measurement-implied ~0.13% class, stated honestly — bracket
+guards against tuned-to-fit circularity), the re65 alpha=0 case and the alpha=2.5
+case (L1 build at the re72a2p5 conditions) at center seed. IC + freestream chi
+both carry the new seed (physical, laminarSlowdown=1.0 convention). Harvest:
+facet-re-based fronts vs the Stock/Kreplin digitized measurements and vs the 1122
+seed-lever prediction (the bracket directly tests the x(N) table); alpha=2.5 gets
+windward/leeward front comparison as the crossflow check. Cases tagged _reseed,
+nothing clobbered. Record to agent-paper-review/.
+
+---
+
+## 2026-07-28 — Kernel floor redesigned: softmax_2, and the onset ceiling becomes removable
+
+**User:** additive floor too soft (hits Blasius/mild-FPG too hard); use softmax_2.
+What does it do, and does it remove the softmin constant on onset Re_Omega?
+
+**Analysis (study agent re-briefed, headline eps=0.03):**
+- P = Omega_hat*softmax_2(I_hat, eps) = Omega_hat*sqrt(I_hat^2+eps^2): quadratic
+  crossover — Blasius +3.7% (vs +27% additive), mild FPG +17% (vs +60%), deep FPG
+  the full floor unchanged. Sign convention to settle: clip I_hat at 0 first
+  (raw form is even in I_hat and would boost strongly-stable layers; Drela
+  envelope slopes never go negative — stability belongs to the onset).
+- YES on constant removal: with P floored, Re_Omega_c = 124.6 + 1.424/P^2 needs NO
+  softmin ceiling — the blow-up caps intrinsically at 124.6+1.424/(Omega_hat*eps)^2.
+  Numerical coincidence: Omega_hat*eps ~ 0.029 reproduces the old 1851.2, i.e.
+  eps ~ 0.03-0.04 at band Omega_hat — the user's guess. Net constants: drop 1851.2,
+  add eps — count unchanged, cleaner formula, eps double-duty (rate floor + onset
+  cap). To verify: the Omega_hat-dependence of the new cap (free-shear/handover
+  onset that 1851.2 anchored), and panel-(b) FPG onset (new cap sits ABOVE 1851
+  toward Drela's rising Rt0 — likely improves for free). Hiemenz/Sec VIII +
+  Spalart-suite checks remain mandatory.
+
+---
+
+## 2026-07-28 — Floor redesign #2 (user): argument becomes eps*(-Z), preserving the
+## wall-vanishing rate
+
+**User:** any constant floor (additive OR softmax) destroys the "rate -> 0 toward
+the wall" requirement that keeps the frozen-profile eigenvalue bounded at the
+high-Re extreme; the correct softmax argument is eps*(-Z).
+
+Study agent re-briefed: primary form P = Omega_hat * softmax_2(I_hat, eps*(-Z)/R)
+(dimensional normalization matching I_hat, to be verified from kernel source).
+Properties to verify as first-class gates: (a) wall asymptotics — eps*(-Z)/R
+vanishes like d^2 (Z ~ d^2 u''(0)), eigenvalue boundedness at high Re restored;
+(b) sign map across profile classes with clip convention ((-Z) floor active
+precisely in non-inflectional favorable-curvature layers, inert elsewhere);
+(c) eps recalibrated on Fig 4 under the new form (constant-eps 0.03 numbers
+superseded); (d) onset-ceiling removal re-evaluated — the intrinsic cap is no
+longer a global constant with a profile-dependent floor, so the softmin/1851.2
+drop must be re-justified or retained (both variants' panel-b reported). All
+regression gates stand.
+
+---
+
+## 2026-07-28 — FPG RECALIBRATION STUDY LANDED (record 1218): the eps*(-Z) form wins
+
+Record: /home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-1218-fpg-recalibration.md
+Candidate Fig 4: /home/qiqi/flexcompute/sa-ai/paper/repro/analytic/figs_explore/model_calibrate_candidate.png
+(+ trade-off curves, per-form JSONs, script paper/repro/analytic/fpg_recalibration_study.py)
+
+RECOMMENDATION: **form zc — P = Omega_hat*sqrt(<I_hat>+^2 + <eps*(-Z)/R>+^2), gate
+124.6+1.424/P^2 with the softmin ceiling DROPPED (net constants unchanged:
+-1851.2 +eps), eps = 0.12 minimax** (0.08 if minimal Blasius drift preferred,
+0.16 if stagnation rate prioritized; full trade-off curve recorded).
+- WALL-BOUNDEDNESS (the user's requirement): zc PASSES (eigenfunction peak fixed
+  at y*/theta=2.0 from Rt 1e5 through 1e7); BOTH constant floors FAIL (peak
+  migrates wallward without limit) — exactly as predicted. Raw (unclipped) I_hat
+  rejected separately (log-layer parasitic 0.14 of SA production).
+- Fig 4 at eps=0.12: panel (b) lies ON the DG N=1 curve across the whole
+  attached+separated family; worst residual confined to H<=2.29 (rate 0.60x,
+  onset 1.9x early — partially canceling; inter-fit DG-vs-mfoil ambiguity is
+  ~60% there anyway). Blasius: +3.2% late secant / -4.5% Rt1 / -7.1% Re_x(N9),
+  absorbable by the usual k re-anchor if desired.
+- OFF-TARGET FOOTPRINT (the decisive discriminator vs constant floors):
+  subcritical cylinder noses CLEAN (0.03/0.44 sup e-folds at 2e6/2e7 vs ~22
+  spurious for constant floors = bypass content); Sec VIII Hiemenz bracket
+  UNAFFECTED (0.01 e-folds); spheroid re72a0 front shift only ~0.011 L; LSB/
+  separated branch <=0.2%; Spalart zero-suite 4.4e-4 vs canon 4.0e-4.
+- ULTRA ARM: at Re_D=1e9 zc books ~69 sup e-folds by 80 deg (canon 1.9) — the
+  transcritical front collapse arrives, and the nose there is DG-supercritical
+  (e^N-consistent forward creep, not bypass).
+- CEILING REMOVAL: strictly improves panel (b); the LST graze cargo the ceiling
+  protected re-verified intact (attached graze 0.98-1.24 vs canon 0.93-1.14,
+  separated side unchanged).
+- User's eps=0.03 was EXACTLY the optimum of the constant-softmax form (good
+  guess) — but that form fails the boundedness gate.
+- Solver sketch: two-line change at both kernel sites, env AI_ZFLOOR_EPS
+  (default 0.0 = bit-identical canon) + AI_REOMC_CEIL=1e30; campaign JSONs
+  untouched.
+- In-solver validations queued on user go: ultra cylinder (expect no front
+  motion <=2e7, collapse on ultra arm) + spheroid re72a0 (expect <=0.01-0.02 L)
+  + flat-plate ladder for the Blasius drift (or re-anchor k first).
+
+DECISION WITH USER: adopt zc? at which eps (0.08 / 0.12 / 0.16)? re-anchor k or
+accept the -4.5% Rt1 drift? then env-gated solver implementation + validation runs.
+
+---
+
+## 2026-07-28 — Recalibration Part II launched: separate epsilons vs rate-only floor;
+## naming question
+
+**User:** growth and onset need separate epsilons (growth wants higher, onset then
+too early) — tune separately; OR epsilon in the rate kernel only with the onset
+keeping its old softmin; see which is better. Also: better name for epsilon?
+
+Study agent resumed with both variants: A = two-epsilon (eps_r ~0.16-0.17 for the
+stagnation rate; eps_o tuned to put N=1 ON the DG station; no-ceiling gate on its
+own floored P_o); B = rate-only floor with the CANON softmin gate on un-floored P
+(expected weakness quantified: un-floored P->0 saturates the 1851.2 ceiling ->
+opens Rt~1150-1280 vs DG 3757-6779, floored rate then amplifies immediately).
+Comparison vs single-eps zc@0.12 on both panels, constant bookkeeping (A and B are
+net +1 constant; zc was net 0), wall-boundedness, off-target impact rows, ultra-arm
+behavior. NAMING candidates to be judged in the record: c_TS (physical: the floor
+IS the viscous Tollmien-Schlichting branch, active where inviscid inflectional
+content vanishes — my recommendation), c_kappa/c_curv (mechanistic), c_FPG
+(regime-descriptive), a_visc (rate-family pairing with a_max).
+
+**Naming (user prefers a_visc/a_TS; a_max rename?):** recommended the TWO-BRANCH
+REFACTOR — move the prefactor inside the softmax so both classical instability
+branches carry named rates: rate = clip(Omega_hat*softmax_2(a_R*<I_hat>+,
+a_TS*<-Z>+/R))*gate with a_R = 0.19 (Rayleigh/inflectional, the renamed a_max,
+eigenvalue determination unchanged) and a_TS = a_max*eps (~0.023 at eps=0.12) as
+its own constant with its own Drela-stagnation determination — epsilon disappears
+as a separate symbol. Mathematically identical by softmax_2 homogeneity (agent
+verifying the exact clip composition). Fallback naming if "Rayleigh" overclaims:
+a_I (inflectional) / a_TS. Rename is a single mechanical commit at adoption time.
+
+---
+
+## 2026-07-28 — Recalibration Part II LANDED (f08a998): separate epsilons infeasible;
+## single-constant two-branch form stands
+
+Record updated in place: /home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-1218-fpg-recalibration.md
+(script paper/repro/analytic/fpg_recalibration_study.py, forms add/sm2raw/sm2clip/
+zc/zc_ceil/zc2/zb; JSONs+figures in paper/repro/analytic/figs_explore/)
+
+- VARIANT A (two epsilons) REJECTED — structurally infeasible as directed: a gate
+  tuned to the DG station at beta=1 never saturates its ramp, so the late secant
+  asymptotes ~0.5x REGARDLESS of eps_r; compensating with eps_r=0.35 destroys
+  Blasius (-37% Re_x). Dominated by zc.
+- VARIANT B (rate-only floor eps_r=0.1455, canon softmin gate): panel (a) PERFECT
+  (0.99-1.09x family-wide) but 4.4x-early strong-FPG onset, 4 spurious nose
+  e-folds at Re_D=2e7 (bypass content zc avoids), and a new ceiling strike — the
+  canon gate opens in log layers at y+~760, leaking 3.9e-3 raw parasitic (10x zc).
+  FALLBACK only if slope exactness is the overriding goal.
+- RECOMMENDED FINAL FORM (two-branch, epsilon eliminated): Q = Omega_hat *
+  softmax_2(a_R*<I_hat>+, a_TS*<-Z>+/R), rate = min(a_R, <Q>+), gate
+  124.6+1.424/P^2 on P = Q/a_R, ceiling dropped — NET CONSTANT COUNT ZERO.
+  a_R = 0.19 (renamed a_max, Michalke determination untouched); a_TS = 0.0228
+  (minimax, eps=0.12) or 0.0304 (slope-priority, eps=0.16). Identity with the
+  eps form verified to 5e-18; gotcha: the clip ceiling must be a_R, not 1.
+- USER DECISION SET: adopt two-branch a_R/a_TS at 0.0228 vs 0.0304 (or fallback B);
+  re-anchor k x1.066 / a_max x0.969 or accept -4.5% Rt1 drift; then env-gated
+  solver implementation (AI_ZFLOOR_EPS + AI_REOMC_CEIL=1e30, default OFF) and the
+  two queued validations (drag-crisis cylinder front discriminator; spheroid
+  re72a0 front).
+
+---
+
+## 2026-07-28 — User clarifies the intended structure: variant B IS the design
+
+**User:** the rate has two terms — softmax(a_inviscid*<Omega_hat,I_hat> +
+a_visc*<Omega_hat,-Z/R>) — and the ONSET GATE never sees a_visc, keeping its own
+softmax(=softmin) on Omega_hat*I_hat. Also: a_max*eps becomes the promoted a_TS/
+a_visc constant.
+
+This maps exactly onto the study's variant B (zb form) by softmax homogeneity,
+with a_visc = a_max*eps_r = 0.0276 at its panel-(a)-optimal calibration. Study
+agent resumed for Part III: B presented as the first-class candidate — B-focused
+candidate Fig 4 at a_visc 0.0276 + a leaner 0.023; the two warts quantified for
+decision ((i) strong-FPG early onset -> expected spurious front shift at 7e6/2e7
+vs the 1033 theta_tr baseline; (ii) log-layer leak -> sigma_t-BLENDED parasitic
+vs canon 3.0e-4 and which zero-suite flows exercise y+~760); symmetric zc-vs-B
+impact table; the two-term naming block (a_inviscid short forms a_R/a_I/a_inv +
+a_visc/a_TS with its own Drela-stagnation determination).
+
+**User extension:** the 1851.2 gate ceiling is not sacred in the B structure —
+retune it. Part III becomes a JOINT (a_visc, C_ceiling) optimization. Expected
+double win being verified: a raised C (Drela-centering class ~6000-10000, since a
+fixed C maps to Rt 3.3-5.2x below Drela's rising Rt0 across beta 0.5-1) both
+delays the strong-FPG onset toward Drela AND pushes the log-layer gate opening
+(y+~760) deeper or out — potentially curing both B warts. Constraints: LST graze
+re-check (canon C came from the fig02 graze envelope whose favorable side the
+paper already flags as 1.27-1.34 high — the retune may improve it); adverse/
+separated side ceiling-independent (confirm). Deliverables: joint optimum, both
+panels vs zc and canon, re-quantified warts, impact rows, C's new determination
+statement in the naming block.
+
+---
+
+## 2026-07-28 — Cd(Re) overlay restyle + low-Re DNS series LAUNCHED (user directive)
+
+**User:** fig 20 in the whitepaper (= the Cd(Re) literature overlay, shared PDF with
+the paper's fig:dragcrisiscd): distinguish computations from experiments — symbols
+without lines for experiments, lines without symbols for computations; add low-Re
+unsteady DNS runs so nobody says "but there are calculations matching experiments
+here" in the shedding band.
+
+Agent launched: strict semantic restyle (experiments = symbols only, incl. the
+Achenbach-1968 polyline rendered as sparse symbols; computations = lines only;
+SA-AI family keeps its distinct subject styling); Henderson 1995 unsteady
+spectral-element drag (already digitized) promoted into the figure as a
+computation line; 1-2 additional unsteady 2D-DNS Cd(Re) sweeps in Re 47-1000
+acquired + digitized with full provenance/QA (+ optional Re=3900 3D anchor);
+figure regenerated (whitepaper inherits automatically via the shared PDF); draft
+caption + Crossref-verified bib entries delivered for my integration.
+
+---
+
+## 2026-07-28 — Overlay restyle INTEGRATED (7fb7ac2); recalibration Part III LANDED
+## (00fa057): the user's structure with retuned ceiling is the adopted recommendation
+
+**Overlay (agent commit bb57d1a + my integration 7fb7ac2, build 123pp clean):**
+- Strict semantic in figure + caption: symbols = experiments (Achenbach curve +
+  Wieselsberger fairing now sparse symbols along their polylines — they no longer
+  read as computations); lines = computations; SA-AI keeps subject styling.
+- Shedding-band unsteady computations added: Henderson 1995 spectral-element
+  shedding-mean (promoted) + Qu et al. 2013 DNS Table-3 transcription (8 pts,
+  Re 50-200, verbatim-asserted vs the OA PDF) + Dong-Karniadakis 2005 3-D DNS
+  anchor at Re=1e4 (capped tick) — unsteady computations recover the measured
+  level exactly where our steady branch sits below by construction.
+- Tritton/Finn/Jayaweera low-Re symbols finally attributed (Veysey-Goldenfeld
+  2007). 3 new Crossref-verified bib entries. SA-AI data md5-identical (styling+
+  additions only). Whitepaper inherits via the shared PDF, no wording change.
+- Figure: /home/qiqi/flexcompute/sa-ai/paper/figs/dragcrisis_cd_re.pdf
+  (preview .../repro/cfd/figs_explore/dragcrisis_cd_re.png); record
+  /home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-1321-dragcrisis-overlay2.md
+
+**Recalibration Part III (00fa057; record 1218 final):** the user's structure WITH
+the retuned ceiling is now the adopted recommendation —
+rate = min(a_inv, softmax_2(a_inv*Omega_hat*<I_hat>+, a_visc*Omega_hat*<-Z>+/R)),
+canon gate on un-floored Omega_hat*I_hat (gate blind to the viscous branch),
+a_inv = 0.19 (renamed a_max), a_visc = 0.0276, C = 8000 (retuned; determination:
+"centers the Drela-Giles critical stations of the favorable family"; the old
+1851.2 came from the graze saturation the paper already flagged 1.27-1.34 high).
+Net +1 constant.
+- Both panels max dev 1.77x — BEATS zc@0.12 (1.90x); Blasius intact (+5.1% late /
+  -2.6% Rt1 / -8.2% Re_x(N9)); candidate figure
+  /home/qiqi/flexcompute/sa-ai/paper/repro/analytic/figs_explore/model_calibrate_candidate_zb.png
+  — panel (b) joint-opt curve lies ON the DG station family-wide incl. stagnation.
+- BOTH warts cured by C=8000: no spurious nose crossings at 2e6-2e7; ultra arm
+  collapses to 35.4 deg (the experimental transcritical class; canon-C gave 12);
+  log-layer gate needs y+~3300 (leak gone), blended parasitic 3.1e-4 = canon.
+- Graze: adverse/separated pinned exactly; mild-favorable members move TOWARD
+  their LST anchors (the retune corrects the flagged bias); ledger: beta=0.15
+  member undershoots to 0.607.
+- Negative findings: two-eps structurally infeasible; exact stagnation slope
+  unattainable at a centered gate (rate-gate coupling; even a_visc=a_max reaches
+  0.93x). The min(a_inv, .) ceiling clip is REQUIRED (free-shear overshoots ~30%
+  without it — the user's shorthand formula omitted it).
+- USER DECISION: adopt (a_inv 0.19 / a_visc 0.0276 / C 8000)? Then env-gated
+  solver impl + the two validations (drag-crisis front discriminator at 2e7 +
+  ultra arm; spheroid re72a0 front).
+
+---
+
+## 2026-07-28 — Part IV launched: onset-graze figure enriched to stagnation (user directive)
+
+**User:** the zb candidate's panel (b) shows onset Re_theta too FLAT vs H at low H —
+the softmin saturation (un-floored P -> 0 => threshold -> constant C) while Drela's
+Re_theta0 keeps rising toward stagnation. Diagnose, starting by enriching Figure 2
+(whitepaper) / fig02 onset-threshold graze with more FPG members, all the way to the
+stagnation-point profile.
+
+Study agent resumed (Part IV): FS beta {0.35, 0.5, 0.7, 1.0} added with LST neutral
+points computed by the figure's own canonical method (to be identified and stated;
+published OS critical Reynolds numbers as the defensible fallback near stagnation).
+Deliverables: (a) enriched CANON figure (same gate, same styling, more members) as a
+candidate PDF for my integration into paper + whitepaper, with the graze-ratio table
+(the paper already flags beta>=0.25 at 1.27-1.34 high — the new members quantify the
+growth of the miss toward stagnation); (b) DIAGNOSTIC companion (figs_explore only):
+retuned C=8000 threshold + the strong-FPG members' (Re_Omega, P) loci + candidate
+threshold SHAPES that would track the rising neutral points (diagnosis only, no
+refit of canon); (c) the numbers table: each new member's neutral Re_Omega/Re_theta
+vs canon threshold and vs C=8000.
+
+---
+
+## 2026-07-28 — Part IV LANDED (cce074b): the low-H onset flatness is the COORDINATE
+## dying, not the ceiling
+
+Record: Part IV appended to
+/home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-1218-fpg-recalibration.md
+Candidate enriched figure:
+/home/qiqi/flexcompute/sa-ai/paper/repro/analytic/figs_explore/onset_graze_enriched.pdf
+(+png; diagnostic onset_graze_flatness.png; tables onset_graze_enriched.json;
+script paper/repro/analytic/fig02_onset_graze_enriched.py; canon fig02 untouched)
+
+- Canonical neutral-point method identified: Drela-Giles Eq. 30 Re_theta0(H)
+  correlation (not per-profile OS); same method extends smoothly to H=2.216;
+  Hiemenz cross-check vs published OS critical (Wazzan-Okamura-Smith,
+  Re_delta*~12490) agrees ~15% [mem-flagged for citation at integration].
+- Enriched graze table: legacy members 0.91-1.14 unchanged (reproduce canon to
+  printed digits); NEW: beta=0.35 -> 1.27 (lands exactly on the paper's flagged
+  band), beta=0.5/0.7/1.0 -> 2.33/2.94/3.70 vs the ceiling (Re_Omega* =
+  6053/7630/9624; NO P>0 locus — drawn as left-edge arrows).
+- DIAGNOSIS (answers the user's "softmax makes it too flat?"): beyond beta~0.4 the
+  gate coordinate Omega_hat*I_hat is <= 0 across the ENTIRE profile (exact
+  curvature; the 1041 audit's ~5e-4 frozen readings were estimator noise —
+  erratum recorded). So EVERY threshold Re_Omega_c(P) — capped, uncapped, any
+  softmin exponent — presents its constant P->0 limit precisely where the
+  critical Reynolds number rises fastest (Re_Omega* ~ 1.2-1.6 x Re_theta0). The
+  flatness is the death of the gate coordinate at low H, not a mis-set ceiling;
+  any constant C only splits the difference.
+- Shape candidates (none adopted): uncapped 1/P^2 — dead coordinate; softmin
+  exponent — limit still C; rising branch in the viscous coordinate
+  P_o = Omega_hat<-Z>+/R — locus exists but ill-conditioned (P_o spans only
+  0.129-0.160 across strong FPG); the observed law Re_Omega* ~ 1.45 Re_theta0
+  tracks trivially but requires integral-scale information — leaves the
+  pointwise-local class. That structural tension is the Part-V question.
+- Two earned gotchas recorded: repo FS ODE convention f''' = -[f f'' +
+  beta(1-f'^2)]/(2-beta); the beta>=0.5 profiles' Omega_hat*I_hat <= 0 everywhere.
+
+---
+
+## 2026-07-28 — Marble sphere deepened (bb43de5); FT-SA control headline: attribution REVISED
+
+- Fig 1 re-baked per user feedback (floor 0.66, lit side capped 0.97 — no page-white
+  interior pixels; glint 0.26, rim 0.12); committed bb43de5, both documents rebuilt.
+  Preview: /home/qiqi/flexcompute/sa-ai/paper/repro/analytic/figs_explore/indicator_sphere_new.png
+- ULTRA/FT-SA milestone (one case left): (1) seed spread shrinks to 5-8% at 3e9-1e10
+  with order scrambling — partial collapse consistent with saturation + wake-state
+  multiplicity; (2) FT-SA sits SUBSTANTIALLY ABOVE SA-AI at matched Re (0.246-0.371
+  vs 0.19-0.23): turbulent-from-the-nose thickens the shoulder BL and separates
+  earlier — yet still ~2x under the experimental transcritical 0.55-0.7.
+  ATTRIBUTION REVISION: the missing rise is BOTH (a) transition too aft (moving it
+  to the nose demonstrably lifts Cd toward experiment — which the a_visc/blended-
+  gate revision would supply at high Re) AND (b) a residual baseline-SA/steady-wake
+  deficiency (~2x) that persists even fully turbulent. The earlier "separation
+  pinned, transition exonerated" framing (0412) was half the story; knee/base-Cp
+  harvest will quantify the split.
+
+---
+
+## 2026-07-28 — Part V LANDED (fa3e2b2): the user's blended gate WINS (softmax_2 variant);
+## final recommended form supersedes Part III
+
+Record: Parts I-V in
+/home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-1218-fpg-recalibration.md
+Candidate Fig 4: paper/repro/analytic/figs_explore/model_calibrate_candidate_vbs.png
+
+FINAL FORM (vbs): rate = min(a_inv, softmax_2(a_inv*Ohat<Ihat>+, a_visc*Ohat<-Z>+/R));
+gate = 124.6 + 1.424/P_gate^2, P_gate = softmax_2(<Ohat*Ihat>+, c_o*Ohat<-Z>+/R),
+NO ceiling. Constants: a_inv = 0.19, a_visc = 0.0276, c_o = 0.105 — NET-ZERO count
+(the 1851.2 ceiling exchanged for c_o).
+- The user's H-tracking intuition VERIFIED to +-10%: c_o*P_o tracks the required
+  sqrt(1.424/Re_Omega*) at constant ratio through strong FPG — genuine H-tracking,
+  not just boundedness.
+- Linear blend (user's stated preference) not adoptable: at beta 0.05-0.15 the
+  viscous term is 30-81% of the inviscid one -> graze 1.38-1.89, Blasius -15.7%.
+  softmax_2 suppresses the cross-term quadratically: legacy graze 0.89-1.20 (canon
+  0.93-1.14), adverse/separated <1%.
+- Panel-(b) low-H flatness RESOLVED (rises continuously along the DG N=1 station to
+  H=2.2; residual beta=1 earliness 0.62x = a quantified tanh-ramp-tail interaction).
+  Max two-panel dev 1.63x — best of all forms (Part III 1.77x, zc 1.90x).
+- Every wart closed: log-layer leak FULLY closed (stable-layer threshold ~1.7e6,
+  never reached — cleaner than C=8000); gate closed at the wall (desirable,
+  boundedness saturates y*/theta=2.0); noses clean 0.03/0.08/0.28; ultra arm
+  29.8 deg; Hiemenz 0.013 e-folds; spheroid +1.29 (~0.011 L); Blasius -5.0% Rt1.
+- Naming: trio a_inv / a_visc / c_o (c_o a dimensionless weight, not a rate).
+  Curious ledgered observation: c_o/eps_r = 0.719 ~ k = 0.712.
+USER DECISION: adopt vbs (a_inv 0.19 / a_visc 0.0276 / c_o 0.105)? Then env-gated
+solver impl + validations (cylinder fronts at 2e7/ultra; spheroid re72a0), and the
+Fig 2/Fig 4 canon updates ride with adoption.
+
+---
+
+## 2026-07-28 — Fig 20 restyle refinement + Part VI (a_visc grounding, c_o/eps_r=k)
+
+**User (fig 20):** OUR computations also line-only no markers; experiments marker-only
+no lines; single-Re computations = short horizontal line stub; ALL series slightly
+transparent (crowded figure). Agent launched (a8e7f89c29888fd7f): SA-AI family ->
+line-only (up solid / dn dashed, seed colors, markers removed; stays distinct as the
+only colored lines); single-point computations -> line stubs; alpha ~0.6-0.75 on all
+series; data md5-verified unchanged. Whitepaper inherits shared PDF.
+
+**User (recal Part V rate):** at H=2.2 rate still ~3x low early / ~2x late vs Drela;
+why can't a_visc be higher; does 0.0276 have physical grounding; what at 0.04/0.05;
+explain c_o/eps_r=k. Study agent -> Part VI: a_visc sweep {0.0276,0.035,0.04,0.05,
+late=Drela} with both panels + costs + impact rows; physical-grounding verdict
+(eigenvalue vs empirical knob); rigorous DERIVATION of whether c_o = k*a_visc/a_inv
+is a structural identity (would remove c_o, net -1 constant) or coincidence; verify
+P_o = Omega_hat<-Z>/R flattens vs H near stagnation (bounds any c_o's onset tracking).
+
+---
+
+## 2026-07-28 — Fig 20 restyle INTEGRATED (e456138 + caption 540ab1c)
+
+Refined styling committed and the one dependent caption sentence fixed (build 123pp
+clean, 0 undefined/overfull):
+- SA-AI family -> LINE-ONLY (up solid / dn dashed, seed colors, markers removed;
+  the only colored lines = the subject); experiments marker-only (verified all
+  line-free); computations line-only; Dong-Karniadakis Re=1e4 3-D DNS -> short
+  horizontal STUB (half-width 0.035 decade) at the finest-grid Cd=1.143.
+- Transparency: SA-AI alpha 0.75, all literature 0.62; limit-cycle bands opaque.
+- Data md5-identical (styling only); regen against the committed 129-row snapshot
+  (live jsonl now 173 rows w/ in-progress ultra — the HANDOVER rule-4 temp-root
+  guard held).
+- Caption (540ab1c): "green tick ... spans the resolution study" -> "short green
+  stub ... marks the finest-grid value (N_z>=64 brackets Cd 1.110-1.143)".
+- Figure /home/qiqi/flexcompute/sa-ai/paper/figs/dragcrisis_cd_re.pdf (whitepaper
+  inherits); preview .../figs_explore/dragcrisis_cd_re.png; record
+  /home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-dragcrisis-overlay3-restyle.md
+
+---
+
+## 2026-07-28 — Part VI LANDED (efe0b8d): all four physics questions answered
+
+Record: Parts I-VI in
+/home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-1218-fpg-recalibration.md
+
+Q1 (why not raise a_visc): swept 0.0276-0.05. Stagnation late secant rises only
+SUBLINEARLY 0.61->0.82x for x1.8 in a_visc (raising it pulls N-stations earlier,
+compresses dRe_theta); the EARLY secant is gate/ramp-limited (0.34->0.40x) — the
+"3x low early" cannot be closed by any rate constant. Cost = softmax_2 bleed:
+viscous share at Blasius 14->35%, Blasius Re_x(N9) -10->-26%, mild-FPG beta=0.10
+to 1.34x. VERDICT: no a_visc fixes stagnation under 5% Blasius drift; 0.0276 is
+the largest safe value. Open candidate (not refit): sharpen the crossover
+(softmax_p p>2 or an I_hat<=0 hinge) to kill the Blasius bleed while keeping the
+pure-viscous stagnation gain.
+
+Q2 (grounding): a_visc has NONE — a_inv=0.19 IS Michalke's measured KH eigenvalue
+(0.1897, no free constant); a_visc=0.0276 is purely a Drela-stagnation-slope fit,
+a knob. Present it like k, not like a_inv. (a_visc/a_inv=0.145 ~ viscous-TS/
+inflectional 1/7, order-of-magnitude only.)
+
+Q3 (c_o/eps_r=k): COINCIDENCE, rigorously. c_o is graze-anchored from
+(Re_Omega*, P_o, Drela) alone — INDEPENDENT of a_visc (=0.1048 for every a_visc);
+c_o/eps_r scales as 1/a_visc (0.72->0.40 across the sweep), hitting k at one point
+only. Three constants, three unrelated anchors (beta=1 rate / beta=1 graze /
+Blasius onset). c_o STAYS an independent constant (net count unchanged).
+
+Q4 (P_o flatness, user's guess CONFIRMED): max P_o falls only -13% over beta
+1->0.35 while Re_theta0 rises +141% and the required gate arg (~1/sqrt(Re_Omega*))
+must fall -31% — P_o supplies only ~42% of Drela's demanded variation. Single
+graze-anchored c_o leaves stagnation threshold ~0.63x low (matches Part V's 0.62x
+marched onset). Required per-member weight rises 0.101->0.328 stagnation->Blasius;
+no single c_o tracks the family — the low-H onset earliness is INTRINSIC to the
+viscous coordinate's flatness, not a mis-set c_o. Full tracking needs a coordinate
+steeper in H than P_o (the Re_theta-integral scale — outside the pointwise-local
+class).
+
+NET: the vbs form (a_inv 0.19 / a_visc 0.0276 / c_o 0.105) is the ceiling of what
+the pointwise-local kernel achieves on Fig 4; the residual low-H rate (early
+3x/late 2x) and onset (0.63x) misses are STRUCTURAL, not untuned. Adoption
+decision unchanged; the residuals are now understood + defensible in the paper.
+
+---
+
+## 2026-07-28 — Part VII LANDED (9982a3b): c_nu,ai low-H susceptibility — intuition right
+## at fixed Re_theta, REVERSED in realized rate (the "high Re_theta onset" clause is why)
+
+Record: Parts I-VII in
+/home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-1218-fpg-recalibration.md
+
+- FIXED-Re_theta (frozen eigenvalue, Re_theta=8000): user's mechanism CONFIRMED —
+  production falls (1.1e-2->6.3e-4 over H 3.98->2.41), band thins (w 3.86->1.08),
+  confinement drain grows 0.2%->23% of production, |d(ln s)/d(ln c_nu,ai)| rises
+  ~10x (0.013->0.14). Peaks at the transitional band H~2.41, NOT stagnation (at
+  H<=2.30 vbs production ~0 even above onset -> deficit is production, not drain).
+- REALIZED (marched) rate REVERSES it: c_nu,ai 1/6->1/16 (x2.7) lifts stagnation
+  late secant only +3% (0.61->0.63, never Drela) but Blasius +7%, moderate FPG +8%
+  — OPPOSITE ranking. Why = the user's own "even at high Re_theta onset": low-H
+  transitions at high Re_theta (marched Rt1~4200 stagnation vs ~330 Blasius) where
+  the 1/Re_theta drain is already negligible; the drain the frozen map sees at a
+  common Re_theta is not the drain the low-H layer actually experiences.
+- vs a_visc: a_visc lifts stagnation +34% (0.61->0.82); c_nu,ai is BOTH weaker AND
+  less selective (moves Blasius more than stagnation, breaks N=1 anchor -11%). No
+  c_nu,ai brings H=2.216 to Drela (1/16 gives 0.63x; would need sub-molecular c).
+- 1/6 was Blasius-anchored (N=9 within ~7% of Drela + resolvable-band margin ~sqrt(c)).
+  Because lowering it barely helps realized low-H, 1/6 is NOT a low-H compromise —
+  DIFFERENT structural story from a_visc: the low-H deficit is a PRODUCTION problem
+  (a_visc / softmax_2 rate magnitude at Ihat<=0), not a diffusion-confinement one.
+  Confinement is a large FRACTION at low H only because production is small.
+
+NET understanding: c_nu,ai is not the low-H lever; the low-H rate ceiling is
+production-limited and structural, confirming the vbs form is the pointwise-local
+kernel's best. Data: paper/repro/analytic/fpg_recalibration_study.py --partvii,
+fpg_recalibration_vbs.json, partvii_march.json.
+
+---
+
+## 2026-07-28 — ULTRA harvest LANDED (record 1642/commit 36676ff) + Sec VII integrated (7a96f62)
+
+Record: /home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-1642-dragcrisis-ultra.md
+Figure (now Re 1->1e10): /home/qiqi/flexcompute/sa-ai/paper/figs/dragcrisis_cd_re.pdf
+
+- SPAN: Re 1 -> 1e10, TEN DECADES, one model/constants. Front marches monotonically
+  to the nose (89 deg -> 2 deg, Tu0.2 up) — transition-saturation mechanism confirmed.
+- SEED COLLAPSE: PARTIAL — spread narrows 10% (2e7) -> 5% (3e9) as fronts crowd the
+  nose, re-scatters to ~8% at 1e10; not a clean single curve, stated as such.
+- BRANCH MULTIPLICITY (major): at 1e10 cold relaminarizes (Cd 0.108, sep ~180 deg,
+  base Cp ~0) vs warm separated (0.189, sep 121 deg) — ~0.08 gap > crisis-band
+  spread; ultra asymptote is a protocol band 0.11-0.21, not a level (URANS to select).
+- FT-SA CONTROL (AI off, chi_inf=3, empty-echo verified): separates EARLIER
+  (105-112 vs SA-AI 119-120) and drags HIGHER (0.25-0.37 vs 0.19-0.23) -> SA-AI is
+  NOT just the turbulent baseline; BUT both ~2x under exp transcritical 0.55-0.7 and
+  separate 105-123 vs ~147. VERDICT (refines the earlier interim "both" read): the
+  missing rise is baseline-SA turbulent-separation + steady-symmetric-wake, NOT the
+  transition model — marching SA-AI's front to 2 deg at 1e10 leaves Cd unchanged;
+  transition closure EXONERATED for the transcritical gap.
+- Logistics: 017-v100-dev GPUs 0-3, canon binary verified (commit 05d05a123b);
+  results synced to unified local tree (173 cases); new ultra mesh y1=1e-9 fixes the
+  2e7 y+ debt (y+ 0.44-0.47 at 1e10); 2e7 highre<->ultra seam 3.8-5.8%/seed (ultra
+  authoritative). Cost +6.8 GPU-h.
+
+INTEGRATED (7a96f62, 123pp clean): Sec VII span 1-2e7 -> 1-1e10; three-grid ->
+four-grid; concession 5 rewritten to settle the attribution both ways (front-to-2deg
++ FT-SA control); concession 6 absorbs the 1e10 branch multiplicity (0.11-0.21 band).
+Reseed harvest still pending (a2p5 settle leg) -> Sec IX/X rewrite next.
+
+---
+
+## 2026-07-28 — RESEED harvest LANDED (record 1715/commit f94de9f): alpha=0 seed-fix
+## CONFIRMED; alpha=2.5 partial (leeward flank a separate effect)
+
+Record: /home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-1715-spheroid-reseed.md
+Front-vs-seed figure: paper/figs/ (paper-quality, committed)
+
+Seed determination: NO explicit DFVLR tunnel Tu% published anywhere (Stock PDF,
+references/, digitization metadata all checked; Kreplin/Vollmers/Meier 1985 not in
+repo). Documented anchor = Stock's limiting N_TS=8.0. Center seed = N_crit 8 via
+Mack map -> chi_inf 2.382e-3, Tu 0.106%; re72a0 bracketed Tu x/div 2.
+
+alpha=0 Re 7.2e6 fronts (chi=1 / Cf-rise vs 1122 remap):
+  Tu 0.053% (N7.70): 0.628 / 0.664  (remap 0.592)
+  Tu 0.106% (N6.04): 0.511 / 0.544  (remap 0.468)
+  Tu 0.213% (N4.38): 0.400 / 0.427  (remap 0.355)
+  measured 0.438, Stock e^N 0.425.
+
+VERDICTS:
+- alpha=0 CONFIRMED — freestream/IC chi IS the main fix. Bracket tracks the 1122
+  seed-lever at full e^N strength (dx/dN~0.067), crosses measured 0.438 at budget
+  N~5.0 (Tu~0.17%); documented DFVLR seed (N8/Tu0.106%) lands at 0.511 (0.07 L aft).
+  No rate/transport change invoked. (Note: measured front = the model's N~5, higher-
+  Tu than Stock's own N_TS=8 assignment — consistent with the 1122 finding that
+  Stock's TS method books ~2.8 more e-folds than the Drela-fit family the model
+  calibrates to; the disturbance-content story hangs together.)
+- re65a0 (Re 6.5e6, N8): 0.556 = +0.045 aft of re72a0 same seed (correct Re
+  direction); no measured DFVLR a0 front at 6.5e6, so a Reynolds-trend point only.
+- alpha=2.5 PARTIAL: windward matches (model 0.444 vs meas 0.450) but a CONVERGED
+  0.13 L azimuthal spread (leeward 0.576) that the near-uniform measurement (0.019 L)
+  doesn't show. Freestream fixes the windward/TS meridian; the leeward flank
+  lateness is a SECOND, seed-independent model-content effect (front-stationarity
+  cross-leg confirmed — not a convergence artifact). Stock Fig 14b digitized fresh
+  as the a2p5 reference.
+
+READY (awaiting user go on the prose): Sec IX/X spheroid rewrite. Spine = 1122
+threeway fig (seed-class miss, model e^N-faithful to x~0.7) + this reseed front-vs-
+seed bracket (a0 seed-fix confirmed) + the a2p5 windward/leeward split (freestream
+fixes windward, leeward flank = residual model content). Honest frame: the a0 "miss"
+was freestream mis-specification (now demonstrated); residual is disturbance-content
++ the leeward-flank effect at incidence.
+
+---
+
+## 2026-07-28 — Spheroid alpha=0 INTEGRATED (d57b28a) + tunnel/N-factor answers + drag-crisis Qs
+
+**Spheroid alpha=0 integration (d57b28a, 126pp clean):** new Sec X subsection
+"axisymmetric pure-TS anchor" — converged flight-quiet front 0.858 vs measured
+0.438; three-way N(x) fig (sphthreeway) shows model e^N-faithful to x~0.7; reseed
+bracket fig (sphreseed) lands the front on 0.438 at tunnel-class Tu~0.17% with no
+constant touched; the method-relative N-factor story; alpha=2.5 windward-match /
+leeward-flank crossflow cost. Krimmelbein 2010 bib entry Crossref-verified.
+
+**Q: freestream Tu <-> tunnel spec / N_crit story (answered + in the paper):**
+- The model consumes a freestream seed chi_inf; the tunnel-equivalent Tu comes via
+  the paper's Mack map (N_crit = -8.43 - 2.4 ln Tu, chi_inf = c_v1 e^-Ncrit).
+- NO measured DFVLR tunnel Tu is published anywhere (checked). The documented
+  disturbance level IS the limiting N-factor that matches the data — method-relative:
+  Stock N_TS=8.0 (authoritative spheroid paper), Krimmelbein ~7.5, our Drela-
+  calibrated kernel N_crit~7 (Tu~0.17%). No universal tunnel-N; each closure carries
+  its own factor (Stock's pure-TS e^N books ~2.8 more factors than the Drela envelope
+  by mid-body). => The authoritative spheroid paper used **N_TS = 8.0**.
+
+**Drag-crisis Qs (coordinator c4a1a20, answers in 1642 addendum):**
+- Fig 20 FT-SA now LINE-ONLY (dark-rust dash-dot, no markers) — the stray-symbol
+  computation the user caught, fixed.
+- Ladder spread: crisis band (3e5-1e6) = NON-CONVERGENCE (up branch limit-cycles
+  hard, p2p 0.07-0.20; spread would shrink with steps/URANS) -> sharpens concession
+  1; supercritical+ultra (7e6-3e9) = GENUINE BISTABILITY (both branches CD-flat,
+  0.025-0.055 apart) -> sharpens concession 6. Crisis=unsteadiness, super=bistability.
+- FT-SA lower at 1e10 = BRANCH SELECTION artifact: FT points are cold (attached
+  branch, Cd 0.125, sep 180), SA-AI plotted line is warm (separated). Branch-for-
+  branch FT-SA >= SA-AI always (attached 0.125 vs 0.108; separated 0.25-0.37 vs
+  0.19-0.23). Noted in Sec VII (333d110).
+
+**Q: any experiment above 1e7?** Per the 0117 litrange (adversarial search): the
+smooth-cylinder composite tops out ~Roshko 8.4e6 / Shih 8e6 / Schewe 7.1e6 — NO
+smooth-cylinder experiment above ~1e7. Our ultra arm 1e7->1e10 is entirely beyond
+any measurement (a claim strength, and why the figure shows only computations there).
+
+---
+
+## 2026-07-28 — Spheroid Tu/N-factor literature synthesis LAUNCHED (user challenge)
+
+User: the spheroid is a standard transition-modeling benchmark, so there should be a
+plethora of model-calibrated Tu%/N values — grab and synthesize. Agent launched
+(a71f9c0dd98da38b1): survey repo references (Stock, Krimmelbein, Coder, Medida, the
+TransitionMPW workshop, Piotrowski-Zingg, etc.) + web for gamma-Re_theta/AFT/e^N
+spheroid studies; extract each study's disturbance spec (method, calibrated N_crit
+or inlet Tu%, the Re/alpha it was tuned on); CRUCIAL — distinguish a MEASURED tunnel
+Tu (3x3m Goettingen) from a CALIBRATED fit value; deliver a synthesis table
+(study/method/case/N or Tu/Mack-equiv Tu/measured-vs-calibrated) + where our
+N_crit~7 (Tu~0.17%) sits in the spread. If the spread confirms no measured value and
+a method-dependent range, it strengthens the paper's "N is method-relative" framing;
+if a de-facto standard or a measured Tu exists, we adjust. Record + bib entries to
+follow; I integrate into the Sec X anchor subsection.
+
+---
+
+## 2026-07-28 — fSlow convergence trials + two-branch native-check LAUNCHED
+
+User: (1) try different fSlow protocols to converge crisis-band cases better; (2) why
+two branches? native to SA or introduced by SA-AI? documented in literature?
+
+Launched (coordinator a465100777339ba41): (1) fSlow trials on 2-3 crisis-band
+limit-cyclers (finer stage ladder / lower final fSlow / longer holds / adaptive-CFL)
+— does the CD cycle damp to a converged point, and where -> protocol-artifact vs
+genuine unsteadiness (URANS); (2) definitive native-vs-SA-AI: does base SA (AI off)
+show the SAME attached/separated two-branch pair -> if yes, native to base SA +
+steady symmetric protocol, not SA-AI. My reasoned answer relayed to user (two
+attached-flow topologies both fixed points of the steady symmetric equations;
+cold->attached, warm->separated; the numerical face of the physical Schewe
+bistability; FT-SA showing both = native to SA). Literature check to confirm.
+
+---
+
+## 2026-07-28 — Spheroid Tu/N band integrated (e46989f); roughness capability found; rough-cyl + 1e10-bistability answers
+
+- Sec X calibrated-Tu/N paragraph CORRECTED + strengthened (e46989f, 127pp clean):
+  removed the wrong Krimmelbein-N7.5-same-case (that was its tailplane); now the
+  documented band Stock N_TS 8.0(DFVLR)/7.0(CEAT) + gamma-Re_theta workshop
+  Tu 0.10-0.15% -> N~7-8 = Tu 0.10-0.16% (factor ~1.6), our N_crit~7/Tu~0.17%
+  interior; measured primary (Meier-Michel-Kreplin 1987) exists but unused by models.
+  Record 2330 / 178da0c. Meier bib entry added.
+- FLOW360 HAS A ROUGHNESS MODEL (answer to user): Aupoix-Spalart (2003) SA-rough,
+  input roughnessHeight = equivalent sand-grain k_s per wall patch, default 0
+  (smooth). Implementation confirmed in compute/src/.../SpalartAllmaras/:
+  SABoundaryConditions.h sets nonzero wall chi phiWall = C_vonKarman*u_tau*d0,
+  d0 = C_roughness_d0*k_s (C_roughness_d0=0.03); SpalartAllmaras.h adds
+  lengthScale += k_s*0.03 (d_eff = d + 0.03 k_s); SATurbulentViscosity.h uses it too.
+  Constants C_roughness_d0=0.03, C_roughness_cr1=2.5 (standard SA-rough). => we CAN
+  run rough cylinders and compare to Achenbach 1971 / Shih 1993 rough data.
+- Rough-cylinder experiments: exist (Achenbach 1971 roughness family; Shih 1993
+  smooth+rough) but at comparable/LOWER Re -- roughness advances the crisis to lower
+  Re, does NOT raise the ~1e7 ceiling; no cylinder experiment (smooth or rough) above
+  ~1e7 to my knowledge (offered to have lit verify the rough ceiling specifically).
+- 1e10 bistability (user clarified: the deep-transcritical 1e10 two-branch, NOT the
+  crisis band): genuine two-state (both CD-flat per the decomposition) -- attached-to-
+  ~180deg low-drag (0.11) vs separated-at-~120deg (0.19), both steady fixed points;
+  coordinator experiment (2) running now determines native-vs-SA-AI via the FT-SA
+  cold(attached)/warm(separated) matched-Re pair.
+
+---
+
+## 2026-07-28 — Fig 18 stub/errorbar fix (4a698f5) + whitepaper rebuild
+
+User: single-Re sim stubs hard to see (thicker/longer); error bars have horizontal
+caps confusing with the stubs (remove caps). Done (I edited regen_dragcrisis_cd_re.py
+directly; coordinator busy w/ experiments): Dong-Karniadakis single-Re DNS stub
+hw 0.035->0.07, lw 1.4->2.8 (bold, longer); SA-AI limit-cycle error bars capsize
+3.5->0 (capless vertical lines). Regen --include-ultra keeps full Re 1-1e10 (173
+cases); data JSON untouched. Whitepaper inherits the shared PDF.
+Figure /home/qiqi/flexcompute/sa-ai/paper/figs/dragcrisis_cd_re.pdf.
+
+---
+
+## 2026-07-28 — Fig 18 decluttered to one seed (085e922)
+
+User: the Tu seeds barely differ except where the sim can't converge -> keep only
+the cleanest-converging one. Picked Tu=0.2% by data (mean tail p2p 0.0093 vs
+0.05%:0.0107, 0.7%:0.0175 -- cleanest, and the canonical middle seed w/ cold refs).
+regen_dragcrisis_cd_re.py: --seeds flag (default "0.2"; "0.05,0.2,0.7" restores
+family); other-seed labels guarded. Fig 18 now single orange up/dn ladder + literature
++ FT-SA to 1e10 -- far cleaner. Tu-shift-of-crisis (a real computed result) redirected
+to the angle figure (fig:dragcrisisangles keeps all 3 seeds) + text; caption + traverse
+sentence updated; span label 1-2e7 -> 1-1e10, "three grids" -> "four grids", filled/open
+-> solid/dashed. 127pp clean, whitepaper inherits.
+Figure /home/qiqi/flexcompute/sa-ai/paper/figs/dragcrisis_cd_re.pdf.
+
+---
+
+## 2026-07-28 — Fig 15 (Eppler Re-sweep) rework LAUNCHED (user, 5+1 requirements)
+
+Agent aef9db94d4cd38706 reworking fig:eppresweepforces / regen_epp_resweep_forces.py:
+1. Experiment (LTPT) symbols enlarged + dominant vs small-gray published-calc symbols
+   (distinction was unclear).
+2. Recast to 2x2: combine the separation + reattachment panels into one
+   (x_sep vs x_R told apart by trend) -> {lift, drag, moment, sep+reattach}.
+3. The mysterious vertical lines = alpha=4-6deg experimental/reference brackets
+   straddling alpha=5 (Cole-Mueller @1e5, Ghimire @3e5; no exact alpha=5 station
+   datum) -> render as capped range bars + legend/caption phrase.
+4. Legend repositioned off the bottom-panel x-axis labels.
+5. Investigate why LTPT oil-flow (open black circles) don't show on sep/reattach
+   (OIL dict TM-4062 Table III coverage; enlarge/fill) -> data-availability finding.
++6 (mid-turn): replace LTPT force error bars with the INDIVIDUAL repeat measurements
+   as separate black circles IF TM-4062 provides them; else report what needs
+   digitizing, no fabrication.
+Deliver reworked script + fig + draft caption (I integrate tex, incl. panel-count /
+width). Record + commit to follow.
+
+---
+
+## 2026-07-28 — Fig 18: limit-cycle uncertainty bars removed (ca13642)
+
+User: remove the vertical uncertainty bars (confusing, plot crowded). Done — the
+SA-AI limit-cycle tail-window bars are no longer drawn (tail min/max stay in the
+JSON dump + appendix table; non-uniqueness remains a text concession, Sec VII 1&6).
+Caption sentence removed; script docstring/print reworded; 127pp clean; whitepaper
+inherits. Fig 18 now: single Tu=0.2% up/dn ladder + literature + FT-SA, no bars.
+
+---
+
+## 2026-07-29 — Fig 15 (Eppler Re-sweep) reworked + integrated (b6acddd fig, 9b49282 tex)
+
+Record: /home/qiqi/flexcompute/sa-ai/agent-paper-review/2026-07-28-fig15-rework.md
+All 6 requirements done:
+1. LTPT experiment now LARGE FILLED black circles (ms 8.5, top zorder) vs small open
+   gray published-calc symbols -> instant experiment/CFD distinction.
+2. 2x2: lift|drag(log) top, moment|combined-sep+reattach bottom (shared x/c, in-panel
+   "laminar separation"/"turbulent reattachment" labels).
+3. Mystery vertical lines = alpha=4-6 brackets straddling alpha=5 (no alpha=5 station
+   datum) -> now capped range bars + legend entry.
+4. Legend moved figure-level below axes (bbox tight) -> no x-label overlap.
+5. "Missing" oil-flow circles: NOT missing data -- TM-4062 Table III tabulates oil
+   sep/reattach at alpha=5 for Re=1/2/3e5 ONLY (genuine source limit); old circles
+   were small/open/overlapped -> now enlarged/filled/visible.
+6. Individual LTPT runs (user): replaced the assumed error bars with each individual
+   Table B1 near-alpha=5 run as a separate black circle where the repo has them
+   (2e5 c_l 4 runs, 1e5/2e5 c_d repeats; single elsewhere). NO fabrication -- a full
+   per-run set needs re-reading TM-4062 Table B1 from mcghee_1988 PDF (flagged).
+Data JSON byte-identical (styling/layout only). Integrated: caption rewritten,
+includegraphics \textwidth -> 0.9\textwidth (aspect 1.39->1.20). 127pp clean;
+whitepaper inherits. Figure /home/qiqi/flexcompute/sa-ai/paper/figs/eppler_resweep_forces.pdf.
+
+OPEN (user-gated, flagged): a complete individual-run digitization of TM-4062 Table B1
+(all runs x near-5deg alphas x all columns) would let every repeat show as its own
+circle at every Re; currently only the partial set already in the repo is plotted.

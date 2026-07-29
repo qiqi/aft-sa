@@ -348,8 +348,12 @@ def main():
     fig, ax = plt.subplots(figsize=(7.4, 5.4))
     dump = {}
     remin, remax = np.inf, 0.0
-    for tu in seeds_list:
+    # iterate ALL seeds so the JSON dump / appendix table keep every seed;
+    # only seeds in seeds_list are actually drawn (default one, to declutter
+    # the overlay -- user 2026-07-28).
+    for tu in TU_ORDER:
         c = TU_COLOR[tu]
+        plot_this = tu in seeds_list
         # SA-AI family is LINE-ONLY (user directive 2026-07-28): no markers,
         # up=solid / dn=dashed, seed color per Tu. It stays visually distinct
         # from the literature by being the only COLORED lines (literature
@@ -363,10 +367,22 @@ def main():
                 continue
             re = np.array([p[0] for p in pts])
             cd = np.array([p[1]["Cd"] for p in pts])
-            if ls is not None:
+            if ls is not None and plot_this:
                 remin, remax = min(remin, re.min()), max(remax, re.max())
-                ax.plot(re, cd, ls=ls, color=c, lw=1.6,
-                        alpha=ALPHA_SAAI, zorder=4)
+                # draw ONE line PER MESH FAMILY, not one line through all
+                # points: the seam-overlap Reynolds numbers carry two
+                # meshes with a small Cd offset, and connecting across
+                # them drew a spurious vertical kink at fixed Re (user
+                # 2026-07-29). Per-family segments leave the overlap
+                # visible as two nearby points, no kink.
+                for fam in dict.fromkeys(p[1].get("mesh", "pilot")
+                                         for p in pts):
+                    fp = [p for p in pts
+                          if p[1].get("mesh", "pilot") == fam]
+                    fre = np.array([p[0] for p in fp])
+                    fcd = np.array([p[1]["Cd"] for p in fp])
+                    ax.plot(fre, fcd, ls=ls, color=c, lw=1.6,
+                            alpha=ALPHA_SAAI, zorder=4)
             for reval, r in pts:
                 lc = any("limit_cycle" in v for v in r["verdicts"])
                 ent = {"Cd": r["Cd"], "Cd_tail_p2p": r["Cd_tail_p2p"],
