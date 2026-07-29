@@ -53,9 +53,12 @@ that the high-H behavior lacks direct literature evidence. **That was wrong.**
   database of separated profiles**, all taken from laminar solutions of
   representative airfoil profiles. It is a real, grounded limit, not a
   correlation guess.
-- His high-H limit is **also consistent with Kevin Helmholtz's result**
-  [first name / spelling to confirm], just as ours is — an independent
-  corroboration.
+- His high-H limit is **also consistent with the Kelvin–Helmholtz
+  (inviscid, inflectional) rate**, just as ours is: our free-shear
+  amplification ceiling `a_max = 0.19` is exactly the Michalke KH eigenvalue
+  of the tanh mixing layer (`amax_rayleigh.py`). So the high-H limit is
+  anchored to the same inviscid inflectional instability from two independent
+  directions.
 
 Actions:
 - [ ] Obtain Drela's separated-profile database (pending email).
@@ -140,7 +143,7 @@ the q-based gate: `μ_t = [(1−b) f_v1(χ) + b] ρ ν̃`, `b = s(χ) G(q)`,
 - [ ] Validate our high-H limit vs Orr–Sommerfeld on those profiles
   (`explore_pinchpoint_shooting.py`, `amax_rayleigh.py`).
 - [ ] Fix the paper's high-H "no literature" framing; cite the OS-on-separated
-  -profiles basis and the corroborating source (confirm "Kevin Helmholtz").
+  -profiles basis and the Kelvin–Helmholtz (inviscid inflectional) corroboration.
 - [ ] Analyze reverse-flow-only `Re_θ` across bubble profiles.
 - [ ] Quantify the near-onset slope penalty of a `Re_Ω ≪ Re_Ω^c` decay term
   (eigenvalue solvers + `march_sa_handover.py`).
