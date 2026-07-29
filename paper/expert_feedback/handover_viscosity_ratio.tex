@@ -1,0 +1,128 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.7in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.16em}
+\abovedisplayskip 2pt \belowdisplayskip 2pt
+\abovedisplayshortskip 0pt \belowdisplayshortskip 0pt
+\linespread{0.97}
+\setlength{\tabcolsep}{4.5pt}
+
+\newcommand{\Ret}{\mathrm{Re}_\theta}
+\newcommand{\Hk}{H_k}
+
+\begin{document}
+
+\textbf{Handover eddy-viscosity ratio $\chi=\nu_t/\nu$ at transition, from the
+XFOIL/Drela closure.}
+
+\textbf{1. Equilibrium shear stress.} XFOIL's equilibrium shear-stress
+coefficient, $C_\tau\equiv\tau_{t,\max}/\rho u_e^2$, is
+\[
+C_{\tau,\mathrm{eq}}
+=\frac{CC\;H^{*}\,(\Hk-1)\,H_{kc}^{2}}{(1-U_s)\,H\,\Hk^{2}},
+\qquad
+H_{kc}=\Hk-1-\frac{G_C}{\Ret}\ \xrightarrow[\ \Ret\ \text{large}\ ]{}\ \Hk-1,
+\]
+with slip velocity and prefactor
+\[
+U_s=\tfrac12 H^{*}\Big(1-\tfrac{1}{G_B}\tfrac{\Hk-1}{H}\Big),
+\qquad
+CC=\frac{1}{2G_A^{2}G_B}=\frac{1}{2(6.7)^2(0.75)}=0.01485 ,
+\]
+and $G_A=6.7$, $G_B=0.75$, $G_C=18$; $H^{*}$ is the turbulent KE shape
+parameter and $H=\Hk$ incompressibly. The familiar $0.015$ is $CC$.
+
+\textbf{2. The layer does not start at equilibrium.} At the transition station
+XFOIL initializes
+\[
+C_\tau(s_t)=c^{2}\,C_{\tau,\mathrm{eq}},
+\qquad
+c=C_{\tau C}\,e^{-C_{\tau E}/(\Hk-1)},
+\qquad C_{\tau C}=1.8,\quad C_{\tau E}=3.3 .
+\]
+$c<1$ encodes that high-amplitude TS waves carry only part of the eventual
+Reynolds stress: $c=0.0024$ at $\Hk=1.5$, rising to $c=0.48$ at $\Hk=3.5$.
+
+\textbf{3. Mapping $C_\tau$ to an eddy viscosity.} Equating the definition of
+$C_\tau$ to Boussinesq and writing the peak shear in wall-free units,
+\[
+\rho u_e^{2}C_\tau=\rho\,\nu_{t,\max}\Big(\frac{\partial u}{\partial y}\Big)_{\max},
+\qquad
+\Big(\frac{\partial u}{\partial y}\Big)_{\max}\equiv G\,\frac{u_e}{\theta},
+\qquad\text{so}\qquad
+\boxed{\ \chi=\frac{\nu_{t,\max}}{\nu}=\frac{\Ret\,C_\tau}{G}\ }
+\]
+
+\textbf{Justification of $G$ (canonical profile).} $G$ is not assumed: it is
+measured on the \emph{Falkner--Skan} family --- the right canonical family here,
+since at a bubble's transition station the profile is still the laminar
+near-/post-separation shear layer. In similarity variables ($\eta=y/L$,
+$u=u_e f'$), $\theta=L\!\int\! f'(1-f')\,d\eta$, so
+$G=\big(\!\int\! f'(1-f')d\eta\big)\max f''$. Along the family:
+
+\vspace{-5pt}\begin{center}\small
+\begin{tabular}{lrrrrrrr}
+\toprule
+$\Hk$ & 2.68 & 2.80 & 2.96 & 3.18 & 3.48 & 3.98 & 4.92\\
+$G$   & 0.208& 0.203& 0.203& 0.205& 0.209& 0.211& 0.207\\
+\bottomrule
+\end{tabular}
+\end{center}\vspace{-7pt}
+
+$G=0.207\pm2\%$ across the entire inflectional range --- mild adverse gradient,
+through separation ($\Hk=3.98$), into reversed flow ($\Hk=4.92$). The peak shear
+is therefore \emph{essentially independent of $\Hk$}: as the profile deepens the
+shear layer thickens in proportion to its defect, and the two cancel in $\theta$
+units. It does \emph{not} scale as $(\Hk-1)/\Hk$, which would rise $25\%$ here
+and (with $k_g\approx0.6$) overstate the shear twofold. Hence
+$\chi\approx4.8\,\Ret\,C_\tau$.
+
+\textbf{4. Equilibrium versus handover level.} The boxed mapping of step 3,
+evaluated at the two values of $C_\tau$ already established --- the step-1
+equilibrium and the step-2 initialization --- gives
+\[
+\chi_{\mathrm{eq}}=\frac{\Ret\,C_{\tau,\mathrm{eq}}}{G},
+\qquad\qquad
+\chi_{\mathrm{init}}=\frac{\Ret\,c^{2}C_{\tau,\mathrm{eq}}}{G}=c^{2}\chi_{\mathrm{eq}} .
+\]
+Only $\chi_{\mathrm{init}}$ answers ``how much $\chi$ at handover'':
+$\chi_{\mathrm{eq}}$ is merely where the lag equation is heading.
+
+\vspace{-5pt}\begin{center}\small
+\begin{tabular}{lrrrrr}
+\toprule
+regime & $\Hk$ & $\Ret$ & $c$ & $\chi_{\mathrm{eq}}$ & $\chi_{\mathrm{init}}$\\
+\midrule
+flat plate (turb)$^{\dagger}$ & 1.5 & 500  & $0.00245$ & $3.9$  & $2.35\times10^{-5}$\\
+flat plate (turb)$^{\dagger}$ & 1.5 & 1000 & $0.00245$ & $8.3$  & $4.97\times10^{-5}$\\
+bubble (mild)     & 2.5 & 200  & $0.199$ & $5.1$  & $0.204$\\
+bubble (mild)     & 2.5 & 800  & $0.199$ & $22.0$ & $0.874$\\
+bubble (strong)   & 3.5 & 200  & $0.481$ & $7.7$  & $1.78$\\
+bubble (strong)   & 3.5 & 800  & $0.481$ & $32.1$ & $7.41$\\
+\bottomrule
+\end{tabular}
+\end{center}\vspace{-7pt}
+
+$^{\dagger}$Outside the Falkner--Skan calibration: an attached turbulent profile
+peaks nearer the wall where shear is larger, so these are upper bounds.
+
+\textbf{5. Consequence for the handover.} The factor $c$ carries \emph{no} $N$
+dependence: it is a function of $\Hk$ alone, applied once at the station where
+$N$ first reaches $N_{\mathrm{crit}}$, and $c=1$ only at
+$\Hk=1+3.3/\ln1.8=6.6$. So XFOIL declares transition with the layer holding just
+$c^{2}$ of its equilibrium stress --- $4\%$ at $\Hk=2.5$, $23\%$ at $\Hk=3.5$ ---
+giving a handover level $\chi_\star=\chi_{\mathrm{init}}=O(0.2\text{--}7)$. It
+rises steeply with both bubble strength and $\Ret$ (about eightfold from
+$\Hk=2.5$ to $3.5$ at fixed $\Ret$), so ``bigger bubble $\Rightarrow$ later
+handover'' is quantitative. Note the magnitude: XFOIL's own initialization hands
+over at $\chi$ of order a few, \emph{not} $\approx30$ --- the layer is expected
+to develop the rest by itself, which is what SA is supposed to do.
+
+\textbf{Reproduced by} \texttt{repro/analytic/handover\_viscosity\_ratio.py},
+cross-checked to $10^{-9}$ against \texttt{get\_cteq}/\texttt{get\_cttr} in
+\texttt{src/validation/mfoil.py}.
+
+\end{document}

@@ -88,6 +88,28 @@ Drela's key modeling insight on the handover:
   (`sec:fv1bypass`). Drela's number lands where our lifted-layer assembly
   already stops intervening — worth making the handover target explicit and
   bubble-size-aware.
+- **Quantified** (see `expert_feedback/handover_viscosity_ratio.tex`, repro
+  `repro/analytic/handover_viscosity_ratio.py`, cross-checked to 1e-9 against
+  the XFOIL closure in `src/validation/mfoil.py`): XFOIL initializes the
+  turbulent station at `Cτ(s_t) = c²·Cτ,eq` with `c = 1.8 e^{-3.3/(Hk-1)}` —
+  a function of `Hk` **alone** (no `N` dependence; applied once at the
+  `N = N_crit` station), and `c = 1` only at `Hk = 1 + 3.3/ln1.8 = 6.6`. So the
+  layer is handed over holding just `c²` of its equilibrium stress: 4% at
+  Hk=2.5, 23% at Hk=3.5.
+- Mapping `Cτ → χ` via `χ = Re_θ·Cτ/G`, where the peak shear
+  `G = (θ/u_e)(du/dy)_max` is **calibrated on Falkner–Skan** (the right family,
+  since at a bubble's transition station the profile is still the laminar
+  near-/post-separation shear layer): `G = 0.207 ± 2%` and is essentially
+  **independent of Hk** over Hk = 2.7–4.9 (mild APG → separation → reversed
+  flow). It does *not* scale as `(Hk−1)/Hk`. Hence `χ ≈ 4.8 Re_θ Cτ`.
+- Result: the handover level is **`χ* = χ_init = O(0.2–7)`**, rising ~8× from
+  Hk=2.5 to Hk=3.5 at fixed Re_θ (mostly via `c²`). So "bigger bubble → later
+  handover" is confirmed **quantitatively**.
+- ⚠ **Tension to raise with Drela:** this is an order of magnitude *below* his
+  stated `χ≈30`. XFOIL's own initialization hands over at χ of order a few and
+  expects the layer to develop the rest — which is what SA is supposed to do.
+  His 30 may refer to the developed layer (Clauser level `≈0.017 Hk Re_θ`,
+  which is O(10–50)), or to a target for a model without a lag equation.
 
 ### 4. χ recirculation inside the bubble → growth faster than e^N
 
@@ -150,7 +172,11 @@ the q-based gate: `μ_t = [(1−b) f_v1(χ) + b] ρ ν̃`, `b = s(χ) G(q)`,
 - [ ] Prototype the negative-growth-where-`Re_θ`-stable rate law.
 - [ ] Prototype the boosted q-based handover to `χ ≈ 30` (bubble-scaled),
   tested on a reverse-advection-dropped parabolized march.
-- [ ] Make the handover target explicit and bubble-size-aware in the model.
+- [ ] Make the handover target explicit and bubble-size-aware in the model:
+  XFOIL-implied `χ* = O(0.2–7)`, rising steeply with Hk, per
+  `expert_feedback/handover_viscosity_ratio.{tex,pdf}`.
+- [ ] Reconcile that `χ* = O(0.2–7)` with Drela's stated `χ≈30` (ask him which
+  level he meant).
 
 ### Tools referenced
 
@@ -160,3 +186,8 @@ the q-based gate: `μ_t = [(1−b) f_v1(χ) + b] ρ ν̃`, `b = s(χ) G(q)`,
 - Parabolized marching (handover): `repro/analytic/march_sa_handover.py`.
 - q-based lifted-layer assembly: paper `sec:fv1bypass`;
   `repro/analytic/fv1_qmargin_composite.py`, `explore_q2_*.py`.
+- Handover viscosity ratio (χ at handover: XFOIL `Cτ` initialization + the
+  Falkner–Skan peak-shear `G` calibration): note
+  `expert_feedback/handover_viscosity_ratio.tex` (+ `.pdf`), repro
+  `repro/analytic/handover_viscosity_ratio.py` (cross-checked against
+  `src/validation/mfoil.py` `get_cteq`/`get_cttr`).

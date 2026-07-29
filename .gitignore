@@ -60,6 +60,8 @@ temp_*/
 # second path to the P11-M2/P12-M7/P13-M1 silent-figure-loss failure)
 !paper/figs/*.pdf
 !references/*.pdf
+# standalone expert-feedback notes are deliverables, tracked with their .tex
+!paper/expert_feedback/*.pdf
 *.p3d
 *.nmf
 *_stats.p3d
