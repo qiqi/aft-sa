@@ -209,9 +209,7 @@ def figure(canon, green, vbs, vg, BC):
     Hg = np.geomspace(2.2, 2.75, 200)
     dg = np.asarray(dN_dRe_theta(Hg)); Rtc = np.asarray(Re_theta0(Hg))
     N1 = Rtc + 1.0/dg
-    for rows, col, lab, mk in [(canon, '0.6', 'canon-C1851 (const C)', 'o'),
-                               (green, 'C2', 'C8000 (const C)', 'D'),
-                               (vbs, 'C1', 'vbs (P-blend)', 'v'),
+    for rows, col, lab, mk in [(canon, '0.6', 'canon (const $C$, main paper)', 'o'),
                                (vg, 'C0', 'vg (two-branch gate)', '^')]:
         H, sl, R = cols(rows)
         axa.semilogy(H, sl, '-'+mk, color=col, lw=1.4, ms=5, label=lab)
