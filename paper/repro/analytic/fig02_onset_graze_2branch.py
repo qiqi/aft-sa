@@ -79,11 +79,11 @@ def main():
     # canon threshold = softmin(CEIL, A+B/P_I^2): the FLAT CEIL segment is the
     # non-resolving stand-in the vg curvature branch replaces.
     Pg = np.geomspace(3e-3, 1.3, 400)
-    axL.loglog(Pg, softmin(Pg), 'k--', lw=2.0, zorder=5,
-               label=r'canon $\mathrm{softmin}(C, A+B/P_I^2)$ (k=1)')
-    axL.loglog(Pg, K_ANCHOR*softmin(Pg), 'k-.', lw=1.3, zorder=5,
-               label=r'model $k\cdot\mathrm{softmin}$')
-    axL.axhline(CEIL, color='firebrick', ls=':', lw=1.1, zorder=4)
+    br_infl = A_ + B_/Pg**2                     # inflectional branch, no ceiling
+    axL.loglog(Pg, br_infl, 'k--', lw=2.0, zorder=5,
+               label=r'$A+B/P_I^2$ (k=1)')
+    axL.loglog(Pg, K_ANCHOR*br_infl, 'k-.', lw=1.3, zorder=5,
+               label=r'model $k\,(A+B/P_I^2)$')
     cmap = plt.cm.coolwarm
     natt = sum(1 for _, g in LEFT if g is None)
     j = 0

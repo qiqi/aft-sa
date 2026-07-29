@@ -1,16 +1,13 @@
 """fig:dragcrisisangles -> paper/figs/dragcrisis_angles.pdf.
 
-Two panels from the committed radial-ray extraction JSON
-(figs_explore/data/dragcrisis_theta_tr.json, built by
-dragcrisis_transition_angle.py; no field data re-read here):
-  (a) transition angle theta_tr (radial-ray max-chi >= 1, the user's
-      convention) AND wall separation angles (first / final tangential-Cf
-      crossings) vs Re_D, three seeds, up/dn ladders, authoritative mesh
-      family per Re (pilot <= 2e6, highre >= 4e6; low arm = the pilot dn
-      continuation). The lowre creeping-arm angles are far-wake features
-      (record 2026-07-28-1033) and are excluded.
-  (b) max-chi(theta) ray profiles for a representative Re ladder at the
-      middle seed, log scale, chi = 1 marked.
+Single seed Tu=0.2%, the systematic clean up/down ladders (2026-07-29
+campaign, /local_data .../systematic_Tu0.2_summary.jsonl), across the FULL
+Re_D = 1..1e10 range.
+  (a) transition angle theta_tr (radial-ray max-chi >= 1) and wall separation
+      angles (first / final tangential-Cf zero crossings) vs Re_D, up (solid)
+      and down (dashed) ladders.
+  (b) max-chi(theta) radial-ray profiles, one Re per decade (10^2..10^10),
+      up-ladder, log scale, chi = 1 marked.
 House style: line plots, no in-figure titles, caption carries the story.
 Run from anywhere: python3 repro/cfd/regen_dragcrisis_angles.py
 """
@@ -25,96 +22,102 @@ import matplotlib.pyplot as plt
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.abspath(os.path.join(HERE, '..', '..', 'figs'))
 PREV = os.path.join(HERE, 'figs_explore')
-JSON = os.path.join(PREV, 'data', 'dragcrisis_theta_tr.json')
-
-SEED_COLOR = {"0.05": "tab:blue", "0.2": "tab:orange", "0.7": "tab:purple"}
-CRISIS_BAND = (3e5, 7e5)                      # shading as in fig:dragcrisiscd
-REP = [("cyl_Re10000_Tu0.2_dn", "$10^4$"),
-       ("cyl_Re60000_Tu0.2_up", r"$6\times10^4$"),
-       ("cyl_Re200000_Tu0.2_up", r"$2\times10^5$"),
-       ("cyl_Re500000_Tu0.2_up", r"$5\times10^5$"),
-       ("cyl_Re2000000_Tu0.2_up", r"$2\times10^6$"),
-       ("cyl_Re20000000_Tu0.2_up_highre", r"$2\times10^7$")]
+SUMMARY = ('/local_data/qiqi/sa-ai/dragcrisis_matrix/'
+           'systematic_Tu0.2_summary.jsonl')
+CRISIS_BAND = (3e5, 7e5)
+PROFILE_DECADES = [1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10]
 
 
-def authoritative(c):
-    """Keep the per-Re authoritative mesh family (0412 statement)."""
-    if c["re"] < 1e4:
-        return False                          # creeping/low: far-wake angles
-    if c["mesh"] == "pilot":
-        return c["re"] <= 2e6
-    if c["mesh"] == "highre":
-        return c["re"] >= 4e6
-    return False
+def sep_first_final(crossings):
+    seps = [a for a, t in (crossings or []) if t == 'separation']
+    if not seps:
+        return None, None
+    return min(seps), max(seps)
 
 
-def series(cases, tu, branch, key):
-    pts = [(c["re"], c[key]) for c in cases.values()
-           if c["Tu"] == tu and c["dir"] == branch and authoritative(c)
-           and c.get(key) is not None]
-    pts.sort()
-    return np.array([p[0] for p in pts]), np.array([p[1] for p in pts])
+def load():
+    rows = {}
+    with open(SUMMARY) as f:
+        for ln in f:
+            d = json.loads(ln)
+            rows.setdefault(d['dir'], []).append(d)
+    for d in rows:
+        rows[d].sort(key=lambda r: r['re'])
+    return rows
+
+
+def series(rows, key):
+    xs, ys = [], []
+    for r in rows:
+        v = r.get(key)
+        if v is not None:
+            xs.append(r['re']); ys.append(v)
+    return np.array(xs), np.array(ys)
+
+
+def sep_series(rows, which):
+    xs, ys = [], []
+    for r in rows:
+        f, l = sep_first_final(r.get('crossings_upper'))
+        v = f if which == 'first' else l
+        if v is not None and 1.0 < v < 179.9:
+            xs.append(r['re']); ys.append(v)
+    return np.array(xs), np.array(ys)
 
 
 def main():
-    cases = json.load(open(JSON))["cases"]
+    rows = load()
     plt.rcParams.update({"font.size": 11})
     fig, (ax, bx) = plt.subplots(1, 2, figsize=(11.2, 4.4),
                                  gridspec_kw=dict(wspace=0.22))
 
-    # ---- (a) angles vs Re ----
+    # ---- (a) angles vs Re, up (solid) / dn (dashed) ----
     ax.axvspan(*CRISIS_BAND, color="0.92", zorder=0)
-    for tu, col in SEED_COLOR.items():
-        for branch, ls, mfc in (("up", "-", col), ("dn", "--", "none")):
-            re_, th = series(cases, tu, branch, "theta_tr_chi1")
-            ax.plot(re_, th, ls, color=col, marker="o", ms=5, mfc=mfc,
-                    lw=1.6, zorder=4)
-            for key, mk in (("sep_first", "v"), ("sep_final", "d")):
-                re_, sp = series(cases, tu, branch, key)
-                ax.plot(re_, sp, ls, color=col, marker=mk, ms=3.5, mfc=mfc,
-                        lw=0.7, alpha=0.65, zorder=3)
-    # line-class legend (gray), seed identity via text labels
-    leg = [plt.Line2D([], [], color="0.3", ls="-", marker="o", ms=5,
-                      label=r"$\theta_{tr}$ up"),
-           plt.Line2D([], [], color="0.3", ls="--", marker="o", ms=5,
-                      mfc="none", label=r"$\theta_{tr}$ dn"),
-           plt.Line2D([], [], color="0.3", ls="-", marker="v", ms=3.5,
-                      lw=0.7, label="first separation"),
-           plt.Line2D([], [], color="0.3", ls="-", marker="d", ms=3.5,
-                      lw=0.7, label="final separation")]
-    ax.legend(handles=leg, loc="upper left", fontsize=9, framealpha=0.9)
-    ax.text(1.1e7, 91, "$Tu\\,0.05\\%$", color=SEED_COLOR["0.05"], fontsize=10)
-    ax.text(1.1e7, 84.5, "$Tu\\,0.2\\%$", color=SEED_COLOR["0.2"], fontsize=10)
-    ax.text(1.1e7, 71, "$Tu\\,0.7\\%$", color=SEED_COLOR["0.7"], fontsize=10)
+    for br, ls, mfc in (("up", "-", "k"), ("dn", "--", "none")):
+        rr = rows.get(br, [])
+        re_, th = series(rr, "theta_tr_chi1")
+        ax.plot(re_, th, ls, color="k", marker="o", ms=4.5, mfc=mfc,
+                lw=1.6, zorder=4)
+        for which, mk in (("first", "v"), ("final", "d")):
+            re_, sp = sep_series(rr, which)
+            ax.plot(re_, sp, ls, color="0.5", marker=mk, ms=3.5, mfc=mfc,
+                    lw=0.7, alpha=0.8, zorder=3)
+    leg = [plt.Line2D([], [], color="k", ls="-", marker="o", ms=4.5, label=r"$\theta_{tr}$ up"),
+           plt.Line2D([], [], color="k", ls="--", marker="o", ms=4.5, mfc="none", label=r"$\theta_{tr}$ dn"),
+           plt.Line2D([], [], color="0.5", ls="-", marker="v", ms=3.5, lw=0.7, label="first separation"),
+           plt.Line2D([], [], color="0.5", ls="-", marker="d", ms=3.5, lw=0.7, label="final separation")]
+    ax.legend(handles=leg, loc="upper right", fontsize=9, framealpha=0.9)
     ax.set_xscale("log")
-    ax.set_xlim(8e3, 4e7)
-    ax.set_ylim(60, 145)
+    ax.set_xlim(1.0, 1.2e10)
+    ax.set_ylim(0, 185)
     ax.set_xlabel("$Re_D$")
     ax.set_ylabel(r"angle from forward stagnation [deg]")
-    ax.grid(alpha=0.25)
+    ax.grid(alpha=0.25, which="both")
 
-    # ---- (b) max-chi(theta) at representative Re ----
-    cmap = plt.cm.viridis(np.linspace(0.0, 0.92, len(REP)))
-    meta_theta = None
-    for (name, lab), col in zip(REP, cmap):
-        c = cases[name]
-        prof = np.asarray(c["profiles"]["log10_maxchi"], float)
-        th = np.linspace(0.0, 180.0, len(prof))
-        meta_theta = th
-        bx.plot(th, 10.0 ** prof, "-", color=col, lw=1.4, label=lab)
+    # ---- (b) max-chi(theta) at one Re per decade (up-ladder) ----
+    up = {r['re']: r for r in rows.get("up", [])}
+    cmap = plt.cm.viridis(np.linspace(0.0, 0.92, len(PROFILE_DECADES)))
+    for re, col in zip(PROFILE_DECADES, cmap):
+        r = up.get(re)
+        if r is None or r.get('log10_maxchi') is None:
+            continue
+        th = np.asarray(r['theta_deg'], float)
+        prof = 10.0 ** np.asarray(r['log10_maxchi'], float)
+        e = int(round(np.log10(re)))
+        bx.plot(th, prof, '-', color=col, lw=1.3, label=rf"$10^{{{e}}}$")
     bx.axhline(1.0, color="k", lw=0.9, ls=":")
     bx.set_yscale("log")
     bx.set_xlim(0, 180)
-    bx.set_ylim(1e-3, 3e4)
+    bx.set_ylim(1e-3, 3e8)
     bx.set_xticks([0, 30, 60, 90, 120, 150, 180])
     bx.set_xlabel(r"angle from forward stagnation [deg]")
     bx.set_ylabel(r"$\max_s \chi$ along radial ray")
-    bx.legend(loc="lower right", fontsize=9, title="$Re_D$",
-              title_fontsize=9, framealpha=0.9)
-    bx.grid(alpha=0.25)
+    bx.legend(loc="lower right", fontsize=8, title="$Re_D$",
+              title_fontsize=9, framealpha=0.9, ncol=2)
+    bx.grid(alpha=0.25, which="both")
 
-    fig.savefig(os.path.join(OUT, "dragcrisis_angles.pdf"),
-                bbox_inches="tight")
+    fig.savefig(os.path.join(OUT, "dragcrisis_angles.pdf"), bbox_inches="tight")
+    os.makedirs(PREV, exist_ok=True)
     fig.savefig(os.path.join(PREV, "dragcrisis_angles.png"), dpi=130,
                 bbox_inches="tight")
     print(f"wrote {OUT}/dragcrisis_angles.pdf")

@@ -174,6 +174,13 @@ def main():
         p[5] = fast_band(p[4], max(2.0*float(Re_theta0(Ht)), 600.0))
         print(f"  band H={Ht}: {p[5]}", flush=True)
 
+    # --- pass 1: vector line drawing (no text), for rasterizing + shading.
+    #     Mirrors fig01: draw the sphere geometry only, rasterize at high DPI,
+    #     marble-shade the LEFT sphere's silhouette pixels, then rebuild as
+    #     raster + crisp vector labels/legend/titles on top.
+    import io
+    from matplotlib.lines import Line2D
+    DPI = 350
     fig = plt.figure(figsize=(13.2, 6.6))
     axm = fig.add_axes([0.02, 0.05, 0.46, 0.9])
     axz = fig.add_axes([0.52, 0.05, 0.46, 0.9])
@@ -186,17 +193,55 @@ def main():
         h, v, w = f1.sphere_coords(u, up, upp, eta)
         for ax in (axm, axz):
             f1.draw_segments(ax, h, v, w, col, 1.6, band=band, eta=eta)
-        axm.plot([], [], '-', color=col, lw=2.0, label=lab)
-    axm.legend(fontsize=8.5, loc='lower left', framealpha=0.9)
-    axm.set_title('RP$^2$ indicator sphere: low-H Falkner-Skan family\n'
-                  '(thin = trajectory, thick = OS amplifying band; '
-                  'dashed = neutral locus $\\hat\\Omega\\hat I=0$)',
-                  fontsize=10)
-    axz.set_title('near-wall / neutral-locus zoom\n'
-                  '(strong-FPG curves bunch on the $\\hat\\Omega\\hat I=0$ '
-                  'locus — the onset-resolution limit)', fontsize=10)
+
+    # left-sphere centre (data 0,0) and edge (data 1,0) in canvas pixels
+    fig.canvas.draw()
+    cx, cy_top = axm.transData.transform((0.0, 0.0))
+    ex, _ = axm.transData.transform((1.0, 0.0))
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', dpi=DPI, facecolor='white')
+    buf.seek(0)
+    img = plt.imread(buf)                     # RGBA float in [0,1]
+    plt.close(fig)
+    s = DPI/fig.dpi                           # canvas -> saved-png pixel scale
+    Himg, Wimg = img.shape[:2]
+    cxp = cx*s
+    cyp = Himg - cy_top*s                      # image rows grow downward
+    rp = (ex - cx)*s
+    shaded = img.copy()
+    shaded[..., :3] = f1.shade_sphere(img[..., :3], cxp, cyp, rp)
+
+    # --- pass 2: rebuild as raster + crisp vector overlays (image px coords)
+    fig2 = plt.figure(figsize=(13.2, 6.6))
+    ax2 = fig2.add_axes([0.0, 0.0, 1.0, 1.0])
+    ax2.imshow(shaded, origin='upper', interpolation='lanczos', zorder=1)
+    ax2.set_xlim(0, Wimg); ax2.set_ylim(Himg, 0)
+    ax2.axis('off')
+    # left-sphere pole labels (X/Y/+Z/-Z), just outside the silhouette
+    pad = 0.04*rp
+    for txt, dx, dy, ha, va in [('$X$', -rp - pad, 0, 'right', 'center'),
+                                ('$Y$', rp + pad, 0, 'left', 'center'),
+                                ('$+Z$', 0, -rp - pad, 'center', 'bottom'),
+                                ('$-Z$', 0, rp + pad, 'center', 'top')]:
+        ax2.text(cxp + dx, cyp + dy, txt, fontsize=13, color='0.15',
+                 ha=ha, va=va, zorder=6)
+    # legend (recreated as vector proxies), lower-left of the left panel
+    handles = [Line2D([], [], color=col, lw=2.0, label=lab)
+               for Ht, b, col, lab, pr, band in profs]
+    ax2.legend(handles=handles, fontsize=8.5, loc='lower left',
+               bbox_to_anchor=(0.02, 0.04), framealpha=0.9)
+    ax2.text(0.25, 0.98,
+             'RP$^2$ indicator sphere: low-H Falkner-Skan family\n'
+             '(thin = trajectory, thick = OS amplifying band; '
+             'dashed = neutral locus $\\hat\\Omega\\hat I=0$)',
+             transform=ax2.transAxes, ha='center', va='top', fontsize=10)
+    ax2.text(0.75, 0.98,
+             'near-wall / neutral-locus zoom\n'
+             '(strong-FPG curves bunch on the $\\hat\\Omega\\hat I=0$ '
+             'locus — the onset-resolution limit)',
+             transform=ax2.transAxes, ha='center', va='top', fontsize=10)
     fp = os.path.join(OUT_DIR, 'indicator_sphere_lowH.png')
-    plt.savefig(fp, dpi=150, facecolor='white')
+    fig2.savefig(fp, dpi=150, facecolor='white')
     print(f'wrote {fp}', flush=True)
 
 
