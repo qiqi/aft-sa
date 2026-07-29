@@ -2157,40 +2157,42 @@ from XFOIL and FlexFoil, and XFOIL---whose forces also sit closest to
 the measurement---is presented as the reference there, in the table
 (mfoil in the footnote) and in Fig.~\ref{fig:eppresweep_low}. \begin{figure}[tp]
   \centering
-  \includegraphics[width=\textwidth]{eppler_resweep_forces.pdf}
-  \caption{The $\alpha\!=\!5^\circ$ Reynolds sweep. \emph{Top row}:
-  section lift, drag (log), and quarter-chord moment---all $24$ SA-AI
-  solutions (structured O-grid solid blue, unstructured cavity dashed
-  orange, L0--L2 by line thickness), the $e^9$ panel reference (mfoil
-  squares at $0.6$--$3\!\times\!10^5$, where its solve returns
-  forces, XFOIL diamonds at all five Reynolds numbers,
-  as in Table~\ref{tab:eppresweep}; $c_m$ from both), and the LTPT
-  measurement (black circles; error bars are the repeat scatter,
-  $\pm0.006$/$\pm0.0003$ at $Re\!\geq\!10^5$ and the
-  $\alpha\!=\!4.00^\circ$ repeat half-spread $\pm0.04$/$\pm0.0023$
-  at the bistable $6\!\times\!10^4$). Small dark-gray open symbols:
-  published results at the shared conditions, read at
-  $\alpha\!=\!5^\circ$---at $6\!\times\!10^4$ the ILES
-  ($\alpha\!=\!4^\circ$, ahead of its reattachment jump) and coupled
-  RANS-$e^N$ ($N\!=\!7/9$) of Ref.~\cite{frere_2016}, with that
-  source's compiled Delft and Stuttgart $\alpha\!=\!5^\circ$ lift
-  points (small dots), the $\gamma$--$Re_\theta$ of
+  \includegraphics[width=0.9\textwidth]{eppler_resweep_forces.pdf}
+  \caption{The $\alpha\!=\!5^\circ$ Reynolds sweep. \emph{Top}:
+  section lift and drag (log). \emph{Bottom left}: quarter-chord
+  moment. \emph{Bottom right}: upper-surface laminar-separation and
+  turbulent-reattachment stations on a shared $x/c$ axis (lower band
+  separation, upper reattachment; SA-AI values pinned near $1.0$ mean
+  no closure ahead of the trailing edge). All panels show the $24$
+  SA-AI solutions (structured O-grid solid blue, unstructured cavity
+  dashed orange, L0--L2 by line thickness), the $e^9$ panel reference
+  (mfoil squares at $0.6$--$3\!\times\!10^5$ where its solve returns
+  forces, XFOIL diamonds at all five Reynolds numbers, as in
+  Table~\ref{tab:eppresweep}; $c_m$ from both), and the LTPT
+  measurement as large filled black circles---the dominant
+  experiment: each individual TM-4062 Table~B1 run reading near
+  $\alpha\!=\!5^\circ$ is a separate circle (repeat runs coincide
+  where the readings agree), with the oil-flow separation and
+  reattachment stations (Table~III, tabulated at $\alpha\!=\!5^\circ$
+  for $Re\!=\!1$/$2$/$3\!\times\!10^5$ only). Small open gray symbols
+  are published calculations read at $\alpha\!=\!5^\circ$: at
+  $6\!\times\!10^4$ the ILES ($\alpha\!=\!4^\circ$, ahead of its
+  reattachment jump) and coupled RANS-$e^N$ ($N\!=\!7/9$) of
+  Ref.~\cite{frere_2016} with that source's compiled Delft and
+  Stuttgart lift (small dots), the $\gamma$--$Re_\theta$ of
   Ref.~\cite{carreno_ruiz_2022}, and the k-k$_L$-$\omega$ of
-  Ref.~\cite{anushka_2019}, whose transition-SST appears at $1$ and
+  Ref.~\cite{anushka_2019} whose transition-SST appears at $1$ and
   $3\!\times\!10^5$ (its $6\!\times\!10^4$ series excluded;
-  Appendix~F). \emph{Bottom row}:
-  upper-surface laminar-separation and turbulent-reattachment stations
-  (SA-AI from the wall $C_f$; values pinned near $1.0$ mean no closure
-  ahead of the trailing edge), the oil flow (open black circles,
-  TM-4062 Table~III), the Cole--Mueller pressure/LDV stations at
-  $10^5$~\cite{cole_mueller_1990} ($\alpha\!=\!4^\circ/6^\circ$
-  bracket pair, connected), and the tabulated $\gamma$-variant
-  stations of Ref.~\cite{ghimire_2025} at $3\!\times\!10^5$ (same
-  bracket convention; small gray dots are that source's experiment
-  columns). The refinement fan closes onto the measurement at
-  $2$--$4.6\!\times\!10^5$ and \emph{opens} at $10^5$---the model's
-  bursting boundary (Sec.~\ref{sec:epphandover})---where refinement
-  drives both families away from the measured short-bubble state.}
+  Appendix~F). The capped range bars in the station panel are
+  $\alpha\!=\!4$--$6^\circ$ brackets straddling the computed
+  $\alpha\!=\!5^\circ$, drawn because no source tabulates a station at
+  exactly $\alpha\!=\!5^\circ$: Cole--Mueller pressure/LDV at
+  $10^5$~\cite{cole_mueller_1990} and the $\gamma$-variant tables of
+  Ref.~\cite{ghimire_2025} at $3\!\times\!10^5$. The refinement fan
+  closes onto the measurement at $2$--$4.6\!\times\!10^5$ and
+  \emph{opens} at $10^5$---the model's bursting boundary
+  (Sec.~\ref{sec:epphandover})---where refinement drives both families
+  away from the measured short-bubble state.}
   \label{fig:eppresweepforces}
 \end{figure}
 
