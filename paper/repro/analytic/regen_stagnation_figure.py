@@ -52,10 +52,11 @@ umag_n = umag/Uref           # 0..1; contours are ~vertical outside the BL
 
 fig, axf = plt.subplots(1, 1, figsize=(7.0, 3.2))
 
-lg = np.log10(np.maximum(chi, 1e-12))
-# chi contours (flat-plate conventions)
-axf.contour(X, Y, lg, levels=[-6, -5, -4, -3, -2, -1], colors='0.55',
-            linewidths=0.5, linestyles='dashed')   # per decade, chi<1
+lg = np.log10(np.maximum(chi, 1e-40))
+# chi contours (flat-plate conventions); chi_inf=0 so chi<1 decays over
+# ~180 decades -- fill the plot with per-decade dashed contours
+axf.contour(X, Y, lg, levels=list(range(-24, 0)), colors='0.55',
+            linewidths=0.4, linestyles='dashed')    # per decade, chi<1
 axf.contour(X, Y, lg, levels=[0.0], colors='k', linewidths=1.3)
 axf.contour(X, Y, lg, levels=[np.log10(7.1), np.log10(30.0)], colors='k',
             linewidths=0.7)
