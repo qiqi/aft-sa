@@ -44,7 +44,9 @@ NX, NZ = 1100, 682
 # labeled line-contour levels (no colorbar; e-ink grayscale)
 ULEV = [0.2, 0.4, 0.6, 0.8, 1.0, 1.2]
 CHI_SUB = [-6.0, -4.0, -2.0, -1.0]                  # chi<1 (dashed)
-CHI_SOL = [0.0, np.log10(7.1), np.log10(30.0)]      # chi=1, c_v1, 30 (solid)
+# chi=1, c_v1, 30, then decades above (chi reaches ~2e4 in the wake)
+CHI_SOL = [0.0, np.log10(7.1), np.log10(30.0),
+           2.0, 3.0, 4.0]                           # chi = 1,7,30,100,1e3,1e4
 
 
 def probe(case_dir):
@@ -103,7 +105,7 @@ def main():
         axC.contour(xs, zs, lchi, levels=CHI_SUB, colors="0.55",
                     linewidths=0.45, linestyles="dashed", zorder=1)
         cs = axC.contour(xs, zs, lchi, levels=CHI_SOL, colors="k",
-                         linewidths=[1.2, 0.6, 0.6], zorder=2)
+                         linewidths=[1.2] + [0.6]*(len(CHI_SOL)-1), zorder=2)
         axC.clabel(cs, fmt=chifmt, fontsize=5.5, inline=True,
                    inline_spacing=1)
         for ax in (axU, axC):
