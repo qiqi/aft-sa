@@ -84,8 +84,6 @@ def main():
     axL.loglog(Pg, K_ANCHOR*softmin(Pg), 'k-.', lw=1.3, zorder=5,
                label=r'model $k\cdot\mathrm{softmin}$')
     axL.axhline(CEIL, color='firebrick', ls=':', lw=1.1, zorder=4)
-    axL.text(1.4e-1, CEIL*1.08, r'flat ceiling $C$ (cannot resolve low-H)',
-             fontsize=7.3, color='firebrick', va='bottom', ha='left')
     cmap = plt.cm.coolwarm
     natt = sum(1 for _, g in LEFT if g is None)
     j = 0
@@ -103,23 +101,10 @@ def main():
         ratio = ReOm/softmin(P); i = int(np.argmax(ratio))
         axL.plot(P[i], ReOm[i], 'o', color=col, ms=5.5, mec='k', mew=0.6, zorder=6)
         left_rows.append(dict(beta=beta, H=c['H'], graze_infl=float(ratio[i])))
-    # vanishing strong-FPG members: left-edge arrows at their Re_Omega* -- they
-    # ride ABOVE the flat ceiling, unresolved (this is the onset-resolution limit)
-    for beta in VANISH:
-        c = curve(beta, None)
-        ReOm_star = float(c['ReOm'].max())
-        axL.annotate('', xy=(3.4e-3, ReOm_star), xytext=(8.5e-3, ReOm_star),
-                     arrowprops=dict(arrowstyle='->', color='0.3', lw=1.2))
-        axL.text(9.2e-3, ReOm_star, rf'$H\!=\!{c["H"]:.2f}$', fontsize=6.8,
-                 va='center', color='0.3')
-    axL.text(1.5e-2, 1.19e4, r'strong-FPG members ($P_I\!\to\!0$): no locus '
-             'here,\nride above the flat ceiling -- unresolved',
-             fontsize=7.4, color='0.3', va='top', ha='left')
     axL.set_xlabel(r'inflectional coordinate $P_I=\langle\hat\Omega\hat I\rangle_+$')
     axL.set_ylabel(r'$Re_\Omega=d^2\omega/\nu$ at $Re_\theta=Re_{\theta0}(H)$')
     axL.set_xlim(3e-3, 1.3); axL.set_ylim(30, 1.25e4)
     axL.grid(alpha=0.3, which='both'); axL.legend(fontsize=7.2, loc='lower left')
-    axL.set_title(r'(a) inflectional branch grazes the adverse family', fontsize=9.5)
 
     # ---------- RIGHT panel: curvature coordinate P_curv ----------
     Pcg = np.geomspace(0.08, 0.5, 400)
@@ -150,11 +135,6 @@ def main():
     axR.set_ylabel(r'$Re_\Omega$ at $Re_\theta=Re_{\theta0}(H)$')
     axR.set_xlim(0.08, 0.5); axR.set_ylim(3e2, 2e4)
     axR.grid(alpha=0.3, which='both'); axR.legend(fontsize=7.2, loc='upper right')
-    axR.set_title(r'(b) curvature branch grazes the low-H family', fontsize=9.5)
-
-    fig.suptitle(r'Two-branch onset gate: $Re_\Omega^c=\mathrm{softmin}'
-                 r'(A+B/P_I^2,\;A+B_c/P_{curv}^2)$ -- each branch grazes its '
-                 r'own family in its own coordinate', fontsize=10.5, y=1.00)
     plt.tight_layout()
     fp = os.path.join(OUT_DIR, 'onset_graze_2branch.png')
     plt.savefig(fp, dpi=150, facecolor='white')
