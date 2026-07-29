@@ -15,8 +15,6 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as spla
 from lib.boundary_layer import FalknerSkanWedge
 from lib.correlations import dN_dRe_theta, Re_theta0
-from lib.aft_sources import (compute_aft_amplification_rate,
-                             compute_composite_gate)
 
 # --- sphere kernel (replaces the old rate*gate product) --------------------
 # Dimensionless rate x onset on the indicator sphere; the transport source is

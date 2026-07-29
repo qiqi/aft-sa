@@ -13,8 +13,6 @@ import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 import scipy.sparse as sp
 import scipy.sparse.linalg as spla
 from lib.boundary_layer import FalknerSkanWedge
-from lib.aft_sources import (compute_aft_amplification_rate,
-                             compute_composite_gate)
 import fig04_shapefactor as f4
 from fig04_shapefactor import profile_ints, drela, Re_theta0, sphere_rate
 
