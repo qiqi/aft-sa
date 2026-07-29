@@ -1,0 +1,6419 @@
+OCR of drela.pdf (159 pages) via RapidOCR/PyMuPDF. Prose is reliable; scanned equations are approximate.
+
+
+===== page 1 of 159 =====
+TWO-DIMENSIONAL TRANSONIC AERODYNAMIC DESIGN AND ANALYSIS
+USINGTHEEULER EQUATIONS
+by
+MARK DRELA
+S.M., Massachusetts Institute of Technology (1983)
+S.B., Massachusetts Institute of Technology (1982)
+Submitted to the
+Department of Aeronautics and Astronautics
+in partial fulfillment of the requirements
+of the Degree of
+DOCTOR OF PHILOSOPHY IN
+AERONAUTICSANDASTRONAUTICS
+atthe
+MASSACHUSETTSINSTITUTEOFTECHNOLOGY
+December 1935
+Massachusetts Institute of Technology
+SignatureofAuthor
+Dept. of Aeronautics and Astronautics,19 Dec 1985
+Certified by
+Professor Jack L. Verrebrock
+Thesis Supervisor
+Certified by
+Thesis Committee
+Certified by
+Professor Earll M. Murman
+Thesis Committee
+Acrepted by
+Professor Harclf Y. Wachman
+Chairman, Departmental
+GraduateCommittee
+MASSACHUSEITS INSTITUTE
+OFTECHNOLOGY
+FEB 0 5 1986
+LIBRARIES
+ARCHIVES
+
+===== page 2 of 159 =====
+TWO-DIMENSIONAL TRANSONIC AERODYNAMIC DESIGN AND ANALYSIS
+USING THE EULER EQUATIONS
+by
+Mark Drela
+Submitted to the Department of Aeronautics and Astronautics on
+2 December 85 in partial fulfillment of the requirements of the
+Degree of Doctor of Philosophy in Aeronautics and Astronautics
+Abstract
+A rethod is developed for the solution of the steady two-dimensional
+Euler equations with viscous corrections for transoric design and ana-
+lysis problems. The steady finite volume integral equations are formu-
+lated on an intrinsic streamline grid, and are solved using a global
+Newton method. Conservative differencing together with artificial bulk
+The
+and Newton solution method, which allow both direct and inverse boun-
+dary conditions and constraints to be readily applied to the governing
+equations. For all boundary condition types, the effects of boundary
+layers and wakes on the inviscid flow are modeled by the displacement
+thickness concept. rhe boundary layer and wake parameters are des-
+coupled to the inviscid flow and are' included in the global Newton
+solution scheme. This coupling procedure gives stable convergence for
+flows with limited separation regions. A transition criterion based on
+the Orr-Sommerfeld equation  is developed and applied to transitional
+separation-bubbles. Accurate drag predictions are obtained  for sub-
+sonic and shocked transonic airfoils. Design examples involving air-
+foils and cascades are presented.
+Thesis Supervisor:Jack L.Kerrebrock
+Title: Maclaurin Professor of Aeronautics and Astronautics
+2
+
+===== page 3 of 159 =====
+Acknowledgements
+to make my tour of duty here well worth it. In particular, I'd like to
+give thanks to Mike Giles, math-stud extraordinaire, for sharing the
+Rats!'s and Rah!'s of this research effort. To Tom Roberts, who can
+(and does) laugh in the face of just about anything, I'd like to give
+thanks for his friendship, his critical comments, and for helping to
+keep the local Chinese restaurant business booming. I'm grateful to
+Bob Haimes (for keeping that vital silicon beastie humming), John
+Dannenhoffer (for his truly unbounded frankness in all aspects of
+life), Ken Powell, Steve Allmaras, Bernard Loyd, and the rest of the
+CFDL crew (for being such a swell bunch of guys).
+I would particularly like to thank Prcfessor Tilt Thompkins, my
+first thesis supervisor, for his advice and for letting me diverge into
+butterflies and wings and things whenever I felt like it. Tc Professor
+Jack Kerrebrock, my second and last thesis supervisor, J give thanks
+for his endless optimism and support in all my endeavors. And also.
+S           
+Finally. I would like to thank my parents and my sister for their
+support and encouragement throughout all these years.
+This work was supported by the Air Force Office of Scientific
+Research grant F49620-78C-0084, with Dr. James D. Wilson as technical
+monitor.
+★
+Observation: Hindsight is always 20/20, foresight is invariably blind,
+and Braille is much too difficult.
+3
+
+===== page 4 of 159 =====
+Table of Contents
+page
+Abstract
+2
+Acknowledgments
+3
+Table of contents
+List of figures
+6
+List of symbols
+9
+Subscripts and superscripts
+11
+1.
+Introduction
+12
+2.
+Steady state equations
+20
+2.1
+Euler equations
+2.2
+Auxiliary pressure relation
+2.3
+Numerical dissipation
+2.4
+I pressure elimination
+2.5
+Streamtube inlet boundary condition
+2.6
+Global variables and equations
+3.
+Direct problem
+32
+3.1
+Solid wall boundary conditions
+3.2
+Cascade far-field boundary conditions
+3.3
+Airfoil far-field boundary conditions
+3.4
+Blunt leading edge treatment
+4.
+Solution procedure
+42
+4.1
+The Newton method
+4.2
+Newton linearization
+4.3
+Jacobian structure
+4.4
+Discrete system linearization
+4.4.1
+Interior Euler equations
+4.4.2
+Boundary conditions
+4.4.3
+Global equations
+4.5
+Gaussian elimination block solver
+4.6
+Updating the solution
+5.
+Irverse problem
+63
+5.1
+Full inverse foruulation
+5.2
+Mixed inverse formulation
+5.3
+Inverse problem Newton solution
+6.
+Boundary layer coupling
+72
+
+===== page 5 of 159 =====
+6.1
+The integral boundary layer equations
+6.2
+Laminar closure
+6.3
+Turbulentclosure
+6.4
+.Upstream history: The lag equation
+6.5
+Wakes
+6.6
+Transition
+6.7
+Discretization
+6.8
+Coupling and boundary condi.tions
+6.9
+Jacobian structure modifications
+6.10
+Boundary layer equation linearization
+7.
+Results
+108
+7.1
+Joukowsky airfoil
+7.2
+RAE 2822 supercritical airfoil: fully attached flow
+7.3
+RAE 2822 supercritical airfoil: shock-induced separation
+7.4
+  o      
+7.5
+NACA 44l2 airfoil: trailing edge stall
+7.6
+LA203a airfoil: transitional separation bubbles
+7.7
+Supercritical cascade: full-ir.verse redesign
+8.
+Conclusions
+135
+References
+139
+Appendices
+A.
+Artificial Bulk Viscosity Stability Analysis
+144
+B.
+Airfoil Far Field
+149
+c.
+Airfoil Drag Calculation
+153
+D.
+Orr-SommerfeldAmplificationCurveCalculation
+156
+E.
+GridGeneration
+158
+5
+
+===== page 6 of 159 =====
+List of Figures
+2.1
+Control volume for integral Euler equations
+2.2
+Conservation cell and defining geometry locations
+2.3
+Conservationcellfacevectors
+2.4
+State variables and unit velocity s vectors
+2.5
+Grid sawtooth oscillations
+2.6
+Quantities for isentropic Ⅱ correction
+2.7
+Ⅱ and Ij-1 pressure equivalence
+3.1
+Grid indexing for cascade and isolated airfoil
+3.2
+Cascade boundary conditions
+3.3
+Isolated airfoilboundaryconditions
+3.4
+Surface node movement tied to stagnation point movement
+4.1
+Zones of dependence of S and reduced N-momentum equations
+4.2
+Division of variables between Jacobian matrix blocks
+4.3
+Zi and Bi block structure
+4.4
+Ai and C; block structure
+4.5
+A1 and Ci block structure
+4.6
+ Z and B1 block structure
+5.1
+ Full inverse boundary conditions for cascade
+5.2
+Mixed inverse geometry continuity conditions
+6
+
+===== page 7 of 159 =====
+6.1
+Laminar closure relations
+6.2
+Comparison of finite difference, dissipation-closure,
+and Thwaites'methods for incompressiblelaminarflow
+6.3
+Turbulent and laminar skin friction correlations
+6.4
+Turbulent shape parameter correlation
+6.5
+Typical turbulent velocity and total shear profiles
+6.6
+Equilibrium G-β locus
+6.7
+Orr-Sommerfeld spatial amplification curves
+6.8
+Boundary layer variable locations (suction side)
+6.9
+Wake displacement thickness
+6.10
+Division of boundary layer equation variables
+betweenJacobianmatrix blocks
+6.11
+Modified A; block structure
+7.1.1
+Effect of domain size for isolated airfoil
+7.1.2
+Calculated and exact C, distributions
+for Joukowsky airfoil
+7.1.3
+Converged grid near Joukowsky airfoil
+7.2.1
+Calculated and experimental pressure distributions
+for RAE 2822 airfoil (M = 0.726 , Re = 6.5e6)
+7.2.2
+Measured and calculated suction surface &* and 6
+distributions for RAE 2822 (Case 6 of ref.{12])
+7.2.3
+Measured andcalculatedsuctionand pressure
+surfaceHdistributions for RAE 2822
+7.3.1
+Calculated and experimental pressure distributions
+for RAE 2822 airfoil (M。 = 0.750 . Re = 6.2e6)
+7.3.2
+Measured and calculated suction surface &* and ①
+distributions for RAE 2822 (Case 10 of ref.[12])
+7.3.3
+Measured and calculatedsuction and pressure
+
+===== page 8 of 159 =====
+surface H distributions for RAE 2822 airfoil
+7.3.4
+Convergedgrid near nearRAE 2822 airfoil
+7.4.1
+Pressure distributions for RAE mixed redesign
+7.4.2
+Comparison of RAE 2822 airfoil geometry
+before and after mixed redesian
+7.4.3
+Mach number contours before and after RAE 2822
+mixed redesign
+7.5.1
+Computed pressure distribution for NAcA 4412 airfoil
+7.5.2
+Calculated and measured 4412 suction surface 6* and 0
+7.5.3
+Calculated and measured 4412 suction surface H
+7.5.4
+Converged streamline grid near NAcA 4412 airfoil
+7.5.5
+NACA 4412 leading edge grid detail
+7.6.1
+Calculated and experimental pressure distributions
+for LA203A airfoil(M。 = 0.100 ，Re = 250,000)
+7.6.2
+Calculated and experimental drag polars of LA203A airfoil
+7.7.1
+Grid used for superc"itical cascade
+7.7.2
+Mach number contours for direct. calculation
+7.7.3
+Pressure distributions for cascade redesign
+7.7.4
+Mach number contours for redesigned cascade
+7.7.5
+Original and new cascade airfoil geometries
+A.1
+"Boundary layer" behavior of perturbation solutions
+C.1N
+Momentwm defect in shock and viscous wakes
+8
+
+===== page 9 of 159 =====
+List of Symbols
+A
+normal cell face vector
+A.
+prescribed-pressure degrees of freedom
+An
+cross-sectional streamtube area
+B
+streamline cell face vector
+CD
+dissipation coefficient, drag coefficient
+Cf
+skin friction coefficient
+CL
+lift coefficient
+CT
+max shear coefficient
+D
+drag
+D
+D
+far-fielddoubletcomponents
+V
+prescribed-pressure DoF shape functions
+G
+Clauser's shape parameter
+ht
+stagnation enthalpy
+H, H*, H** shape parameters
+Hk.H
+kinematic shape parameters
+i.j
+grid indices
+1.J
+maximum grid indices
+m
+streamtube mass flux ; ue gradient parameter (in Chapter 6)
+M
+Mach number
+n
+local normal coordinate
+n
+disturbance amplification ratio
+△n
+gap between streamline and wall
+P
+pressure (on normal cell face)
+velocity
+l =
+q
+speed
+Re
+momentum thickness Reynolds number
+= a/a
+unit velocity vector
+Sinl. Sout cascade inlet and outlet flow slopes
+us
+effective wall slip velocity
+u.v
+velocity components
+x. Y
+Cartesian coordinates
+9
+
+===== page 10 of 159 =====
+α
+freestream angleof attack
+/i-M2 ; Clauser's pressure gradient parameter (in Chapter 6)
+β
+ratio of specific heats
+(Cp/Cv)
+人
+Ytr
+transition intermittency factor
+r
+airfoil circulation
+6
+boundary layer thickness
+6*
+displacement thickness
+**0
+density thickness
+θ
+momentum thickness
+θ*
+kinetic energy thickness
+E. n
+local coordinates along and normal to boundary layer
+入
+artificial bulk viscosity coefficient
+dynamic viscosity
+u
+V
+Newton iteration index
+Ⅱ
+pressure (on streamline cell face)
+density
+p
+pt
+stagnation density
+    e t  g
+E
+airfoil source strengtn
+Tw
+wall shear stress
+.θ
+total and perturbation velocity potentials
+10
+
+===== page 11 of 159 =====
+Subscripts and Superscripts
+( )e
+quantity at edge of scundary layer
+()t
+stagnation quantity
+（)x
+x-component
+()
+Y-component
+()i,j
+quantity at grid node i,j
+();
+quantity at left cell face
+()2
+quantity at right cell face
+（)
+quantity at bottom cell face
+（)+
+quantity at top cell face
+freestream quantity
+11
+
+===== page 12 of 159 =====
+1.INTRODUCTION
+Numerical solution of the fundamental governing equations of fluid
+flow is .a very powerful aid to aerodynamic design. The traditional
+data as a guide for improvement.  Unfortunately, both tunnel tests ard
+flight tests are time consuming and extremely expensive, particularly
+in the transonic flow regime.This sets a severe limit on the amount
+   oe  o r a u  o
+cost and time schedule. The use of numerical simulation rather than
+wind tunnel testing to predict aerodynamic characteristics greatly
+is due co both the relatively low cost of computation and the ease with
+which design changes can be made ana evaluated.
+Many numerical design algorithms of greatly varying sophistication
+and complexity have been developed to date. virtually all of these can
+be classified as either inverse methods or optimization methods.
+Inverse methods deal with the deteimination of the body geometry which
+will proauce a given surface pressure distribution. The methods of
+Lighthill [32,33], Tranen [48], Carlson [5], Volpe and Melnik [51], and
+Bauer, Garabedian, Korn, and Jameson [l} fall into this category. Opti-
+mization methods  typically involve the linking of a direct aerodynamic
+solver, which accepts a body geometry as input, with an optimization
+algorithm to minimize some object function, such as drag or the integ-
+rated difference between the actual and target pressure distributions.
+Examples of such an approach are those of Vanderplaats [49}, and Hicks
+[26 ] 。
+Each-category has its advantages and disadvantages. The inverse
+methods are relatively fast but usually leave the designer with only
+indirect control over the body geometry via the specified pressure
+distribution. Some methods, such as those of Carlson {5}, and the
+Boeing PANAIR design option [43], also treat the more general mixed-
+12
+
+===== page 13 of 159 =====
+inverse problem.  Here, the geometry is prescribed on part of the body
+and the pressure is prescribed on the rest. This gives the designer
+somewhat better control over the overall geometry. The optinization
+methods 'generally give the designer more control over non-aerodynamic
+features, since they permit arbitrary constraints to be imposed on the
+final design. They also allow multi-point design provided a suitable
+object function can be defined. On the negative side, the optimization
+   'o a g eo  n  
+be used for routine design work in an industrial environment.
+n     n  s  
+thesis falls under the category of inverse methods with mixed-inverse
+capability.  It has several features, however, which distinguish it
+from the inverse methods listed above. Virtually all compressible flow
+design methods developed to date are based on either a linearized-panel
+or a full-potential formulation. The present method  is based on a
+conservative formulation of  the Euler  equations to permit accurate
+analysis of shocked transonic flows. An equally important feature is
+the method's computational speed. For airfoil grids which give better
+than engineering accuracy, a direct solution requires no more CPu time
+than a state-of-the-art time-marching Euler solver. For cascade grids.
+the present method is considerably faster. In addition, an inverse
+solution with the present method requires roughly the same amount of
+CPU time as a direct solution, making the method fast enough to be used
+in interactive desigi/analysis sessions on a minicomputer.  Finally,
+the present method incorporates a new boundary-layer coupling procedure
+which permits accurate loss predictions in both design and analysis
+calculations with ur without limited separation regions. This inclusion
+of the boundary layer calculation does not significantly add to the
+computation time.
+An important feature of the present design/analysis method which
+further enhances its speed is  that  the change between design and ana-
+13
+
+===== page 14 of 159 =====
+lysis modes and vice versa is through a simple boundary condition
+switch. A solution of a design problem is thus guaranteed to be a
+solution of an analysis problem with the same geometry and freestream
+conditions. This represents a considerable CPU time savings over
+inverse methods such as those of Tranen [48] and Carlson [5l, whose
+design solutions clo not exactly satisfy the discrete equations of
+motion and hence require additional analysis calculations to verify any
+design solution. Another important feature is that design solutions
+can be performed with the boundary layer coupling included. With this
+option, a coupled viscous  analysis  does not have to be performed to
+verify a design solution since the design solution is already a solu-
+tion to the analysis problem. This again results in significant CPU
+time savings.
+★★★
+Transonic flow fields are governed by the full Reynolds-averaged
+Navier-Stokes equations. However, the viscous effects in high Reynolds
+number flows of interest are confined to thin boundary layers and
+wakes, and the Euler equations can be used to describe the inviscid
+part of the flow. The further assumption of  irrotational flow would
+result in the potential equation, which can be solved more economically
+than the Euler equations. However, the potential equation does not
+capture shocks properly because it cannot allow vorticity production,
+and has non-unique solutions in certain Mach number ranges as shown by
+Salas et al [4l]. As a resuit, the potentiai equation can give large
+errors in shocked flows, and for this reason the Euler equations are
+solved hereinstead.
+The present design/analysis method is based on a novel discretiza-
+tion and solution technique for the steady Euler equations. The dis-
+cretization is based on an intrinsic grid in which one set  of  coordi-
+nate lines corresponds to streamlines and hence there is no convection
+across the corresponding faces of the conservation cells. This type of
+coordinate system is very attractive for the steady state Euler equa-
+14
+
+===== page 15 of 159 =====
+simple conditions of constant mass flux and stagnation enthalpy in each
+streamtube, thus reducing the number of unknowns per grid node from
+four to‘two. With conventional finite-volume discretization, all four
+equations and four unknowns per gric node must be retained in general,
+and only the energy equation can be elimirated in the special case of
+constant upstream total enthalpy. Another advantage of a streamline
+grid is that there is no numerical diffusion of entropy or enthalpy.
+these quantities beirig only convected along streamtubes. The only
+way
+metry and through the pressure field. Thus, a streamline-coordinate-
+based scheme faithfully reproduces the anaiytic irformation propagation
+mechanisms of the steady Euler equations. The older streamline curva-
+ture methods, such as that of Novak [39]， take full advantage of these
+properties of intrinsic coordinates. However, the streamline curvature
+met nods are not conservative and their iterative solvers tend to be
+unstable in supersonic regions. This makes them unsuitable for shocked
+transonic flows. The present streamtube formulation is fully conser-
+vative, and together with artificial bulk viscosity and a stable Newton
+solution procedure, shocked transonic flows can be readily computed.
+The key feature of the present discretization scheme which permits
+inverse solutions to be performed  is that since the streamline grid
+evolves as part of the solution, tise airfoil shape (which is defined by
+two particular streamlines) can evolve is weil. In the discrete equa-
+tions, it is as easy to specify that the sur.ace pressure match some
+given distribution as  it js to specify that the surface streamlines
+match the airfoil shape. Special constraints must be imposed to ensure
+the resulting body shap3 is closed. These constraints can be identi-
+[32].  For incompressible flow, Lighthill proved that specifying both
+an ill-posed problem and/or an open body shape if the surface pressure
+15
+
+===== page 16 of 159 =====
+distribution does not satisfy certain integral constraints. Volpe and
+Melnik [5i]  conclude that constraints also exist  for compressible
+potential flow, and their inverse calculation procedure is designed to
+satisfy these constraints.
+To accurately predict the drag on an airfoil, some sort of boun-
+dary layer and wake calculation must be performed.  The traditional
+approach is to use the pressure distribution from a purely inviscid
+calculation as input to a direct boundary layer and wake calculation.
+An implicit assumption in this procedure is  that the boundary layers
+and wake do not significantly affect the inviscid pressure distribu-
+tion.  For transonic flows such an assumption is questionable, and for
+separating flows it is outright wrong. In the case of transonic flow,
+the strong effect of the viscous layers on the inviscid flow is prima-
+rily due ‘o the overall sensitivity of the transonic flowfield to sur-
+face perturbations, especially if shock waves are present. At separa-
+tion, the strong viscous effect is  due to the theoreticall.y infinite
+sensitivity of the displacement thickness to pressure gradient varia-
+tions.
+A much more accurate viscous calculation procedure which inostly
+eliminates  the errors inherent in the small-viscous-effect assumption
+is to take account of the presence of the viscous layers in the invis-
+cid calculation. This procedure  is commonly referred to as boundary
+layer coupling.  As analyzed by Lighthill [34], the leading order
+g  e o     5 oa   
+the body or wake by a distance equal to the displacement thickress.
+purely inviscid calculation, and use the resulting pressure distribu-
+tion to obtain a displaceirent thickness distribution. This displace-
+ment thickness is then used to modify the effective body shape which is
+then used to recalculate a new inviscid pressure distribution, and the
+process is repeated. Unfortunately, this process tends to be unstable
+unless the geometry updating step is severely underreiaxed, as was
+16
+
+===== page 17 of 159 =====
+shown by Wigton and Holt [56]. The underrelaxation leads to very poor
+convergence rates and high computational costs. Also, if separation
+occurs, the direct boundary layer calculation cannot continue, and the
+    
+ly eliminates these difficulties is the semi-inverse coupling approach
+where the boundary layer calculation is performed in the inverse mode
+with the disglacement thickness or the mass defect prescribed.
+The
+resulting pressure distribution  is then compared with the inviscid
+pressure distribution and the difference is used to obtain a new dis-
+placement thickness or mass defect distribution from some interaction
+law formula (Carter [6l). A refinement of this procedure is the quasi-
+simultaneous coupling approach (Veldman [50], Eawards and Carter [l7)),
+where the specified displacement thickness or mass defect distribution
+The coupling approach developed  in  this thesis is fundamentally
+different from the classical, semi-inverse, or quasi-simultaneous
+methods. Instead of the usual space-marching boundary layer solution
+every viscous-inviscid iteration, the boundary layer equations for all
+streamwise stations are included in the global Newton system and solved
+together with the inviscid equations as a fully-coupled system. There
+a  t  o   t   e 
+since the Newton solutionprocedureautomatically propagates the vis-
+cous displacement effects throughout the domain every iteration. This
+gives a very robust coupling algorithm. Another  advantage is that the
+very rapid convergence rate of the Newton procedure produces computa-
+tion times which are nearly the same as for purely inviscid cases.
+essentially negligible.
+The Newton solution procedure is an integral part of the overall
+design and analysis method developed in this thesis. Conventional
+Euler solvers use pseudo-time marching procedures to converge the
+17
+
+===== page 18 of 159 =====
+unsteady Euler equations to steady state. The present method solves
+the steady state Euler equations directly. Furthermore, most of the
+equations associated with the inverse and boundary layer coupling
+problems are not readily put into unsteady forms, making time marching
+well-posed linear or non-linear system of equations.
+One of the features of the Newton solution method is that, unlike
+a  time-marching method, it converges extremely rapidly once the par-
+tially converged solution is close to the exact solution. This is d
+very valuable property in interactive design work, where after some
+starting solution is calculated, design changes are usually made in
+small increments. Hence, after a typical design change the resulting
+vious solution and will thus converge very rapidly. Typically. only
+one or two Newton iterations are required for minor prescribed-pressure
+distribution changes. On a minicomputer such as a VAX-1l/780, this re-
+presents between 40 seconds and 4 minutes of CPU time for engineering-
+accuracy grids. Clearly the method is fast enough for interactive use.
+Another advantage of the Newton solution method is that it allows
+the calculation of sensitivities with respect to global parameters at
+virtually no additional cost. The usual method of obtaining a global
+parameter sensitivity--by perturbing the parameter, calculating a new
+solution, and taking a finite difference quotient--is expensive and is
+subject to numerical noise. With the Newton method, the calculation of
+additional solutions is not necessary. For example, in addition to the
+usual lift and drag coefficierts CL and Cp. analytically-accurate sen-
+sitivities such as aC./aa, aCD/aα, and aCd/aMa are obtained from a
+single point calculation.  The result is that integral quantities such
+is required to drive the angle of attack α to a specified CL. Other
+sensitivities such as aCD/aM. can be used to monitor the onset of
+transonic drag rise as design calculations are carried out.
+18
+
+===== page 19 of 159 =====
+★★★
+It must be mentioned here that the necessary stability and well-
+posedness analyses of the streamtube formulation which form the core
+of the present design/analysis method were derived and presented in the
+PhD thesis of Michael Giles  [i9l. Giles alsc performed detailed order
+of accuracy studies which clearly show the streamtube formulation to be
+second-order accurate, at least for shock-free flows.  Thus, Giles'
+thesis  is a  solid foundation on which the design and boundary  layer
+The presentation approach in this thesis is to first derive the
+Euler equations as discretized with the basic streamtube formulation,
+which is done in Chapter 2. The boundary conditions and constraints
+necessary to close the direct problem are presented in Chapter 3.
+Chapter 4 describes the Newton solution procedure and implementation in
+detail.The inverse problem theory and discrete formulation are pre-
+sented in Chapter 5, together with the linearizations necessary for the
+Newton method. In Chapter 6, the integral boundary layer formulation,
+transition criterion, and coupling procedures are derived. The modifi-
+cations to the inviscid Newton solver which must be made to solve the
+Finally. results and concluding remarks are given in Chapters 7 and 8.
+19
+
+===== page 20 of 159 =====
+2. STEADY STATE EOUATIONS
+2.1.
+Euler Eguations
+The discrete Euler equation set is derived from the integral form
+of the steady state, two-dimensional Euler equations.
+The integral
+equations are applied
+to a closed control volume C with outward unit
+normal n, as shown in Figure 2.1.
+C
+Figure 2.1
+ControlvolumeforintegralEulerequations
+Mass equation
+·nds=0
+(2.1)
+(+n
+as=0
+(2.2)
+Momentum equation
+pg·n h, ds = 0
+(2.3)
+Energy equation
+The discrete Euler equations used are an approximation to these
+equations in which the curve C is the boundary of an area usually
+re-
+ferred toas a conservation cell. This approach is standard in compu-
+tational fluid dynamics, but a unique feature of this implementation is
+that the cells are defined such
+that one pair of opposing faces are
+     t       
+Thus
+the only contribution to the above integrals from these two faces is
+the pressure term in equation (2.2). This means that the density
+and
+20
+
+===== page 21 of 159 =====
+velocity need only be defined on the other two faces. Also, the direc-
+tion of the velocity must somehow be related to the local geometry to
+A feature of this formulation which also is the basis of streamline
+curvature schemes but which  is not found in standard time-marching
+Euler solvers is that the grid is not known a priori and must be deter-
+mined as part of the solution.
+       
+variables (x,y) are located at the grid nodes marked ×. The cell nodes
+marked as · are defined to be at the midpoints of the lines connecting
+the grid nodes. The upper and lower bent faces of the cell are the
+streamline faces across which there is no mass flux. In this chapter,
+the geometry node numbering convention shown in Figure 2.2 is used when
+discussing the discrete Euler equations for a particular cell.
+x, y
+y2
+y
+Figure 2.2
+2Conservation cell and defining geometry locations
+           a os
+faces of the cell, which are illustrated in Figure 2.3. For the bent
+streamline faces the vectors are the vector sum of the two parts.
+21
+
+===== page 22 of 159 =====
+B*
+Figure 2.3
+Conservation cell face vectors
+)-(x+x²)
+—(y+y
+(2.4a,b)
+(x+x)
+(y+y,)
+(2.4c,d)
+A
+X
+Y
+(2.4e,f)
+(2.4g,h)
+TwO
+additional
+vectors which it is convenient to define are S,
+which is the average of B and Bt , and N, which is the average of A.
+and
+(2.5a,b)
++A.)
+(2.5c,d)
+A
+Y1
+Y2
+Since the nodes (x, .Y,).
+(x·y) and (x,·y,).(x
+are defined to lie on streamlines, the local velocity direction must be
+related to them. This is accomplished by defining the unit flow vector
+22
+
+===== page 23 of 159 =====
+ +1 sapou Jo abeae au bututol autt aun o1 zuabue aq o2 ts
+and 1" to
+the averageof nodes
+and
+2".
+The unit flow vector s, is derined
+similarly.
+Both are shown in Figure 2.4, and their definitions are
+giver: below.
+Figure 2.4
+State variables and unit velocity s vectors
+)/2 - (y +y)/2
+(2.6a,b)
+(x
++x.)/2
+(2.6c-e)
+X
+(2.7a,b)
+Y2
+(2.7c-e)
+The velocity at the midpoint of the left face of the conservation
+cell isthus
+defined to have direction
+S
+and
+magnitude
+ q，so that
+The final geometric quantities to be defined are the normal
+areas
+An1
+and Anz, which are the vector dot products of the urit velo-
+and A
+city vectors and the normal area vectors of the faces. Since
+are defined along the faces, not normal to them, the actual definitions
+of An, and An2
+are,
+23
+
+===== page 24 of 159 =====
+A_= s.. A.. -S.. A.
+= s,xA,
+(2.8a,b)
+A=S..A..-S..A
+n
+x1Y1Y1X
+X2Y2Y2X2
+where the operator l l is defined to mean taking the scalar component
+in the third (out of plane) dimension, and will only be applied to
+vectors having only a component  in the third dimension.
+Itis
+important to note that the scalar value given by I l may be positive or
+negative depending on the direction of the vector. The operator ↓|
+does not return the absolute value and so is an unconventional
+operator, but one that is very convenient in this application.
+The flow variables p, q, and p, denoting the density, speed and
+pressure, are located at the midpoints of the faces which are not
+streamlines, as shown in Figure 2.4. Another pressure variable, de-
+noted differently by Ⅱ for clarity. is located on the streamline faces
+where, as previously noted, no other flow variables are required.
+The discrete mass
+equation is simply a statement that the mass
+flux along a streamtube is a constant.
+(2.9)
+m=
+p,q,A
+p,α,A
+n
+2"n2
+A,,A,,B and B+
+With due regard to the directions of the vectors
+the discrete approximations to the x and y-components of the integral
+form of the momentum equation (2.2） are,
+S
+PA
+B
+mq,
+1x1
+2"x2
+'Y
+Y
+mg
+S
+1x1
+2x2
+Y
+Y
+(2.10)
+mq,$y1
+S
+‘bw-
+IB
+2Y2
+X
+X
+：ma,
+S
+‘bw－
+S
+1Y1
+2Y2
+xx
+(2.11)
+24
+
+===== page 25 of 159 =====
+The step from the first line to the second line in these two equations
+B - B =A, - A,.
+The energy equation reduces to the statement that the stagnatjon
+enthalpy is constant along a streamtube, although of course the value
+of the stagnation enthalpy, like the value of the mass flux, may vary
+from one streamtube to another.
+h=
+(2.12)
+-1 p2
+2 92
+-1 P,
+2.2Auxiliary pressure relation
+The discrete Euler equations given above require an additional
+relation to constrain the average value of Il in each cell. In a uni-
+form flow, the pressure p on the normal cell faces (Figure 2.4) is
+related to p and q through the mass equation (2.9) and energy equation
+(2.l2). However, the streamline cell face pressure Il can take on any
+value, since the momentum equation (2.ll) only constrains the differ-
+ence between I" and Iit. For consistency the average local value of ⅡI
+must be approximately equal to the average local value of p with the
+equality becoming exact in the limit Ax,y→0. This is achieved most
+simply by requiring that
+n+=P,+ P2
+(2.13)
+which constrains the average of the pressures on each pair of opposing
+faces  to be  the  same.
+Equation (2.l3) is called the I-equation.
+Although  many other constraints between p and Ⅱ can be formulated,
+(2.13) is the simplest constraint which is also second order accurate.
+Also, it will ultimately produce the same number of unknowns as equa-
+One problem with the x and y-momentum equations (2.10-ll) and the
+25
+
+===== page 26 of 159 =====
+I-equation (2.13) is that they are transparent to the sawtooth grid
+oscillations shown in Figure 2.5.
+conservation cells
+geometry
+Figure 2.5 Grid sawtooth oscillacions
+These oscillations are neutrally stable, and normally
+!are adequately
+inhibited by solid-wall boundary conditions. For inverse boundary con-
+ditions, however, it is desirable to eliminate them completely.
+One
+way to do this is to
+correct
+the
+average
+eof the Il pressures for the
+sawtooth-induced streamtube area change in the middle of the cell. The
+I-equation is therefore modified to
++
+(2.14)
+A possible
+way
+to relate the pressure correction change Pc to the
+streamtube
+ area change is to use the isentropic pressure-area relation
+p/p = M^/(1-M^)
+A/A. The corresponding discrete form for Pc (= △p)
+in uniform flow would be
+P
+M²/(1-M²)
+(2.15)
+A
+  u    a e    ?h 
+26
+
+===== page 27 of 159 =====
+S
+Figure 2.6 Quancities for isentropic Ⅱl correction
+Using equation (2.i5) to define Pc is not appropriate for several
+reasors.
+Numerical experiments revealed that the amount of pressure
+correction given by equation (2.15） is about an order of magnitude more
+is necessary to prevent the grid sawtooth from appearing.
+Also,
+than
+the pressure
+correction was found to cause instabilities in supersonic
+regions. A form
+for Pc
+which takes these considerations into account
+ard is also applicahle to non-uniform grids is
+2  sxN1
+(2.16)
+(2.17a-b)
+where
+The vectors Si, s2. st, s2 are related to the local streamline geometry
+++
++↑
+as shown in Figure 2.6.
+The factor k in  (2.l6) typically lies in the
+With k=1 and uniform flow, the modified Pc
+range 0.05 < k < 0.20 .
+definition (2.16)
+reduces to the isentropic pressure-area relation in
+the incompressible limit M << 1.
+It is useful at this point to resolve the discrete x and y-momen-
+tum equations (2.10) and (2.1l) into local streamwise and normal momen-
+27
+
+===== page 28 of 159 =====
+By taking
+S。 times equation (2.l0) plus S, times equation (2.ll), and using the
+X
+general H equation (2.14), the S-momentum equation is obtained.
+mq,f，-
+(2.18)
+mq,f2 
+P，"
+ISxNI
+6,·s
+32.3
+(2.19a-b)
+where
+SxNI
+N. times equation (2.10)
+ and N, times equation
+Likewise, by taking
+x
+Y
+(2.ll), the N-nomentum equatior is obtailed.
+1AxA21
+PcxN
+(2.20)
+mq,g，"
+mq292 +
+N·'α
+S2·N
+(2.21a-b)
+where
+[SxN]
+In Drela,
+Giles and Thompkins [14]. it is shown that equations (2.18)
+the limit of infinite grid resolution, and herce are a consistent dis-
+cretization of the Euler equations.
+2.3
+Artificial dissipation
+6 are ill-posed
+In  supersonic zones the discrete Euler equations
+withoutthe
+addition of some form of artificial nuinerical dissipation,
+as is shown by
+the
+analysis in Appendix D.(
+Onewayto makethe equa-
+tions well-posed is through the introduction of upwinded density (also
+This idea
+termed "artificial compressibility") in the mass equation.
+was first used by Eberle [l6] for the transonic potential equation, and
+：used
+by Wornom [57] for the quasi-one-dimensional B
+Euler
+was
+later
+equations.
+Giles [i9] successfully applied this form of artificial
+28
+
+===== page 29 of 159 =====
+dissipation to the the present Euler equation discretization to obtain
+ solutions.
+In
+this thesis, a form of artificial
+stable transonic
+dissipation analogous to bulk viscosity will be used.
+Based
+on
+the
+stability analysis
+given
+1in Appeniix A, the S and N-momentum equa-
+tions are modified to
+Bx
+(2.22)
+ma,f, 
+ma,f,
+[SxN]
+1AxA21
+(2.23)
+mg,9:
+SXNI
+where q, and a, are upwinded speeds defined by
+(2.24a)
+(2.24b)
+M² = max(M²,;
+(2.25)
+max
+Thus, dissipation in the form of speed upwinding is introduced wherever
+local
+cell
+ maximum Mach number M exceeds the threshold value Mc·
+the
+For numerical stability, Mc has to be somewhat less than unity, and is
+usually chosen to be approximately 0.93.
+2.4.
+I pressure elimination
+to be described jn Chapter 4, it is necessary to eliminate the Ⅱl vari-
+ables from the N-momentum equation (2.23). I+ is eliminated simply by
+adding the Ⅱ-equation (2.14) to the N-momentum equation (2.23), giving
+AxA21
+ma.9,- maa2- P"
+2P
+=-2
+(2.26)
+c|sxN]
+29
+
+===== page 30 of 159 =====
+Similarly, Ⅱ-  is eliminated by subtracting the I-equation from the N-
+momentum equation, yielding
+A,xA,
+(2.27)
+ma,g1
+SxN
+To eliminate the Ⅱ variables from equations (2.26) and (2.27),
+wenote
+that Il- for streamtube j is in fact the same quantity as It for stream-
+tube j-l as shown in Figure 2.7.
+streamtube
+j-1
+streamtube
+Figure 2.7
+and
+pressure equivalence
+j-1
+By adding equation (2.26） at i,jto equation (2.27） at i,j-l，the so-
+called reduced N-momentum equation results.
+211
+211
+"i,j-1
+i,j
+A,xA2
+mg
+SXN
+AxA21
+(2.28)
+[SxN]
+Together with the S-momentum equation (2.22), the reduced N-momentum
+1 os o  a  u    t (') oa
+30
+
+===== page 31 of 159 =====
+rithm to be described in Chapter 4.
+2.5Streamtube inlet boundary condition
+The analytic Euler equations require two thermodynamic variables
+to be specified  at a subsonic inlet. One is already specified in the
+form of the stagnation enthalpy, which is in fact prescribed along the
+entire streamtube. The other thermodynamic quantity which is specified
+only at the inlet of each streamtube is the stagnation density.
+μ2)1/(y-1)
+2)-1/(-1)
+′ =p,(1
+(2.29)
+2h
+where the subscript "i" now denotes the variables at the inlet face.
+2.6Global Variables and Equations
+           
+tional grid. However, for the airfoil and cascade problems which are
+addressed  in this thesis, there are certain variables and equations
+which aren't associated with any particular node.‘
+Thesearetermed
+"global" variables and equations. A few examples are cascade inlet and
+outlet flow slopes, airfoil circulation, and freestream flow angle of
+attack.  Often, the equations which constrain these variables are
+obvious, such as a specified inlet flow slope or a specified freestream
+tained from physical insight. An example is the Kutta condition, which
+flow slope and the circulation, respectively.  Global variables and
+equations will be introduced and discussed as they arise for each
+problem category in the subsequent chapters.
+31
+
+===== page 32 of 159 =====
+3.DIRECT PROBLEM
+This chapter will present the boundary conditions encountered in
+the solution  of the direct, or analysis problem. In addition, certain
+global variables and constraints which arise in the direct problem will
+al.sobeaddressed.
+Treatmentwillberestrictedtocascadeandisola-
+ted airfoil geometries.
+Thegrid in each case is a logical rectangle
+with the indexing system shown in Figure 3.1.
+2
+J-
+1
+ja+1
+iTE
+1 2  
+Figure 3.l Grid indexing for cascade and isolated airfoil
+Note that for the airfoil case, the streamline index j starts with the
+value of 1 at the airfoil suction surface, and then "wraps around" at
+j∞ to end up with the value of J at the pressure surface. There is a
+dummy streamtube between the streamlines j = jo and j = jo+l where the
+governing equations will be replaced by the far field boundary condi-
+tions of a lifting airfoil.
+3.1 Solid Wall Boundary Conditions
+The wall boundary conditions which are required to close the
+  o        
+simple. At a solid wall, the only physical boundary condition is that
+32
+
+===== page 33 of 159 =====
+the flow is tangent to the surface. In the discrete equations, this is
+implemented byrequiring
+that  each wall streamline lie on the wall
+itself, as shown in Figures 3.2 and 3.3.
+△n=0
+△=0
+flow
+slope
+(Kutta)
+(△nx0
+△T1s0
+Figure 3.2  Cascade boundary conditions
+@_ + compressible  vortex & source
+△n=0
+4T：0
+f△n=0
+(Kutta)
+An:0
+Figure 3.3Isolated Airfoil boundary conditions
+A local coordinate n in the direction perpendicular to the solid wall
+is defined at each node. As will be described in detail in Chapter 4,
+the grid nodes are restricted to mcve only along this normal coordi-
+nate, with the node spacing along the airfoil surface being prescribed.
+The solid wall boundary conditions are therefore
+33
+
+===== page 34 of 159 =====
+(3.la-b)
+△ni,J
+"o
+where An is the gap between the wall and the surface streamline as
+shown in Figures 3.2 and 3.3. These boundary  conditions still allow
+the surface grid nodes to slide along the airfoil. Such sliding occurs
+in the case of a blunt leading edge, where the position of the stagna-
+tion point on the airfoil is a result of the calculation. This aspect
+of the direct problem will be treated later in this chapter. In Chap-
+ter 6, equations (3.la-b) will be modified to account for the viscous
+ary conditions are required by the discrete Euler equation set.In
+particular, the wall Il pressures do not have to be extrapolated from
+the field interior, as in most time-marching Euler solvers, but are a
+resultofthecalculation.
+On the part of each stagnation streamline which does not lie on
+the airfoil surface, two boundary conditions are required. One is a
+geometry continuity condition:
+an= 0
+，2<i<i.e-l
+and
+ig+l<iI-1(3.2)
+LE
+TE
+Here, ni denotes the gap between streamlines j=l and j=J as shown in
+Figure 3.2. The other boundary condition is  a pressure continuity
+condition:
+and
+ig+1 i I-1(3.3)
+i,1
+"i,J-1
+TE
+The Ⅱl pressures in equation (3.3) are easily related to the other
+local variables by using equations (2.26) and (2.27). All of the
+equations above are applied to both cascades and isolated airfoils.
+For the cascade case, equations (3.2) and (3.3) can be interpreted as
+periodicity conditions.
+34
+
+===== page 35 of 159 =====
+3.2Cascade Far-field Boundary Conditions
+In the cascade problem, the discrete Euler equation set requires
+geometric boundary conditions for the streamline endpoints, one at the
+inlet (i = l)anu one at the outlet (i = I).For consistency, these
+boundary conditions must allow the flow to become invariant along each
+        
+line nodes such that the cross-sectioral area of each streamtube is
+proportional to its mass flux. Unfortunately, this boundary condition
+would be incorrect if the entropy differed between streamtubes because
+of nonzero inlet vorticity or shock entropy generation. A boundary
+that all the streamline segments between the inlet plane (i=l) and the
+plane just inside (i=2) have a common slope Sinl. This is expressed as
+1j≤ J
+(3.4)
+*2,j-x1,j
+Likewise, the outlet streamlines are constrairied to have the outlet
+slope Sout·
+1jJ
+(3.5)
+x1,j-x1-1,j
+out
+Sinl and Sout are two global variables which have been introduced into
+      a    
+must be introduced to constrain them. An appropriate equation to
+constrain Sinl is to simply set it to some specified value:
+Sinl -
+inl) spec
+=0
+(3.6)
+At the outlet, a flow siope can be specified as well. However, this
+streamline at the sharp trailing edge. In the corresponding physical
+situation this cannot occur since vorticity will be shed until the
+pressure jump across the trailing edge is zero. This is a viscous
+mechanism which establishes the ciculation and hence the lift on any
+35
+
+===== page 36 of 159 =====
+airfoil-like body, and the zero-pressure jump is the well-known Kutta
+condition. With viscous Navier-Stokes solvers, and also with
+conven-
+tional Euler solvers which have numerical viscosity, the Kutta condi-
+tion becomes satisfied automatically. In potential solvers, which have
+no dissipation, the Kutta condition must be set explicitly.
+Since the
+present streamtube
+Euler
+solver does not have any numerical viscosity
+in subsonic regions, it is necessary
+toexplicitlyimpose
+the Kutta
+condition here as well.
+(3.7)
+           
+pressure-continuity boundary condition (3.3) which  is applied tc all
+the all the wake and and inlet stagnation streamline points.
+However,
+equation
+(3.7)  is considered a global equation since it is used
+to
+constrain the global variable Sout· just like the global equation (3.6)
+constrains the global variable Sinl·
+3.3
+Airfoil Far-Field Boundary Conditions
+As shown in Appendix B, the leading order behavior for the velo-
+city potential Φ at a large distance from the airfoil is given by the
+superposition of a uniform flow, a vortex,
+a source, and the two com-
+ponents of a doublet. The potential of this combination is
+F
+E
+Dx
+cosO
+Dy
+sino
+中
+=
+Bx
++
+ln(r)
+2π
+21
+2π
+21
+r
+FMoo
+2
+ln(r)
+cos30
+E
+coSO
++
+F
+(3.8)
+r
+r
+where
+0 = arctan
+(3.9a-c)
+r
+and
+(3.9d-e)
+16
+36
+
+===== page 37 of 159 =====
+Here, x and Y are transformed coordinates aligned with the freestream.
+They are related to the physical coordinates x and y, tiie freestream
+angle of attack α, and to the freestream Mach number M。 by the follow-
+ing shift, rotation, and scaling transformation:
+1
+(x-x。）cos(α)+(y-y。)sin(α)
+(3.10a)
+β
+=-(x-x。) sin(α.) +(y-y。) cos(α)
+(3.10b)
+X。 and Y。 are the physical coordinates of the point where the far field
+vortex, source, and doublet are centered.
+This point is usually taken
+to be on the airfoil chord line at the 25% chord position.
+ia o  t (') ba    oa a
+the static pressure which is imposed as a boundary condition along the
+top and bottom streamlines (j = jo, jo+l).
+2i<I-1
+(3.11a)
+i,j∞
+2<iI-1
+(3.11b)
+"i,j∞+1
+2h
+X
+/i,j∞+l,
+Iq uaath aae (q-ett'e) ut ^Φ pue xo sauauoduoo Atootan uetsaxe:, au
+cosa
+(Φ)
+(Φ)
+-sinα(Φ)
+(3.12a)
+x'i,j
+=
+Y'i,j
+β
+i,j
+sina
+(Φ)
+(3.12b)
+=
+（Φ
+Y'i,j
+β
+i.j
+i.j
+where the transformed velocity components
+and
+are obtained by
+Y
+differentiation of the Φ definition (3.8). The resulting expressions
+are rather tedious and are best obtained from the code listing.
+Three new global unknowns have been introduced into the system by
+using equations (3.lla-b) as far-field boundary conditions: the angle
+of attack α, far-field circulation I, and far-field source strength ∑.
+Therefore, three new constraints must be introduced. The appropriate
+37
+
+===== page 38 of 159 =====
+slope (and hence the circulation) in the cascade case.
+(3.7)
+To
+constrain the angle of attack, two approaches are possible.
+One is to simply specify the angle of attack.
+0-8
+α
+=0
+(3.13)
+spec
+The other approachis to specify
+the lift,which in turn is related to
+the integrated pressure loads over the airfoil surface.
+TE
+B
++1,J--1,J)n,J-1-(x+1,1--1,1),1
+L
+(3.14)
+spec
+i=i
+LE
+Thus, either the lift or the angle of attack can be specified.  The
+quantity which is not specified is then a result of the calculation. It
+is worthwhile to mention here that in shock-free flows, the quantity
+Pαqol always equals the lift obtained from surface pressure integration
+to within a small truncation error. This is viewed as evidence of the
+consitency of the present discretization scheme.
+The far-field source strength E, which is only present in shocked
+ a  'o   rt e   o
+to the stagnation pressure and displacement thickness at the outlet  as
+shown in Appendix B.
+J-1
+5
+(3.15)
+outlet
+(pu)
+w
+pu
+8+
+j=1
+8
+where
+(ou)
+(2h
+(3.16)
++α
+j
+The two doublet strengths Dx and Dy are deterrmined by two minimi-
+zation conditions as described in Appendix B. In discrete form,
+these
+38
+
+===== page 39 of 159 =====
+conditionsare
+j∞+1 I-1
+x$e)
+a
+Φ△x
+AY
+0
+(3.17)
+x
+Y
+i+,j
+aD
+aD
+i+>.j
+j=j∞i=1
+X
+j+l I-1
+(a4x
+a中
+Φ.△x
+AY
+△X
+(3.18)
+Y
+)i+,j
+aD
+aD
+i+.j
+j=j∞i=1
+Y
+Here, △x and △y imply
+△x = xi+1,j - xi,j
+y = Yi+1,j - Yi,j
+and Φx, Φy, aΦx/Dx, etc., are evaluated at the midpoint coordinates
+xi+1,j+xi,j
+Yi+1,j+Yi,1
+xi+,j
+Yi+.j
+2
+2
+The validity of the doublet constraints (3.17) and (3.18) has been
+confirmed by cases where the exact doublet strength is known, such as
+ o ao o e  co  a o o a u
+very thin airfoil. In general, the calculated doublet strength equals
+the exact value to within a few percent.
+At the inlet and outlet planes, the airfoil case requires the same
+geometric boundary conditions as the cascade case.
+Thesetting of a
+uniform slope at the inlet and outlet of a cascade flowfield is justi-
+fied on the grounds that the periodic pressure disturbances due to the
+individual cascade airfoils decay exponentially upstream and downstream
+of the cascade as shown by Giles [i9]. Setting all the streamlines to
+be
+parallel is inappropriate for the airfoil case, however, because of
+the relatively slow l/r and l/r? type of decay of the far-field vor-
+t.
+source, and doublet velocity field. This slow decay causes the
+streamline direction to vary significantly across the inlet and outlet
+boundaries of a reasonably sized domain. Therefore, it is better to
+let the prescribed streamline slope vary according to the streamline
+pattern of a uniform flow with a superimposed compressible vortex,
+source, and doublet. Hence, at the inlet and oulet boundaries, each
+
+===== page 40 of 159 =====
+streamline segment is constrained to be parallel to the local velocity
+whose components Φx and Φy are given by equations (3.12a-b). At the
+inlet, this is expressed by the following cross-product:
+(x,x2,((2
+，1j~J
+(3.19)
+At the outlet plane, the corresponding condition is:
+(x1-1,j - x1,3)
++(Φ)
+I-1,j
+Y'I,j
+(x-1,3-,3]（()
++(Φ)
+、1jJ
+(3.20)
+I-1,j
+I,j
+3.4.
+Bluntleadingedgetreatment
+A body with a blunt leading edge requires special treatment at the
+stagnation point if a physically realistic solution is to be obtained.
+In particular, the position cf the stagnation point on the airfoil
+cannot be assumed a priori, but clearly must be a result of the solu-
+tion. Therefore, the stagnation point grid node (at i=iLE and j=l,J)
+must be free to slide on the airfoil surface. To prevent grid cross-
+overs, the other surface grid nodes must also slide in a way which
+maintains a good crid distribution.  In the present formulation, the
+relative spac.ngs between grid nodes on the suction side are kept.
+proportional ti the total suction side arc length between the stagna-
+tion point and the trailing edge. The same is done for the pressure
+side. Hence, as tne stagnation point slides on the surface, the other
+dion-like fashion, as illustrated in Figure 3.4.
+40
+
+===== page 41 of 159 =====
+Figure 3.4 Surface node movement tied to stagnation point movement
+The movementof the surface nodes does not modify any of the gov-
+erning equations or boundary conditions presented so far. The only
+consequence will arise in the Newton solution procedure tc be described
+in Chapter 4. In effect, the position of each surface node is now
+dependent on the new global variable SLE. which the position of the
+stagnation point grid node on the airfoil  in terms of arc length mea-
+sured counterclockwise around the airfoil from trailing edge to trail-
+oaz e st 3ls uteaasuoo on uotaenba teqotb aetadoidde au 'abpa bu
+pressure jump across the stagnation streamline at the stagnation point,
+or in other words a leading edge Kutta condition.
+I1
+=0
+(3 .21)
+LE
+'LE`J-1
+In cases involving a sharp leading edge, the  stagnation point is
+does not exist. Because the global equation (3.2l) can no longer be en-
+be infinite. Given the finite available grid resolution in the present
+scheme, however, the resulting pressure jump will be merely large.
+★★★
+Together with the solid wa!l, periodicity, and far-field boundary
+conditions presented in this chapter, and with the interior equations
+is complete. The Newton solution procedure for the equations is pre-
+sented next in Chapter 4.
+41
+
+===== page 42 of 159 =====
+4.SOLUTION PROCEDURE
+Chapters 2 and 3 have presented all the steady state equations
+obtained from the discretization
+of
+ the Euler equations, and their
+associated boundary 
+conditions
+for the direct problem. This chapter
+will describe the Newton method which
+is
+used to solve this system of
+nonlinear
+equations.
+The modificationstothe
+method
+necessary
+for
+solution of
+the
+inverse
+and boundary layer coupling problems will be
+presented as they arise in subsequent chapters.
+4.1 The Newton method
+The Newton method is a well-established algorithm for solving
+nonlinear
+scalar or vector equations. For a scalar nonlinear equation
+of the form
+f(u) = 0
+(4.1)
+the Newton solution procedure at some iteration level v is
+(4.2a)
+Su
+V
+-f(u) / f'(u)
+(4.2b)
+v+1
+V
++ou
+u
+u
+(4.2c)
+This procedure converges quadratically (i.e. 6u
+v+1
+provided
+the current solution
+ is sufficiently close to the exact solution.
+For a vector of equations F and a vector of unknowns U, the Newton
+procedure is essentially the same.
+F(U) = 0
+(4.3)
+F(U+1) = F(U"+ou") = F(U")
+aF
+&U
+(4.4a)
+aF
+F(U')
+(4.4b)
+au
+42
+
+===== page 43 of 159 =====
+n9 +=+#
+(4.4c)
+The expression [aF/au]′ in equations (4.4a) and (4.4b) is the Jacobian
+matrix whose (i,j) entry is the partial derivative of the i'th equation
+in F with respect to the j'th variable in U, evaluated at u'. The
+convergence for  the vector  equation is quadratic for a sufficiently
+the vector equation is that a linear system of equations (4.4b） must be
+solved at each iteration, unlike the corresponding scalar equation
+(4.2b) which merely requires a single division. The Jacobian matrix
+large as 90o0 x 9000. However, it is an extremely sparse and highly
+structured matrix of bandwidth 69, and thus can be solved economically
+by Gaussian block elimination.
+tion is to use some sort of iterative relaxation algorithm. Jespersen
+[27]has triedthis solutionapproachwith a conventionalfinite-volume
+discretization. He considered the linear system to be too large to be
+solved efficiently by direct methods, probably because his discretiza-
+tion requiredfour unknowns per node in contrast to the two unknowns
+per node required by the streamtube formulation. Jesperson's approach
+was to solve the linear Newton equations by an iterative Gauss-Seidel
+method accelerated using multigrid, a technique developed by Brandt
+[4] for solving elliptic equations. His results showed no particular
+speed advantage over conventional  time-marching. Giles  [l9} has
+formulated.and tested an iterative solver for equation (4.4b） whi.ch
+required a preccnditioner and was limited to subsonic flow. His re-
+typical engineering calculations, the Gaussian elimination solver was
+faster, more robust and simpler than the iterative solver, and also
+handled transonic flows without difficulty. Needless to say, further
+43
+
+===== page 44 of 159 =====
+efforts at iterative solution were dropped.
+4.2 Newton linearization
+In the present application the vector of functions F in equations
+(4.3-4) includes all of the discrete Euler equations, boundary condi-
+tions, glcbal constraints, and boundary layer equations. To minimize
+the computational cost of solving equation (4.4b)  it is desirable to
+use the smallest possible number of unknowns in the vector su.
+To
+achieve this, each grid node will be restricted to move perpendicular
+to the local streamline, so that the node position changes &x and 6y
+can be replaced the single change &ir. Here, n is a local coordinate
+6p and 6n are left as independent variables. There are two basic
+approaches to this task. To clarify their differences, they will first
+roach, which is the one used in the program, will then be applied to
+the discrete equation set.
+press the discrete equations in terms of only p and n, and then differ-
+entiate. For instance, the S-momentum equation (2.22) has the form
+F(S,N,s,q,p) = 0
+(4.5)
+where
+S = S(x(n),y(n))
+N=N(x(n),y(n))
+s = s(x(n). Y(n))  (4.6a-c)
+and
+('d)b = b
+p = p(p,q)
+A = A(x(n),Y(n))
+(4.6d-f)
+Node indices, subscripts, and other ornaments have been suppressed for
+the sake of clarity. The functional dependencies q(o,A) and p(p,q) are
+obtained from the mass and energy equations (2.9) and (2.12). In prin-
+ciple, equation (4.5) can be expressed explicitly in terms of p and n
+by fully expanding the functional dependencies S(x,y), x(n), y(n),
+44
+
+===== page 45 of 159 =====
+q(p,A), etc., and then linearized by differentiation with respect to p
+and n:
+F(p,n) = 0
+(4.7)
+aF
+3F
+SF(p,n)
+6p
+de
+6n
+3n
+(4.8)
+The difficulty with this approach is that F(p,n) is an absurdly com-
+plicated expression and aF/ap and 3F/an are much worse. Coding them
+for the necessary evaluation at each iteration level would be rather
+impractical.
+The second, simpler approach is to break down the differentiation
+in equation (4.6b) into a sequence of much simpler steps by invoking
+the chain rule, and then assembling the individual steps at the Fortran
+level. This process is illustrated in the following example. First,
+the expressions for x and y are linearized.
+ As mentioned previously,
+each grid node is constrained to move in the direction of the unit vec-
+tor n perpendicular to the streamline, and hence the changes 6x and 6y
+are simply given by
+6x=
+ax
+&n = n, 6n
+an
+Sy
+an
+(4.9a-b)
+x
+Y
+Since n is prescribed before each iteration, its components nx and ny
+are known constants. Next, the changes in S, N, s, A are obtained by
+straightforward chain-rule differentiation of their definitions.
+as
+6S
+as
+6x
+8Y
+N
++
+6x +
+xe
+8y
+xe
+(4.10a-b)
+ay
+as
+as
+s
+6x
+3A
+3A
+xe
++
+oy
+6A =
+6x+
+6y
+xe
+(4.1la-b)
+Derivatives
+swith respect to x and y such as as/.x and aN/ay, which are
+relatively simple expressions, are readily evaluated at the current
+iteration level and stored. For the current iteration, they thus be-
+come
+e constants which trivially relate &S, 6N, 6s, oA and the indepen-
+dent variables 6x and 6y.
+45
+
+===== page 46 of 159 =====
+Next, the change &q is expressed in the same manner as 6A was.
+The definition q(p,A) is obtained from the mass
+equation(2.9） and is
+differentiated to give
+be
+6p
+6A
+(4.12)
+3A
+The derivatives dq/ap and dq/aA are very simple expressions which
+are
+evaluatedat
+the
+current iteration level and stored. Likewise, the
+expression for the change §p is obtained by differentiation of its
+definition p(p,q) derived from the energy equation (2.l2).
+P
+P
+op
+8p
+be
++
+b2
+(4.13)
+de
+Again, the simple expressions dp/ap and dp/aq are evaluated and stored.
+Now
+that all the intermediate expressions such as q(p,A) and
+(d'b's'n's) azaaute o st das axau au 'aztaeautt uaaa aeu (b'd)d
+itself.
+aF
+aF
+aF
+aF
+aF
+6F
+6S
++NO
+6s +
++
+6p
+se
+be
+(4.14)
+se
+de
+The derivatives in equation (4.14), which again are relatively simple
+expressions, are evaluated and stored as usual. The final step is to
+use equations (4.9) through (4.13) to express the changes 6S, &N, 6s,
+8q,op in equation (4.14） in terms of only the independent variables 6p
+and 6n. By direct substitution,
+aF
+be
+aF
+p
+6F
+8p
+be
+de
+de
+ap
+3F
+an
+aFas
+aF
+as
+ax
+xe
+se
+ax
+se
+ax
+aa
+3A ax
+ap
+13A
+ax
+an
+aF
+aN
+aF
+as
+aF
+as
+aF
+aq
+aA
+aF
+ap
+A
+下e
++
+8n
+(4.15)
+ay
+as
+ay
+as
+ay
+ag
+3A
+ay
+de
+ag
+3A
+ay
+an
+Since all the derivatives have already been calculated and stored, this
+final step is trivially done at the Fortran level.
+Using the chain rule to break down the linearization process as
+46
+
+===== page 47 of 159 =====
+illustrated above is clearly the preferred linearization method, for
+reasons of both clarity and efficiency. This linearization method will
+lem boundary conditions.
+4.3Jacobian structure
+Before the linearized equations are derived, it is helpful  to
+visualize the zone of dependence, or "molecule" of each discrete equa-
+tion.
+For
+an IxJ grid, there are (I-2)×(J-1)
+S-momentum
+nequations
+(2.22)
+and (I-2)×(J-2)
+reducedN-momentumequations
+(2.28)
+tobe
+solved.
+The
+molecule
+of
+each of these equations is shown in Figure
+4.1.
+Other equations, such as airfoil far field boundary conditions
+involve global variables such as 6r and/or 6α.
+Sn:
+jM1-
+-j  streamtube
+j+1
+1-2
+i-2
+— j-1  streamtube
+i-1
+i-1
+i+1
+i+1
+ReducedN-momentum
+S-momentum
+Figure 4.1  Zones of dependence of discrete Euler equations
+When Newton's method is applied to these discrete equations,
+the
+linear system which results involves a block matrix with four block
+diagonals; plus a separate block column for the global variable entries
+and separate block row for the global equations. The structure of this
+linear Newton system is shown below.
+47
+
+===== page 48 of 159 =====
+6
+R
+U
+-R
+N
+1B
+IR
+3
+R
+(4.16)
+B
+A
+2
+=U
+10
+-R
+云
+B
+A
+"C
+=U
+10
+-R
+IN
+=B
+IA
+-0
+-R
+T
+G
+"G
+-
+-R
+6
+6
+6
+Here,
+denotes the vector of the unknowns 6n and &p
+atstreamwise
+station i, and
+ denotes the vector of global unknowns such as &r and
+6
+dα which are not associated with individual nodes. The vector
+con-
+tains
+the
+negated residuals of the S-momentum and reduced N-mcmentum
+equations and boundary conditions
+for streamwise station i,
+evaluated
+atthe
+current solution.
+The vector
+R
+contains negated global equa-
+6
+tion (such as the Kutta condition or prescribed-lift condition) resic-
+uals evaluated atthecurrent solution.
+All the block elements making
+up the large
+Jacobian coefficient matrix in (4.l6) contain the deriva-
+tives of the residuals
+on the righthand side,a
+again
+evaluated at the
+current solution. The block matrices
+contain the cor-
+responding Jacobian entries for 6n and 6p
+(i.e. the residual deriva-
+tives with respect to n and p). and the
+u.
+block contains the Jacobian
+entries for global unknowns such as 6r and &α which typically appear in
+the boundary conditions.
+The
+G
+blocks
+contain the global equation
+block contains the global
+6
+equation entries for the global variables.
+48
+
+===== page 49 of 159 =====
+The structure of each block line in (4.l6) reflects the molecules
+of the individual S-momentum, reduced N-momentum, and boundary condi-
+tion equations. Figure 4.2 shows how the individual molecule nodes are
+divided between the
+z,, B,, A,, and C, blocks.
+气.
+z.
+B.
+A:
+C
+i-2
+i-1
+i+1
++
+ReducedN-momentum
+S-momentum
+Figure 4.2  Division of variables between Jacobian matrix blocks
+The linearized reduced N-momentum
+equationsandperiodicity boundary
+conditions are grouped in the top half of each block line, and 
+the
+linearized S-momentum
+equations are grouped in the bottom half. This
+produces the block structure shown in Figures 4.3
+and 4.4. The 6n
+49
+
+===== page 50 of 159 =====
+oni-2,1+J
+8pi-1,1+J-1
+←BC(3.2)
+0
+0
+reduced
+0
+0
+N-momentum
+equations
+←BC (3.3)
+×
+×
+0
+S-momentum
+×
+×
+0
+×
+0
+equations
+×
+×
+×
+block
+=B
+block
+Figure 4.3
+and B.
+block structure (2  i  I-1)
+8pi,1+J-1
+oni+1,1+J
+1→J
+← BC (3.2)
+reduced
+N-momentum
+equations
+0
+←BC(3.3)
+S-momentum
+equations
+block
+block
+Figure 4.4
+and
+block structure (2 < i< I-1)
+Note that the row containing the
+linearized geometry continuity
+boundary condition (3.2)
+is empty except for the two 6n entries in the
+ block. The row containing the linearized pressure continuity bound-
+ary condition (3.3) has extra entries since equation (3.3) spans
+cells
+in the l'st and J-1'th streamtubes. At a streamwise station where
+the
+1'st and
+dJ-l'th streamtubes adjoin a solid surface, such as in a cas-
+50
+
+===== page 51 of 159 =====
+cade passage or at an airfoil surface location, the fixed-streamline
+boundary conditions (3.la) and (3.1b) replace geometry and pressure
+'   1    m 1  
+and "Bc (3.3)" in Figures 4.3 and 4.4 above to be totally devoid of
+entries except for one on the main diagonal of the A, block.
+The block structure shown in Figures 4.3 and 4.4 is misleading for
+an  isolated airfoil case, since it does not indicate the far-field
+         
+jo'th and jo+l'th lines of each block do not contain the reduced N-
+momentum equations, but the linearized far field conditions (3.lla) and
+(3.llb) instead. These conditions will still result in the jo'th and
+jo+l'th lines having the same form as the reduced N-momentum equation.
+At the inlet and outlet planes, which correspond to the first and
+last block rows of the Newton system (4.l6), the block structure is
+also different from that shown in Figures 4.3 and 4.4.
+At the inlet (i=l), the z,
+B, blocks do not exist. The upper
+and
+halvesofthe
+A.
+and
+ri
+slope conditions (3.6) for the cascade case, or the linearized flow
+angle conditions (3.l19) for the airfoil case.
+Thelowerhalvesofthe
+A.
+tion (2.29). Figure 4.5 shows this block structure.
+51
+
+===== page 52 of 159 =====
+5n
+5p
+6n
+1→J
+1→J
+inlet
+flow angle
+conditions
+inlet
+stagnation
+density
+conditions
+×
+×
+×
+block
+block
+Figure 4.5
+and c.
+.block structure
+At the outlet (i=I), the C.
+block does not exist.
+The
+block is usu-
+ally all zeroes,
+although it doesn't have to be.
+The upper halves of
+of the
+=B
+and
+A
+blocks contain the same flow angle conditions as at
+i
+the inlet.
+The lower halves of the
+B
+and
+blocks contain only dummy
+equations since the variables
+pdo
+not
+exist for i-I.
+This block
+structure is shown in Figure 4.6.
+dummy
+6n1-1,1+J
+6P1-1,1→J-1
+6n1,1+J
+variables
+outlet
+flow angle
+cond: ions
+dummy
+equations
+block
+block
+Figure 4.6
+z, and B, block structure
+52
+
+===== page 53 of 159 =====
+4.4Discrete system linearization
+In the program, the general linearization procedure is to sequen-
+tially sweep down each streamtube, calculating and storing the various
+residuals and Jacobian entries  for each streamwise location. when the
+program visits a particular cell, it can calculate all the entries for
+the S-momentum equation,since the S-momentum
+nequation spans only that
+one cell. This is not possible for the reduced N-momentum equation,
+since it spans two cells in two adjacent streamtubes. Sweeping down
+two streamtubes simultareously would be computationally inefficient and
+the Jacobian elements the current cell's contribution to the two re-
+duced N-momentum equations it influences.After the Jacobian entries
+are calculated and stored.
+4.4.1 Interior Euler equations
+At the beginning of iteration v, p‘,x′, Y’ at all grid nodes are
+known. For the sake of clarity, the iteration index "v" will be omit-
+ted from all quantities, unless otherwise stated. For each streamtube,
+all the geometric quantities are evaluated using equations (2.4-2.8),
+and also equations (2.19a-b) and (2.2la-b). In general, the Cartesian
+displacements 6x and 6y of each node are expressed in terms of a local
+movement 6n along a predefined direction vector n perpendicular to the
+local streamline, plus a movement proportional to &sLE along another
+predefined direction. As described in Chapter 3, 6sLE is the movement
+of the stagnation point grid node at a blunt leading edge.
+Forthe
+sake of ciarity, the grid node position dependence on 6sLE will be
+ignored until the end of this chapter. The consequences of this depen-
+dence will then be discussed.
+Because each node is defined to move a distance &n along the pre-
+defined direction vector n, the Cartesian variations 6x and 6y can be
+53
+
+===== page 54 of 159 =====
+trivially related to &n when needed. Hence, all geometric quantities
+are first linearized in terms of the variations 6x and &y.
+variation 6s, is easily related to 6x and
+The.streamwise vector
+S
+oy by inspection of its definition (2.7a-b).
+6y,
+(4.17)
+6x
+The variation
+6s, is similarly expressed in terms of 6x and 6y. In
+only
+variables subscripted by ""
+ need to be calculated,
+practice,
+since
+the
+11
+quantities were calculated and stored for the upstream
+cell and hence are already available.
+The variation &s, (s, being the modulus of s,) is expanded in terms
+of 6x and oy as follows.
+1
+as
+as
+(4.18)
+5x
+ax+
+S
+ax
+2
+and as,/ax, is calculated and stored. These are as numerous as they are
+simple and hence are best cbtained from the code listing.
+As in the case of os, above, the variation
+SA
+can be easily ob-
+tained in terms of 6x and 8y from its cefinition (2.4c-d).
++6x
+- 6y， - 6y 
+(4.19)
+SA
+8x
+ox
+aA,/ax = (1/2 , 0) , and aA,/ay = (0 ,-1/2).
+For instance,
+6s,, and SA,
+written  in terms of 6x and 6y, the normal
+area variation6A
+is expressed in terms of 6x and 6y as follows.
+nz
+54
+
+===== page 55 of 159 =====
+A
+16x6A1 - 1x81
+n2 8s,
+8A
+(4.20)
+S
+As described in Section 4.2, sensitivities such as ?An,/ax*
+whichare
++
+are obtained by substituting expressions
+and 6s, into (4.20). At the Fortran level, this only in-
+2
+volves a chain rule multiplication sequence as illustrated earlier in
+Section4.2.
+3A
+3A
+aA
+aA
+as
+3A
+as
+n2
+n2
+n
+n2
+(4.21)
+xe
++
+aA
+xe
+as
+xe
+as
+ax
+3
+X2
+X2
+Expressing the variations of all the  other geometric quantities like
+8|sxnl follows naturally.
+The basic procedure is to expand the varia-
+tions of cross and dot-products, such as
+= 3,·6+3.8
+6|sxn| = |sx8n| - |nx6s}
+6(,·s) =
+(4.22.23)
+from which sensitivities such as alSxNl/ax are tormed using the chain
+rule. The nitty-gritty details are best obtained from the code listing.
+thermodynamic variables. The mass equation
+(2.9)
+n2
+is used to calculate q and to express 6q in terlus of 6p and 6An·
+aa
+aa2
+u
+sg.
+8p
+6A
+(4.24a-b)
+ap2
+aA
+'n2
+n2
+The following sensitivities are evaluated and stored:
+55
+
+===== page 56 of 159 =====
+(4.25a-b)
+de
+3A
+A
+n2
+n2
+Next, p is calculated as a function of p and q using
+the energy equa-
+tion,
+P
+(2.12)
+which implies,
+sa.
+(4.26a-b)
+be
+where
+ap
+P
+de
+(4.27a-b)
+ap2
+aa2
+The artificial bulk viscosity coefficient
+1
+=
+max
+0
+max(
+(2.25)
+Y
+is linearized
+by straightforward differentiation.
+Usingtherelation
+ax
+-1
+ht
+ax
+2
+2M
+=0
+if
+a，
+(4.28a)
+ibe
+3
+C
+aa2
+Y
+q,
+2=0
+2
+Y-1
+ht
+2M
+if
+(4.28b)
+aa,
+aa2
+Y
+q
+Of course, both a),/aq, and a),/aq, are zero if >, is zero.
+The upwinded speed a, = (1-入
+is linearized as follows.
+56
+
+===== page 57 of 159 =====
+a
+(4.29a-b)
+be
+aa2
+ag,
+At this point, the S-momentum equation residual Rs defined by
+[Bx}
+R
+三
+mq,f
+(2.22)
+S
+SXN
+6R
+mq,&f
+mq.of
+mf.6a
+mf,6a,
+S
+BxB
+BxR
+8|BxB+1
+[sxN]
+SXN!
+(4.30)
+As described in Section 2.2, all of the variations in (4.30) such as
+Sf, cp, 5Pc
+are expressed in terms of the primitive variables
+8p and
+6n by using previously calculated
+sensitivities such as ap/ap, op/aAn,
+aAn/ax, etc.
+The reduced N-monentum equation is simply the difference between
+the two II pressu)'es
+211
+211
+(2.28)
+'i,j-1
+i,j
+where
+AxA21
+ma,9，
+mg292 -
+(2.26)
+and
+1AxA21
+2
+2P
+(2.27)
+[SxN]
+j-1
+Equation (2.28) linearizes to
+26
++
+(4.31)
+'i,j-l
+i.j
+:.j-1
+As mentioned earlier, the contributions from the j'th and j-l'th
+57
+
+===== page 58 of 159 =====
+for efficiency. The linearization of the contribution Ⅱ"of the j'th
+S         
+6
+ma,6g2
+i,j
+ing.
+mg.6a，
+mg,6a,
+6p
+op
+1
+A.xA
+6IA,xA,1
+SXN1
+csxN]
+(4.32)
+S×N
+The
+ residual contribution from the neighboring cell got added on
+"i,j-1
+when the program swept through the j-l'th streamtube.
+4.4.2 Boundary conditions
+The linearizea form of the inlet stagnation density condition,
+(2.29)
+spec
+is
+(4.33)
+(y-1)(ht-q~ /2)
+pec
+As
+usual, the &q variation is expressed in terms of 6p and 6n and the
+resulting coefficients are stored in the Jacobiar. matrix.
+The linearized form of the solid wall boundary conditions (3.la-b)
+is simply
+(4.34a)
+oni,J
+'u
+(4.34b)
+whichdrivesthe
+gap
+△n; between the wall and the wall streamline to
+zero.
+The geometry continuity
+condition (3.2) is very similar to the
+solid wall and in linearized form is
+58
+
+===== page 59 of 159 =====
+8n.1
+on
+i.J
+(4.35)
+where Ani is the gap between the l'st and J'th streamlines as shown in
+Figures 3.2 and 3.3.
+The linearized streamline pressure continuity condition (3.3） is
+the same as the reduced N-momentum equation (4.31)
+(4.36)
+i,1
+i,J-1
+i,J-1
+i.1
+except that (4.36) straddles the 1'st and J-1'th streamtubes in "wrap
+around" fashion. The &Ⅱ variations are expressed in terms of only 6p
+S          
+Thecascadeinletslopeconstrainl
+Y2,j-X1,i
+(3.4)
+x2,j-x1,j
+easily linearizes to
+- x1,j)
+8Sinl
+Y1,j - Y2,j
+(4.37)
+ s o n  e i   e 
+Thecoefficient
+(x1,j -x2,j)
+The linearization of oulet slope condition (3.5), which contains &S
+out'
+will likewise have an entry in block ūl
+The airfoil inlet, outlet, and far-field boundary 
+conditions
+(3.19), (3.20),(3.11), and (3.12) are linearized in more or less the
+same manner as the cascade inlet and outlet slope constraints.]
+Instead
+ofos
+however, the variations or and 6α will appear.
+inl and 6s
+out'
+These will result in entries in all the u, blocks in the system (4.16).
+59
+
+===== page 60 of 159 =====
+As mentioned at the beginning of Section 4.4.1, the Cartesian
+displacements 6x and 6y of each grid node will in general depend on the
+global variable 6sLE as well as the local displacement 6n. The orily
+consequence of this dependence is the appearance of a Jacobian entry
+for 6sLe in each linearized equation which involves 6x and 6y.
+4.4.3 Global equations
+At this point, the only equations which still need to be linear-
+ized are the global equations which have residuals and Jacobian entries
+in the bottom part of the Newton systein (4.16). The procedure used to
+linearize global equations is identical to the chain rule process used
+for the interior equations and boundary conditions in the two previous
+sections. For example, the lift constraint
+LTE
+B
+(xi+1,J-xi-1,J)n,J-1-(xi+1,1-xi-1,1)i,1 = 0 (3.16)
+RL = L
+spec
+i=i,
+LE
+linearizes to
+i
+TE
+B
+2
++(6xi+1,J-6x-1,J),J-1-(6x+1,1-6x-1,1),1
+=-RL(4.38)
+The variations 6x and oy are related to 6x, oy, and 6α through the x
+and y definitions (3.l4a-b).
+Equation (4.38) will result in Jacobian
+entries occurring in the G, blocks for
+ii,
+and alsointhe
+i
+LE
+TE
+G. block because of the bα dependence.
+6
+Other global equations are linearized in the same manner.
+The
+details are best obtained  from the code listing. Once this is accom-
+plished, the linear Newton system is complete, and is solved by the
+procedure described next.
+60
+
+===== page 61 of 159 =====
+4.5 _Gaussian elimination block solver
+The linearized Newton system as it is given by (4.l6)  is not  in
+the
+most
+convenientform
+forsolution.
+In particular, the global
+equations and the global variable Jacobian entries disturb the system'S
+block structure. To simplify the solution procedure, system (4.l6） is
+rewritten as the two separate systems (4.39) and (4.40) shown below.
+U
+0
+-R?
+B
+2
+2
+-60
+D
+3
+3
+B,
+A,
+-R
+(4.39)
+g
+=B
+=A
+2
+10
+R
+=D
+B
+A
+=C
+-6
+-R
+=D
+=2
+=B
+=A
+-0
+-R
+D
+R
+(4.40)
+g
+Equation
+(4.39)
+ a    i  
+hand sides,
+which is readily solved by a standard block-elimination
+algorithm,
+such
+1astheone
+described in detail
+.by Giies {i9). The
+basic solution
+procedure
+is tofirst sweep
+down from the first row,
+eliminating the B and Z blocks and thereby modifying the C blocks. The
+modified C blocks are then eliminated in a backward sweep from the I'th
+line. The resulting solution has the form
+1iI
+(4.41)
+9
+By substituting this into the linearized global equation system (4.40),
+61
+
+===== page 62 of 159 =====
+a system which involves only the global unknowns is obtained.
+"G
+g
+g
+(4.42)
+This small (usually 6x6 at most） linear system
+1is easily solved to ob-
+tain
+the
+global variable vector
+, which in turn is substituted back
+6
+into (4.4l) to obtain the local variable solution vector 5. (1<i<I).
+4.6 Updating the solution
+Usually. the updating of the solution consists of simply adding on
+the density and geometry changes.
+v+1
+r opi,j
+Pi,j
+Pi,j
+(4.43a)
+v+1
+x1,j
+x1,j
+6n
+6s
+(4.43b)
+xi.j
+i.i
+xi,j
+LE
+v+1
+Yi,j
+Yi.j
+8n
+n.
+6s
+(4.43c)
+i.i
+LE
+Here, n' denotes the direction vector (not a unit vector) along which a
+grid node moves in response to the stagnation grid point movement. The
+quantity r is an under-relaxation factor which is usually set to unity.
+giving the standard Newton method. For the first few Newton
+itera-
+tions, however, it is necessary
+to
+ use r < 1 to prevent non-physical
+situations such as negative densities from
+occurring.
+The value r is
+         s    o
+This rather. arbitrary clamp gives robust convergence even with very
+strong initial transients.
+62
+
+===== page 63 of 159 =====
+5.INVERSE PROBLEM
+5.1 Full. inverse formulation
+The boundary conditions presented in Chapter 3 have dealt with the
+direct problem. A body geometry was prescribed, and the flow field and
+surface pressures were a result of a calculation. Al alternative to
+this procedure is the inverse problem, 
+wheresurface
+ pressures
+are
+prescribed and geometry is calculated as a result. A straightforward
+implementation of this idea is to rep'.ce the fixed-wall boundary cond-
+ition （3.25） with
+the
+condition
+that the wall pre.sure at each grid
+node on the body surface equal some specified value.
+iiE
+(5.1a)
+LE
+spec
+(5.1b)
+LE
+J-
+spec
+The inverse problem is not quite that simple, however.
+Since the grid
+edge stations i=iLE and i=irE are free to move, there
+isno guarantee
+that
+the resulting body will be closed there. Hence, two requirements
+which must be imposed on the equations are
+that
+the leading and
+trailing edge gaps be zero, as is illustrated in Figure 5.1.
+△n;
+(5.2a)
+=0
+LE
+ny
+(5.2b)
+TE
+63
+
+===== page 64 of 159 =====
+△n=0
+(LEclosure)
+△n=0
+(TE closure)
+T = Tpe + A.F. + A,F.
+F
+Figure 5.l Full inverse boundary conditions
+The problem with the closure constraints (5.2a-b) is that they are two
+new equations which have been introduced into the overall equation set,
+while introducing no new unknowns. Hence the inverse problem as posed
+above is overconstrained. This impasse can be resolved by considering
+the work of Lighthill [32],[33], who formulated an exact solution to
+         
+tial flow using conformal mappings between the physical and circle
+plane (
+domains.Perhaps his most significant result is the proof that
+Apog aua uo uotangtxistp (aanssard aua 'Itauateatnba ao) paads au
+cannot be prescribed arbitrarily.  If w is the angular coordinate  in
+the circle plane into which the airfoil is transformed, q(w) is the
+speed on the airfoil surface, and qo is the freestream speed, then the
+following three integral constraints
+musthold for theinverse problem
+to be well-posed and for the airfoil to be closed.
+64
+
+===== page 65 of 159 =====
+21
+q(w)
+ln
+3SOO
+dw=o
+(5.3a-c)
+a
+(sin w)
+For compressible flow, constraints such as (5.3a-c) cannot be written
+down, although it is safe to assume that they exist.
+Volpe and Melnik [5l] have formulated what can be considered a
+compressible extension of  Lighthill's formulation.  Instead of  the
+incompressible conformal mapping techniques, they resort to finite
+volume full-potential solutions with Dirichlet boundary conditions and
+uotaeaidsuean burainsaa aua uo paseg aanpaooad butaepdn Knawoab e
+velocity.To make sure that the compressible equivalents of con-
+straints (5.3a-c) can be satisfied, Volpe and Melnik [5l] use a pres-
+cribed speed distribution of the form
+b。=(m)b
+(s(w)/smax) + P,F,(w) + P2F2(w)
+(5.4)
+max
+where s is the arc length along the airfoil. F。, F, and F, are given
+shape functions and P., P2, and a. are parameters determined as part of
+the inverse solution to obtain leading and trailing edge closure, and
+to enforce consistency between the freestream and surface speeds.
+In the present inverse formulation, only two additional free
+       ' a   sa
+constraints  (5.2a-b)  to be  satisfied. This paradox is illuminated
+somewhat by noting the way in which Volpe and Melnik prescribe the
+surface speed.  Their equation (5.4) fixes the fractional arc length
+position of the stagnation point on the airfoil, or at least ties it to
+two of the free parameters. In the present scheme, the relative arc
+lengths of the pressure and suction surfaces are not constrained by the
+prescribed-pressure conditions (5.la-b). Hence, the position of the
+ o o         
+considered as the "missing" degree of freedom which is actually impli-
+65
+
+===== page 66 of 159 =====
+citly contained in the present formulation.
+scheme, ·equations (5.la-b) have been modified into a form similar to
+equation (5.4).
++A,F
+(5.5a)
++
+A,F
+i,1
+ii
+】
+2i
+spec
++
+(5.5b)
+AF
+i,J-1
+rii
+spec
+A，
+are two unknowns which, together with the closure conditions
+(5.2a-b), result in a well-posed inverse problem. F, and F, are some-
+what arbitrary shape functions of position on the airfoil. Here they
+are chosen to be simple sine loops, as shown in Figure 5.l.
+1: = sin(πo;)
+F,: = sin(2no)
+(5.6a-b )
+F
+vi
+2i
+Oi is the fractional arc length from the leading to the trailing edge.
+ o   a'  a  g 
+the prescribed pressure distribution which must be accepted. Perhaps a
+more lighthearted view might be that they  are automatic adjustments
+airfoil can be manufactured. In either view, the effect of the free
+appropriately setting the weighting shape functions F, and F,
+The full-inverse problem as formulated above is !(i' well-posed
+without some constraint on the rigid-body motion of t.re vi'ole grid and
+airfoil. In the present scheme, this rigid-body motic: .s eliminated
+by simply fixing the leading edge point in space.
+8n;
+(5.7)
+LE
+The additional free parameter in the system is either the outlet slope
+Sout in the cascade case, or the circulation T in the airfoil case.
+66
+
+===== page 67 of 159 =====
+These quantities, whicn are related to the total lift on the airfoil,
+must be left as unknowns since they cannot be determined beforehand
+from the specified surface pressures (5.5a,b). The free parameter
+           
+needed. If the lift is to be prescribed exactly, another free para-
+meter and shape function must be added to (5.5a,b).
+5.2 Mixed inverseformulation
+In addition to the full-inverse formulation described above, the
+program  implementing the algorithms described  i! this thesis also
+handles the mixed-inverse formulation, where the pressure is pre-
+scribed on part of the airfoil, and the geometry is prescribed on the
+rest. This can in fact be considered a generalization of both the
+direct and full-inverse formulations, since either the prescribed-
+the whole airfoil.The ability to mix the two formulations in arbi-
+trary proportions is an extremely useful feature which gives the de-
+      o     
+geometric properties of the airfoil than is present with either
+formulation alone. The mixed-inverse formulation implemented in the
+computer program permits the prescribed-pressure part to be on one side
+of the airfoil at any one time. This restriction, which was made for
+the sake of simplicity, does not significantly impair the capabili-
+ties of the method. This is because the two airfoil sides are usually
+tailored separately at different operating points.
+tion imposed on it is termed the "freewall segment." If the endpoint
+indices of the freewall segment are denoted by i, and i, then the
+mixed inverse boundary conditions are expressed as
+67
+
+===== page 68 of 159 =====
+(5.8a)
+ni,j
+elsewhere on airfoil
+(5.8b)
+The subscript j. is either 1 or J-l depending on whether the freewall
+segment is on the suction or pressure side, 
+respectively.
+The free
+parameters A, and
+A, have been included in (5.8a) to allow the imposi-
+tion of geometry continuity
+conditions at the freewall segment end-
+points.
+These are
+ analogous
+to the leading and trailing edge closure
+S        o
+Re-
+ferring to Figure 5.2, these continuity constraints are
+ni..jg
+△n
+(5.9a-b)
+S
+Again, the shape functions F, and F,
+. are quite arbitrary, and here they
+are chosen
+to be simple linear functions over the freewall segment as
+indicated in Figure 5.2.
+(，-,)
+(5.10a)
+(5.10b)
+, and o, denote the values of α at i, and i
+68
+
+===== page 69 of 159 =====
+- TI = TIspec + A,F。 + A,F
+n=0
+Figure 5.2 Mixed inverse geometry continuity conditions
+As formulated, the closure constraints (5.9a-b) enforce geometric
+continuity at the freewall segment but not slope continuity.
+In prac-
+tice this is not a problem, since any slope discontinuities which might
+app  
+Never-
+theless, it is desirable to have the optior of an explicit slope-conti-
+nuity
+constraint  imposed at the freewall segment endpoints. The
+simplest approach is to fix the points immediately inside the freewall
+segment endpoints in addition to fixing the endpoints themselves.
+△n,+l,jg
+△n,-1,jg
+(5.1la-b)
+As before, two aaditional degrees of freedom must also be introduced,
+otherwise the problem will be overconstrained. This is accomplished by
+adding more terms to the prescribed-pressure condition (5.6).
+ii，
+(5.12)
+spec
+The new shape functions F, and F,.are again arbitrary, but they must
+          
+influenceofthefourfreeparameters
+A, ... A.
+distinctenoughfora
+well-posed problem. A good choice for F, and F, but by no means the
+onlyoneis
+69
+
+===== page 70 of 159 =====
+F,. = exp(3F, . )
+F. . = ∈xp(3F, . )
+(5.13a-b)
+3i
+2i
+i
+1i
+where F,.and F, are defined by (5.10a-b).
+The situation where a slope constraint  is most likely to be nece"
+ssary is when a freewall segment endpoint is very close to a stagnation
+point at the leading edge, say within three nodes or so. Near stagna-
+tion points, the geometry tends to be very sensitive to the prescribed
+pressure, and most full-inverse formulations in literature use some
+sort of smoothing or  a prescribed-curvature constraint at the stagna-
+tion point. This geometry sensitivity can also lead to an ill-condi-
+sufficiently constrained.Fixing the slope at such an endpoint helps
+the situation considerably. This is not without negative side effects,
+however, as the extra terms in the prescribed pressure expression
+(5.12) usually result in a larger discrepancy between the specified and
+resultant pressure distributions.It  is useful  to note that it is
+perfectlyacceptable to use only one of the rightmost freeparameter
+terms in (5.12) and only one of the slope constraints (5.lla-b), thus
+keeping the number of "error" terms in (5.12） to a minimum.
+5.3Inverse problem Newton solution
+ a  d aa r r   e r 
+ences arise in the boundary conditions. In particular, the block
+structure shown in Figures 4.3 and 4.4 will only differ  in the lines
+labeled "BC (3.2)" and "BC (3.3)". In these two lines, the prescribed
+(3.2). In the mixed inverse case, the fixed-wall condition is replaced
+The linearized specified-pressure boundary condition (5.5a) is
+70
+
+===== page 71 of 159 =====
+(5.14)
+i.1
+spec
+The  oll variation is readily expressed in terms of the primitive
+vari-
+ables 6p and 6n as described in Chapter 4. 
+The
+SA, and 6A, variations
+1
+in the Newton system (4.l6).
+The closure constraint (5.2a) in linearized form is
+(5.14)
+LE
+This is a global equation and hence
+its Jacobian entries are placed in
+the G.
+block in the system (4.16).
+LE
+1
+71
+
+===== page 72 of 159 =====
+6.BOUNDARYLAYERCOUPLING
+tions used in the viscous/inviscid coupling mode of the solver are
+derived. Also, the coupling relations and modified Euler boundary
+    s
+cid flow are presented. A fundamental assumption used in this formula-
+tion is that the only effect of the boundary layer and wake is to
+displace the inviscid flow away from the physical body to create an
+was
+investigated by Lighthill {34], who showed it to be accurate provided
+the ratio of boundary layer thickness to streamline radius of curvature
+is small. For most aerodynamic flows of interest, this assumption is
+valid virtually everywhere, with the possible exception of the trailing
+edge region. A related source of error is the breakdown of the bound-
+ary layer approximation itself, caused by a significant normal pressure
+gradient in the boundary layer. This normal pressure gradient can be
+caused by streamline curvature at the trailing edge, and also by shock
+wave impingement. Melnik [38] has developed higher-order corrections
+for these problem areas which appear to improve accuracy. In this the-
+sis these additional corrections will not be considered, since the de-
+velopment of the basic integral closure formulation and the coupling
+formulation are the primary goals here. Even without the corrections,
+the results agree well with experiment as will be demonstrated later.
+6.1 The integral boundary layer equations
+The starting point of any boundary layer calculation method is the
+Prandtl boundary layer equations:
+a(pu) + a(ev)=0
+mass:
+(6.1)
+au
+momentum:
+nd
++p
+(6.2a)
+an
+72
+
+===== page 73 of 159 =====
+au
+T=μ
+pu'v'
+(6.2b)
+an
+aht +
+aht - 
+oe
+enthalpy:
+pu
++
+(6.3a)
+aht
+(6.3b)
+Pr an
+an
+These equations are expressed in local streamwise and normal wall coor-
+dinates E.n. The streamwise and normal velocity components are u,v,
+T denotes the total shearing plus Reynolds stress, and Q denotes an en-
+thalpy flux. Edge quantities are denoted by the subscript "e". Modern
+finite-difference techniques can rapidly solve these equations provided
+port are introduced. In this thesis, the older integral approach to
+solving these equations will be taken. The only reason for this is
+that the large number of unknowns introduced by thefinite difference
+approach would make simultaneous solution of the boundary layer equa-
+tions and inviscid flow field by the Newton method prohibitively expen-
+sive. Only adiabatic flows with near-unity Prandtl numbers will be
+considered. This restriction permits the enthalpy profile to be fairly
+covery factor. As a result, the enthalpy equation (6.3) can be dropped.
+readily derived from the Prandtl equations (6.l-3). By formally
+integrating equation (6.2) across the boundary layer, the well-known
+von Karman momentum integral equation results.
+E dθ _E Cf.
+E due
+(6.4)
+θdE
+02
+uede
+The momentum and displacement thicknesses θ and &*, and skin friction
+coefficient Cf are defined as follows.
+73
+
+===== page 74 of 159 =====
+(6.5a-c)
+Peue
+If equation (6.2) is first multiplied through by u and then integrated,
+the kinetic energy integral equation results:
+E
+dθ *
+E
+(28**
+2CD
+(6.6)
+θ*
+dE
+θ
+uede
+The kinetic energy and density thicknesses 9*
+and 5**
+, and dissipation
+coefficient Cp are defined by
+ne
+an
+dn
+(6.7a-c)
+an
+Peue
+Itis useful at this point to define the following
+three shape
+parameters:
+6
+H
+(6.8a-c)
+By using these shape parameter definitions, and subtracting off equa-
+tion(6.4)from equation (6.6)，the momentum
+n and kinetic energy
+equations can be written as
+E dθ
+E Cf
+一
+(6.9)
+θde
+θ2
+uede
+E
+dH*
+E
+2CD
+E
+Cf
+2H
+du
+(6.10)
+H
+dE
+θH*
+θ
+uede
+Equation (6.10)
+above will
+ now be referred to as the shape parameter
+equation.
+6.2 Laminar closure
+The
+momentum and shape parameter equations (6.9) and (6.10) are
+valid for both laminar
+:and
+turbulent boundary layers, as well as for
+free wakes. The fundamental difficulty with them is that they contain
+74
+
+===== page 75 of 159 =====
+more than two independent variables and hence some assumptions about
+ress toward their solution is to ensue. Primarily through the personal
+preference of the author, the two dependent variables are defined lo be
+the momentum and displacement thicknesses 6 and 6*. The edge velocity
+ue and edge Mach number Me can be related to the inviscid flow, and
+hence do not constitute additional unknowns.A simple count shows that
+For compressible, adiabatic flow, the following assumptions about
+functional dependencies will be made:
+H* = H*(Hk,Me,Reg)
+H**= H**(Hk, Me)
+(6.1la-b)
+Cf = Cf(Hk,Me.Reo)
+CD = Cd(Hk,Me,Reg)
+(6.1lc-d)
+Here Hk is the kinematic shape parameter, which is defined with the
+density across the boundary layer assumed constant. It is well known
+that compressible and incompressible velocity profiles have very nearly
+the same shapes. This naturally suggests that in compressible flow the
+above relations should be based on the kinematic shape parameter, which
+depends solely on the veiocity profile. Whitfield [53] has developed
+an empirical expression for Hk in terms of the conventional shape para-
+meter and edge Mach number:
+dn
+H - 0.290 Me
+2
+(6.12)
+8
+1 + 0.113 M2
+This expression assumes adiabatic flow and non-unity Prandtl number
+Me = 3. Here it used for both laminar and turbulent flows.
+To deduce the relationships (6.1la-d), some velocity profile
+family of one or more parameters must be assumed to represent all flows
+to be computed. For the laminar case, the most obvious choice is the
+75
+
+===== page 76 of 159 =====
+:alkner-Skan
+one-parameter
+family of profiles.
+By solving the
+Falkner-Skan equation with prescribed shape 
+parameter
+by
+the finite
+have been obtained:
+(Hk-4)
+1.515+0.076
+Hk
+H
+(6.13a)
+(Hk-4)
+2
+1.515
++0.040
+HK
+and
+H* =
+（H + 0.028M²) / (1 + 0.014M²
+(6.13b)
+(7.4-Hk)
+-.067+0.01977
+Hk < 7.4
+Hk-1
+Cf
+Reo
+(6.14)
+2
+1.4
+-.067+0.022
+Hk > 7.4
+Hk-6)
+Hk
+2CD
+Reo
+(6.15)
+H*
+HK
+The additional small
+compressibilitY correction  in the
+energy shape
+parameter relation
+(6.13b)
+wasobtained fromWhitfield{54}.
+Whit-
+field's
+compressibility corrections for the skin
+friction coefficient
+and dissipation
+coefficient, based on Coles' law of corresponding sta-
+stations
+(reference {llj),
+drop
+outä
+for
+the laminar case.
+Hence,
+relations
+(6.14)
+and (6.15) have no compressibility corrections other
+than those for Hk.
+The expression for the density thickness shape parameter H**
+which
+will be used here is one developed by Whitfield [54].
+0.064
+★
++0.25
+(6.16)
+Hk - 0.8
+This shape parameter is negligible for low subsonic flows, and has only
+'76
+
+===== page 77 of 159 =====
+a small effect in typical transonic flows.
+The above expression will
+be used for both turbulent and laminar flows.
+The laminar closure relations (6.l3-15) are plotted in Figure 6.l.
+1.6
+2
+3
+S
+6
+0.4
+0.3
+0.2
+0.1
+0.0
+2
+3
+H
+h
+6
+0.26
+2Ree
+H
+0.24
+0.22
+0.20
+2
+3
+h
+5
+6
+Figure 6.1 Laminar closure relations
+77
+
+===== page 78 of 159 =====
+When substituted into equations (6.9) and (6.10), a system of two ODE's
+then a so-called direct boundary layer problem for 0 and 6* results.
+If &* is-prescribed, an inverse problem for θ and ue results.  Incom-
+pressible calculations of both types have been performed for arbitrary
+ue and &* distributions and compared with the results of the correspon-
+ding finite difference calculation and also the well-known one-equation
+Thwaites' method [7].
+One sample comparison is shown inFigure 6.2.
+one equation (Thwaites')
+two equation (present)
+5.
+finite difference
+u
+4.
+3.
+2.
+Figure 6.2 Comparison of present formulation, finite difference,
+and Thwaites'methods for incompressiblelaminar flow
+The present a.ld finite difference results are essentially within plot-
+ting accuracy. This level of accuracy can be attributed to two fac-
+tors.
+Firstly, almost any laminar velocity profile which can be (
+com-
+puted or measured is very nearly the same
+asa Falkner-Skanprofile
+78
+
+===== page 79 of 159 =====
+with the same shape parameter. This makes the empirical  relations
+(6.13-15) very accurate for all flows (at least in the incompressible
+case). Secondly, the use of two differential equations rather than one
+permits the renouncing of any local-similarity assumption in the sense
+that the local shape parameter and wall shear do not exclusively depe.'d
+on the local pressure gradient  or some transformed equivalent.
+Thwaites' method, which uses only one equation and hence must assume
+some sort of local similarity, cannot  compare  to the accuracy of the
+two-equation formulation, as Figure 6.2 shows. In particular, the
+is exact (to within the accuracy ol the correlations） for similar
+flows, whereas Thwaites' method has neither of these features.
+6.3Turbulentclosure
+For  turbulent flow, the task of obtaining empirical  relations
+similar to (6.13-15) is much more  formidable. "Exact" numerical solu-
+tions to the boundary layers equations are no  longer possible due to
+empirically related to the mean flow. Compounding the problem is that
+turbulent boundary layers have a two-layer structure, with the thick-
+ness of each layer scaling differently on the local Reynolds number
+tely describe all turbulent boundary layers. This contrasts with the
+laminar velocity profiles, which have no Reynolds number dependence and
+a one-parameter profile family suffices.
+To formulate a two-parameter turbulent velocity profile, an
+reason for this is that in turbulent flow the skin friction is the
+primary scaling parameter for the wall layer. To date, many skin-
+friction formulas have been proposed and  tested against experimental
+data. The one employed here is due to Swafford [45].
+79
+
+===== page 80 of 159 =====
+-1.33Hk
+0.3e
+0.00011[tanh(4- .875)
+Hk
+FcCf
+(6.17)
+1.74+0.31Hk
+where
+.2M
+This function (for Me=o) together with the laminar Cf function (6.14)
+is
+shown in Figure 6.3 for various Reynolds numbers. It is reassuring
+to note
+that the
+laminar and turbulent curves are very similar near
+Reg  400.
+This is close  tot
+the
+minimum
+Reynolds number at which a
+turbulent boundary layer can exist.
+Ree
+1000
+400
+turbulerit
+Ct
+750
+laminar'
+2
+1500
+5000
+Re。=400
+Re。 = 5000 7
+2
+3
+h
+5
+Hk
+6
+Figure 6.3
+Turbulent skin friction correlation
+To determine a relation for H*, an analytic
+expression for
+the
+velocity profile
+originally
+derived by Swafford [45] is used.
+The
+profile is the sum of two matched asymptotic solutions:
+an inner solu-
+tion encompassing the laminar sublayer and the
+buffer
+layer,
+and
+an
+outer solution comprising the outer layer, or wake.
+12
+u
+μr
+S
+ST
+arctan(.09y*)
+tanh
+a(n/θ)
+(6.18)
+ue
+ue .09
+0.18
+where
+80
+
+===== page 81 of 159 =====
+pu
+(6.19a-c)
+n
+ue
+u
+The
+using the skin friction formula (6.17) and by substituting the velocity
+This produces a coupled, non-linear 2x2 implicit system for a and
+which is solved numerically by the Newton method.
+Swafford's velocity profile formula (6.18) has been used by Whit-
+field [55] and Thomas [46] as a basis for integral boundary layer
+methods. They assume the limit of infinite Reynolds number (y+ → ∞) in
+order to form the H*-H correlation. In effect, this simplification
+replaces the inner layer by an equivalent wall slip velocity imposed on
+the outer layer, which almost completely eliminates the dependence of
+the H*-H relation on th. Reynolds number.
+The present author feels
+this is
+behavior in transition regions where the Reynolds number Ree is usually
+low.
+Using
+the unsimplified equation (6.18)， the following expres-
+sion has been derived for the energy thickness shape parameter H* after
+much trial and error:
+400
+first define
+H。= 3.0 +
+then
+Reo
+1.6
+1.6
+(H。- Hk)
+1.505 +
+.Hk<H。
+Reo
+√Reo
+Hk
+(6.20)
+1.505 +
+4
+Reo
+ln(Reg)
+.04
+(Hk - H。)
+.007
+，Hk >H。
+Hk
+一H+
+4
+HK
+In(Ree ))
+Relation (6.13b) is used to obtain H* from 
+Hk.
+This rather cumbersome
+function is plotted in Figure 6.4 for several values of Reg, together
+81
+
+===== page 82 of 159 =====
+lent curves nearly coalesce for low Reynolds numbers.
+2.0
+1.9
+H
+turbulent
+1.8
+..laminar
+Ree
+5000
+1.7
+1500
+750
+400
+1.6
+1.5
+2
+3
+4
+5
+6
+Hk
+Figure 6.4 Turbulent shape parameter correlation
+for the dissipation coefficient, primarily because it depends the Reyn-
+olds stress distribution across the boundary layer.
+Therehavebeen
+two
+distinct
+:approaches to determining a disspation coefficient for-
+mula.
+thesis for the outer layer. In their approach, the integral in
+the
+dissipation coefficient definition (6.7) is broken up into two distinct
+contributions--one from
+the wall layer, and one from the outer (wake)
+layer. As sketched in Figure 6.5, a typical turbulent boundary layer
+is composed of a wall layer with nearly constant total shear stress and
+a o    a r    o 
+82
+
+===== page 83 of 159 =====
+viscosity
+ are assumed to determine the total shear stress.
+Assuming
+the simple half-cosine wake velocity profile of Coles [l0],
+uout = L + (ue - us) sin
+( outer layer )
+(6.21)
+and the eddy viscosity formula of Clauser [9],
+μt. = K p ue6*
+K = 0.0168
+(outer layer )
+(6.22)
+the disspation coefficient integral can be approximated by
+8
+1
+ou
+dn
+1
+Twus
+K
+dn
+(6.23)
+CD
+三
+an
++
+Peue
+Peue
+outer
+where us is the slip velocity as shown in Figure 6.5.
+wake layer
+walllayer
+Figure 6.5 Typical turbulent velocity and total shear profiles
+The slip velocity is usually deduced from the univeisal law of the wall
+and the skin friction
+coefficient.
+Assumingthat the displacement
+thickness
+ in the eddy viscosity formula (6.22) is only due to the wake
+velocity profile, the dissipation coefficient expression (6.23) becomes
+Cf
+Kπ
+(6.24)
+16
+This is the same expression employed by Le Balleur [29].
+83
+
+===== page 84 of 159 =====
+coefficient, and the one adopted in this thesis, is based on the equi-
+librium boundary layer concept originally postulated and experinentally
+confirmed by Clauser {9]. As is well known, laminar boundary layers
+are self-preserving (or similar)  if the Falkner-Skan pressure gradient
+parameter E/ue due/dg is constant everyvhere. These special flows were
+the basis for the laminar closure relations given above.
+Clauserin
+his experiments managed to produce turbulent boundary layer flows
+analogous to the Falkner-Skan family which are self-preserving.
+In
+particular, if the pressure gradient parameter β given by
+6*dP
+. 2 *due
+β=
+(6.25)
+TwdE
+Cf uede
+is constant, the modified shape parameter G, defined by
+H- 11
+G=
+(6.26)
+HkVCf/2
+is also constant. Hence, for these special flows, G is only a function
+of β. An empirical expression for this relationship is
+G =6.7 1 + 0.75β
+(6.27)
+Clauser's experiments were at low Mach numbers, so in the above rela-
+tions the usual compressibility correction of replacing H by Hk was
+made. Green et al.[24] used a formuia of the same form as (5.27） but
+with an additional compressibility correction and with slightly differ-
+ent numerical constants to develop an improved version of the well-
+known Head's entrainment method. Both equation (6.27) and Green's
+relation are shown in Figure 6.6, which is mostly reproduced from ref-
+erence [24]. Green's additional compressibility correction lies well
+within the experimental scatter and is neglected here.
+84
+
+===== page 85 of 159 =====
+25
+G
+STANFORD ID. 2300 -
+20
+2600 -
+15
+2200
+2500
+10
+Green et al
+1400
+1300、
+equation  (6.27)
+2700
+5
+-2
+2
+4
+6
+8
+10
+β
+12
+14
+16
+Figure 6.6 Equilibrium G-β locus
+Using the definitions of G and β, equation (6.27) can be rearrang-
+ to give the equilibrium
+npressure gradient in terms of the shape
+parameter and skin friction coefficient.
+8*due
+1
+Cf
+{Hk - 1)2
+(equilibrium)
+(6.28)
+uede
+.75
+6.7 H
+To
+obtain the much sought-after dissipation coefficient  formula,
+the
+above equilibrium
+nrelations are introduced into the shape parameter
+equation (6.10). First, we note that
+Cf
+is primarily a function of H
+(the dependence on Reg is weak).
+Hence it follows from (6.28) that in
+equilibrium layers H must be nearly constant. Furthermore, because H*
+has
+already been assumed to be a function of H (again, its dependence
+and setting the streamwise derivative of H* to zero in the shape para-
+meter equation (6.10). we have
+85
+
+===== page 86 of 159 =====
+ 2CD _ 5 Cf
+E due
+oⅡ
+(εquilibrium)
+(6.29)
+θ H*
+θ2
+uede
+Using equation (6.28) to eliminate the velocity gradient, equation
+(6.2r) can be rearranged into
+1
+.XH
++0.03
+(6.30)
+H
+2(Hk
+HK
+This formula for the dissipation coefficient, despite having been
+derived solely from a special class of equilibrium flows, is now
+assumed to apply to all turbulent flows in general. As with the
+majority of useful statements about turbulent flow, this is mostly a
+formulation decoupling the local dissipation coefficient from lhe local
+pressure gradient led to substantial accuracy gains.
+A rather interesting fact is that formula (6.30) for the dissipa-
+tion coefficient bears a striking resemblance to the slip velocity-
+based formula (6.24). Perhaps this should not be too surprising, since
+Clauser's equilibrium flow experiments and  the slip velocity concept
+are the basis of his eddy viscosity expression (6.22), the latter being
+an essential part of the slip velocity-based formul.a (6.24).!
+Despite
+their close resemblance, the author feels that (6.30) is a stronger
+statement than (6.24), simply because it uses the results of the
+experimentally derived G(β) relation directly, without recourse to any
+eddy viscosity or slip velocity assumptions. The slip velocity concept
+will still be used to correct the dissipation coefficient for  upstream
+history in the following section.
+6.4 Upstream history: The lag equation
+The turbulent dissipation coefficient expression (6.30） as it
+souhar teoot aua pue h aanaured adeus aun uo Iuo spuadap spuis
+au asneoag ·(lay pue H go suotaoung axe Jo pue h) Oey xaqunu
+86
+
+===== page 87 of 159 =====
+definition of  CD(6.7c) involves a velocity gradient-weighted
+integral of the Reynolds stress, expression (6.30) also implies that
+the Reynolds stresses depend only the local boundary layer parameters.
+This assumption is quite valid in boundary layers whose turbulence
+production and dissipation mechanisms
+arein
+near
+equilibrium
+(Clauser's self-preserving boundary layers are of this 
+type).  In
+fact, nearly all algebraic turbulence models make some
+ such local
+equilibrium assumption.
+However, there is abundant experimental
+evidence(Goldberg[22),Klineetal{28]）thatthere aresignificant
+upstream history effects on Reynolds stresses.
+These history effects
+are most important in flows with an adverse pressure
+gradient
+increasing in severity downstream, and in "relaxing" flows, where an
+adverse pressure gradient is suddenly removed.  An example of the
+former flow occurs near the trailing edge of an aft-loaded airfoil. An
+example uf a relaxing flow is the near wake immediately behind the
+trailing edge.
+Ferriss [2,3]. They renounced the usual eddy viscosity assumption by
+treating the Reynolds stress as an  additional unknown and introduced a
+stress-transport equation of the form
+(-u'')
+a(-u'v')
+u
+E   2a1
+2a1
+3
+au
+(-u'v')-
+a(diffusion)
+=(-u'')
+(6.31)
+ue
+L
+an
+87
+
+===== page 88 of 159 =====
+which is derived from the exact turbulent kinetic energy
+/transport
+equation with appropriate thin shear layer assumptions and a postulated
+proportionality between turbulent kinetic nergy ui? + vi? + wi? 8
+and
+Reynolds stress -u'v', a being the constant of proportionality.
+I1m aun ut (uabuat buxtw aua) ux on tenba st t uabuat uotaedtssip au
+layer and roughly 0.0756 in the outer layer, 6 being the thickness of
+the boundary layer.
+It  is possible to significantly simplify equation (6.3l) for use
+in an integral boundary  layer formulation without losing its physical
+content. Green et al {24] consider  the point of maximum Reynolds
+entire boundary layer. A useful  non-dimensional quantity in  this
+context is the shear stress coefficient C:
+1
+(-u'v')
+(6.32)
+—2
+ue
+max
+Green assumes that at the maximum shear stress point, L is equal to the
+conventional mixing length. Hence, at the max shear stress poinl, the
+velocity gradient is given by
+=
+1
+(-u'v')
+(6.33)
+an
+max
+Using the above relations for Ct and du/on, and neglecting normal
+convection, the Reynolds stress transport equation (6.31) can be
+written as
+_ dCt
+a(diffusion) -  26 due
+He
+(6.34)
+Tea
+an
+ue dE
+where the entire equation is applied at the maximum shear stress point.
+(Ct)eq is the value of shear stress coefficient  which would occur if
+ ' ba u   sm  oa oo 
+obtaining equation (6.34), Green goes on to derive a rather elaborate
+formulation for the diffusion term. Here, such complications are
+88
+
+===== page 89 of 159 =====
+avoided by discarding outright the last two terms in equation (6.43),
+on the grounds that the other two terms generally form the dominant
+balance in (6.43). Thomas [46]
+makesthesamesimplification
+ninhis
+integral formulation.
+Equation (6.34） thus becomes
+ dCt
+(6.35)
+eq
+Using the commonly accepted values a = .l5, ue/u = 1.5, and L/8 = .08,
+Green obtains Kc = 5.6. In the present formulation, the value Kc = 4.2
+was adopted in equation (6.35) since it seemed to produce the best re-
+sults for virtually nearly all the test cases calculated.
+The
+       
+An
+expression for & was obtained from Green et al [24] and simplified
+slightly to produce
+1.72
+(6.36)
+Hk-1
+By invoking the slip-velocity
+ concept, with its distinct wall and wake
+    
+librium flows is written as
+2CD
+Cf
+3
+U
+(1-U_)
+(6.37)
+H*
+2
+S
+Teg
+S
+where the non-dimensional slip velocity Us = us/ue
+and the equilibrium
+shear stress coefficient (Ct)eq are now defined by
+H
+U
+(6.38)
+6
+S
+H* 0.03
+and
+(6.39)
+Tea
+21 -Us
+Hk
+he
+two dissipation coefficient formulas (6.30) and (6.37) become ic
+68
+
+===== page 90 of 159 =====
+wniaatuinba-uou butainsan aul  ba(o) = do auaum smoty wmtaattinba ut
+formula for the dissipation coefficient is finally given by
+11
+(6.40)
+H*
+ 2(Hk
+3
+S
+where Us is given by its definition (6.38).
+A physical interpretation of (6.40) is as follows. The dissipa-
+tion coefficient is composed of a wall and a wake contribution, each of
+which is composed of a shear stress scale and a velocity scale. The
+wall contribution from the wall layer, given by the term in (6.40)
+containing the wall shear coefficient Cf. is determirei strictly by the
+local boundary layer parameters, since Cf is a function of Reg and Hk·
+This is consistent with th notion of a universal wall layer, which is
+known from a preponderence of experimental data to be unaffected by
+upstream history. The wake contribution, given by the rightmost term
+in (6.40) does not depend strictl on the local conditions, since C is
+the wake layer Reynolds stresses to the local conditions. However
+crude  this
+modeling
+may be，itisstill preferable to
+the
+local-equilibrium assumption, which was convincingly shown in the 1968
+Stanford Conference [28] to give poor results  for rapidly changing
+inaccuracies in the rate equation (6.35)are irreievant.
+6.5_Wakes
+The integral momentum and shape parameter equations (6.9) and
+(6.1o) remain valid for a free dake if the terms containing the wall
+shear coefficient Cf are discarded. The problem is then reduced to
+formulating the necessary closure relations (6.lla-d) which are valid
+for free wakes. For laminar wakes, this problem is resolved by noting
+that laminar wakes do not occur in aerodynamic flows of interest as a
+06
+
+===== page 91 of 159 =====
+rule.  This  is because the inflection velocity profiles invariably
+present in free wakes make a good habitat for exponentially-growing
+disturbances which rapidly break down into turbulence. At momentum
+rapid, making the concept of a "laminar wake" mostly a contradiction in
+cerms. Clearly, only turbulent free wake closure relations need to be
+developed.
+As it turns out, the turbulent boundary layer closure relations
+already developed above describe turbulent wakes quite well if the wall
+layer of a boundary layer is nearly indistinguishable in its properties
+from a free wake (hence the name). By setting Cf = O, the wall layer
+appears, and what is left adequately describes the dissipation coeffi-
+cient in a free wake. The turbulent energy thickness shape parameter
+definition (6.23) is used unchanged for wakes. This is justified on
+the grounds that a free wake is essentially a turbulent boundary layer
+sans the wall layer, the latter contributing very little to the H*-H
+correlation.  A similar argument leads to the the use of the H** defi-
+nition (6.16) for free wakes without changes.
+The lag equation (6.35) should in principle be modified to reflect
+the more vigorous mixing processes observed in w .kes, which tend to
+increase the dissipation and speed up the rate at which the maximum
+shear stress coefficient Cr app.oaches its equilibrium value. Green
+makes such a modification  to his lag-entrainment method. His argument
+is roughly twice as thick as its two halves and hence its largest
+eddies will be twice as large, resulting in increased mixing rates.
+However, Green's argument holds only for symmetric or nearly-symmetric
+wakes. In a typical near-wake behind a lifting airfoil, the thickness-
+e e   aa   e   a   
+of ten. In such a situation, the largest eddy scale in the near wake
+91
+
+===== page 92 of 159 =====
+cannot differ significantl! from that in the  thicker boundary layer at
+the trailing edge.Although elaborate correction schemes involving the
+degree of wake assymetry can be envisioned, this thesis circumvents
+this quagmire altogether by using the unchanged lag equation (6.35) for
+all turbulent  free wakes. It must be kept in mind  that the lag equa-
+ og      oo  t  
+neglecting to correct a correction can hardly be criticized.
+6.6Transition
+The problem of  transition  is  actually composed of two distinct
+problems: determining the point Jf the onset of transition, and formu-
+lation of the governing boundary layer equations in the transition
+region itself.  To predict the onset of transition, a spatial-ampliti-
+cation theory based on the Orr-Sommerfeld equation is used here (also
+known in literature as the e9 method). The boundary layer formulation
+used in the transition region is derived from simple intermittency-
+weighted averages of the laminar and turbulent correlations developed
+above (also known in literature as ad-hoc but workable nevertheless).
+The Orr-Sommerfeld equation (derived and discussed extensively in
+Obremski, Morovkin, and Landahl  [40]， and  in  Mack [35]） governs the
+growth and decay of infinitesimal wave-like disturbances in two or
+three-dimensional shear layers. Since the unstable growth of disturb-
+ances is known to be the precursor of free transition in boundary
+layers, the calculation of  the growth of such disturbances via  the
+Orr-Sommerfeld equation is a fairly sound basis for transition predic-
+tion.The procedure in this thesis is tc integrate the growth rate of
+the disturbance with the most unstable frequency downstream from the
+point  of instability to obtain  the amplitude of that disturbance.
+Transition is assumed to occur when the integrated amplitude has grown
+by more than a factor of e" ( 8lo0). This is a wholly
+!empirical
+assumption and is perhaps the weakest link in the method. The exponent
+satatauenb uo butpuadap t1 pue L anoqe uaamiaa Kaen ueo Attenioe ue
+92
+
+===== page 93 of 159 =====
+such as free stream turbulence, surface roughness, and background noise
+level as discussed in Cebeci and Bradshaw (7]. These effects will not
+be cons'red here.
+Appendix D describes the method used to derive the spatial ampli-
+fication curve envelopes in H-wReg parameter
+spaceusing the Falkner-
+Skan
+profile family.As done
+by Gleyzes et al {2l], the envelopes
+are
+approximated by straight lines for computational expediency.
+The
+equation for a typical amplification ratio envelope is
+ln(A/A) = 
+(6.41)
+dReo
+Doay taquu sptoulaa teotatao aun pue Oaap/up adots auz araum
+are
+given by
+dn
+0.01
+.4H - 3.7 + 2.5 tanh[1.5(H-3.1)]]
+(6.42)
+dReo
+log 。Re0o
+1.415
+3.295
+.489
+tanh
++.440
+(6.43)
+H-1
+H-1
+Figure 6.7 shows the envelopes defined by equations (6.41-43) together
+with the actual amplification curves calculated from the Orr-Sommerfeld
+equation.
+93
+
+===== page 94 of 159 =====
+H =  5.00 4.01 3.50
+2.96
+2.80
+20
+15
+.n
+10
+5
+200
+400
+600
+800
+1000
+Rea
+H=
+2.60
+2.48
+2.41
+2.30
+2.21
+20
+15
+~n
+10
+2000
+4000
+6000
+8000
+10000
+Ree
+Figure6.7
+Orr-Sommerfeld spatial amplification curves
+For similar flows H is constant, and Reg is uniquely relaced to
+the streamwise coordinate E. Hence, equation (6.4l) immediately gives
+the amplitude ratio Λ as a unique function of E. The onset of transi-
+tion then cccurs at the point where n=9. For non-similar flows, it is
+more physically realistic to use E as the spatial
+amplification
+coor-
+dinaterather
+than Reg.
+ Using some basic properties of the Falkner-
+Skan profile family. the
+conversion from Ree to ε is accomplished as
+follows.
+94
+
+===== page 95 of 159 =====
+an
+dn_
+dReo
+dn  1(E due
+Peueo
+1
+(6.44)
+d正
+dReo
+dE
+dRe2luedE
+ues
+Using the empirical relations
+= (H) = (6.54H - 14.07)/H
+(6.45)
+ueE
+ de = m(H)
+(H-4)~ - 0.068
+2
+1
+and
+0.058-
+(6.46)
+uedE
+H-1
+&(H)
+the spatial amplification rate is expressed as a function of H and θ.
+dn
+dn
+m(H) + 1
+&(H)
+1
+(H,0)
+(H)
+(6.47)
+=
+dRed
+百
+2
+ r g   a   a a s
+stability point Ecr (where Ree = Reo。).
+E
+dn
+n(E)
+dE
+(6.48)
+dE
+JEcr
+Again, the onset of transition occurs at the point where n = 9.
+In the actual implementation of the present transition criterion,
+equation (6.48) is not used directly. Instead, the differential ampli-
+fication equation (6.47) is discretized and
+solvedas part of the
+global Newton system.
+rhe transition onset location can thus be pro-
+perly
+   o       a
+integral equation (6.48) was used to explicitly set the transition
+onset location every iteratior.
+For compressible flows, the only modification is to replace the
+shape
+parameter H in equations (6.41-47) by the kinematic shape para-
+meter Hk.
+This is justified on the grounds that the velocity profile
+shape is by far the most dominant characteristic which determines the
+amplification rates.
+Al.thouyh the point of transition onset has been defined, there is
+95
+
+===== page 96 of 159 =====
+still the problem of formulating the governing equations in the transi-
+tion region itself. The fundamental problem here is that it is nearly
+impossible to make useful quantitative statements about transitioning
+flows. Tried and true principles
+such as thelaw of thewalland the
+law of the wake deal with the class of equilibrium or near-equilibrium
+layers, to which transitioning flow certainly does not belong.
+The simple transition formulation in this thesis  hinges on the
+close similarity of the laminar and turbulent Cf and H* correlations at
+the low Reynolds numbers typically found at transition. Because of
+this close corresponderce, the precise manner in which the changeover
+from the laminar to turbulent correlations is made has been found to
+have little effect on thc overall development of the boundary layer.
+At the particular streamwise station itr immediately following transi-
+tion onset, the actual values of Cf and H* used in the discrete equa-
+tions are taken to be weighted averages of the laminar and turbulent
+values, with weighting factors of (l-Ytr) and Ytr. respectively. For
+instance, the actual H* used in the equations at i=itr is given by
+H(x²-T）=xH
++tr
+H*
+(6.49)
+iaminar
+turbulent
+n paieiat st ai aonoey au ·yo ioy pasn st uotssaadxa snoboteue ua
+the amplification ratio n at i=itr by the expression
+ni-9
+1
+Ytr"
+(6.50)
+(dn/de)i-Ei-1
+< x [ pu  >  0=  um
+In contrast to Cf and H*, the laminar and turbulent dissipation
+coefficients differ substantially even at low Reynclds numbers, with
+the turbulent dissipation coefficient being markedly larger. The turb-
+ulent Reynolds stresses (represented by C), which are the cause of the
+turbulent dissipation being higher than the laminar dissipation, cer-
+tainly do not develop instantaneously at transition onset, but build up
+gradually.  In the present formulation, this gradual build-up is crude-
+96
+
+===== page 97 of 159 =====
+ly modeled by the shear coefficient rate equation (6.35). At i = itr'
+the shear stress coefficient C, is taken to be O.7 times its equilib-
+rium value, and is then allowed to approach  its equilibrium value as
+usual via equation (6.35). No semblance of physical correctness is
+claimed in this admittedly ad-hoc scheme, since the rate equation
+(6.35) certainly does not apply to transitioning flows. Most other
+averaging form (6.49) to all relevant quantities, including thie dissip-
+ation coefficient, and varying Ytr continuously from 0 to l in the
+stressed, however, that the exact form of the switch from the laminar
+     o s    as
+-iie aua ut sabueuo pidea quanaid suotaerba anawered adeus pue wna
+important momentum thickness and shape parameter distributions.
+In
+this view, the primary virtues of the present transition formulation
+are that it produces a reasonable streamwise transition length and that
+it can be incorporated into the global Newton system.
+6.7Discretization
+Figure 6.8 shows the location of the boundary layer variables in
+relation to the inviscid grid, with the subscript "" denoting station
+i-l and "" denoting station i. The subscript "a" denotes a simple
+average between the two stations. For instance,
+1
+(0。 +0。)
+(6.51)
+a
+2
+97
+
+===== page 98 of 159 =====
+1-1
+-2
+x,y
+An
+Figure 6.8 Boundary layer variable locations (suction side)
+There are three differential equations
+to
+be discretized:
+the
+momentum equation (6.9), the shape parameter equation (6.10), and the
+shear stress coefficient lag equation (6.40). The dependent variables
+are defined to be θ, &*, and Vc.. The edge 
+velocityis also
+unknown,
+but
+as
+mentioned earlier. it is related to the inviscid variables and
+an additional unknown. In the laminar portions, i < itr'
+is not
+the
+amplification
+rateequation(6.47)
+replaces the lag eqiation (6.40),
+and the amplification ratio  replaces VC, as the dependent variable.
+The momentum equation (6.9) is discretized with central two-point
+differences for accuracy.
+ln(02/0)
+E
+Cf
+ln(ue /ue)
+a
+0
+(6.52)
+ln(E,/E,)
+θ
+2
+ln(E,/E,)
+a
+a
+where
+Cf =
+Cf(Hka
+Rega
+as given by (6.14) and/or (6.17).
+Logarithmic differencing of the derivative terms is used because it is
+exact in similar
+flows，
+and
+thus
+tends
+to
+diminish discretization
+errors from large e/e values which occur near the leading edge.
+At
+98
+
+===== page 99 of 159 =====
+  xunoa au '(+a = ) uois a uoa asy 
+assumed to be similar and these derivative terms are set to their known
+values obtained from similar boundary layer theory (Cebeci and Bradshaw
+(7]).
+For the particular case of a blunt leading edge with a stagna-
+tion point, E/ue due/dε = l and E/θ do/de = 0.
+In discretizing
+the
+shape parameter equation (6.lo） it is conv-
+enienttodefine
+2CD
+(6.53)
+H*
+Again using central two-point differences
+foraccuracy,
+the
+shape
+parameter equation (6.10) is discretized as
+ln(H*/H*
+2H
+In(ue,/ue, )
+H
+0
+(6.54)
+In(E2/E)
+8
+a
+ln(E2/E1)
+a
+where
+Cf = 
+Cf(Hka, Reoa. Mea)
+as given by (6.14) and/or (6.18),
+CD
+Cd(Hka, Reoa, Mea)
+as given by (6.16) and/or (6.48),
+and
+as given by (6.17)
+Special care
+must be taken in discretizing the shear stress coef-
+ficient lag equation.
+In
+high Reynolds number flows, the presence of
+the small quantity 6 on the left hand side of equation (6.35） makes it
+spatially stiff. To avoid any numerical difficulties,  it  is discre-
+tized
+using Backward Euler where the derivatives are differenced
+bet-
+ween
+and
+ E, as before, but the right hand source term is evaluated
+atE.
+instead of at the midpoint.
+(6.55)
+66
+
+===== page 100 of 159 =====
+1.72
+where
+Hk2-
+g(H*, Hk,)
+and
+Creg
+as given by (6.39).
+aotdau st uotaenba aoqe au '(t 5 1) uotaaod xeutut aun u1
+by the discretized amplification equation (6.47).
+n2-n
+dn,
+1
+m(Hk2）+
+e(Hk2)
+0
+(6.56)
+E2 -E1
+θ2
+6.8
+Coupling and boundary conditions
+-os   m    e  sa 
+Without the boundary layer, the boundary condition is simply the speci-
+fication of the surface streamline position.
+Withthe boundary layer
+present, this condition is replaced by a constraint that 
+the inviscid
+surface streamline is displaced from the solid wall by the distanct
+△n
+which is equal to the displacement thickness &* (Figure 6.8).
+nj
+(6.57)
+In the wake the prescribed conditions are that the wake thickness An is
+equalto the sumofthe
+upper and lower &* values (Figure 6.9), and
+that there is no pressure jump across the wake.
+(6.58)
+u
+(6.59)
+i,J-1
+Note that equation (6.59) is merely
+the
+same
+ pressure-periodicity
+boundary condition used  in
+ tht purely inviscid
+cascade and airfoil
+cases as described in Chapter 3. Also, if &* = 0, equations (6.58) and
+(6.59) reduce to the inviscid solid wall and geometry-continuity bound-
+100
+
+===== page 101 of 159 =====
+ary conditions described in Chapter 3.
+i=i
+3
+J-1
+Figure 6.9 Wake displacement thickness
+The only remaining courling condition which must be
+satisfiedis
+thatthe
+aaet Aepunog au ut pasn n Atoota abpa aalet Axepunoa 
+equations is equal to the local
+inviscid velocity q at the edge of the
+boundary layer.
+The simplest approach is to
+take
+theinviscid
+velocities from the surface streamtube and average them to the boundary
+layer station, as shown in Figure 6.8.
+(q;+ qi-1)
+(6.60)
+2
+piaa aun on auaaedsuen st n aog uotatutyap aoqe aua 'taieunaogun
+to the sawtooth mode in &*. One of the features of the boundary layer
+equations is that at separation they do not constrain perturbations in
+(this is the cause of the much-cursed separation singularity).
+ sawtooth
+h  mode in 6* in
+Hence, there is nothing left to constrain the
+the vicinity of separation, leading to a very ill-conditioned system of
+101
+
+===== page 102 of 159 =====
+this problem is to correct ue in equation (6.60) for the sawtooth mode
+using isentropic velocity-streamtube area relations.
+This is complete-
+ly
+analogoustothe
+ pressure correction in equation (2.l4) used
+to
+correct the Il pressures for
+the
+sawtooth
+ grid mode.
+Here,
+the
+eue
+definitionismodifiedto
+1
+(6.61)
+2
++个+4
+kq M^(M²-1)
+2 /xN1
+M
+where
+(6.62)
+M
+and
+k=0.2
+(6.63a-c)
+ut umous se ptab aua a pautyap aae (zo'9) uotaenba ut soioa  aui
+Figure 2.5.
+102
+
+===== page 103 of 159 =====
+6.9Jacobian structure modifications
+Because the edge velocity ue is defined in terms of the inviscid
+speed q,-and the inviscid wall streamline is offset from the wall by
+the viscous displacement thickness 6*, the boundary layer equations and
+the inviscid Euler equations are a fully-coupled system. The procedure
+solve this coupled system is to modify the
+solid-wall boundary
+to
+conditions (3.la-b) to account for the viscous displacement, and to
+and include them into the global Newton system.
+Thisnecessitates
+modifying the Jacobian block structure described in Chapter 4.
+Three discrete boundary layer equations {(6.52), (6.54), (6.55)}
+are associated with each streamwise node on  each of tne two airfoil
+sides. Hence, there are a total of six new equations which have to be
+included into  each block line of
+the Newton system (4.16).
+At
+streamwise stations which do not have boundary layers or a wake pre-
+sent, namely ahead of the leading edge, dummy equations are included to
+maintain the same block size throughout the domain.
+Figure 6.10 shows how all the variables entering the boundary
+layer equations are divided up between the
+and c. k
+blocks.
+i
+In laminar regions, C? is replaced by the amplification ratio .
+C
+A
+×
+B.
+Se
+8n
+8c, 89 88*
+Figure 6.10
+Division of boundary layer variables (turbulent)
+between Jacobian matrix blocks
+103
+
+===== page 104 of 159 =====
+The following pages are missing from the
+original
+Pa.104
+
+===== page 105 of 159 =====
+The inviscid variables op and 6n enter the equations because ue
+is ex-
+pressed in terms of the inviscid speed q which in turn is expressed in
+in terms of o and the streamiine geometry.
+ The six extra equations are
+placed at the bottom of each block row, and the boundary layer variable
+columns are placed at the right of each block. For the
+A.
+block, this
+gives the structure shown in Figure 6.ll.
+As in Chapter 4,
+the &n en-
+tries are
+denoted by x, and the 6p entries are denoted by o. The new
+boundary layer variable entries are denoted by *
+12
+6C
+60
+suction side
+8CT
+68
+pressure side
+6n1,1+J
+6p,1→J-1
+△n=6* coupling condition (6.57)
+reduced
+N-momentum
+equations
+△n=o*
+coupling condition (6.57)
+S-momentum
+equations
+C lag equation
+suction
+momentumequation
+0
+side
+shape par. equation
+C lag equation
+pressure
+momentumequation
+side
+shape par. equation
+Figure 6.11
+Modified
+<iI-1)
+105
+
+===== page 106 of 159 =====
+block is identical to that of the A.
+block
+The structure of the
+B
+-tpuos buttdnos xo=uv, pataqet sautt aua aog adaoxa 6'g aanotd ut umous
+tion"
+being empty.T
+The
+e2
+block, in addition to having che coupling
+condition lines empty, also has all the boundary layer variable columns
+empty.T
+The
+block differs from its inviscid form shown in Figure 4.4
+only in having the 6n entries in the additional six bottom lines.
+It is important to point out that it i’ possible to use the bound-
+ary layer coupling formulation with the full or mixed-inverse problem.
+At streamwise stations where the pressure is prescribed, one or both of
+the
+ linearized An=s* coupling condition lines in the block shown
+in
+Figure 6.1l are replaced by the usual linearized prescribed-pressure
+boundary condition (5.13).
+6.10
+Boundary layer eguation linearization
+S         
+For example, the momentum equation
+ln(0,/0,)
+E
+Cf
+In(ue,)
+a
+0
+(6.52)
+R
+三
+m
+In(E,/E,)
+In(E,/E,)
+θ
+2
+a
+a
+linearizes to
+ln(ue/ue,)
+60
+6H
+6M
+a
+e
+ln(E,/E,)
+8
+a
+a
+a
+8ue2
+1
+(6.64)
+R
+ln(E/E,)
+(ue2
+ue
+Since Cf = Cf(Hka, Reθa'
+.the variation 6Cf is expressed as
+j5e
+acf
+aCf
+SHka
+SRe0a
+SMea
+2
+&Cf 
+(6.65)
+aHk
+aReo
+3M?
+106
+
+===== page 107 of 159 =====
+ are in turn broken down using
+their definitions, until only the primitive variables 6c?, 60, 6o*, 6n,
+and 6p remain. As for the discrete Euler equations, this chain rule
+process is done at the Fortran level, and the details are best obtained
+from the program listing.
+107
+
+===== page 108 of 159 =====
+7.RESULTS
+The main goal of the rest cases presented here is to demonstrate
+tively demonstrated the second-order accuracy of the streamtube Euler
+Newton solution procedure. Here, only run times will be given instead
+of detailed convergence histories. A Perkin-Elmer 3242 computer was
+used for all the calculations. This machine is roughly equivalent in
+performance to a vAx 1l/780. The test cases are summarized below.
+The first  test case deals with a Joukowsky airfoil for which an
+exact solution is known in the  incompressible limit.This case  is
+intended primarily to investigate the effects of approximating a theo-
+retically infinite domain with a finite computational domain.
+         
+will be compared with experiment  to demonstrate the accuracy of the
+turbulent integral boundary layer formulation for transonic flow with
+and without shock-induced separation. The third case will demonstrate
+the redesign of the suction side of the 2822 airfoil using
+gthemixed-
+inverse design option. This redesign eliminates wave drag and yields a
+21% predicted drag reduction from the original 2822 drag.
+A severe test of the performance of the boundary layer and wake
+formulation is afforded by a NAcA  4412  airfoil being operated with
+substantial trailing edge stall. Comparison with experiment is given
+in the separated region which extends well into the wake.
+The transition prediction algorithm is tested on a low Reynolds
+number airfoil with large transitional separation bubbles. The length
+of the bubbles, which critically depends on the location of transition,
+is compared with experiment.
+   a n   s oe g 
+rically-derived supercritical compressor cascade. A pressure distribu-
+tion which eliminates the shock is specified and the corresponding
+geometry is calculated.
+108
+
+===== page 109 of 159 =====
+7.1_Joukowsky airfoil
+The particular Joukowsky airfoil and reference solution used for
+this case is derived from the incompressible potential flow around
+the
+generating circle centered at (-0.l,0.l) in the circle plane with a 4
+freestream angle of attack.  This configuration is then conformally
+mapped into the physical domain by the Joukowsky transformation. The
+o           o 
+lations at a freestream Mach number of 0.05 ard a 4° angle of attack.
+The compressibility effects are below plotting accuracy, which allows a
+meaningful comparison with the exact solution. The distance r to the
+outer boundary was varied from .75 to 5 airfoil chords, while retaining
+terms were used. Five Newton iterations (ls CPU minutes） were required
+for each point. The resulting calculated lift coefficients are plotted
+in Figure 7.1.1.
+farfieldvortex + doublet
+1.2C
+far field vortex
+—6 - x
+CL
+8
+1.15
+α=`
+132 × 32grid
+1.10-
+2
+3
+5
+Figure 7.l.l Effect of domain size for isolated airfoil
+For the vortex-only far field representation, the lift quickly
+asymptotes to a value about l/3 percent below the exact value as the
+distance of the outer boundary is increased. The error slowly grows
+            
+109
+
+===== page 110 of 159 =====
+grid resolution. With the doublet terms included, the error in lift is
+substantially smaller for small domains. This effect is particularly
+noticable in transonic cases, since the substantial transonic blockage
+increase in the lift error occurs for the rather absurdly small domain
+size of rα/c < l, where modeling the airfoil by point singularities is
+certainly suspect. For the grid size used here (and the associated
+computational time and cost), it appears that placing the outer boun-
+dary about 2 chords away cetainly gives good accuracy if the the far
+field doublet is included.The calculated pressure distribution for
+ro/c = 2 with the far field doublet is compared with the exact distri-
+bution in Figure 7.1.2.
+-2.01
+HHCH = 0.050
+ALFA ·4.000
+CL-1.1700
+co
+·0.00000
+-1.5
+CH·-0.1610
+L/D=0.00
+Cp
+-1.0
+-0.5
+0.0
+0.5
+·exact
+calculated
+1.01
+Figure 7.1.2 Calculated and exact Cp distributions
+for Joukowsky airfoil
+The agreement is quite good. The grid near the airfoil is shown
+in Figure 7.1.3. The square-root pressure singularity at the trailing
+edge requires the extra grid resolution there. For the other airfoil
+cases presented here, the inlet and outlet boundaries are placed 1.5 to
+110
+
+===== page 111 of 159 =====
+away in accordance with the Prandtl-Glauert scaling law.
+Figure7.1.3
+Converged grid near Joukowsky airfoil
+111
+
+===== page 112 of 159 =====
+7.2 RAE 2822 supercritical airfoil: fully attached flow
+The
+RAE 2822 is a 12% thick airfoil of moderate camber with sub-
+critical design
+conditions of Mα=0.66, CL=0.56. E
+Experiments performed
+at substantially higher Mach numbers (documented
+ in reference [l2l)
+produced supercritical flow with a moderate-strength shock 
+(waveonthe
+(M.=0.726, CL=0.743) of reference [12]. Figure 7.2.1 shows the calcu-
+lated viscous, inviscid, and measured pressure distributions for this
+case.
+The comparison is made at the same CL due to uncertainties in
+the experimental angle of attack auc to ventilated tunnel wall effects.
+Thetransitionfortheviscouscalculation
+was
+forcedatthe3%chord
+location on both airfoil surfaces as in the experiment.
+-1.5
+Cp
+-1.0
+-0.5
+0.0
+0.5
+α
+experiment
+2.92
+.743
+.0127
+-.095
+viscous
+2.43
+.743
+.0124 -.087
+inviscid
+2.43
+.972
+.0115 -.130
+1.01
+inviscid
+1.60
+.743
+.0016-.121
+Figure 7.2.1
+Calculated and experimental pressure distributions
+for RAE 2822 airfoil (M = 0.726 , Re = 6.5e6)
+112
+
+===== page 113 of 159 =====
+One of the two inviscid pressure distributions in Figure 7.2.l was
+a tauio aun pue 'aseo snoosta aun se To aes au butrtoads ka pauteiqo
+specifyingthe
+same angle of attack as the viscous case.
+This
+transonic flowfields, even at fairly high Reynolds
+numbers.
+Clearly,
+accounting for viscous effects substantially increases the accuracy
+of
+transonicflow
+predictions.
+The
+comparison  of the calculated and
+Theoverallagreementisgood.TenNewtoniterations
+(30CPUminutes)
+were
+required for this calculation, which was performed on a 32x132
+gria.
+A
+.01t
+ 0 experiment
+viscous
+3/g
+A
+0/c
+0
+1.0
+x/c
+Figure 7.2.2 Measured and calculated suction suface &* and 0
+distributions for RAE 2822 (Case 6 of ref.[12])
+113
+
+===== page 114 of 159 =====
+4.0
+H
+3.0
+2.0
+1.0
+0.0
+1.0
+x/c
+Figure 7.2.3
+Measuredandcalculatedsuctionandpressure
+surfaceH distributions for RAE 2822
+It must be mentioned that virtually all the discrepancies between
+experimental conditions slightly.
+For
+instance, increasing M。 from
+0.726 to 0.728 gives nearly perfect agreement for the shock position,
+CD, and Cu. Since the reported uncertainty in the
+experimental M. is
+t0.ool, any better comparison would most likely be fortuitous.
+114
+
+===== page 115 of 159 =====
+7.31
+ RAE 2822 supercritical airfoil: shock-induced separation
+Case 10 of reference[l2]was performed on the same experimental
+setup as Case 6 above.T
+The higher valueof M=0.750producedalimited
+separation regionimmediately behind
+the
+shock wave with reattachment
+occurring
+before
+the trailing edge. The separation
+was
+reportedly
+visualized by the surface
+oil-flow
+technique. Figure 7.3.1 shows the
+calulated viscous and measured pressure distributions.
+-1.5t
+Cp
+-1.01
+-0.5
+?
+?
+D
+0.0
+0.5
+C,
+a
+experiment
+3.19
+.743
+.0242
+-.106
+viscous
+2.65
+.743
+.0251
+-.100
+1.01
+Figure 7.3.1
+Calculated and experimental pressure distributions
+for RAE 2822 airfoil (M. = 0.750 , Re = 6.2e6)
+The Cp is about twice that in（
+ Case
+6，
+meaning
+that
+here
+the
+airfoil is
+well past the drag-divergence Mach number.
+Thecomparison
+between the Case
+10
+experiment
+and
+the viscous calculation is quite
+reasonable.
+In particular, the drag, the
+boundary
+layer
+parameters,
+and
+the
+extent of the separation bubble are predicted quite well,
+as
+115
+
+===== page 116 of 159 =====
+） 1 x  o 0-9  ''' e '' s u uo
+sizeasforCase6a
+above）isshownin Figure 7.3.4. Eleven Newton
+iterations (33 CPU minutes) were required for this calulation.
+.01
+θ/c
+1.0
+×/c
+Figure 7.3.2
+Measured and calculated suction surface &* and 0
+distributions for RAE 2822 (Case 10 of ref.[12])
+116
+
+===== page 117 of 159 =====
+4.0
+H
+3.0
+2.0
+1.0
+0.0
+1.0
+x/c
+Figure 7.3.3 Measured and calculated suction and pressure
+surface H distributions for RAE 2822
+117
+
+===== page 118 of 159 =====
+Figure 7.3.4 Converged grid near RAE 2822 airfoil
+118
+
+===== page 119 of 159 =====
+7.4 Mixed inverse RAE 2822 redesign with boundary layer coupling
+To reduce the wave drag on any shocked airfoil, it  is of course
+necessary to weaken or eliminate the shock wave in the flowfield.
+The
+RAE
+2822
+Case 6 was chosen as a good candidate for such a drag reduc-
+tion. A mixed inverse calculation was performed with the freewall
+segment encompassing nearly the entire suction surface.S
+Starting with
+the
+calculated pressure distribution obtained from Case 6 above, a
+smoothed-out pressure distribution was somewhat arbitrarily  specified
+over the freewall segment as shown in Figure 7.4.l.
+P
+direct output
+0.300
+M
+ip`
+inverse input
+1.400
+inverse output
+1.300
++++-
+0.400
+1.200
+1.100
+0.500
+1.000
+0.900
+0.600
+0.800
+0.700
+0.700
+0.600
+0.800
+0.500
+0.900
+0.400
+0.300
+0.200
+0.100
+0.
+9
+b
+Figure 7.4.1 Pressure distributions for RAE mixed redesign
+The mixed inverse calculation was started from the converged
+Case
+6 solution, and required five additional Newton iterations (le minutes)
+to converge to machine zero.
+The boundary layer coupl.ing option was
+retained for this calculation.
+The resultingpressure
+edistributionis
+shown in Figure 7.4.l together with the direct and specified pressure
+distributions. The inverse output differs from the inverse input be-
+119
+
+===== page 120 of 159 =====
+which automatically modify the input pressure to achieve geometry con-
+tinuity at the freewall segment enpoints. The shock has indeed becn
+eliminated, resulting in a substantial drag reduction, as
+shownin
+Table7.1.
+The freestream angle of attack was allowed to float to main-
+tain
+the origiial lift coefficient. Figure 7.4.2
+shows
+thegeometry
+comparison between the original and n:odified airfoils, and Figure 7.4.3
+o t   n      s
+Table 7.1
+Coimparison of original and modified RAE 2822
+Experimental
+Computed
+Computed
+RAE 2822
+RAE 2822
+modified
+alpha
+2.92
+2.43
+2.55
+CL
+.743
+.743
+.743
+CM
+-.095
+-.087
+-.086
+wave
+CD
+.0019
+.0001
+viscous
+CD
+.0105
+.0101
+Total
+CD
+.0127
+.0124
+.0102
+120
+
+===== page 121 of 159 =====
+Vertical scale
+-moditied
+magnitied
+5x
+original
+Figure 7.4.2
+Comparison of RAE 2822 airfoil geometry
+before and after mixed redesign
+1.0
+Figure 7.4.3
+Machnumbercontours beforeandafterRAE2822
+mixed redesign
+121
+
+===== page 122 of 159 =====
+7.5NACA 4412 airfoil: trailing edge stall
+The ability to calculate flowfields with a limited trailing edge
+separated region is important since as the angle of attack is increas-
+ed, typical aft-loaded airfoils reach maximum lift coefficient after
+ment where detailed measurementswere
+madeoftheseparated boundary
+layer and wake on a NAcA 4412 airfoil at near-maximum CL conditions.
+At the experimental angle of attack of 12.15°, separation took place at
+be compared, the calculation was done at an angle of attack (α = 13.8°)
+which matchec the observed separation point. Figure 7.5.1 shows the
+calculated pressure distribution.
+-2.01
+MACH = 0.180
+ALFA·13.800
+CL
+1.5760
+-1.5
+CD
+-0.02275
+CM
+=-0.0372
+Cp
+L/D
+= 69.28
+-1.0
+-0.5
+0.0
+0.5
+1.0
+Figure 7.5.1 Computed pressure distribution for NAcA 4412 airfoil
+Not matching α is further justified on the grounds that separating
+122
+
+===== page 123 of 159 =====
+flows are very sensitive to disturbances,
+and that the reported tunnel
+wall corrections were quite significant.
+Sincetheseparationposition
+is fairly sensitive to disturbances, the author feels that it is a good
+parameter to match when making comparisons.
+tal values in Figures 7.5.2 and 7.5.3.
+.05
+experiment
+calculation
+/c
+1.0
+x/c
+Figure 7.5.2 Calculated and measured 4412 suction surface 6* and 6
+123
+
+===== page 124 of 159 =====
+8.0
+experiment
+H
+calculation
+6.0
+4.0
+2.0
+0.0
+1.0
+x/c
+Figure 7.5.3 Calculated and measured 4412 suction surface H
+The agreement with experiment is quite good, considering that the usual
+boundarylayer approximations
+are rather badly strainedin the separa-
+tion region.
+oe   s  s  o  
+is to demonstrate that the  streamline-based  grid itself is capable of
+accommodating large angles of attack and high leading edge edge suction
+peaks. Figure 7.5.4 shows the converged streamline grid in the vicini-
+ty of the airfoil. Note the large void due to the viscous displacement
+surface.
+The leading edge blowup in Figure 7.5.5 shows
+that
+the
+streamlines negotiate the blunt leading edge
+eandsuction peak quite
+well.
+124
+
+===== page 125 of 159 =====
+Figure7.5.4
+ConvergedstreamlinegridnearNAcA44l2airfoil
+Figure7.5.5
+NACA 4412 leading edge grid detail
+125
+
+===== page 126 of 159 =====
+7.6 LA203A airfoil:Transitional separation bubbles
+The LA203A airfoil is a representative aft-loaded airfoil designed
+specifically for low Reynolds number applications. Liebeck and Camacho
+[30]  give detailed pressure distributions for this section
+obtained
+from an experiment in a low-turbulence wind tunnel.Profile drag was
+by the usual wake-traverse method. A calculation was performed for one
+particular experimental run at a chord Reynolds number of 250,0o0 and a
+lift coefficient of i.08. The low Reynolds number resulted in exten-
+A sepa-
+ration bubble is very clearly discernable from a surface pressure
+distribution since it induces a pressure plateau which is terminated by
+averystrongadversepressuregradientregionatreattachment.Figure
+7.6.1
+shows ti.e measured and calculated pressure
+distributions.
+-1.5
+Cp
+-1.0
+-0.51
+0.0
+0.5
+C,
+Cp
+α
+experiment
+4.00
+1.08
+0.0150
+-.178
+calculation
+3.20
+1.08
+0.0151
+-.167
+1.01
+Figure 7.6.l Calculated and experimental pressure distributi.cns
+for LA203A airfoil(M。= 0.100 ， Re = 250,000;
+126
+
+===== page 127 of 159 =====
+The transition prediction algorithm determined the point of tran-
+sition in the calculation. In both the suction and pressure surface
+boundary layers this occurred at the end of the separation bubbles,
+quickly forcing reattachment and thus setting the bubble length. As
+can be seen in Fig'ire 7.6.1, the bubble lengths are predicted quite
+accurately, in particular on the suction side, implying that the tran-
+sition location was accurately predicted. Another important point to
+note is that  the drag and moment coefficients are also accurately pre-
+dicted. The nearly exact agreement of the drag coefficient  is better
+than might be expected,since the very low Reynolds number puts into
+question the turbulent closure relations presented in Chapter 6.
+Entire drag polars at  Re = 250,000  and Re = 375,000 were also
+performed for the LA203A airfoil and compared with experimental polars
+in Figure 7.6.2. The comparison is quite good, with maximum CL values
+being accurately predicted.
+127
+
+===== page 128 of 159 =====
+1.5
+1.5
+Aoexperiment
+calculation
+1.0
+1.0
+Re=250000
+Re:375000
+0.5
+0.5
+.01
+.02
+-.10
+Cm
+Figure7.6.2
+Calculated and experimental drag polars of LA203A airfoil
+128
+
+===== page 129 of 159 =====
+7.7 Supercritical cascade: Full-inverse redesign
+This case is  intended to demonstrate the ability of the
+full-inverse design option  to redesign an originally shocked cascade
+such that shock-free operation is obtained. The base shocked solution
+was
+compressor
+airfoil by the French  curve method, and calculating a direct inviscid
+solution for an inlet Mach number of 0.7. The solution required seven
+Newton iterations (lo CPU minutes） to converge.
+Figure 7.7.1 shows
+part of the 25x122 grid used in the calculation. A supersonic region
+with a peak Mach number of l.42 and terminated by a strong shock wave
+occurred on the suction surface.
+Figure  7.7.2  shows the calculated
+Machnumbercontours.
+129
+
+===== page 130 of 159 =====
+Figure 7.7.1 Grid used for supercritical cascade
+130
+
+===== page 131 of 159 =====
+1。
+Figure 7.7.2 Mach number contours for direct calculation
+To eliminate the shot k, a smoothed-out pressure distribution was
+specified on the suction surface of the cascade airfoil and input into
+the full-inverse option. The pressure specified on the pressure sur-
+face was the same as that resulting from the direct calculation.
+The
+inverse input and output distributions are shown in Figure 7.7.3 toge-
+ther with the original direct output distribution. The inverse input
+and output differ because ot the free parameters which were introduced
+into the specified pressure distribution (5.5a-b) to enforce leading
+131
+
+===== page 132 of 159 =====
+and trailing edge closure. An additional free parameter was also
+introduced so that the global constraint of an invariant blade lift
+held fixed.
+0.300
+P
+M
+1.400
+P
+.·directoutput
+1.300
+0.400
+inverse  input
+1.200
+++
+inverseoutput
+1.100
+0.500
+1.000
+0.600
+0.900
+0.800
+0.700
+0.700
+0.600
+0.800
+0.500
+0.900
+0.400
+0.300
+0.200
+0.100
+a
+Figure 7.7.3 Pressure distributions for cascade redesign
+Figure 7.7.4 shows the new cascade airfoil geometry and computed
+Mach numbers resulting from the iuverse calculation, which was restarl-
+ed from the direct solution and required four additional Newton itera-
+tions (5 CPU minutes） to converge.
+Note that the shock is completely
+absent.
+132
+
+===== page 133 of 159 =====
+Figure 7.7.4 Mach number contours for redesigned cascade
+The originai and new cascade airfoil geometries are compared
+in Figure 7.7.5. An unintentional favorable result of the inverse
+        s
+a cross-sectional area or bending moment of inertia could be imposed
+explicitly as a global constraint. Of course, an additional free
+parameter anc shape function would have to be added to the prescribed
+presou!" diatribution (5.5a-b) for each new constraint, so that the
+133
+
+===== page 134 of 159 =====
+resulting inverse problem remains well-posed.
+redesigned
+original
+Figure 7.7.5 Original and new cascade airfoii geometries
+134
+
+===== page 135 of 159 =====
+8.CONCLUSIONS
+8.1Euler equation discretization
+This thesis develops a method of discretizing the steady Euler
+equations on an intrinsic streamline grid.  Such a coordinate system
+The mass and energy equations are replaced by t' .mple algebraic
+conditions of constant mass flux and totai enthalpy along each stream-
+tube. Only the momentum equations need to be solved, giving computa-
+tional economy. Another feature of a streamline coordinate system is
+that there  is no numerical diffusion of entropy or enthalpy; signals
+propagate between streamtubes only via streamline geometry and the
+pressure field.  Furthermore, only physical boundary conditions are
+required to close the discrete equation set.  Numerical boundary con-
+ditions are unnecessary. Streamline coordinates have been employed
+previously by the streamline curvature methods, which solve the Euler
+equations in differential form and hence do not treat shocks properly.
+The present formulation solves the Euler equations in integral form
+which ensures the proper Rankine-Hugoniot shock jumps in the limit of
+infinite grid resolution.
+8.2 Inverse problem formulation
+The present streamline-based discretization of the steady equa-
+tions permits the usual solid-wall boundary condition  to be easily
+replaced by an inverse boundary condition, where the surface pressure
+specified pressure. Closure and geometry continuity
+constraints are
+the prescribed pressure distribution. Discrepancies between the speci-
+fied and calculated pressure distributions resulting from the free
+parameters are  typically sufficiently small so as not to impair the
+effectiveness of the design algorithm. Both the mixed-inverse and
+full-inverse problems  have been formulated  and tested on airfoil and
+135
+
+===== page 136 of 159 =====
+compressor cascade geometries. The airfoil redesign was aimed at the
+elimination of shock waves in the flowfield with the lift coefficient
+and freestream conditions held fixed.  This goal which was achieved,
+resulting in a predicted 21% profile drag reduction.  The compressor
+cascade redesign was also aimed at shock wave elimination under the
+constraint of fixed stage work. This goal was also achieved, elimina-
+airfoil.
+8.3Compressibleintegral boundarylayer formulation
+The compressible boundary layer formulation developed in this
+thesis makes use of the standard disspation closure, meaning that the
+integral momentum and kinetic energy equations are used to describe the
+closure relations used in the present formulation are based on the
+Falkner-Skan family of profiles. For turbulent flow, the very impor-
+tant dissipation coefficient correlation is derived directly from the
+dissipation equation and the experimental G-β loc':s. The more common
+approach of assumed profiles and eddy-viscosity models is not required.
+It is shown that the resulting dissipation function still has the same
+form as that derived from assumed profiles. Excellent accuracy of che
+laminar formulation is demonstrated by comparison with an effectively
+exact finite  iifference calculation. The accuracy of the turbulent
+formulation for attached and separated flows is demonstrated by
+comparisons with experiments.
+The implementation of the present boundary layer formulation uses
+the common e9 transition prediction method. Disturbance amplification
+rates  are integrated  downstream from the point of instability until
+some empirically derived critical amplification factor is reached, at
+which point transition occurs. The amplification rates are integrated
+with respect to the physical streamwise coordinate. It is argued that
+this is more physically realistic than the more commonly used integra-
+136
+
+===== page 137 of 159 =====
+sent formulation, the critical Reynolds numbers and amplification rates
+equation using the Falkner-Skan profiles. From these solutions, simple
+algebraic expressions for the critical Reynolds number and amplifica-
+tion rates are obtained. The transition prediction algorithm is tested
+in a calculation of a low Reynolds number airfoil with large transi-
+tional separation bubbles. The bubble lengths, which critically depend
+on the location of transition,are accurately predicted.
+8.4Boundarylayer couplingformulation
+The boundary layer formulation derived in this thesis is inter-
+acted with the inviscid flow via the displacement thickness using a
+novel calculation procedure. All other current interaction calculation
+using some approximate model for the viscous flow in  the inviscid
+calculation and vice versa. The present formu!ation dispenses with
+such iteration altogether by simply solving the interacted inviscid and
+viscous equations as a fully-coupled system.  This is a robust proce-
+dure which permits the calculation of strong interaction problems such
+as trailing edge stall, shock-induced separation, and transitional
+separation bubbies. The additional CPu time required for a viscous
+calcula*ion is only a small fraction of the time required to perform a
+purely inviscid calculation.  Furthermore, the viscous option can be
+retained with the full-inverse or mixed-inverse boundary conditions,
+permitting viscous effects to enter into design calculations.
+8.5Newton solution procedure
+The discrete steady Euler equations, boundary conditions, discrete
+boundary layer equations, coupling conditions, and global constraints
+method. This thesis describes a chain-rule-based linearization process
+whichmakes solutionof suchalargeandcomplex systembytheNewton
+137
+
+===== page 138 of 159 =====
+method feasible. The thesis ciso describes a treatment of the global
+constraints which preserves che orderly structureofthe large Newton
+system and thus simplifies its solution. The demonstrated speed of the
+Newton solution procedure makes it at least as fast as state-of-the-art
+time-marching Euler solvers for airfoils, and substantially faster for
+cascades. Since the viscous and design options do not significantly
+add to the computation time, and small input changes yield quadratic
+convergence, it is felt that the current design/analysis system as a
+whole is unparalleled in speed. The possibility of rapid interactive
+execution on a minicomputer, plus the ease of switching between analy-
+sis and design modes and enforcement of arbitrary global constraints
+all significantly aad to the effectiveness of a designer.
+138
+
+===== page 139 of 159 =====
+References
+[1]
+ Bauer,F., Garabedian,P., Korn,D., Jameson,A., "Supercritical Wing
+Sections I, II,III," Lecture Notes in Economics and Mathematical
+Systems. Volumes  66, 108, 150.(1972, 1975, 1977). Springer-
+Verlag. Berlin / Heidelberg / New York.
+[2]
+Bradshaw,P., Ferriss,D.H., Atwell,N.P., "Calculation of Boundary-
+of Fluid Mechanics, Vol. 28, part 3, pp. 593-616, 1967.
+[3]
+Bradshaw,P., Ferriss,D.H., "Calculation of Boundary-Layer Develop-
+ment Using the Turbulent Energy Equation: Compressible Flow on
+Aaiabatic Walls," Journal of Fluid Mechanics, Vol. 46, part 1,
+pp. 83-110, 1970.
+[4]
+Brandt, A., "Multi-Level Adaptive Solutions to Boundary-Value
+Problems," Math. 0f Comp., Vol.31, No.138, Pp.333-390, April 1977.
+[5]
+Carlson,L.A., "Transonic Airfoil Analysis and Design Using Car-
+tesian Coordinates," Journal of Aircraft, Vol. 13, May 1976.
+[6]
+Carter,J.E., "A New Boundary Layer Inviscid Iteration Technique
+for Separated Flow," AIAA-79-1450, 1979.
+[7]
+Cebeci,T., Bradshaw,P., Momentum Transfer in Boundary Layers,
+McGraw-Hill, New York, l977.
+[8]
+Childs,R.E., Pulliam,T.H., "A Newton Multigrid Method for the
+Euler Equations" AIAA-84-0430, presented at AIAA 22nd Aerospace
+Sciences Meeting, January 9-12, 1984.
+[6]
+Clauser,F.H., "Turbulent Boundary Layers in Adverse Pressure
+Gradients," Journal of Aeronautical Sciences, Vol. 2l, No. 2,
+pp. 91-108, February 1954.
+[10] Coles,D.E., "The Law of the Wake in the Turbulent Boundary Layer,"
+Journal of Fluid Mechanics, Vol. 1, part 2, Pp. 193-226, 1956.
+[ll] Coles,D.E.. "The Turbulent Boundary Layer in a Compressible Fluid"
+R-403-PR,September 1962, Rand Corporation, Santa Monica, CA.
+[12] Cook,P.H., McDonald,M.A., Firmin,M.C.P., "Aerofoil RAE 2822 Pres-
+ut "'siuewaanseaw ayem pue xaAeg Krepunog pue suotanqtaista aans
+Experimental Data Base for Computer Program Assessment, AGARD
+AR-138, 1979.
+[13] Drela,M., "A New Transformation and Integration Scheme for the
+139
+
+===== page 140 of 159 =====
+        
+No.172.
+[l4] Drela,M., Giles,M.B., Thompkins,W.T., "Conservative Streamtube
+Solution of Steady-State Euler Equations," AIAA-84-1643, presented
+at AIAA 17th Fluid Dynamics, Plasma Dynauics and Lasers Confer-
+ence，June25-27，1984.
+[15] Drela,M., Giles,M.B., Thompkins,W.T.， "Newton Solution of Coupled
+sium on Numerical and Physical Aspects of Aerodynamic Flows, Long
+Beach, California, Jan. 1985.
+[16] Eberle,A., "A method of finite volumes for the calculation of
+transonicpotentialflowaboutwingsusingtheminimumpressure
+integral," translation of MBB-Report UFE 1407(0), Feburary 1978.
+[17] Edwards,D.E., Carter,J.E., "A Quasi-Simultaneous Finite Differe.nce
+Approach for Strongly Interacting Flow," presented at the Third
+Symposium on Numerical and Physical Aspects of Aerodynamic Flows,
+Long Beach, Calirornia, Jan. 1985.
+[l8] Fulker,J.L., "Aerodynamic Data for Three Supercritical Aerofoils,
+RAE(NPL) 9515 and 9530, and RAE 9550," ARC R&M Report No. 3820,
+HMS0,London, 1978.
+[19] Giles,M.B., "Newton Solution of Steady T'wo-Dimensional Transonic
+Flow," PhD Thesis, Department of Aeronautics and Astronautics,
+MIT, June 1985.
+[20] Giles,M.B., Drela, M., "Newton Solution of Direct and Inverse
+Transonic Euler Equations," AlAA-85-1530, presented at the AIAA
+7th Computational Fluid Dynamics Conference, Cincinati, Ohio,
+July 15-17, 1985.
+[21] Gleyzes,C., Cousteix,J., Bonnet,J.L., "A Calculatior Method of
+Leading Edge Separation Bubbles," presenced at the Second Sympo-
+sium on Numerical and Physical Aspects of Aercdynamic Flows, Long
+Beach, California, Jan. 1983.
+[22] Goldberg,P., "Upstream History and Apparent Stress in Turbulent
+Boundary Layers," MIr Gas Turbine Laboratory Report No. 85, 1966.
+{23] Green,J.E., "Application of Head's Entrainment Method to the Pre-
+diction of Turbulent Boundary Layers and Wakes in Compressible
+Flow," ARC R&M Report No. 3788, HMS0, London, 1977.
+[24] Green,J.E., Weeks, D.J., Brooman, J.W.F. "Prediction of Turbu-
+140
+
+===== page 141 of 159 =====
+Entrainment Method," ARC R&M Report No. 3791, HMSO, London, 1977.
+[25] Hastings,R.C., Williams,B.R., "Studies of the Flow Field near an
+NACA 4412 Aerofoil at nearly Maximum Lift," presented at the Third
+Symposium on Numerical and Physical Aspects of Aerodynamic Flows,
+Long Beach, California, Jan. 1985.
+[26] Hicks,R.M., "Transonic Wing Design Using Potential Flow Codes ·
+Successes and Failures," sAE paper 810565, 1981.
+Steady Euler Equations," Lecture Series on Computational Fluid
+Dynamics at Von Karman Institute for Fluid Dynamics, March 12-16,
+1984.
+{28] Kline,S.J., Morovkin,M.V., Sovran,G., Cockrell,D.J., Coles,D.E.,
+Hirst,E.A., (Editors), proceedings of Computation of Turbulent
+Boundary Layers - 1968 AFosR-IFP-Stanford Conference,Volumes I
+and II, Starford University, CA.
+[29] Le Balleur,J.C., "Strong Matching Method for Computing Transonic
+Viscous Flows Including Wakes and Separations. Lifting Airfoils,"
+La Recherche Aerospatiale, No. 1981-3, English Edition, Pp. 21-45,
+1981-1983.
+[30] Liebeck,R.H., Camacho,P.P., "Airfoil Design at Low Reynolds Number
+Low Reynolds Number Airfoil Aerodynamics, UNDAS-C?-77B123,
+University of Notre Dame, June 1985.
+[31] Liepmann,H.W., Rochko,A., Elements of Gasdynamics, Wiley, New
+York，1957.
+[32] Lighthill,M.J., "A New Method of Two-Dimensional Aerodynamic
+Design," R&M 2l12, Aeronauticai Research Council, June 1945.
+[33] Lighthill,M.J., "A Mathemat.cal Method of Cascade Design," R&M
+2104, Aeronautical Research Council, June 1945.
+[34] Lighthill,M.J., "On Displacement Thickness," Journal of Fluid
+Mechanics, Vol. 4, 1958, pp. 383-392.
+77-15.1977.
+[36] Mellor,G.L., Gibscn,D.M., "Equilibrium Turbulent Boundary Layers,"
+Journal of Fluid Mechanics, Vol. 24, part 2, Pp. 225-253.
+141
+
+===== page 142 of 159 =====
+[37] Mellor,G.L., "The Effects of Pressure Gradients on Turbulent Flow
+near a Smooth Wall," Journal of Fluid Mechanics, Vol. 24, part
+2， Pp. 255-274.
+[38] Melnik,R.E., "Turbulent Interactions on Airfoils at Transonic
+Speeds Recent Developments," in AGARD-CP-291, 1980.
+[39] Novak,R.A., "Streamline Curvature Computing Procedures for Fluid-
+Flow Problems,"ASMEPaper No.66-WA/GT-3,presented at the Winter
+Annual Meeting of the American Society of Mechanical Engineers,
+November 1966.
+[40] Obremski,H.J., Morovkin,M.V., Landahl,M.T., "A Porciolio of Stabi-
+ograph 134, NATO 1969, Neuilly Sur Seine, France.
+[41] Salas,M.D., Jameson,A., Melnik,R.E., " A Comparative Study of the
+Nonuniquness Problem of the Potential Equation,", AIAA-83-1888,
+presented at the AIAA 6th CFD Conference at Danvers, Massachu-
+setts, July 13-15, 1983.
+[42] Schetz,J.,A., Foundations of Boundary Layer Theory for Momentum,
+Heat, and Mass Transfer, Prentice-Hall, Englewood Cliffs, New
+Jersey. 1984.
+[43] Sloof,J.W., "A Survey of Computational Methods for Subsonic and
+Transonic Aerodynamic Design," Proceedings, International Confer-
+S       
+[44] Stanewsky,E., Puffert,W., Muller,R., Bateman,T.E.B., "Supercriti-
+cal Airfoil CAsT 7- Surface Pressure, Wake and Boundary Layer
+Measurements," in Experimental Data Base for Computer Program
+Assessment, AGARD AR-138, 1979.
+[45] Swafford,T.W., "Analytical Approximation of Two-Dimensional Sepa"
+Vol. 21, No. 6, Pp 923-926.
+  g    ' (
+rated Flows," AIAA-84-1615, presented at AIAA 17th Fluid Dynamics,
+Plasma Dynamics, and Lasers Conference, June 25-27, 1984.
+[47] Thompson,J.F., Thames,F.C., Mastin,C.W , "Automatic Numerical
+Generation of Body-Fitted Curvilinear Coordinate System for Field
+Containing Any Number of Arbitrary Two-Dimensional Bodies,"
+Journal of Computational Physics, Vol. 15, Pp. 299-319, 1974.
+[48] Tranen,T.L., "A Rapid Computer Aided Transonic Airfoil Design
+Method,"AIAA-74-0501，1974.
+142
+
+===== page 143 of 159 =====
+[49] Vanderplaats,G.N., "An Efficient Algorithm for Numerical Airfoil
+Optimization," AIAA-79-0079, 1979.
+[50! Veldman,A.E.P., "The Calculation of Incompressible Boundary Layers
+with Strong Viscous-Inviscid Interaction," in AGARD-CP-291, 1980.
+[51] Volpe,G., Melnik,R.E., "The Design of Transonic Airfoils by a
+Well-Posed Inverse Method," Proceedings, International Conference
+on Inverse Design Concepts in Engineering Sciences, 1984.
+[52] White,F.M., Viscous Fluid Flow, McGraw-Hill, New York, 1974.
+[53] Whitfield,D.L., "Analytical Description of the Complete Turbulent
+Boundary Layer Velocity Profile," AIAA-78-1158, July 1978.
+[54] Whitfield,D.L., "Integral Solution of Compressible Turbulent
+  s     
+Force Station, AEDC-TR-78-42, 1978.
+[55} Whitfield,D.L., Swafford, T.W., Jacocks, J.L., "Calculation of
+Interaction," AIAA Journal, Vol. 19, No. 10, Pp. 1315-1322,
+October1981.
+[56] Wigton,L.B., Holt,M., "viscous-Inviscid Interaction in Transonic
+Flow," AIAA-81-1003, presented at AIAA 5th CFD Conference, June
+22-23.1981.
+[57] Wornom,S.F., "Application of two-point aifference schemes to the
+conservative Euler equations for one-dimensional flows," NASA
+TM-83262,May 1982.
+[58] Wortmann,F.X., "Airfoils With High Lift/Drag Ratio at a Reynolds
+Number of About One Million," Proceedings of the Second
+International Symposium on the Technology and Science of
+Motorless Flight,MIT,Cambridge, MA, 1974.
+[59] Wu,C.H., "Matrix Solution of Compressible Flow on S Surface
+ThroughaTurbomachineBiadeRowWithSplitterVanesorTandem
+Blades," ASME Paper No.83-GT-10, presented at the 28tn Interna-
+tional. Gas Turbine Conference and Exhibit, March 27-31,1983.
+143
+
+===== page 144 of 159 =====
+APPENDIX A
+Artificial Bulk Viscosity Stability Analysis
+Steady transonic flow calculations require some sort of artificial
+dissipation primarily to exclude non-physical solutions to the Euler
+equations  in  the form of expansion shocks. Artificial dissipation
+prevents such solutions from appearing by ensuring that entropy will
+always increase across shock waves. The primary mechanism of entropy
+production in shock waves, namely bulk viscosity, has been lost in the
+i     r     
+equations in the present formulation in supersonic regions is qualita-
+tively similar to this "lost" bulk viscosity and thus permits proper
+calculation of shocked flows. This is analogous to the subsonic Kutta
+condition, which artificially replaces the "lost" viscous mechanism of
+circulation establishment via vorticity shedding.  The effective bulk
+          
+ity), automatically produces shock waves which are just thick enough to
+be resolved by the available grid spacing.
+Well-established potential flow calculation methods generally
+employ a different form of artificial dissipation, namely density
+upwinding (also called "artificial compressibility"). Giles [l9] also
+used density upwinding with the present Euler discretization scheme to
+obtain stable transonic solutions. The present artificial bulk visco-
+sity formulation was derived by Giles [unpublished] as a more physi-
+cally realistic alternative to density upwinding.
+His analysis is
+presented below.
+Consider a uniform compressible flow in a constant area channel.
+The Euler equations which govern this flow are
+pq = m=constant
+(A.1)
+144
+
+===== page 145 of 159 =====
+constant
+(A.2)
+YP
+1
+constant
+(A.3)
+2
+The artificial bulk viscosity is iitroduced via the derivative term in
+the momentum equation
+(A.2).
+The coefficient 入, whose proper value
+will
+be
+determined
+shortly is O(l). and △x is a small length
+scale
+which will be set to the local(
+ grid spacing in the discrete analysis
+given later.
+Each variable is now expressed as the sum of a base value and a
+perturbation, denoted by an overbar and an apostrophe, respectively.
+p = p(1+p')
+p=p(1+p')
+,b2 + b =b
+(A.4a-c)
+where c denotes the local speed of sound.
+Substituting
+thesevariables
+into
+equations (A.1-3） and
+ neglecting
+second order terms, the resulting linearized equations are:
+0=,b+.dw
+(A.4)
+dq
+(A.5)
+dx
+p′ - p′+(-l)Mq′ =0
+(A.6)
+where M = a/c
+is the Mach number of the base flow.
+Eliminating p' and p' between equations
+(A.4-6) gives a first
+order ODE for q'.
+'-kq'=0
+where
+k=
+(A.7)
+dx
+入△X
+Equation (A.7) has exponential solutions of the form
+kx
+q`α
+e
+(A.8)
+The most
+important
+characteristic of solution (A.8) is that k changes
+sign through M=l.
+In
+supersonic regions k>o, which means that pertur-
+bations decay away exponentially upstream with a length constant of
+145
+
+===== page 146 of 159 =====
+O(x). In subsonic regions, such perturbations decay
+awaydownstream.
+This behavior permits perturbation solutions which mimic a normal shock
+where M goes through unity. since the perturbations decay away from the
+shock to uniform flow on both sides. Figure A.l illustrates
+this
+be-
+havior.
+M
+×
+FigureA.1
+"Boundary layer" behavior of perturbation solutions
+The
+discrete counterpart of the continuous system (A.l-3) can be
+expressed as
+=m
+n=constant
+(A.9)
+constant
+(A.10)
+1
+1
+constant
+(A.11)
+-1
+2
+the distance x. Using the perturbation forms (A.4a-c), the above dis-
+creteequationsbecome
+Mp'
+q
+(A.12)
+M(q - 入(q² - q)
+(A.13)
+146
+
+===== page 147 of 159 =====
+(y-l)q; = 0
+(A.14)
+Eliminating p' and p' from equations (A.l2-l4), the following differ-
+ence equation for q' results.
+(入 - )q² - 入g = 0
+where
+(A.15a-b)
+The solution to equation (A.15a) is
+i
+where
+入
+2
+z=->
+(A.16a-b)
+and i is the spatial node index.
+Consistency with the analytic equations requires that the direc-
+tion of perturbation decay is upstream for supersonic flow, and down-
+stream for subsonic flow.
+For subsonic flow:
+M < 1，implying^c < 0 
+andz<1
+From (A.l6a) it can be seen that q' will decay downstream
+(i increas-
+ing) and consistency is always achieved.
+For supersonic flow: M > 1, giving three cases depending on value of )
+1)
+入>c
+=>1<28
+This gives the proper exponential decay upstream (i decreasing).
+2)
+c> >c/2
+=>-8～-l
+This still gives upstream
+ exponential decay, but since z is nega-
+tive, it can be seen from (A.l6a) that the perturbation q' will
+alternately change sign with each successive node, giving an
+oscillatory decay.
+3)
+c/2>>0
+=>
+-1<z0
+This
+case produces exponential decay downstream, making the dis-
+crete equations inconsistent with the analytic system.
+The consequence of having an insufficient level of artificial
+dissipation as in case 3) above is that the Jacobian of the Newton
+147
+
+===== page 148 of 159 =====
+solution procedure will be nearly singular if shocks or sonic lines are
+present. In such a situation it would be impossible to obtain a con-
+verged transonic flow solution.  The proper level of artificial dissi-
+pation is influenced by other considerations besides numerical stabi-
+lity. The sharpest shocks are obtained when 入 = ^c. which produces the
+most rapid perturbation decay possible. Because c'he artificial  dissi-
+pation is an "error term" in the Euler equation discretization propor-
+tional to 入, the smallest truncation errors result when 入 = 入c/2, which
+is its minimum value for numerical stability.  Another consideration is
+the applicability (or  lack thereof) of the above uniform 1-D analysis
+to the much more interesting case of non-uniform 2-D flow. This dic-
+tates a "margin of safety" where the stabilizing dissipation is intro-
+duced at high subsonic conditions rather than at M=i exactly.  The
+actualformulausedfor入is
+>=0
+(A.17)
+Mc
+M >M:
+入=
+C
+M is now the local Mach number and Mc is a threshold Mach number above
+which the dissipation coefficient 入 is nonzero. Typically, M. is set
+to lie between 0.80 and 0.95, depending on the strength of shock waves
+expected in the solution.
+148
+
+===== page 149 of 159 =====
+APPENDIX B
+Airfoil Far Field
+In this Appendix the
+leading
+order far field behavior for tran-
+sonic flow past an isolated airfoil is derived.
+For simplicity, the
+Since the present numerical method
+requires a boundary condition
+to be imposed on the outer streamline, it is useful to analyze the far
+field behavior of the velocity potential Φ. The
+far field
+flow
+is
+isentropic and hence irrotational, apart from the
+entropy
+wake dueto
+the shock, and so the governing equation for the velocity potential is
+(B.1)
+where
+(B.2)
+A perturbation potential Φ is now defined by
+u
+中
+(B.3a-b)
+X
+u
+X
+With the assumption
+Φx· Φy << 1,
+the first andsecond order terms of
+(B.1) give the following equation (Liepmann and Roshko [3l]).
+(1-M
+Φ
++1)Φ.0
+(-l)Φ..Φ
+2..
+(B.4)
+XX
+xxX
+X
+Ax人
+A Prandtl-Glauert coordinate transformation,
+βX
+where
+(B.5)
+transforms equation (B.4） into
+2
+(B.6)
+β3
+艾艾
+β
+β
+149
+
+===== page 150 of 159 =====
+In the limit
+where VΦ → O, the lowest order solution
+中
+satisfies the Laplacian lefthand side of (B.6), and is expressed as
+E
+r
+ln(r)
+(B.7)
+中
+2π
+2π
+where
+0= arctan (/x)
+and
+r=(x^
+Physically this statement means
+that in the far field the airfoil
+appears to first order to be the sum
+of a vortex of strength rand a
+source of strength . The vortex is due to the circulation around the
+airfoil, and the source is due
+to
+theshock produced entropy change,
+and also includes the effects of the viscous wake in Chapter 6.
+1
+The next higher order solution
+中
+to equation (B.6) consists of
+doubletterms
+and is related to the airfoil
+cross-sectional area,
+or
+"blockage"，
+and tothepitching moment onthe airfoil.
+Aninhomogene-
+ous term proportional to 
+（「M∞）
+from the lower order solution
+中
+also
+appears.
+The inhomogeneous term from the source is neglected here.
+Dx
+sino
+FM
+In(r)
+cosO
+cos30
+E
+cosθ +
+F
+(B.8)
+2
+r
+2π
+r
+r
+where
+E
+and
+F
+16
+The net perturbation velocity potential Φ which governs the airfoil far
+field is then simply
+(B.9)
+The velocity potential Φ as defined above contains the quantities
+∑,r.Dx,Dy
+ which must be properly constrained for a well posed prob-
+lem.
+An appropriate constraint on Tis the Kutta conditicn as dis-
+cussed
+din Chapter 3. is calculated directly from  the difference
+150
+
+===== page 151 of 159 =====
+       e    
+the mass flux of the equivalent irrotational, isentropic flow.
+pu
+dm
+(B.10)
+2
+u
+wake
+E has two contributions. The first term is due to the inviscid entropy
+wake behind a shock, and the other is due to the viscous wake.
+2
+(B.11)
+>
+i
+Ideally. one would like 
+toe
+evaluate integral (B.l0) very far down-
+strear..
+If itis evaluated near
+the
+airfoil, the airfoil's pressure
+field
+will
+affect the value of pu in the integrand
+andthus
+cause
+errors in E.
+However, the far-downstream value of pu can be accurately
+calculated from the local stagnation pressure, since
+thestagnation
+is invariant along any streamline behind the airfoil.
+Using
+pressure
+the known values of the far-field stagnation enthalpy ht and static
+pressure Po, this is done as follows.
+(B.12)
+and,
+(B.13)
+Hence, pu = f(h,·P,;P) and so the contribution
+∑，to the integral in
+(B.io) from the entropy wake due to the shock can be written as
+1
+dm
+(B.14)
+Pt·P∞)
+pu
+8
+The contribution to the integral in (B.1o) from the viscous wake
+151
+
+===== page 152 of 159 =====
+is simply the wake displacement thickness far downstream.
+(B.15)
+2
++8
+It is still necessary to define the doublet coefficients
+ Dx and
+in equation (B.8) since it is needed to define the full potential Φ
+the pressures which are specified as boundary conditions on the top and
+bottom streamlines. Barring truncation errors and terms in Φ of higher
+orderthan
+theseboundaryconditions
+should producestreamlines
+            
+the doublet coefficients Dx and Dy
+in
+such that the integral
+1
+ds
+(B.16)
+2
+is minimized. The integration is performed over
+the
+topandbottom
+streamline boundaries and s is the unit vector parallel to the stream-
+line. The conditions which determine Dx and Dy are then
+×如
+ds
+(B.17)
+×
+aDx
+aDx
+aI
+ds
+(B.18)
+aDy
+aDy
+In effect, Dx and Dy are chosen such that the two farthest streamlines
+lie along vΦ as closely as possible.
+152
+
+===== page 153 of 159 =====
+APPENDIX C
+Airfoil Drag Calculation
+The total drag on an isolated airfoil can be calculated using a
+momentum balance.Coordinate axes are chosen so that the freestream
+velocity uo is in the x direction. A control volume with outward unit
+normal n is constructed around the airfoil such that two of its bound-
+aries are streamlines. The drag D on the airfoil can now be expressed
+by a surface integral over the control volume.
+(p-P。)nx +(pu·n)u
+ds
+(C.1)
+of these two sides is O(r), so the integral contribution from these two
+sides is at most O(r-l) and hence can be neglected. The integral con-
+tribution from the other two sides can be rewritten as,
+m
+tot
+(P-P∞
+D
+dm
+(C.2)
+pu
+pu
+where the intearation variable now is dm = pu dy , the incremental mass
+flux through the control volume, and subscripts "l" and "2" denote the
+inlet and outlet values, respectively.
+Forstreamtubeswhicharenot
+pue "d-d 'yoous e putuaa ayem Adouaua aua xo ayem snoosta aua xauata ut
+P-P2
+Pu
+8
+8
+ever for isentropic streamtubes dp + pu du = O and herice the integrand
+is o(r")
+) and so the integral over isentropic streamtubes can be neg-
+lected.  Finally the viscous and entropy wakes have widths of O(l) so
+the contribution of the pressure term can be neglected.  This leaves
+the following simple expression for the total drag.
+153
+
+===== page 154 of 159 =====
+u,-u2)
+dm
+(C.3)
+   a    o      
+a shock as shown in Figure C.l.
+Figure C.l Momentum defect in shock and viscous wakes
+This equation is still approximate, containing
+errors of o(r-
+which disappear in the limit r→∞.
+ In calculating the drag due to a
+shock this equation can be made exact by using the stagnation pressure.
+The velocity is related to the pressure, stagnation
+pressure,
+and
+stagnation enthalpy by.
+(C.4)
+Thus the drag is given by,
+D =(2ht)
+1-
+dm
+(c.5)
+154
+
+===== page 155 of 159 =====
+The range of ir.tegration in (C.3) was over the streamtubes lying
+in the viscous wake or coming through the shock. In (C.5) however the
+         
+taken over all of the streamtubes, thus simplifying
+Jthe programming.
+Also because equation (C.5) only involves stagnation pressure, which is
+invariart after the flow passes through the shock, the calculated drag
+is independent of r, and so is exact because it is exact in the limit
+r.
+Thismethodofdeterminingthetotaldraghastwomainadvantages
+over the alternate method, which is to integrate the pressure and shear
+         
+integrating the pressure may be comparable in magnitude to the total
+from the wake and is equal to Pouaθ, where θ is the viscous plus the
+errors.
+The second advantage is that the pressure drag on the airfoil is
+very sensitive to errors in the angle of attack, so if the effective
+angle of attack is slightly different from the far-field angle of
+o       o   
+rate particularly when  the far-field boundary  is only a few chord
+lengths from the airfoil.
+155
+
+===== page 156 of 159 =====
+APPENDIX D
+Orr-Soumerfeld Amplification Curve Calculation
+The two-dimensional Orr-Sommerfeld equation governs
+6thegrowthor
+decay
+of infinitesimal wavelike disturbances in parallel shear flows.
+It is derived from the unsteady Navier-Stokes equations with suitable
+thin-shear-layer and parallel-flow simplifications. A detailed deriva-
+tion and discussion is given in Cebeci and Bradshaw [6]. Here it will
+suffice to say that a disturbance streamfunction of the form
+w(ε,n,t) = Φ(n) e-i(αE - wt)
+(D.1)
+is
+added to some base solution of the governing equations, where
+E.n
+aresuitably
+ non-dimensionalized streamwise and normal shear layer
+coordinates, and t is the time coordinate. When the higher powers of Φ
+are
+neglected, the 4th-order Orr-Sommerfeld equation results.
+With
+( )' = d/dn, it is written below as a first-order system.
+(D.2a)
+二
+(D.2b)
+a
+(D.2c)
+2
+((αu-w)Φ，- αu"Φ
+(D.2d)
+a
+中
+Appropriate boundary conditions are:
+n=0:
+=o
+(D.3a)
+(D.3b)
+0
+nto:
+iR(αu-w)
+(D.3c)
++ αΦ，-iR(αu-w)(Φ，+
++ αΦ） =(
+(D.3d)
+156
+
+===== page 157 of 159 =====
+Here R is is the Reynolds number formed with the reference quantities,
+and u = u(n) is the given velocity profile about which the perturbation
+is taken. The two wall boundary conditions (D.3a-b) are simply the
+usual no-transpiration and no-slip conditions, and the two far-field
+boundary conditions (D.3c-d) ensure that Φ is well behaved as n→∞.
+In general, Φ, α, w are all complex.
+The spatial amplification
+problem results when α is compl.ex and w is real. In particular, u(n),
+R, and w are prescribed, and the homogeneous Orr-Sommerfeld equation
+(D.2) and its boundary conditions (D.3) form an eigenvalue problem for
+pea ax ('a) pu ('a) suoenbg  ' taquaem xatdso au
+discretized using a second order accurate finite-difference box  scheme
+with cor.;lex Fortran arithmetic. Because of the homogeneity of the
+problem, it is appropriate to impose the normalization condition
+n=0:
+Φ,=1+i
+(D.4)
+as an additional equation. Newton's method is applied to the resulting
+ ‘² '' 'Φ sumouyun tepou au oy waiss xeauttuou
+ and the global
+unknown α. This produces a block tridiagonal system with complex 4x4
+blocks and two righthand sides which is very rapidly solved by a stan-
+dard block elimination algorithm.
+From (D.l). it is clear that the sought-after spatial growth rate
+of the disturbance  field is equal to -Im(α). The overall procedure
+which was used to generate the amplification curves in Figure 6.7 for
+each velocity profile shape parameter H is as follows.
+* Generate the appropriate Falkner-Skan velocity profile u(n;H)
+★
+For each of about 1odistinctfrequencies wR
+·Determine the instability range of R（ for which Im(α） < O)
+ For each of about 15 values of R in the instability range
+- Solve equations (D.2-4) to obtain α(R)
+Spline and integrate Im(α) over R to get the amplification ratio
+157
+
+===== page 158 of 159 =====
+APPENDIXE
+Grid Generation
+Initial grid generation
+Theinitialgrid generation
+nuses an elliptic generation method
+developed by Thompson [47]. The position of grid nodes on the airfoil
+surface, stagnation streamline and far-field boundary are specified by
+the user through an input file. The grid points in the interior are
+determined by the elliptic differential equations,
+(E.1)
+0
+XX
+(E.2)
+0
+which defines a transformation from physical space (x,y) to computa-
+tional space (E,n).
+After interchanging dependent and independent
+variables, the above two equations become,
+x人+
+=o
+(E.3)
+nn
+(E.4)
+where
+β=xx
+(E.5a-c)
+X
+n
+In the computationai space the line E=0 corresponds to the physi-
+cal
+inlet boundary, the line §=l corresponds to the outlet boundary,
+the line n=o corresponds to the stagnation streamline and suction
+surface of the airfoil, and the line n=l corresponds to the stagnation
+streamline and the pressure surface displaced upwards by one pitch, as
+illustrated in Figure E.l. The grid is defined to be uniformly spaced
+in the E direction, but since the lines n=constant are to be approxima-
+tely streamlines the spacing in the n direction is defined to be
+proportional to the fractional mass flux through each streamtube.
+Equations (E.3) and (E.4) are solved using SLoR (successive
+line
+158
+
+===== page 159 of 159 =====
+over-relaxation), with α,β,Y held fixed during each iteration and then
+updated afterwards. Convergence is achieved in about 2o iterations and
+the resultant grid is often so good an initial guess that it can hardly
+be distinguished from the final grid obtained fcom the full Euler
+calculation. This is not so surprising since the initial  streamline
+grid is the incompressible solution for a given stagnation streamline
+because n satisfies the incompressible streamfunction equation (E.l).
+GridRedistribution
+During the Newton iterations the discrete Euler equations deter-
+streamlines, but there is nothing in the physics of the problem to
+determine the streamwise movement of the grid nodes.This is complete-
+ly arbitrary, and is only really important near the leading edge where
+large movements of the leading edge stagnation point can distort the
+grid.  To correct this a slightly modified version of the grid-genera-
+tion algorithm is used occasionally to redistribute the grid nodes to
+maintain a good grid.  The modification consists of weighting the △n
+metrics in the finite difference expression of (E.4) by l/o, where o is
+the local density obtained from the latest Newton iteration.  In a
+parallel flow with a normal entropy gradient, such as a far shock wake,
+this produces the correct streamtube area distribution.  In non-paral-
+lel flows, this modification tends to preserve the compressible stream-
+line pattern generated by the Euler solver.
+159
