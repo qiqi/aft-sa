@@ -29,6 +29,7 @@ PAPER = os.path.abspath(os.path.join(_H, '..', '..'))
 fld = np.load(f'{PAPER}/data/stagnation_field_L3000.npz')
 x, y, chi = fld['x'], fld['y'], fld['chi']
 X, Y = np.meshgrid(x, y, indexing='ij')
+X = X / x.max()   # x/R: arc length in nose radii (R/delta = L = sqrt(Re_r))
 
 
 def hiemenz():
@@ -67,10 +68,10 @@ cv = axf.contour(X, Y, umag_n, levels=vl, colors='#2166ac',
                  linewidths=0.9, linestyles='solid')
 axf.clabel(cv, fmt='%.1f', fontsize=7, inline=True)
 
-axf.set_xlabel('$x/\\delta$')
+axf.set_xlabel('$x/R$')
 axf.set_ylabel('$y/\\delta$')
 axf.set_ylim(0, 20)
-axf.set_xlim(0, x.max())
+axf.set_xlim(0, 1.0)
 
 # tiny legend proxies
 from matplotlib.lines import Line2D
