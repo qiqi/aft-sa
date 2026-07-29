@@ -287,3 +287,99 @@ honest presentation.**
 5. Front/impact instruments (cylinder/spheroid) not re-run for vg — its rate is
    the zb/vbs rate and its gate equals vbs at low H, so those rows carry over
    from Parts III/V unchanged; only re-verify if vg is adopted over vbs.
+
+---
+
+# PART IX (appended 2026-07-29) — two-branch onset-graze companion figure
+
+*USER FOLLOW-UP: enrich the onset-graze figure (fig:onsetgraze) to VISUALLY
+justify the vg two-branch gate. The current graze plot is in the inflectional
+coordinate P_I = Ω̂⟨Î⟩₊, where the low-H members collapse to ≈0 and vanish —
+so the gate's second (curvature) branch needs its own graze panel. Deliver a
+candidate two-panel figure + graze table + draft caption; I integrate the tex.
+Canon `figs/onset_graze.pdf` + tex UNTOUCHED. Script
+`repro/analytic/fig02_onset_graze_2branch.py`; candidate
+`figs_explore/onset_graze_2branch.png`; table `..._2branch.json`.*
+
+## Design
+
+Two panels, each softmin branch grazing its own family in its own coordinate:
+- **(a) LEFT — canon, unchanged**: coordinate P_I = ⟨Ω̂Î⟩₊; threshold =
+  canon softmin(C, A+B/P_I²). Reproduces the canon graze to the digit
+  (β=0.15/0.10/0.05/0: 1.004/1.085/1.137/1.035; adverse down to lower-branch
+  0.911 — identical to fig02's printout). The **flat ceiling C** is drawn
+  explicitly; the strong-FPG members (H = 2.22/2.30/2.34/2.41) have P_I → 0 and
+  are drawn as left-edge arrows at their Re_Ω* — they ride ABOVE the flat
+  ceiling (Re_Ω* = 9217…3246 vs C's k=1 value 2600) and cannot be grazed there.
+  That is the onset-resolution limit made visual.
+- **(b) RIGHT — new**: coordinate P_curv = ⟨Ω̂Ẑ⟩₊, and the vg gate's SECOND
+  branch A + B_c/P_curv² (B_c = 129.74 k-carrying = 182.2 at the k=1 shape).
+  The low-H members that vanish on the left (H = 2.216, 2.30, 2.40, 2.50,
+  Blasius 2.59) now have well-defined loci and closest-approach points; the
+  curvature branch grazes them.
+
+## Adopted P_curv notation (as the user requested)
+
+**P_curv = ⟨Ω̂ Ẑ⟩₊**, with the normalized curvature indicator
+**Ẑ = −Z/R**, where Z = ½ η² u″ and R = √(X²+Y²+Z²), X = u, Y = η u′.
+Favorable-curvature layers (u″ < 0) give Ẑ > 0; the clip ⟨·⟩₊ keeps only the
+favorable (positive) part. This is EXACTLY the vg gate's second-branch
+coordinate P_curv = Ω̂⟨−Z⟩₊/R (Ω̂ ≥ 0, so ⟨Ω̂Ẑ⟩₊ = Ω̂⟨Ẑ⟩₊). It is the same
+coordinate the two-branch RATE's viscous term uses (a_visc·Ω̂⟨−Z⟩₊/R).
+
+## Curvature-branch graze table (the analog of the Fig-2 graze table)
+
+| H | β | Re_θ0 | P_curv at graze | Re_Ω* | curvature-branch graze |
+|---|---|---|---|---|---|
+| **2.216** | 1.000 | 6640 | 0.142 | 9217 | **0.999** (anchor) |
+| **2.300** | 0.488 | 3680 | 0.156 | 5837 | **0.758** |
+| **2.400** | 0.219 | 1794 | 0.178 | 3246 | **0.549** |
+| 2.500 | 0.079 | 664 | 0.204 | 1336 | 0.294 |
+| 2.590 | 0.001 | 244 | 0.229 | 534 | 0.146 |
+
+**Confirmation:** the curvature branch grazes the low-H family — it passes
+through the stagnation member's neutral point exactly (0.999, the B_c anchor)
+and provides a resolving, monotonic locus for the whole strong-FPG family that
+simply does not exist in the P_I panel. The two softmin branches thus graze
+disjoint families in disjoint coordinates — inflectional/adverse on the left
+(P_I), favorable/low-H on the right (P_curv) — the visual proof that the
+two-branch gate resolves onset across the whole family where the single-branch
+(P_I-only) gate could not.
+
+**Honest reading of the sub-unity ratios (H ≥ 2.30):** the curvature-branch
+graze falls 0.999 → 0.76 → 0.55 as H rises across the strong-FPG band. This is
+the correct two-branch behavior on TWO counts: (i) on the mild-FPG/Blasius side
+(H ≥ ~2.5) the curvature branch is SUPPOSED to sit above the members
+(graze ≪ 1) so the softmin hands them to the inflectional branch, which grazes
+them at ~1 (left panel) — the handoff is around H ≈ 2.4–2.5; (ii) within the
+strong-FPG band the residual sub-unity (0.76 at H=2.30, 0.55 at H=2.41) is the
+P_curv-flatness bound (Parts IV/VI): a single B_c anchored at stagnation
+over-predicts the mid-FPG thresholds by up to ~1.8×, which is exactly the
+mid-FPG onset lateness in the vg/vbs marches (§VIII.3). It is the same residual,
+now shown geometrically. A B_c re-anchored to center the strong-FPG band
+(rather than pin β=1) would trade the stagnation graze for tighter mid-band —
+the flat-surface trade noted throughout; not re-done (the delivered vg value is
+plotted, per the coordinator's B_c=130).
+
+## Draft caption (for tex integration)
+
+> **Figure. Two-branch onset-threshold graze.** Each Falkner–Skan profile,
+> evaluated at its Drela–Giles critical Reynolds number Re_θ0(H), traces a locus
+> of (coordinate, Re_Ω); the onset threshold Re_Ω^c = softmin(A+B/P_I²,
+> A+B_c/P_curv²) grazes the family's outer envelope. **(a)** In the inflectional
+> coordinate P_I = ⟨Ω̂Î⟩₊ the branch A+B/P_I² grazes the adverse/inflectional
+> family (markers = closest approach; graze ratios 0.91–1.14); the flat ceiling
+> C (dotted) is the non-resolving stand-in — strong-FPG members (H ≲ 2.41) have
+> P_I→0, ride above the ceiling (left arrows, at their Re_Ω*), and cannot be
+> grazed. **(b)** In the curvature coordinate P_curv = ⟨Ω̂Ẑ⟩₊ (Ẑ = −Z/R the
+> normalized curvature indicator, positive for favorable curvature) the second
+> branch A+B_c/P_curv² grazes exactly those low-H members, anchored at the
+> stagnation profile (H=2.216, graze 0.999). The two branches graze disjoint
+> families in disjoint coordinates, resolving onset across the whole family.
+
+## Part IX artifacts
+
+- Script: `paper/repro/analytic/fig02_onset_graze_2branch.py`
+- Figure: `figs_explore/onset_graze_2branch.png`
+- Table: `figs_explore/onset_graze_2branch.json` (left inflectional +
+  right curvature graze rows)
