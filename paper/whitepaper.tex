@@ -1058,4 +1058,55 @@ appendix).
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_section_eta92.pdf}
 \end{figure}
 
+\clearpage
+\section{Proposed two-branch kernel (for discussion)}
+
+Rate
+$a=\mathrm{clip}\!\big(\mathrm{softmax}_2(a_{\mathrm{inv}}\hat\Omega\langle\hat I\rangle_+,\;
+a_{\mathrm{visc}}\hat\Omega\langle-Z\rangle_+/R),\,0,\,a_{\mathrm{inv}}\big)$,
+$\mathrm{softmax}_2(x,y)\!=\!\sqrt{x^2+y^2}$.
+Gate
+$Re_\Omega^{\mathrm c}=\mathrm{softmin}\!\big(A+B/P_I^2,\;A+B_c/P_{\mathrm{curv}}^2\big)$,
+$P_I=\hat\Omega\langle\hat I\rangle_+$, $P_{\mathrm{curv}}=\langle\hat\Omega\hat Z\rangle_+$,
+$\hat Z=-Z/R$. Constants: $a_{\mathrm{inv}}\!=\!0.19$, $a_{\mathrm{visc}}\!=\!0.0276$,
+$A\!=\!124.6$, $B\!=\!1.424$, $B_c\!=\!130$. (env-gated $AI\_A\_VISC$, $AI\_REOMC\_BC$;
+default $0=$ canon.)
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{newkernel_calibrate.png}
+\caption{Curves: canon ($C\!=\!1851$), $C\!=\!8000$, vbs, vg. vg both-panel max
+$1.63\times$ DG; (a) rate; (b) onset on the DG $N\!=\!1$ station to $H\!=\!2.2$;
+low-$H$ rate $0.56\times$ DG.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{newkernel_onsetgraze.png}
+\caption{Left $P_I$ (inflectional/adverse family); right $P_{\mathrm{curv}}$
+(low-$H$ family). Curvature-branch graze ratio by $H$: $2.216\!\to\!1.00$,
+$2.30\!\to\!0.76$, $2.40\!\to\!0.55$, $2.50\!\to\!0.29$, $2.59\!\to\!0.15$.
+Drela $Re_{\theta0}$: $6640/3680/1794/664/244$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{newkernel_transport.png}
+\caption{Rows $(\beta,H,\max\hat\Omega\hat I)$:
+$(-0.10,\,2.80,\,0.162)$, $(0,\,2.59,\,0.078)$, $(+0.10,\,2.48,\,0.037)$,
+$(+1.0,\,2.22,\,{\sim}2\!\times\!10^{-4})$.
+$N\!=\!1/N\!=\!9$ vs DG: $1.14/1.14$; $1.01/1.03$; $0.92/1.02$; $0.62/0.85$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{newkernel_sphere_lowH.png}
+\caption{Low-$H$ Falkner--Skan on $\mathbb{RP}^2$. $H\!=\!2.216$ and $2.30$:
+$\max\hat\Omega\hat I=1$--$3\!\times\!10^{-4}$ ($\Delta\!=\!1.6\!\times\!10^{-4}$),
+Drela $Re_{\theta0}$ $6640$ vs $3680$ ($1.81\times$).}
+\end{figure}
+
+In-solver (vg on, env-gated; canon untouched):
+$Re_D\!=\!2\!\times\!10^6$--$2\!\times\!10^7$ vg vs canon
+$\Delta\theta_{tr}\!\le\!2.5^\circ$, $\Delta C_d\!\le\!6\%$;
+$C_d(10^9)\!=\!0.209$ (canon $0.206$), $C_d(10^{10})\!=\!0.199$ (canon $0.189$);
+flat-plate $Re_{x,tr}$ $-7.5\%$ ($Tu\,0.16\%$) / $-9\%$ ($Tu\,0.08\%$);
+Eppler-387 $Re\!=\!2\!\times\!10^5$, $\alpha\!=\!2^\circ$ rooftop unchanged.
+
 \end{document}
