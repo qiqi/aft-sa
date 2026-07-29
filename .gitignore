@@ -111,3 +111,6 @@ error_rank_0.json
 
 # Generated Construct2D contour inputs
 external/construct2d/*.dat
+
+# regenerable meshes (built by spheroid/ogrid_spheroid.py etc.) -- never in git
+*.cgns
