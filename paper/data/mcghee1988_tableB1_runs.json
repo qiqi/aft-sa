@@ -1,0 +1,85 @@
+{
+  "_source": {
+    "bib_key": "mcghee_1988",
+    "citation": "McGhee, R. J., Walker, B. S., and Millard, B. F., 'Experimental Results for the Eppler 387 Airfoil at Low Reynolds Numbers in the Langley Low-Turbulence Pressure Tunnel', NASA TM-4062, October 1988.",
+    "ntrs_id": "19890001471",
+    "ntrs_pdf": "https://ntrs.nasa.gov/api/citations/19890001471/downloads/19890001471.pdf",
+    "repo_pdf": "references/mcghee1988-e387-TM4062-NTRS19890001471.pdf",
+    "digitized_by": "hand-read from the scanned Appendix B computer listing (Table B1) and Table III, rendered at 3.2x with PyMuPDF and read visually; 2026-07-29",
+    "corrected_data_note": "Table B1 lists the wall/blockage-corrected section coefficients (c_m about the quarter chord); these are the values plotted."
+  },
+  "_selection_criterion": "For the alpha=5 Reynolds-sweep figure, every increasing-alpha row in Table B1 with |alpha - 5.00 deg| <= 0.10 is included as an individual measurement (its own black circle). Hysteresis (decreasing-alpha) runs are excluded because none of their rows fall within 0.10 deg of alpha=5 (nearest are ~4.0 and ~6.0 deg). The 60k bistable lift collapse (alpha=5.51 -> c_l=0.639) and the alpha=4.00 repeat triple are recorded below under _excluded but NOT plotted at alpha=5 (they belong to the bistability discussion).",
+  "runs_near_alpha5": {
+    "60000": {
+      "runs": "27,28",
+      "mach": 0.05,
+      "ptinf_psi": 5,
+      "report_page": 96,
+      "pdf_page_index": 99,
+      "table": "B1 (Continued)",
+      "readings": [
+        {"alpha_deg": 4.99, "cl": 0.838, "cd": 0.0439, "cm_c4": -0.1139}
+      ]
+    },
+    "100000": {
+      "runs": "15,16",
+      "mach": 0.03,
+      "ptinf_psi": 15,
+      "report_page": 93,
+      "pdf_page_index": 96,
+      "table": "B1 (Continued)",
+      "readings": [
+        {"alpha_deg": 5.01, "cl": 0.873, "cd": 0.0237, "cm_c4": -0.0889},
+        {"alpha_deg": 5.01, "cl": 0.873, "cd": 0.0240, "cm_c4": -0.0889}
+      ]
+    },
+    "200000": {
+      "runs": "9,10,13",
+      "mach": 0.06,
+      "ptinf_psi": 15,
+      "report_page": 92,
+      "pdf_page_index": 95,
+      "table": "B1 (Continued)",
+      "readings": [
+        {"alpha_deg": 5.00, "cl": 0.891, "cd": 0.0138, "cm_c4": -0.0809},
+        {"alpha_deg": 5.03, "cl": 0.895, "cd": 0.0139, "cm_c4": -0.0803},
+        {"alpha_deg": 5.06, "cl": 0.894, "cd": 0.0137, "cm_c4": -0.0785},
+        {"alpha_deg": 5.06, "cl": 0.897, "cd": 0.0137, "cm_c4": -0.0802}
+      ]
+    },
+    "300000": {
+      "runs": "3,4,5",
+      "mach": 0.09,
+      "ptinf_psi": 15,
+      "report_page": 91,
+      "pdf_page_index": 94,
+      "table": "B1 (Experimental Results From Langley Low-Turbulence Pressure Tunnel)",
+      "readings": [
+        {"alpha_deg": 5.01, "cl": 0.901, "cd": 0.0114, "cm_c4": -0.0799}
+      ]
+    },
+    "460000": {
+      "runs": "20",
+      "mach": 0.13,
+      "ptinf_psi": 15,
+      "report_page": 94,
+      "pdf_page_index": 97,
+      "table": "B1 (Continued)",
+      "readings": [
+        {"alpha_deg": 5.02, "cl": 0.914, "cd": 0.0093, "cm_c4": -0.0807}
+      ]
+    }
+  },
+  "table_III_oilflow_alpha5": {
+    "_note": "Table III (report p.11, pdf page index 14), 'Upper Surface Chordwise Locations (x/c) of Separation and Reattachment From Oil Flow Visualization'. LS = laminar separation, TR = turbulent reattachment. Tabulated at alpha=5 for R=100k/200k/300k ONLY; there is no 60k or 460k oil-flow closure at alpha=5 in this source (60k oil flow is not tabulated; the 460k column is absent from Table III). This confirms the prior rework: no extension possible.",
+    "100000": {"alpha_deg": 5, "x_sep": 0.34, "x_reattach": 0.67},
+    "200000": {"alpha_deg": 5, "x_sep": 0.38, "x_reattach": 0.59},
+    "300000": {"alpha_deg": 5, "x_sep": 0.39, "x_reattach": 0.55}
+  },
+  "_excluded_not_plotted": {
+    "_note": "Recorded for provenance / bistability discussion; NOT part of the alpha=5 comparison.",
+    "60000_bistable_collapse": {"runs": "27,28", "report_page": 96, "alpha_deg": 5.51, "cl": 0.639, "cd": 0.0588, "cm_c4": -0.1078},
+    "60000_alpha4_triple": {"runs": "27,28", "report_page": 96, "alpha_deg": 4.00, "cl": [0.643, 0.697, 0.721], "cd": [0.0431, 0.0386, 0.0400], "cm_c4": [-0.1180, -0.1059, -0.1125]},
+    "60000_alpha4p49": {"runs": "27,28", "report_page": 96, "alpha_deg": 4.49, "cl": 0.785, "cd": 0.0414, "cm_c4": -0.1189}
+  }
+}

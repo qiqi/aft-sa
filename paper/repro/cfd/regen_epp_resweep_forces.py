@@ -8,9 +8,11 @@ Two-by-two Eppler-387 alpha=5 Reynolds-sweep summary (2026-07-28 rework):
   dashed orange, L0-L2 by line thickness), the e^9 panel reference
   (mfoil squares 0.6-3e5 where its solve returns forces; XFOIL diamonds
   at all five Re, c_m from both), the LTPT measurement (large filled
-  black circles -- the visually dominant experiment; individual TM-4062
-  Table B1 run readings near alpha=5 plotted as separate circles where
-  more than one was hand-read from the scan, see EXP_* below), and small
+  black circles -- the visually dominant experiment; every individual
+  TM-4062 Table B1 run reading within 0.10 deg of alpha=5 is a separate
+  circle, so repeat runs form a vertical cluster of real scatter -- counts
+  per Re: 60k x1 / 100k x2 / 200k x4 / 300k x1 / 460k x1; source of truth
+  paper/data/mcghee1988_tableB1_runs.json, see EXP_* below), and small
   gray published-calculation symbols read at alpha=5:
     6e4: Frere+ 2016 ILES (alpha=4) & coupled RANS-e^N, Carreno Ruiz &
          D'Ambrosio 2022 gamma-Retheta, IJSRP 2019 k-kL-omega, and
@@ -49,25 +51,29 @@ FAM = {'str': dict(color='C0', ls='-'), 'cav': dict(color='C1', ls='--')}
 RES = [60, 100, 200, 300, 460]
 ALPHA = 5.0
 
-# TM-4062 Table B1 individual run readings near alpha=5, hand-read from the
-# scanned listing (provenance: regen_resweep_table.py docstring). Each list is
-# EVERY individual value that was hand-read at the tabulated angle nearest 5 deg
-# -- plotted as a separate black circle so repeat measurements read as multiple
-# points, not a mean+bar. Coverage is uneven because only these readings were
-# transcribed: 200k c_l has the four repeat runs (9/10/13 a=5.00/5.03/5.06/5.06
-# = .891/.895/.894/.897) and c_d three (.0137-.0139); 100k c_d has the run
-# 15/16 repeat (.0237/.0240); the other Re have a single transcribed reading.
-# Full per-run digitization (all runs x all near-5 alphas, all columns) would
-# require re-reading TM-4062 Table B1 from the PDF -- see the rework record.
-EXP_CL = {60: [0.838], 100: [0.873], 200: [0.891, 0.895, 0.894, 0.897],
-          300: [0.901], 460: [0.914]}
-EXP_CD = {60: [0.0439], 100: [0.0237, 0.0240],
-          200: [0.0137, 0.0138, 0.0139], 300: [0.0114], 460: [0.0093]}
-EXP_CM = {60: [-0.1139], 100: [-0.0889], 200: [-0.0809],
-          300: [-0.0799], 460: [-0.0807]}
+# TM-4062 (McGhee, Walker & Millard 1988) full per-run digitization near
+# alpha=5, hand-read from the scanned Appendix B computer listing (Table B1)
+# and Table III. Source of truth: paper/data/mcghee1988_tableB1_runs.json,
+# which carries per-point provenance (Re, runs, Mach, report page, alpha).
+# Selection rule (see the JSON): EVERY increasing-alpha Table B1 row with
+# |alpha - 5.00| <= 0.10 deg is one individual measurement -> one black circle,
+# so repeat runs at nominal 5 deg render as a vertical cluster (real scatter,
+# NOT a mean+errorbar). Individual-reading counts per Re: 60k x1, 100k x2,
+# 200k x4, 300k x1, 460k x1. Hysteresis (decreasing-alpha) runs contribute
+# nothing here (no row within 0.10 deg of 5); the 60k bistable collapse and the
+# alpha=4 repeat triple are in the JSON's _excluded block, not plotted.
+_MC = json.load(open(f'{DATA}/mcghee1988_tableB1_runs.json'))
+EXP_CL, EXP_CD, EXP_CM = {}, {}, {}
+for _rs, _blk in _MC['runs_near_alpha5'].items():
+    _Rk = int(_rs) // 1000
+    EXP_CL[_Rk] = [r['cl'] for r in _blk['readings']]
+    EXP_CD[_Rk] = [r['cd'] for r in _blk['readings']]
+    EXP_CM[_Rk] = [r['cm_c4'] for r in _blk['readings']]
 # TM-4062 Table III oil flow at alpha=5 (x_sep, x_reattach). Tabulated for
 # Re=1/2/3e5 only (no 6e4 or 4.6e5 oil-flow closure at alpha=5 in Table III).
-OIL = {100: (0.34, 0.67), 200: (0.38, 0.59), 300: (0.39, 0.55)}
+OIL = {int(_rs) // 1000: (_o['x_sep'], _o['x_reattach'])
+       for _rs, _o in _MC['table_III_oilflow_alpha5'].items()
+       if not _rs.startswith('_')}
 
 bench = json.load(open(f'{B}/sphere_campaign_eppler_results.json'))
 _swp_p = f'{B}/sphere_campaign_epp_sweep_l1_results.json'
@@ -312,17 +318,9 @@ for ax in (axl, axd):
 axl.set_ylim(0.55, 1.02)
 axst.set_ylim(0.28, 1.05)
 axst.axhline(1.0, color='0.7', lw=0.6)
-# name the two curve bands directly so one panel reads unambiguously
-axst.text(5.0e5, 0.34, 'laminar\nseparation', fontsize=8, color='0.35',
-          ha='right', va='center')
-axst.text(1.15e5, 0.86, 'turbulent\nreattachment', fontsize=8, color='0.35',
-          ha='left', va='center')
-axd.annotate('bursting boundary', xy=(1.0e5, 0.034), xytext=(1.55e5, 0.044),
-             fontsize=8, color='0.3',
-             arrowprops=dict(arrowstyle='->', color='0.3', lw=0.8))
-axst.annotate('no closure', xy=(0.85e5, 0.995), xytext=(0.62e5, 0.905),
-              fontsize=8, color='0.3',
-              arrowprops=dict(arrowstyle='->', color='0.3', lw=0.8))
+# In-plot text annotations removed (2026-07-29): the separation vs
+# reattachment bands are distinguished by trend, and the bursting-boundary /
+# no-closure remarks now live in the caption (see the rework record).
 
 handles = [
     Line2D([], [], color='C0', ls='-', marker='o', ms=3.0,
