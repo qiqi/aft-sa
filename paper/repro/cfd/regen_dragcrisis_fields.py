@@ -43,7 +43,9 @@ ZW = (-1.35, 1.35)
 NX, NZ = 1100, 682
 # labeled line-contour levels (no colorbar; e-ink grayscale)
 ULEV = [0.2, 0.4, 0.6, 0.8, 1.0, 1.2]
-CHI_SUB = [-6.0, -4.0, -2.0, -1.0]                  # chi<1 (dashed)
+# chi<1 dashed, per half-decade across the Tu=0.2% transitional band
+# (freestream chi_inf ~ 1.08e-2, so levels below ~1e-2 only appear near the wall)
+CHI_SUB = [-3.0, -2.5, -2.0, -1.5, -1.0, -0.5]
 # chi=1, c_v1, 30, then decades above (chi reaches ~2e4 in the wake)
 CHI_SOL = [0.0, np.log10(7.1), np.log10(30.0),
            2.0, 3.0, 4.0]                           # chi = 1,7,30,100,1e3,1e4

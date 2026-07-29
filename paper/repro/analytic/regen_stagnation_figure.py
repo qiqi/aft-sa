@@ -71,7 +71,7 @@ axf.clabel(cv, fmt='%.1f', fontsize=7, inline=True)
 axf.set_xlabel('$x/R$')
 axf.set_ylabel('$y/\\delta$')
 axf.set_ylim(0, 20)
-axf.set_xlim(0, 1.0)
+axf.set_xlim(-1.0, 1.0)
 
 # tiny legend proxies
 from matplotlib.lines import Line2D

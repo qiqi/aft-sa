@@ -67,7 +67,7 @@ def hiemenz():
 
 
 def grids(L, nx, ny, H):
-    x = np.linspace(0.0, L, nx)
+    x = np.linspace(-L, L, nx)     # full symmetric domain about the stagnation line
     a = 4.0
     j = np.arange(ny)
     y = H*(np.exp(a*j/(ny-1))-1.0)/(np.exp(a)-1.0)
@@ -75,7 +75,7 @@ def grids(L, nx, ny, H):
     return x, y
 
 
-def run_case(L, nx=192, ny=140, t_end=400.0, chi_init=None, verbose=False,
+def run_case(L, nx=384, ny=140, t_end=400.0, chi_init=None, verbose=False,
              return_field=False, niter=60000):
     H = max(40.0, 0.12*L)
     x, y = grids(L, nx, ny, H)
@@ -113,9 +113,10 @@ def run_case(L, nx=192, ny=140, t_end=400.0, chi_init=None, verbose=False,
     for step in range(niter):
         chi = np.clip(chi, 0.0, 1e7)
         nut = 1.0+chi
-        # upwind advection (u>=0, v<=0)
-        chix = np.zeros_like(chi)
-        chix[1:, :] = (chi[1:, :]-chi[:-1, :])/dx
+        # windward advection: u = x f' is ODD (u<0 for x<0), v<=0
+        chib = np.zeros_like(chi); chib[1:, :] = (chi[1:, :]-chi[:-1, :])/dx
+        chif = np.zeros_like(chi); chif[:-1, :] = (chi[1:, :]-chi[:-1, :])/dx
+        chix = np.where(U >= 0.0, chib, chif)
         chiy_up = np.zeros_like(chi)
         chiy_up[:, :-1] = (chi[:, 1:]-chi[:, :-1])/dym
         adv = U*chix + V*chiy_up
@@ -123,7 +124,7 @@ def run_case(L, nx=192, ny=140, t_end=400.0, chi_init=None, verbose=False,
         fxp = 0.5*(nut[1:, :]+nut[:-1, :])*(chi[1:, :]-chi[:-1, :])/dx
         xdiff = np.zeros_like(chi)
         xdiff[1:-1, :] = (fxp[1:, :]-fxp[:-1, :])/dx
-        xdiff[0, :] = 2.0*fxp[0, :]/dx                    # symmetry
+        # x=+-L are outflow; interior symmetry at x=0 is now automatic
         fyp = 0.5*(nut[:, 1:]+nut[:, :-1])*(chi[:, 1:]-chi[:, :-1])/dym
         ydiff = np.zeros_like(chi)
         ydiff[:, 1:-1] = (fyp[:, 1:]-fyp[:, :-1])/dyc2[:, 1:-1]
@@ -151,7 +152,8 @@ def run_case(L, nx=192, ny=140, t_end=400.0, chi_init=None, verbose=False,
         chi = np.maximum(chi, 0.0)
         chi[:, 0] = 0.0
         chi[:, -1] = 0.0
-        chi[-1, :] = chi[-2, :]                           # outflow
+        chi[0, :] = chi[1, :]                             # x=-L outflow
+        chi[-1, :] = chi[-2, :]                           # x=+L outflow
         if step % check == 0:
             m = float(chi.max())
             hist.append(m)
