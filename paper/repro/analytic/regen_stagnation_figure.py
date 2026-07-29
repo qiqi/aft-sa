@@ -54,8 +54,8 @@ fig, axf = plt.subplots(1, 1, figsize=(7.0, 3.2))
 
 lg = np.log10(np.maximum(chi, 1e-12))
 # chi contours (flat-plate conventions)
-axf.contour(X, Y, lg, levels=[-8, -6, -4, -2, -1], colors='0.55',
-            linewidths=0.5, linestyles='dashed')
+axf.contour(X, Y, lg, levels=[-6, -5, -4, -3, -2, -1], colors='0.55',
+            linewidths=0.5, linestyles='dashed')   # per decade, chi<1
 axf.contour(X, Y, lg, levels=[0.0], colors='k', linewidths=1.3)
 axf.contour(X, Y, lg, levels=[np.log10(7.1), np.log10(30.0)], colors='k',
             linewidths=0.7)
