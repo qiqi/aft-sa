@@ -32,11 +32,11 @@ PREV = os.path.join(HERE, 'figs_explore')
 
 MACH = 0.1
 # (case dir, Re label for the caption); low/high extremes carry mesh suffixes
-CASES = [("cyl_Re10_Tu0.2_up_lowre",        r"$Re_D=10$"),
-         ("cyl_Re100000_Tu0.2_up",          r"$10^5$"),
-         ("cyl_Re500000_Tu0.2_up",          r"$5\times10^5$"),
-         ("cyl_Re2000000_Tu0.2_up",         r"$2\times10^6$"),
-         ("cyl_Re1000000000_Tu0.2_up_ultra", r"$10^9$")]
+CASES = [("cyl_Re10_Tu0.2_up_lowre",   r"$Re_D=10$"),
+         ("cyl_Re1000_Tu0.2_up_lowre", r"$10^3$"),
+         ("cyl_Re100000_Tu0.2_up",     r"$10^5$"),
+         ("cyl_Re500000_Tu0.2_up",     r"$5\times10^5$"),
+         ("cyl_Re2000000_Tu0.2_up",    r"$2\times10^6$")]
 # window in D around the cylinder (center x=0.5, z=0)
 XW = (-1.0, 4.0)
 ZW = (-1.35, 1.35)

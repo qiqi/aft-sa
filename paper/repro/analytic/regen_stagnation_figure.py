@@ -46,9 +46,9 @@ fy = F(np.minimum(y, 20.0))
 f, fp = fy[0], fy[1]
 U = np.outer(x, fp)          # u(x,y) = x f'(y)
 V = -np.tile(f, (len(x), 1))  # v(y)   = -f(y)
-umag = np.sqrt(U**2 + V**2)
-ue = np.maximum(np.outer(x, np.ones_like(y)), 1e-9)  # edge speed u_e = x*1
-umag_norm = umag/ue          # |u|/u_e ~ f'(y) away from the nose
+umag = np.sqrt(U**2 + V**2)  # ACTUAL magnitude: grows ~ u_e(x)=x away from stag
+Uref = float(umag.max())     # edge speed at the downstream boundary (x=L)
+umag_n = umag/Uref           # 0..1; contours are ~vertical outside the BL
 
 fig, axf = plt.subplots(1, 1, figsize=(7.0, 3.2))
 
@@ -60,15 +60,15 @@ axf.contour(X, Y, lg, levels=[0.0], colors='k', linewidths=1.3)
 axf.contour(X, Y, lg, levels=[np.log10(7.1), np.log10(30.0)], colors='k',
             linewidths=0.7)
 
-# velocity-magnitude overlay |u|/u_e (steel blue)
-vl = [0.5, 0.9, 0.99]
-cv = axf.contour(X, Y, umag_norm, levels=vl, colors='#2166ac',
+# velocity-magnitude overlay |u| (actual, normalized by the x=L edge speed)
+vl = [0.1, 0.2, 0.4, 0.6, 0.8]
+cv = axf.contour(X, Y, umag_n, levels=vl, colors='#2166ac',
                  linewidths=0.9, linestyles='solid')
-axf.clabel(cv, fmt='%.2f', fontsize=7, inline=True)
+axf.clabel(cv, fmt='%.1f', fontsize=7, inline=True)
 
 axf.set_xlabel('$x/\\delta$')
 axf.set_ylabel('$y/\\delta$')
-axf.set_ylim(0, 40)
+axf.set_ylim(0, 20)
 axf.set_xlim(0, x.max())
 
 # tiny legend proxies
@@ -77,7 +77,7 @@ axf.legend([Line2D([0], [0], color='k', lw=1.3),
             Line2D([0], [0], color='0.55', lw=0.5, ls='--'),
             Line2D([0], [0], color='#2166ac', lw=0.9)],
            ['$\\chi=1,\\,c_{v1},\\,30$', '$\\chi<1$',
-            '$|u|/u_e$'],
+            '$|u|/u_{e,L}$'],
            fontsize=7, loc='upper left', frameon=False, ncol=3,
            handlelength=1.6, columnspacing=1.2)
 
