@@ -2606,26 +2606,6 @@ below.
   \label{fig:dragcrisisangles}
 \end{figure}
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{dragcrisis_fpg.pdf}
-  \caption{Favorable-pressure-gradient amplification audit. Left:
-    frozen-profile envelope slope $dN/dRe_\theta$ on Falkner--Skan
-    wedges---the model (mean-secant and late-window estimates)
-    against the Drela--Giles envelope fit and its mfoil
-    implementation; open triangle: below the axis floor. The upper
-    axis gives the wedge shape factor $H$. Right: amplification
-    budget $N(\theta)$ on a validated laminar march of the measured
-    cylinder nose flow at $Re_D\!=\!2\!\times\!10^6$,
-    $7\!\times\!10^6$, $2\!\times\!10^7$ (middle seed): the Drela
-    envelope (solid) and the model's frozen-profile instrument
-    (dashed) against the transition budget
-    $N\!=\!\ln(1/\chi_\infty)\!=\!4.53$; dotted verticals mark the
-    computed solver fronts, which sit at or ahead of the $e^N$
-    crossing on the same mean flow.}
-  \label{fig:dragcrisisfpg}
-\end{figure}
-
 Figure~\ref{fig:dragcrisiscd} shows the traverse at the middle seed;
 the full three-seed family is computed and its crisis is
 seed-ordered---the transition angle
@@ -2677,20 +2657,27 @@ seed-blind exactly as far down as it should be.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=\textwidth]{dragcrisis_fields.pdf}
-  \caption{Velocity magnitude (left) and $\log_{10}\chi$ (right;
-    blue contour $\chi\!=\!1$) at center span, middle seed
-    ($Tu\!=\!0.2\%$), up-ladder. Top, subcritical $10^5$: the
+  \includegraphics[width=\textwidth,height=0.88\textheight,keepaspectratio]{dragcrisis_fields.pdf}
+  \caption{Velocity magnitude (left) and $\chi$ (right; dashed
+    $\chi\!<\!1$, solid $\chi\!=\!1$, $c_{v1}$, $30$) at center span,
+    middle seed ($Tu\!=\!0.2\%$), up-ladder; rows
+    $Re_D\!=\!10$, $10^5$, $5\!\times\!10^5$, $2\!\times\!10^6$,
+    $10^9$. Top, $Re_D\!=\!10$: steady attached flow below the
+    shedding onset, $\chi$ at the freestream seed throughout,
+    $C_d\!=\!2.80$. Subcritical $10^5$: the
     laminar wall separates at $74^\circ$ and the lifted shear layer
     amplifies immediately---the free-shear pole of the
-    kernel---over a dead-air wake, $C_d\!=\!0.84$. Middle,
-    mid-crisis $5\!\times\!10^5$: transition has reached the
+    kernel---over a dead-air wake, $C_d\!=\!0.84$.
+    Mid-crisis $5\!\times\!10^5$: transition has reached the
     separation point and the wake narrows ($C_d\!=\!0.62$; final
     snapshot of a limit-cycling case, band in
-    Fig.~\ref{fig:dragcrisiscd}). Bottom, supercritical
+    Fig.~\ref{fig:dragcrisiscd}). Supercritical
     $2\!\times\!10^6$: a $1.5^\circ$ laminar-separation bubble at
     $98$--$100^\circ$ hands the wall to turbulence, final separation
-    $118^\circ$, $C_d\!=\!0.22$.}
+    $118^\circ$, $C_d\!=\!0.22$. Bottom, ultra $10^9$: the
+    $\chi\!=\!1$ front has marched onto the nose while turbulent
+    separation stays pinned near $120^\circ$, $C_d\!=\!0.21$ (the
+    supercritical floor; concession five).}
   \label{fig:dragcrisisfields}
 \end{figure}
 
@@ -2753,9 +2740,9 @@ protocol-dependent band ($0.11$--$0.21$), not a level, and its
 adjudication belongs to unsteady continuation.
 
 The fifth concession invites the question of whether the transition
-front itself should be further forward, and
-Fig.~\ref{fig:dragcrisisfpg} answers it in two parts. On
-Falkner--Skan wedges the model's frozen-profile envelope slope
+front itself should be further forward, and two frozen-profile audits
+answer it. On
+Falkner--Skan wedges the model's envelope slope
 tracks the Drela--Giles fit through $\beta\!\le\!0.1$, halves at
 $\beta\!=\!0.2$, and collapses three orders of magnitude by
 $\beta\!=\!0.5$---in strongly favorable gradients the inflectional
@@ -2767,7 +2754,8 @@ saturates at $Re_\Omega\!=\!1851$ beyond). On the cylinder nose,
 however, this deficit does not drive the drag: integrating the Drela
 envelope along a validated laminar march of the measured nose flow
 puts the $N\!=\!\ln(1/\chi_\infty)$ crossing \emph{behind} the
-computed front at all three Reynolds numbers shown---at
+computed front at all three Reynolds numbers audited
+($2\!\times\!10^6$, $7\!\times\!10^6$, $2\!\times\!10^7$)---at
 $2\!\times\!10^7$ the solver front sits $10^\circ$ ahead of the
 $e^N$ station on its own mean flow---and where the ultra-$Re$ arm
 does march the front onto the nose ($2^\circ$ at $10^{10}$), $C_d$ is

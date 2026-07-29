@@ -314,14 +314,34 @@ seed exactly zero, standard SA sustains the wedge above a critical
 nose Reynolds number bisected to $Re_r=4.66$--$4.74\times10^5$
 (Fig.~\ref{f:stagbistab}).
 
+\begin{table}[H]
+  \centering\small
+  \caption{Attachment-anchored branch: steady $\max\chi$ versus nose
+  Reynolds number $Re_r=L^2$ on the frozen Hiemenz wedge, standard SA,
+  $\chi_\infty=0$. Below the bisected critical band the layer collapses
+  to $\chi=0$.}
+  \label{t:stagbistab}
+  \begin{tabular}{ccc}
+    \toprule
+    $L=\sqrt{Re_r}$ & $Re_r$ & steady $\max\chi$ \\
+    \midrule
+    $\le 683$ & $\le 4.66\times10^5$ & $<10^{-3}$ (collapses to $0$) \\
+    $683$--$689$ & $4.66$--$4.74\times10^5$ & critical band (bisected) \\
+    $689$ & $4.74\times10^5$ & $2.19$ \\
+    $700$ & $4.90\times10^5$ & $6.15$ \\
+    $1000$ & $1.00\times10^6$ & $24.1$ \\
+    $3000$ & $9.00\times10^6$ & $75.7$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{stagnation_bistability.pdf}
-\caption{Attachment-anchored turbulent branch. Standard SA, frozen
-Hiemenz, $\chi_\infty=0$; laminar for $L\lesssim685$, critical band
-$Re_r=4.66$--$4.74\times10^5$, $\max\chi\approx0.025\,L$. Right:
-$L=3000$ ($Re_r=9\times10^6$), $\max\chi=76$; $\log_{10}\chi$ contours
-dashed below $\chi=1$, solid at $1$, $c_{v1}$, $30$. $\max\chi\approx24$
-at $Re_r=10^6$, $76$ at $9\times10^6$.}\label{f:stagbistab}
+\caption{Attachment-anchored turbulent branch, $L=3000$
+($Re_r=9\times10^6$), $\max\chi=76$. Standard SA, frozen Hiemenz,
+$\chi_\infty=0$. $\log_{10}\chi$ contours dashed below $\chi=1$, solid
+at $1$, $c_{v1}$, $30$; velocity magnitude $|u|/u_e$ (blue) at $0.5$,
+$0.9$, $0.99$. Branch data in Table~\ref{t:stagbistab}.}\label{f:stagbistab}
 \end{figure}
 
 The protocol used for every result in this paper: the
@@ -717,12 +737,7 @@ $Re_D\approx5$--$7\times10^5$ at the two quiet seeds to
 $\approx3$--$4\times10^5$ at $Tu=0.7\%$, and the supercritical floor
 ($C_d=0.217$--$0.233$ at $2\times10^6$) rises with the seed.
 Figure~\ref{f:dragcrisisangles}: the transition and separation angles.
-Figure~\ref{f:dragcrisisfpg}: the model's frozen-profile envelope
-slope tracks the Drela--Giles fit through $\beta\le0.1$, halves at
-$\beta=0.2$, and collapses three orders of magnitude by $\beta=0.5$,
-while on the cylinder nose the $e^N$
-$N=\ln(1/\chi_\infty)$ crossing sits behind the computed front at
-all three Reynolds numbers shown. Figure~\ref{f:dragcrisisfields}:
+Figure~\ref{f:dragcrisisfields}:
 fields at three stations of the traverse.
 Table~\ref{t:dragcrisis}: the matrix $C_d$. Below the shedding onset
 ($Re_D\approx46$) the steady solution is the physical flow:
@@ -768,15 +783,12 @@ $0.2$, $0.7\%$.}\label{f:dragcrisisangles}
 \end{figure}
 
 \begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{dragcrisis_fpg.pdf}
-\caption{Favorable-gradient amplification audit; cylinder nose at
-$Re_D=2\times10^6$, $7\times10^6$, $2\times10^7$ (middle seed),
-transition budget $N=\ln(1/\chi_\infty)=4.53$.}\label{f:dragcrisisfpg}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{dragcrisis_fields.pdf}
-\caption{Drag-crisis fields.}\label{f:dragcrisisfields}
+\includegraphics[width=\textwidth,height=0.88\textheight,keepaspectratio]{dragcrisis_fields.pdf}
+\caption{Drag-crisis fields, $Re_D=10$, $10^5$, $5\times10^5$,
+$2\times10^6$, $10^9$ (rows, up-ladder $Tu=0.2\%$); columns
+$|\mathbf{u}|/U_\infty$ and $\chi$ (dashed $\chi<1$, solid $\chi=1$,
+$c_{v1}$, $30$). $C_d=2.80$, $0.84$, $0.62$, $0.22$,
+$0.21$.}\label{f:dragcrisisfields}
 \end{figure}
 
 \begin{table}[H]
@@ -980,13 +992,13 @@ $Re_\mathrm{root}=5\times10^5$.}\label{f:daesurf}
 \section{Proposed two-branch kernel (for discussion)}
 
 Rate
-$a=\mathrm{clip}\!\big(\mathrm{softmax}_2(a_{\mathrm{inv}}\hat\Omega\langle\hat I\rangle_+,\;
-a_{\mathrm{visc}}\hat\Omega\langle-Z\rangle_+/R),\,0,\,a_{\mathrm{inv}}\big)$,
+$a=\mathrm{clip}\!\big(\mathrm{softmax}_2(a_{\mathrm{inv}}\langle\hat\Omega\hat I\rangle_+,\;
+a_{\mathrm{visc}}\langle\hat\Omega\hat Z\rangle_+),\,0,\,a_{\mathrm{inv}}\big)$,
 $\mathrm{softmax}_2(x,y)\!=\!\sqrt{x^2+y^2}$.
 Gate
 $Re_\Omega^{\mathrm c}=\mathrm{softmin}\!\big(A+B/P_I^2,\;A+B_c/P_{\mathrm{curv}}^2\big)$,
-$P_I=\hat\Omega\langle\hat I\rangle_+$, $P_{\mathrm{curv}}=\langle\hat\Omega\hat Z\rangle_+$,
-$\hat Z=-Z/R$. Constants: $a_{\mathrm{inv}}\!=\!0.19$, $a_{\mathrm{visc}}\!=\!0.0276$,
+$P_I=\langle\hat\Omega\hat I\rangle_+$, $P_{\mathrm{curv}}=\langle\hat\Omega\hat Z\rangle_+$,
+$\hat Z=-Z/R$, $\langle x\rangle_+=\max(x,0)$. Constants: $a_{\mathrm{inv}}\!=\!0.19$, $a_{\mathrm{visc}}\!=\!0.0276$,
 $A\!=\!124.6$, $B\!=\!1.424$, $B_c\!=\!130$. (env-gated $AI\_A\_VISC$, $AI\_REOMC\_BC$;
 default $0=$ canon.)
 

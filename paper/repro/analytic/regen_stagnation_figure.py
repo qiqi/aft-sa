@@ -1,70 +1,88 @@
 """Figure for the attachment-anchored-branch appendix: standard SA on the
 frozen Hiemenz field with EXACTLY zero freestream seed.
 
-Left: the surviving turbulent branch -- steady max chi vs sqrt(Re_r)=L,
-with the collapsed cases on the floor and the bisected critical band.
-Right: line contours of log10 chi for the sustained L=3000 wedge
+Single panel (the former left panel is now Table~\\ref{t:stagbistab} in the
+whitepaper): line contours of log10 chi for the sustained L=3000 wedge
 (flat-plate figure conventions: dashed = laminar levels chi<1, solid =
-1, c_v1, 30).
+1, c_v1, 30), with velocity-magnitude contours |u|/u_e overlaid (steel
+blue) so the thin Hiemenz momentum layer is visible against the much
+taller sustained chi layer.
 
-Inputs: data/stagnation_bistability.json, data/stagnation_field_L3000.npz
-(both written by stagnation_bistability.py).
+Inputs: data/stagnation_field_L3000.npz (x, y, chi; written by
+stagnation_bistability.py --field). The Hiemenz velocity field is
+recomputed here from the similarity solution on the loaded grid (no
+re-solve): u = x f'(y), v = -f(y), |u| = sqrt(u^2+v^2), u_e = x.
 -> figs/stagnation_bistability.pdf
 Run from paper/: python3 repro/analytic/regen_stagnation_figure.py
 """
-import json
 import os
 
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.integrate import solve_ivp
 
 _H = os.path.dirname(os.path.abspath(__file__))
 PAPER = os.path.abspath(os.path.join(_H, '..', '..'))
 
-d = json.load(open(f'{PAPER}/data/stagnation_bistability.json'))
 fld = np.load(f'{PAPER}/data/stagnation_field_L3000.npz')
-
-fig, (ax, axf) = plt.subplots(
-    1, 2, figsize=(10.2, 3.5), gridspec_kw=dict(width_ratios=[1, 1.5]))
-
-sus = sorted([r for r in d['results'] if r['sustained']], key=lambda r: r['L'])
-col = sorted([r for r in d['results'] if not r['sustained']],
-             key=lambda r: r['L'])
-FLOOR = 0.05
-ax.plot([r['L'] for r in sus], [r['maxchi'] for r in sus], 'o-', color='k',
-        mfc='none', ms=5, label='sustained (turbulent init)')
-ax.plot([r['L'] for r in col], [FLOOR]*len(col), 'x', color='0.45', ms=6,
-        label='collapses to $\\chi=0$')
-c = d['critical']
-ax.axvspan(c['L_lo'], c['L_hi'], color='0.85', zorder=0)
-ax.axhline(1.0, color='0.7', lw=0.7, ls=':')
-ax.axhline(7.1, color='0.7', lw=0.7, ls='--')
-ax.text(33, 1.25, '$\\chi=1$', fontsize=8, color='0.4')
-ax.text(33, 8.6, '$\\chi=c_{v1}$', fontsize=8, color='0.4')
-ax.set_xscale('log')
-ax.set_yscale('log')
-ax.set_ylim(FLOOR*0.6, 200)
-ax.set_xlabel('$L=x_{\\max}/\\delta=\\sqrt{Re_r}$')
-ax.set_ylabel('steady $\\max\\chi$')
-ax.legend(fontsize=8, loc='upper left', frameon=False)
-# no in-figure titles (removed paper-wide by user order); the caption
-# carries the panel assignment
-ax.grid(alpha=0.25, which='both')
-
 x, y, chi = fld['x'], fld['y'], fld['chi']
 X, Y = np.meshgrid(x, y, indexing='ij')
+
+
+def hiemenz():
+    """f, f', f'' on a dense eta grid (shooting; f''(0)=1.232588)."""
+    def rhs(t, yv):
+        return [yv[1], yv[2], -(yv[0]*yv[2] + 1.0 - yv[1]**2)]
+    sol = solve_ivp(rhs, [0, 20], [0.0, 0.0, 1.2325876568], dense_output=True,
+                    rtol=1e-10, atol=1e-12)
+    return sol.sol
+
+
+# frozen Hiemenz velocity on the loaded grid (matches stagnation_bistability.py)
+F = hiemenz()
+fy = F(np.minimum(y, 20.0))
+f, fp = fy[0], fy[1]
+U = np.outer(x, fp)          # u(x,y) = x f'(y)
+V = -np.tile(f, (len(x), 1))  # v(y)   = -f(y)
+umag = np.sqrt(U**2 + V**2)
+ue = np.maximum(np.outer(x, np.ones_like(y)), 1e-9)  # edge speed u_e = x*1
+umag_norm = umag/ue          # |u|/u_e ~ f'(y) away from the nose
+
+fig, axf = plt.subplots(1, 1, figsize=(7.0, 3.2))
+
 lg = np.log10(np.maximum(chi, 1e-12))
-axf.contour(X, Y, lg, levels=[-8, -6, -4, -2, -1], colors='0.6',
+# chi contours (flat-plate conventions)
+axf.contour(X, Y, lg, levels=[-8, -6, -4, -2, -1], colors='0.55',
             linewidths=0.5, linestyles='dashed')
-axf.contour(X, Y, lg, levels=[0.0], colors='k', linewidths=1.2)
+axf.contour(X, Y, lg, levels=[0.0], colors='k', linewidths=1.3)
 axf.contour(X, Y, lg, levels=[np.log10(7.1), np.log10(30.0)], colors='k',
             linewidths=0.7)
+
+# velocity-magnitude overlay |u|/u_e (steel blue)
+vl = [0.5, 0.9, 0.99]
+cv = axf.contour(X, Y, umag_norm, levels=vl, colors='#2166ac',
+                 linewidths=0.9, linestyles='solid')
+axf.clabel(cv, fmt='%.2f', fontsize=7, inline=True)
+
 axf.set_xlabel('$x/\\delta$')
 axf.set_ylabel('$y/\\delta$')
 axf.set_ylim(0, 40)
+axf.set_xlim(0, x.max())
+
+# tiny legend proxies
+from matplotlib.lines import Line2D
+axf.legend([Line2D([0], [0], color='k', lw=1.3),
+            Line2D([0], [0], color='0.55', lw=0.5, ls='--'),
+            Line2D([0], [0], color='#2166ac', lw=0.9)],
+           ['$\\chi=1,\\,c_{v1},\\,30$', '$\\chi<1$',
+            '$|u|/u_e$'],
+           fontsize=7, loc='upper left', frameon=False, ncol=3,
+           handlelength=1.6, columnspacing=1.2)
+
 fig.tight_layout()
 out = f'{PAPER}/figs/stagnation_bistability.pdf'
 fig.savefig(out)
+fig.savefig('/tmp/stagnation_bistability.png', dpi=130)
 print('wrote', out)

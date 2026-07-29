@@ -31,15 +31,20 @@ OUT = os.path.abspath(os.path.join(HERE, '..', '..', 'figs'))
 PREV = os.path.join(HERE, 'figs_explore')
 
 MACH = 0.1
-CASES = ["cyl_Re100000_Tu0.2_up",
-         "cyl_Re500000_Tu0.2_up",
-         "cyl_Re2000000_Tu0.2_up"]
+# (case dir, Re label for the caption); low/high extremes carry mesh suffixes
+CASES = [("cyl_Re10_Tu0.2_up_lowre",        r"$Re_D=10$"),
+         ("cyl_Re100000_Tu0.2_up",          r"$10^5$"),
+         ("cyl_Re500000_Tu0.2_up",          r"$5\times10^5$"),
+         ("cyl_Re2000000_Tu0.2_up",         r"$2\times10^6$"),
+         ("cyl_Re1000000000_Tu0.2_up_ultra", r"$10^9$")]
 # window in D around the cylinder (center x=0.5, z=0)
 XW = (-1.0, 4.0)
-ZW = (-1.55, 1.55)
+ZW = (-1.35, 1.35)
 NX, NZ = 1100, 682
-ULEV = np.linspace(0.1, 1.9, 13)
-CLEV = np.arange(-2.0, 4.51, 0.5)
+# labeled line-contour levels (no colorbar; e-ink grayscale)
+ULEV = [0.2, 0.4, 0.6, 0.8, 1.0, 1.2]
+CHI_SUB = [-6.0, -4.0, -2.0, -1.0]                  # chi<1 (dashed)
+CHI_SOL = [0.0, np.log10(7.1), np.log10(30.0)]      # chi=1, c_v1, 30 (solid)
 
 
 def probe(case_dir):
@@ -79,40 +84,39 @@ def main():
     ap.add_argument("--root", default="/local_data/qiqi/sa-ai/dragcrisis_matrix")
     args = ap.parse_args()
 
-    plt.rcParams.update({"font.size": 11})
-    fig, axs = plt.subplots(3, 2, figsize=(7.4, 6.9), sharex=True,
-                            sharey=True, gridspec_kw=dict(hspace=0.06,
+    plt.rcParams.update({"font.size": 8})
+    n = len(CASES)
+    fig, axs = plt.subplots(n, 2, figsize=(6.6, 8.7), sharex=True,
+                            sharey=True, gridspec_kw=dict(hspace=0.05,
                                                           wspace=0.04))
-    imu = imc = None
-    for row, case in enumerate(CASES):
+
+    def chifmt(L):
+        return f"${10**L:.0f}$"
+
+    for row, (case, _lbl) in enumerate(CASES):
         xs, zs, u, lchi = probe(os.path.join(args.root, case))
         axU, axC = axs[row]
-        imu = axU.contour(xs, zs, u, levels=ULEV, cmap="viridis",
-                          linewidths=0.55, zorder=1)
-        imc = axC.contour(xs, zs, lchi, levels=CLEV, cmap="magma",
-                          linewidths=0.55, zorder=1)
-        axC.contour(xs, zs, lchi, levels=[0.0], colors="tab:blue",
-                    linewidths=1.4, zorder=2)
+        cu = axU.contour(xs, zs, u, levels=ULEV, colors="k",
+                         linewidths=0.5, zorder=1)
+        axU.clabel(cu, fmt="%.1f", fontsize=5.5, inline=True,
+                   inline_spacing=1)
+        axC.contour(xs, zs, lchi, levels=CHI_SUB, colors="0.55",
+                    linewidths=0.45, linestyles="dashed", zorder=1)
+        cs = axC.contour(xs, zs, lchi, levels=CHI_SOL, colors="k",
+                         linewidths=[1.2, 0.6, 0.6], zorder=2)
+        axC.clabel(cs, fmt=chifmt, fontsize=5.5, inline=True,
+                   inline_spacing=1)
         for ax in (axU, axC):
             ax.add_patch(plt.Circle((0.5, 0.0), 0.5, fc="0.85", ec="k",
                                     lw=0.6, zorder=5))
             ax.set_aspect("equal")
             ax.set_xlim(*XW)
             ax.set_ylim(*ZW)
-        axU.set_ylabel("$z/D$")
+            ax.tick_params(labelsize=6)
+        axU.set_ylabel("$z/D$", fontsize=7)
         print(f"  {case}: probed", flush=True)
     for ax in axs[-1]:
-        ax.set_xlabel("$x/D$")
-    # continuous gradient bars (a ContourSet colorbar renders line
-    # contours as sparse ticks on white)
-    smu = plt.cm.ScalarMappable(plt.Normalize(ULEV[0], ULEV[-1]), "viridis")
-    smc = plt.cm.ScalarMappable(plt.Normalize(CLEV[0], CLEV[-1]), "magma")
-    cbu = fig.colorbar(smu, ax=axs[:, 0], location="bottom", fraction=0.05,
-                       pad=0.11, aspect=34, ticks=[0.5, 1.0, 1.5])
-    cbu.set_label(r"$|\mathbf{u}|/U_\infty$")
-    cbc = fig.colorbar(smc, ax=axs[:, 1], location="bottom", fraction=0.05,
-                       pad=0.11, aspect=34, ticks=[-2, -1, 0, 1, 2, 3, 4])
-    cbc.set_label(r"$\log_{10}\chi$ (blue: $\chi=1$)")
+        ax.set_xlabel("$x/D$", fontsize=7)
     os.makedirs(PREV, exist_ok=True)
     fig.savefig(os.path.join(OUT, "dragcrisis_fields.pdf"),
                 bbox_inches="tight", dpi=220)
