@@ -2988,3 +2988,28 @@ whitepaper (Drela-meeting doc). It had committed 78a4b73 (new-kernel Figs 25/26/
 - NEXT (user-approved): rebuild the shared Cd figure (fig:dragcrisiscd,
   dragcrisis_cd_re.pdf; whitepaper + main paper) SA-AI curves as clean up/down ladders
   from the 50-row Tu=0.2% systematic campaign, keeping the exp/LES overlay.
+
+## 2026-07-29 19:xx — Drag-crisis full migration to systematic up-ladder (both docs)
+
+User asked to replace the paper figures with the whitepaper's updated drag-crisis
+figures and update the descriptions in BOTH docs, then commit. Chosen scope: full
+migration (drop the old 84-case 3-seed matrix narrative) + replace the table with a
+systematic up-ladder table.
+- Data: single seed Tu=0.2% (chi_inf=1.1e-2), one up-ladder, 25 matched-Re points
+  Re_D=1..1e10, 4 grid families (lowre/pilot/highre/ultra). 5 of 25 fail the steady
+  monitor (5.62e5,1e6 lc; 3e6 cap; 3e7 lc; 1e10 cap; tail-p2p median 0.044, max 0.171
+  at 3e7). |C_L|<2e-6 (converged <6e-8). Crisis 3e5(0.773)->1.78e6(0.228); floor
+  ~0.19-0.23 flat to 1e10. chi=1 front 98 deg(1.78e6)->86.5(1e7)->2.5(1e10). Down
+  ladder finds a lower branch at ultra-Re (33-52% below up from 1e8; 0.108 vs 0.185 at
+  1e10) -> kept as concession six (protocol-dependent band 0.11-0.19); up-ladder plotted.
+- Figure: aligned the Cd open-ring criterion to verdict!=converged so rings (5) match
+  the table's 5 bracketed rows exactly (dropped the two laminar Re=1,3 fSlow artifacts).
+- Table: new regen_dragcrisis_table.py writes tables/tab_dragcrisis.tex (main,
+  tab:data_dragcrisis, [tp]) + tables/tab_dragcrisis_wp.tex (whitepaper, t:dragcrisis,
+  [H]); whitepaper switched from an inline 84-case table to \input the wp file
+  (single-source). Columns Re_D/grid/Cd([p2p])/theta_tr/theta_sep.
+- Prose: rewrote sa-ai.tex Sec. drag-crisis (setup para, both fig captions, body,
+  six concessions, fifth-concession follow-up, TODO comment, conclusion "family"->
+  "curve") and whitepaper subsection to single-seed up-ladder. All numbers taken from
+  systematic_Tu0.2_summary.jsonl (see repro/cfd/sys_report.py, run_dragcrisis_systematic.py).
+- Both compile clean: sa-ai 126 pp / 0 undefined; whitepaper 64 pp / 0 undefined.

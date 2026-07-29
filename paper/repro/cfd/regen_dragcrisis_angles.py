@@ -26,6 +26,10 @@ SUMMARY = ('/local_data/qiqi/sa-ai/dragcrisis_matrix/'
            'systematic_Tu0.2_summary.jsonl')
 CRISIS_BAND = (3e5, 7e5)
 PROFILE_DECADES = [1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10]
+# UP-LADDER ONLY for now (user directive 2026-07-29): the down ladder is
+# dropped from the drag-crisis plots pending the ultra-Re branch-split
+# narrative. Set True to restore the up/dn (solid/dashed) pair.
+PLOT_DN = False
 
 
 def sep_first_final(crossings):
@@ -71,21 +75,25 @@ def main():
     fig, (ax, bx) = plt.subplots(1, 2, figsize=(11.2, 4.4),
                                  gridspec_kw=dict(wspace=0.22))
 
-    # ---- (a) angles vs Re, up (solid) / dn (dashed) ----
+    # ---- (a) angles vs Re, up-ladder (dn dropped for now, PLOT_DN) ----
     ax.axvspan(*CRISIS_BAND, color="0.92", zorder=0)
-    for br, ls, mfc in (("up", "-", "k"), ("dn", "--", "none")):
+    branches = [("up", "-", "k")]
+    if PLOT_DN:
+        branches.append(("dn", "--", "none"))
+    for br, ls, mfc in branches:
         rr = rows.get(br, [])
         re_, th = series(rr, "theta_tr_chi1")
         ax.plot(re_, th, ls, color="k", marker="o", ms=4.5, mfc=mfc,
                 lw=1.6, zorder=4)
-        for which, mk in (("first", "v"), ("final", "d")):
+        # "final separation" dropped (user directive 2026-07-29); keep first.
+        for which, mk in (("first", "v"),):
             re_, sp = sep_series(rr, which)
             ax.plot(re_, sp, ls, color="0.5", marker=mk, ms=3.5, mfc=mfc,
                     lw=0.7, alpha=0.8, zorder=3)
-    leg = [plt.Line2D([], [], color="k", ls="-", marker="o", ms=4.5, label=r"$\theta_{tr}$ up"),
-           plt.Line2D([], [], color="k", ls="--", marker="o", ms=4.5, mfc="none", label=r"$\theta_{tr}$ dn"),
-           plt.Line2D([], [], color="0.5", ls="-", marker="v", ms=3.5, lw=0.7, label="first separation"),
-           plt.Line2D([], [], color="0.5", ls="-", marker="d", ms=3.5, lw=0.7, label="final separation")]
+    leg = [plt.Line2D([], [], color="k", ls="-", marker="o", ms=4.5, label=r"$\theta_{tr}$")]
+    if PLOT_DN:
+        leg.append(plt.Line2D([], [], color="k", ls="--", marker="o", ms=4.5, mfc="none", label=r"$\theta_{tr}$ dn"))
+    leg += [plt.Line2D([], [], color="0.5", ls="-", marker="v", ms=3.5, lw=0.7, label="first separation")]
     ax.legend(handles=leg, loc="upper right", fontsize=9, framealpha=0.9)
     ax.set_xscale("log")
     ax.set_xlim(1.0, 1.2e10)

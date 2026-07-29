@@ -265,7 +265,7 @@ tunnel's Reynolds range (Sec.~\ref{sec:eppresweep}), locating the
 model's bubble-bursting boundary and the mechanism that misplaces it.
 Section~\ref{sec:dragcrisis} takes the same machinery to the
 circular cylinder and traverses the drag crisis in Reynolds number
-at three freestream seeds.
+over ten decades on a single continuation ladder.
 Section~\ref{sec:bistability} isolates a bistability the model
 inherits from standard SA itself---an attachment-anchored turbulent
 branch at the leading edge---and states the convergence protocol
@@ -2483,54 +2483,44 @@ knowledge no single model of any kind has produced this curve across
 these regimes before, and the concessions that price the present one
 are stated below.
 
-Twelve diameter Reynolds numbers,
-$Re_D\!=\!6\!\times\!10^4$--$2\!\times\!10^6$, are computed at three freestream
-seeds---$\chi_\infty\!=\!3.9\!\times\!10^{-4}$,
-$1.1\!\times\!10^{-2}$, and $0.22$, Mack's map
-(Sec.~\ref{sec:calib_tu}) at $Tu\!=\!0.05$, $0.2$, and
-$0.7\%$---on one quasi-two-dimensional O-grid ($1200\times148$,
+The traverse is a single freestream seed,
+$\chi_\infty\!=\!1.1\!\times\!10^{-2}$ (Mack's map,
+Sec.~\ref{sec:calib_tu}, at $Tu\!=\!0.2\%$), swept as one upward
+continuation ladder warm-started from the neighboring lower Reynolds
+number, on a matched grid of twenty-five diameter Reynolds numbers
+spanning $Re_D\!=\!1$--$10^{10}$ (ten decades, roughly three points
+per decade), with the solver settings, constants, and
+branch-selection protocol used everywhere in this paper
+(Sec.~\ref{sec:bistability}). Four grid families of the same analytic
+O-grid construction cover the span: a large-domain laminar grid
+($600\times121$, first spacing $10^{-3}\,D$, outer boundary
+$1000\,D$) for $Re_D\!\le\!10^3$, the working grid ($1200\times148$,
 first spacing $8\!\times\!10^{-6}\,D$, outer boundary $100\,D$;
-$y^+\!\le\!0.64$ at $2\!\times\!10^6$), with the solver settings,
-constants, and staged-seed branch-selection protocol used everywhere
-in this paper (Sec.~\ref{sec:bistability}). Each seed is swept as an
-upward and a downward continuation ladder, warm-started from the
-neighboring Reynolds number, plus twelve cold starts at the middle
-seed as a protocol-neutral reference---84 steady cases. The traverse
-is then extended on three further grids of the same analytic
-construction: a large-domain laminar grid ($600\times121$, first
-spacing $10^{-3}\,D$, outer boundary $1000\,D$) carrying
-$Re_D\!=\!1$--$10^3$, a fine supercritical grid ($1600\times170$,
-first spacing $10^{-6}\,D$) carrying $4\!\times\!10^6$--$2\!\times\!10^7$,
-and an ultra grid ($1600\times170$, first spacing $10^{-9}\,D$;
-measured $y^+\!\le\!0.47$ at $10^{10}$) carrying
-$5\!\times\!10^7$--$10^{10}$---the full traverse spans
-$Re_D\!=\!1$--$10^{10}$, ten decades on one closure. The families are
-run past each other at their seams: $C_d$ agrees to $0.5$--$0.6\%$ at
-$Re_D\!=\!300$ and $10^3$, and to a few percent between cold-started
-pairs across the supercritical seams, the finer grid higher---the
-supercritical floor carries a few-percent grid sensitivity, in the
-direction of measurement. A case is accepted when $C_d$ drifts by
-less than $10^{-3}$ over $1000$ pseudo-steps; otherwise it runs to a
-fixed cap and is flagged as a steady limit cycle, concentrated in and
-above the crisis band. Below $Re_D\!\approx\!7\!\times\!10^5$ every
-case lands on the symmetric branch, $|C_L|\!<\!2\!\times\!10^{-7}$;
-the branch multiplicity that appears above it is the sixth concession
-below.
+$y^+\!\le\!0.64$ at $2\!\times\!10^6$) for
+$3\!\times\!10^3$--$1.78\!\times\!10^6$, a fine supercritical grid
+($1600\times170$, first spacing $10^{-6}\,D$) for
+$3\!\times\!10^6$--$10^7$, and an ultra grid ($1600\times170$, first
+spacing $10^{-9}\,D$; measured $y^+\!\le\!0.47$ at $10^{10}$) for
+$3\!\times\!10^7$--$10^{10}$---twenty-five steady cases on one
+closure. A case is accepted when $C_d$ drifts by less than $10^{-3}$
+over $1000$ pseudo-steps; otherwise it runs to a fixed cap and is
+flagged, and five of the twenty-five---concentrated in and just above
+the crisis band, with two grid caps---carry that flag. Below
+$Re_D\!\approx\!7\!\times\!10^5$ every case lands on the symmetric
+branch, $|C_L|\!<\!2\!\times\!10^{-6}$; the branch multiplicity that
+appears above it is the sixth concession below.
 
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=0.82\textwidth]{dragcrisis_cd_re.pdf}
   \caption{Steady-branch drag coefficient of the circular cylinder,
-    $Re_D\!=\!1$--$10^{10}$: the middle freestream seed
-    ($Tu\!=\!0.2\%$, $\chi_\infty$ from Mack's map; the
-    cleanest-converging of the three, shown alone since the seed
-    spread is imperceptible outside the crisis band---the full
-    seed family and its $Tu$-shift of the crisis are in
-    Fig.~\ref{fig:dragcrisisangles}), swept
-    as an upward (solid) and a downward (dashed)
-    continuation ladder in $Re_D$ over four grid families run past
-    each other at their seams, overlaid on the
-    experimental and computational literature. Below
+    $Re_D\!=\!1$--$10^{10}$: the single freestream seed
+    ($Tu\!=\!0.2\%$, $\chi_\infty$ from Mack's map), swept
+    as an upward continuation ladder in $Re_D$ over four contiguous
+    grid families, overlaid on the
+    experimental and computational literature. Open rings mark the
+    cases the steady monitor did not accept (peak-to-peak in
+    Table~\ref{tab:data_dragcrisis}). Below
     $Re_D\!\approx\!46$ the steady solution is the physical flow;
     between there and $\sim\!10^3$ the steady-branch points are
     drawn for continuity, not validation. Symbols are experiments;
@@ -2566,8 +2556,7 @@ below.
     URANS~\cite{stringer_2014,stabnikov_garbaruk_2020}. The steady
     solutions lie below the shedding-mean experimental band at
     subcritical $Re_D$ by construction; the comparison targets the
-    crisis location, its freestream-seed shift, and the
-    supercritical level. Every SA-AI point is tabulated in
+    crisis location and the supercritical level. Every SA-AI point is tabulated in
     Table~\ref{tab:data_dragcrisis}; digitization provenance in
     \texttt{repro/cfd/litdata/dragcrisis/}.}
   \label{fig:dragcrisiscd}
@@ -2576,56 +2565,42 @@ below.
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=\textwidth]{dragcrisis_angles.pdf}
-  \caption{Transition and separation angles across the traverse.
+  \caption{Transition and separation angles across the up-ladder
+    traverse ($Tu\!=\!0.2\%$).
     Left: transition angle $\theta_{tr}$---the smallest angle at
     which the maximum of $\chi$ along an outward radial ray from the
-    wall reaches $1$---and the first and final wall separation
-    angles (tangential-$C_f$ sign changes) against $Re_D$, three
-    seeds (up-ladder solid, filled; down-ladder dashed, open),
-    authoritative grid family at each $Re_D$. Below the crisis the
-    seeds coincide and $\theta_{tr}$ saturates $4$--$6^\circ$ aft of
+    wall reaches $1$---and the first wall separation
+    angle (tangential-$C_f$ sign change) against $Re_D$,
+    authoritative grid family at each $Re_D$. Below the crisis
+    $\theta_{tr}$ saturates a few degrees aft of
     the laminar separation angle: the separated shear layer
     transitions essentially at separation. Through the crisis
     $\theta_{tr}$ retreats to its maximum as transition locks onto
-    the separation bubble, then marches forward monotonically at
-    $13$--$17.5^\circ$ per decade through the transcritical range,
-    reaching the suction peak at $2\!\times\!10^7$. Between
-    $2\!\times\!10^6$ and $7\!\times\!10^6$ (seed-dependent) the
-    first and final separations merge near $120^\circ$: the bubble
-    vanishes and transition moves onto the attached wall---the
-    transcritical wall sequence---while the merged turbulent
-    separation stays near $120^\circ$. The radial-ray convention
+    the separation bubble, then marches forward monotonically
+    through the transcritical range, reaching the nose
+    ($2.5^\circ$) by $10^{10}$. The radial-ray convention
     agrees with the near-wall $\chi\!=\!1$ front to $\pm1.5^\circ$
     above $1.5\!\times\!10^5$ and, below, catches the
     lifted-shear-layer transition that the near-wall convention
-    reports $53$--$65^\circ$ late or not at all. The $Tu\!=\!0.7\%$
-    separation outlier at $4\!\times\!10^6$ is the snapshot of a
-    flagged limit cycle. Right: $\max_s\chi$ along the ray versus
-    angle at six representative $Re_D$ (middle seed, up branch;
+    reports late or not at all. Right: $\max_s\chi$ along the ray
+    versus angle at one $Re_D$ per decade ($10^2$--$10^{10}$;
     $\chi\!=\!1$ dotted).}
   \label{fig:dragcrisisangles}
 \end{figure}
 
-Figure~\ref{fig:dragcrisiscd} shows the traverse at the middle seed;
-the full three-seed family is computed and its crisis is
-seed-ordered---the transition angle
-(Fig.~\ref{fig:dragcrisisangles}) resolves the shift, the crisis
-moving from
-$Re_D\!\approx\!5$--$7\!\times\!10^5$ at the two quiet seeds down to
-$\approx\!3$--$4\!\times\!10^5$ at $Tu\!=\!0.7\%$---while in the
-drag itself the seeds are imperceptible outside the crisis band, which
-is why the overlay shows one. The
-supercritical floor, $C_d\!=\!0.217$--$0.233$ at $2\!\times\!10^6$,
-rises with the seed---both classical trends of the phenomenon. The
-post-crisis wall sequence is a genuine laminar-separation bubble: at
-the middle seed, laminar separation at $92^\circ$, turbulent
-reattachment at $102^\circ$, and final separation at $107^\circ$ at
-$Re_D\!=\!7\!\times\!10^5$; the bubble shrinks to $1.5^\circ$
-($98$--$100^\circ$, final separation $118^\circ$) at
-$2\!\times\!10^6$ and gives way to attached transition at the
-highest seed. Through the crisis the shoulder suction deepens from
-$C_p\!=\!-0.90$ to $-2.43$ and the base pressure recovers from
-$-0.62$ to $-0.26$. Figure~\ref{fig:dragcrisisangles} collects the
+Figure~\ref{fig:dragcrisiscd} shows the single-seed up-ladder
+traverse. The crisis falls between $Re_D\!=\!3\!\times\!10^5$
+($C_d\!=\!0.773$) and $1.78\!\times\!10^6$ ($0.228$), the steepest
+drop spanning $5.62\!\times\!10^5$--$10^6$; the supercritical floor
+then settles near $C_d\!=\!0.21$--$0.23$ from $1.78\!\times\!10^6$ to
+$10^7$. The post-crisis wall sequence is a genuine
+laminar-separation bubble (Fig.~\ref{fig:dragcrisisfields}): at
+$Re_D\!=\!1.78\!\times\!10^6$ the first wall separation sits at
+$98^\circ$ with turbulent separation following near $117^\circ$, and
+by the supercritical grid the turbulent separation settles at
+$118$--$121^\circ$. Through the crisis the shoulder suction deepens
+from $C_p\!=\!-0.90$ to $-2.47$ and the base pressure recovers from
+$-0.62$ to $-0.25$. Figure~\ref{fig:dragcrisisangles} collects the
 transition and separation angles across the whole traverse, with the
 radial-ray $\chi$ profiles that define the transition angle.
 Figure~\ref{fig:dragcrisisfields} shows the
@@ -2650,18 +2625,19 @@ converges to the steady symmetric branch that nature abandons for
 shedding---and not to the exact decaying branch of that family
 either, whose recirculation length outgrows any practical
 domain~\cite{fornberg_1980}---so those points are drawn for
-continuity, not validation. Seed independence holds to $0.2\%$ from
-$10^4$ to $4\!\times\!10^4$, and $\chi$ first crosses unity at
-$4\!\times\!10^4$, in the base region: the subcritical plateau is
-seed-blind exactly as far down as it should be.
+continuity, not validation. The ray transition angle first registers
+in the far wake near $Re_D\!=\!10^2$; the near-wall $\chi\!=\!1$
+front reaches the shoulder only near $10^5$, at the approach to the
+crisis, so the subcritical plateau carries essentially no wall
+amplification.
 
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=\textwidth,height=0.88\textheight,keepaspectratio]{dragcrisis_fields.pdf}
   \caption{Velocity magnitude (left) and $\chi$ (right; dashed
-    $\chi\!<\!1$, solid $\chi\!=\!1$, $c_{v1}$, $30$, $10^2$--$10^4$) at
+    $\chi\!<\!1$, solid $\chi\!=\!1$,     $c_{v1}$, $30$, $10^2$--$10^4$) at
     center span,
-    middle seed ($Tu\!=\!0.2\%$), up-ladder; rows
+    $Tu\!=\!0.2\%$ up-ladder; rows
     $Re_D\!=\!10$, $10^3$, $10^5$, $5\!\times\!10^5$,
     $2\!\times\!10^6$. Top, $Re_D\!=\!10$: steady attached flow below
     the shedding onset, $\chi$ at the freestream seed throughout,
@@ -2682,37 +2658,33 @@ seed-blind exactly as far down as it should be.
 \end{figure}
 
 Six things are conceded, all visible in the figures. First, through
-the crisis band the steady branch is non-unique and weakly unsteady:
-$27$ of the $84$ matrix cases end in a limit cycle (tail peak-to-peak
-median $0.011$, maximum $0.199$ in $C_d$---the vertical bands of
-Fig.~\ref{fig:dragcrisiscd}), and exactly there the three protocols
-separate by up to $0.055$ in $C_d$, against $0.003$ on the
-subcritical plateau and the supercritical floor. The downward
-ladder, initialized from the more-transitioned high-$Re$ state,
-lands at \emph{higher} drag---opposite to the physical hysteresis
-sense---so branch selection through the band is protocol-dependent,
-and no hysteresis claim is made: the measured folds and lift
+the crisis band the steady branch is weakly unsteady: five of the
+twenty-five up-ladder cases fail the steady acceptance monitor (tail
+peak-to-peak median $0.044$, maximum $0.171$ at $3\!\times\!10^7$ in
+$C_d$---the open rings of Fig.~\ref{fig:dragcrisiscd}), concentrated
+in and just above the crisis band and at two grid caps; no hysteresis
+claim is made, and the measured folds and lift
 jumps~\cite{schewe_1983} belong to unsteady continuation, not to
-this solver. Second, the symmetric steady protocol cannot see the
-one-bubble asymmetric states of the critical
-range~\cite{bearman_1969,schewe_1983}: $C_L\!=\!0$ in all $84$ cases
-is a statement about the protocol, not the physics. Third, the
+this steady solver. Second, the symmetric steady protocol cannot see
+the one-bubble asymmetric states of the critical
+range~\cite{bearman_1969,schewe_1983}:
+$|C_L|\!<\!2\!\times\!10^{-6}$ across all twenty-five cases (below
+$6\!\times\!10^{-8}$ on the converged plateau) is a statement about
+the protocol, not the physics. Third, the
 subcritical plateau, $C_d\!\approx\!0.84$, sits well below
 measurement, as any steady symmetric (shedding-free) wake solution
-must; the boundary-layer-side quantities are the product there, and
-their seed dependence below $2\!\times\!10^5$ is weak because the
-separated shear layer amplifies essentially at separation at all
-three seeds. Fourth, the supercritical turbulent separation angles
-($106$--$118^\circ$) remain early against measurement---the
+must; the boundary-layer-side quantities are the product there.
+Fourth, the supercritical turbulent separation angles
+($117$--$121^\circ$) remain early against measurement---the
 familiar class of turbulent-$C_f$-on-curved-wall error, compounded
 by the steady dead-air base. Fifth, there is no transcritical
 recovery: measurement rebuilds toward
 $C_d\!\approx\!0.7$~\cite{roshko_1961,schewe_1983} while the
-computed floors sit flat at $0.185/0.199/0.215$ (by seed) all the way
+computed floor sits flat between $0.19$ and $0.23$ all the way
 to $10^{10}$. That this is \emph{not} the transition content is now
 settled two ways. The $\chi\!=\!1$ front marches monotonically to the
-nose---$101^\circ$ at $2\!\times\!10^6$, $82^\circ$ at
-$2\!\times\!10^7$, $2^\circ$ at $10^{10}$ (middle seed)---and yet the
+nose---$98^\circ$ at $1.78\!\times\!10^6$, $86.5^\circ$ at $10^7$,
+$2.5^\circ$ at $10^{10}$---and yet the
 drag does not move; and a fully-turbulent control (the same solver
 with the amplification kernel disabled, freestream
 $\chi_\infty\!=\!3$) separates \emph{earlier} ($105$--$112^\circ$)
@@ -2720,24 +2692,19 @@ and drags \emph{higher} ($0.25$--$0.37$) than the transitional model
 on matched branches---so SA-AI is not merely reproducing the turbulent
 baseline---yet even that control sits about a factor of two below the
 measured transcritical level and separates at $105$--$123^\circ$
-against the observed ${\approx}147^\circ$. (The control's cold start at
-$10^{10}$ falls onto the attached low-drag branch of the sixth
-concession, $C_d\!=\!0.125$, which is why it dips below the plotted
-warm SA-AI ladder there; branch for branch it never does.) The missing rise is therefore the
+against the observed ${\approx}147^\circ$. The missing rise is therefore the
 baseline turbulent-$C_f$-on-curved-wall separation of concession four
 plus the steady symmetric dead-air wake, not the transition closure,
 whose front is already $e^N$-consistent and, marched to the nose at
 $10^{10}$, leaves $C_d$ unchanged. Sixth, the supercritical regime
-carries a second, lower-drag steady state that the protocol selects
-against: on the fine grid the downward ladder from $2\!\times\!10^7$
-sits $13$--$22\%$ below the up-ladder (separation $123.5^\circ$ vs
-$120.4^\circ$, base pressure $-0.18$ vs $-0.23$ at $10^7$), and at
-$10^{10}$ a cold start relaminarizes to a near-attached state
-($C_d\!=\!0.108$, separation ${\approx}180^\circ$) while the warm
-ladder holds the separated state ($C_d\!=\!0.189$)---a spread wider
-than the crisis band, so the ultra-$Re$ asymptote is a
-protocol-dependent band ($0.11$--$0.21$), not a level, and its
-adjudication belongs to unsteady continuation.
+carries a second, lower-drag steady state that the up-ladder selects
+against: a downward continuation ladder sits $33$--$52\%$ below the
+up-ladder from $10^8$ onward ($C_d\!\approx\!0.10$ vs $0.19$), and at
+$10^{10}$ relaxes to $C_d\!=\!0.108$ against the up-ladder's $0.185$
+---a spread wider than the crisis band, so the ultra-$Re$ asymptote
+is a protocol-dependent band ($0.11$--$0.19$), not a level, and its
+adjudication belongs to unsteady continuation. The traverse plotted
+here is the up-ladder throughout.
 
 The fifth concession invites the question of whether the transition
 front itself should be further forward, and two frozen-profile audits
@@ -2758,15 +2725,15 @@ computed front at all three Reynolds numbers audited
 ($2\!\times\!10^6$, $7\!\times\!10^6$, $2\!\times\!10^7$)---at
 $2\!\times\!10^7$ the solver front sits $10^\circ$ ahead of the
 $e^N$ station on its own mean flow---and where the ultra-$Re$ arm
-does march the front onto the nose ($2^\circ$ at $10^{10}$), $C_d$ is
+does march the front onto the nose ($2.5^\circ$ at $10^{10}$), $C_d$ is
 unmoved (concession five). Within envelope-method physics
-at these seeds the front has nowhere useful forward to go; the
+at this seed the front has nowhere useful forward to go; the
 far-forward transition of the transcritical
 measurements at accessible $Re_D$ carries disturbance content beyond
 the envelope class.
 % TODO(dragcrisis-exp): digitize Achenbach (1968) Cp/Cf traverses at
 % matched Re for a quantitative overlay (surface outputs are retained
-% for all 84 cases); the experimental separation angles, shoulder and
+% for all up-ladder cases); the experimental separation angles, shoulder and
 % base pressures, and the supercritical Cd class are deliberately not
 % quoted numerically here pending that source-verified extraction.
 
@@ -3633,7 +3600,7 @@ crossed shear a swept boundary layer adds---a second amplification
 channel in the same local language.
 
 The cylinder traverse of Sec.~\ref{sec:dragcrisis}---to our
-knowledge the first $C_d(Re)$ drag-crisis family from a local
+knowledge the first $C_d(Re)$ drag-crisis curve from a local
 single-equation transition closure---is deliberately a steady-branch
 result; its unsteady continuation, where the critical range's
 measured bistability and single-bubble lift states
