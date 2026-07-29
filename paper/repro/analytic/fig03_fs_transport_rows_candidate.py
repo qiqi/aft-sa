@@ -81,9 +81,9 @@ def size_domain(fs, x0, beta):
 
 
 def main():
-    # (beta, x0 domain guess, ylimL); beta=+1 is the new strong-FPG payoff row
+    # (beta, x0 domain guess, ylimL); beta=+0.6 is the practical strong-FPG row
     ROWS = [(-0.10, 1.2e6, 8000), (0.0, 4.0e6, 12000),
-            (0.10, 3e6, None), (1.0, 3e5, None)]
+            (0.10, 3e6, None), (0.6, 6e5, None)]
     fig, axs = plt.subplots(len(ROWS), 2, figsize=(11.2, 2.8*len(ROWS)),
                             layout='constrained')
     rows_out = []
