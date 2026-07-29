@@ -103,6 +103,18 @@ CEIL_B = [None]
 # where u'' < 0) -- the user's "Omega_hat Z/R" read as loose shorthand.
 # The rate is the Part-III two-branch form unchanged (EPS = eps_r).
 CO = [0.10]        # c_o, the viscous weight in the onset coordinate
+# USER PROPOSAL (2026-07-29, Part VIII / Task 3): TWO-BRANCH ONSET GATE.
+# The rate kernel is two-branch (inflectional + viscous) but the canon gate is
+# single-branch (softmin(C, A+B/P_I^2), P_I = Om*I only). At low H, P_I ~ 0 for
+# ALL profiles (they bunch on the sphere) so the softmin saturates to the
+# constant C -- a non-H-resolving stand-in. FIX: replace the constant C with a
+# curvature-based onset branch using the SAME viscous coordinate the rate uses,
+#   Re_Omega^c = softmin_n( A + B/P_I^2 ,  A_c + B_c/P_curv^2 ),  NO constant C
+# with P_I = Om*<I_hat>+ and P_curv = Om*<-Z>+/R. Form 'vg'. AC/BC are k-carrying
+# (same scale as REOM_A/REOM_B). Net-zero option: A_c = REOM_A (share the floor),
+# calibrate B_c only (replaces the single constant C).
+AC = [None]        # curvature-branch floor (k-carrying); None -> REOM_A (net 0)
+BC = [130.0]       # curvature-branch inverse-square coefficient (k-carrying)
 # re-anchoring knobs (--reanchor only; 1.0 = canonical constants)
 ASCALE = [1.0]     # multiplies a_max
 KSCALE = [1.0]     # multiplies the whole onset threshold (the paper's k)
@@ -150,6 +162,17 @@ def _P_and_thresh(Shat, g, Zn=None):
         else:                                          # softmax_2 variant
             Pgate = Shat*np.sqrt(gg*gg + (CO[0]*zz)**2)
         reomc = REOM_A + REOM_B/np.maximum(Pgate, 1e-9)**2   # NO ceiling
+        return P, reomc
+    elif form == 'vg':                       # PART VIII: two-branch onset gate
+        gg = np.clip(g, 0.0, None)
+        zz = np.clip(-Zn, 0.0, None)
+        P = Shat*np.sqrt(gg*gg + (eps*zz)**2)          # Part-III rate, unchanged
+        P_I = Shat*gg                                  # inflectional gate coord
+        P_curv = Shat*zz                               # curvature gate coord
+        ac = REOM_A if AC[0] is None else AC[0]
+        br_I = REOM_A + REOM_B/np.maximum(P_I, 1e-9)**2
+        br_c = ac + BC[0]/np.maximum(P_curv, 1e-9)**2
+        reomc = (br_I**(-REOM_N) + br_c**(-REOM_N))**(-1.0/REOM_N)   # NO ceiling
         return P, reomc
     else:                                    # zc / zc_ceil
         gg = np.clip(g, 0.0, None)
