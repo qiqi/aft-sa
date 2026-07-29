@@ -2804,3 +2804,187 @@ whitepaper inherits. Figure /home/qiqi/flexcompute/sa-ai/paper/figs/eppler_reswe
 OPEN (user-gated, flagged): a complete individual-run digitization of TM-4062 Table B1
 (all runs x near-5deg alphas x all columns) would let every repeat show as its own
 circle at every Re; currently only the partial set already in the repo is plotted.
+
+---
+
+## 2026-07-29 — Push complete; TM-4062 individual runs integrated; zb-rate + low-H-sphere launched
+
+- HISTORY CLEAN + PUSHED: filter-repo purged *.cgns (219MB mesh_L1 gone); largest blob
+  now 36MB; remote git@github.com:qiqi/aft-sa.git updated (955cd2c..9112b9d). *.cgns
+  gitignored (955cd2c). Memory saai-no-binaries-in-git.md written.
+- Fig 15 (b365942 digitization + 9112b9d caption/push): TM-4062 fetched from NTRS
+  (references/mcghee1988-e387-TM4062-NTRS19890001471.pdf); every Table B1 run within
+  0.1deg of alpha=5 plotted as its own black circle (1/2/4/1/1 by Re; 200k is the real
+  4-run cluster) from paper/data/mcghee1988_tableB1_runs.json; 4 in-plot texts removed
+  (now caption-only). 127pp clean.
+- zb Fig-4 question (user, CORRECTING my error): blue/green share a_visc but green rate
+  IS lower at low H. Launched investigation (ac0eaf0980dbff306): trace dN/dRe_theta +
+  gate S for H=2.2/2.3 at C=1851 vs 8000 (hypothesis: higher C = higher threshold =
+  gate less open at matched Re_theta = rate suppressed near onset; the [5,9] window
+  overlaps the not-fully-open gate at low H); PLUS indicator-sphere viz of H=2.2-2.59
+  profiles with the H=2.2-vs-2.3 sphere-separation vs their ~1.8x onset-Re_theta ratio
+  (does the low-H bunching on the sphere explain the onset-resolution limit?).
+- STILL RUNNING: coordinator EXP2 (FT-SA native-branch determination).
+
+---
+
+## 2026-07-29 — User's two-branch-gate proposal (consistency fix) launched as Part VIII
+
+User reasoned: the onset gate is single-branch (I_hat only via P=Omega_hat*I_hat),
+but at low H I_hat~0 for all profiles (they bunch on the sphere) so the gate can't
+resolve them and just saturates to the constant C -- an inconsistency with the
+two-branch RATE (inflectional + viscous). Proposed fix: Re_Omega^c = k*softmin(
+A+B/P_I^2, A_c+B_c/P_curv^2) with P_I=Omega_hat*<I_hat>+ and P_curv=Omega_hat*<-Z>+/R
+-- i.e. replace the constant ceiling with a CURVATURE-based onset branch, making the
+gate two-branch like the rate. At high H the inflectional branch wins; at low H
+(I_hat->0) the curvature branch (finite, H-resolving via -Z) sets the onset.
+This is a symmetry/consistency argument (gate should mirror the rate's two branches)
+and is a cleaner variant of Part-V vbs (which blended curvature INTO P rather than
+softmin-ing two separate thresholds). Extended the running agent (ac0eaf) as Task 3:
+design+calibrate the curvature onset branch to track Drela Re_theta0(H) to stagnation;
+compare both panels vs canon-C and vbs; full regression (esp. curvature branch must
+not fire on the separated/Stewartson side, and Spalart zero-suite); constant
+bookkeeping; recommend softmin-of-two-thresholds vs vbs P-blend. Candidate Fig-4 +
+Part VIII record to follow.
+
+---
+
+## 2026-07-29 — Part VIII landed (vg two-branch gate = vbs); Fig 2 P_curv-graze enrichment launched (Part IX)
+
+Record: agent-paper-review/2026-07-29-0121-zb-rate-lowH-sphere.md (commit e68d31d).
+- WHY green<blue rate at low H: gate-saturation confirmed. Higher C scales gate-open
+  Re_theta by the C ratio (S=0.5 point 1367->5908 =x4.32); the [5,9] secant window
+  lands on the still-opening gate (S 0.62-0.75 green vs 0.92-0.96 blue), throttling
+  realized rate to 0.56x DG. Saturated limit is shared -> higher C can't boost rate,
+  only pushes the window off saturation.
+- SPHERE: H=2.216 & 2.30 both at max P=Omega_hat*I_hat ~ 1-3e-4 (on the neutral
+  locus), differ 1.6e-4, while Drela onset Re_theta0 differs 1.81x (6656 vs 3680).
+  YES near-degenerate -> geometric root of the onset-resolution limit. Figure
+  paper/repro/analytic/figs_explore/indicator_sphere_lowH.png.
+- TWO-BRANCH GATE (user's proposal, form "vg"): Re_Omega^c = softmin(A+B/P_I^2,
+  A+B_c/P_curv^2), B_c=130. Cuts panel-b worst dev 4.40x->1.62x, distinct
+  Drela-tracking H=2.2/2.3 onsets, clean regression (boundedness, zero-suite,
+  no separated-branch firing), NET-ZERO constants. MATHEMATICALLY EQUIVALENT to
+  Part-V vbs (B_c 129.74 ~ vbs B/c_o^2 130.15 to 0.3%; identical devs). vg is the
+  more interpretable presentation (two-branch gate mirrors two-branch rate) -> ADOPT
+  the vg framing. Candidate model_calibrate_candidate_2branchgate.png.
+- LAUNCHED Part IX (user): enrich fig:onsetgraze (Fig 2) with a COMPANION panel in
+  the curvature coordinate P_curv = Omega_hat*<-Z>+/R (denote <Omega_hat Z_hat>),
+  plotting the low-H profiles that vanish from the P_I panel and showing the vg
+  gate's SECOND branch (A+B_c/P_curv^2) GRAZES them -- the visual proof that each
+  softmin branch grazes its own family (inflectional in P_I, favorable/low-H in
+  P_curv). Candidate + graze table + draft caption to follow; I integrate tex.
+
+---
+
+## 2026-07-29 — Candidate Fig 3 (disturbance transport under vg form) launched
+
+Clarification: paper Fig 3 = fig:nuhat = fs_nuHat_rows (disturbance transport, 3
+wedges, N-contours + marched envelope vs Drela). Earlier I showed the CALIBRATION
+figure (Fig 4) not Fig 3, and no candidate Fig 3 existed. Launched (ac0eaf): rebuild
+fig03_fs_transport_rows under the vg two-branch candidate (a_visc floor + two-branch
+gate) -- keep beta=-0.10/0/+0.10 rows (adverse+Blasius unchanged, +0.10 favorable
+lifted toward Drela) and ADD a strong-FPG beta=+1 (H=2.216) row (the payoff: canon
+can't ignite it, candidate envelope should rise & track Drela). Candidate PNG
+figs_explore/fs_nuHat_rows_candidate.png (not overwriting canon), draft caption,
+Part X record. I integrate tex after user sees it.
+
+---
+
+## 2026-07-29 — OVERNIGHT vg-kernel validation campaign launched (user asleep, autonomous)
+
+Budget ~6h wall on 017-v100-dev GPUs 0-3 (free; 4/5/7 = vishal). Agent
+af1d5371e6fcbc1c8: (A) implement the vg two-branch kernel in the compute solver
+ENV-GATED (default OFF = bit-identical canon; a_visc=0.0276 rate floor + curvature
+gate branch B_c=130 via new AI_A_VISC/AI_REOMC_BC alongside existing AI_REOMC_A/B/
+CEIL), CLEAN rebuild (BUILD_CONSISTENCY.md), verify canon-identical-when-off +
+solver-vs-analytic consistency + echo (STOP if any gate fails -- don't burn GPU on
+a wrong kernel); (B) campaign, vg ON, cases tagged _vg (canon JSONs untouched):
+PRIMARY = high-Re drag-crisis cylinder Tu=0.2 at 2e6/4e6/7e6/1e7/2e7 (+1e8/1e10 if
+budget) -> theta_tr + Cd + sep vs canon vs experiment (does the nose front advance
+and Cd rise toward transcritical 0.5-0.7 = the Sec VII missing rise?); REGRESSION =
+flat plate ZPG + NLF design + Eppler 1-2 Re (confirm low-H change doesn't break the
+anchor/rooftops). Record + commit; NO tex edits (env-gated, canon default untouched).
+USER ASLEEP -- proceeding without feedback; morning summary owed. Shepherding via
+hourly wakeup; agent notifies on completion.
+
+## 2026-07-29 ~03:xx — vg campaign INTERIM (record 0320; still running)
+
+Phase A ALL PASS + committed (compute repo 29726cb5f9, explore-lambda-v): vg kernel
+env-gated (AI_A_VISC, AI_REOMC_BC; default OFF), clean rebuild; canon bit-identical
+(0.0 rel err over 1921 rows; CFD Cd=0.2048=canon), solver-vs-analytic vg 8.9e-16,
+echo correct. THE KERNEL IS CORRECTLY IN THE SOLVER.
+Phase B PRIMARY 2e6-2e7 (Tu0.2, highre): vg front within +-2.5deg of canon, Cd
+within +-0.013 (~+3-6% over canon-up) -> NO transcritical advance at practical Re
+(front stays 82-99deg, not 25-35; Cd ~0.205 not 0.5-0.7) -- exactly the analytic
+prediction (clean noses <=2e7), regression-clean, not the headline.
+REGRESSION: flat plate ZPG -7.5%/-9.0% Re_x_tr (matches documented Blasius -8.2%,
+the a_visc floor; not a break); Eppler 200k a=2 rooftop unchanged (<0.02c). Clean.
+ULTRA HEADLINE (1e9, 1e10 -- where nose Re_theta clears Drela onset, the real test)
+STILL RUNNING: 2 Flow360Solver active on 017, 1e9 vg case in progress; record
+[TO FILL] for ultra + budget + verdict. Shepherd wakeup 03:45 will harvest on
+completion. No intervention needed.
+
+## 2026-07-29 — OVERNIGHT vg-kernel campaign COMPLETE (record 0320; sa-ai 056fc70, compute 29726cb5f9)
+
+PHASE A (kernel in solver): ALL GATES PASS. vg two-branch rate+gate implemented
+env-gated in SAAiTransition.h (__aiRateFromXYZ), AI_A_VISC + AI_REOMC_BC default 0 =
+canon. Clean rebuild. Canon bit-identical (0.0 over 1921 rows; CFD Cd=0.204764=canon),
+vg-vs-analytic 8.9e-16 (252 rows), echo correct. Committed compute 29726cb5f9. SOUND
++ SAFE (default-off, canon untouched).
+PHASE B HEADLINE: vg does NOT recover the transcritical Cd rise.
+- practical Re 2e6-2e7: vg ~= canon (front +-2.5deg, Cd +-6%), regression-clean.
+- ultra Re 2e7-1e10 (protocol-matched warm): front DOES advance into the transcritical
+  class (theta_tr ~33deg@3e8, ~2.5deg@1e10) BUT that advance is ALREADY in canon; vg
+  adds nothing. Cd stays ~0.19-0.21 for BOTH canon+vg -- NO rise toward exp 0.5-0.7.
+  (cold-start bistability hint: transient Cd~0.7@1e9 settling to limit cycle 0.225 --
+  not the steady soln.) => consistent w/ the FT-SA verdict: the missing transcritical
+  rise is baseline-SA turbulent separation + steady wake, NOT transition.
+REGRESSION: flat plate ZPG -7.5%/-9.0% Re_x_tr (= documented Blasius -8.2%, the a_visc
+floor; anchor holds); Eppler 200k a=2 rooftop unchanged. Airfoils/anchor safe.
+BUDGET: ~2.5 GPU-h (well under 6h), GPUs 1/2/3 on 017; foreign/vishal GPUs untouched.
+NET: vg port sound + safe to keep env-gated; low-H FPG amplification behaves as
+designed on calibrated cases (Fig 3 stagnation ignition, favorable rooftops) but does
+NOT fix the drag-crisis transcritical Cd (which was never a transition problem).
+Outstanding: FT-branch EXP2 (coordinator native-vs-SA-AI) record not yet landed.
+
+## 2026-07-29 — Whitepaper prose strip launched (Drela-meeting doc: numbers/eqns/figs only)
+
+Agent ab13ddcf771eb2abd stripping paper/whitepaper.tex (ONLY; main paper untouched):
+delete every sentence with no number/equation/constant-value (e.g. "a_max is an
+eigenvalue not a fit"), AND delete sentences that merely repeat numbers already shown
+in an adjacent figure/table/equation (single-source the number, author narrates).
+Keep: equations, constants=value, non-redundant quantitative results, figure/table
+envs + their quantitative captions, section headers, \ref integrity, build-clean.
+No number/equation altered. The new-kernel section (already quantitative-only) left
+as-is. Record + commit to follow; whitepaper.pdf rebuilt.
+
+## 2026-07-29 — Whitepaper enrichment folded into the strip pass (add missing numbers from main paper)
+
+Same agent ab13ddcf (one owner of whitepaper.tex): after stripping, MINE sa-ai.tex
+for identifying/headline quantitative numbers absent from the whitepaper and ADD them
+as per-figure/per-line caption annotations (numbers only, verbatim). Example: Fig 2
+onset-graze gets beta + max(Omega_hat*I_hat) + H per line (from fig:model betas,
+fig:nuhat max 0.162/0.078/0.037, low-H members beta 0.35-1.0 + graze ratios +
+Re_theta0). Applied to EVERY whitepaper figure (which-curve-is-which labels: beta/H/
+Re/Tu/N-crossing/front x-c/Cd/sep angle) + headline result numbers from section text.
+Single-source preserved; no new prose. Same commit + record.
+
+## 2026-07-29 14:xx — Picked up dead session (weekly-limit) leftover: whitepaper Fig 30 landed
+
+Prior Claude session (52a71f9) hit the weekly usage limit mid-batch; picking up the
+whitepaper (Drela-meeting doc). It had committed 78a4b73 (new-kernel Figs 25/26/28/29
++ Fig 21) and left three items. Done now:
+- **Fig 30 (vg vs canon airfoils)**: the figure the dead session's subagent produced
+  (newkernel_vg_airfoils.png) but never integrated. Stripped its suptitle to match
+  house style (siblings use per-panel titles only, caption carries the story), made
+  the generator plot from the cached vg_airfoils.json (reproducible w/o the CFD tree;
+  --rebuild to re-read .pvtu), added the figure + caption after newkernel_vg_results.
+  Upper-surface Cf(x/c), canon vs vg: NLF a0 x_tr=0.395 (both), a4 0.265->0.262,
+  Eppler a2 0.580 (both) -- low-H branch does not trip the favorable rooftop.
+  Whitepaper recompiles clean (63 pp, 0 undefined).
+- Bisection Table t:stagbistab: previous session already confirmed unchanged (critical
+  band + sustained maxchi 2.19/6.15/24.1/75.7 matched) -- no-op.
+- NEXT (user-approved): rebuild the shared Cd figure (fig:dragcrisiscd,
+  dragcrisis_cd_re.pdf; whitepaper + main paper) SA-AI curves as clean up/down ladders
+  from the 50-row Tu=0.2% systematic campaign, keeping the exp/LES overlay.
