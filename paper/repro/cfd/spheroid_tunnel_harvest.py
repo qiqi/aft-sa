@@ -33,6 +33,7 @@ from lib.calibrate_kernel import C_V1                           # noqa: E402
 
 ROOT = os.environ.get('SAAI_SPH_ROOT', '/local_data/qiqi/sa-ai/spheroid_fv1')
 XS = np.linspace(0.05, 0.97, 47)          # station grid for the front search
+PHI_CURVE = np.arange(5.0, 180.0, 7.5)    # dense azimuth grid for the front curve
 
 # tag -> (alpha, Re, facility, measured file, measured key)
 CASES = {
@@ -55,6 +56,12 @@ CASES = {
     'a5lo_gcal':   (5.0,  1.52e6, 'NWG', 'stock2006_fig14c_digitized.json',
                     'measured_re1p52e6_squares'),
     'a5hi_gcal':   (5.0,  6.49e6, 'NWG', 'stock2006_fig14c_digitized.json',
+                    'measured_re6p49e6_circles'),
+    'a2p5_gmeas':  (2.5,  7.20e6, 'NWG', 'stock2006_fig14b_digitized.json',
+                    'measured_squares'),
+    'a5lo_gmeas':  (5.0,  1.52e6, 'NWG', 'stock2006_fig14c_digitized.json',
+                    'measured_re1p52e6_squares'),
+    'a5hi_gmeas':  (5.0,  6.49e6, 'NWG', 'stock2006_fig14c_digitized.json',
                     'measured_re6p49e6_circles'),
 }
 
@@ -103,6 +110,19 @@ def harvest(tag):
                          d_chi1=f1 - x_meas))
         print(f'   phi {phi:6.1f}  meas {x_meas:.3f}   chi1 {f1:6.3f} '
               f'cv1 {fc:6.3f}   d(chi1-meas) {f1 - x_meas:+.3f}')
+    # dense azimuth sweep -> the front as a curve, for the comparison figures
+    curve = []
+    for phi in PHI_CURVE:
+        sw = sweep_case(grid, mu_ref, facets, phi_deg=float(phi), xs=XS)
+        chim = np.array([s['chimax_nearwall'] for s in sw], float)
+        f1 = front_crossing(XS, chim, 1.0)
+        fc = front_crossing(XS, chim, C_V1)
+        curve.append(dict(phi=float(phi),
+                          chi1=(None if f1 != f1 else float(f1)),
+                          cv1=(None if fc != fc else float(fc))))
+    n_ok = sum(1 for c in curve if c['chi1'] is not None)
+    print(f'   front curve: {n_ok}/{len(curve)} azimuths resolved')
+
     d = np.array([r['d_chi1'] for r in rows], float)
     ok = np.isfinite(d)
     stat = dict(n=int(ok.sum()),
@@ -113,7 +133,7 @@ def harvest(tag):
           f'rms {stat["rms"]:.3f} worst {stat["worst"]:+.3f}')
     return dict(tag=tag, alpha=alpha, Re=Re, facility=fac, mach=mach,
                 chi_inf=chi_inf, n_crit=n_crit, measured_source=mfile,
-                measured_key=mkey, rows=rows, stat=stat)
+                measured_key=mkey, rows=rows, stat=stat, curve=curve)
 
 
 def main():
