@@ -3284,52 +3284,32 @@ suppressed---and it is the measurement's near-uniformity that the model
 cannot reproduce. This is the crossflow economy's first visible cost,
 and the entry to the fully three-dimensional conditions that follow.
 
-\subsection{The mixed TS--crossflow pair at
-$Re_L\!=\!6.5\!\times\!10^6$}\label{sec:sph65}
+\subsection{$\alpha\!=\!5^\circ$: the crossflow channel opens with
+Reynolds number}\label{sec:sph5}
 
-At $5^\circ$ and $10^\circ$ and $Re_L\!\gtrsim\!6.5\!\times\!10^6$
-Stock's analysis has TS and crossflow amplifying
-together~\cite{stock_2006}, so this pair is where the missing closure
-should stop being a flank correction and become co-dominant. Both
-incidences are computed on the full L0--L2 ladder at the campaign
-constants, with the same several-percent-per-level movement in the
-totals as the other attached incidences (Table~\ref{tab:sphtotals}).
-Table~\ref{tab:sphtunnel} carries the front comparison, and it is where
-the missing closure becomes the dominant error. At
-$\alpha\!=\!5^\circ$ ($6.49\!\times\!10^6$) the calibrated seed is
-$0.088$ ahead of the measurement at the most leeward station and $0.246$
-aft of it at the most windward, rms $0.201$ over the four measured
-azimuths. At $\alpha\!=\!10^\circ$ ($6.56\!\times\!10^6$) the leeward
-station still agrees to $0.068$, but from $\phi\!\approx\!120^\circ$
-inward the computed front stands at $0.88$--$0.95\,x/L$---effectively at
-the tail---against a measurement at $0.31$--$0.56$, a residual of
-$0.387$ to $0.623$ and an rms of $0.463$.
+The two Reynolds numbers at this incidence are, by Stock's stability
+analysis, on opposite sides of a mechanism boundary, and he states it
+directly: at $1.52\!\times\!10^6$ the layer is laminar up to separation
+except on one streamline where TS provokes transition, while at
+$6.49\!\times\!10^6$ transition is triggered by TS near the windward and
+leeward symmetry planes and by TS and crossflow together over the
+remainder of the body~\cite{stock_2006}. Raising the Reynolds number at
+fixed incidence introduces a mechanism that was absent, and the model
+carries only the one that was already there.
 
-Two observations fix the character of that deficit. It is not a
-disturbance-environment effect: re-seeding to the measured hot-wire
-level, a factor $3.1$ noisier, moves the windward residual from
-$+0.387$ to $+0.375$---five hundredths of a chord out of half a
-body length, against the $0.175$ the same lever moved the axisymmetric
-front. And it grows monotonically with incidence at these Reynolds
-numbers, from $0.132$ at $2.5^\circ$ through $0.246$ at $5^\circ$ to
-$0.387$--$0.623$ at $10^\circ$, while the leeward meridian stays
-predicted throughout. A rate calibrated on two-dimensional
-Tollmien--Schlichting growth reproduces the front where the crossflow is
-weak and loses it, progressively, where the crossflow is strong.
+The residuals follow that boundary (Table~\ref{tab:sphtunnel}). At
+$1.52\!\times\!10^6$ the four azimuths the model resolves agree to rms
+$0.028$; at the four most leeward stations the near-wall $\chi$ never
+reaches unity within $x/L\!\le\!0.97$, so the model carries no front
+where the measurement places one at $0.74$--$0.94$. At
+$6.49\!\times\!10^6$ every station resolves, but the residual opens from
+$-0.088$ at the most leeward to $+0.246$ at the most windward, rms
+$0.201$: the leeward meridian, which Stock assigns to TS, is predicted,
+and the windward and mid-azimuth stations, where he adds crossflow, are
+not.
 
-The ONERA F1 condition is the same incidence, Reynolds number and Mach
-number as its G\"ottingen twin, so the two differ only in seed, and the
-measurements differ: at $\phi\!\approx\!30^\circ$ the F1 front is
-measured $0.077$ upstream of the G\"ottingen one. The model returns
-$0.001$. That is the same insensitivity again---at that azimuth its
-front is pinned at the tail by the absent crossflow channel, so the seed
-has no leverage to express---and it means the cross-facility comparison
-cannot be settled at this condition. It would need a condition on which
-the model is seed-sensitive, and at present no F1 measurement exists at
-one.
-
-\subsection{The laminar-to-separation ladder at
-$Re_L\!=\!1.5\!\times\!10^6$}\label{sec:sph15}
+\subsection{$\alpha\!=\!10^\circ$: the deficit at its
+largest}\label{sec:sph10}
 
 At the lowest Reynolds number of the DFVLR matrix the boundary layer
 never transitions on the attached body at all: it stays laminar up to
@@ -3492,15 +3472,41 @@ supporting pressure-station waterfalls.)
   \label{fig:sphstat_cfg297}
 \end{figure}
 
-The third member of this ladder, $\alpha\!=\!5^\circ$, is computed on
-the same three levels (Table~\ref{tab:sphtotals}). The measured fronts
-at both remaining incidences of the ladder are in hand---Stock's
-Fig.~14c at $\alpha\!=\!5^\circ$ and Fig.~16c at $29.7^\circ$, the same
-laminar-to-separation regime, digitized from the printed panels into
-\texttt{data/stock2006\_fig\{14c,16c\}\_digitized.json}---so what
-remains before all three incidences carry the front comparison
-Fig.~\ref{fig:spheroidfront} gives $10^\circ$ is the extraction of the
-computed fronts at those two incidences.
+At $Re_L\!=\!6.56\!\times\!10^6$ the same incidence produces the largest
+residual in the matrix. The most leeward station still agrees to
+$+0.068$, but from $\phi\!\approx\!120^\circ$ inward the computed front
+stands at $0.88$--$0.95\,x/L$---effectively at the tail---against a
+measurement at $0.31$--$0.56$: a residual of $+0.387$ to $+0.623$, rms
+$0.463$ (Table~\ref{tab:sphtunnel}). The worst station, $\phi\!=\!59^\circ$,
+is the one Stock assigns to pure crossflow triggering; the best is the
+one he assigns to pure TS~\cite{stock_2006}.
+
+Two properties fix the character of that deficit. It is not a
+disturbance-environment effect: re-seeding to the measured hot-wire
+level, a factor $3.1$ noisier, moves the windward residual from
+$+0.387$ to $+0.375$, against the $0.175\,L$ the same lever moves the
+axisymmetric front of Sec.~\ref{sec:sphts}. And it grows monotonically
+with incidence at these Reynolds numbers---$0.132$ at $2.5^\circ$,
+$0.246$ at $5^\circ$, $0.387$--$0.623$ at $10^\circ$---while the leeward
+meridian stays predicted throughout. A rate calibrated on
+two-dimensional Tollmien--Schlichting growth reproduces the front where
+the crossflow is weak and loses it, progressively, where the crossflow
+is strong. The kernel is not merely slow there: in a favorable
+streamwise gradient $\hat\Omega\hat I\!\le\!0$ and the amplification it
+books is identically zero, so the region the crossflow occupies is the
+region the rate is constructed to ignore.
+
+The ONERA F1 measurement at this incidence and Reynolds number closes
+the section on a null result worth stating. Its condition differs from
+its G\"ottingen twin only in the seed---same geometry, incidence,
+Reynolds and Mach number---and the two measurements differ by $0.077$ in
+front position at $\phi\!\approx\!30^\circ$, the quieter tunnel
+transitioning \emph{earlier}. Across the two facility seeds the model
+returns $0.001$. At that azimuth its front is pinned at the tail by the
+absent crossflow channel, so the seed has no leverage to express, and the
+cross-facility comparison cannot be settled here. It would need a
+condition on which the model is seed-sensitive, and no F1 measurement
+exists at one.
 \section{Conclusion}
 
 The Spalart--Allmaras working variable can, it turns out, serve as its
