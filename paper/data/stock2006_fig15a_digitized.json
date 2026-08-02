@@ -151,5 +151,1291 @@
    }
   ]
  },
- "note_cp_legends": "Stock's Figs 2 and 3 Cp-station legends disagree at the 4th decimal for three taps (Fig2: -0.03780/0.21220/0.46180; Fig3: -0.03760/0.21240/0.46160); we follow Fig 3. Not a digitization error."
+ "note_cp_legends": "Stock's Figs 2 and 3 Cp-station legends disagree at the 4th decimal for three taps (Fig2: -0.03780/0.21220/0.46180; Fig3: -0.03760/0.21240/0.46160); we follow Fig 3. Not a digitization error.",
+ "stock_computed_lines": {
+  "curve_naming": [
+   "curve0 -> re_6p56e6_alpha10_circles: mean |dx/L| 0.086 over 5 azimuth-matched symbols (closest of 2 sets)",
+   "curve1: dominant style is the short dash -> free vortex-layer separation line"
+  ],
+  "source": "Stock, AIAA J 44(1) 2006, Fig. 15a (DOI 10.2514/1.16026), alpha=10.0 deg, Ref. 49 (DFVLR 3x3 m Goettingen); COMPUTED transition lines, mechanism-coded by line style; digitized 2026-08-02 by repro/cfd/digitize_stock_computed_fronts.py",
+  "mechanism_key": "Stock Sec. III.C: pure TS = continuous, pure CF = long dashed, TS and CF together = midsized dashed, separation = short dashed; streamlines are thin continuous and are excluded by line width",
+  "method": "thick-ink (distance-transform) separation from the streamlines, dash chaining, then a 4-state piecewise-constant fit of Stock style templates to the measured dash AND gap arc lengths along each traced centreline; runs whose best/runner-up total path cost differ by less than 0.5 are reported as ambiguous",
+  "convention": "phi=0 windward symmetry line (Stock convention); x/L=(X/a+1)/2 from nose",
+  "accuracy": "+-0.0025 x/L within this figure; add ~0.005 x/L when comparing across a Ref.49 and a Ref.50 figure. Mechanism boundary azimuths are localized to about one dash period, ~2-8 deg depending on style",
+  "expectation_from_text": "two computed curves: the free vortex-layer separation line (short dashes) -- which for Re=1.52e6 IS the predicted front, the flow staying laminar to separation -- and the Re=6.56e6 transition front, whose style changes along it (Sec. III.C: \"Close to the symmetry planes, pure TS waves dominate, followed in both directions by simultaneous TS and CF waves ... In the middle part of the prolate spheroid, pure CF wave triggering is present\")",
+  "front_re6p56e6": {
+   "n_points": 126,
+   "arc_px": 1553.1,
+   "n_dashes": 30,
+   "n_ink_runs": 26,
+   "median_dash_px": 34.0,
+   "median_gap_px": 3.0,
+   "known_arc_frac": 0.797,
+   "ambiguous_arc_frac": 0.126,
+   "mechanism_segments": [
+    {
+     "mechanism": "ambiguous:CF?",
+     "phi_from": 177.8,
+     "phi_to": 173.02,
+     "xL_from": 0.3363,
+     "xL_to": 0.3214,
+     "n": 40
+    },
+    {
+     "mechanism": "TS",
+     "phi_from": 171.65,
+     "phi_to": 144.97,
+     "xL_from": 0.3132,
+     "xL_to": 0.2127,
+     "n": 229
+    },
+    {
+     "mechanism": "TS+CF",
+     "phi_from": 144.25,
+     "phi_to": 94.72,
+     "xL_from": 0.2109,
+     "xL_to": 0.2046,
+     "n": 286
+    },
+    {
+     "mechanism": "CF",
+     "phi_from": 92.95,
+     "phi_to": 62.74,
+     "xL_from": 0.2075,
+     "xL_to": 0.3407,
+     "n": 259
+    },
+    {
+     "mechanism": "ambiguous:CF?",
+     "phi_from": 62.29,
+     "phi_to": 56.45,
+     "xL_from": 0.3478,
+     "xL_to": 0.4294,
+     "n": 141
+    },
+    {
+     "mechanism": "TS+CF",
+     "phi_from": 56.07,
+     "phi_to": 1.96,
+     "xL_from": 0.4328,
+     "xL_to": 0.5698,
+     "n": 476
+    }
+   ],
+   "points": [
+    {
+     "phi_deg": 177.8,
+     "xL": 0.3363,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 175.92,
+     "xL": 0.3328,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 173.98,
+     "xL": 0.3296,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 173.15,
+     "xL": 0.3231,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 171.65,
+     "xL": 0.3132,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 170.55,
+     "xL": 0.3102,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 169.41,
+     "xL": 0.304,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 168.42,
+     "xL": 0.2977,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 167.23,
+     "xL": 0.2917,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 166.23,
+     "xL": 0.2853,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 165.11,
+     "xL": 0.2791,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 164.03,
+     "xL": 0.2729,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 162.91,
+     "xL": 0.2667,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 161.74,
+     "xL": 0.261,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 160.65,
+     "xL": 0.2548,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 159.15,
+     "xL": 0.2496,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 157.64,
+     "xL": 0.2444,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 155.9,
+     "xL": 0.2402,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 154.2,
+     "xL": 0.2358,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 152.45,
+     "xL": 0.2316,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 150.79,
+     "xL": 0.2269,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 149.05,
+     "xL": 0.2226,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 147.3,
+     "xL": 0.2184,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 145.55,
+     "xL": 0.2142,
+     "mechanism": "TS"
+    },
+    {
+     "phi_deg": 144.25,
+     "xL": 0.2109,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 143.25,
+     "xL": 0.2084,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 141.49,
+     "xL": 0.2042,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 139.7,
+     "xL": 0.1992,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 137.92,
+     "xL": 0.1951,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 136.22,
+     "xL": 0.1907,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 134.4,
+     "xL": 0.1873,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 132.73,
+     "xL": 0.1834,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 130.58,
+     "xL": 0.1834,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 127.87,
+     "xL": 0.1834,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 125.71,
+     "xL": 0.1833,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 123.55,
+     "xL": 0.1834,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 120.85,
+     "xL": 0.1833,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 118.69,
+     "xL": 0.1833,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 116.16,
+     "xL": 0.1833,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 114.0,
+     "xL": 0.1833,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 111.89,
+     "xL": 0.1839,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 109.8,
+     "xL": 0.1851,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 107.79,
+     "xL": 0.1877,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 105.23,
+     "xL": 0.1905,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 103.2,
+     "xL": 0.193,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 101.17,
+     "xL": 0.1954,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 98.95,
+     "xL": 0.1978,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 96.96,
+     "xL": 0.2007,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 95.04,
+     "xL": 0.204,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 92.95,
+     "xL": 0.2075,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 91.57,
+     "xL": 0.2104,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 89.73,
+     "xL": 0.2142,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 87.87,
+     "xL": 0.2178,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 86.01,
+     "xL": 0.2215,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 84.21,
+     "xL": 0.2254,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 81.1,
+     "xL": 0.2336,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 79.65,
+     "xL": 0.239,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 78.07,
+     "xL": 0.2438,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 76.62,
+     "xL": 0.2492,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 75.18,
+     "xL": 0.2546,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 72.59,
+     "xL": 0.2646,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 71.42,
+     "xL": 0.2706,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 70.38,
+     "xL": 0.2769,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 69.26,
+     "xL": 0.2831,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 68.18,
+     "xL": 0.2894,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 67.11,
+     "xL": 0.2956,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 65.18,
+     "xL": 0.3075,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 64.63,
+     "xL": 0.3145,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 64.11,
+     "xL": 0.3214,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 63.66,
+     "xL": 0.3285,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 63.03,
+     "xL": 0.3354,
+     "mechanism": "CF"
+    },
+    {
+     "phi_deg": 62.29,
+     "xL": 0.3478,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 62.21,
+     "xL": 0.349,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 61.75,
+     "xL": 0.356,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 61.39,
+     "xL": 0.3631,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 60.78,
+     "xL": 0.37,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 60.17,
+     "xL": 0.3769,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 59.56,
+     "xL": 0.3839,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 58.95,
+     "xL": 0.3908,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 58.33,
+     "xL": 0.3977,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 58.02,
+     "xL": 0.4049,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 57.55,
+     "xL": 0.4119,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 57.07,
+     "xL": 0.419,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 56.57,
+     "xL": 0.4259,
+     "mechanism": "ambiguous:CF?"
+    },
+    {
+     "phi_deg": 56.07,
+     "xL": 0.4328,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 55.76,
+     "xL": 0.4356,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 55.11,
+     "xL": 0.4425,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 54.26,
+     "xL": 0.4511,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 53.63,
+     "xL": 0.458,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 53.06,
+     "xL": 0.4649,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 52.31,
+     "xL": 0.473,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 51.45,
+     "xL": 0.4796,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 50.59,
+     "xL": 0.4858,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 48.97,
+     "xL": 0.4937,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 47.76,
+     "xL": 0.4997,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 46.56,
+     "xL": 0.5057,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 45.35,
+     "xL": 0.5117,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 44.02,
+     "xL": 0.5173,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 44.01,
+     "xL": 0.5238,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 42.42,
+     "xL": 0.5325,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 41.01,
+     "xL": 0.5402,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 40.06,
+     "xL": 0.5467,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 39.11,
+     "xL": 0.5532,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 37.96,
+     "xL": 0.5607,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 37.39,
+     "xL": 0.5674,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 36.13,
+     "xL": 0.5731,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 35.05,
+     "xL": 0.5808,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 34.15,
+     "xL": 0.5873,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 32.88,
+     "xL": 0.5953,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 31.88,
+     "xL": 0.6017,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 30.28,
+     "xL": 0.6054,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 28.21,
+     "xL": 0.6074,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 26.09,
+     "xL": 0.6064,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 23.79,
+     "xL": 0.6049,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 21.65,
+     "xL": 0.604,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 19.55,
+     "xL": 0.6026,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 17.75,
+     "xL": 0.5987,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 15.95,
+     "xL": 0.5947,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 14.29,
+     "xL": 0.59,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 12.6,
+     "xL": 0.5856,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 10.85,
+     "xL": 0.5813,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 9.39,
+     "xL": 0.5762,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 6.45,
+     "xL": 0.5733,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 4.45,
+     "xL": 0.5705,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 2.32,
+     "xL": 0.5699,
+     "mechanism": "TS+CF"
+    },
+    {
+     "phi_deg": 1.96,
+     "xL": 0.5698,
+     "mechanism": "TS+CF"
+    }
+   ]
+  },
+  "separation_line_short_dashed": {
+   "n_points": 108,
+   "arc_px": 1514.1,
+   "n_dashes": 66,
+   "n_ink_runs": 70,
+   "median_dash_px": 14.0,
+   "median_gap_px": 3.0,
+   "known_arc_frac": 0.823,
+   "ambiguous_arc_frac": 0.077,
+   "mechanism_segments": [
+    {
+     "mechanism": "separation",
+     "phi_from": 129.23,
+     "phi_to": 92.83,
+     "xL_from": 0.2812,
+     "xL_to": 0.7245,
+     "n": 590
+    },
+    {
+     "mechanism": "ambiguous:separation?",
+     "phi_from": 92.77,
+     "phi_to": 87.53,
+     "xL_from": 0.7257,
+     "xL_to": 0.7807,
+     "n": 97
+    },
+    {
+     "mechanism": "separation",
+     "phi_from": 87.29,
+     "phi_to": 1.73,
+     "xL_from": 0.7823,
+     "xL_to": 0.9731,
+     "n": 566
+    }
+   ],
+   "points": [
+    {
+     "phi_deg": 129.23,
+     "xL": 0.2812,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 128.03,
+     "xL": 0.29,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 126.3,
+     "xL": 0.2975,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 125.38,
+     "xL": 0.3054,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 124.7,
+     "xL": 0.3122,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 123.77,
+     "xL": 0.3194,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 123.08,
+     "xL": 0.3259,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 117.85,
+     "xL": 0.3915,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 117.16,
+     "xL": 0.3982,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 116.23,
+     "xL": 0.406,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 115.38,
+     "xL": 0.4146,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 114.86,
+     "xL": 0.4234,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 114.4,
+     "xL": 0.4329,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 113.25,
+     "xL": 0.441,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 112.53,
+     "xL": 0.4496,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 112.02,
+     "xL": 0.4565,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 111.67,
+     "xL": 0.4643,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 111.02,
+     "xL": 0.4736,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 110.27,
+     "xL": 0.4816,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 109.67,
+     "xL": 0.4885,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 109.19,
+     "xL": 0.4955,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 109.14,
+     "xL": 0.5027,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 108.62,
+     "xL": 0.5094,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 107.66,
+     "xL": 0.5177,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 106.94,
+     "xL": 0.5245,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 106.7,
+     "xL": 0.5323,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 106.01,
+     "xL": 0.5408,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 105.67,
+     "xL": 0.549,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 105.51,
+     "xL": 0.5574,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 104.35,
+     "xL": 0.5655,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 103.98,
+     "xL": 0.5744,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 103.67,
+     "xL": 0.5815,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 103.03,
+     "xL": 0.5903,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 102.13,
+     "xL": 0.5981,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 101.64,
+     "xL": 0.6069,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 101.3,
+     "xL": 0.6147,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 100.53,
+     "xL": 0.6233,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 99.85,
+     "xL": 0.6299,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 100.07,
+     "xL": 0.6369,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 99.2,
+     "xL": 0.6442,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 98.64,
+     "xL": 0.6517,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 98.38,
+     "xL": 0.6589,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 97.63,
+     "xL": 0.6663,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 96.83,
+     "xL": 0.6736,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 96.27,
+     "xL": 0.6831,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 95.8,
+     "xL": 0.692,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 95.03,
+     "xL": 0.7005,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 94.15,
+     "xL": 0.7078,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 93.36,
+     "xL": 0.7145,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 92.86,
+     "xL": 0.7239,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 92.77,
+     "xL": 0.7257,
+     "mechanism": "ambiguous:separation?"
+    },
+    {
+     "phi_deg": 92.38,
+     "xL": 0.7316,
+     "mechanism": "ambiguous:separation?"
+    },
+    {
+     "phi_deg": 91.71,
+     "xL": 0.7385,
+     "mechanism": "ambiguous:separation?"
+    },
+    {
+     "phi_deg": 91.05,
+     "xL": 0.7454,
+     "mechanism": "ambiguous:separation?"
+    },
+    {
+     "phi_deg": 90.38,
+     "xL": 0.7522,
+     "mechanism": "ambiguous:separation?"
+    },
+    {
+     "phi_deg": 89.72,
+     "xL": 0.7591,
+     "mechanism": "ambiguous:separation?"
+    },
+    {
+     "phi_deg": 89.06,
+     "xL": 0.766,
+     "mechanism": "ambiguous:separation?"
+    },
+    {
+     "phi_deg": 88.4,
+     "xL": 0.7729,
+     "mechanism": "ambiguous:separation?"
+    },
+    {
+     "phi_deg": 87.7,
+     "xL": 0.7797,
+     "mechanism": "ambiguous:separation?"
+    },
+    {
+     "phi_deg": 87.29,
+     "xL": 0.7823,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 86.6,
+     "xL": 0.7872,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 86.48,
+     "xL": 0.7956,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 85.6,
+     "xL": 0.804,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 84.45,
+     "xL": 0.8128,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 83.42,
+     "xL": 0.8205,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 82.55,
+     "xL": 0.8271,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 81.45,
+     "xL": 0.8353,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 80.54,
+     "xL": 0.8424,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 79.62,
+     "xL": 0.8489,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 78.67,
+     "xL": 0.856,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 77.81,
+     "xL": 0.8626,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 76.69,
+     "xL": 0.8694,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 75.6,
+     "xL": 0.8777,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 74.39,
+     "xL": 0.8837,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 72.94,
+     "xL": 0.8889,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 71.49,
+     "xL": 0.8957,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 69.74,
+     "xL": 0.9026,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 68.05,
+     "xL": 0.9088,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 66.53,
+     "xL": 0.9161,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 64.6,
+     "xL": 0.9205,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 62.83,
+     "xL": 0.9247,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 61.06,
+     "xL": 0.9288,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 59.28,
+     "xL": 0.9329,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 57.36,
+     "xL": 0.9374,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 55.6,
+     "xL": 0.9414,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 53.62,
+     "xL": 0.945,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 51.0,
+     "xL": 0.949,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 48.9,
+     "xL": 0.9523,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 46.32,
+     "xL": 0.9548,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 43.72,
+     "xL": 0.9572,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 41.11,
+     "xL": 0.9595,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 39.03,
+     "xL": 0.9616,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 36.56,
+     "xL": 0.963,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 34.11,
+     "xL": 0.9648,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 31.43,
+     "xL": 0.9661,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 29.29,
+     "xL": 0.9672,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 27.15,
+     "xL": 0.9681,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 24.45,
+     "xL": 0.9687,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 21.82,
+     "xL": 0.9702,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 19.12,
+     "xL": 0.9707,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 16.6,
+     "xL": 0.9712,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 13.91,
+     "xL": 0.972,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 11.4,
+     "xL": 0.9729,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 9.25,
+     "xL": 0.9732,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 7.21,
+     "xL": 0.9732,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 4.87,
+     "xL": 0.9733,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 2.2,
+     "xL": 0.9744,
+     "mechanism": "separation"
+    },
+    {
+     "phi_deg": 1.73,
+     "xL": 0.9731,
+     "mechanism": "separation"
+    }
+   ]
+  }
+ },
+ "stock_computed_lines_untraced_px": [
+  549,
+  8521
+ ]
 }

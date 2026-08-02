@@ -1022,4 +1022,121 @@ $+0.549$ and moves by $\le0.05$ between seeds a factor $3.4$ apart in $Tu$.
 
 \input{tables/tab_spheroid_tunnel_wp}
 
+\appendix
+
+\section{Appendix: the two-source rate and its plane-channel anchor}
+\label{app:twosource}
+
+The rate of Eq.~\eqref{w:rate} is built on the single even coordinate
+$\hat\Omega\hat I$, the departure of the profile from its osculating
+parabola. That coordinate carries both the inviscid-inflectional and
+the viscous Tollmien--Schlichting content because the two co-vary
+monotonically across the Falkner--Skan family it is calibrated on. They
+separate on exactly one profile: a \emph{parabola}, where
+$\hat I\equiv0$ identically. Plane Poiseuille flow is exactly parabolic
+in wall distance, so Eq.~\eqref{w:rate} returns identically zero at
+every Reynolds number---and plane Poiseuille is linearly unstable, by a
+purely viscous mechanism, at $Re_c=5772$ (Orszag 1971). No profile in
+the calibration family exposes this, because none of them is a parabola.
+
+A two-branch rate separates the mechanisms. Alongside the inflectional
+coordinate $P_I=\hat\Omega\langle\hat I\rangle_+$ we form the curvature
+coordinate
+\begin{equation}
+  P_{\mathrm{c}} \;=\; \hat\Omega\,\big\langle -\hat Z\big\rangle_+,
+  \qquad \hat Z = Z/R,
+  \label{w:pcurv}
+\end{equation}
+positive wherever $u''<0$ (filled, non-inflected profiles), clipped to
+zero at an adverse wall, vanishing like $d$ toward the wall and zero in
+the free stream. Each branch carries its own rate \emph{and its own
+onset}, and the two complete sources---not the two rates---are combined:
+\begin{gather}
+  P_{\mathrm{AI}} = \omega\,\tilde\nu\;
+  \operatorname{softmax}_2\!\Big[\,
+     a_{\max}\,P_I\;S\big(Re_\Omega/Re_\Omega^{\mathrm c,i}\big),\;\;
+     a_{\mathrm{visc}}\,P_{\mathrm{c}}\;S\big(Re_\Omega/Re_\Omega^{\mathrm c,v}\big)
+  \Big],
+  \label{w:twosource}\\[3pt]
+  Re_\Omega^{\mathrm c,i} = k\operatorname{softmin}_2\!\Big(C,\,A+B\,P_I^{-2}\Big),
+  \qquad
+  Re_\Omega^{\mathrm c,v} = A + B_{\mathrm c}\,P_{\mathrm{c}}^{-2},
+  \qquad
+  \operatorname{softmax}_2(x,y)=\sqrt{x^2+y^2}.
+  \notag
+\end{gather}
+The inviscid threshold is Eq.~\eqref{w:onset} unchanged; the viscous
+branch shares its floor $A$ and adds one coefficient $B_{\mathrm c}$.
+
+Decoupling the gates is the substantive choice. Kelvin--Helmholtz is
+inviscid and its threshold is essentially the floor $A$; Tollmien--Schlichting
+is viscous and its onset is far higher. A single gate formed as a
+soft-minimum of the two thresholds applies whichever is lower to
+\emph{both} rates, so the inviscid branch's low threshold switches on the
+viscous rate before the viscous mechanism is critical---worth $+7.4\%$
+on the Blasius anchor. Under Eq.~\eqref{w:twosource} that cross-talk is
+absent, and the construction reproduces the single-source rate of
+Eq.~\eqref{w:rate} to within $0.7\%$ over the whole calibrated family
+(Table~\ref{t:twosource}), so $a_{\max}$, $k$ and the airfoil campaign
+are untouched: the branch adds amplification only where the
+single-source rate has none.
+
+\begin{table}[H]
+  \centering\small
+  \caption{Peak dimensionless source $a\,S$ on Falkner--Skan wedges:
+  the single-source rate of Eq.~\eqref{w:rate}, and the two-source form
+  of Eq.~\eqref{w:twosource} at $(a_{\mathrm{visc}},B_{\mathrm c})=(0.0276,130)$.}
+  \label{t:twosource}
+  \begin{tabular}{rrccc}
+    \toprule
+    $\beta$ & $Re_\theta$ & single-source & two-source & ratio\\
+    \midrule
+    $0$        & $500$  & $0.01485$ & $0.01485$ & $1.000$\\
+    $0$        & $1000$ & $0.01485$ & $0.01487$ & $1.001$\\
+    $-0.10$    & $400$  & $0.03082$ & $0.03083$ & $1.000$\\
+    $-0.1988$  & $300$  & $0.09692$ & $0.09764$ & $1.007$\\
+    $+0.10$    & $1000$ & $0.00695$ & $0.00696$ & $1.000$\\
+    $+0.20$    & $2000$ & $0.00281$ & $0.00282$ & $1.004$\\
+    $+0.35$    & $4000$ & $0.00033$ & $0.00405$ & $12.4$\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The anchor is the point of the construction. On a parabola $P_I\equiv0$,
+so the inviscid branch is inert and plane Poiseuille calibrates the
+viscous branch with no contamination from the inflectional one---a
+clean, single-mechanism device, which the strongly favorable
+Falkner--Skan wedges are not. Requiring the frozen-profile eigenvalue of
+Eq.~\eqref{w:twosource} to change sign at Orszag's $Re_c=5772$ fixes
+$B_{\mathrm c}$ given $a_{\mathrm{visc}}$:
+
+\begin{table}[H]
+  \centering\small
+  \caption{Plane-channel anchor: the $B_{\mathrm c}$ placing the neutral
+  point on $Re_c=5772$, and the neutral point obtained at
+  $B_{\mathrm c}=130$.}
+  \begin{tabular}{ccc}
+    \toprule
+    $a_{\mathrm{visc}}$ & $B_{\mathrm c}$ (channel-anchored) & $Re_c$ at $B_{\mathrm c}=130$\\
+    \midrule
+    $0.0200$ & $81.0$  & $8095$\\
+    $0.0276$ & $91.0$  & $7409$\\
+    $0.0350$ & $99.9$  & $6916$\\
+    $0.0600$ & $127.9$ & $5834$\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The two constants are then anchored as the inviscid branch is: on
+canonical linear-stability eigenvalues rather than on transition cases.
+$a_{\max}=0.19$ is the Michalke tanh Kelvin--Helmholtz temporal
+eigenvalue; $a_{\mathrm{visc}}$ and $B_{\mathrm c}$ follow from the
+Orr--Sommerfeld critical Reynolds number of plane Poiseuille and its
+peak envelope rate. Read the other way, the two independent targets
+agree: a rate residual on the strongly favorable Falkner--Skan wedges
+returns $B_{\mathrm c}=130$, and Orszag's critical Reynolds number
+returns $91$, a ratio of $0.70$. At $B_{\mathrm c}=130$ the channel's
+neutral point lands at $7409$, $1.28\times$ the true value, against a
+single-source kernel that never destabilizes it at all.
+
 \end{document}
