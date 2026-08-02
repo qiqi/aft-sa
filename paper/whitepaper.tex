@@ -963,82 +963,89 @@ $Re_\mathrm{root}=5\times10^5$.}\label{f:daesurf}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_section_eta92.pdf}
 \end{figure}
+% Daedalus wall-normal chi sheets (u_x left, log10 chi right; rows = meshes)
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a4_eta10_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a4_eta75_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a4_eta92_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a5_eta10_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a5_eta75_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a5_eta92_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a6_eta10_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a6_eta75_upper.pdf}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a6_eta92_upper.pdf}
+\end{figure}
 
 \clearpage
-\appendix
+\subsection{6:1 prolate spheroid at zero incidence}
 
-\clearpage
-\section{Proposed two-branch kernel (for discussion)}
-
-Rate
-$a=\mathrm{clip}\!\big(\mathrm{softmax}_2(a_{\mathrm{inv}}\langle\hat\Omega\hat I\rangle_+,\;
-a_{\mathrm{visc}}\langle\hat\Omega\hat Z\rangle_+),\,0,\,a_{\mathrm{inv}}\big)$,
-$\mathrm{softmax}_2(x,y)\!=\!\sqrt{x^2+y^2}$.
-Gate
-$Re_\Omega^{\mathrm c}=\mathrm{softmin}\!\big(A+B/P_I^2,\;A+B_c/P_{\mathrm{curv}}^2\big)$,
-$P_I=\langle\hat\Omega\hat I\rangle_+$, $P_{\mathrm{curv}}=\langle\hat\Omega\hat Z\rangle_+$,
-$\hat Z=-Z/R$, $\langle x\rangle_+=\max(x,0)$. Constants: $a_{\mathrm{inv}}\!=\!0.19$, $a_{\mathrm{visc}}\!=\!0.0276$,
-$A\!=\!124.6$, $B\!=\!1.424$, $B_c\!=\!130$. (env-gated $AI\_A\_VISC$, $AI\_REOMC\_BC$;
-default $0=$ canon.)
+Analytic spheroid ($x^2/A^2+r^2/B^2=1$, $A=L/2$, $B=L/12$, half-model)
+on a structured O-grid ladder (L0--L2: $0.37$/$2.2$/$12.6$M nodes,
+first wall spacing $1.5\times10^{-6}L$), $M=0.1$,
+$Re_L=7.2\times10^6$, campaign constants and seed unchanged;
+pure Tollmien--Schlichting by Stock's stability analysis, so the
+amplification rate is tested stripped of crossflow.
+Figure~\ref{f:sphfronta0}: at the airfoil campaign's flight-quiet seed
+the $\chi=1$ front lands at $x/L=0.858$ against the measured $0.438$,
+uniform in azimuth as the axisymmetric flow requires.
+Figure~\ref{f:sphthreeway}: the transported $\chi$ tracks the
+Drela--Giles envelope one-for-one to $x/L\approx0.7$, and a perfect
+envelope tracker at this seed's budget commits only at $0.735$---the
+demanded amplification factor is large, the kernel does not
+under-amplify. Figure~\ref{f:sphreseed}: re-seeding to tunnel-class
+disturbance moves the converged front monotonically and crosses the
+measurement at $Tu\approx0.17\%$, no rate or transport constant
+touched. At $Re_L=6.5\times10^6$ and the same $N=8$ the front is
+$0.556$ ($\chi=c_{v1}$ at $0.608$, $C_f$-rise at $0.594$),
+$0.045\,L$ aft of the $7.2\times10^6$ value at that seed; no measured
+zero-incidence front exists at that Reynolds number.
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{newkernel_calibrate.png}
-\caption{Curves: Drela--Giles, old canon (main-paper single-branch), vg.
-Canon low-$H$ collapses: onset $369\times$ DG at $H\!=\!2.216$
-($1098\times$ at $2.285$), rate to ${\sim}0$ (both run off-panel); vg tracks
-DG to $0.6$--$1.0\times$. (a) rate; (b) onset.}
+\includegraphics[width=0.86\textwidth]{spheroid_front_compare_a0.pdf}
+\caption{Zero incidence, $Re_L=7.2\times10^6$, flight-quiet seed
+$\chi_\infty=8.76\times10^{-6}$ ($Tu=0.01\%$, budget
+$N=\ln(1/\chi_\infty)=11.6$). Top: $C_f$-rise fronts on L0/L1/L2
+($k=1.5$, band $k=1.25$--$2$ on L2), model-native $\chi=1$ and
+$\chi=c_{v1}$ fronts, measured DFVLR transition points (Stock
+Fig.~14a), and Stock's computed pure-TS $e^N$ front at his limiting
+$N_\mathrm{TS}=8$. Bottom: $c_f(x/L)$ at $\phi=90^\circ$ on the three
+grids.}\label{f:sphfronta0}
 \end{figure}
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{newkernel_onsetgraze.png}
-\caption{Left $P_I$ (inflectional/adverse family); right $P_{\mathrm{curv}}$
-(low-$H$ family). Curvature-branch graze ratio by $H$: $2.216\!\to\!1.00$,
-$2.30\!\to\!0.76$, $2.40\!\to\!0.55$, $2.50\!\to\!0.29$, $2.59\!\to\!0.15$.
-Drela $Re_{\theta0}$: $6640/3680/1794/664/244$.}
+\includegraphics[width=0.78\textwidth]{spheroid_threeway_N.pdf}
+\caption{Same case, converged: transported near-wall $\chi$ (log, left)
+and, on the matched linear right axis $N=\ln(\chi/\chi_\infty)$, the
+Drela--Giles envelope and the model's frozen-profile rate, all on a
+validated laminar march of the field's own edge velocity. $N=9,7$ mark
+tunnel-class budgets; triangles measured $0.438$ (filled) and Stock's
+$e^N$ front (open).}\label{f:sphthreeway}
 \end{figure}
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{newkernel_transport.png}
-\caption{Rows $(\beta,H,\max\hat\Omega\hat I)$:
-$(-0.10,\,2.80,\,0.162)$, $(0,\,2.59,\,0.078)$, $(+0.10,\,2.48,\,0.037)$,
-$(+0.60,\,2.27,\,6.5\!\times\!10^{-4})$.
-$N\!=\!1/N\!=\!9$ vs DG: $1.14/1.14$; $1.01/1.03$; $0.92/1.02$; $0.81/1.06$.}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{newkernel_sphere_lowH.png}
-\caption{Low-$H$ Falkner--Skan on $\mathbb{RP}^2$. $H\!=\!2.216$ and $2.30$:
-$\max\hat\Omega\hat I=1$--$3\!\times\!10^{-4}$ ($\Delta\!=\!1.6\!\times\!10^{-4}$),
-Drela $Re_{\theta0}$ $6640$ vs $3680$ ($1.81\times$).}
-\end{figure}
-
-In-solver (vg on, env-gated; canon untouched):
-$Re_D\!=\!2\!\times\!10^6$--$2\!\times\!10^7$ vg vs canon
-$\Delta\theta_{tr}\!\le\!2.5^\circ$, $\Delta C_d\!\le\!6\%$;
-$C_d(10^9)\!=\!0.209$ (canon $0.206$), $C_d(10^{10})\!=\!0.199$ (canon $0.189$);
-flat-plate $Re_{x,tr}$ $-7.5\%$ ($Tu\,0.16\%$) / $-9\%$ ($Tu\,0.08\%$);
-Eppler-387 $Re\!=\!2\!\times\!10^5$, $\alpha\!=\!2^\circ$ rooftop unchanged;
-NLF(1)-0416 $Re\!=\!4\!\times\!10^6$, $\alpha\!=\!0^\circ$/$4^\circ$ rooftop
-$x_{tr}$ within $0.003c$ ($\Delta C_L,\Delta C_D\!<\!0.5\%$).
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{newkernel_vg_results.png}
-\caption{vg (low-$H$) vs canon, $Tu=0.2\%$ up-ladder, $Re_D=2\times10^6$--$10^{10}$
-(highre mesh $\le2\times10^7$, ultra $\ge2\times10^7$). (a) $C_d$: both
-$0.19$--$0.22$, vg $+3$--$6\%$; neither reaches the transcritical $0.5$--$0.7$.
-(b) $\theta_{tr}$ ($\chi=1$): front advances $98^\circ\!\to\!2.5^\circ$; vg
-tracks canon within $6^\circ$.}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{newkernel_vg_airfoils.png}
-\caption{Upper-surface $C_f(x/c)$, canon (black) vs vg low-$H$ (gray dashed),
-kernel-only delta (same mesh/config/seed, vg warm-restarted from canon).
-Vertical ticks: transition front (near-wall $\chi\!=\!1$ for NLF, $C_f$-rise for
-Eppler). Curves and fronts overlap: NLF(1)-0416 $Re\!=\!4\times10^6$
-$\alpha\!=\!0^\circ$ $x_{tr}\!=\!0.395$ (both), $\alpha\!=\!4^\circ$
-$0.265\!\to\!0.262$; Eppler 387 $Re\!=\!2\times10^5$ $\alpha\!=\!2^\circ$
-$0.580$ (both). The low-$H$ branch does not trip the favorable rooftop.}
+\includegraphics[width=0.78\textwidth]{spheroid_reseed_front_vs_seed.pdf}
+\caption{Same case, three-seed converged bracket $Tu=0.05$--$0.21\%$:
+$\chi=1$ front (filled) $0.628$/$0.511$/$0.400$ and $C_f$-rise front
+(open) against the freestream budget $N$, on the seed-lever prediction
+(envelope and transported-rate curves). Stock's documented DFVLR level
+$N_\mathrm{TS}=8$ ($Tu=0.106\%$) lands at
+$0.511$.}\label{f:sphreseed}
 \end{figure}
 
 \end{document}

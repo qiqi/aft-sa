@@ -412,8 +412,8 @@ def spheroid_totals():
                 cells.append(f"{fmt(e['CL'])} & {fmt(e['CD'], 5)}")
             else:
                 cells.append('-- & --')
-        # staged conditions keep their dash row: the caption's
-        # 'dashes = in progress' must describe visible rows
+        # every condition of SPH_COND now harvests complete; the '--'
+        # fallback above stays for a condition staged but not yet run
         rows.append(' & '.join(cells))
     write('tab_spheroid_totals.tex',
           r'$Re_L$ & $\alpha$ & \multicolumn{2}{c}{L0} &'
@@ -422,7 +422,9 @@ def spheroid_totals():
           rows,
           r'6:1 prolate spheroid totals (half-model, reference area = '
           r'frontal): SA-AI at every DFVLR-measured condition on the '
-          r'L0--L2 O-grid ladder. Dashes: runs in progress.',
+          r'L0--L2 O-grid ladder, every entry the median of the last '
+          r'fifth of a common fixed cold-start budget '
+          r'($20\,000$ iterations).',
           'tab:sphtotals', 'll cc cc cc')
 
 

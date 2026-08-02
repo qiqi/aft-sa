@@ -1,0 +1,152 @@
+{
+ "case_ogrid_L0_saai_a10": {
+  "CL": 0.2054,
+  "CD": 0.08172,
+  "alpha": 10.0,
+  "Re": 1500000.0,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L0_saai_a29p7": {
+  "CL": 1.1329,
+  "CD": 0.59527,
+  "alpha": 29.7,
+  "Re": 1500000.0,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L0_saai_a5": {
+  "CL": 0.0946,
+  "CD": 0.05412,
+  "alpha": 5.0,
+  "Re": 1500000.0,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L0_saai_re72a0": {
+  "CL": 0.0062,
+  "CD": 0.01496,
+  "alpha": 0.0,
+  "Re": 7200000.0,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L1_saai_a10": {
+  "CL": 0.2081,
+  "CD": 0.08526,
+  "alpha": 10.0,
+  "Re": 1500000.0,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L1_saai_a29p7": {
+  "CL": 0.9256,
+  "CD": 0.52169,
+  "alpha": 29.7,
+  "Re": 1500000.0,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L1_saai_a5": {
+  "CL": 0.0874,
+  "CD": 0.05381,
+  "alpha": 5.0,
+  "Re": 1500000.0,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L1_saai_re72a0": {
+  "CL": 0.0,
+  "CD": 0.01689,
+  "alpha": 0.0,
+  "Re": 7200000.0,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L2_saai_a10": {
+  "CL": 0.1861,
+  "CD": 0.08175,
+  "alpha": 10.0,
+  "Re": 1500000.0,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L2_saai_a29p7": {
+  "CL": 1.2087,
+  "CD": 0.66027,
+  "alpha": 29.7,
+  "Re": 1500000.0,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L2_saai_a5": {
+  "CL": 0.0816,
+  "CD": 0.05736,
+  "alpha": 5.0,
+  "Re": 1500000.0,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L2_saai_re72a0": {
+  "CL": 0.0,
+  "CD": 0.02113,
+  "alpha": 0.0,
+  "Re": 7200000.0,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L2_saai_re65a10": {
+  "CL": 0.1094,
+  "CD": 0.05145,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L0_saai_re65a10": {
+  "CL": 0.086,
+  "CD": 0.04136,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L0_saai_re65a5": {
+  "CL": 0.0629,
+  "CD": 0.03187,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L0_saai_re72a2p5": {
+  "CL": 0.0304,
+  "CD": 0.01892,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L1_saai_re65a10": {
+  "CL": 0.124,
+  "CD": 0.04941,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L1_saai_re65a5": {
+  "CL": 0.0533,
+  "CD": 0.03271,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L1_saai_re72a2p5": {
+  "CL": 0.0302,
+  "CD": 0.02386,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L2_saai_re65a5": {
+  "CL": 0.0463,
+  "CD": 0.03498,
+  "rows": 2001,
+  "complete": true
+ },
+ "case_ogrid_L2_saai_re72a2p5": {
+  "CL": 0.0289,
+  "CD": 0.02714,
+  "rows": 2001,
+  "complete": true
+ }
+}

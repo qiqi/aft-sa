@@ -1,20 +1,52 @@
-# Handover: SA-AI paper revision (2026-07-27)
+# Handover: SA-AI paper revision (2026-07-27; pruned 2026-08-01)
 
 For the agent taking over the paper revision. The previous agent keeps
 ONLY the long-running CFD (see "What stays with the CFD agent") and
 will deposit harvested result JSONs; everything else here is yours,
 including responding to `agent-paper-review/`.
 
+**Pruned 2026-08-01.** Three original open-work sections are DONE and
+were removed: the Daedalus cavity-L2 harvest (`tab:daetotals` filled,
+no dashes; the dagger/held/bypass-inactive disclosures are gone — the
+two surviving `\ddagger` are the legitimate Re=6e4 XFOIL-reference
+footnote), the OpenFOAM Eppler L2 decision (`tables/tab_openfoam_eppler`
+is `\input` in the paper at L0-L2 with the bypass-omission scoping
+stated), and the Sec-VIII bistability critical-Re re-emit (the paper now
+prints the bisected `Re_r = 4.66`--`4.74e5`, not the known-wrong
+`2.78`--`2.89e5`). `git log -p -- HANDOVER-paper-revision.md` has the
+original text.
+
+**Newer standing context this file does not cover** — read alongside it:
+
+- `paper/expert_feedback.md` — Drela's 2026-07-29 meeting: the standing
+  expert guidance and its open items (the handover-χ level, the high-H
+  Orr--Sommerfeld basis, the lofted-χ bubble failure). Newest entries at
+  the bottom.
+- `paper/notes_nu_t_mapping_bubble_closure.md` (2026-07-30) — the live
+  modeling frontier: physically grounded ν̃→ν_t maps for LSB closure,
+  with a recommended attack order.
+- `RESPONSES.md` (tail) — chronology since 2026-07-27: the drag-crisis
+  migration to the systematic Tu=0.2% up-ladder (now Sec VII), the
+  env-gated `vg` two-branch kernel campaign, the whitepaper strip.
+- `paper/weakness-review.md` was RETIRED 2026-08-01: every catalogued
+  item was closed, and its constants header still described the
+  pre-sphere v2 kernel (c_ν,ai=1/12, K_λ, K_r, λ_p, gate mode 4), so it
+  had become a trap. Its per-item ledger (O1-O37) survives only in the
+  sphere-kernel WIP squash — recover with
+  `git show 8ebed56:paper/weakness-review.md`. Next weakness catalog, if
+  one is wanted, starts fresh against the sphere kernel at O38.
+
 ## What this is
 
 `paper/sa-ai.tex` — AIAA Journal submission for the SA-AI one-equation
-transition model (repo branch `paper-composite-snapshot`, solver repo
-`~/flexcompute/compute` branch `explore-lambda-v`, canon commit
-05d05a123b = fv1 bypass). 116 pp, builds clean (pdflatex x2 + bibtex:
-0 errors, 0 undefined). Read `ONBOARDING.md` first if you haven't.
-Fifty review passes have run; every number surviving in the tex has
-been independently verified at least once — treat that as an asset you
-must not squander.
+transition model (repo branch `sphere-kernel`, solver repo
+`~/flexcompute/compute` branch `explore-lambda-v`; canon = sphere kernel
++ fv1 bypass, latest solver commit 29726cb5f9, which adds the
+default-OFF `vg` two-branch kernel). ~126 pp, builds clean (pdflatex x2
++ bibtex: 0 errors, 0 undefined). Read `ONBOARDING.md` first if you
+haven't. Fifty review passes have run; every number surviving in the tex
+has been independently verified at least once — treat that as an asset
+you must not squander.
 
 ## Hard rules (each one earned the hard way)
 
@@ -64,17 +96,23 @@ respond with `<same-stem>-response.md` in the same directory. Verify
 before adopting: both threads are excellent but each has had refuted
 items (see 0102 item 3's history, pass-45 corrections). Restart the
 folder watch (the previous agent's monitor is stopped):
-`ls agent-paper-review/*.md` newest-first; everything through
-2026-07-27-1440 is answered.
+`ls agent-paper-review/*.md` newest-first.
 
-## Current paper state (HEAD ~ the Fig-5 digitization commit)
+Status of the folder as of 2026-08-01: reviewer-pass responses run
+through `2026-07-27-1440`. Everything deposited since (all the
+2026-07-28 and 2026-07-29 files) is an **implementation / campaign /
+digitization record**, not an ask awaiting a response — those were
+folded into `RESPONSES.md`. Don't mistake the missing `-response.md`
+files for a backlog.
+
+## Current paper state
 
 - Structure: I intro / II model / III flat plate / IV NLF / V Eppler /
-  VI Eppler Re-sweep / VII attachment-anchored turbulent branch
-  (sec:bistability, promoted from appendix today, user decision) /
-  VIII Daedalus / IX spheroid (sec:spheroid) / conclusion (with the
-  drag-crisis outlook paragraph) / Appendices A-H (H = spheroid
-  station waterfalls).
+  VI Eppler Re-sweep / VII cylinder drag crisis (sec:dragcrisis, added
+  after this handover was written) / VIII attachment-anchored turbulent
+  branch (sec:bistability) / IX Daedalus / X spheroid (sec:spheroid) /
+  conclusion (with the drag-crisis outlook paragraph) / Appendices A-H
+  (H = spheroid pressure stations + supplementary maps).
 - All pass-46..50 verified fixes are in; conventions single-homed
   (five-row layout + line conventions + x u_e^2: Sec IV; e^N
   substitution rule + cross-check: Sec IV; digitized-reference
@@ -82,95 +120,67 @@ folder watch (the previous agent's monitor is stopped):
 
 ## OPEN WORK — ordered by what unblocks what
 
-### A. Cavity-L2 harvest (data arrives ~17:40 today; tex work = YOURS)
-
-The Daedalus cavity-L2 fv1 recomputation chain (a4 done: CL 1.0217/
-CD 0.01979; a5 done: 1.1223/0.02234; a6 running) completes today. The
-CFD agent will harvest into `flow360_fv1/daedalus_fv1_results.json`
-and build the chi caches, then note completion in RESPONSES.md. Then:
-1. Fill the `tab:daetotals` dashes; remove daggers from daepolar /
-   daesurf4/5/6 / section-sheet captions; close the Sec VII(now VIII)
-   held-solutions sentences and the II.F "Status of the results"
-   disclosure (the bypass/held/dagger disclosure D1 then evaporates —
-   grep `dagger`, `held`, `bypass-inactive`).
-2. Regenerate Daedalus figures ONLY after the chi caches exist
-   (rule 4): `regen_daedalus_polar_sectional.py`,
-   `regen_daedalus_surface_maps.py`, `regen_daedalus_section_sheets.py`
-   (roots: SAAI_DAE_ROOT / D_STR / D_CAV env-and-dict patterns already
-   point at daedalus_fv1 with cavity_L2 exceptions to flip).
-3. Compute the finest-grid two-family claims at the final kernel
-   (currently scoped as "awaits the held recomputation").
-
-### B. Spheroid section overhaul (task #37; USER DIRECTIVES verbatim)
+### A. Spheroid section remainder (task #37; USER DIRECTIVES verbatim)
 
 User: digitize the experimental paper (Stock/spheroid.pdf), overlay on
-the computed waterfalls in Appendix H, move selected conditions into
-the main paper. "Any figure without an experimental comparison on top
-of it belongs to the appendix. We should have as many experimental
-comparisons as possible. And as many comparisons against other
-literature (computation) as possible."
+the computed waterfalls, move selected conditions into the main paper.
+"Any figure without an experimental comparison on top of it belongs to
+the appendix. We should have as many experimental comparisons as
+possible. And as many comparisons against other literature
+(computation) as possible."
 
-State:
-- DONE: Stock Figs 4 (a10) and 5 (a29.7) measured Cft+gamma_w chains
-  digitized -> `data/stock2006_fig4_digitized.json`,
-  `..._fig5_...json` by `repro/cfd/digitize_stock_waterfalls.py`.
-  Chain identity was verified at FULL RESOLUTION with per-station
-  colored overlays; unrecoverable tangle regions are truncated per
-  station (`truncate` dict in the script records every cut; fronts
-  and windward dives all retained). Known gap: fig5 gam x/a=0.766
-  deep dive (85-110 deg) outruns the tracker's slope cap.
-  Source images + check PNGs: /local_data/qiqi/sa-ai/stock_digitize.
-- TODO: Figs 2-3 (Cp waterfalls, p3_img0/p3_img1 of spheroid.pdf,
-  13 stations, dCp=0.42/station offsets — pass-43-verified) — same
-  pipeline, add FIGS entries (tick-detect the calibrations first,
-  same as fig4/fig5; measure, don't assume).
-- TODO: overlay measured symbols on our waterfalls
-  (`repro/cfd/regen_spheroid_station_profiles.py`, CASES dict) and
-  our maps; then split figures main-vs-appendix by the user's rule.
-- Literature-computation overlays: Stock's own e^N fronts are already
-  in the digitized front-compare fig (fig:spheroidfront); his Figs
-  14/16/17 carry measured+computed fronts at the OTHER conditions
-  (6.5e6, 7.2e6) matching our re65/re72 runs — digitize when those
-  runs land. Strongest modern source: the 1st AIAA Transition
-  Modeling & Prediction Workshop spheroid case (Re=6.5e6; Coder
-  summary = the same document our NLF workshop overlays came from;
-  check transitionmodeling.larc.nasa.gov/workshop_i for data files
-  before digitizing slides). The experiment's source-of-record is
-  Kreplin/Vollmers/Meier (DFVLR 1985) — the user was advised to
-  obtain it; it contains stations/conditions Stock never plotted.
-- Sec IX text: currently "in progress" language at three places
-  (pass-46 O2 flagged); rework experiment-first once overlays exist.
+DONE (do not redo): Stock Figs 2-5 digitized
+(`data/stock2006_fig{2,3,4,5}_digitized.json`, by
+`repro/cfd/digitize_stock_waterfalls.py`) plus Figs 14a/14b/15a
+(`digitize_stock_fig14a.py` / `_fig14b.py`, consumed by
+`compare_stock_fronts_a0.py`); the measured chains are overlaid on our
+station waterfalls by `repro/cfd/regen_spheroid_station_profiles.py`;
+the main-vs-appendix split is executed per the user's rule (measured-
+overlay Cf+γ stations and the front comparison in Sec X; Cp waterfalls
+and the un-overlaid maps in Appendix H); the Sec-X "in progress"
+language is gone; Kreplin/Vollmers/Meier is cited (`kreplin_1985`).
 
-### C. OpenFOAM Eppler L2 (lands tomorrow morning)
+DONE 2026-08-01 (this session): Sec X restructured to the user's arc —
+ascending incidence, regime-grouped: X.A zero incidence (pure-TS anchor
++ disturbance environment, both Reynolds numbers) / X.B α=2.5° (the
+azimuthal spread appears) / X.C the mixed TS–crossflow pair at 6.5e6 /
+X.D the laminar-to-separation ladder at 1.5e6. The α=0 front comparison
+`spheroid_front_compare_a0.pdf` (previously committed but unused) is now
+Fig. 24 in the main body; the α=0 maps went to Appendix H (no measured
+overlay, per the user's rule). `tab:sphtotals` dashes are FILLED — see
+below. Verified: 0 errors / 0 undefined, and every number in the old
+section survives in the new one (set-diff check).
 
-When the OF thread reports the Eppler L2 ladder complete:
-1. The CFD agent re-runs `export_airfoil_summary.py` (auto-picks-up
-   filled CSV rows; no-VTK guard skips unsynced cases) and tells you.
-2. YOUR call, per the standing pass-45/48 posture: the Eppler overlay
-   is held because the port omits the fv1 bypass (model content,
-   -5..-10 counts at exactly those conditions). The OF thread's L2
-   data showed the NLF Cd gap collapse was grid resolution; if the
-   Eppler gap collapses similarly at L2, the objection softens — then
-   extend the overlays/table like the NLF ones (L1+L2, chi=1, scoped
-   claims, Cd honesty clause), else keep held with the reason stated.
-   Their `build_airfoil_case.py` uncommitted mods ride with that
-   commit (pass-48 minor 6).
+Still live:
 
-### D. Sec VII (bistability) critical-Re re-emit (CFD agent finishes)
+1. **The `tab:sphtotals` dashes were a bookkeeping gap, now closed.**
+   The three conditions (`7.2e6 α=2.5°`, `6.5e6 α=5°`, `6.5e6 α=10°`)
+   had been run to completion on 2026-07-27 20:40 and harvested at 20:41
+   (`SPHEROID-RESUME-ALL-DONE`); the table was simply never re-emitted.
+   All three are in `sphere_campaign_spheroid_results.json` with
+   `complete=True`, same 20k budget and same median-of-last-fifth
+   convention as the four conditions the table already printed (whose
+   values match it to the last digit). That JSON was missing on 019 —
+   copied from 014 (md5-verified) into `flow360_fv1/` and the table
+   re-emitted. **If a condition ever looks "in progress", check whether
+   the harvest JSON is simply absent locally before assuming no data.**
+2. The remaining spheroid gap is FIGURES, not forces: 6.5e6 α=5°/10°
+   have table rows but no surface/front figures, and 1.5e6 α=5° has
+   none either. Regenerating them needs the case tree, which lives only
+   on **014** (see the data-location note below).
+3. Stock's Figs 14c (α=5°) and 16c (α=29.7°) measured fronts remain
+   undigitized — named in X.D's closing sentence as the pending item.
+   Sources are on 014 at `/local_data/qiqi/sa-ai/stock_digitize`
+   (14a/14b/fig2/fig3 crops present; no 14c/16c crops yet).
+4. Strongest modern computational overlay: the 1st AIAA Transition
+   Modeling & Prediction Workshop spheroid case (Re=6.5e6; Coder summary
+   = the same document our NLF workshop overlays came from). Check
+   transitionmodeling.larc.nasa.gov/workshop_i for **data files** before
+   digitizing slides.
+5. Known digitization gap, left as-is: fig5 `gam` at x/a=0.766, the deep
+   dive over 85-110 deg, outruns the tracker's slope cap.
 
-Pass 50's addendum proved the printed critical bracket
-(Re_r 2.78-2.89e5) is an iteration-cap artifact; true bracket inside
-(537.5, 700] in L. A cap-proof verdict re-bisection is RUNNING
-(runlogs/stag_rebisect.log -> data/stagnation_bistability_rebisect.json).
-The CFD agent will merge it into `data/stagnation_bistability.json`,
-regenerate `figs/stagnation_bistability.pdf`, and update the two
-quoted numbers in sec:bistability (the interval sentence + the caption
-band/"L ~ 530"); if that has NOT happened when you take over, it's
-top priority — the printed number is known-wrong until then. The
-seed-fed opening clause gets STRONGER (NLF Re_r ~ 7e4 vs the higher
-threshold) — check the sentence still reads right.
-
-### E. Pass-46 length plan remainder (task #40)
+### B. Pass-46 length plan remainder (task #40)
 
 Executed: D2-D6, D9-D11, L4, O3, O5, O7(i) + pass-47 corrections.
 Remaining: L1-L3 language sweep (LAST, one section per pass,
@@ -180,35 +190,49 @@ accepted). USER-GATED (decided): keep one PDF for now (no supplemental,
 no O1 sheet curation); Eppler mesh close-ups already dropped; ch.48
 footnote dropped; epigraphs stay.
 
-### F. Small open threads
+### C. Small open threads
 
 - Conclusion K-gate sentence + drag-crisis outlook: settled and
   verified (pass 50); the K-gate model revision itself
   (1250/1315/pass-49 memos) is FOLLOW-ON work, not this paper.
-- zheng_lei_2016 bib: volume added; three pre-existing bibtex
-  empty-pages warnings (vaningen_2008, medida_baeder_2011,
-  cakmakcioglu_2020) — fill when convenient.
+- Three pre-existing bibtex empty-pages warnings (vaningen_2008,
+  medida_baeder_2011, cakmakcioglu_2020) — fill when convenient.
+  (zheng_lei_2016's volume is already added.)
 - Pass-50 minor 4: if you tighten the verdict criterion further,
   update "steady to the solver's tolerance".
 
 ## Pending user decisions (ask before acting)
 
-- Whether the spheroid main/appendix split (B) needs sign-off per
-  figure once the overlays exist (the rule is decided; taste isn't).
+- The spheroid main/appendix split has now been executed under the
+  user's stated rule; per-figure sign-off was reserved to the user (the
+  rule is decided, taste isn't). Walk them through the split as it
+  stands rather than re-deriving it.
 - Companion-paper flag list (near-pole surrogate work) still owed to
   the user — unrelated to this paper but recorded in memory.
 
+## Where the data actually lives (checked 2026-08-01)
+
+The earlier "spheroid campaign resumption when GPUs free" framing was
+wrong: the runs are DONE, and GPU contention was never the blocker.
+What matters is which machine you are on.
+
+- **014-v100-dev** — the spheroid/Daedalus machine. Repo root
+  `~/flexcompute/sa-ai` (note: no `src/` level), `/local_data/qiqi/sa-ai`
+  holds spheroid_fv1 42 G (32 cases: the full condition matrix, the α=0
+  reseed bracket, full-body and unstructured controls), spheroid_meshes
+  4.6 G, daedalus 54 G + daedalus_fv1 13 G, dragcrisis_matrix 25 G,
+  flow360_fv1 32 G, stock_digitize. 351 G free. **The paper is built
+  here** — `CJKutf8.sty` (the Daodejing epigraphs) exists only in 014's
+  `~/texmf`, so pdflatex cannot complete on 019.
+- **017-v100-dev** — `spheroid_fv1_reseed` 9.6 G (the five reseed cases)
+  + the re65 L1 mesh. 402 G free.
+- **019-v100-dev** — repo + committed figures/JSONs only. All case-tree
+  symlinks are DANGLING (`/local_data/qiqi/sa-ai` down to 228 MB;
+  `daedalus_fv1` dangling too) and the root filesystem is 99% full.
+  Do not expect to regenerate any CFD figure here.
+
 ## What stays with the CFD agent (do NOT duplicate)
 
-- Cavity-L2 a6 completion + result harvest + chi caches (monitor
-  bkjc7up4h).
-- The stagnation re-bisection run + JSON/figure re-emit + the two tex
-  numbers in D above (they will notify via RESPONSES.md when done —
-  coordinate so you don't both edit sec:bistability).
-- Spheroid campaign resumption when GPUs free (re65a10-L2 +
-  re72a2p5), harvest into sphere_campaign_spheroid_results.json +
-  tab:sphtotals dash-filling data.
-- OpenFOAM Eppler L2 exporter re-run (C.1).
 - Task #31 (solver-source rename) — compute-repo work.
 
 ## Verification ritual before every commit
