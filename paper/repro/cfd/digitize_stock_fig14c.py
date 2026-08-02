@@ -499,8 +499,7 @@ def run(cfg):
     res = dict(
         source=f'Stock, AIAA J 44(1) 2006, Fig. {cfg["fig"]} '
                f'(DOI 10.2514/1.16026); alpha={cfg["alpha"]} deg; MEASURED '
-               f'transition locations only (DFVLR 3x3 m tunnel hot films, '
-               f'Kreplin et al., Stock Ref. 49): open squares '
+               f'transition locations only ({cfg.get("facility", "DFVLR 3x3 m tunnel hot films, Kreplin et al., Stock Ref. 49")}): open squares '
                f'Re_L={cfg["re_sq"]:.3g}, open circles Re_L={cfg["re_ci"]:.3g} '
                f'(both printed in the panel legend); digitized {today} from '
                f'spheroid.pdf page {cfg["page"]+1} image {cfg["image"]} '
@@ -534,6 +533,7 @@ def run(cfg):
         '_squares'] = sq
     res[f'measured_re{("%.2f" % (cfg["re_ci"]/1e6)).replace(".", "p")}e6'
         '_circles'] = ci
+    res.update(cfg.get('extra', {}))   # caller-supplied extra blocks
     res['not_digitized'] = (
         'Stock\'s COMPUTED curves in this panel (streamlines; free '
         'vortex-layer separation, short dashes; TS waves; TS+CF waves, '
@@ -543,7 +543,12 @@ def run(cfg):
         'with the confidence this pipeline requires. Fig. 15a\'s '
         'stock_computed_separation_line has no counterpart here.')
     dst = os.path.join(PAPER, 'data', f'stock2006_{cfg["key"]}_digitized.json')
-    json.dump(res, open(dst, 'w'), indent=1)
+    if cfg.get('no_write'):
+        # panel run used only as an input to another dataset's cross-check
+        # (digitize_stock_fig17a.py re-reads Fig. 15a this way); no file.
+        dst = '(not written: cfg["no_write"])'
+    else:
+        json.dump(res, open(dst, 'w'), indent=1)
     print(f'  squares: {len(sq)}, circles: {len(ci)}')
     if sq:
         print(f'  square x/L range {min(p["xL"] for p in sq):.4f}-'

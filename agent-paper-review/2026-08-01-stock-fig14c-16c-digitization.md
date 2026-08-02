@@ -313,3 +313,280 @@ Two things that are **source coverage limits, not truncations**:
   grid rows scatter +-2.6 px in opposite directions. I kept the frame-row
   convention of `digitize_stock_fig14a/b.py` for cross-figure consistency and
   folded the discrepancy into the quoted +-0.4-0.5 deg.
+
+---
+
+# ADDENDUM (2026-08-02): Stock Fig. 17a — ONERA F1, alpha = 10 deg — and the 6.56e6 cross-facility question
+
+*Same rules and same machine (019-v100-dev). Nothing on 014/017 touched, no
+`.tex` edited, nothing staged or committed, no point fabricated.*
+
+## A1. Deliverables added
+
+| file | contents |
+|---|---|
+| `paper/data/stock2006_fig17a_digitized.json` | alpha = 10 deg, ONERA F1; 5 squares (Re_L = 6.56e6) + 3 circles (Re_L = 18.32e6), plus a `cross_facility_check` block |
+| `paper/repro/cfd/digitize_stock_fig17a.py` | generator; also re-reads Fig. 15a panel a and derives the verdict |
+
+Check PNGs (same scratchpad dir): `check_fig17a.png`,
+`check_fig17a_glyphs.png`, and — from the Fig. 15a re-read —
+`check_fig15a_panelA.png`, `check_fig15a_panelA_glyphs.png`. All four were
+rendered and read back.
+
+Two small, documented hooks were added to the shared engine
+(`digitize_stock_fig14c.py`): `cfg['extra']` (merge caller blocks into the
+output JSON) and `cfg['no_write']` (a panel run that exists only to feed
+another dataset's cross-check). **Side effect to be aware of:** re-running
+14c/16c after that edit changed their md5s, because the `source` string
+stamps the regeneration date, which had rolled to 2026-08-02. Every
+numeric value in both files is unchanged (verified point by point against
+the tables in the main record above).
+
+## A2. Panel identity (verified, my panel arithmetic checked against the raster)
+
+Fig. 17 = **page 10, image index 0, 2032x3558** (rect x = 42-279 pt), as the
+brief said. Page 10's other image (index 1, 2915x1901, rect y = 554-708 pt) is
+**Fig. 18**, not part of Fig. 17.
+
+Caption, read from the PDF text layer: *"Fig. 17 Comparison of measured[50]
+and computed transition locations for an angle of attack a) alpha = 10 deg,
+b) alpha = 15 deg, and c) alpha = 30 deg"*. Panel a is the top third
+(frame rows 54.6 / 1062.9; panel b 1202.5 / 2213.4; panel c 2337.4 / 3344.8).
+
+Legend of panel a, read from the raster: **"Measured transition / [] Re = 6.56
+x 10^6 / (o) Re = 18.32 x 10^6"** — confirms the brief exactly. Panels b and c
+were also read: 17b has one Re (6.62e6), 17c has three (6.65 / 23.96 /
+43.54e6) with triangles — matching the brief and making the two-Re legend
+decisive for panel a.
+
+## A3. Calibration (in-panel, nothing inherited)
+
+**Fig. 17a**: X px `320.05 / 738.58 / 1161.00 / 1580.15 / 2001.47` ↔
+-1…+1, max residual **1.23 px** (~0.0015 X/a); phi frame rows
+**54.63** (180 deg) / **1062.94** (0 deg), h = 1008.31 px; independent
+interior grid-row check 119.59 and 89.86 deg (nominal 120/90).
+
+**Fig. 15a panel a** (re-read, page 9 image 1, 1970x3538): X px
+`287.51 / 700.27 / 1117.71 / 1531.23 / 1947.35`, max residual **1.48 px**;
+frame rows **56.72 / 1055.66**, h = 998.93; grid-row check 119.14 / 89.61 /
+59.76 / 29.91.
+
+The brief's warning was right and then some: **within the p10 raster the
+five X columns shift right by ~5.4 px per panel** (a 320.05 → b 325.60 →
+c 330.99) at constant panel width (1681.4 / 1680.8 / 1680.5 px) — a
+progressive scan skew down the page. Inheriting any earlier fit would have
+put a ~5 px (0.006 x/L) bias into whichever panel it was borrowed for.
+
+## A4. Extraction — and the template problem specific to this raster
+
+**Panel a contains no isolated data glyph**: all eight touch a streamline or
+one of the computed fronts, and a full connected-component sweep of the
+*entire* p10 raster found no isolated circle in any of its three panels
+(panel b has squares only; panel c's circles are all crossed too). So:
+
+* square template ← cleanest isolated square in **panel c of the same
+  raster** (tight bbox rows 2972-2997, cols 699-725);
+* circle template ← **least-contaminated panel-a circle** (rows 811-838,
+  cols 546-573), which carries ~10 px of streamline ink at its upper right;
+* the legend glyphs are **not** usable: as in Fig. 14a, they are drawn much
+  larger than data glyphs (~44 px vs ~27 px) — measured, not assumed.
+
+Because the circle template is defectively inked, the whole identity +
+localization step was **redone with the pristine circle template of the
+Fig. 15 raster** (`CI_XCHECK`, p9_img1 rows 930-957). Result, asserted in the
+script: **all eight identities reproduce, and the three circle centres move
+by 1.00, 0.00 and 0.00 px** (gate 1.5 px). The reported numbers are from the
+in-raster template.
+
+Detection threshold sits in the usual empty gap: 8 true glyphs score
+0.55-1.00, the best false positive 0.488.
+
+## A5. Results — Fig. 17a (ONERA F1, alpha = 10 deg)
+
+**Re_L = 6.56e6 (squares), 5 points**, in front order:
+
+| phi (deg) | x/L |
+|---|---|
+| 161.64 | 0.3137 |
+| 120.93 | 0.2263 |
+| 77.55 | 0.2269 |
+| 48.81 | 0.3149 |
+| 30.25 | 0.4017 |
+
+**Re_L = 18.32e6 (circles), 3 points**: (145.03, 0.1416), (42.57, 0.1428),
+(9.18, 0.2278).
+
+Shape of the 6.56e6 front: downstream at the leeward plane (x/L 0.314 at
+phi 162), an upstream bulge to x/L 0.226 across the mid-azimuths
+(phi 78-121), then downstream again to x/L 0.402 at phi 30. The 18.32e6
+front is far upstream of it everywhere (x/L 0.14-0.23), as expected.
+
+One glyph (phi 30.25) has a tight shape margin of 7 because the phi = 30
+dashed grid line runs straight through it; its votes were nevertheless
+unanimous, and the ASCII edge profile settles it — the first dark row is
+already 25 px wide with a flat top and straight walls, i.e. a square. No
+hand-resolved identities were needed in this panel (`ambiguous=[]`).
+
+## A6. Truncations — none
+
+8 detected = 8 counted by eye at full resolution before the run (5 squares +
+3 circles). Audits: re-running the NCC with the legend **kept** gives 17 hits,
+9 of them on the legend's own three text rows (y 115-120 / 181-193 /
+268-281) → 8 data glyphs, so nothing is hidden under the legend; the
+four frame lines were scanned for on-frame glyphs and the single flagged
+cluster (X/a = -1 at y 896-913) was zoomed at 4x and is the phi = 30 grid
+line crossing the frame. The Fig. 15a re-read passes the same audits
+(34 hits with legend kept, 21 on legend text rows → 13 data glyphs = 8
+squares + 5 circles, matching the committed file's counts).
+
+Coverage limit, not a truncation: Fig. 17a has no symbol anywhere downstream
+of x/L 0.402 — the entire downstream half of the panel is empty.
+
+## A7. The Fig. 15a re-read, and the standing open item RESOLVED
+
+The engine re-read of Fig. 15a panel a vs the committed
+`stock2006_fig15a_digitized.json`:
+
+* **1.52e6 squares (8 points): the committed pass is vindicated.** All eight
+  agree, |Δx/L| ≤ 0.0017, |Δphi| ≤ 0.88 deg.
+* **6.56e6 circles (5 points): two of the five committed phi values are
+  wrong.**
+
+| committed (phi, x/L) | this re-read | verdict |
+|---|---|---|
+| 153.0, 0.2557 | **164.90, 0.3095** | committed value is **wrong** |
+| 60.2, 0.3089 | 59.13, 0.3071 | agrees (−1.07 deg, −0.0018) |
+| 35.6, 0.3962 | **40.39, 0.3944** | phi wrong by **+4.79 deg** |
+| 27.7, 0.4810 | 29.04, 0.4793 | agrees (+1.34 deg, −0.0017) |
+| 20.1, 0.5646 | 20.21, 0.5643 | agrees (+0.11 deg, −0.0003) |
+
+**The leeward-most circle: I reproduce pass 40 (~0.31 / 165), not the
+committed 0.256 / 153.** The evidence is not a judgment call. The glyph's
+connected extent is rows 127-154 x cols 787-814 of p9_img1 with a rounded
+top (first dark row 14 px wide) and rounded bottom, centre exactly
+(140.5, 800.5) — which is precisely where the engine's overlay fit puts it.
+The committed value maps to (y 206.6, x 711.2) in that raster, **66 rows and
+89 columns away from any glyph**. Independent corroboration: 0.3095 lands on
+the hot-film ring ladder (station 0.3083-0.3095) whereas 0.2557 is off-ladder,
+and it makes the leeward point share a station with the phi = 59.13 circle,
+the same two-azimuths-per-station pattern seen throughout Figs. 14c/16c.
+
+The phi = 35.6 → 40.39 correction is the same kind of error: the committed
+value maps to y 858 while the glyph occupies rows 818-845 (centre 831.5).
+
+So `stock2006_fig15a_digitized.json`'s `note_circles` warning was justified
+and can now be closed **in favour of pass 40**, and a second defect (the
+phi = 35.6 point, outside that file's own ±1.5 deg claim) is newly found.
+**I did not edit that committed file** — the corrected values live in
+`stock2006_fig17a_digitized.json` under
+`cross_facility_check.fig15a_engine_reread_re6p56e6_circles`, with the full
+old-vs-new table under `fig15a_engine_vs_committed_json`. Updating the
+fig15a file is your call.
+
+## A8. VERDICT on the 6.56e6 question: two DIFFERENT measurements
+
+The two sets, both printed as Re = 6.56e6 at alpha = 10 deg:
+
+| | Fig. 15a (Goettingen, Ref. 49, circles) | Fig. 17a (ONERA F1, Ref. 50, squares) |
+|---|---|---|
+| points | 5 | 5 |
+| phi sampled | 164.9, 59.1, 40.4, 29.0, 20.2 | 161.6, 120.9, 77.6, 48.8, 30.2 |
+| x/L range | 0.307 – 0.564 | 0.226 – 0.402 |
+
+Discrimination budget, set by the coarser side — except that the coarser side
+is no longer fig15a's ±0.005, because I re-read it with the same engine, so
+both sides carry ±0.0025 x/L / ±0.4 deg → combined 1σ **0.0035 x/L** and
+**0.57 deg**. A cross-*figure* systematic is then added (see A9): **0.006
+x/L**. Decision thresholds: 3σ + systematic = **0.0165 x/L** and **1.71 deg**.
+
+Two independent tests, both failed by a wide margin:
+
+1. **Azimuth coverage.** 4 of the 5 Fig. 15a azimuths (20.21, 40.39, 59.13,
+   164.90) have **no** Fig. 17a counterpart within 1.71 deg. Conversely
+   Fig. 17a has two points at phi 120.9 and 77.6 where Fig. 15a samples
+   nothing at all between phi 59 and 165. Replotted points cannot appear and
+   disappear.
+2. **x/L at the one well-matched azimuth.** At phi ≈ 30 (Δphi 1.21 deg):
+   Fig. 17a x/L 0.4017 vs Fig. 15a 0.4793, **Δ = −0.0776**, i.e. 4.7x the
+   decision threshold and 22σ. The only other near-pair, phi ≈ 163
+   (Δphi 3.26 deg, itself 5.7σ), agrees in x/L (+0.0042, within threshold) but
+   is at a demonstrably different azimuth.
+
+The front *shapes* differ too: the Goettingen 6.56e6 front is flat at
+x/L ≈ 0.31 from phi 165 down to phi 59 and then sweeps downstream to 0.56 at
+phi 20; the F1 front has an upstream bulge to x/L 0.226 at mid-azimuth. So
+this is **a genuine second measurement at matched nominal Reynolds number in a
+second facility — not Goettingen data replotted.** The test discriminates
+decisively; nothing had to be forced.
+
+Stock's own text supports the reading and explains *why* the overlap exists:
+Sec. II gives Goettingen alpha 0-29.7 deg at Re 1.5e6-8.5e6 and ONERA F1
+alpha 10-30 deg at Re 6.5e6-43.5e6 — 6.56e6 is the bottom of the F1 range and
+inside the Goettingen range — and Sec. III.C says *"The high Reynolds number
+possibilities in the pressurized facility were the main argument for this
+wind-tunnel campaign **aside from comparison purposes**."* The F1 campaign
+deliberately repeated the Goettingen Reynolds number.
+
+## A9. Two findings that came out of the test and matter beyond it
+
+**(i) There is a ~0.005 x/L systematic between the Ref. 49 and Ref. 50
+figures' symbol layers.** The hot-film ring ladder recovered from all three
+Fig. 17 panels sits +0.0045 to +0.0056 x/L from the ladder recovered from
+Figs. 14c/15a/16c (measured: 17a mean +0.0056 over 7 glyphs, 17b +0.0042 over
+7, 17c +0.0045 over 13; the ~0.086 x/L ring pitch is identical). This is
+**not** a different instrumentation layout, because Stock Sec. II states *"The
+prolate spheroid of 2.4-m total length was tested in the DFVLR 3 x 3 Meter Low
+Speed Wind Tunnel Goettingen[49] ... and in the (CERT)/ONERA F1 Wind Tunnel Le
+Fauga-Mauzac Center Toulouse[39,50]"* — **the same 2.4-m model in both
+tunnels**, so the rings are physically the same and the offset has to be a
+plotting/registration difference between the two figures. Consequence for us:
+**any cross-figure x/L comparison in this campaign has a ~0.005 x/L floor**,
+which is why it is folded into the threshold in A8. Within one figure
+(and hence within one facility) the accuracy is the full ±0.0025.
+
+**(ii) Stock has already quantified the disturbance-environment difference
+between the two tunnels — and it runs opposite to the direction the brief
+assumed.** From these very datasets he derives facility-specific limiting N
+factors, stating *"the limiting N factors for wind tunnels are specific
+quantities depending on the flow quality of the considered facility"*:
+
+| facility | N_TS | N_CF |
+|---|---|---|
+| DFVLR 3x3 m Goettingen (Ref. 49, Fig. 11) | **8.0** | **5.5** |
+| CERT/ONERA F1 (Ref. 50, Fig. 13) | **7.0** | **6.0** |
+
+A *lower* limiting N_TS means transition at *less* amplification, i.e. F1 is
+the **less TS-stable** environment in Stock's own calibration (ΔN_TS = −1.0),
+while being slightly **more CF-stable** (ΔN_CF = +0.5). My digitized fronts
+are consistent with that: at phi ≈ 30, close to the windward symmetry plane
+where Stock says pure TS waves dominate, the F1 front is 0.078 x/L
+**upstream** of the Goettingen front. If instead F1's freestream turbulence
+really is <0.1% against Goettingen's 0.33-0.4%, then that Tu ratio does *not*
+carry through to Stock's N_TS limit in the naive direction, and the difference
+must be dominated by something else (acoustic/vibration environment, unit
+Reynolds number — F1 is pressurized, so the same Re comes at much lower speed
+— or surface condition of the shared model).
+
+Caveat I must flag: **this paper quotes no freestream turbulence level for
+either tunnel.** I verified that by full-text search of `spheroid.pdf`. The
+0.33-0.4% / <0.1% figures in the brief must be sourced from the Kreplin,
+Vollmers & Meier reports (Refs. 49 = IB 222-84 A 33 and 50 = IB 222-84 A 34)
+or elsewhere, and should be cited to those, not to Stock. Also note the
+cross-facility front comparison rests on **one** well-matched azimuth at
+**one** Reynolds number, so it supports "consistent with" and not more.
+
+## A10. Still not done / not established
+
+* Stock's computed curves in Fig. 17a are again **not** digitized, for the
+  same reason as in 14c/16c (four dash styles, two Reynolds numbers, ~20
+  streamlines, and the caption's TS-wave style glyph is an inline image that
+  does not extract as text).
+* Whether the +0.005 x/L ladder offset is a Fig.-17-wide symbol-layer shift
+  or something in Stock's Fig. 15 axis drawing **cannot be decided from the
+  raster**; both figures are internally self-consistent. I treat it as an
+  irreducible cross-figure systematic.
+* Fig. 17b (alpha = 15, Re 6.62e6) and 17c (alpha = 30, three Re) were
+  detected only for the station-ladder audit in A9 — those numbers are *not*
+  a validated dataset (no identity votes, no glyph-by-glyph visual pass, and
+  17c's triangles were not modelled at all, so the 13 "square-template hits"
+  there certainly mix triangles in). Do not use them as data.
