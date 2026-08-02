@@ -1,0 +1,38 @@
+## F1, Alpha= 30 deg., Re= 40 Mio.
+# Mean velocities in flow field
+#
+# Nomenclature:
+# DPN       data point number
+# x0/2a     x-location of plane of measurement
+# phi       circumferential angle (in degrees)
+# h         distance from model surface (in m)
+# V0        free stream (reference) velocity
+# U,V,W     velocity components in model coordinates
+#           U in direction of main axis
+#           V normal to U and W
+#           W normal to main axis in vertical plane
+#
+## DPN 1171   Plane 2  x0/2a= 0.527    Ray 2   phi= 180
+# h      U/V0    V/V0    W/V0
+0.0146  0.962   0.030  -0.038
+0.0255  0.955   0.032  -0.065
+0.0352  0.954   0.031  -0.082
+0.0407  0.952   0.027  -0.086
+0.0515  0.945   0.021  -0.084
+0.0614  0.932   0.013  -0.066
+0.0727  0.921   0.003  -0.042
+0.0821  0.918  -0.007  -0.016
+0.0931  0.912  -0.008   0.036
+0.1039  0.910  -0.009   0.083
+0.1095  0.910  -0.011   0.103
+0.1186  0.909  -0.013   0.137
+0.1297  0.907  -0.012   0.179
+0.1398  0.900  -0.016   0.218
+0.1618  0.876  -0.026   0.273
+0.1811  0.854  -0.028   0.315
+0.2012  0.839  -0.028   0.350
+0.2214  0.830  -0.027   0.375
+0.2421  0.824  -0.027   0.395
+0.2587  0.819  -0.027   0.408
+0.2824  0.814  -0.027   0.424
+0.3030  0.807  -0.027   0.437
