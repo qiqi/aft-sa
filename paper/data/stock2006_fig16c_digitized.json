@@ -1,0 +1,220 @@
+{
+ "source": "Stock, AIAA J 44(1) 2006, Fig. 16c (DOI 10.2514/1.16026); alpha=29.7 deg; MEASURED transition locations only (DFVLR 3x3 m tunnel hot films, Kreplin et al., Stock Ref. 49): open squares Re_L=1.53e+06, open circles Re_L=6.54e+06 (both printed in the panel legend); digitized 2026-08-01 from spheroid.pdf page 9 image 0 (p9_img0_1974x3476.png), panel c (bottom), by repro/cfd/digitize_stock_fig16c.py -- NCC template match + binary glyph overlay refit, tick-detected calibration; see script docstring",
+ "caption": "Stock Fig. 16 caption: \"Comparison of measured[49] and computed transition locations for angle of attack a) alpha = 24 deg, b) alpha = 29.5 deg, and c) alpha = 29.7 deg\"; panel-c legend reads \"Measured transition / [] Re = 1.53 x 10^6 / (o) Re = 6.54 x 10^6\"",
+ "regime": "Sec. III.C: \"The transition prediction for alpha = 29.7 deg and two Reynolds numbers (Fig. 16c) is of similar quality. For the small Reynolds number, transition is provoked completely by separation.\" (i.e. the Re = 1.53e6 measured chain is the laminar-to-separation front); at the high Re transition is CF-wave triggered except close to the symmetry planes",
+ "convention": "phi=0 windward symmetry line (STOCK convention; the campaign mesh convention is phi=0 leeward -- mirror phi -> 180-phi when overlaying); x/L=(X/a+1)/2 from nose",
+ "accuracy": "+-2 px ~ +-0.0025 x/L and +-0.4 deg; glyph centres are template-overlay fits, not eyeballed; every point is circled in check_fig16c.png and shown zoomed in check_fig16c_glyphs.png",
+ "calibration": {
+  "x_pix": [
+   311.5,
+   720.01,
+   1133.22,
+   1541.64,
+   1951.7
+  ],
+  "x_val": [
+   -1.0,
+   -0.5,
+   0.0,
+   0.5,
+   1.0
+  ],
+  "y_pix": [
+   2294.68,
+   3278.41
+  ],
+  "y_val": [
+   180.0,
+   0.0
+  ],
+  "detection": "column-coverage half-maximum centroids (X) and the two near-full-width frame rows (phi), both measured inside panel c (bottom); interior dashed phi grid rows reproduce their nominal 30-deg multiples to <1 deg"
+ },
+ "n_squares": 12,
+ "n_circles": 10,
+ "hotfilm_stations_xL": [
+  0.0529,
+  0.1373,
+  0.1376,
+  0.2211,
+  0.2214,
+  0.308,
+  0.3083,
+  0.3948,
+  0.3951,
+  0.4801,
+  0.4804,
+  0.5648,
+  0.5658,
+  0.652,
+  0.6523,
+  0.7373,
+  0.7376,
+  0.8242,
+  0.8245,
+  0.8824,
+  0.8827,
+  0.9354
+ ],
+ "measured_re1p53e6_squares": [
+  {
+   "xL": 0.0529,
+   "Xa": -0.8942,
+   "phi_deg": 143.26,
+   "ncc": 0.693,
+   "shape_margin": 65
+  },
+  {
+   "xL": 0.1376,
+   "Xa": -0.7248,
+   "phi_deg": 122.4,
+   "ncc": 0.585,
+   "shape_margin": 82,
+   "method": "joint two-glyph overlay fit (square and circle drawn overlapping on one hot-film station)"
+  },
+  {
+   "xL": 0.2211,
+   "Xa": -0.5578,
+   "phi_deg": 120.93,
+   "ncc": 0.64,
+   "shape_margin": 32
+  },
+  {
+   "xL": 0.3948,
+   "Xa": -0.2104,
+   "phi_deg": 112.52,
+   "ncc": 1.0,
+   "shape_margin": 171
+  },
+  {
+   "xL": 0.3083,
+   "Xa": -0.3835,
+   "phi_deg": 111.97,
+   "ncc": 0.671,
+   "shape_margin": 78
+  },
+  {
+   "xL": 0.4801,
+   "Xa": -0.0398,
+   "phi_deg": 105.93,
+   "ncc": 0.742,
+   "shape_margin": 54
+  },
+  {
+   "xL": 0.5648,
+   "Xa": 0.1297,
+   "phi_deg": 99.34,
+   "ncc": 0.761,
+   "shape_margin": 57
+  },
+  {
+   "xL": 0.652,
+   "Xa": 0.304,
+   "phi_deg": 93.12,
+   "ncc": 0.799,
+   "shape_margin": 96
+  },
+  {
+   "xL": 0.7373,
+   "Xa": 0.4746,
+   "phi_deg": 88.73,
+   "ncc": 0.78,
+   "shape_margin": 47
+  },
+  {
+   "xL": 0.8245,
+   "Xa": 0.6489,
+   "phi_deg": 81.96,
+   "ncc": 0.798,
+   "shape_margin": 51
+  },
+  {
+   "xL": 0.8824,
+   "Xa": 0.7647,
+   "phi_deg": 72.99,
+   "ncc": 0.686,
+   "shape_margin": 87
+  },
+  {
+   "xL": 0.9354,
+   "Xa": 0.8708,
+   "phi_deg": 67.32,
+   "ncc": 0.638,
+   "shape_margin": 85
+  }
+ ],
+ "measured_re6p54e6_circles": [
+  {
+   "xL": 0.1373,
+   "Xa": -0.7254,
+   "phi_deg": 126.42,
+   "ncc": 0.665,
+   "shape_margin": 82,
+   "method": "joint two-glyph overlay fit (square and circle drawn overlapping on one hot-film station)"
+  },
+  {
+   "xL": 0.2214,
+   "Xa": -0.5572,
+   "phi_deg": 91.84,
+   "ncc": 0.722,
+   "shape_margin": 67
+  },
+  {
+   "xL": 0.308,
+   "Xa": -0.3841,
+   "phi_deg": 63.66,
+   "ncc": 0.707,
+   "shape_margin": 23
+  },
+  {
+   "xL": 0.3951,
+   "Xa": -0.2098,
+   "phi_deg": 57.99,
+   "ncc": 0.697,
+   "shape_margin": -3,
+   "method": "NCC detection + overlay refit; identity votes ('sq', 'sq', 'ci') split, resolved by hand: the bottom edge tapers 26->23->17->15->11->10 px over rows 2969-2976, the rounded-bottom circle signature (a square bottom edge keeps full width for ~5 rows and then stops); the inked top corners come from the phi=60 dashed grid line, a full-width dark band at rows 2949-2955 that crosses the glyph and is what flips the corner-ink and XOR votes; reading it as a circle also completes the Re=6.54e6 chain, which then occupies every hot-film station from x/L=0.222 to x/L=0.883 with no gap"
+  },
+  {
+   "xL": 0.4804,
+   "Xa": -0.0391,
+   "phi_deg": 52.32,
+   "ncc": 0.895,
+   "shape_margin": 87
+  },
+  {
+   "xL": 0.8827,
+   "Xa": 0.7653,
+   "phi_deg": 52.32,
+   "ncc": 0.87,
+   "shape_margin": 85
+  },
+  {
+   "xL": 0.8242,
+   "Xa": 0.6483,
+   "phi_deg": 51.58,
+   "ncc": 0.849,
+   "shape_margin": 89
+  },
+  {
+   "xL": 0.5658,
+   "Xa": 0.1315,
+   "phi_deg": 49.94,
+   "ncc": 0.713,
+   "shape_margin": 47
+  },
+  {
+   "xL": 0.6523,
+   "Xa": 0.3046,
+   "phi_deg": 47.38,
+   "ncc": 0.611,
+   "shape_margin": 33
+  },
+  {
+   "xL": 0.7376,
+   "Xa": 0.4752,
+   "phi_deg": 44.81,
+   "ncc": 1.0,
+   "shape_margin": 165
+  }
+ ],
+ "not_digitized": "Stock's COMPUTED curves in this panel (streamlines; free vortex-layer separation, short dashes; TS waves; TS+CF waves, mid dashes) are deliberately NOT extracted: with two Reynolds numbers and four dash styles overlaid on ~20 streamlines, the style->curve assignment could not be established from the raster with the confidence this pipeline requires. Fig. 15a's stock_computed_separation_line has no counterpart here."
+}

@@ -1,0 +1,140 @@
+{
+ "source": "Stock, AIAA J 44(1) 2006, Fig. 14c (DOI 10.2514/1.16026); alpha=5.0 deg; MEASURED transition locations only (DFVLR 3x3 m tunnel hot films, Kreplin et al., Stock Ref. 49): open squares Re_L=1.52e+06, open circles Re_L=6.49e+06 (both printed in the panel legend); digitized 2026-08-01 from spheroid.pdf page 8 image 1 (p8_img1_2027x3630.png), panel c (bottom), by repro/cfd/digitize_stock_fig14c.py -- NCC template match + binary glyph overlay refit, tick-detected calibration; see script docstring",
+ "caption": "Stock Fig. 14 caption: \"Comparison of measured[49] and computed transition locations for angle of attack: a) alpha = 0 deg, b) alpha = 2.5 deg, and c) alpha = 5 deg\"; panel-c legend reads \"Measured transition / [] Re = 1.52 x 10^6 / (o) Re = 6.49 x 10^6\"",
+ "regime": "Sec. III.C: at Re = 1.52e6 the flow is predicted to remain laminar up to separation except near streamline 12 (TS waves), and \"the measured transition line shows a fairly similar behavior\"; at Re = 6.49e6 transition is TS near both symmetry planes and TS+CF in between",
+ "convention": "phi=0 windward symmetry line (STOCK convention; the campaign mesh convention is phi=0 leeward -- mirror phi -> 180-phi when overlaying); x/L=(X/a+1)/2 from nose",
+ "accuracy": "+-2 px ~ +-0.0025 x/L and +-0.4 deg; glyph centres are template-overlay fits, not eyeballed; every point is circled in check_fig14c.png and shown zoomed in check_fig14c_glyphs.png",
+ "calibration": {
+  "x_pix": [
+   304.99,
+   728.28,
+   1155.57,
+   1579.37,
+   2003.72
+  ],
+  "x_val": [
+   -1.0,
+   -0.5,
+   0.0,
+   0.5,
+   1.0
+  ],
+  "y_pix": [
+   2369.01,
+   3384.92
+  ],
+  "y_val": [
+   180.0,
+   0.0
+  ],
+  "detection": "column-coverage half-maximum centroids (X) and the two near-full-width frame rows (phi), both measured inside panel c (bottom); interior dashed phi grid rows reproduce their nominal 30-deg multiples to <1 deg"
+ },
+ "n_squares": 8,
+ "n_circles": 4,
+ "hotfilm_stations_xL": [
+  0.4798,
+  0.4815,
+  0.5651,
+  0.5669,
+  0.7372,
+  0.8237,
+  0.8243,
+  0.882,
+  0.8831,
+  0.9349,
+  0.9361
+ ],
+ "measured_re1p52e6_squares": [
+  {
+   "xL": 0.9349,
+   "Xa": 0.8698,
+   "phi_deg": 160.78,
+   "ncc": 0.602,
+   "shape_margin": 51,
+   "method": "NCC detection + overlay refit; identity votes ('sq', 'sq', 'ci') split, resolved by hand: all four bbox corner blocks inked (0.88/0.60/1.00/0.60) and sharp corners at 5x zoom; the differential-mask vote is spoiled by the two streamlines grazing the glyph top-left; its station x/L=0.935 is shared with the square at phi=50.9, while every Re=6.49e6 circle in this panel sits at x/L 0.48-0.57"
+  },
+  {
+   "xL": 0.882,
+   "Xa": 0.7639,
+   "phi_deg": 155.99,
+   "ncc": 0.683,
+   "shape_margin": 61
+  },
+  {
+   "xL": 0.8237,
+   "Xa": 0.6474,
+   "phi_deg": 150.5,
+   "ncc": 0.725,
+   "shape_margin": 110
+  },
+  {
+   "xL": 0.7372,
+   "Xa": 0.4744,
+   "phi_deg": 145.36,
+   "ncc": 0.744,
+   "shape_margin": 73
+  },
+  {
+   "xL": 0.7372,
+   "Xa": 0.4744,
+   "phi_deg": 125.34,
+   "ncc": 0.693,
+   "shape_margin": -4,
+   "method": "NCC detection + overlay refit; identity votes ('ci', 'sq', 'ci') split, resolved by hand: straight left/right walls, flat top and bottom edges, four inked corners at 5x zoom; the XOR totals nearly tie (sq 175 / ci 171) and the differential-mask vote ties at 0.00 because the X/a=+0.5 dashed grid column runs down the glyph; same hot-film station (x/L=0.737) as the square at phi=145.4"
+  },
+  {
+   "xL": 0.8243,
+   "Xa": 0.6486,
+   "phi_deg": 100.54,
+   "ncc": 0.783,
+   "shape_margin": 39,
+   "method": "NCC detection + overlay refit; identity votes ('sq', 'sq', 'ci') split, resolved by hand: four inked corners and the clearly lowest square XOR total (126 vs 165); only the differential-mask vote dissents, spoiled by the streamline crossing the glyph interior"
+  },
+  {
+   "xL": 0.8831,
+   "Xa": 0.7663,
+   "phi_deg": 90.08,
+   "ncc": 0.588,
+   "shape_margin": 103
+  },
+  {
+   "xL": 0.9361,
+   "Xa": 0.8722,
+   "phi_deg": 50.93,
+   "ncc": 1.0,
+   "shape_margin": 201
+  }
+ ],
+ "measured_re6p49e6_circles": [
+  {
+   "xL": 0.5651,
+   "Xa": 0.1302,
+   "phi_deg": 159.89,
+   "ncc": 0.581,
+   "shape_margin": 38
+  },
+  {
+   "xL": 0.4798,
+   "Xa": -0.0405,
+   "phi_deg": 142.35,
+   "ncc": 0.805,
+   "shape_margin": 65
+  },
+  {
+   "xL": 0.4815,
+   "Xa": -0.0369,
+   "phi_deg": 36.22,
+   "ncc": 1.0,
+   "shape_margin": 201
+  },
+  {
+   "xL": 0.5669,
+   "Xa": 0.1337,
+   "phi_deg": 10.35,
+   "ncc": 0.69,
+   "shape_margin": -2,
+   "method": "NCC detection + overlay refit; identity votes ('sq', 'ci', 'ci') split, resolved by hand: rounded top AND bottom: the first dark row is 13 px wide and widens to 27 px within 5 rows (rows 3312-3319), the last dark rows taper 26->12 px (rows 3334-3341) -- the circle signature; the two \"inked corners\" are the phi=0 frame line at rows 3338-3339, not glyph ink; station x/L=0.567 is the Re=6.49e6 station also occupied by the circle at phi=159.9"
+  }
+ ],
+ "not_digitized": "Stock's COMPUTED curves in this panel (streamlines; free vortex-layer separation, short dashes; TS waves; TS+CF waves, mid dashes) are deliberately NOT extracted: with two Reynolds numbers and four dash styles overlaid on ~20 streamlines, the style->curve assignment could not be established from the raster with the confidence this pipeline requires. Fig. 15a's stock_computed_separation_line has no counterpart here."
+}
