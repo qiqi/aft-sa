@@ -993,59 +993,33 @@ $Re_\mathrm{root}=5\times10^5$.}\label{f:daesurf}
 \end{figure}
 
 \clearpage
-\subsection{6:1 prolate spheroid at zero incidence}
+\subsection{6:1 prolate spheroid, $\alpha=0$--$10^\circ$}
 
-Analytic spheroid ($x^2/A^2+r^2/B^2=1$, $A=L/2$, $B=L/12$, half-model)
-on a structured O-grid ladder (L0--L2: $0.37$/$2.2$/$12.6$M nodes,
-first wall spacing $1.5\times10^{-6}L$), $M=0.1$,
-$Re_L=7.2\times10^6$, campaign constants and seed unchanged;
-pure Tollmien--Schlichting by Stock's stability analysis, so the
-amplification rate is tested stripped of crossflow.
-Figure~\ref{f:sphfronta0}: at the airfoil campaign's flight-quiet seed
-the $\chi=1$ front lands at $x/L=0.858$ against the measured $0.438$,
-uniform in azimuth as the axisymmetric flow requires.
-Figure~\ref{f:sphthreeway}: the transported $\chi$ tracks the
-Drela--Giles envelope one-for-one to $x/L\approx0.7$, and a perfect
-envelope tracker at this seed's budget commits only at $0.735$---the
-demanded amplification factor is large, the kernel does not
-under-amplify. Figure~\ref{f:sphreseed}: re-seeding to tunnel-class
-disturbance moves the converged front monotonically and crosses the
-measurement at $Tu\approx0.17\%$, no rate or transport constant
-touched. At $Re_L=6.5\times10^6$ and the same $N=8$ the front is
-$0.556$ ($\chi=c_{v1}$ at $0.608$, $C_f$-rise at $0.594$),
-$0.045\,L$ aft of the $7.2\times10^6$ value at that seed; no measured
-zero-incidence front exists at that Reynolds number.
+Analytic spheroid ($x^2/A^2+r^2/B^2=1$, $A=L/2$, $B=L/12$, half-model) on
+the L1 structured O-grid ($2.2$M nodes, first wall spacing
+$1.5\times10^{-6}L$), campaign constants and kernel unchanged, at the
+DFVLR/ONERA measured conditions. Mach is the tunnel's: the Göttingen
+$3\times3$~m tunnel is atmospheric, so $M=1.994\times10^{-8}\,Re_L$
+(calibrated on its two published $(Re_L,U_\infty)$ pairs, $7.70\times10^6$ at
+$55.0$~m/s and $6.54\times10^6$ at $45.0$~m/s, reproduced to $2\%$), i.e.
+$M=0.030$ at $Re_L=1.52\times10^6$ to $0.144$ at $7.2\times10^6$; the
+pressurised ONERA F1 tunnel does not have $M$ fixed by $Re_L$, so its
+condition is run at its Göttingen twin's Mach. $45\,000$ cold-start
+pseudo-steps, seed applied in the freestream and the far-field boundary with
+a cold-start freestream initial condition. Each condition at the
+facility-calibrated seed (limiting $N_\mathrm{TS}=8.0$ Göttingen, $7.0$
+ONERA F1) and at the facility-measured hot-wire level (Göttingen $0.33\%$
+streamwise, ONERA F1 ${<}0.1\%$).
 
-\begin{figure}[H]\centering
-\includegraphics[width=0.86\textwidth]{spheroid_front_compare_a0.pdf}
-\caption{Zero incidence, $Re_L=7.2\times10^6$, flight-quiet seed
-$\chi_\infty=8.76\times10^{-6}$ ($Tu=0.01\%$, budget
-$N=\ln(1/\chi_\infty)=11.6$). Top: $C_f$-rise fronts on L0/L1/L2
-($k=1.5$, band $k=1.25$--$2$ on L2), model-native $\chi=1$ and
-$\chi=c_{v1}$ fronts, measured DFVLR transition points (Stock
-Fig.~14a), and Stock's computed pure-TS $e^N$ front at his limiting
-$N_\mathrm{TS}=8$. Bottom: $c_f(x/L)$ at $\phi=90^\circ$ on the three
-grids.}\label{f:sphfronta0}
-\end{figure}
+Table~\ref{tab:sphtunnel}: computed near-wall $\chi=1$ front minus measured,
+azimuth by azimuth. $\alpha=0$, $Re_L=7.2\times10^6$: $+0.077$ and $-0.097$
+at the calibrated and measured seed, uniform to $\pm0.001$ across seventeen
+azimuths. $\alpha=2.5^\circ$: $+0.016$ leeward, $+0.132$ windward, against a
+measured azimuthal spread of $0.018$. $\alpha=5^\circ$: $-0.088$ to $+0.246$
+at $6.49\times10^6$. $\alpha=10^\circ$: rms $0.027$ at $1.52\times10^6$ and
+the measured seed; at $6.56\times10^6$ the windward residual is $+0.375$ to
+$+0.549$ and moves by $\le0.05$ between seeds a factor $3.4$ apart in $Tu$.
 
-\begin{figure}[H]\centering
-\includegraphics[width=0.78\textwidth]{spheroid_threeway_N.pdf}
-\caption{Same case, converged: transported near-wall $\chi$ (log, left)
-and, on the matched linear right axis $N=\ln(\chi/\chi_\infty)$, the
-Drela--Giles envelope and the model's frozen-profile rate, all on a
-validated laminar march of the field's own edge velocity. $N=9,7$ mark
-tunnel-class budgets; triangles measured $0.438$ (filled) and Stock's
-$e^N$ front (open).}\label{f:sphthreeway}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.78\textwidth]{spheroid_reseed_front_vs_seed.pdf}
-\caption{Same case, three-seed converged bracket $Tu=0.05$--$0.21\%$:
-$\chi=1$ front (filled) $0.628$/$0.511$/$0.400$ and $C_f$-rise front
-(open) against the freestream budget $N$, on the seed-lever prediction
-(envelope and transported-rate curves). Stock's documented DFVLR level
-$N_\mathrm{TS}=8$ ($Tu=0.106\%$) lands at
-$0.511$.}\label{f:sphreseed}
-\end{figure}
+\input{tables/tab_spheroid_tunnel_wp}
 
 \end{document}

@@ -24,6 +24,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PAPER = os.path.abspath(os.path.join(HERE, '..', '..'))
 SRC = os.path.join(HERE, 'figs_explore', 'spheroid_tunnel_harvest.json')
 OUT = os.path.join(PAPER, 'tables', 'tab_spheroid_tunnel.tex')
+OUT_WP = os.path.join(PAPER, 'tables', 'tab_spheroid_tunnel_wp.tex')
 
 FAC = {'NWG': r'G\"ottingen', 'F1': 'ONERA F1'}
 SEED_LABEL = {'gcal': 'calibrated', 'gmeas': 'measured',
@@ -72,8 +73,9 @@ def main():
            r'never reaches $1$ within $x/L\!\le\!0.97$, i.e. the computed '
            r'layer is still laminar at the tail and the residual there is a '
            r'bound, not a value.')
-    with open(OUT, 'w') as f:
-        f.write('\\begin{table}[tp]\n  \\centering\\small\n'
+    for path, place in ((OUT, '[tp]'), (OUT_WP, '[H]')):
+      with open(path, 'w') as f:
+        f.write('\\begin{table}' + place + '\n  \\centering\\small\n'
                 f'  \\caption{{{cap}}}\n'
                 '  \\label{tab:sphtunnel}\n'
                 '  \\begin{tabular}{cc l l cc c cc cc}\n    \\toprule\n'
@@ -81,7 +83,7 @@ def main():
         for r in rows:
             f.write(f'    {r} \\\\\n')
         f.write('    \\bottomrule\n  \\end{tabular}\n\\end{table}\n')
-    print('wrote', OUT, f'({len(rows)} rows)')
+      print('wrote', path, f'({len(rows)} rows)')
 
 
 if __name__ == '__main__':
