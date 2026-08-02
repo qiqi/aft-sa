@@ -3208,13 +3208,15 @@ level from $5\!\times\!10^{-6}L$ at $Re_L\!=\!1.5\!\times\!10^6$ and
 from $1.5\!\times\!10^{-6}L$ at the higher Reynolds numbers), at
 $M\!=\!0.1$, with the airfoil-study solver settings, seed, and
 constants unchanged. The matrix covers the measured conditions
-spanning Stock's three regimes---the low-Reynolds ladder
-$Re_L\!=\!1.5\!\times\!10^6$ at $\alpha\!=\!5^\circ$, $10^\circ$, and
-$29.7^\circ$ (computed on the full L0--L2 ladder); the pure-TS anchors
-$7.2\!\times\!10^6$ at $0^\circ$ (axisymmetric) and
-$2.5^\circ$; and the workshop pair
-$6.5\!\times\!10^6$ at $5^\circ$ and $10^\circ$ (both in
-progress)---while the DFVLR record's remaining incidences
+spanning Stock's three regimes, and this section walks them in order
+of incidence, from the case the model was calibrated for to the case
+it was not: the pure-TS anchors at $\alpha\!=\!0$ and $2.5^\circ$
+($Re_L\!=\!7.2\!\times\!10^6$, with a zero-incidence
+Reynolds-trend point at $6.5\!\times\!10^6$); the mixed
+TS--crossflow pair $6.5\!\times\!10^6$ at $5^\circ$ and $10^\circ$;
+and the low-Reynolds ladder $1.5\!\times\!10^6$ at $5^\circ$,
+$10^\circ$ and $29.7^\circ$, where the layer runs laminar to the
+open separation---while the DFVLR record's remaining incidences
 ($15$--$29.5^\circ$ at $3$--$8.5\!\times\!10^6$) stay outside the
 present matrix. Table~\ref{tab:sphtotals}
 collects the totals (no force measurements exist at these
@@ -3227,54 +3229,213 @@ $29.7^\circ$ case remains strongly level-sensitive, and the
 axisymmetric case carries exactly zero lift on L1 and L2 (the L0
 residual, $C_L\!\approx\!0.006$, is the coarsest grid's asymmetry,
 vanishing under refinement) with its drag still rising with
-refinement ($0.0150$/$0.0169$/$0.0211$)---the front placement at this
-pure-TS condition is the comparison to make (Stock Fig.~14a), and it
-follows with the per-condition digitization.
+refinement ($0.0150$/$0.0169$/$0.0211$).
 
 \input{tables/tab_spheroid_totals}
 
-Figure~\ref{fig:spheroidfront} makes the quantitative front
-comparison at the first condition, against the DFVLR hot-film
-transition points~\cite{kreplin_1985} as reported in Stock's
+\subsection{Zero incidence: the pure-TS anchor and its disturbance
+environment}\label{sec:sphts}
+
+At zero incidence and $Re_L\!=\!7.2\!\times\!10^6$ the spheroid is a
+pure Tollmien--Schlichting case~\cite{stock_2006}, the cleanest test of
+the amplification rate stripped of crossflow, and the hot films place
+the measured front uniformly around the azimuth. Run at the airfoil
+campaign's flight-quiet seed ($\chi_\infty\!=\!8.76\!\times\!10^{-6}$,
+Mack $Tu\!=\!0.01\%$), the converged model places the $\chi\!=\!1$
+front at $x/L\!=\!0.858$, far aft of the measured
+$0.438$~\cite{kreplin_1985,stock_2006} and aft of Stock's own computed
+pure-TS front (Fig.~\ref{fig:spheroidfronta0}). (The front is quoted
+from the settled-$C_d$ state; a fixed-budget solve leaves the whole aft
+laminar region mid-transient and places it further aft still.)
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{spheroid_front_compare_a0.pdf}
+  \caption{6:1 prolate spheroid at zero incidence,
+  $Re_L\!=\!7.2\!\times\!10^6$, flight-quiet seed
+  ($\chi_\infty\!=\!8.76\!\times\!10^{-6}$). Top: the computed
+  $C_f$-rise fronts on the three grids ($k\!=\!1.5$; the band is the
+  $k\!=\!1.25$--$2$ sensitivity on L2) and the model-native
+  $\chi\!=\!1$ and $\chi\!=\!c_{v1}$ fronts, against the measured DFVLR
+  transition points (red squares; Stock Fig.~14a, Appendix~F) and
+  Stock's computed pure-TS $e^N$ front at his limiting
+  $N_\mathrm{TS}\!=\!8$. The measurement is uniform in azimuth, as the
+  axisymmetric flow requires, and every computed front sits far aft of
+  it at this seed. Bottom: $c_f(x/L)$ at $\phi\!=\!90^\circ$ on the
+  three grids, with the measured front and the $e^N$ station
+  marked.}\label{fig:spheroidfronta0}
+\end{figure}
+
+The gap is not a rate deficit. Marching the Drela--Giles envelope and
+the model's own frozen-profile rate along a validated laminar march of
+the converged mean flow (Fig.~\ref{fig:sphthreeway}) shows the
+transported $\chi$ tracking the $e^N$ envelope one-for-one to
+$x/L\!\approx\!0.7$: the model is $e^N$-faithful on its own mean flow,
+and even a perfect envelope tracker at this seed's budget
+$N\!=\!\ln(1/\chi_\infty)\!=\!11.6$ commits only at $x/L\!=\!0.735$.
+The front sits aft because the demanded amplification factor is large,
+not because the kernel under-amplifies.
+
+That demanded factor is set by the disturbance environment, and here
+the paper's economy meets its sharpest calibration question. What the
+transition-modeling community uses for this benchmark is not a measured
+tunnel turbulence level but a calibrated one, and the values form a
+band. Stock's $e^N$ takes a facility-specific limiting factor---
+$N_{\mathrm{TS}}\!=\!8.0$ for the DFVLR G\"ottingen data and
+$N_{\mathrm{TS}}\!=\!7.0$ for his second (CERT/ONERA F1) facility, a spread
+within one author~\cite{stock_2006}---while the correlation-based
+transition workshops prescribe a $\gamma$--$Re_\theta$ inflow
+$Tu\!\approx\!0.10$--$0.15\%$ for the same
+case~\cite{denison_2021_overflow,tarsia_2025}. Mapped through the
+common Mack relation these agree: $N\!\approx\!7$--$8$ is
+$Tu\!\approx\!0.10$--$0.16\%$, a factor of about $1.6$. The present
+kernel, whose envelope is calibrated to Drela--Giles---about $2.8$
+factors slower than a pure-TS $e^N$ by mid-body---requires
+$N_{\mathrm{crit}}\!\approx\!7$ ($Tu\!\approx\!0.17\%$), at the soft
+edge of that band: on Stock's own second-facility limit and just above
+the workshop $\gamma$--$Re_\theta$ standard. There is no universal
+``tunnel $N$''---Stock's $N\!=\!8$ is the quiet endpoint, not a
+consensus---and the underlying disturbance was in fact measured
+(hot-wire and microphone across three tunnels~\cite{meier_michel_kreplin_1987}),
+but no transition model draws on it; each closure carries its own
+calibrated factor, and our value lands in the middle of the
+documented spread.
+
+Re-seeding to that tunnel-class disturbance is decisive
+(Fig.~\ref{fig:sphreseed}). A three-seed bracket from $Tu\!=\!0.05\%$
+to $0.21\%$ moves the converged front monotonically---$0.628$,
+$0.511$, $0.400$---tracking the envelope prediction at full $e^N$
+strength and crossing the measured $0.438$ at $Tu\!\approx\!0.17\%$; at
+Stock's documented $N\!=\!8$ ($Tu\!=\!0.106\%$) the front is $0.511$,
+$0.07\,L$ aft. No rate or transport constant is touched: the
+axisymmetric ``miss'' is a freestream-turbulence mis-specification, not
+a model deficiency.
+
+Lowering the Reynolds number at that same documented level confirms the
+trend direction. At $Re_L\!=\!6.5\!\times\!10^6$ and $N\!=\!8$ the
+settled front sits at $x/L\!=\!0.556$ ($\chi\!=\!c_{v1}$ at $0.608$,
+$C_f$-rise at $0.594$) against $0.511$ at
+$7.2\!\times\!10^6$---$0.045\,L$ aft, the correct direction and about
+the expected magnitude for the shorter amplification length. No
+measured DFVLR zero-incidence front exists at this Reynolds number
+(Stock's Fig.~14a, the only measured zero-incidence waterfall, is at
+$7.2\!\times\!10^6$; his Fig.~18 gives computed fronts alone at the
+lower-Reynolds incidences), so this condition is a Reynolds-trend
+confirmation and not a measurement comparison.
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{spheroid_threeway_N.pdf}
+  \caption{Axisymmetric spheroid, $\alpha\!=\!0$,
+  $Re_L\!=\!7.2\!\times\!10^6$, converged solution: transported
+  near-wall $\chi$ (log, left axis) and, on the matched linear right
+  axis ($N\!=\!\ln(\chi/\chi_\infty)$), the Drela--Giles envelope and
+  the model's frozen-profile rate, all on a validated laminar march of
+  the field's own edge velocity. The transported curve tracks the
+  envelope to $x/L\!\approx\!0.7$; the budget $N\!=\!\ln(1/\chi_\infty)$
+  and the $\chi\!=\!1$ level coincide by construction, and $N\!=\!9,7$
+  mark tunnel-class budgets. Triangles: measured transition $0.438$
+  (filled) and Stock's $e^N$ front (open).}
+  \label{fig:sphthreeway}
+\end{figure}
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{spheroid_reseed_front_vs_seed.pdf}
+  \caption{Axisymmetric spheroid, $\alpha\!=\!0$,
+  $Re_L\!=\!7.2\!\times\!10^6$: the $\chi\!=\!1$ front (filled) and
+  $C_f$-rise front (open) of a three-seed converged bracket against the
+  freestream budget $N$, on the seed-lever prediction (envelope and
+  transported-rate curves). The bracket tracks the prediction and
+  crosses the measured $0.438$ at $Tu\!\approx\!0.17\%$; the documented
+  DFVLR level ($N\!=\!8$, $Tu\!=\!0.106\%$) lands at $0.511$.}
+  \label{fig:sphreseed}
+\end{figure}
+
+\subsection{$\alpha\!=\!2.5^\circ$: where the azimuthal spread
+appears}\label{sec:spha25}
+
+Incidence begins to separate the two effects. At $\alpha\!=\!2.5^\circ$
+(still pure-TS by Stock's reading) the same tunnel-class seed lands the
+windward front on the measurement ($0.444$ vs $0.450$) but leaves a
+converged $0.13\,L$ azimuthal spread---the leeward flank transitioning
+late ($0.576$) where the measurement stays nearly uniform
+($0.019\,L$)---that the seed does not remove. That leeward lateness is
+a genuine amplification shortfall on the mild-adverse crossflow
+meridian rather than a disturbance-level effect: the crossflow
+economy's first visible cost, and the entry to the fully
+three-dimensional conditions that follow.
+
+\subsection{The mixed TS--crossflow pair at
+$Re_L\!=\!6.5\!\times\!10^6$}\label{sec:sph65}
+
+At $5^\circ$ and $10^\circ$ and $Re_L\!\gtrsim\!6.5\!\times\!10^6$
+Stock's analysis has TS and crossflow amplifying
+together~\cite{stock_2006}, so this pair is where the missing closure
+should stop being a flank correction and become co-dominant. Both
+incidences are computed on the full L0--L2 ladder at the campaign
+constants, with the same several-percent-per-level movement in the
+totals as the other attached incidences (Table~\ref{tab:sphtotals}).
+The surface comparison at these two conditions---measured fronts and
+wall-shear directions, which Stock's Figs.~14 and~16--17 carry together
+with computation at $6.4$--$6.54\!\times\!10^6$---is not yet extracted
+from the solutions, and is the comparison this section most needs next.
+
+\subsection{The laminar-to-separation ladder at
+$Re_L\!=\!1.5\!\times\!10^6$}\label{sec:sph15}
+
+At the lowest Reynolds number of the DFVLR matrix the boundary layer
+never transitions on the attached body at all: it stays laminar up to
+the open free-vortex-layer separation, and the measured points track
+the separation-line shear rise~\cite{stock_2006}. The comparison
+quantity is therefore the resultant-shear rise---the first station
+where $c_f$ exceeds $k\!=\!1.5\times$ its running minimum, the hot-film
+detection analogue, with the $k\!=\!1.25$--$2$ sensitivity shown as a
+band---and \emph{not} the model-native $\chi\!=\!c_{v1}$ front, which
+stays aft ($0.92$--$0.99\,x/L$ across the azimuth range).
+
+Figure~\ref{fig:spheroidfront} makes that comparison at
+$\alpha\!=\!10^\circ$, against the DFVLR hot-film transition
+points~\cite{kreplin_1985} as reported in Stock's
 Fig.~15a~\cite{stock_2006} (measured at $Re\!=\!1.52\!\times\!10^6$
 against the computed $1.5\!\times\!10^6$; digitized to
 ${\pm}0.005\,x/L$), together with Stock's computed free-vortex
-separation line. At this Reynolds number the boundary layer stays
-laminar up to the open vortex-layer separation and the measured points
-track the separation-line shear rise~\cite{stock_2006}, so the
-comparison quantity is the resultant-shear rise---the first station
-where $c_f$ exceeds $k\!=\!1.5\times$ its running minimum, the
-hot-film detection analogue, with the $k\!=\!1.25$--$2$ sensitivity
-shown as a band---and \emph{not} the model-native $\chi\!=\!c_{v1}$
-front, which stays aft ($0.92$--$0.99\,x/L$ across the azimuth
-range). The
-computed rise matches the measurement to within ${\pm}0.023\,x/L$ over
-the windward half ($\phi\!\le\!93^\circ$) and lags by up to
-$0.21\,x/L$ at the leeward flank ($\phi\!=\!132^\circ$). The flank
-lag is \emph{not} the slow transported-$\chi$ handover of
+separation line. The computed rise matches the measurement to within
+${\pm}0.023\,x/L$ over the windward half ($\phi\!\le\!93^\circ$) and
+lags by up to $0.21\,x/L$ at the leeward flank ($\phi\!=\!132^\circ$).
+The flank lag is \emph{not} the slow transported-$\chi$ handover of
 Sec.~\ref{sec:epphandover}: across the azimuth range the $\chi\!=\!1$
 and $\chi\!=\!c_{v1}$ crossings sit within $0.05\,L$ of each other
 ($0.003$--$0.016\,L$ at the measured azimuths), both between $0.90$
 and $0.99\,x/L$, so once the amplification commits, the handover
-completes quickly. The deficit is in the booked amplification
+completes quickly.
+
+The deficit is in the booked amplification
 itself---$\chi\!=\!1$ arrives $0.13$--$0.56\,L$ aft of the hot-film
 line on the flank---so the flank portion of the computed $c_f$ rise
-is the laminar three-dimensional structure, not modeled transition.
-Whether the missing growth reflects the lifted layer escaping the
-wall-anchored kernel (the $\chi$ probe itself reaches only
-$0.04\,L$), the onset gate's in-bubble arm suppressing the
-wall-damped separated layer (Sec.~\ref{sec:daedalus}), or
-attached-layer amplification genuinely subcritical at this Reynolds
-number (Stock's laminar-to-separation reading~\cite{stock_2006}) is
-not yet distinguished; the flank rate probe, the front comparisons at
-the two completed low-Reynolds conditions with measured fronts
-($\alpha\!=\!5^\circ$, Stock Fig.~14c, and $29.7^\circ$,
-Fig.~16c---the same laminar-to-separation regime, awaiting their
-digitization), and the per-condition
-comparisons at the $6.5$ and
-$7.2\!\times\!10^6$ conditions of Table~\ref{tab:sphtotals} follow.
-The front stations behind the figure are tabulated in
-Table~\ref{tab:data_spheroid}.
+is the laminar three-dimensional structure, not modeled transition. A
+frozen-field audit of the kernel chain on the converged L2 field
+locates that shortfall, and it is neither of the two mechanisms one
+would suspect first. It is not the kernel going blind in skewed flow:
+the accumulated-inflection coordinate computed the solver's way, with a
+fixed edge direction, and in a local rotating frame agree to
+$1$--$8\%$ at all six flank stations despite $28$--$35^\circ$ of wall
+skew. Nor is it the onset gate holding the separated layer down: on the
+flank the rate coordinate reaches
+$\hat\Omega\hat I\!=\!0.54$--$0.99$ with the gate open---strongly
+amplifying. What remains is feed and residence. The gate is closed on
+the windward meridian upstream of the amplifying wedge at this Reynolds
+number, and a streamline crosses the wedge too briefly to bank the
+difference; the quiet flank is the same transport physics that sets the
+windward front, swept sideways. (The audit's growth bound is a maximum
+over the wall-normal probe at constant azimuth rather than a streamline
+integral, its overbooking calibrated on the flat plate at
+$1.25$--$1.4\times$, and the $\chi$ probe itself reaches only
+$0.04\,L$.) Because the measured flank line is here the separation
+line~\cite{stock_2006}, the absent crossflow channel does not explain
+this condition either---the mixed-regime pair of
+Sec.~\ref{sec:sph65} is where it should. The front stations behind the
+figure are tabulated in Table~\ref{tab:data_spheroid}.
 
 \begin{figure}[tp]
   \centering
@@ -3334,9 +3495,9 @@ front sits aft of every hot-film station, the amplification-deficit
 finding above in the campaign's own presentation---while at
 $29.7^\circ$ the front crosses every station on the leeward side.
 (Computed views without a measured overlay belong to the
-appendix: the $\alpha\!=\!29.7^\circ$ map and the three-dimensional
-rendering are in Appendix~H, together with the supporting
-pressure-station waterfalls.)
+appendix: the zero-incidence and $\alpha\!=\!29.7^\circ$ maps and the
+three-dimensional rendering are in Appendix~H, together with the
+supporting pressure-station waterfalls.)
 
 \begin{figure}[p]
   \centering
@@ -3386,103 +3547,15 @@ pressure-station waterfalls.)
   \label{fig:sphstat_cfg297}
 \end{figure}
 
-\subsection{The axisymmetric pure-TS anchor: transition as a
-freestream-disturbance calibration}\label{sec:sphts}
-
-At zero incidence and $Re_L\!=\!7.2\!\times\!10^6$ the spheroid is a
-pure Tollmien--Schlichting case~\cite{stock_2006}, the cleanest test of
-the amplification rate stripped of crossflow. Run at the airfoil
-campaign's flight-quiet seed ($\chi_\infty\!=\!8.76\!\times\!10^{-6}$,
-Mack $Tu\!=\!0.01\%$), the converged model places the $\chi\!=\!1$
-front at $x/L\!=\!0.858$, far aft of the measured
-$0.438$~\cite{kreplin_1985,stock_2006}. (The front is quoted from the
-settled-$C_d$ state; a fixed-budget solve leaves the whole aft laminar
-region mid-transient and places it further aft still.)
-
-The gap is not a rate deficit. Marching the Drela--Giles envelope and
-the model's own frozen-profile rate along a validated laminar march of
-the converged mean flow (Fig.~\ref{fig:sphthreeway}) shows the
-transported $\chi$ tracking the $e^N$ envelope one-for-one to
-$x/L\!\approx\!0.7$: the model is $e^N$-faithful on its own mean flow,
-and even a perfect envelope tracker at this seed's budget
-$N\!=\!\ln(1/\chi_\infty)\!=\!11.6$ commits only at $x/L\!=\!0.735$.
-The front sits aft because the demanded amplification factor is large,
-not because the kernel under-amplifies.
-
-That demanded factor is set by the disturbance environment, and here
-the paper's economy meets its sharpest calibration question. What the
-transition-modeling community uses for this benchmark is not a measured
-tunnel turbulence level but a calibrated one, and the values form a
-band. Stock's $e^N$ takes a facility-specific limiting factor---
-$N_{\mathrm{TS}}\!=\!8.0$ for the DFVLR G\"ottingen data and
-$N_{\mathrm{TS}}\!=\!7.0$ for his second (CEAT) facility, a spread
-within one author~\cite{stock_2006}---while the correlation-based
-transition workshops prescribe a $\gamma$--$Re_\theta$ inflow
-$Tu\!\approx\!0.10$--$0.15\%$ for the same
-case~\cite{denison_2021_overflow,tarsia_2025}. Mapped through the
-common Mack relation these agree: $N\!\approx\!7$--$8$ is
-$Tu\!\approx\!0.10$--$0.16\%$, a factor of about $1.6$. The present
-kernel, whose envelope is calibrated to Drela--Giles---about $2.8$
-factors slower than a pure-TS $e^N$ by mid-body---requires
-$N_{\mathrm{crit}}\!\approx\!7$ ($Tu\!\approx\!0.17\%$), interior to
-that band: on Stock's own second-facility limit and just above the
-workshop $\gamma$--$Re_\theta$ standard. There is no universal
-``tunnel $N$''---Stock's $N\!=\!8$ is the quiet endpoint, not a
-consensus---and the underlying disturbance was in fact measured
-(hot-wire and microphone across three tunnels~\cite{meier_michel_kreplin_1987}),
-but no transition model draws on it; each closure carries its own
-calibrated factor, and our value lands in the middle of the
-documented spread.
-
-Re-seeding to that tunnel-class disturbance is decisive
-(Fig.~\ref{fig:sphreseed}). A three-seed bracket from $Tu\!=\!0.05\%$
-to $0.21\%$ moves the converged front monotonically---$0.628$,
-$0.511$, $0.400$---tracking the envelope prediction at full $e^N$
-strength and crossing the measured $0.438$ at $Tu\!\approx\!0.17\%$; at
-Stock's documented $N\!=\!8$ ($Tu\!=\!0.106\%$) the front is $0.511$,
-$0.07\,L$ aft. No rate or transport constant is touched: the
-axisymmetric ``miss'' is a freestream-turbulence mis-specification, not
-a model deficiency.
-
-Incidence begins to separate the two effects. At $\alpha\!=\!2.5^\circ$
-(still pure-TS by Stock's reading) the same tunnel-class seed lands the
-windward front on the measurement ($0.444$ vs $0.450$) but leaves a
-converged $0.13\,L$ azimuthal spread---the leeward flank transitioning
-late ($0.576$) where the measurement stays nearly uniform---that the
-seed does not remove. That leeward lateness is a genuine amplification
-shortfall on the mild-adverse crossflow meridian rather than a
-disturbance-level effect: the crossflow economy's first visible cost,
-and the entry to the fully three-dimensional cases above.
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.82\textwidth]{spheroid_threeway_N.pdf}
-  \caption{Axisymmetric spheroid, $\alpha\!=\!0$,
-  $Re_L\!=\!7.2\!\times\!10^6$, converged solution: transported
-  near-wall $\chi$ (log, left axis) and, on the matched linear right
-  axis ($N\!=\!\ln(\chi/\chi_\infty)$), the Drela--Giles envelope and
-  the model's frozen-profile rate, all on a validated laminar march of
-  the field's own edge velocity. The transported curve tracks the
-  envelope to $x/L\!\approx\!0.7$; the budget $N\!=\!\ln(1/\chi_\infty)$
-  and the $\chi\!=\!1$ level coincide by construction, and $N\!=\!9,7$
-  mark tunnel-class budgets. Triangles: measured transition $0.438$
-  (filled) and Stock's $e^N$ front (open).}
-  \label{fig:sphthreeway}
-\end{figure}
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.82\textwidth]{spheroid_reseed_front_vs_seed.pdf}
-  \caption{Axisymmetric spheroid, $\alpha\!=\!0$,
-  $Re_L\!=\!7.2\!\times\!10^6$: the $\chi\!=\!1$ front (filled) and
-  $C_f$-rise front (open) of a three-seed converged bracket against the
-  freestream budget $N$, on the seed-lever prediction (envelope and
-  transported-rate curves). The bracket tracks the prediction and
-  crosses the measured $0.438$ at $Tu\!\approx\!0.17\%$; the documented
-  DFVLR level ($N\!=\!8$, $Tu\!=\!0.106\%$) lands at $0.511$.}
-  \label{fig:sphreseed}
-\end{figure}
-
+The third member of this ladder, $\alpha\!=\!5^\circ$, is computed on
+the same three levels (Table~\ref{tab:sphtotals}). The measured fronts
+at both remaining incidences of the ladder are in hand---Stock's
+Fig.~14c at $\alpha\!=\!5^\circ$ and Fig.~16c at $29.7^\circ$, the same
+laminar-to-separation regime, digitized from the printed panels into
+\texttt{data/stock2006\_fig\{14c,16c\}\_digitized.json}---so what
+remains before all three incidences carry the front comparison
+Fig.~\ref{fig:spheroidfront} gives $10^\circ$ is the extraction of the
+computed fronts at those two incidences.
 \section{Conclusion}
 
 The Spalart--Allmaras working variable can, it turns out, serve as its
@@ -3670,7 +3743,7 @@ sheets and tables measure).
 
 The contour sheets present the computed fields in the manner of the
 flat-plate figure (Fig.~\ref{fig:flatplate_batch}): line contours of
-the velocity magnitude $|\mathbf{u}|/U_\infty$ (left column) and of
+the streamwise velocity $u_x/U_\infty$ (left column) and of
 $\log_{10}\chi$ (right column; dashed contours are the laminar levels
 $\chi<1$, solid are $\chi\!=\!1$, $c_{v1}$, $30$, and $10^2$---the
 last two tracking the handover's completion and the turbulent
@@ -3711,7 +3784,7 @@ handover above the lifted bubble shear layer stays in frame.
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_am8_upper.pdf}
   \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=-8^\circ$, upper
-  surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all
+  surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all
   six grids. This (pressure) surface holds a long laminar run before
   its front settles at $0.54$--$0.57\,c$ on L1/L2
   (Fig.~\ref{fig:nlfnegalpha}); the L0 grids trip at
@@ -3733,7 +3806,7 @@ handover above the lifted bubble shear layer stays in frame.
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_am4_upper.pdf}
   \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=-4^\circ$ (zero
-  lift), upper surface: velocity magnitude (left) and $\log_{10}\chi$
+  lift), upper surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$
   (right) on all six grids; fronts at $0.44$--$0.48\,c$ across the
   ladder.}
   \label{fig:sheet_nlf0416_am4_upper}
@@ -3750,56 +3823,56 @@ handover above the lifted bubble shear layer stays in frame.
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a0_upper.pdf}
-  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=0^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=0^\circ$, upper surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_nlf0416_a0_upper}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a0_lower.pdf}
-  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=0^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=0^\circ$, lower surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_nlf0416_a0_lower}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a4_upper.pdf}
-  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=4^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=4^\circ$, upper surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_nlf0416_a4_upper}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a4_lower.pdf}
-  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=4^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=4^\circ$, lower surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_nlf0416_a4_lower}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a9_upper.pdf}
-  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=9^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=9^\circ$, upper surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_nlf0416_a9_upper}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a9_lower.pdf}
-  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=9^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=9^\circ$, lower surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_nlf0416_a9_lower}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a15_upper.pdf}
-  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=15^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=15^\circ$, upper surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_nlf0416_a15_upper}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_nlf0416_a15_lower.pdf}
-  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=15^\circ$, lower surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \caption{NLF(1)-0416, $Re=4\times10^6$, $\alpha=15^\circ$, lower surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_nlf0416_a15_lower}
 \end{figure}
 
@@ -3855,7 +3928,7 @@ correlational, not causal.
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_am2_upper.pdf}
   \caption{Eppler~387, $Re=2\times10^5$, $\alpha=-2^\circ$, upper
   surface (finest L2 pair; the extension incidences exist on L2 only):
-  velocity magnitude (left) and $\log_{10}\chi$ (right). The bubble
+  streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right). The bubble
   sits at its aft-most station of the sweep
   ($x/c\!\approx\!0.55$--$0.80$).}
   \label{fig:sheet_eppler387_am2_upper}
@@ -3864,28 +3937,28 @@ correlational, not causal.
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a0_upper.pdf}
-  \caption{Eppler~387, $Re=2\times10^5$, $\alpha=0^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \caption{Eppler~387, $Re=2\times10^5$, $\alpha=0^\circ$, upper surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_eppler387_a0_upper}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a2_upper.pdf}
-  \caption{Eppler~387, $Re=2\times10^5$, $\alpha=2^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \caption{Eppler~387, $Re=2\times10^5$, $\alpha=2^\circ$, upper surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_eppler387_a2_upper}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a5_upper.pdf}
-  \caption{Eppler~387, $Re=2\times10^5$, $\alpha=5^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \caption{Eppler~387, $Re=2\times10^5$, $\alpha=5^\circ$, upper surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_eppler387_a5_upper}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a7_upper.pdf}
-  \caption{Eppler~387, $Re=2\times10^5$, $\alpha=7^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \caption{Eppler~387, $Re=2\times10^5$, $\alpha=7^\circ$, upper surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_eppler387_a7_upper}
 \end{figure}
 
@@ -3893,7 +3966,7 @@ correlational, not causal.
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a8p5_upper.pdf}
   \caption{Eppler~387, $Re=2\times10^5$, $\alpha=8.5^\circ$, upper
-  surface (finest L2 pair): velocity magnitude (left) and
+  surface (finest L2 pair): streamwise velocity $u_x/U_\infty$ (left) and
   $\log_{10}\chi$ (right). Past the experimental stall: the layer
   trips in the leading-edge bubble within the first few percent of
   chord---closing roughly $4\times$ shorter than the measured
@@ -3975,31 +4048,32 @@ coefficients against the $e^9$ reference and the tunnel data
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re60k_upper.pdf}
-  \caption{Eppler~387, $Re=6\times10^4$, $\alpha=5^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \caption{Eppler~387, $Re=6\times10^4$, $\alpha=5^\circ$, upper surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_eppler387_Re60k_upper}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.82\textwidth]{chi_sheet_eppler387_Re100k_upper.pdf}
-  \caption{Eppler~387, $Re=10^5$, $\alpha=5^\circ$, upper surface, all six
-  grids plus the two extended warm-started L2 solutions (bottom rows),
-  agreeing with the cold-start L2 rows to within the residual
-  unsteadiness (Sec.~\ref{sec:eppbistab}).}
+  \caption{Eppler~387, $Re=10^5$, $\alpha=5^\circ$, upper surface:
+  streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right)
+  on all six grids plus the two extended warm-started L2 solutions
+  (bottom rows), agreeing with the cold-start L2 rows to within the
+  residual unsteadiness (Sec.~\ref{sec:eppbistab}).}
   \label{fig:sheet_eppler387_Re100k_upper}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re300k_upper.pdf}
-  \caption{Eppler~387, $Re=3\times10^5$, $\alpha=5^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \caption{Eppler~387, $Re=3\times10^5$, $\alpha=5^\circ$, upper surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_eppler387_Re300k_upper}
 \end{figure}
 
 \begin{figure}[p]
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_Re460k_upper.pdf}
-  \caption{Eppler~387, $Re=4.6\times10^5$, $\alpha=5^\circ$, upper surface: velocity magnitude (left) and $\log_{10}\chi$ (right) on all six grids.}
+  \caption{Eppler~387, $Re=4.6\times10^5$, $\alpha=5^\circ$, upper surface: streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.}
   \label{fig:sheet_eppler387_Re460k_upper}
 \end{figure}
 
@@ -4209,6 +4283,71 @@ strip at the same station.
   \caption{As Fig.~\ref{fig:daesec10}, at $\eta=0.92$---inside the
   taper, chord $0.728\,$m and $Re_c=4.0\times10^5$.}
   \label{fig:daesec92}
+\end{figure}
+
+% Daedalus wall-normal chi sheets (u_x / chi), same format as Appendices B--C.
+% L2 volume dumps are absent from the archived fv1 tree; sheets show the
+% available L0/L1 pair (four rows) when L2 is missing.
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_daedalus_a4_eta10_upper.pdf}
+  \caption{Daedalus wing, $\alpha=4^\circ$, section $\eta=0.10$, upper
+  surface: streamwise velocity $u_x/U_\infty$ (left) and
+  $\log_{10}\chi$ (right) on the archived meshes (volume dumps present
+  for L0/L1).}
+  \label{fig:sheet_dae_a4_eta10}
+\end{figure}
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_daedalus_a4_eta75_upper.pdf}
+  \caption{As Fig.~\ref{fig:sheet_dae_a4_eta10}, at $\eta=0.75$.}
+  \label{fig:sheet_dae_a4_eta75}
+\end{figure}
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_daedalus_a4_eta92_upper.pdf}
+  \caption{As Fig.~\ref{fig:sheet_dae_a4_eta10}, at $\eta=0.92$.}
+  \label{fig:sheet_dae_a4_eta92}
+\end{figure}
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_daedalus_a5_eta10_upper.pdf}
+  \caption{Daedalus wing, $\alpha=5^\circ$, section $\eta=0.10$, upper
+  surface: streamwise velocity $u_x/U_\infty$ (left) and
+  $\log_{10}\chi$ (right).}
+  \label{fig:sheet_dae_a5_eta10}
+\end{figure}
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_daedalus_a5_eta75_upper.pdf}
+  \caption{As Fig.~\ref{fig:sheet_dae_a5_eta10}, at $\eta=0.75$.}
+  \label{fig:sheet_dae_a5_eta75}
+\end{figure}
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_daedalus_a5_eta92_upper.pdf}
+  \caption{As Fig.~\ref{fig:sheet_dae_a5_eta10}, at $\eta=0.92$.}
+  \label{fig:sheet_dae_a5_eta92}
+\end{figure}
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_daedalus_a6_eta10_upper.pdf}
+  \caption{Daedalus wing, $\alpha=6^\circ$, section $\eta=0.10$, upper
+  surface: streamwise velocity $u_x/U_\infty$ (left) and
+  $\log_{10}\chi$ (right).}
+  \label{fig:sheet_dae_a6_eta10}
+\end{figure}
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_daedalus_a6_eta75_upper.pdf}
+  \caption{As Fig.~\ref{fig:sheet_dae_a6_eta10}, at $\eta=0.75$.}
+  \label{fig:sheet_dae_a6_eta75}
+\end{figure}
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{chi_sheet_daedalus_a6_eta92_upper.pdf}
+  \caption{As Fig.~\ref{fig:sheet_dae_a6_eta10}, at $\eta=0.92$.}
+  \label{fig:sheet_dae_a6_eta92}
 \end{figure}
 
 \clearpage
@@ -4550,10 +4689,13 @@ displacement, equal to the $0.14$ Stock's text states, and the
 digitization removes $0.14+0.42i$ per station (which closes both
 comparisons to ${\sim}0.01$).
 
-Figures~\ref{fig:spheroidmaps297} and~\ref{fig:spheroid3d} complete
-the surface-map views of Sec.~\ref{sec:spheroid}: the
-$\alpha\!=\!29.7^\circ$ unrolled map, and the $\alpha\!=\!10^\circ$
-skin-friction magnitude rendered on the body.
+Figures~\ref{fig:spheroidmapsa0}--\ref{fig:spheroid3d} complete
+the surface-map views of Sec.~\ref{sec:spheroid}: the two unrolled
+maps that carry no measured overlay---zero incidence at
+$Re_L\!=\!7.2\!\times\!10^6$, the pure-TS configuration, and
+$\alpha\!=\!29.7^\circ$ at $1.5\!\times\!10^6$, the vortex-dominated
+one---and the $\alpha\!=\!10^\circ$ skin-friction magnitude rendered on
+the body.
 
 \begin{figure}[p]
   \centering
@@ -4575,6 +4717,20 @@ skin-friction magnitude rendered on the body.
   ($\phi\!\approx\!90$--$122^\circ$) where printed chain identity
   is unrecoverable.}
   \label{fig:sphstat_cp297}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.99\textwidth]{spheroid_maps_re72a0_L2.pdf}
+  \caption{As Fig.~\ref{fig:spheroidmaps}, at zero incidence and
+  $Re_L\!=\!7.2\!\times\!10^6$ (finest grid, flight-quiet seed): every
+  field is axisymmetric to plotting accuracy, the $\gamma_w$ panel
+  carries no crossflow signature (its closed contours are
+  discretization-level structure about $\gamma_w\!=\!0$), and the
+  near-wall $\chi$ front stands off the tail---the pure-TS
+  configuration of Sec.~\ref{sec:sphts}, without a measured overlay to
+  put on it.}
+  \label{fig:spheroidmapsa0}
 \end{figure}
 
 \begin{figure}[p]

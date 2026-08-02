@@ -37,24 +37,24 @@
  ],
  "re_6p56e6_alpha10_circles": [
   {
-   "xL": 0.2557,
-   "phi_deg": 153.0
+   "xL": 0.3095,
+   "phi_deg": 164.9
   },
   {
-   "xL": 0.3089,
-   "phi_deg": 60.2
+   "xL": 0.3071,
+   "phi_deg": 59.13
   },
   {
-   "xL": 0.3962,
-   "phi_deg": 35.6
+   "xL": 0.3944,
+   "phi_deg": 40.39
   },
   {
-   "xL": 0.481,
-   "phi_deg": 27.7
+   "xL": 0.4793,
+   "phi_deg": 29.04
   },
   {
-   "xL": 0.5646,
-   "phi_deg": 20.1
+   "xL": 0.5643,
+   "phi_deg": 20.21
   }
  ],
  "pixel_calibration": {
@@ -89,7 +89,7 @@
    0
   ]
  },
- "note_circles": "leeward-most 6.56e6 circle uncertain: glyph crossed by streamlines; independent re-read (pass 40) gives ~0.31/165 vs 0.256/153 here -- re-digitize before any 6.5e6 comparison uses it",
+ "note_circles": "CORRECTED 2026-08-02. The 6.56e6 circles were re-digitized with the digitize_stock_fig14c.py template-overlay engine (config FIG15A_XCHECK in repro/cfd/digitize_stock_fig17a.py), which carries +-0.0025 x/L / +-0.4 deg against the +-0.005 / +-1.5 deg of the original blob-detect pass. Two real defects were fixed: the leeward-most circle was 0.2557/153.0 and is 0.3095/164.90 (this reproduces the independent pass-40 re-read and settles the open item this note previously carried), and the 35.6 deg point was mislocated and is 40.39 deg. The other three moved <=1.4 deg and <=0.002 x/L. The 1.52e6 squares of this file were re-checked by the same engine and are sound (<=0.9 deg, <=0.0017 x/L) -- they are UNCHANGED. Cross-figure comparisons against the Ref-50 (ONERA F1) figures carry a further ~0.005 x/L ladder systematic; see stock2006_fig17a_digitized.json.",
  "stock_computed_separation_line": {
   "note": "Stock's computed free-vortex-layer separation line (legend style '- - - -' (short dashes) in Fig 15a; his 3D BL code), polyline read at ~14 points, +-0.01 x/L",
   "points": [
