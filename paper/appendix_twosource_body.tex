@@ -1,0 +1,191 @@
+%% Shared body of the two-source (inviscid+viscous) appendix.
+%% \input by BOTH sa-ai.tex and whitepaper.tex; each host supplies its own
+%% section heading and label. Figures from repro/analytic/regen_twosource_appendix.py
+%% (analytic only -- no CFD).
+
+The rate of the model is built on the single even coordinate
+$\hat\Omega\hat I$, the departure of the profile from its osculating
+parabola. That coordinate carries both the inviscid--inflectional and the
+viscous Tollmien--Schlichting content, because the two co-vary
+monotonically across the Falkner--Skan family it is calibrated on. They
+separate on exactly one profile---a \emph{parabola}, where $\hat I\equiv0$
+identically. Two consequences bound the single-coordinate form. Plane
+Poiseuille flow is exactly parabolic in wall distance, so the rate returns
+identically zero at every Reynolds number, while plane Poiseuille is
+linearly unstable---by a purely viscous mechanism---at $Re_c=5772$ (Orszag 1971). And on the strongly favorable Falkner--Skan branch the
+same collapse appears as the rate deficit of
+Fig.~\ref{fig:tscalibrate}: by $\beta\!=\!0.35$ the booked amplification is
+an order of magnitude below the Drela--Giles envelope, which retains a floor
+near $5\times10^{-3}$ per unit $Re_\theta$. Note that Blasius itself carries
+no inflection point, so the canonical Tollmien--Schlichting instability
+underlying natural-laminar-flow practice is already a viscous instability of
+a non-inflectional profile: the mechanism the missing branch represents is
+the main one, not an exotic case.
+
+A two-branch rate separates the mechanisms. Alongside the inflectional
+coordinate $P_I=\hat\Omega\langle\hat I\rangle_+$ we form the curvature
+coordinate
+\begin{equation}
+  P_{\mathrm{c}} \;=\; \hat\Omega\,\big\langle -\hat Z\big\rangle_+,
+  \qquad \hat Z = Z/R,
+  \label{eq:ts_pcurv}
+\end{equation}
+positive wherever $u''<0$ (filled, non-inflected profiles), clipped to zero
+at an adverse wall, vanishing like $d$ toward the wall and zero in the free
+stream. Each branch carries its own rate \emph{and its own onset}, and the
+two complete \emph{sources}---not the two rates---are combined:
+\begin{gather}
+  P_{\mathrm{AI}} = \omega\,\tilde\nu\;
+  \operatorname{softmax}_2\!\Big[\,
+     a_{\max}\,P_I\;S\big(Re_\Omega/Re_\Omega^{\mathrm c,i}\big),\;\;
+     a_{\mathrm{visc}}\,P_{\mathrm{c}}\;S\big(Re_\Omega/Re_\Omega^{\mathrm c,v}\big)
+  \Big],
+  \label{eq:ts_twosource}\\[3pt]
+  Re_\Omega^{\mathrm c,i} = k\operatorname{softmin}_2\!\Big(C,\,A+B\,P_I^{-2}\Big),
+  \qquad
+  Re_\Omega^{\mathrm c,v} = A + B_{\mathrm c}\,P_{\mathrm{c}}^{-2},
+  \qquad
+  \operatorname{softmax}_2(x,y)=\sqrt{x^2+y^2}.
+  \notag
+\end{gather}
+The inviscid threshold is the model's existing gate unchanged, ceiling
+included; the viscous branch shares its floor $A$ and adds one coefficient
+$B_{\mathrm c}$. Constants:
+$a_{\max}\!=\!0.19$, $a_{\mathrm{visc}}\!=\!0.0276$,
+$A\!=\!124.6$, $B\!=\!1.424$, $B_{\mathrm c}\!=\!130$, $C\!=\!1851.2$.
+
+Decoupling the two gates is the substantive change from the form
+previously explored, which soft-maxed the two \emph{rates} but soft-minimized
+the two \emph{thresholds} into one shared gate. Kelvin--Helmholtz is
+inviscid and its threshold is essentially the floor $A$; Tollmien--Schlichting
+is viscous and its onset is far higher---on Blasius the two read $358$ and
+$2598$. A shared soft-minimum applies the lower of them to \emph{both}
+rates, so the inviscid branch's low threshold switches on the viscous rate
+before the viscous mechanism is critical, worth $+7.4\%$ on the Blasius
+anchor. Under Eq.~\eqref{eq:ts_twosource} that cross-talk is absent, and the
+construction reproduces the single-source rate to within $0.7\%$ over the
+whole calibrated family (Table~\ref{tab:tsfamily}), so $a_{\max}$, $k$ and
+the airfoil campaign are untouched: the branch adds amplification only where
+the single-source rate has none. Retaining the ceiling $C$ is what buys
+that: dropping it, as the earlier form did, sends the $\beta\!=\!+0.20$
+station to $0.63\times$ its single-source value.
+
+\begin{figure}[tp]\centering
+\includegraphics[width=0.99\textwidth]{twosource_calibrate.pdf}
+\caption{Two-source rate against Drela--Giles across the Falkner--Skan
+family, $\beta=+1.0$ (stagnation, $H\!\approx\!2.22$) to $-0.1988$
+(incipient separation, $H\!=\!3.98$); analytic march, no CFD.
+(a)~amplification rate as early ($N\!\in\![1,5]$) and late ($N\!\in\![5,9]$)
+secants, with the single-source rate for comparison---the low-$H$ collapse
+is the deficit the viscous branch removes. (b)~the marched $N\!=\!1$ station
+against the Drela--Giles $N\!=\!1$ station
+$Re_{\theta0}+1/(dN/dRe_\theta)$; the diagonal is exact
+agreement.}\label{fig:tscalibrate}
+\end{figure}
+
+\begin{figure}[tp]\centering
+\includegraphics[width=0.99\textwidth]{twosource_onsetgraze.pdf}
+\caption{Each onset branch grazes its own family in its own coordinate, each
+profile evaluated at its Drela--Giles critical Reynolds number
+$Re_{\theta0}(H)$. (a)~the inflectional branch $A+B/P_I^2$ against the
+adverse family; the strongly favorable members collapse to $P_I\!\to\!0$ and
+leave the panel, which is the onset-resolution limit of a single-coordinate
+gate. (b)~the curvature branch $A+B_{\mathrm c}/P_{\mathrm c}^2$ against
+exactly those low-$H$ members, in the coordinate
+$P_{\mathrm c}$ of Eq.~\eqref{eq:ts_pcurv}.}\label{fig:tsgraze}
+\end{figure}
+
+\begin{figure}[tp]\centering
+\includegraphics[width=0.72\textwidth]{twosource_transport.pdf}
+\caption{Disturbance transport marched with Eq.~\eqref{eq:ts_twosource} on
+four wedges---adverse, Blasius, favorable, and the stagnation profile
+($\beta\!=\!+1$) that the single-source kernel cannot ignite at all---against
+each profile's Drela--Giles envelope. On the stagnation wedge the branch
+ignites at $Re_\theta\!\approx\!2.5\times10^3$ against the correlation's
+critical station $Re_{\theta0}\!=\!6.5\times10^3$: early, but finite where the
+single-source rate is identically zero. Same parabolized instrument and same $c_{\nu,\mathrm{ai}}=1/6$ as
+the model's own calibration; the viscous branch touches the rate floor and
+the gate only.}\label{fig:tstransport}
+\end{figure}
+
+\begin{figure}[tp]\centering
+\includegraphics[width=0.99\textwidth]{twosource_sphere.pdf}
+\caption{The low-$H$ Falkner--Skan family on the $\mathbb{RP}^2$ indicator
+sphere (orthographic, curvature vertical), from the stagnation profile
+$H\!\approx\!2.22$ to Blasius $H\!=\!2.59$, with (b) the near-wall detail.
+The family bunches against the neutral parabola locus, where
+$\hat I$---and with it $P_I$---is too small to distinguish members whose
+Drela--Giles critical Reynolds numbers differ by nearly a factor of two.
+The curvature coordinate $P_{\mathrm c}$ separates
+them.}\label{fig:tssphere}
+\end{figure}
+
+\begin{table}[tp]
+  \centering\small
+  \caption{Peak dimensionless source $a\,S$ on Falkner--Skan wedges: the
+  single-source rate, and the two-source form of
+  Eq.~\eqref{eq:ts_twosource} at
+  $(a_{\mathrm{visc}},B_{\mathrm c})=(0.0276,130)$.}
+  \label{tab:tsfamily}
+  \begin{tabular}{rrccc}
+    \toprule
+    $\beta$ & $Re_\theta$ & single-source & two-source & ratio\\
+    \midrule
+    $0$        & $500$  & $0.01485$ & $0.01485$ & $1.000$\\
+    $0$        & $1000$ & $0.01485$ & $0.01487$ & $1.001$\\
+    $-0.10$    & $400$  & $0.03082$ & $0.03083$ & $1.000$\\
+    $-0.1988$  & $300$  & $0.09692$ & $0.09764$ & $1.007$\\
+    $+0.10$    & $1000$ & $0.00695$ & $0.00696$ & $1.000$\\
+    $+0.20$    & $2000$ & $0.00281$ & $0.00282$ & $1.004$\\
+    $+0.35$    & $4000$ & $0.00033$ & $0.00405$ & $12.4$\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The viscous branch's two constants are anchored as the inviscid branch's
+are: on canonical linear-stability results rather than on transition cases.
+$a_{\mathrm{visc}}$ follows the favorable Falkner--Skan family against the
+Drela--Giles envelope---itself constructed from Orr--Sommerfeld solutions,
+and the flow class in which viscous Tollmien--Schlichting amplification is
+both well characterized and the observed route to transition. Plane
+Poiseuille then supplies an \emph{independent} check on $B_{\mathrm c}$,
+exact and with no refitting: on a parabola $P_I\equiv0$, so the channel
+constrains the viscous branch with no contamination from the inflectional
+one. Requiring the frozen-profile eigenvalue of
+Eq.~\eqref{eq:ts_twosource} to change sign at Orszag's $Re_c=5772$ gives
+Table~\ref{tab:tschannel}: at the Falkner--Skan value
+$a_{\mathrm{visc}}=0.0276$ the channel asks for $B_{\mathrm c}=91$ against
+the family's $130$, and the family's constants place the channel's neutral
+point at $7409$, $1.28\times$ the true value---against a single-source
+kernel that never destabilizes it at all. Two unrelated flows agree on the
+same constant to $30\%$. The channel is a calibration and verification
+device only, never a validation case: its observed transition is subcritical
+and finite-amplitude, outside the envelope class this model represents.
+
+\begin{table}[tp]
+  \centering\small
+  \caption{Plane-channel check: the $B_{\mathrm c}$ that would place the
+  neutral point on Orszag's $Re_c=5772$, and the neutral point actually
+  obtained at the Falkner--Skan-anchored $B_{\mathrm c}=130$.}
+  \label{tab:tschannel}
+  \begin{tabular}{ccc}
+    \toprule
+    $a_{\mathrm{visc}}$ & $B_{\mathrm c}$ for $Re_c\!=\!5772$ & $Re_c$ at $B_{\mathrm c}\!=\!130$\\
+    \midrule
+    $0.0200$ & $81.0$  & $8095$\\
+    $0.0276$ & $91.0$  & $7409$\\
+    $0.0350$ & $99.9$  & $6916$\\
+    $0.0600$ & $127.9$ & $5834$\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Two limits of the construction are worth stating with it. The viscous rate
+$a_{\mathrm{visc}}P_{\mathrm{c}}$ is Reynolds-independent, an assumption
+inherited from the inviscid branch where it is justified because the
+mechanism is inviscid; a viscous instability's rate need not be, and the
+Reynolds dependence of the plane-Poiseuille envelope is the natural test.
+And the branches are a \emph{decomposition of the rate}, not a claim that
+each carries one physical mechanism exclusively: the viscous gate on Blasius
+opens only near $Re_\theta\!\approx\!1190$, so Blasius remains carried by
+$P_I$ in this parameterization.
