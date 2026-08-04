@@ -200,9 +200,10 @@ def overlay(tag, label, mfn, mkey):
 def main():
     n = sum(one(*c) for c in CASES)
     print(f'{n}/{len(CASES)} pair figures')
-    # Zero incidence is omitted from the overlays: both views are functions of
-    # x/L alone there, so superposing them adds nothing.
-    m = sum(overlay(*c) for c in CASES if not c[0].startswith('a0_'))
+    # Zero incidence is included so the section carries one overlay per
+    # condition; there it is simply the degenerate case, both families
+    # functions of x/L alone.
+    m = sum(overlay(*c) for c in CASES)
     print(f'{m} overlay figures')
 
 
