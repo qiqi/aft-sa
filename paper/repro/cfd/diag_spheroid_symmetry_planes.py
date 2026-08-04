@@ -21,20 +21,37 @@ What this script establishes, from committed data only:
      AHEAD of the windward one at N=8.  So the near-symmetry is not a
      property of the edge-velocity histories read through a 2-D envelope.
 
-  3. What distinguishes Stock is his THRESHOLD, not his growth.  His limit is
-     a coupled N_TS-N_CF curve (his Fig. 11c): N_TS = 8.0 while N_CF < 1, and
-     N_TS decays linearly as N_CF rises.  N_CF = 0 exactly on both symmetry
-     planes, so his TS threshold is at its MAXIMUM there and relaxes
-     everywhere in between.  A threshold that is highest at both planes and
-     lower between them produces a front late at both planes and early in the
-     middle -- the observed U -- with no appeal to the gradient asymmetry.
-     The script shows the front sensitivity to threshold: 2 units of N is
-     worth ~0.12 x/L, the right size for the observed dip.
+  3. RETRACTED.  An earlier version of this file argued that Stock's
+     coupled N_TS-N_CF threshold explains it: N_TS = 8.0 while N_CF < 1,
+     decaying as N_CF rises, so the threshold peaks where crossflow
+     vanishes.  That argument is WRONG for the question asked.  N_CF = 0 at
+     BOTH symmetry planes, by symmetry, so Stock's threshold is identically
+     8.0 at both and cannot produce either a difference or a similarity
+     between them.  The coupled threshold does explain why his front is late
+     at both planes RELATIVE TO THE MIDDLE; it says nothing about why the two
+     planes agree with each other.  Only the growth can do that.
 
-CAVEAT, stated because it matters: Stock's N_TS(N_CF) decay was FITTED to
-this same DFVLR dataset, so his reproduction of the U is not independent
-confirmation of the mechanism.  The U itself is in the measurement and is
-real; the coupled-threshold explanation is his model of it.
+  4. And the growth, as computed here, does not.  Worse, the one 3-D effect
+     the axisymmetric march omits pushes the wrong way: the lateral strain
+     (1/r0) d(u_phi)/d(phi) is strongly POSITIVE at the windward plane
+     (streamtube diverging, layer thinned, transition later) and strongly
+     NEGATIVE at the leeward plane (converging, thickened, earlier).  Both
+     signs add to the leeward-early bias rather than cancelling it.
+
+  So this is an OPEN question, not an answered one.  The measured windward and
+  leeward fronts agree to 0.002 x/L at alpha=5 while every estimate available
+  here says the leeward should transition 0.15 or more ahead.
+
+  A KNOWN FLAW in the estimate above, which must be removed before drawing any
+  conclusion: the edge velocity is taken from OUR OWN computed c_p, and the
+  cached fields are the measured-seed cases whose leeward front sits at
+  x/L = 0.273.  The march accumulates N from ~5 to 8 downstream of that, i.e.
+  through a region our own solution has already made turbulent, so the input
+  is contaminated exactly where it matters.  Two clean next steps: march on
+  exact potential-theory u_e for the inclined spheroid (Stock reports
+  potential theory matches the measured c_p well wherever the flow is attached
+  and laminar), or probe the calibrated-seed fields, whose laminar run extends
+  past x/L = 0.45 on the leeward meridian.
 
 Run from paper/:  python3 repro/cfd/diag_spheroid_symmetry_planes.py
 """
@@ -94,11 +111,12 @@ def main():
         print(f'  threshold sensitivity: N=8 -> N=6 moves the windward front '
               f'{w["N6"]-w["N8"]:+.3f}, the leeward {l["N6"]-l["N8"]:+.3f}')
         print()
-    print('Conclusion: the edge-velocity histories, read through a 2-D')
-    print('envelope, give leeward-early by 0.07-0.15.  The measurement gives')
-    print('~0.  So the symmetry is not in the growth; in Stock it is in the')
-    print('coupled threshold, which peaks exactly where N_CF vanishes -- on')
-    print('both symmetry planes.')
+    print('OPEN: a 2-D envelope on these edge velocities gives leeward-early')
+    print('by 0.07-0.15; the measurement gives ~0.  The coupled N_TS-N_CF')
+    print('threshold CANNOT explain it -- N_CF = 0 at both planes, so that')
+    print('threshold is identical there.  Only the growth can, and the growth')
+    print('computed here does the opposite.  See the docstring for the known')
+    print('contamination in this estimate and the two ways to remove it.')
 
 
 if __name__ == '__main__':
