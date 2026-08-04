@@ -1,27 +1,30 @@
-"""Oil-flow / max-chi pairs for the measured-seed spheroid tunnel cases.
+"""Oil-flow / max-chi views for the measured-seed spheroid tunnel cases.
 
--> paper/figs/spheroid_oilflow_<tag>.pdf, one per case
+-> paper/figs/spheroid_oilflow_<tag>.pdf   (pair: oil flow | max chi)
+-> paper/figs/spheroid_overlay_<tag>.pdf   (the two superposed, inclined only)
 
-Two panels side by side, both on the surface unrolled into (x/L, phi) with
-phi = 0 the windward symmetry line:
+LINE ART ONLY -- no filled contours, no colour bars, black on white, so the
+figures stay legible on an e-ink reader and match the paper's existing
+labeled-black-contour style for these maps.  Both views are the surface
+unrolled into (x/L, phi), phi = 0 the windward symmetry line.
 
-  LEFT   the oil-flow analogue: skin-friction LINES, integrated from the
-         surface shear vector itself (not inviscid streamlines, which is what
-         Stock's Figs. 14-17 draw), over light filled contours of |c_f|.
-         Convergence of the streaks marks separation.
-  RIGHT  max(chi) over a short wall-normal segment shot from each surface
-         point -- the 3D form of the near-wall chi probe used for the airfoils
-         and the drag-crisis cylinder -- with the chi = 1 and chi = c_v1
-         crossings drawn as the model-native front.
+  oil flow   skin-friction LINES integrated from the wall shear vector itself
+             (not the inviscid streamlines of Stock's Figs. 14-17), thin solid;
+             drawn GREY so they are never confused with the black contour
+             families; |c_f| as labeled black dashed contours.  Streak
+             convergence is the separation signature.
+  max chi    max(chi) over a short wall-normal segment shot from each surface
+             point -- the 3D form of the near-wall probe used for the airfoils
+             and the drag-crisis cylinder.  Sub-unity decades dashed,
+             chi = 1 heavy, chi = c_v1 and the supercritical decades solid,
+             following the convention of the paper's other spheroid maps.
 
-Both panels carry the measured DFVLR transition points, so the oil-flow
-structure and the model front can be read against the same data.
+Measured DFVLR transition points are white-filled black squares, so they
+occlude the line art underneath rather than competing with it.
 
-The probe data comes from `spheroid/surface_map.py` (run once per case; it
-caches surface_map_<tag>.npz).  Sequential fills are single-hue light-to-dark
-per panel, and the two panels use different hues so a reader never has to
-compare a magnitude across them; the measured symbols stay red, which
-separates from both ramps.
+Probe data: `spheroid/surface_map.py` caches surface_map_<tag>.npz in each
+case dir.  Those caches are also kept in repro/cfd/cache_spheroid_surface/ so
+these figures regenerate WITHOUT the 42 GB case tree.
 
 Run from paper/:  python3 repro/cfd/regen_spheroid_tunnel_oilflow.py
 """
@@ -37,13 +40,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PAPER = os.path.abspath(os.path.join(HERE, '..', '..'))
 DATA = os.path.join(PAPER, 'data')
 FIGD = os.path.join(PAPER, 'figs')
+CACHE = os.path.join(HERE, 'cache_spheroid_surface')
 ROOT = os.environ.get('SAAI_SPH_ROOT', '/local_data/qiqi/sa-ai/spheroid_fv1')
 
 C_V1 = 7.1
 A_AX, B_AX = 0.5, 1.0 / 12.0        # spheroid semi-axes / L (surface_map.py)
-C_MEAS = '#D62728'
+CF_LEV = [1.0, 2.0, 3.0]                    # c_f x 1e3; three only --
+#   the field carries cell-level noise, and a fine level set turns the
+#   turbulent plateau into a jagged tangle that buries the streaks
+CHI_SUB = [0.1, 0.3]                        # sub-unity: dashed
+CHI_SUP = [C_V1, 30.0, 100.0]               # supercritical: solid
 
-# tag -> (label, measured file, measured key or None)
 CASES = [
     ('a0_gmeas',    r'$\alpha=0^\circ$, $Re_L=7.2\times10^6$',
      'stock2006_fig14a_digitized.json', None),
@@ -62,6 +69,15 @@ CASES = [
 ]
 
 
+def load(tag):
+    name = f'surface_map_case_ogrid_L1_tun_{tag}.npz'
+    for p in (os.path.join(CACHE, name),
+              os.path.join(ROOT, f'case_ogrid_L1_tun_{tag}', name)):
+        if os.path.exists(p):
+            return np.load(p)
+    return None
+
+
 def measured(fn, key):
     d = json.load(open(os.path.join(DATA, fn)))
     if key is None:
@@ -73,156 +89,121 @@ def measured(fn, key):
     return [(p['phi_deg'], p['xL']) for p in d[key]]
 
 
-def one(tag, label, mfn, mkey):
-    case = os.path.join(ROOT, f'case_ogrid_L1_tun_{tag}')
-    npz = os.path.join(case, f'surface_map_case_ogrid_L1_tun_{tag}.npz')
-    if not os.path.exists(npz):
-        print(f'-- {tag}: no probe npz yet, skipped')
-        return False
-    d = np.load(npz)
-    xl, phd = d['xl'], d['phi_deg']
-    cf, chimax, us, up = d['cf'], d['chimax'], d['us'], d['up']
-    meas = measured(mfn, mkey)
+def smooth(v):
+    """Two 3-point passes.  The wall shear carries cell-level noise, and where
+    its circumferential component is near zero (the whole surface at zero
+    incidence) an unsmoothed integrand makes the traces oscillate about the
+    true straight streak."""
+    b = v.astype(float).copy()
+    for _ in range(2):
+        b[1:-1, :] = 0.25 * b[:-2, :] + 0.5 * b[1:-1, :] + 0.25 * b[2:, :]
+        b[:, 1:-1] = 0.25 * b[:, :-2] + 0.5 * b[:, 1:-1] + 0.25 * b[:, 2:]
+    return b
 
-    fig, (aL, aR) = plt.subplots(1, 2, figsize=(10.2, 4.0), sharey=True,
-                                 constrained_layout=True)
 
-    # ---- LEFT: oil flow -------------------------------------------------
-    cfm = cf * 1e3
-    top = float(np.nanpercentile(cfm, 99.0))
-    im = aL.contourf(xl, phd, cfm, levels=np.linspace(0.0, top, 25),
-                     cmap='Greys', extend='max', zorder=1, alpha=0.55)
-    cb = fig.colorbar(im, ax=aL, pad=0.02, fraction=0.055)
-    cb.set_label(r'$c_f\times10^3$', fontsize=8)
-    cb.ax.tick_params(labelsize=7)
-    # circumferential shear -> dphi/dt needs the local ring radius
+def streaks(ax, xl, phd, us, up):
     XL = np.meshgrid(xl, phd)[0]
     rad = B_AX * np.sqrt(np.clip(1.0 - ((-A_AX + XL) / A_AX) ** 2, 1e-6, None))
     dphi = np.degrees(up / np.maximum(rad, 1e-9))
-    # Light 3-point smoothing of the integrand before tracing.  The wall shear
-    # carries cell-level noise, and where the circumferential component is
-    # near zero (the whole surface at zero incidence) an unsmoothed integrand
-    # makes the traces oscillate about the true straight streak.
-    def smooth(a):
-        b = a.astype(float).copy()
-        for _ in range(2):
-            b[1:-1, :] = 0.25 * b[:-2, :] + 0.5 * b[1:-1, :] + 0.25 * b[2:, :]
-            b[:, 1:-1] = 0.25 * b[:, :-2] + 0.5 * b[:, 1:-1] + 0.25 * b[:, 2:]
-        return b
-    us, dphi = smooth(us), smooth(dphi)
-    # A CONTROLLED set of streaks, seeded like Stock's ~20 printed lines,
-    # rather than matplotlib's automatic density (which at zero incidence
-    # fills the panel with indistinguishable horizontal lines).
-    seed_phi = np.arange(2.0, 179.0, 7.5)
-    starts = np.column_stack([np.full_like(seed_phi, 0.055), seed_phi])
-    aL.streamplot(xl, phd, us, dphi, start_points=starts, color='0.15',
-                  linewidth=0.7, density=35, arrowsize=0, integration_direction='forward',
-                  broken_streamlines=False, zorder=3)
-    aL.set_title('oil flow: skin-friction lines over $|c_f|$', fontsize=9)
+    seed = np.arange(2.0, 179.0, 7.5)                # ~ Stock's printed count
+    ax.streamplot(xl, phd, smooth(us), smooth(dphi),
+                  start_points=np.column_stack(
+                      [np.full_like(seed, 0.055), seed]),
+                  color='0.55', linewidth=0.6, density=35, arrowsize=0,
+                  integration_direction='forward', broken_streamlines=False,
+                  zorder=3)
 
-    # ---- RIGHT: max chi over the wall-normal segment --------------------
-    lg = np.log10(np.maximum(chimax, 1e-8))
-    im2 = aR.contourf(xl, phd, lg, levels=np.linspace(-4, 2, 25), cmap='Blues',
-                      extend='both', zorder=1)
-    cb2 = fig.colorbar(im2, ax=aR, pad=0.02, fraction=0.055,
-                       ticks=[-4, -3, -2, -1, 0, 1, 2])
-    cb2.set_label(r'$\log_{10}\max_n\chi$', fontsize=8)
-    cb2.ax.tick_params(labelsize=7)
-    for lvl, lw in ((1.0, 1.9), (C_V1, 1.3)):
-        aR.contour(xl, phd, chimax, levels=[lvl], colors='k',
-                   linewidths=lw, zorder=3)
-    aR.set_title(r'$\max_n \chi$ on a wall-normal segment;'
-                 r' black $\chi=1$, $c_{v1}$', fontsize=9)
 
+def cf_contours(ax, xl, phd, cf):
+    cs = ax.contour(xl, phd, smooth(cf) * 1e3, levels=CF_LEV, colors='k',
+                    linewidths=0.8, linestyles='dashed', zorder=2)
+    ax.clabel(cs, fmt='%.0f', fontsize=6.5, inline=True, inline_spacing=6)
+
+
+def chi_contours(ax, xl, phd, chimax, heavy=2.2):
+    lo, hi = float(np.nanmin(chimax)), float(np.nanmax(chimax))
+    sub = [l for l in CHI_SUB if lo < l < hi]
+    sup = [l for l in CHI_SUP if lo < l < hi]
+    if sub:
+        cs = ax.contour(xl, phd, chimax, levels=sub, colors='k',
+                        linewidths=0.7, linestyles='dashed', zorder=3)
+        ax.clabel(cs, fmt='%g', fontsize=6, inline=True, inline_spacing=2)
+    if sup:
+        cs = ax.contour(xl, phd, chimax, levels=sup, colors='k',
+                        linewidths=0.9, zorder=3)
+        ax.clabel(cs, fmt='%g', fontsize=6, inline=True, inline_spacing=2)
+    if lo < 1.0 < hi:
+        ax.contour(xl, phd, chimax, levels=[1.0], colors='k',
+                   linewidths=heavy, zorder=4)
+
+
+def mark(ax, meas):
+    if meas:
+        ax.plot([m[1] for m in meas], [m[0] for m in meas], 's', mfc='white',
+                mec='k', mew=1.5, ms=6.0, zorder=6)
+
+
+def frame(ax):
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 180)
+    ax.set_yticks([0, 45, 90, 135, 180])
+    ax.set_xlabel('$x/L$', fontsize=9)
+    ax.tick_params(labelsize=8)
+
+
+def one(tag, label, mfn, mkey):
+    d = load(tag)
+    if d is None:
+        print(f'-- {tag}: no probe cache, skipped')
+        return False
+    xl, phd = d['xl'], d['phi_deg']
+    meas = measured(mfn, mkey)
+    fig, (aL, aR) = plt.subplots(1, 2, figsize=(9.6, 4.0), sharey=True,
+                                 constrained_layout=True)
+    cf_contours(aL, xl, phd, d['cf'])
+    streaks(aL, xl, phd, d['us'], d['up'])
+    aL.set_title(r'oil flow: skin-friction lines; dashed $c_f\times10^3$',
+                 fontsize=9)
+    chi_contours(aR, xl, phd, d['chimax'])
+    aR.set_title(r'$\max_n\chi$; heavy $\chi=1$, dashed sub-unity', fontsize=9)
     for a in (aL, aR):
-        if meas:
-            a.plot([m[1] for m in meas], [m[0] for m in meas], 's',
-                   mfc='none', mec=C_MEAS, mew=1.4, ms=5.5, zorder=5)
-        a.set_xlim(0, 1); a.set_ylim(0, 180)
-        a.set_yticks([0, 45, 90, 135, 180])
-        a.set_xlabel('$x/L$', fontsize=9)
-        a.tick_params(labelsize=8)
+        mark(a, meas)
+        frame(a)
     aL.set_ylabel(r'$\phi$ [deg]  (0 = windward)', fontsize=9)
-
     out = os.path.join(FIGD, f'spheroid_oilflow_{tag}.pdf')
     os.makedirs(FIGD, exist_ok=True)
-    fig.savefig(out); plt.close(fig)
+    fig.savefig(out)
+    plt.close(fig)
     print('wrote', out)
     return True
 
 
 def overlay(tag, label, mfn, mkey):
-    """Single panel: the two views superposed, for the inclined conditions.
-
-    The chi fill is deliberately truncated to the LIGHT half of the ramp so a
-    dark friction line reads over every part of it -- stacking two saturated
-    sequential fields, or drawing dark lines over a full light-to-dark ramp,
-    is what makes this kind of composite unreadable.  Separation is left to
-    the streak convergence itself rather than given its own coloured locus:
-    that convergence is the oil-flow signature, and a fourth colour would
-    collide with either the measured red or the front black.
-    """
-    import matplotlib.colors as mcolors
-    case = os.path.join(ROOT, f'case_ogrid_L1_tun_{tag}')
-    npz = os.path.join(case, f'surface_map_case_ogrid_L1_tun_{tag}.npz')
-    if not os.path.exists(npz):
-        print(f'-- {tag}: no probe npz, skipped'); return False
-    d = np.load(npz)
+    d = load(tag)
+    if d is None:
+        print(f'-- {tag}: no probe cache, skipped')
+        return False
     xl, phd = d['xl'], d['phi_deg']
-    cf, chimax, us, up = d['cf'], d['chimax'], d['us'], d['up']
-
-    fig, a = plt.subplots(figsize=(6.6, 4.1), constrained_layout=True)
-    light = mcolors.LinearSegmentedColormap.from_list(
-        'BluesLight', plt.get_cmap('Blues')(np.linspace(0.04, 0.60, 256)))
-    im = a.contourf(xl, phd, np.log10(np.maximum(chimax, 1e-8)),
-                    levels=np.linspace(-4, 2, 25), cmap=light, extend='both',
-                    zorder=1)
-    cb = fig.colorbar(im, ax=a, pad=0.02, fraction=0.05,
-                      ticks=[-4, -3, -2, -1, 0, 1, 2])
-    cb.set_label(r'$\log_{10}\max_n\chi$', fontsize=8)
-    cb.ax.tick_params(labelsize=7)
-
-    XL = np.meshgrid(xl, phd)[0]
-    rad = B_AX * np.sqrt(np.clip(1.0 - ((-A_AX + XL) / A_AX) ** 2, 1e-6, None))
-    dphi = np.degrees(up / np.maximum(rad, 1e-9))
-
-    def smooth(v):
-        b = v.astype(float).copy()
-        for _ in range(2):
-            b[1:-1, :] = 0.25 * b[:-2, :] + 0.5 * b[1:-1, :] + 0.25 * b[2:, :]
-            b[:, 1:-1] = 0.25 * b[:, :-2] + 0.5 * b[:, 1:-1] + 0.25 * b[:, 2:]
-        return b
-    seed_phi = np.arange(2.0, 179.0, 7.5)
-    starts = np.column_stack([np.full_like(seed_phi, 0.055), seed_phi])
-    a.streamplot(xl, phd, smooth(us), smooth(dphi), start_points=starts,
-                 color='0.20', linewidth=0.6, density=35, arrowsize=0,
-                 integration_direction='forward', broken_streamlines=False,
-                 zorder=3)
-    for lvl, lw in ((1.0, 2.2), (C_V1, 1.4)):
-        a.contour(xl, phd, chimax, levels=[lvl], colors='k', linewidths=lw,
-                  zorder=4)
-    meas = measured(mfn, mkey)
-    if meas:
-        a.plot([m[1] for m in meas], [m[0] for m in meas], 's', mfc='none',
-               mec=C_MEAS, mew=1.6, ms=6.0, zorder=5)
-    a.set_xlim(0, 1); a.set_ylim(0, 180)
-    a.set_yticks([0, 45, 90, 135, 180])
-    a.set_xlabel('$x/L$', fontsize=9)
+    fig, a = plt.subplots(figsize=(6.8, 4.2), constrained_layout=True)
+    streaks(a, xl, phd, d['us'], d['up'])
+    chi_contours(a, xl, phd, d['chimax'], heavy=2.6)
+    mark(a, measured(mfn, mkey))
+    frame(a)
     a.set_ylabel(r'$\phi$ [deg]  (0 = windward)', fontsize=9)
-    a.tick_params(labelsize=8)
     out = os.path.join(FIGD, f'spheroid_overlay_{tag}.pdf')
-    fig.savefig(out); plt.close(fig)
+    fig.savefig(out)
+    plt.close(fig)
     print('wrote', out)
     return True
 
 
 def main():
     n = sum(one(*c) for c in CASES)
-    print(f'{n}/{len(CASES)} pair figures written')
-    # overlays for the INCLINED conditions only: at zero incidence both views
-    # are functions of x/L alone and the superposition adds nothing.
+    print(f'{n}/{len(CASES)} pair figures')
+    # Zero incidence is omitted from the overlays: both views are functions of
+    # x/L alone there, so superposing them adds nothing.
     m = sum(overlay(*c) for c in CASES if not c[0].startswith('a0_'))
-    print(f'{m} overlay figures written')
+    print(f'{m} overlay figures')
 
 
 if __name__ == '__main__':
