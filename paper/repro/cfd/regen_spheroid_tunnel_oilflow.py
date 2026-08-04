@@ -106,11 +106,13 @@ def streaks(ax, xl, phd, us, up):
     rad = B_AX * np.sqrt(np.clip(1.0 - ((-A_AX + XL) / A_AX) ** 2, 1e-6, None))
     dphi = np.degrees(up / np.maximum(rad, 1e-9))
     seed = np.arange(2.0, 179.0, 7.5)                # ~ Stock's printed count
+    # Integrate BOTH ways from the seed ring: tracing only downstream
+    # left the nose region blank, since the seeds sit at x/L = 0.055.
     ax.streamplot(xl, phd, smooth(us), smooth(dphi),
                   start_points=np.column_stack(
                       [np.full_like(seed, 0.055), seed]),
                   color='0.55', linewidth=0.6, density=35, arrowsize=0,
-                  integration_direction='forward', broken_streamlines=False,
+                  integration_direction='both', broken_streamlines=False,
                   zorder=3)
 
 
