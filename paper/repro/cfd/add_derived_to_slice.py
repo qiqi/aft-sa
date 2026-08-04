@@ -79,9 +79,14 @@ def augment(pvtu_path):
 def find_cases(base, family):
     """family is e.g. 'nlf0416_Re4M' or 'eppler387_Re200k'.  Returns dirs that
     actually exist on disk.  Hardcoded α-sets per family."""
+    # Tokens, not numbers: the string is pasted into '_a{token}', so 'm2' gives
+    # _am2 and '8p5' gives _a8p5.  The eppler list carries the four ladder
+    # incidences plus the six extension ones; before 2026-08-04 it held only the
+    # ladder four, so the extension cases were never augmented by a default run
+    # and their slice_with_derived.pvtu had to be produced by hand.
     alpha_by_family = {
         'nlf0416_Re4M':   ['0','4','9','15'],
-        'eppler387_Re200k': ['0','2','5','7'],
+        'eppler387_Re200k': ['0','2','5','7', 'm2','1','3','4x','6','8p5'],
     }
     alphas = alpha_by_family.get(family, ['0','4','9','15'])
     cases = []

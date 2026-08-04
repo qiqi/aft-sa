@@ -42,6 +42,22 @@ SETS = {
                 for t in ('am4', 'am8')],
     'eppler_ext': [f"{m}L2prop_eppler387_Re200k_{t}" for m in ('cav', 'str')
                    for t in ('am2', 'a1', 'a3', 'a4x', 'a6', 'a8p5')],
+    # L0/L1 at the two incidences that bound the sweep. The ladder ('eppler')
+    # only carries a0/a2/a5/a7, so before this the polar's L0 and L1 curves
+    # stopped at 0 and 7 deg while L2 ran -2 to 8.5. Meshes are alpha-
+    # independent here, so these reuse the same-level mesh with alphaAngle
+    # changed, exactly as 'eppler_ext' does at L2.
+    'eppler_ext_levels': [f"{m}{L}prop_eppler387_Re200k_{t}"
+                          for m in ('cav', 'str') for L in ('L0', 'L1')
+                          for t in ('am2', 'a8p5')],
+    # Copies of two already-converged ladder cases, re-run with the current
+    # binary. The ladder was converged 2026-07-25/26 and the solver has been
+    # rebuilt since; the SA-AI kernel constants are verified identical
+    # (ModelConstants.h matches across hosts) but the binary is not, so these
+    # establish whether a repeat reproduces the recorded CL/CD/x_tr before the
+    # new incidences are plotted on the same curves. Originals untouched.
+    'eppler_reprocheck': ['cavL1prop_eppler387_Re200k_a0_reprocheck',
+                          'strL0prop_eppler387_Re200k_a7_reprocheck'],
 }
 
 RM_GLOBS = ['*_v2.csv', '*.pvtu', '*.vtu', 'xtr_history.csv',

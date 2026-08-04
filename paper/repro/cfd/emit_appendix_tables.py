@@ -258,15 +258,23 @@ def openfoam_eppler():
 # ---------------- Eppler polar ----------------------------------------------
 def eppler_polar():
     camp = json.load(open(f'{B}/sphere_campaign_eppler_results.json'))
-    # the twelve extension cases have their own committed campaign record --
-    # the authoritative values (the case CSVs are not shipped)
-    for k, v in json.load(open(f'{B}/sphere_campaign_eppler_ext_results.json')).items():
-        camp.setdefault(k, v)
+    # the extension cases have their own committed campaign records -- the
+    # authoritative values (the case CSVs are not shipped). _ext is the twelve
+    # L2 incidences; _ext_levels is L0/L1 at the two bounding incidences
+    # (-2 and 8.5), added 2026-08-04.
+    for j in ('sphere_campaign_eppler_ext_results.json',
+              'sphere_campaign_eppler_ext_levels_results.json'):
+        p = f'{B}/{j}'
+        if os.path.exists(p):
+            for k, v in json.load(open(p)).items():
+                camp.setdefault(k, v)
     TAG = {-2: 'am2', 0: 'a0', 1: 'a1', 2: 'a2', 3: 'a3', 4: 'a4x',
            5: 'a5', 6: 'a6', 7: 'a7', 8.5: 'a8p5'}
     rows = []
     for a in (-2, 0, 1, 2, 3, 4, 5, 6, 7, 8.5):
-        levs = ('L0', 'L1', 'L2') if a in (0, 2, 5, 7) else ('L2',)
+        # the ladder incidences and the two bounding ones carry all three
+        # levels; the four interior extension incidences are L2 only
+        levs = ('L0', 'L1', 'L2') if a in (0, 2, 5, 7, -2, 8.5) else ('L2',)
         for lev in levs:
             cells = [f'${a:g}$ & {lev}']
             for fam in ('str', 'cav'):
@@ -281,8 +289,11 @@ def eppler_polar():
           r' & & $C_L$ & $C_D$ & $C_L$ & $C_D$',
           rows,
           r'Eppler 387, $Re\!=\!2\!\times\!10^5$: computed forces behind the '
-          r'polar of Fig.~\ref{fig:epppolar} (the $-2^\circ$--$8.5^\circ$ '
-          r'extension incidences exist on the finest pair only).',
+          r'polar of Fig.~\ref{fig:epppolar}. All three levels carry the four '
+          r'ladder incidences and the two that bound the sweep '
+          r'($-2^\circ$, $8.5^\circ$); the four interior extension incidences '
+          r'($1^\circ$, $3^\circ$, $4^\circ$, $6^\circ$) exist on the finest '
+          r'pair only.',
           'tab:data_epppolar', 'll cc cc')
 
 

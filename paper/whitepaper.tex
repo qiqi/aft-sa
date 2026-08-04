@@ -593,8 +593,10 @@ $+67$/$+74\%$ at $9^\circ$/$15^\circ$.}\label{f:nlfpolar}
 
 $\alpha\in\{0^\circ,2^\circ,5^\circ,7^\circ\}$ on both families at
 L0--L2 plus six extension incidences ($-2^\circ$, $1^\circ$,
-$3^\circ$, $4^\circ$, $6^\circ$, $8.5^\circ$) on the finest pair;
-same seed. Figure~\ref{f:epppolar}: drag polar against the LTPT
+$3^\circ$, $4^\circ$, $6^\circ$, $8.5^\circ$) on the finest pair, and
+the two bounding incidences ($-2^\circ$, $8.5^\circ$) on L0 and L1 as
+well, so all six grids span the measured polar end to end
+(forty-four solutions, one solver build); same seed. Figure~\ref{f:epppolar}: drag polar against the LTPT
 measurement (McGhee et al., TM-4062), the $e^9$ reference, fully
 turbulent SA, and the digitized $\gamma$--$Re_\theta$ and SA-BC
 curves ($-6.4\%$ to $+3.7\%$ over $\alpha=0^\circ$--$7^\circ$).
@@ -610,11 +612,12 @@ behind the SA-AI stations.
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.62\textwidth]{eppler_polar_compare.pdf}
-\caption{Eppler 387 drag polar, $Re=2\times10^5$. Fully turbulent SA
-($\chi_\infty=3$) $77$--$97\%$ above the SA-AI drag in the bucket,
-$+151\%$ at $\alpha=7^\circ$; mesh families agree to $\Delta C_d\le
-2.4\times10^{-4}$ over $\alpha=-2^\circ$--$7^\circ$ and
-$1.0\times10^{-3}$ at $8.5^\circ$; OpenFOAM port omits the bypass,
+\caption{Eppler 387 drag polar, $Re=2\times10^5$; all six grids span
+$\alpha=-2^\circ$--$8.5^\circ$. Fully turbulent SA
+($\chi_\infty=3$) $66$--$87\%$ above the SA-AI drag in the bucket,
+$+149\%$ at $\alpha=7^\circ$; at L2 mesh families agree to $\Delta C_d\le
+6.9\times10^{-4}$ over $\alpha=-2^\circ$--$7^\circ$ and
+$2.7\times10^{-4}$ at $8.5^\circ$; OpenFOAM port omits the bypass,
 worth $-6$ to $-10$ counts at $\alpha=0$--$5^\circ$.}\label{f:epppolar}
 \end{figure}
 

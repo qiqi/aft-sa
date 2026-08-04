@@ -1833,8 +1833,12 @@ refinement levels on two independently-generated mesh families
 (unstructured cavity, structured O-grid) give twenty-four cases. The
 finest (L2) pair extends the matrix with six further incidences,
 $\alpha\!=\!-2^\circ$, $1^\circ$, $3^\circ$, $4^\circ$, $6^\circ$, and
-$8.5^\circ$ (twelve additional solutions), spanning the measured polar
-end to end.
+$8.5^\circ$ (twelve additional solutions), and the two incidences that
+bound the sweep, $\alpha\!=\!-2^\circ$ and $8.5^\circ$, are additionally
+computed on the L0 and L1 pairs (eight further solutions), so that every
+grid spans the measured polar end to end and the mesh-refinement
+comparison is available at the endpoints as well as in the interior.
+The forty-four solutions were all converged with a single solver build.
 
 Mesh generation reuses the NLF recipe verbatim. The 56-point Eppler 387
 contour is read from the NASA TM 4062 Table I (design coordinates with the
@@ -1854,21 +1858,23 @@ Table~\ref{tab:eppmesh} lists the Eppler resolution quantitatively.
   \centering
   \includegraphics[width=0.62\textwidth]{eppler_polar_compare.pdf}
   \caption{Drag polar of the Eppler 387 at $Re\!=\!2\!\times\!10^5$: the present
-  SA-AI prediction (all six grids at
-  $\alpha\!\in\!\{0^\circ,2^\circ,5^\circ,7^\circ\}$; the finest
-  L2 pair extended over $\alpha\!=\!-2^\circ$--$8.5^\circ$ with the
-  six additional computed incidences) overlaid on the digitized
+  SA-AI prediction (all six grids over
+  $\alpha\!=\!-2^\circ$--$8.5^\circ$; every grid carries
+  $\alpha\!\in\!\{0^\circ,2^\circ,5^\circ,7^\circ\}$ plus the two
+  bounding incidences $-2^\circ$ and $8.5^\circ$, and the finest L2 pair
+  carries four further interior incidences) overlaid on the digitized
   experimental section characteristics from the Langley Low-Turbulence Pressure
   Tunnel (McGhee et al., NASA TM-4062, App.~B, $R\!=\!2\!\times\!10^5$) and the
   mfoil $e^9$ reference, spanning the same extended incidence
   range (XFOIL fills $\alpha\!=\!7^\circ$, where mfoil's coupled solve
   fails). The computed points track the low-drag laminar bucket;
-  the two mesh families agree to within
-  $\Delta C_d\!\le\!2.4\times10^{-4}$ across $\alpha\!=\!-2^\circ$--$7^\circ$
-  and to $1.0\!\times\!10^{-3}$ at the unsteady $8.5^\circ$ point.
+  at L2 the two mesh families agree to within
+  $\Delta C_d\!\le\!6.9\times10^{-4}$ across $\alpha\!=\!-2^\circ$--$7^\circ$
+  (largest at $\alpha\!=\!5^\circ$) and to $2.7\!\times\!10^{-4}$ at the
+  unsteady $8.5^\circ$ point.
   The gray dash-dot curve is fully turbulent SA ($\chi_\infty\!=\!3$, same
-  solver, structured L2 grid), $77$--$97\%$ above the SA-AI drag in the
-  bucket and $+151\%$ at $\alpha\!=\!7^\circ$. The green and purple
+  solver, structured L2 grid), $66$--$87\%$ above the SA-AI drag in the
+  bucket and $+149\%$ at $\alpha\!=\!7^\circ$. The green and purple
   curves are the $\gamma$--$Re_\theta$ (Langtry--Menter, OpenFOAM) and
   SA-BC (SU2) transition models at the same condition and
   $Tu\!=\!0.1\%$, digitized from
@@ -3916,10 +3922,11 @@ correlational, not causal.
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_am2_upper.pdf}
   \caption{Eppler~387, $Re=2\times10^5$, $\alpha=-2^\circ$, upper
-  surface (finest L2 pair; the extension incidences exist on L2 only):
-  streamwise velocity $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right). The bubble
+  surface: streamwise velocity $u_x/U_\infty$ (left) and
+  $\log_{10}\chi$ (right) on all six grids. The bubble
   sits at its aft-most station of the sweep
-  ($x/c\!\approx\!0.55$--$0.80$).}
+  ($x/c\!\approx\!0.55$--$0.80$), and the location is grid-independent
+  across the ladder.}
   \label{fig:sheet_eppler387_am2_upper}
 \end{figure}
 
@@ -3955,8 +3962,8 @@ correlational, not causal.
   \centering
   \includegraphics[width=0.99\textwidth]{chi_sheet_eppler387_a8p5_upper.pdf}
   \caption{Eppler~387, $Re=2\times10^5$, $\alpha=8.5^\circ$, upper
-  surface (finest L2 pair): streamwise velocity $u_x/U_\infty$ (left) and
-  $\log_{10}\chi$ (right). Past the experimental stall: the layer
+  surface: streamwise velocity $u_x/U_\infty$ (left) and
+  $\log_{10}\chi$ (right) on all six grids. Past the experimental stall: the layer
   trips in the leading-edge bubble within the first few percent of
   chord---closing roughly $4\times$ shorter than the measured
   $0.03$--$0.18\,c$ recovery (Fig.~\ref{fig:eppbubble})---and runs

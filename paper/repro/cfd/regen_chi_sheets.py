@@ -2,10 +2,11 @@
 
 One sheet per (airfoil case, surface): 6 rows = the six grids paired by level
 (cavity L0, O-grid L0, cavity L1, O-grid L1, cavity L2, O-grid L2), 2 columns
-in the flat-plate figure's style -- left: line contours of velocity magnitude
-|u|/U_inf; right: line contours of log10(chi), dashed = laminar levels
-(chi < 1), solid = chi = 1, c_v1, 30, and 100 (the last two track the
-handover's completion and the turbulent interior). The x axis is the x/c of the wall anchor;
+in the flat-plate figure's style -- left: line contours of streamwise
+velocity u_x/U_inf (negative levels mark reverse flow in the LSB);
+right: line contours of log10(chi), laminar levels chi < 1 plus solid
+chi = 1, c_v1, 30, and 100 (the last two track the handover's completion
+and the turbulent interior). The x axis is the x/c of the wall anchor;
 the y axis is wall-normal distance from that anchor (each wall-normal probe
 scan is one vertical line of the sheet); the zoom holds the laminar band in
 frame and lets the turbulent part overshoot.
@@ -39,7 +40,22 @@ AF_SETUP = {
 ROWS = [('cavL0prop', 'cavity L0'), ('strL0prop', 'O-grid L0'),
         ('cavL1prop', 'cavity L1'), ('strL1prop', 'O-grid L1'),
         ('cavL2prop', 'cavity L2'), ('strL2prop', 'O-grid L2')]
-ALPHAS = {'nlf0416': (0, 4, 9, 15), 'eppler387': (0, 2, 5, 7)}
+ALPHAS = {'nlf0416': (-8, -4, 0, 4, 9, 15),
+          # All six eppler incidences now carry L0/L1/L2, so every sheet is the
+          # full six rows: am2 and a8p5 gained L0/L1 on 2026-08-03 (campaign set
+          # 'eppler_ext_levels'), before which those two sheets rendered L2 only.
+          # sheet() still drops rows whose slice_centerSpan.pvtu is absent, so a
+          # partially-run alpha degrades rather than failing.
+          'eppler387': (-2, 0, 2, 5, 7, 8.5)}
+
+
+def _alpha_tag(alpha):
+    """Flow360 case-name alpha token: -2 -> am2, 8.5 -> a8p5, else a{int}."""
+    if abs(alpha - 8.5) < 1e-9:
+        return 'a8p5'
+    if alpha < 0:
+        return f'am{abs(int(round(alpha)))}'
+    return f'a{int(round(alpha))}'
 
 # levels beyond c_v1 show the HANDOVER dynamics: sigma_P is 97% complete
 # and f_v1 90% by chi ~ 15; chi = 30 marks the effectively completed
@@ -48,8 +64,12 @@ CHI_MAJOR = [-3, -2, -1, 0, np.log10(C_V1), np.log10(30.0), 2.0]
 CHI_MINOR = [-2.5, -1.5, -0.5]
 CHI_FMT = {-3: '-3', -2: '-2', -1: '-1', 0: r'$\chi{=}1$', np.log10(C_V1): r'$c_{v1}$',
            np.log10(30.0): '30', 2.0: r'$10^2$'}
-U_LEV = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99, 1.1, 1.3]
-U_LABEL = [0.1, 0.3, 0.5, 0.7, 0.9, 0.99, 1.1, 1.3]
+# Streamwise velocity: negative bands resolve the reverse-flow region of an LSB.
+UX_LEV = [-0.05, -0.02, -0.01, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7,
+          0.8, 0.9, 0.99, 1.1, 1.3]
+UX_LABEL = [-0.05, -0.02, 0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 0.99, 1.1, 1.3]
+# Back-compat aliases (older call sites / explore scripts).
+U_LEV, U_LABEL = UX_LEV, UX_LABEL
 
 
 def _mod(af):
@@ -61,7 +81,11 @@ def _mod(af):
 
 
 def scan(m, af, case_d, side, L_probe, n_probe=320):
-    """(x_anchors, dists, chi[n,M], umag[n,M]) probed along outward normals."""
+    """(x_anchors, dists, chi[n,M], ux[n,M]) probed along outward normals.
+
+    ux is the lab-frame streamwise velocity / U_inf (= vel_x / Mach in the
+    Flow360 nondimensionalisation), so reverse flow is negative.
+    """
     Xm, Zm, up_idx, lo_idx = m.walk_contour_xz(case_d)
     idx = up_idx if side == 'upper' else lo_idx
     xs = Xm[idx]; zs = Zm[idx]
@@ -89,13 +113,13 @@ def scan(m, af, case_d, side, L_probe, n_probe=320):
     Re = AF_SETUP[af]['Re']
     nu = vtk_to_numpy(pdd.GetArray('nuHat')) * (Re/MACH)
     vel = vtk_to_numpy(pdd.GetArray('velocity'))
-    umag = np.linalg.norm(vel, axis=1) / MACH
+    ux = vel[:, 0] / MACH
     valid = vtk_to_numpy(pr.GetValidPoints())
     mask = np.zeros(M*n_probe, bool); mask[valid] = True
     chi = np.where(mask, nu, np.nan).reshape(n_probe, M)
-    um = np.where(mask, umag, np.nan).reshape(n_probe, M)
+    uxf = np.where(mask, ux, np.nan).reshape(n_probe, M)
     o = np.argsort(xs)
-    return xs[o], dists, chi[:, o], um[:, o]
+    return xs[o], dists, chi[:, o], uxf[:, o]
 
 
 def sheet(af, alpha, side):
@@ -103,17 +127,25 @@ def sheet(af, alpha, side):
     cfg = AF_SETUP[af]
     L = cfg['L_up'] if side == 'upper' else cfg['L_lo']
     Re = cfg['Re']                       # d*U_inf/nu = (d/c)*Re_c
-    fig, axes = plt.subplots(6, 2, figsize=(11.5, 12.5), sharex=True, sharey=True)
-    for r, (gname, glabel) in enumerate(ROWS):
-        case = f"{B}/{gname}_{cfg['casetag']}_a{alpha}"
-        if not os.path.exists(f"{case}/slice_centerSpan.pvtu"):
-            # the current campaign tree tracks completion in the campaign
-            # JSONs; the slice is written at the final step only
-            raise FileNotFoundError(case)
-        x, d, chi, um = scan(m, af, case, side, L)
+    atag = _alpha_tag(alpha)
+    rows = []
+    for gname, glabel in ROWS:
+        case = f"{B}/{gname}_{cfg['casetag']}_{atag}"
+        if os.path.exists(f"{case}/slice_centerSpan.pvtu"):
+            rows.append((gname, glabel, case))
+    if not rows:
+        raise FileNotFoundError(
+            f"{B}/{{cav,str}}*_{cfg['casetag']}_{atag}")
+    nrows = len(rows)
+    fig, axes = plt.subplots(nrows, 2, figsize=(11.5, 2.1 * nrows + 0.6),
+                             sharex=True, sharey=True)
+    if nrows == 1:
+        axes = np.asarray([axes])
+    for r, (gname, glabel, case) in enumerate(rows):
+        x, d, chi, ux = scan(m, af, case, side, L)
         axU, axC = axes[r]
-        cs = axU.contour(x, d*Re, um, levels=U_LEV, colors='k', linewidths=0.6)
-        axU.clabel(cs, levels=U_LABEL, fmt='%g', fontsize=6.5, inline_spacing=2)
+        cs = axU.contour(x, d*Re, ux, levels=UX_LEV, colors='k', linewidths=0.6)
+        axU.clabel(cs, levels=UX_LABEL, fmt='%g', fontsize=6.5, inline_spacing=2)
         logchi = np.log10(np.clip(chi, 1e-8, None))
         axC.contour(x, d*Re, logchi, levels=CHI_MINOR, colors='k', linewidths=0.4)
         cs = axC.contour(x, d*Re, logchi, levels=CHI_MAJOR, colors='k', linewidths=0.8)
@@ -121,11 +153,11 @@ def sheet(af, alpha, side):
         axU.set_xlim(0, 1); axU.set_ylim(0, L*Re)
         axU.set_ylabel(f'{glabel}\n' + r'$d\,U_\infty/\nu$', fontsize=9)
         print(f"  {gname}: scanned", flush=True)
-    axes[0, 0].set_title(r'$|\mathbf{u}|/U_\infty$', fontsize=10)
+    axes[0, 0].set_title(r'$u_x/U_\infty$', fontsize=10)
     axes[0, 1].set_title(r'$\log_{10}\chi$', fontsize=10)
     for c in range(2):
         axes[-1, c].set_xlabel('wall-anchor x/c')
-    out = os.path.join(FIGS, f'chi_sheet_{af}_a{alpha}_{side}.pdf')
+    out = os.path.join(FIGS, f'chi_sheet_{af}_{atag}_{side}.pdf')
     plt.tight_layout()
     plt.savefig(out)
     plt.close(fig)
@@ -179,11 +211,11 @@ def sweep_re_sheet(retag, Re, relabel, side):
                 else f"{B}/ext_fork_{fam}L2_{retag}_a5")
         if not os.path.exists(f"{case}/slice_centerSpan.pvtu"):
             raise FileNotFoundError(case)
-        x, d, chi, um = scan(m, 'eppler387', case, side, L)
+        x, d, chi, ux = scan(m, 'eppler387', case, side, L)
         chi = chi*(Re/2e5)   # scan() scales nuHat by the benchmark Re
         axU, axC = axes[r]
-        cs = axU.contour(x, d*Re, um, levels=U_LEV, colors='k', linewidths=0.6)
-        axU.clabel(cs, levels=U_LABEL, fmt='%g', fontsize=6.5, inline_spacing=2)
+        cs = axU.contour(x, d*Re, ux, levels=UX_LEV, colors='k', linewidths=0.6)
+        axU.clabel(cs, levels=UX_LABEL, fmt='%g', fontsize=6.5, inline_spacing=2)
         logchi = np.log10(np.clip(chi, 1e-8, None))
         axC.contour(x, d*Re, logchi, levels=CHI_MINOR, colors='k', linewidths=0.4)
         cs = axC.contour(x, d*Re, logchi, levels=CHI_MAJOR, colors='k', linewidths=0.8)
@@ -191,7 +223,7 @@ def sweep_re_sheet(retag, Re, relabel, side):
         axU.set_xlim(0, 1); axU.set_ylim(0, L*Re)
         axU.set_ylabel(f'{glabel}\n' + r'$d\,U_\infty/\nu$', fontsize=9)
         print(f"  {retag} {glabel}: scanned", flush=True)
-    axes[0, 0].set_title(r'$|\mathbf{u}|/U_\infty$', fontsize=10)
+    axes[0, 0].set_title(r'$u_x/U_\infty$', fontsize=10)
     axes[0, 1].set_title(r'$\log_{10}\chi$', fontsize=10)
     for c in range(2):
         axes[-1, c].set_xlabel('wall-anchor x/c')
@@ -202,21 +234,26 @@ def sweep_re_sheet(retag, Re, relabel, side):
     print(f"wrote {out}", flush=True)
 
 
-def main(only=None):
-    for af in ('nlf0416', 'eppler387'):
+def main(only=None, afs=None, sides=None, do_sweep=True):
+    afs = afs or ('nlf0416', 'eppler387')
+    sides = sides or ('upper', 'lower')
+    for af in afs:
         for alpha in ALPHAS[af]:
-            for side in ('upper', 'lower'):
-                if only and (af, alpha, side) != only:
+            for side in sides:
+                if only and not (only[0] == af and only[2] == side
+                                 and abs(only[1] - alpha) < 1e-9):
                     continue
                 try:
-                    print(f"{af} a{alpha} {side}:", flush=True)
+                    print(f"{af} {_alpha_tag(alpha)} {side}:", flush=True)
                     sheet(af, alpha, side)
                 except FileNotFoundError as e:
                     print(f"  SKIP (case incomplete): {e}", flush=True)
     if only:
         return
+    if not do_sweep:
+        return
     for retag, Re, relabel in SWEEP_RE:
-        for side in ('upper', 'lower'):
+        for side in sides:
             try:
                 print(f"eppler387 {retag} {side}:", flush=True)
                 sweep_re_sheet(retag, Re, relabel, side)
@@ -226,6 +263,6 @@ def main(only=None):
 
 if __name__ == '__main__':
     if len(sys.argv) > 3:
-        main(only=(sys.argv[1], int(sys.argv[2]), sys.argv[3]))
+        main(only=(sys.argv[1], float(sys.argv[2]), sys.argv[3]))
     else:
         main()
