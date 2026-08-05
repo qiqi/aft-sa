@@ -31,6 +31,8 @@ Run from paper/:  python3 repro/cfd/regen_spheroid_tunnel_oilflow.py
 import json
 import os
 
+import sys
+
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -41,6 +43,7 @@ PAPER = os.path.abspath(os.path.join(HERE, '..', '..'))
 DATA = os.path.join(PAPER, 'data')
 FIGD = os.path.join(PAPER, 'figs')
 CACHE = os.path.join(HERE, 'cache_spheroid_surface')
+sys.path.insert(0, os.path.abspath(os.path.join(HERE, '..', 'analytic')))
 ROOT = os.environ.get('SAAI_SPH_ROOT', '/local_data/qiqi/sa-ai/spheroid_fv1')
 
 C_V1 = 7.1
@@ -103,16 +106,85 @@ def smooth(v):
     return b
 
 
-def streaks(ax, xl, phd, us, up):
+SEED_TOTAL = 24            # ~ the printed trace count of Stock Figs. 14-17
+SWEEP_SCALE = 3.0          # Lambda at which the windward rake takes over
+SEED_X_NOSE = 0.055        # nose-ring station
+SEED_PHI_WIND = 1.2        # windward-rake azimuth, deg (0 would never sweep)
+SEED_X_RAKE = (0.03, 0.85)
+
+
+def sweep_profile(alpha_deg, xl):
+    """Cumulative azimuthal sweep Lambda(x) of a surface streamline, from the
+    exact potential field.
+
+    A surface streamline obeys d(phi)/ds = u_phi/(r0 u_s), and with the O(alpha)
+    potential result u_phi = U alpha g sin(phi), g = T/b constant, this
+    separates: the variable u = ln tan(phi/2) simply TRANSLATES,
+
+        du/ds = alpha g / (r0 f0),      Lambda(x) = integral du.
+
+    So Lambda is the natural measure of how far a streamline is carried around
+    the body between two stations, and it is what sets the seeding.  See
+    repro/analytic/spheroid_potential.py.
+    """
+    from spheroid_potential import surface_fields, metrics, XI0, B_AX
+    eta = np.clip(2.0 * xl - 1.0, -1 + 1e-9, 1 - 1e-9)
+    f0, _, g = surface_fields(eta)
+    _, h_eta, _ = metrics(XI0, eta)
+    r0 = B_AX * np.sqrt(1.0 - eta**2)
+    dds_dx = 2.0 * h_eta                       # eta = 2x - 1
+    rate = np.radians(alpha_deg) * g / np.maximum(r0 * f0, 1e-12) * dds_dx
+    return np.concatenate([[0.0], np.cumsum(0.5 * (rate[1:] + rate[:-1])
+                                            * np.diff(xl))])
+
+
+def seeds(alpha_deg, xl):
+    """Two rakes, split by how much the flow sweeps in azimuth.
+
+    At alpha = 0 the surface flow is purely meridional, so a ring of seeds near
+    the nose crosses every streamline and nothing else is needed.  As alpha
+    grows the streamlines are swept windward -> leeward, the nose ring's traces
+    all pile onto the leeward side, and the windward surface aft of the nose is
+    left bare -- which is what made the alpha = 10 and 29.7 panels unusable.
+    So a second rake is laid along the windward line itself, and the split
+    between the two follows the total sweep Lambda:
+
+        w = Lambda / (Lambda + 3),   n_wind = round(w * 24),  n_nose = 24 - n_wind
+
+    giving all-nose at alpha = 0 and mostly-windward by alpha = 29.7.  The
+    windward seeds are spaced uniformly in REMAINING sweep rather than in x, so
+    their traces peel off the windward line at evenly spread azimuths instead of
+    bunching where the sweep is fastest.
+    """
+    L = sweep_profile(alpha_deg, xl)
+    lam = float(L[-1] - L[0])
+    w = lam / (lam + SWEEP_SCALE)
+    n_wind = int(round(w * SEED_TOTAL))
+    n_nose = SEED_TOTAL - n_wind
+    pts = []
+    if n_nose > 0:
+        for ph in np.linspace(2.0, 178.0, n_nose):
+            pts.append((SEED_X_NOSE, ph))
+    if n_wind > 0:
+        m = (xl >= SEED_X_RAKE[0]) & (xl <= SEED_X_RAKE[1])
+        xs, Ls = xl[m], L[m]
+        psi = Ls[-1] - Ls                      # sweep still to come
+        for target in np.linspace(psi[0], psi[-1], n_wind + 2)[1:-1]:
+            pts.append((float(np.interp(-target, -psi, xs)), SEED_PHI_WIND))
+    return np.array(pts), lam, n_nose, n_wind
+
+
+def streaks(ax, xl, phd, us, up, alpha_deg):
     XL = np.meshgrid(xl, phd)[0]
     rad = B_AX * np.sqrt(np.clip(1.0 - ((-A_AX + XL) / A_AX) ** 2, 1e-6, None))
     dphi = np.degrees(up / np.maximum(rad, 1e-9))
-    seed = np.arange(2.0, 179.0, 7.5)                # ~ Stock's printed count
-    # Integrate BOTH ways from the seed ring: tracing only downstream
-    # left the nose region blank, since the seeds sit at x/L = 0.055.
+    pts, lam, n_nose, n_wind = seeds(alpha_deg, xl)
+    print(f'    seeds: Lambda={lam:5.2f} rad -> {n_nose} nose ring + '
+          f'{n_wind} windward rake')
+    # Integrate BOTH ways from each seed: tracing only downstream left the nose
+    # region blank.
     ax.streamplot(xl, phd, smooth(us), smooth(dphi),
-                  start_points=np.column_stack(
-                      [np.full_like(seed, 0.055), seed]),
+                  start_points=np.column_stack([pts[:, 0], pts[:, 1]]),
                   color='0.55', linewidth=0.6, density=35, arrowsize=0,
                   integration_direction='both', broken_streamlines=False,
                   zorder=3)
@@ -165,7 +237,7 @@ def one(tag, label, mfn, mkey):
     fig, (aL, aR) = plt.subplots(1, 2, figsize=(9.6, 4.0), sharey=True,
                                  constrained_layout=True)
     cf_contours(aL, xl, phd, d['cf'])
-    streaks(aL, xl, phd, d['us'], d['up'])
+    streaks(aL, xl, phd, d['us'], d['up'], float(d['alpha']))
     aL.set_title(r'oil flow: skin-friction lines; dashed $c_f\times10^3$',
                  fontsize=9)
     chi_contours(aR, xl, phd, d['chimax'])
@@ -189,7 +261,7 @@ def overlay(tag, label, mfn, mkey):
         return False
     xl, phd = d['xl'], d['phi_deg']
     fig, a = plt.subplots(figsize=(6.8, 4.2), constrained_layout=True)
-    streaks(a, xl, phd, d['us'], d['up'])
+    streaks(a, xl, phd, d['us'], d['up'], float(d['alpha']))
     chi_contours(a, xl, phd, d['chimax'], heavy=2.6)
     mark(a, measured(mfn, mkey))
     frame(a)

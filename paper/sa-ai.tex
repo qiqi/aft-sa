@@ -3471,6 +3471,141 @@ condition and the comparison is against the measurement alone.
   \label{fig:ov_a29p7_gmeas}
 \end{figure}
 
+\subsection{The small-incidence limit: why every local model must transition
+first on the leeward side}\label{sec:sphsmallalpha}
+
+Before the high-Reynolds-number cases, it is worth settling what incidence
+does to this boundary layer, because the answer is analytic and it predicts
+the sign of the error the rest of the section reports---and the sign of the
+error the rest of the literature reports as well.
+
+Take the potential flow around the spheroid at incidence exactly, as a
+superposition of an axial and a transverse mode in prolate spheroidal
+coordinates. Let $\eta=2x/L-1$, so $\eta=-1$ at the nose, $0$ at mid-body and
+$+1$ at the tail, and let $\varphi$ be the azimuth measured from the windward
+generator, so $\varphi\!=\!0$ is the windward symmetry line and
+$\varphi\!=\!180^\circ$ the leeward one. To first order in $\alpha$ the
+surface velocity has a meridional component $u_s$ and an azimuthal one
+$u_\varphi$,
+%
+\begin{equation}
+u_s = U_\infty\!\left[\,f_0(\eta) + \alpha f_1(\eta)\cos\varphi\,\right],
+\qquad
+u_\varphi = U_\infty\,\alpha\,g\,\sin\varphi ,
+\label{eq:sphoalpha}
+\end{equation}
+%
+in which $f_0$ is the axisymmetric speed already used in
+Sec.~\ref{sec:sphts}, $f_1$ is the incidence perturbation to it, and $g$ sets
+the size of the circumferential flow. Because the perturbation carries
+$\cos\varphi$ and $\cos0^\circ\!=\!+1$ while $\cos180^\circ\!=\!-1$, the two
+symmetry meridians receive equal and opposite changes in $u_s$; because
+$u_\varphi$ carries $\sin\varphi$, it vanishes identically on both of them.
+
+Two properties of Eq.~(\ref{eq:sphoalpha}) are exact and both matter.
+First, $g\!=\!T/b$ is a \emph{constant} along the body: the azimuthal edge
+velocity is $U_\infty\alpha(T/b)\sin\varphi$ at every station, with
+$T/b\!=\!1.917$ for the $6\!:\!1$ body. That value is a check on the
+transverse mode rather than a fitted quantity---as $b/a\!\to\!0$ a slender
+body in a crossflow $\alpha U_\infty$ becomes a two-dimensional cylinder,
+whose surface speed is $2U_\infty\sin\varphi$, and $T/b\!\to\!2$
+accordingly. Second, $f_1\!\propto\!\eta$, so the meridional perturbation is
+antisymmetric about mid-body and passes through zero exactly at
+$x/L\!=\!0.5$: over the front half the windward meridian is \emph{slower}
+than the axisymmetric one and the leeward \emph{faster}, and beyond mid-body
+they exchange roles. Physically the stagnation point has slid onto the
+windward side and the flow spills around toward the lee, so near the nose the
+leeward side has already been accelerated while the windward side is still
+near rest.
+
+That gives two independent reasons why the leeward meridian should transition
+first, and they are worth separating because they belong to different parts of
+any transition model.
+
+The first is the pressure gradient, and it is what an $e^N$ envelope sees.
+Over the front half the windward meridian is on the slow side of $f_0$ and
+still accelerating, while the leeward meridian is on the fast side and already
+decelerating. Favourable gradient thins the layer and suppresses
+Tollmien--Schlichting growth; adverse gradient does the reverse. Marching a
+Mangler-weighted Thwaites integral on the exact $u_e$ of
+Eq.~(\ref{eq:sphoalpha}) and integrating a Drela--Giles
+envelope~\cite{drela_giles_1987} to $N\!=\!8$---Stock's limiting value for
+this tunnel~\cite{stock_2006}---puts the leeward crossing $0.068\,L$ ahead of
+the windward one at $\alpha\!=\!2.5^\circ$, $Re_L\!=\!7.2\!\times\!10^6$.
+Marching instead on our own computed $c_p$ gives $0.067$, so this channel is
+not an artifact of the analytic edge field: the two agree to $0.001$, and the
+potential and computed windward-to-leeward $u_e$ ratio at $x/L\!=\!0.05$ agree
+to three digits at $\alpha\!=\!5^\circ$ ($0.895$ against $0.896$).
+
+The second is lateral straining, and it is the genuinely three-dimensional
+one. Since $u_\varphi\!\propto\!\sin\varphi$, its azimuthal derivative on the
+two symmetry planes is $\pm\alpha U_\infty g/r_0$---equal in magnitude,
+opposite in sign. On the windward line the surface flow leaves sideways in
+both directions, so a streamtube straddling that line spreads and the layer is
+\emph{thinner} than the axisymmetric estimate; on the leeward line fluid
+arrives from both sides, the streamtube is squeezed, and the layer is
+\emph{thicker}. Writing the streamtube width as
+$W\!=\!r_0\exp\!\int\!k\,\mathrm{d}s$ with
+$k\!=\!(u_er_0)^{-1}\partial u_\varphi/\partial\varphi$ and repeating the
+march, this channel alone moves the leeward crossing $0.219\,L$ ahead---three
+times the pressure-gradient channel, and in the same direction. Together they
+give $0.287\,L$.
+
+The reason this is not a peculiarity of the envelope method is that
+$Re_\theta$ is the argument of both halves of any transition trigger: the
+critical condition that starts amplification, and the growth rate once it has
+started. A thicker layer at the same station has a larger $Re_\theta$, so it
+reaches the critical value sooner and amplifies faster afterwards.
+\emph{Any} model whose trigger is a local thickness or a local Reynolds
+number---an envelope, a transported amplification factor, an intermittency
+correlation---must therefore fire earlier on the squeezed leeward side and
+later on the spread windward side. The prediction is not a property of a
+calibration; it is a property of the model class.
+
+The literature bears that out, and uniformly. In the first AIAA CFD transition
+modeling workshop's inclined-spheroid case at $\alpha\!=\!5^\circ$,
+$Re_L\!=\!6.5\!\times\!10^6$, every submitted transport model that transitions
+on the interior of the body does so earlier at $\varphi\!=\!180^\circ$ than at
+$\varphi\!=\!0$, by $0.24$ to more than $0.7\,L$~\cite{coder_tmpw_summary};
+the most extreme is an amplification-factor transport model, the published
+construction closest in spirit to the present one, which carries no windward
+front at all while placing the leeward front at $x/L\!=\!0.19$. Langtry--Menter
+in OVERFLOW is windward-late by about $0.20\,L$ at the same condition and
+cannot be tuned out of it: raising the assumed roughness sixfold, to an
+unphysical $20\,\mu$m, pulls the leeward front upstream onto the measurement
+and leaves the windward front where it was~\cite{denison_2021_overflow}. A
+one-equation Spalart--Allmaras correlation model fires almost uniformly in
+azimuth at $x/L\!\approx\!0.06$~\cite{tarsia_2025}. Our own $\chi\!=\!1$
+front is windward-late by $0.147\,L$ at $\alpha\!=\!2.5^\circ$---inside that
+band, and less asymmetric than the textbook envelope estimate of $0.287$
+above.
+
+The measurement, however, shows no such asymmetry: the two symmetry planes
+agree to $0.018\,L$ at $\alpha\!=\!2.5^\circ$ and $0.002\,L$ at
+$5^\circ$~\cite{kreplin_1985}. Neither does Stock's computation, which is
+leeward-\emph{late} by $0.030$ and $0.019$; his own envelope $N$ factors reach
+large values along the windward streamlines and the leeward ones alike, with
+the moderate values in between~\cite{stock_2006}, and the $N_{TS}$ values he
+recovers at every measured transition location across the campaign fall in a
+single band about the fitted limit rather than splitting into a windward and a
+leeward cloud. An asymmetry of $0.287\,L$ corresponds to about $4.8$ in $N$ at
+our own threshold sensitivity, which that band excludes.
+
+So the sign and the mechanism of the error are settled, and the size of it is
+not attributable to the amplification rate: the same $0.15$--$0.29\,L$ bias
+appears in an envelope method with no model constants at all. What
+distinguishes Stock is that he solves the three-dimensional laminar boundary
+layer by finite differences on a surface mesh with $121$ wall-normal points and
+feeds the resulting profiles to local stability theory, rather than reducing
+each profile to a thickness and a shape factor. The lateral straining acts on
+the whole profile there, and stability responds to the profile's shape, which
+need not follow its width. That is the natural place to look next, and it is
+consistent with the observation of Sec.~\ref{sec:sph5} that changing the
+amplification rate does not move the azimuthal spread. It should be said
+plainly that Stock nowhere writes the boundary-layer equations he solves or
+discusses what the lateral terms do to the profile, so the attribution is
+inference from what his method must contain, not a claim he makes.
+
 \subsection{Zero incidence: the pure-TS anchor and its disturbance
 environment}\label{sec:sphts}
 
