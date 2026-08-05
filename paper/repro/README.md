@@ -9,11 +9,14 @@ loguru) and the Flow360 solver binary (`compute` repo, branch
 
 ## Layout
 
-- `lib/` — the model kernel: constants + amplification-rate/gate functions
-  (`aft_sources.py`), the Tu→χ∞ map (`calibrate_kernel.py`), Falkner–Skan and
-  Blasius solution machinery, the SA wall-layer module. These are verbatim
-  copies of the project originals with only import lines rewritten;
-  `sa-ai/tests/test_constants_consistency.py` fails if they drift.
+- `lib/` — the model kernel: the canonical amplification kernel and its
+  constants (`sphere_kernel.py`), the Tu→χ∞ map (`calibrate_kernel.py`),
+  Falkner–Skan and Blasius solution machinery, the SA wall-layer module. These
+  are verbatim copies of the project originals with only import lines
+  rewritten; `sa-ai/tests/test_constants_consistency.py` fails if they drift.
+  (The retired Γ-sigmoid + Q4-gate kernel `aft_sources.py` was removed on
+  2026-07-30; `calibrate_kernel.py` still carries its constants for the
+  archival `cfd/regen_eppler_v2.py` / `cfd/regen_nlf_v2.py` replays only.)
 - `analytic/` — every non-CFD figure/table (paper Figs. 1–7, Tables 1–2, the
   a_max eigenvalue check, the Tu map). Run all:
   `python analytic/regenerate_all.py` (figures land in `paper/figs/`).
@@ -40,9 +43,9 @@ Read each script alongside the passage it backs; `regenerate_all.py` and
 | §II model | fig:indicatorplane | `analytic/fig01_indicator_plane.py` |
 | §II model | fig:kernel | `analytic/fig02_kernel_maps.py` |
 | §III.A a_max | eigenvalue 0.19 (asserted) | `analytic/amax_rayleigh.py` |
-| §III.B qualitative constants | c_ν,ai plateau; c_A / p brackets, anchors re-solved per candidate (~40 min, on demand) | `analytic/scan_background_constants.py` |
+| §III.B qualitative constants | c_ν,ai plateau; c_A / p brackets, anchors re-solved per candidate | removed 2026-07-30 with the retired Γ-sigmoid + Q4-gate kernel (c_A, p are not constants of the canonical `lib/sphere_kernel.py`) |
 | §III.C triple | (254, 1.005, 11) meets the 3 conditions at the quoted residuals (asserted) | `analytic/verify_three_anchors.py` |
-| §III.C N=1 level | departure-anchor sensitivity sweep (on demand) | `analytic/scan_anchor_level.py` |
+| §III.C N=1 level | departure-anchor sensitivity sweep | removed 2026-07-30 with the retired Γ-sigmoid + Q4-gate kernel |
 | §III.A instrument | fig:nuhat | `analytic/fig03_fs_transport_rows.py` |
 | §III.C family | fig:shapefactor (cliff-only + factored) | `analytic/fig04_shapefactor.py` |
 | §III.D K_λ | fig:worstpoint, fig:klambda_sc (eq:klambda fixed point) | `analytic/fig05_06_klambda.py` |

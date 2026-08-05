@@ -7,8 +7,9 @@ ModelConstants.h defaults, pinned against the header by
 sa-ai/tests/test_constants_consistency.py); the constants with no env
 override are pinned to their compiled values here. Prints every constant
 and asserts it equals the paper value. The retired v2 gate-kernel report
-this file used to be (g_c/s/floor/K_lambda/K_r against lib/aft_sources)
-lives in git history; those constants are no longer in the paper.
+this file used to be (g_c/s/floor/K_lambda/K_r against lib/aft_sources, itself
+removed 2026-07-30) lives in git history; those constants are no longer in the
+paper, and the canonical kernel is lib/sphere_kernel.py.
 """
 import os
 import sys

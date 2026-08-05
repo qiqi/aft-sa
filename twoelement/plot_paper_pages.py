@@ -38,6 +38,20 @@ CACHE = '.paper_cache'
 ELEMS = PS.ELEMS
 
 
+MAX_PTS = 500
+
+
+def _thin(a, n=MAX_PTS):
+    """Decimate along the last axis to at most n columns. Rasterizing these
+    panels at 300 dpi made the file LARGER (2.26 -> 3.19 MB); thinning the
+    curves keeps them vector and cuts the path count, and the surface arrays
+    carry ~1200 points a side which the panel cannot resolve anyway."""
+    if a.shape[-1] <= n:
+        return a
+    idx = np.linspace(0, a.shape[-1] - 1, n).astype(int)
+    return a[..., idx]
+
+
 def extract(case):
     """Probe maxima and surface Cp/Cf for both elements, cached."""
     os.makedirs(CACHE, exist_ok=True)
@@ -98,7 +112,7 @@ def main():
                                            ('lower', PS.LO_COLOR)):
                             k = '%s_%s_probe' % (nm, side)
                             if k in d:
-                                x, reo, oi, chi = d[k]
+                                x, reo, oi, chi = _thin(d[k])
                                 ax_reo.semilogy(x, reo, ls=ls, lw=lw, color=cflr)
                                 ax_P.semilogy(x, np.clip(oi, 1e-4, None),
                                               ls=ls, lw=lw, color=cflr)
@@ -107,7 +121,7 @@ def main():
                                                 ls=ls, lw=lw, color=cflr)
                             k = '%s_%s_surf' % (nm, side)
                             if k in d:
-                                x, cp, cf = d[k]
+                                x, cp, cf = _thin(d[k])
                                 ax_cp.plot(x, -cp, ls=ls, lw=lw, color=cflr)
                                 ax_cf.plot(x, cf, ls=ls, lw=lw, color=cflr)
                 ax_reo.axhline(PS.REOMC_FLOOR, color='gray', ls='--', lw=0.6,

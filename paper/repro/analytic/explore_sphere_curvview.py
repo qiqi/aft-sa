@@ -20,8 +20,12 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, "/home/qiqi/flexcompute/sa-ai/paper/repro")
 sys.path.insert(0, "/home/qiqi/flexcompute/sa-ai/paper/repro/analytic")
 import _saai  # noqa
-from _saai import C_V
-from explore_lsb_frozen_profile import build_profile
+from fs_frozen_profile import build_profile
+
+# c_V of the RETIRED Lambda_v gate (was lib/aft_sources.AFT_LV_CV, removed with
+# that kernel); kept locally because this diagnostic overlays the old gate for
+# comparison. The canonical kernel is lib/sphere_kernel.py and has no gate.
+C_V = 4.0
 
 FIGD = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'figs_explore')
 S2 = np.sqrt(2.0)

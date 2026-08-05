@@ -11,7 +11,7 @@ Two solutions, obtained by continuation (blend lam: 0 -> 1):
             production weight by the linearity identity
             sigma_D = 1 - R_TIE*(1 - sigma_P), R_TIE = cb1/(kap^2 cw1), so the
             linear nuHat = kap*y+ is an EXACT solution at every height;
-            molecular diffusion reduced by c_nu,ai = 1/12)
+            molecular diffusion reduced by c_nu,ai = 1/6)
 
 Panels:
     (a) eddy viscosity nu_t+ vs y+, log-log (original vs modified vs kappa*y+)
@@ -30,7 +30,7 @@ cb1, sig, cb2, kap = 0.1355, 2.0/3.0, 0.622, 0.41
 cw1 = cb1/kap**2 + (1 + cb2)/sig
 cw2, cw3 = 0.3, 2.0
 cv1, cv2, cv3 = 7.1, 0.7, 0.9
-CNU, TAU = 1.0/12.0, 4.0
+CNU, TAU = 1.0/6.0, 4.0   # c_nu,ai: ModelConstants.h ai_nuLamScale (canon)
 R_TIE = cb1/(kap**2*cw1)   # sigma_D = 1 - R_TIE*(1 - sigma_P); floor 1-R_TIE = (1+cb2)/(sig*cw1)
 
 fv1 = lambda c: c**3 / (c**3 + cv1**3)

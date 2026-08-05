@@ -1024,7 +1024,8 @@ etc. would be different for different H."
 Resolution: there is a rigorous way, and it is now Fig. 3. The single-point
 similarity proxy (C~40 normalization) is replaced by the paper's own Eq.-11
 disturbance transport marched on each Falkner-Skan field
-(regen_shapefactor_transport.py; same numerics as the Fig.-6 Blasius solve:
+(regen_shapefactor_transport.py, removed 2026-07-30 as retired-kernel code and
+superseded by repro/analytic/fig04_shapefactor.py; same numerics as the Fig.-6 Blasius solve:
 implicit x-march, nu/12 diffusion, seed 1, sign-aware upwinding; kernel at
 lambda_p=0 so the cliff sits at its floor). Envelope slope = secant of N over
 the transition-relevant window N in [3,9] (N(Re_theta) is convex because the
@@ -1046,7 +1047,9 @@ secant 0.0140 vs Drela 0.0104 (+35%); whole-plate mean 14/1330 = 0.0105
 matches the correlation almost exactly.
 
 Sec. III.A paragraph, footnote, and Fig. 3 caption rewritten around the
-absolute comparison; build_paper.sh now calls regen_shapefactor_transport.py.
+absolute comparison; build_paper.sh now calls regen_shapefactor_transport.py
+(as of 2026-07-30 that script is removed and build_paper.sh calls
+repro/analytic/fig04_shapefactor.py instead).
 The C~40 footnote is gone.
 
 ---

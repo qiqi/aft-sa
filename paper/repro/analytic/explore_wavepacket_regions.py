@@ -19,10 +19,14 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, "/home/qiqi/flexcompute/sa-ai/paper/repro")
 sys.path.insert(0, "/home/qiqi/flexcompute/sa-ai/paper/repro/analytic")
 import _saai  # noqa
-from _saai import C_V
-from explore_lsb_frozen_profile import build_profile, ETA_MAX
+from fs_frozen_profile import build_profile, ETA_MAX
 from explore_lambda_v_absmargin_plane import indicators_at
 from lib.correlations import Re_theta0
+
+# c_V of the RETIRED Lambda_v gate (was lib/aft_sources.AFT_LV_CV, removed with
+# that kernel); kept locally because q1() below draws the old gate contours for
+# comparison. The canonical kernel is lib/sphere_kernel.py and has no gate.
+C_V = 4.0
 
 FIGD = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'figs_explore')
 ATTACHED = [(-0.1988, None), (-0.15, None), (-0.09, None), (0.0, None),

@@ -9,7 +9,7 @@ Two solutions, obtained by continuation (blend lam: 0 -> 1):
     lam=0            : original SA
     lam=1, TAU_D=1.36: SA-AI (production gate width tau=4, destruction gate
                        width tau_D=1.36 calibrated to zero log-law footprint,
-                       molecular diffusion reduced by c_nu,ai = 1/12)
+                       molecular diffusion reduced by c_nu,ai = 1/6)
 
 Panels:
     (a) eddy viscosity nu_t+ vs y+, log-log (original vs modified vs kappa*y+)
@@ -28,7 +28,7 @@ cb1, sig, cb2, kap = 0.1355, 2.0/3.0, 0.622, 0.41
 cw1 = cb1/kap**2 + (1 + cb2)/sig
 cw2, cw3 = 0.3, 2.0
 cv1, cv2, cv3 = 7.1, 0.7, 0.9
-CNU, TAU, TAU_D = 1.0/12.0, 4.0, 1.36
+CNU, TAU, TAU_D = 1.0/6.0, 4.0, 1.36   # CNU: ModelConstants.h ai_nuLamScale
 
 fv1 = lambda c: c**3 / (c**3 + cv1**3)
 fv2 = lambda c: 1.0 - c / (1.0 + c*fv1(c))

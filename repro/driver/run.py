@@ -24,7 +24,7 @@ import case as _casebuild
 _DRIVER = Path(__file__).resolve().parent
 
 # The solve/extract layer lives in flexfoil/rans (sibling repo checkout).
-_RANS = _DRIVER.parent.parent.parent / "flexfoil" / "rans"
+_RANS = _DRIVER.parent.parent.parent.parent / "flexfoil" / "rans"
 if str(_RANS) not in sys.path:
     sys.path.insert(0, str(_RANS))
 
@@ -88,7 +88,7 @@ def run_case(cfg: CaseConfig, outdir: str | Path, *, gpu: int = 0,
         return {"case_dir": str(case_dir), "chi_inf": chi, "built": True}
 
     # ---- solve under the paper's convergence protocol (single source) ----
-    from rans.solve import extract_forces
+    from solve import extract_forces
     import convergence
     if getattr(cfg, "turbulent", False):
         env = classical_sa_env(chi)                # AI_SA=0 turbulent baseline

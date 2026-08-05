@@ -12,7 +12,8 @@ sys.path.insert(0, ANALYTIC)
 
 # Ordered to follow the paper (read each script alongside the passage it
 # backs). The two slow Tier-1/N-level scans (scan_background_constants.py,
-# scan_anchor_level.py) are on-demand and not part of this suite.
+# scan_anchor_level.py) were never part of this suite and were removed on
+# 2026-07-30 with the retired Gamma-sigmoid + Q4-gate kernel they scanned.
 SCRIPTS = [
     # Sec. II -- the model and its committed figures
     "fig01_indicator_sphere.py", # fig:model (rate coordinate on the sphere)

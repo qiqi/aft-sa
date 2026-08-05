@@ -23,7 +23,7 @@ import _saai  # noqa: F401
 import numpy as np
 import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from explore_lsb_frozen_profile import build_profile
+from fs_frozen_profile import build_profile
 from explore_wavepacket_regions import os_mode, production, contiguous
 
 SQ2 = np.sqrt(2.0)

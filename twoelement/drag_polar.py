@@ -1,11 +1,14 @@
-"""Drag polar and force curves for the two-element ladder.
+"""Drag polar for the two-element ladder.
 
 Forces are parsed out of the run logs rather than re-derived, and the step count
 is carried through with them: a case that stopped at its ceiling instead of at
 the 1e-9 momentum tolerance is NOT converged, and is drawn hollow so an
 unconverged point cannot be mistaken for a converged one.
 
-Panels: CL-CD polar, CL(alpha), and L/D(alpha).
+CL against CD on a LINEAR drag axis clipped to [0, 0.025]: the post-stall
+points (CD ~ 0.08 at +7, ~0.14 at -9) are an order of magnitude outside the
+bucket and would flatten it, so they are allowed off-plot and their incidence is
+annotated at the clip edge instead.
 
 Run:  python3 drag_polar.py out.pdf log [log ...]
 """
@@ -67,8 +70,8 @@ def main():
             print('%-4s %+7.1f %9.4f %10.5f %8.0f %s'
                   % (lvl, al, cl, cd, st, 'yes' if conv else 'NO'))
 
-    fig, axs = plt.subplots(1, 3, figsize=(14.0, 4.6))
-    axp, axl, axe = axs
+    CD_MAX = 0.025
+    fig, axp = plt.subplots(1, 1, figsize=(6.4, 5.2))
     for lvl in sorted(data):
         r = np.array([(a, cl, cd, s, c) for a, cl, cd, s, c in data[lvl]],
                      dtype=float)
@@ -79,31 +82,27 @@ def main():
         axp.plot(cd[conv], cl[conv], 'o', color=c, ms=5, zorder=3)
         axp.plot(cd[~conv], cl[~conv], 'o', mfc='none', mec=c, ms=7, mew=1.4,
                  zorder=3)
-        for a_, x_, y_ in zip(al, cd, cl):
-            axp.annotate('%+.0f' % a_, (x_, y_), fontsize=6.5,
+        inside = cd <= CD_MAX
+        for a_, x_, y_ in zip(al[inside], cd[inside], cl[inside]):
+            axp.annotate('%+.0f' % a_, (x_, y_), fontsize=7,
                          textcoords='offset points', xytext=(4, 3), color=c)
-        axl.plot(al, cl, '-o', color=c, lw=lw, ms=4, label=lvl)
-        with np.errstate(divide='ignore', invalid='ignore'):
-            axe.plot(al, cl/cd, '-o', color=c, lw=lw, ms=4, label=lvl)
-    axp.set_xscale('log')
-    axp.set_xlabel('$C_D$ (log)')
+        # off-plot points: mark the incidence at the clip edge so a missing
+        # point is not read as a missing solution
+        for a_, y_ in zip(al[~inside], cl[~inside]):
+            axp.annotate(r'%+.0f$\rightarrow$' % a_, (CD_MAX, y_), fontsize=7,
+                         ha='right', va='center', color=c,
+                         textcoords='offset points', xytext=(-2, 0))
+    axp.set_xlim(0.0, CD_MAX)
+    axp.set_xlabel('$C_D$')
     axp.set_ylabel('$C_L$')
-    axp.set_title('drag polar', fontsize=10)
-    axp.grid(alpha=.3, which='both')
-    axl.set_xlabel(r'$\alpha$, deg'); axl.set_ylabel('$C_L$')
-    axl.axhline(0, color='0.6', lw=.8); axl.grid(alpha=.3)
-    axl.set_title('lift curve', fontsize=10)
-    axe.set_xlabel(r'$\alpha$, deg'); axe.set_ylabel('$L/D$')
-    axe.axhline(0, color='0.6', lw=.8); axe.grid(alpha=.3)
-    axe.set_title('$L/D$', fontsize=10)
+    axp.axhline(0, color='0.6', lw=.8)
+    axp.grid(alpha=.3)
     h = [Line2D([], [], color=COL[l], lw=PS.LEVEL_LW[l], marker='o', ms=4,
                 label=l) for l in sorted(data)]
     h += [Line2D([], [], color='0.3', marker='o', mfc='none', ls='none', ms=7,
                  label='not converged')]
     axp.legend(handles=h, fontsize=8, loc='lower right')
-    fig.suptitle('Two-element, SA-AI, Re=1e6, M=0.1 -- converged sweep',
-                 fontsize=11)
-    fig.tight_layout(rect=[0, 0, 1, 0.94])
+    fig.tight_layout()
     fig.savefig(out, dpi=150)
     print('\nwrote', out)
 

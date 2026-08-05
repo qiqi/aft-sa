@@ -8,7 +8,7 @@ branch is amplified weakly / held near-laminar by the definite product P<~0,
 so only ONE favorable curve is shown. Also exports march()/profile_ints()/
 drela/sphere_rate for fig02 and fig03."""
 import _saai
-from _saai import SIGMA_SA, K_R
+from _saai import SIGMA_SA
 import numpy as np
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 import scipy.sparse as sp
@@ -22,55 +22,25 @@ from lib.correlations import dN_dRe_theta, Re_theta0
 # curvature) indicators; Shat=Y/sqrt(X^2+Y^2) is the shear fraction; g is the
 # accumulated-inflection coordinate; the product Omega_hat*I_hat drives both the linear
 # rate (ceiling a_max at P>=1) and the onset scale Re_Omega,crit(P).
-A_MAX = 0.19          # Michalke free-shear eigenvalue (fixed)
-# CANONICAL MODEL CONSTANTS (paper Sec. II.D, 2026-07-23 canon).
-# Laminar-diffusion reduction: c=1 is excluded structurally (the Blasius
-# inception is diffusion-limited past the Drela N=1 station: unanchorable);
-# below that, flatness improves smoothly as c falls while the resolvable
-# nuHat band thins as sqrt(c). c = 1/6 keeps the N=9 prediction within ~7%
-# of Drela at twice the molecular floor of the previous 1/12.
-C_NU_AI = 1.0/6.0
-# Onset threshold Re_Omega,crit = k * softmin_2(CEIL, A + B*(Sg)^-2):
-# shape (CEIL, A, B) = (2600, 175, 2) fixed by the LST neutral-point graze
-# (fig02_onset_graze.py, NEVER refit); the single WHOLE-EQUATION scale k
-# compensates the residual laminar diffusion (the young disturbance loses to
-# the drain for a while after linear theory declares growth begun) and is
-# anchored by the Blasius N=1 crossing at Drela's
-# Re_theta = 338, computed with the GRID-CONVERGED instrument (nx=3200,
-# ny=2400: the N=1 crossing is wall-normal-resolution sensitive; ny=600
-# under-resolves the thin early layer, and the short-domain marches of
-# explore_k_anchor.py / explore_reomc_retune.py are worse -- treat their
-# outputs as superseded). k = 0.708 at c_nu,ai = 1/6.
-K_ANCHOR  = 0.712             # whole-equation scale, anchored (converged march)
-REOM_CEIL = 2600.0*K_ANCHOR   # favorable-saturation ceiling
-REOM_A    = 175.0*K_ANCHOR    # near-separation floor
-REOM_B    = 2.0*K_ANCHOR      # inverse-square coefficient
-REOM_N    = 2.0               # soft-min sharpness
-RAMP_W = 0.35         # onset ramp width scale
+# CANONICAL SOURCE for the constants and the kernel itself:
+# lib/sphere_kernel.py (which mirrors ModelConstants.h). Re-exported here
+# because fig02/fig03 and the cfd audits import them from this module.
+from lib.sphere_kernel import (A_MAX, C_NU_AI, K_ANCHOR, REOM_CEIL, REOM_A,
+                               REOM_B, REOM_N, RAMP_W,
+                               sphere_rate as _sphere_rate)
 
 def sphere_rate(u, dudy, yc):
-    d2u = np.gradient(dudy, yc)
-    X = u; Y = yc*dudy; Z = 0.5*yc**2*d2u
-    R = np.sqrt(X*X + Y*Y + Z*Z) + 1e-30
-    Shat = Y/np.sqrt(X*X + Y*Y + 1e-30)
-    g = (Y - X - Z)/R
-    P = Shat*g
-    a = A_MAX*np.minimum(1.0, np.clip(P, 0.0, None))   # LINEAR in P, ceiling at P>=1
-    ReOm = yc**2*np.abs(dudy)
-    _pw = REOM_A + REOM_B*np.maximum(P, 1e-6)**(-2.0)
-    reomc = (REOM_CEIL**(-REOM_N) + _pw**(-REOM_N))**(-1.0/REOM_N)
-    onset = 0.5*(1.0 + np.tanh((ReOm/reomc - 1.0)/RAMP_W))
-    return a*onset       # dimensionless; caller does b = sphere_rate(...)*|du/dy|
+    """lib.sphere_kernel.sphere_rate in this figure's normalisation (nu = 1),
+    forming the curvature indicator from the sampled shear."""
+    return _sphere_rate(u, dudy, np.gradient(dudy, yc), yc)
 
 def drela(H):
     """Drela-Giles envelope amplification rate (imported from src.correlations)."""
     return np.asarray(dN_dRe_theta(H))
 
-def march(fs, x_max, nx=1600, ny=1200, y_top=None, seed=1.0, beta=None, k_r=K_R,
+def march(fs, x_max, nx=1600, ny=1200, y_top=None, seed=1.0, beta=None,
           ufrac=0.0):
-    """March the disturbance transport on the FS field; return x, N(x). If beta is
-    given, feed the wedge's own lambda_p(x,y) into the kernel (onset-delay cliff +
-    favorable-rate factor with slope k_r; k_r=0 disables the factor). For
+    """March the disturbance transport on the FS field; return x, N(x). For
     reversed-flow (lower-branch) profiles the parabolic march is regularized by
     flooring the advection speed at ufrac*U_e (sensitivity below 1% for
     ufrac in [0.015, 0.06]); attached profiles use ufrac=0."""
@@ -100,7 +70,7 @@ def profile_ints(fs):
     I_ds = np.trapezoid(1 - fs.u, fs.eta)
     return I_th, I_ds/I_th
 
-def measures_for_beta(beta, verbose=True, k_r=K_R, wedge_lambda=True,
+def measures_for_beta(beta, verbose=True, wedge_lambda=True,
                       guess=None, ufrac=0.0):
     """wedge_lambda=False marches with lambda_p = 0: neither cliff nor rate
     factor act (the un-modified kernel), the panel-(b) before curve. A
@@ -110,12 +80,12 @@ def measures_for_beta(beta, verbose=True, k_r=K_R, wedge_lambda=True,
     bb = beta if wedge_lambda else None
     x_max = 4e6 if beta == 0.0 else (3e5 if beta > 0 else 1.2e6)
     for _ in range(12):
-        xs, N = march(fs, x_max, beta=bb, k_r=k_r, ufrac=ufrac)
+        xs, N = march(fs, x_max, beta=bb, ufrac=ufrac)
         if not np.all(np.isfinite(N)) or N[-1] > 60.0:
             x_max *= 0.15; continue
         if N[-1] > 14.0:
             x_max = 1.1*float(np.interp(14.0, N, xs))
-            xs, N = march(fs, x_max, beta=bb, k_r=k_r, ufrac=ufrac); break
+            xs, N = march(fs, x_max, beta=bb, ufrac=ufrac); break
         x_max *= 3.0
     Ue = fs.inviscid_at(np.maximum(xs, 1e-12)); Rt = I_th*np.sqrt(xs*Ue)
     Rt1 = float(np.interp(1.0, N, Rt)) if N[-1] >= 1.0 else float('nan')

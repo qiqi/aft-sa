@@ -118,6 +118,15 @@ FT_CHI = 3.0
 FT_STAGES = [(6000, 30000, 1.0), (4000, 15000, 1.0)]
 FT_CASES = {"ftsa": ("highre", [2e6, 4e6, 7e6, 1e7, 2e7]),
             "ftsa1e10": ("ultra", [1e10])}
+# FT-SA branch determination (does BASE SA show the attached/separated
+# two-branch pair at matched Re, independent of the AI kernel?): a WARM
+# dn-ladder on ultra from the 1e10 cold-ATTACHED FT state, plus cold FT
+# points on ultra at matched Re -- if warm stays attached while cold
+# separates at the same Re, base SA + the steady symmetric protocol carry
+# both branches (not the AI kernel).
+FT_LADDER = {"ftdn": ("ultra", [3e9, 1e9, 3e8, 1e8, 5e7, 2e7],
+                      OUT / "cyl_Re10000000000_Tuft_cold_ultra")}
+FT_COLD_ULTRA = {"ftcoldu": ("ultra", [1e9, 2e7])}
 
 
 def ft_env(chi_inf: float, fslow: float) -> dict:
@@ -285,6 +294,17 @@ def run_chain(chain: str):
         for re in res:
             run_one(fam, re, "ft", "cold", chain, None, ft=True)
         return
+    if chain in FT_LADDER:
+        fam, res, seed = FT_LADDER[chain]
+        prev = seed
+        for re in res:
+            prev = run_one(fam, re, "ft", "dn", chain, prev, ft=True)
+        return
+    if chain in FT_COLD_ULTRA:
+        fam, res = FT_COLD_ULTRA[chain]
+        for re in res:
+            run_one(fam, re, "ft", "cold", chain, None, ft=True)
+        return
     if chain in ULTRA_TU:
         tu = ULTRA_TU[chain]
         prev = None
@@ -322,7 +342,8 @@ def main():
     ap.add_argument("--chains", default="",
                     help="comma list from: " + ",".join(
                         list(PLAN) + list(HIGH_TU) + list(ULTRA_TU)
-                        + list(FT_CASES)))
+                        + list(FT_CASES) + list(FT_LADDER)
+                        + list(FT_COLD_ULTRA)))
     ap.add_argument("--templates-only", action="store_true")
     args = ap.parse_args()
     for fam in TEMPLATES:

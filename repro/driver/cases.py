@@ -2,17 +2,17 @@
 
 Each entry is a ``config.CaseConfig``. This matrix was reconciled against the
 paper's figure-regeneration scripts in ``sa-ai/paper/`` and the corresponding
-Flow360 case directories in ``sa-ai/flow360_g4/`` (NOT ``flow360/`` -- see the
+Flow360 case directories in ``sa-ai/flow360_fv1/`` (NOT ``flow360/`` -- see the
 "base directory" note below). Every case here is one CFD solve the paper's
 figures or tables actually read.
 
 IMPORTANT -- base directory
-    The paper's *final* figures are generated from ``sa-ai/flow360_g4/`` by:
-        flat plate : paper/regen_flatplate_flow360.py   (B = .../flow360_g4)
+    The paper's *final* figures are generated from ``sa-ai/flow360_fv1/`` by:
+        flat plate : paper/repro/cfd/regen_flatplate_flow360.py   (B = .../flow360_fv1)
         NLF0416    : paper/regen_nlf_v2.py, regen_nlf_polar.py
         Eppler387  : paper/regen_eppler_v2.py, regen_epp_L1compare.py,
                      regen_resweep_table.py, regen_epp_reattach.py
-    All read ``B = "/home/qiqi/flexcompute/sa-ai/flow360_g4"``.
+    All read ``B = "/home/qiqi/flexcompute/sa-ai/flow360_fv1"``.
     (The older ``sa-ai/flow360/`` tree holds superseded ablation variants
     -- *_ai/_vg/_q4/_tauD suffixes, run10k_*, sweep_*_ai -- that no paper figure
     references. ``paper/regen_figs.py`` targets flow360/run10k_* and NACA0012 but
@@ -20,11 +20,11 @@ IMPORTANT -- base directory
     sa-ai.tex; it is superseded. NACA0012 is therefore NOT a paper CFD case.)
 
 Because the shipped Flow360 cases are already meshed, EVERY paper case here is
-run by cloning its pre-meshed ``base_case_dir`` (absolute path into flow360_g4)
+run by cloning its pre-meshed ``base_case_dir`` (absolute path into flow360_fv1)
 and patching the freestream chi seed -- none are re-meshed from a base JSON.
 ``config.CaseConfig`` resolves ``base_case_dir`` relative to ``flow360/``, but an
 ABSOLUTE base_case_dir overrides that root (pathlib ``Path('/x') / '/abs'`` ==
-'/abs'), so pointing at flow360_g4 needs no change to config.py / case.py.
+'/abs'), so pointing at flow360_fv1 needs no change to config.py / case.py.
 
 Four families (see the paper sections around sa-ai.tex L1190-1978):
   A. flat-plate natural-transition Tu sweep   (Sec. flatplate; Fig flatplate_batch)
@@ -44,10 +44,11 @@ Four families (see the paper sections around sa-ai.tex L1190-1978):
        The Re=200k point of the sweep REUSES the Group-C cavL1/strL1 a5 cases.
        8 NEW cases (Re != 200k).
 
-Model env (all SA-AI cases): the canonical 'ai' variant from run_vg_all.py, which
-is exactly ``saai_env.canonical_ai_env()`` (AI_SA=1, AI_VG_GATE=3,
-AI_RATESCALE=0.19, AI_GCRIT=1.055, AI_SIGMOIDSLOPE=8.0, AI_REOMEGA_FLOOR=290.0,
-AI_CLIFF_LAMBDA_SLOPE=5.9) + per-case AI_CHI_INF/AFT_CHI_INF + AI_LAMINAR_SLOWDOWN.
+Model env (all SA-AI cases): the canonical 'fr' variant from run_vg_all.py, which
+is exactly ``saai_env.canonical_ai_env()`` (AI_SA=1, AI_VG_GATE=4,
+AI_RATESCALE=0.19, AI_GCRIT=1.005, AI_SIGMOIDSLOPE=11.0, AI_REOMEGA_FLOOR=254.0,
+AI_CLIFF_LAMBDA_SLOPE=6.1, AI_FPG_RATE_SLOPE=5.5) + per-case
+AI_CHI_INF/AFT_CHI_INF + AI_LAMINAR_SLOWDOWN.
 Fully-turbulent baselines run CLASSICAL SA: AI_SA=0, chi_inf=3.0, no slowdown
 (see run_turb_baselines.py); flagged here with ``turbulent=True``.
 
@@ -58,7 +59,7 @@ from __future__ import annotations
 from config import CaseConfig
 
 # Absolute root of the shipped, pre-meshed paper cases that the FINAL figures use.
-_AI = "/home/qiqi/flexcompute/sa-ai/flow360_g4"
+_AI = "/home/qiqi/flexcompute/sa-ai/flow360_fv1"
 
 # Anchor seeds (from calibrate_kernel / run_vg_all.py / run_turb_baselines.py):
 _CHI_EN9 = 8.76e-4   # c_v1 * exp(-9); the N_crit=9 anchor (NLF + Eppler)

@@ -6,115 +6,91 @@
   {
    "L": 30.0,
    "sustained": false,
-   "maxchi": 0.0007020708517610034,
+   "maxchi": 0.0007212797586870252,
    "iters": 12500,
    "Re_r": 900
   },
   {
    "L": 100.0,
    "sustained": false,
-   "maxchi": 0.0007779917373482582,
+   "maxchi": 0.000783228549554581,
    "iters": 14000,
    "Re_r": 10000
   },
   {
    "L": 300.0,
    "sustained": false,
-   "maxchi": 0.0005820979344717544,
+   "maxchi": 0.0006981539700049553,
    "iters": 40500,
    "Re_r": 90000
   },
   {
    "L": 405.36004644211033,
    "sustained": false,
-   "maxchi": 0.0005266204433927618,
+   "maxchi": 0.0008739042429162318,
    "iters": 52000,
    "Re_r": 164316.76725154984
   },
   {
    "L": 471.19512025029036,
    "sustained": false,
-   "maxchi": 0.000568963000262517,
-   "iters": 57500,
+   "maxchi": 0.0005513675136596604,
+   "iters": 58000,
    "Re_r": 222024.84134768558
   },
   {
-   "L": 508.0,
-   "Re_r": 258064.0,
+   "L": 508.0198779058191,
    "sustained": false,
-   "maxchi": 0.007
+   "maxchi": 0.021737397346771273,
+   "iters": 59999,
+   "chi_wallmax": 0.019491276680751703,
+   "Re_r": 258084.19634744336
   },
   {
-   "L": 537.5,
-   "Re_r": 288906.25,
+   "L": 517.6672449709625,
    "sustained": false,
-   "maxchi": 0.0003848317312652573,
-   "verdict_chunks": 2
+   "maxchi": 0.244039406205775,
+   "iters": 59999,
+   "chi_wallmax": 0.22527160865927004,
+   "Re_r": 267979.37651582656
   },
   {
-   "L": 613.3922073192649,
-   "Re_r": 376250.00000000006,
-   "sustained": false,
-   "maxchi": 0.0005254475083458365,
-   "verdict_chunks": 2
-  },
-  {
-   "L": 655.2667740115361,
-   "Re_r": 429374.5451234855,
-   "sustained": false,
-   "maxchi": 0.0008202915890185338,
-   "verdict_chunks": 2
-  },
-  {
-   "L": 677.2641595478646,
-   "Re_r": 458686.74180807534,
-   "sustained": false,
-   "maxchi": 0.0009366696460434702,
-   "verdict_chunks": 3
-  },
-  {
-   "L": 682.8779351173536,
-   "Re_r": 466322.2742701405,
-   "sustained": false,
-   "maxchi": 0.0009221979292678412,
-   "verdict_chunks": 4
-  },
-  {
-   "L": 688.5382427167755,
-   "Re_r": 474084.9116835052,
+   "L": 527.4978168580772,
    "sustained": true,
-   "maxchi": 2.194180140841379,
-   "verdict_chunks": 6
+   "maxchi": 1.0938910845021634,
+   "iters": 59999,
+   "chi_wallmax": 0.9103202219996614,
+   "Re_r": 278253.9467900375
   },
   {
-   "L": 700.0,
-   "Re_r": 490000.0,
+   "L": 547.7225575051662,
    "sustained": true,
-   "maxchi": 6.1511661174378895,
-   "verdict_chunks": 5
+   "maxchi": 2.8213880830915063,
+   "iters": 59999,
+   "chi_wallmax": 1.6262832054394416,
+   "Re_r": 300000.00000000006
   },
   {
    "L": 1000.0,
    "sustained": true,
-   "maxchi": 24.1297169166401,
+   "maxchi": 24.1300878284193,
    "iters": 20000,
-   "chi_wallmax": 12.67359081133739,
+   "chi_wallmax": 12.673801768489156,
    "Re_r": 1000000
   },
   {
    "L": 3000.0,
    "sustained": true,
-   "maxchi": 75.66732007019051,
+   "maxchi": 75.66837016180556,
    "iters": 20000,
-   "chi_wallmax": 74.40770089294018,
+   "chi_wallmax": 74.40873240127422,
    "Re_r": 9000000
   }
  ],
  "critical": {
-  "L_lo": 682.8779351173536,
-  "L_hi": 688.5382427167755,
-  "Re_r_lo": 466322.2742701405,
-  "Re_r_hi": 474084.9116835052
- },
- "note": "near-critical classification is verdict-based (chained continuation until collapse or lock; see stagnation_bistability_rebisect.json). The original fixed-cap bracket 2.78-2.89e5 was an iteration-cap artifact (pass 50)."
+  "L_lo": 517.6672449709625,
+  "L_hi": 527.4978168580772,
+  "Re_r_lo": 267979.37651582656,
+  "Re_r_hi": 278253.9467900375
+ }
 }

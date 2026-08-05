@@ -1,130 +1,99 @@
-# SA-AI paper reproduction (pre-Flow360)
+# paper/repro — self-contained reproduction package
 
-> **Superseded:** the canonical, self-contained reproduction package now
-> lives at `paper/repro/` (no code dependencies outside that folder). This
-> directory is kept for history; the constants-consistency test guards both.
+Everything needed to reproduce every figure, table, and numerics claim of the
+SA-AI paper, with **no code dependencies outside this folder**: the only
+external requirements are pip packages (numpy, scipy, matplotlib, vtk, jax,
+loguru) and the Flow360 solver binary (`compute` repo, branch
+`favorable-rate`, commit `349162fc26` or later, built to
+`compute/install/release/bin/Flow360Solver`).
 
-Minimal, self-contained scripts that regenerate **every figure, table, and
-quantitative result appearing before the Flow360 CFD runs** in the SA-AI
-transition-model paper. Each script imports the exact model kernel, physics,
-and constants from `sa-ai/src/` (and `sa-ai/scripts/calibrate_kernel.py`) — no
-formula or constant is restated here, so "same model, same constants" is
-guaranteed by construction.
+## Layout
 
-## Run
+- `lib/` — the model kernel: the canonical amplification kernel and its
+  constants (`sphere_kernel.py`), the Tu→χ∞ map (`calibrate_kernel.py`),
+  Falkner–Skan and Blasius solution machinery, the SA wall-layer module. These
+  are verbatim copies of the project originals with only import lines
+  rewritten; `sa-ai/tests/test_constants_consistency.py` fails if they drift.
+  (The retired Γ-sigmoid + Q4-gate kernel `aft_sources.py` was removed on
+  2026-07-30; `calibrate_kernel.py` still carries its constants for the
+  archival `cfd/regen_eppler_v2.py` / `cfd/regen_nlf_v2.py` replays only.)
+- `analytic/` — every non-CFD figure/table (paper Figs. 1–7, Tables 1–2, the
+  a_max eigenvalue check, the Tu map). Run all:
+  `python analytic/regenerate_all.py` (figures land in `paper/figs/`).
+- `cfd/` — the CFD figure/table generators. They read one case tree selected
+  by `SAAI_CFD_ROOT` (default: the fv1 canon `sa-ai/flow360_fv1/` (every cfd script defaults to it)). Run all:
+  `python cfd/regenerate_cfd.py`. `prepare.py` assembles a tree from fresh
+  driver output (falling back to the shipped tree) and computes the derived
+  slice fields (`add_derived_to_slice.py`).
+- `driver/` — re-runs the CFD cases themselves: the 69-case matrix
+  (`cases.py`), the canonical model environment (`saai_env.py`,
+  `AI_VG_GATE=4` + the paper constants incl. `AI_FPG_RATE_SLOPE=5.5`), the convergence protocols
+  (`convergence.py`: plain / converge-by-xtr ladder / staged-fSlow sweep,
+  with `converge_by_xtr.py` included), and the case builder + solver launch
+  (`case.py`, `config.py`, `env.py`, `solve.py`, `run.py`). Example:
+  `python driver/run.py cavL1prop_nlf0416_Re4M_a4 --gpu 0`.
 
-From the repo root (`/home/qiqi/flexcompute`):
+## Reading order (follows the paper)
 
-```bash
-python3 sa-ai/repro/regenerate_all.py            # every script; prints PASS/FAIL
-python3 sa-ai/repro/analytic/constants_report.py # constant audit against paper Table
-```
+Read each script alongside the passage it backs; `regenerate_all.py` and
+`regenerate_cfd.py` run their scripts in this same order.
 
-Figures are written into `sa-ai/paper/figs/` at the exact `\includegraphics`
-filenames `sa-ai.tex` expects, so the paper picks them up directly. JAX is pulled
-in transitively by the `src` imports (expected); a `.jax_cache/` dir may appear
-under `sa-ai/paper/`.
-
-## Script -> figure/table -> paper label
-
-| script (`analytic/`)        | paper float                         | output |
-|-----------------------------|-------------------------------------|--------|
-| `constants_report.py`       | Constant Table (audit + assert)     | stdout |
-| `tu_map.py`                 | `eq:tumap` (Tu -> chi_inf -> N_crit)| stdout |
-| `amax_rayleigh.py`          | a_max = tanh-layer Rayleigh eigenvalue (asserts 0.1897 vs A_MAX) | stdout |
-| `fig01_indicator_plane.py`  | `fig:indicatorplane`                | `figs/indicator_plane.pdf` |
-| `fig02_kernel_maps.py`      | `fig:kernel`                        | `figs/kernel_maps.pdf` |
-| `fig03_fs_transport_rows.py`| `fig:nuhat`                         | `figs/fs_nuHat_rows.pdf` |
-| `fig04_shapefactor.py`      | `fig:shapefactor`                   | `figs/shapefactor_amplification.pdf` |
-| `fig05_06_klambda.py`       | `fig:worstpoint`, `fig:klambda_sc`  | `figs/klambda_profiles.pdf`, `figs/klambda_selfconsistent.pdf` |
-| `fig07_wall_layer.py`       | `fig:walllayer`                     | `figs/wall_layer.pdf` |
-| `tab02_yplus.py`            | `tab:yplus`                         | stdout |
-
-`_saai.py` is the shared helper (sys.path + cwd setup and the single point where
-every canonical constant is imported from its `src/` home). It is plumbing, not
-a paper float.
-
-## The Flow360 (CFD) leg
-
-- `driver/` — the minimal clarified driver: canonical model env
-  (`saai_env.py`, constants imported from `calibrate_kernel.py`), the 69-case
-  paper matrix (`cases.py`), case build (`case.py`), the paper's convergence
-  protocols (`convergence.py`: plain / ladder / staged-fSlow, selected by case
-  family), and the CLI (`run.py`). See `driver/RERUN_MANIFEST.md` for the full
-  case ↔ figure map and protocol table.
-- `postprocess/` — after runs: `prepare.py` assembles the figure tree (fresh
-  results with fallback to the shipped `flow360_a3/`) and computes the derived
-  slice fields; `regenerate_cfd.py` regenerates every CFD figure/table via the
-  `paper/regen_*` generators, which read the tree from `SAAI_CFD_ROOT`.
-- The shipped `flow360_a3/` tree IS the paper's final fleet, produced with
-  exactly `saai_env.canonical_env()` values (the `ai` variant of
-  `flow360/run_vg_all.py`); the driver was validated end-to-end against it on
-  a three-case subset, one per protocol (see VALIDATION below).
-
-## Not reproduced here (no code by design)
-
-- **Table 1 (transition-model taxonomy)** — a literature survey, not computed.
-- **`eq:scaling`** — a dimensional-analysis scaling argument, not computed.
-- **Mesh generation** — every CFD case clones a pre-meshed dir from
-  `flow360_a3/`. The contour -> Construct2D (structured) / cavity (unstructured)
-  meshing pipeline behind the mesh figures/tables lives in `flow360/`
-  (`*_contour.py`, `build_proper_*.py`) and is not wrapped here.
-- **e^N references** — mfoil results are consumed as cached artifacts
-  (`flow360_a3/mfoil_*.pkl`; mfoil = Fidkowski 2022, coupled viscous-inviscid
-  e^9 panel code, default settings, N_crit=9); XFOIL numbers (v6.99, e^9,
-  N_crit=9) are quoted where mfoil fails (documented per-table in the paper).
-- **Experimental data** — read from `paper/data/`: McGhee et al. NASA TM-4062
-  tabulated Cp / section coefficients / oil-flow (Eppler 387), Somers NASA
-  TP-1861 orifice and polar data (NLF(1)-0416), Abu-Ghannam & Shaw and
-  Schubauer–Skramstad flat-plate references (digitized).
-
-Everything else pre-Flow360 is covered above.
-
-## VALIDATION (recorded 2026-07-10)
-
-**Figure identity (analytic set).** `regenerate_all.py`: 9/9 pass. The ported
-scripts' printed diagnostics are digit-for-digit identical to the last-good
-`paper/regen_*` runs the shipped `sa-ai.pdf` was built from -- fig04's full
-14-beta mean/late table (Blasius mean 1.0427e-2 = 1.00x Drela, late 1.1157e-2 =
-1.07x), fig03's three rows (N_end 18.9 / 11.6 / 17.5 at the same x_max), the
-K_lambda fixed point 5.90, and fig07's wall-layer footprint (peak 0.80% at
-y+=15.3, |dB| < 1e-3). Envelope marches at nx=800, ny=600 (the grid-converged
-resolution).
-
-**Driver end-to-end (one case per protocol, vs the shipped fleet).** Fresh
-solves through `run.py` (clone -> chi patch -> canonical env -> protocol),
-compared to the same case in `flow360_a3/`:
-
-| case | protocol | fresh | shipped |
-|---|---|---|---|
-| `flatplate_ags_Tu0160` | plain | onset Re_theta 908.9 | 908.9 (0.00%) |
-| `cavL1prop_nlf0416_Re4M_a4` | ladder | xtr 0.2733/0.6017, CL 0.9813, CD 0.00827 | identical to all printed digits |
-| `sweep_Re300k_a5` | staged | CL 0.9603, CD 0.01110 | identical |
-
-**Post-processing.** `postprocess/prepare.py` assembled a hybrid tree (3 fresh
-+ 66 shipped + e^N reference caches) and `regen_epp_reattach.py` reproduced the
-paper's reattachment table through `SAAI_CFD_ROOT` unchanged.
-
-## Canonical constants and their `src/` homes
-
-`constants_report.py` imports and asserts all 14 against the paper Table:
-
-| constant | value | imported from |
+| Paper | Claim / float | Script |
 |---|---|---|
-| a_max | 0.19 | `aft_sources.AFT_RATE_SCALE` |
-| g_c | 1.055 | `aft_sources.AFT_SIGMOID_CENTER` |
-| s | 8.0 | `aft_sources.AFT_SIGMOID_SLOPE` |
-| ReOmega floor | 290 | `aft_sources.AFT_RE_OMEGA_FLOOR` |
-| K_lambda | 5.9 | `aft_sources.AFT_CLIFF_LAMBDA_SLOPE` |
-| p | 4 | `aft_sources.AFT_BARRIER_POWER` |
-| c_A | 4 | `aft_sources.AFT_Q4_CA` |
-| gammaCoeff | 2 | `aft_sources.AFT_GAMMA_COEFF` |
-| tau | 4 | `regen_wall_layer.TAU` (read as literal) |
-| tau_D | 1.36 | `regen_wall_layer.TAU_D` (read as literal) |
-| c_nu,ai | 1/12 | `boundary_layer_solvers.NuHatBlasiusSolver.aft_nuLamScale` |
-| A_TU | -8.43 | `calibrate_kernel.A_TU` |
-| B_TU | 2.4 | `calibrate_kernel.B_TU` |
-| c_v1 | 7.1 | `calibrate_kernel.C_V1` |
+| §II model | fig:indicatorplane | `analytic/fig01_indicator_plane.py` |
+| §II model | fig:kernel | `analytic/fig02_kernel_maps.py` |
+| §III.A a_max | eigenvalue 0.19 (asserted) | `analytic/amax_rayleigh.py` |
+| §III.B qualitative constants | c_ν,ai plateau; c_A / p brackets, anchors re-solved per candidate | removed 2026-07-30 with the retired Γ-sigmoid + Q4-gate kernel (c_A, p are not constants of the canonical `lib/sphere_kernel.py`) |
+| §III.C triple | (254, 1.005, 11) meets the 3 conditions at the quoted residuals (asserted) | `analytic/verify_three_anchors.py` |
+| §III.C N=1 level | departure-anchor sensitivity sweep | removed 2026-07-30 with the retired Γ-sigmoid + Q4-gate kernel |
+| §III.A instrument | fig:nuhat | `analytic/fig03_fs_transport_rows.py` |
+| §III.C family | fig:shapefactor (cliff-only + factored) | `analytic/fig04_shapefactor.py` |
+| §III.D K_λ | fig:worstpoint, fig:klambda_sc (eq:klambda fixed point) | `analytic/fig05_06_klambda.py` |
+| §III.D K_r | eq:kr one-point fit at β=0.35 (asserted; `--forms` = E/R1/R2 selection study) | `analytic/fit_fpg_rate_slope.py` |
+| §II.E handover | tie exactness: linear nuHat and dB = 0 to roundoff (asserted) | `analytic/verify_wall_layer_tie.py` |
+| §II.E round-off claim (FD half; its former table tab:yplus was dropped) | -- | `analytic/tab02_yplus.py` |
+| §VI re-seeding measurement (front/rear surplus + gated dead-air rate) | -- | `cfd/measure_lsb_reseeding.py` |
+| §VI SA low-Re sustainment floor (chi_eq ~ 0.09 Re_tau) | -- | `analytic/sa_sustain.py` |
+| §II.E destruction-floor back-reaction ratios (3 wedges x 3 seeds) | -- | `analytic/floor_backreaction_table.py` |
+| §IV headline transition-location figure (all six grids + AFT/XFOIL/exp) | fig:nlfaft | `cfd/regen_nlf_aft_comparison.py` |
+| §III.F receptivity | eq:tumap | `analytic/tu_map.py` |
+| §III.G assembled | constants block (asserted vs paper Table) | `analytic/constants_report.py` |
+| §IV flat plate | fig:flatplate_batch; `ONSET_DIAG=1` prints the quoted AGS onset numbers (both conventions) | `cfd/regen_flatplate_flow360.py` |
+| §V NLF | nlf_cf figures | `cfd/regen_nlf_v2.py` |
+| §V NLF | tab:nlftrans | `cfd/regen_nlf_transition.py` |
+| §V/§VI | dx_tr/dN sensitivity column of tab:nlftrans + Sec. VI onset numbers (needs xfoil + xvfb-run, on demand) | `cfd/xtr_sensitivity.py` |
+| §V NLF | L0-artifact narrative (diagnostic; figure not in sa-ai.tex) | `cfd/regen_l0_artifact.py` |
+| §V NLF | fig:nlfpolar | `cfd/regen_nlf_polar.py` |
+| §VI Eppler | eppler_cf figures, fig:epppolar | `cfd/regen_eppler_v2.py` |
+| §VI Eppler | tab:eppxtr | `cfd/regen_epp_reattach.py` |
+| §VI α=7° | N_crit sweep behind the shared-e^N discussion (needs xfoil + xvfb-run, on demand) | `cfd/xfoil_ncrit_sweep.py` |
+| §VI Re sweep | fig:eppresweep_low/high | `cfd/regen_epp_resweep_suite.py` |
+| Appendix | 18 wall-anchored contour sheets (velocity + log10 chi, 6 grids) | `cfd/regen_chi_sheets.py` |
+| §VI Re sweep | tab:eppresweep | `cfd/regen_resweep_table.py` |
+| numerics.md | discrete-scheme record (replay, spike trace, operator variants; reads the mode-3 tree) | `numerics/*.py` |
 
-SA wall-layer constants (kappa, cb1, cb2, sigma, cv1, cv2, cw1, cw2, cw3) used
-by `fig07`/`tab02` are imported from `src.physics.spalart_allmaras`.
+Infrastructure (no single paper anchor): `lib/` (the kernel, consistency-
+tested), `analytic/_saai.py` (shared constants plumbing), `driver/` (re-run
+any of the 69 CFD cases with the canonical env + convergence protocols).
+- `cfd/xfoil_ncrit_sweep.py` — the XFOIL N_crit sweep behind the Sec. VI
+  α=7° discussion (needs `xfoil` + `xvfb-run` on PATH).
+- `numerics/` — the discrete-scheme studies behind `paper/numerics.md`: the
+  bit-faithful replay of the solver's gate kernel on the slice triangulation
+  (`replay_gate3_kernel.py`), the spike-node trace (`trace_spike_node.py`),
+  and the term-attribution / operator-variant studies (`diag_*.py`). These
+  intentionally read the **gate-3 (mode 3)** case tree `sa-ai/flow360_a3/`,
+  since they document the pathology that mode 4 removes.
+
+## Data
+
+Case trees (`sa-ai/flow360_fr/`, `flow360_g4/`, `flow360_a3/`) and mesh/restart
+binaries are not in git. The digitized experimental references and the
+mfoil/XFOIL e^9 caches (`*.pkl`) ship inside the case tree root.
+
+## One-command checks
+
+```
+python analytic/regenerate_all.py          # 12/12 must pass
+SAAI_CFD_ROOT=... python cfd/regenerate_cfd.py    # all listed generators must pass (see regenerate_cfd.SCRIPTS)
+python ../../tests/test_constants_consistency.py  # all live checks must pass (the consistency test currently carries 4 SKIPs pending the lib sphere-kernel migration)
+```

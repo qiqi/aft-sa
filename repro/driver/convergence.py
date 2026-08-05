@@ -37,7 +37,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-_FLOW360 = Path(__file__).resolve().parent.parent.parent / "flow360"
+_FLOW360 = Path(__file__).resolve().parent  # self-contained: driver ships its own converge_by_xtr.py
 _PY = sys.executable
 
 _LADDER_ARGS = ["--batch", "5000", "--tol", "0.01", "--max-batches", "24"]
@@ -71,8 +71,8 @@ def solve_to_convergence(cfg, case_dir: Path, env: dict, *, gpu: int = 0) -> str
 
 # ---------------------------------------------------------------------------
 def _plain(case_dir: Path, env: dict, gpu: int) -> None:
-    from rans.env import make_env
-    from rans.solve import run_solver
+    from env import make_env
+    from solve import run_solver
     base, find = make_env()
     base.update(env)
     run_solver(case_dir, find, base, gpu=gpu, timeout=14400)
@@ -82,6 +82,9 @@ def _ladder(case_dir: Path, env: dict, gpu: int, geometry: str) -> None:
     consec, min_batches = _LADDER_FAMILY[geometry]
     child = dict(os.environ)
     child.update(env)                       # converge_by_xtr propagates os.environ
+    # converge_by_xtr imports rans.env/rans.solve (flexfoil checkout, sibling of sa-ai)
+    _rans = str(Path(__file__).resolve().parent.parent.parent.parent.parent / "flexfoil" / "rans")
+    child["PYTHONPATH"] = _rans + ":" + child.get("PYTHONPATH", "")
     cmd = [_PY, str(_FLOW360 / "converge_by_xtr.py"), str(case_dir),
            *_LADDER_ARGS, "--consec", consec, "--min-batches", min_batches,
            "--gpu", str(gpu)]
@@ -121,8 +124,8 @@ def _set_stage(case_dir: Path, chi_inf: float, fslow: float, extra_steps: int) -
 
 
 def _staged_sweep(case_dir: Path, env: dict, chi_inf: float, gpu: int) -> None:
-    from rans.env import make_env
-    from rans.solve import run_solver
+    from env import make_env
+    from solve import run_solver
     for fslow, steps in _SWEEP_STAGES:
         _set_stage(case_dir, chi_inf, fslow, steps)
         base, find = make_env()

@@ -837,26 +837,18 @@ bubble can be varied against one another. Definition in
 Table~\ref{t:twoelementgeom}. $Re=10^6$ and $M=0.10$ on the total
 chord, seed $\chi_\infty=c_{v1}e^{-9}$, L0/L1/L2 as elsewhere; every
 solution converged to the $10^{-9}$ momentum tolerance.
-Figure~\ref{f:twoelemgeom}: geometry, streamlines, inviscid $C_p$.
-Figure~\ref{f:twoelempolar}: polar, lift curve, $L/D$.
+Figure~\ref{f:twoelempolar}: polar.
 Figure~\ref{f:twoelemsuite}: surface suites, two incidences per page.
-Figures~\ref{f:twoelemchiL1}--\ref{f:twoelemchiL0}: $\chi$ contours by
+Figures~\ref{f:twoelemchiL1}--\ref{f:twoelemchiL2}: $\chi$ contours by
 incidence. Figure~\ref{f:twoelemflapchi}: flap upper surface unrolled,
 wall distance to $0.06c$.
 
 \input{tables/tab_twoelement_geom_wp}
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.86\textwidth]{twoelement_geometry_inviscid.pdf}
-\caption{Adopted section, $\alpha=-1^\circ$, inviscid. Flap drawn as
-its displacement body ($\delta^*$ from mfoil at
-$Re_{\text{flap}}=3\times10^5$); true section dashed.}
-\label{f:twoelemgeom}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{twoelement_polar.pdf}
-\caption{Converged sweep, $\alpha=-9$--$+7^\circ$.}
+\includegraphics[width=0.58\textwidth]{twoelement_polar.pdf}
+\caption{Converged sweep, $\alpha=-9$--$+7^\circ$. Post-stall points
+lie beyond the clip.}
 \label{f:twoelempolar}
 \end{figure}
 
@@ -870,22 +862,28 @@ file.}\label{f:twoelemsuite}
 \end{figure}
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.97\textwidth,height=0.92\textheight,keepaspectratio]{twoelement_chi_global_L1.pdf}
+\includegraphics[width=\textwidth]{twoelement_chi_global_L1.pdf}
 \caption{$\chi$ contours, L1. Heavy black $\chi=c_{v1}$.}
 \label{f:twoelemchiL1}
 \end{figure}
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.97\textwidth,height=0.92\textheight,keepaspectratio]{twoelement_chi_global_L0.pdf}
+\includegraphics[width=\textwidth]{twoelement_chi_global_L0.pdf}
 \caption{$\chi$ contours, L0.}\label{f:twoelemchiL0}
 \end{figure}
 
 \begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{twoelement_chi_global_L2.pdf}
+\caption{$\chi$ contours, L2.}\label{f:twoelemchiL2}
+\end{figure}
+
+\begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{twoelement_flap_chi_map.pdf}
-\caption{Flap upper surface, L1: $\chi$ (top) and tangential velocity
-(bottom) against arc length and wall distance, $\alpha=-7$, $-5$, $-3$,
-$-1$, $+5^\circ$. White solid boundary-layer edge, white dashed outer
-deficit locus, cyan separation and reattachment.}
+\caption{Flap upper surface, L1, one row per incidence:
+$u_t/V_\infty$ left, $\chi$ right (heavy $\chi=c_{v1}$), against arc
+length and wall distance. Grey solid boundary-layer edge, grey dashed
+outer deficit locus, cyan separation and reattachment. Rows
+$\alpha=-5$, $-3$, $-1$, $+5$, $+7^\circ$.}
 \label{f:twoelemflapchi}
 \end{figure}
 

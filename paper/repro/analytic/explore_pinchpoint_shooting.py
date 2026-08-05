@@ -300,7 +300,7 @@ def main():
     print(f"\nagreement: {n_agree}/{n_tot}")
 
     # ---- reversed FS profiles (Chebyshev continuation): expect all conv --
-    from explore_lsb_frozen_profile import build_profile
+    from fs_frozen_profile import build_profile
     print("\nreversed Falkner-Skan (Stewartson branch):")
     for beta, guess in ((-0.19, -0.03), (-0.15, -0.08), (-0.12, -0.10)):
         prf = build_profile(beta, guess)

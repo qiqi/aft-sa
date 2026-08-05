@@ -35,12 +35,19 @@ CHI_INF = C_V1*np.exp(-9.0)
 LEVELS = [1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2]
 NORM = LogNorm(1e-4, 1e2)
 CMAP = plt.get_cmap('magma')
-XLIM, ZLIM = (-0.13, 1.33), (-0.09, 0.20)
+XLIM, ZLIM = (-0.13, 1.33), (-0.07, 0.15)
 # Fraction of the figure width the axes actually occupy once the colorbar
 # and labels are taken out. The row height has to be derived from this and
 # the data aspect, or set_aspect('equal') pads inside each axes and the
 # rows appear gapped however small hspace is.
 AX_FRAC = 0.80
+# Target aspect so the figure fills the PAGE WIDTH rather than the page
+# height. A LaTeX page is about 6.5 x 9 in of text, ratio 0.72; if the
+# figure is taller than W/0.72 the height constraint binds and the width
+# is left unused. Keeping W/H above ~0.85 leaves margin.
+MIN_W_OVER_H = 0.85
+# Resampling grid for contouring.
+NGRID_X, NGRID_Z = 1600, 260
 
 
 def alpha_of(case):
@@ -56,7 +63,11 @@ def main():
     # borders just eat vertical space and imply the panels are separate plots.
     W = 11.2
     row_h = AX_FRAC*W*(ZLIM[1] - ZLIM[0])/(XLIM[1] - XLIM[0])
-    fig, axs = plt.subplots(n, 1, figsize=(W, row_h*n + 0.85), squeeze=False,
+    H = row_h*n + 0.85
+    if W/H < MIN_W_OVER_H:
+        print('note: %d rows at z-span %.3f gives W/H = %.2f; the page height '
+              'would bind' % (n, ZLIM[1] - ZLIM[0], W/H))
+    fig, axs = plt.subplots(n, 1, figsize=(W, H), squeeze=False,
                             sharex=True, sharey=True,
                             gridspec_kw=dict(hspace=0.0))
     for r, case in enumerate(cases):
@@ -69,7 +80,11 @@ def main():
         ax.set_xlim(*XLIM)
         ax.set_ylim(*ZLIM)
         ax.set_aspect('equal')
-        ax.set_ylabel(r'$\alpha=%+.0f^\circ$' % alpha_of(case), fontsize=10)
+        # Incidence label and legend go INSIDE the axes: as a y-label and a
+        # figure legend they sat in the margins, which costs page width the
+        # contours could be using.
+        ax.text(0.008, 0.90, r'$\alpha=%+.0f^\circ$' % alpha_of(case),
+                transform=ax.transAxes, fontsize=10, va='top', ha='left')
         for sp in ('top', 'right', 'left'):
             ax.spines[sp].set_visible(False)
         if r != n - 1:
@@ -90,23 +105,33 @@ def main():
         # lowest contour level rather than let it fail.
         chi = np.clip(arr['nuHat'][idx]/nu, 1e-6, None)
         T = mtri.Triangulation(P2[:, 0], P2[:, 1], tris)
-        cs = ax.tricontour(T, chi, levels=LEVELS, norm=NORM, cmap=CMAP,
-                           linewidths=0.9)
+        # Contour on a REGULAR grid, not on the 300k-triangle mesh. tricontour
+        # follows mesh edges, so it emits a path segment per crossed triangle:
+        # megabytes of vector, and visibly jagged. Rasterizing that is not the
+        # fix either -- at 300 dpi the embedded raster came out LARGER than the
+        # paths. Resampling first gives both a smaller file and smoother lines.
+        f = mtri.LinearTriInterpolator(T, chi)
+        gx = np.linspace(XLIM[0], XLIM[1], NGRID_X)
+        gz = np.linspace(ZLIM[0], ZLIM[1], NGRID_Z)
+        GX, GZ = np.meshgrid(gx, gz)
+        G = np.ma.filled(f(GX, GZ), np.nan)
+        cs = ax.contour(GX, GZ, G, levels=LEVELS, norm=NORM, cmap=CMAP,
+                        linewidths=0.9)
         ax.clabel(cs, fmt='%g', fontsize=6, inline=True)
-        ax.tricontour(T, chi, levels=[C_V1], colors='k', linewidths=2.0)
-        ax.tricontour(T, chi, levels=[CHI_INF*np.e**2], colors='0.55',
-                      linewidths=0.5, linestyles=':')
+        ax.contour(GX, GZ, G, levels=[C_V1], colors='k', linewidths=2.0)
+        ax.contour(GX, GZ, G, levels=[CHI_INF*np.e**2], colors='0.55',
+                   linewidths=0.5, linestyles=':')
     axs[-1, 0].set_xlabel('$x$')
     sm = ScalarMappable(norm=NORM, cmap=CMAP)
     cb = fig.colorbar(sm, ax=axs[:, 0], fraction=0.014, pad=0.01)
     cb.set_label(r'$\chi=\tilde\nu/\nu$  (contour level)')
-    fig.legend(handles=[Line2D([], [], color='k', lw=2.0,
-                               label=r'$\chi=c_{v1}=7.1$'),
-                        Line2D([], [], color='0.55', lw=0.5, ls=':',
-                               label=r'$\chi=\chi_\infty e^2$')],
-               loc='upper right', fontsize=8, ncol=2)
-    fig.suptitle('SA-AI amplification variable $\\chi$, mid-plane', fontsize=10)
-    fig.savefig(out, dpi=150, bbox_inches='tight')
+    axs[0, 0].legend(handles=[Line2D([], [], color='k', lw=2.0,
+                                     label=r'$\chi=c_{v1}=7.1$'),
+                              Line2D([], [], color='0.55', lw=0.5, ls=':',
+                                     label=r'$\chi=\chi_\infty e^2$')],
+                     loc='upper right', fontsize=8, ncol=1, framealpha=0.85,
+                     borderpad=0.3, handlelength=1.6)
+    fig.savefig(out, dpi=200, bbox_inches='tight')
     print('wrote %s  (%d rows)' % (out, n))
 
 

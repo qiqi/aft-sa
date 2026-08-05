@@ -2502,12 +2502,11 @@ tolerance rather than to a step ceiling---at the $12000$ pseudo-steps
 used for the airfoil ladder the lift of this configuration is still
 moving by $7\%$.
 
-Figure~\ref{fig:twoelemgeom} shows the adopted section with streamlines
-and inviscid $C_p$; Fig.~\ref{fig:twoelempolar} the polar, lift curve
-and $L/D$; Fig.~\ref{fig:twoelemsuite} the surface suites in the format
+Figure~\ref{fig:twoelempolar} shows the polar;
+Fig.~\ref{fig:twoelemsuite} the surface suites in the format
 of Secs.~\ref{sec:eppval} and~\ref{sec:eppresweep}, two incidences per
-page. Figures~\ref{fig:twoelemchiL1} and~\ref{fig:twoelemchiL0} give
-$\chi$ contours by incidence at L1 and L0, and
+page. Figures~\ref{fig:twoelemchiL1}--\ref{fig:twoelemchiL2} give
+$\chi$ contours by incidence at all three levels, and
 Fig.~\ref{fig:twoelemflapchi} unrolls the flap's upper surface against
 wall distance out to $0.06c$, far enough to contain the fore wake.
 
@@ -2532,23 +2531,14 @@ boundary-layer state there is reported for completeness only.
 \input{tables/tab_twoelement_geom}
 
 \begin{figure}[tp]\centering
-\includegraphics[width=0.88\textwidth]{twoelement_geometry_inviscid.pdf}
-\caption{The adopted two-element section at $\alpha\!=\!-1^\circ$,
-inviscid. \emph{Top}: geometry and streamlines. \emph{Bottom}: surface
-$C_p$, $x$ aligned. The flap is drawn as its displacement body
-(surface plus $\delta^*$ from mfoil at
-$Re_{\text{flap}}\!=\!3\!\times\!10^5$), which is what the panel
-solution sees and what carries the reduced circulation; the true
-section is the dashed line beneath it.}\label{fig:twoelemgeom}
-\end{figure}
-
-\begin{figure}[tp]\centering
-\includegraphics[width=\textwidth]{twoelement_polar.pdf}
-\caption{Converged incidence sweep. \emph{Left}: drag polar, $C_D$ on a
-log axis, labelled by incidence. \emph{Centre}: lift curve.
-\emph{Right}: $L/D$. Filled markers are solutions that reached the
-$10^{-9}$ momentum tolerance; open markers would indicate a case
-stopped at its step ceiling.}\label{fig:twoelempolar}
+\includegraphics[width=0.58\textwidth]{twoelement_polar.pdf}
+\caption{Converged incidence sweep: $C_L$ against $C_D$ on a linear
+drag axis, labelled by incidence. The axis is clipped at
+$C_D\!=\!0.025$; the post-stall points ($\alpha\!=\!+7^\circ$ and
+$-9^\circ$, $C_D\!\approx\!0.08$ and $0.14$) lie beyond it and are
+marked at the clip edge. Filled markers reached the $10^{-9}$ momentum
+tolerance; open markers would indicate a case stopped at its step
+ceiling.}\label{fig:twoelempolar}
 \end{figure}
 
 \begin{figure}[tp]\centering
@@ -2563,7 +2553,7 @@ are the remaining pages of the same file.}\label{fig:twoelemsuite}
 \end{figure}
 
 \begin{figure}[tp]\centering
-\includegraphics[width=0.97\textwidth,height=0.9\textheight,keepaspectratio]{twoelement_chi_global_L1.pdf}
+\includegraphics[width=\textwidth]{twoelement_chi_global_L1.pdf}
 \caption{$\chi$ in the mid-plane at L1, one row per incidence. Contour
 levels are decades from $10^{-3}$ to $10^{2}$ coloured by value, with
 $\chi\!=\!c_{v1}\!=\!7.1$ heavy black and $\chi_\infty e^2$ faint
@@ -2571,22 +2561,29 @@ dotted.}\label{fig:twoelemchiL1}
 \end{figure}
 
 \begin{figure}[tp]\centering
-\includegraphics[width=0.97\textwidth,height=0.9\textheight,keepaspectratio]{twoelement_chi_global_L0.pdf}
+\includegraphics[width=\textwidth]{twoelement_chi_global_L0.pdf}
 \caption{$\chi$ in the mid-plane at L0, as
 Fig.~\ref{fig:twoelemchiL1}.}\label{fig:twoelemchiL0}
 \end{figure}
 
 \begin{figure}[tp]\centering
+\includegraphics[width=\textwidth]{twoelement_chi_global_L2.pdf}
+\caption{$\chi$ in the mid-plane at L2, as
+Fig.~\ref{fig:twoelemchiL1}. The sweep at this level stops at
+$\alpha\!=\!+7^\circ$.}\label{fig:twoelemchiL2}
+\end{figure}
+
+\begin{figure}[tp]\centering
 \includegraphics[width=\textwidth]{twoelement_flap_chi_map.pdf}
 \caption{Flap upper surface at L1, unrolled: arc length from the flap
-leading edge against wall distance, out to $0.06c$. \emph{Top}: $\chi$,
-with $\chi\!=\!c_{v1}$ heavy white. \emph{Bottom}: tangential velocity,
-in which the fore wake is the deficit band. White solid is the
-boundary-layer edge (first interior maximum of the tangential
-velocity), white dashed the outer deficit locus, cyan the separation
-and reattachment stations. Columns: $\alpha\!=\!-7$, $-5$, $-3$, $-1$,
-$+5^\circ$. The blank wedge at small arc length is where the probe
-leaves the fluid into the slot.}\label{fig:twoelemflapchi}
+leading edge against wall distance, out to $0.06c$, one row per
+incidence. \emph{Left}: tangential velocity, in which the fore wake is
+the deficit band. \emph{Right}: $\chi$, with $\chi\!=\!c_{v1}$ heavy
+black. Grey solid is the boundary-layer edge (first interior maximum of
+the tangential velocity), grey dashed the outer deficit locus, cyan the
+separation and reattachment stations. Rows $\alpha=-5$, $-3$, $-1$,
+$+5$, $+7^\circ$. The blank wedge at small arc length is where the
+probe leaves the fluid into the slot.}\label{fig:twoelemflapchi}
 \end{figure}
 
 \section{The cylinder drag crisis}\label{sec:dragcrisis}

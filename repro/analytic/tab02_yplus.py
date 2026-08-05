@@ -2,10 +2,14 @@
 
 Solves the constant-stress SA wall-layer ODE by 2nd-order FD on grids whose first
 node sits at y+ = 0.25..8, for standard SA and SA-AI, reporting recovered log-law
-intercept B and grid-induced |dCf/Cf|. Same constants/machinery as fig07 (imported)."""
+intercept B and grid-induced |dCf/Cf|. The velocity is reconstructed on the SAME
+coarse grid (trapezoidal integration of du+/dy+ = 1/(1+nut+) over the coarse
+nodes, second order), so B and dCf include the discretization error of both the
+nuHat transport and the momentum integration. Same constants/machinery as fig07."""
 import _saai
-from _saai import C_NU_AI as CNU, TAU, TAU_D
-from src.physics.spalart_allmaras import CB1 as cb1, SIGMA as sig, CB2 as cb2, \
+from _saai import TAU, R_TIE
+CNU = 1.0/6.0  # sphere-kernel canon; lib default (1/12) is the retired v2 value
+from lib.spalart_allmaras import CB1 as cb1, SIGMA as sig, CB2 as cb2, \
     KAPPA as kap, CW1 as cw1, CW2 as cw2, CW3 as cw3, CV1 as cv1, CV2 as cv2
 import numpy as np
 from scipy.optimize import root
@@ -48,7 +52,8 @@ def solve(Y, aftsa, ye=1000.0, r=1.2):
             Np = D1[j, 0]*N[j-1] + D1[j, 1]*N[j] + D1[j, 2]*N[j+1]
             Npp = D2[j, 0]*N[j-1] + D2[j, 1]*N[j] + D2[j, 2]*N[j+1]
             P = cb1*S*N[j]; Dd = cw1*fw(N[j], y[j], S)*(N[j]/y[j])**2
-            sP = 1.0 - lam*(1.0 - sigt(N[j], TAU)); sD = 1.0 - lam*(1.0 - sigt(N[j], TAU_D))
+            sP = 1.0 - lam*(1.0 - sigt(N[j], TAU))
+            sD = 1.0 - lam*R_TIE*(1.0 - sigt(N[j], TAU))   # the linearity tie
             dc = (1.0 + N[j]) - lam*(1.0 - CNU)
             R[jj] = dc*Npp + sig*(sP*P - sD*Dd) + (1 + cb2)*Np**2
         return R

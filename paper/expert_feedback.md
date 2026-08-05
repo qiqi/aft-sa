@@ -113,19 +113,23 @@ Drela's key modeling insight on the handover:
 
 ### 4. χ recirculation inside the bubble → growth faster than e^N
 
-Known issue: inside a laminar separation bubble the model **over-amplifies**
-`χ` — it grows faster than `e^N` predicts. Our diagnosis
-(`notes_absolute_instability_lsb.md`, `explore_lsb_frozen_profile.py`) is that
-this is an **advection-denominator effect**: in-place (lab-frame) growth at the
-`u = 0` line where `e^N` assumes convective growth at the wave speed
-`c ≈ 0.42 U_e`. In-place growth only becomes physical once the profile is
-**absolutely** unstable (rigorous local switch: the Avanci geometric criterion
-`y_i < y_b`, i.e. the inflection point sits inside the recirculation).
+Known issue (corrected 2026-07-30 from the Eppler Re=1e5 χ-sheet): the model
+does **not** over-amplify along the unstable boundary-layer streamline.
+Tracing χ only through the most-unstable BL region matches XFOIL's \(e^N\)
+closely, reaching \(c_{v1}\) near \(x/c\approx0.6\) where XFOIL declares
+transition. The open bubble is a different failure: at the oil-flow closure
+station (\(x/c\approx0.67\)) we already have \(\chi\sim50\) lofted in the
+shear layer, but that large χ **does not propagate toward the wall** — it
+sits above the peak reverse velocity and never closes the bubble. A prior
+reseeding / reverse-layer sink study (negative amplification, RP² upper-branch
+barrier) is parked on `deadend/rp2-reseeding-barrier` and should not return to
+canon.
 
-- **Our proposal (Drela liked it a lot): the growth should be negative
-  (decay) where `Re_θ` is stable.** Where the local profile is convectively
-  stable / below threshold, `χ` should decay rather than be handed to SA.
-- [ ] **Analysis to do:** characterize what `Re_θ` typically looks like when
+- **Real problem: lofted χ fails to diffuse/mix to the wall** inside the
+  reverse-flow region, so turbulent viscosity never acts where it would
+  reattach the bubble.
+- [ ] **Analysis to do:** characterize wall-normal transport of χ across the
+  reverse layer (why \(\chi\sim50\) stays aloft); what `Re_θ` looks like when
   computed **from the reversed-flow portion of the profile only** (a
   reverse-flow `Re_θ`). This sets the argument for the stable/unstable switch.
 

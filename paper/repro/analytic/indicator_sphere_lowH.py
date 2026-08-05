@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 
 import _saai  # noqa: F401
 import fig01_indicator_sphere as f1
-from explore_lsb_frozen_profile import build_profile
+from fs_frozen_profile import build_profile
 from explore_wavepacket_regions import os_mode, production, contiguous
 from lib.boundary_layer import FalknerSkanWedge
 from lib.correlations import Re_theta0

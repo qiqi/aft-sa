@@ -1,19 +1,22 @@
 """fig:nuhat -> paper/figs/fs_nuHat_rows.pdf.
 
 Disturbance transport on three Falkner-Skan layers (adverse -0.10, Blasius 0,
-favorable +0.30): N=ln(nuHat) contours + envelope vs Drela-Giles. Full kernel with
-each wedge's own lambda_p in the cliff. Kernel + c_nu,ai imported (via fig04)."""
+favorable +0.10): N=ln(nuHat) contours (canonical model) + envelopes vs
+Drela-Giles. Each right panel shows the canonical model's marched envelope
+(c_nu,ai=1/6, calibrated k); each row's max Shat*g is printed for the
+caption. Kernel + c_nu,ai imported via fig04."""
 import _saai
-from _saai import C_NU_AI, SIGMA_SA
+from _saai import SIGMA_SA
+from fig04_shapefactor import C_NU_AI  # canonical c_nu,ai (paper Sec. II.C)
 import numpy as np
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 import scipy.sparse as sp
 import scipy.sparse.linalg as spla
-from src.physics.boundary_layer import FalknerSkanWedge
-from src.numerics.aft_sources import compute_aft_amplification_rate, compute_q4_gate
-from fig04_shapefactor import profile_ints, drela, Re_theta0
+from lib.boundary_layer import FalknerSkanWedge
+import fig04_shapefactor as f4
+from fig04_shapefactor import profile_ints, drela, Re_theta0, sphere_rate
 
-def march_field(fs, x_max, nx=800, ny=600, beta=0.0):
+def march_field(fs, x_max, nx=1600, ny=1200, beta=0.0):
     """As fig04.march but stores the full nuHat field; wedge lambda_p(x,y) in the cliff."""
     m = beta/(2.0 - beta)
     eta99 = np.interp(0.99, fs.u, fs.eta)
@@ -28,11 +31,7 @@ def march_field(fs, x_max, nx=800, ny=600, beta=0.0):
         vp = np.clip(v, 0, None)/dy; vm = np.clip(-v, 0, None)/dy
         di = vp + vm + 2*k; lo = -(vp[1:] + k); up = -(vm[:-1] + k)
         di[0] += k; di[-1] -= k
-        Ue = fs.inviscid_at(x); lam = m*yc**2*Ue*Ue/(x*u)
-        rate = np.asarray(compute_aft_amplification_rate(
-            yc**2*np.abs(dudy), 2*(dudy*yc)**2/(u**2 + (dudy*yc)**2), lambda_p=lam))
-        q4 = compute_q4_gate(np.gradient(dudy, yc), np.abs(dudy), u, yc)
-        b = rate*q4*np.abs(dudy)
+        b = sphere_rate(u, dudy, yc)*np.abs(dudy)
         main = u/dx + di; rhs = u/dx*nu + b*nu; rhs[-1] += vm[-1]
         A = sp.diags([lo, main, up], [-1, 0, 1], format='csc')
         nu = spla.spsolve(A, rhs); xs.append((i + 1)*dx); field.append(nu.copy())
@@ -52,12 +51,14 @@ def size_domain(fs, x0, beta):
 
 
 def main():
-    ROWS = [(-0.10, 1.2e6), (0.0, 4.0e6), (0.30, 3e5)]
-    fig, axs = plt.subplots(3, 2, figsize=(11.2, 12.0), layout='constrained')
-    for irow, (beta, x0) in enumerate(ROWS):
+    # (beta, x0 domain guess, ylim; None = tune so the N=1 contour just
+    # reaches the upper-right corner)
+    ROWS = [(-0.10, 1.2e6, 8000), (0.0, 4.0e6, 12000), (0.10, 3e6, None)]
+    fig, axs = plt.subplots(3, 2, figsize=(11.2, 8.4), layout='constrained')
+    for irow, (beta, x0, ylimL) in enumerate(ROWS):
         fs = FalknerSkanWedge(beta); I_th, H = profile_ints(fs)
         eta99 = np.interp(0.99, fs.u, fs.eta)
-        x_max = 4.0e6 if beta == 0.0 else size_domain(fs, x0, beta)
+        x_max = 6.5e6 if beta == 0.0 else size_domain(fs, x0, beta)
         xs, yc, fld = march_field(fs, x_max, beta=beta)
         Ue = fs.inviscid_at(np.maximum(xs, 1e-12)); Rt = I_th*np.sqrt(xs*Ue)
         N2d = np.log(np.maximum(fld, 1e-30))
@@ -65,18 +66,32 @@ def main():
         Rex = xs*Ue; ReyScale = Ue
         X = np.repeat(Rex[:, None], len(yc), 1); Y = yc[None, :]*ReyScale[:, None]
         lev = np.arange(1, 15, 1)
-        cs = axL.contourf(X, Y, N2d, levels=lev, cmap='viridis', extend='both')
+        if ylimL is None:
+            # place the N=1 contour just at the upper-right corner: highest
+            # Re_y anywhere on the N>=1 region's upper edge
+            tops = []
+            for i in range(len(xs)):
+                j = np.where(N2d[i] >= 1.0)[0]
+                if len(j):
+                    tops.append(yc[j[-1]]*ReyScale[i])
+            ylimL = 1.05*float(max(tops)) if tops else float(yc[-1]*ReyScale.max())
+        cs = axL.contour(X, Y, N2d, levels=lev, colors='k', linewidths=0.7)
+        axL.clabel(cs, levels=lev[::2], fmt='%d', fontsize=6.5, inline_spacing=2)
         th = I_th*np.sqrt(xs/np.maximum(Ue, 1e-30)); d99 = eta99*np.sqrt(xs/np.maximum(Ue, 1e-30))
-        axL.plot(Rex, th*ReyScale, 'w--', lw=1.1); axL.plot(Rex, d99*ReyScale, 'w-', lw=1.1)
-        ymax = 1.6*float((d99*ReyScale).max()); axL.set_ylim(0, ymax); axL.set_xlim(0, Rex.max())
-        axL.annotate(r'$\delta_{99}$', (0.86*Rex.max(), 1.12*float(np.interp(0.86*Rex.max(), Rex, d99*ReyScale))), color='w', fontsize=9)
-        axL.annotate(r'$\theta$', (0.9*Rex.max(), 0.55*float(np.interp(0.9*Rex.max(), Rex, th*ReyScale))), color='w', fontsize=9)
+        axL.plot(Rex, th*ReyScale, '--', color='0.45', lw=1.1); axL.plot(Rex, d99*ReyScale, '-', color='0.45', lw=1.1)
+        axL.set_ylim(0, ylimL); axL.set_xlim(0, Rex.max())
+        axL.annotate(r'$\delta_{99}$', (0.86*Rex.max(), 1.12*float(np.interp(0.86*Rex.max(), Rex, d99*ReyScale))), color='0.35', fontsize=9)
+        axL.annotate(r'$\theta$', (0.9*Rex.max(), 0.55*float(np.interp(0.9*Rex.max(), Rex, th*ReyScale))), color='0.35', fontsize=9)
+        upp0 = np.gradient(fs.dudeta, fs.eta)
+        Xk, Yk = fs.u, fs.eta*fs.dudeta
+        Zk = 0.5*fs.eta**2*upp0
+        Rk = np.sqrt(Xk*Xk + Yk*Yk + Zk*Zk) + 1e-30
+        msg = float(np.max((Yk/np.sqrt(Xk*Xk + Yk*Yk + 1e-30))*(Yk - Xk - Zk)/Rk))
+        # max Shat*g is listed in the CAPTION, not in the panel (annotated
+        # round 5); it is printed below for the caption's numbers.
         axL.set_ylabel(fr'$\beta={beta:+.2f}$ ($H={H:.2f}$)''\n'r'$Re_y$')
         if irow == 2: axL.set_xlabel(r'$Re_x$')
-        axL.text(0.02, 0.95, f'({chr(97+2*irow)})', transform=axL.transAxes, fontsize=11, va='top', fontweight='bold', color='w')
-        if irow == 2:
-            cb = fig.colorbar(cs, ax=axs[:, 0].tolist(), fraction=0.04, pad=0.02, location='bottom')
-            cb.set_label(r'$N=\ln\hat\nu$')
+        axL.text(0.02, 0.95, f'({chr(97+2*irow)})', transform=axL.transAxes, fontsize=11, va='top', fontweight='bold')
         env = fld.max(axis=1)
         axR.semilogy(Rt, env, 'k-', lw=1.8)
         Rtc = float(Re_theta0(H)); dr = float(drela(H))
@@ -88,8 +103,10 @@ def main():
         axR.grid(alpha=0.3, which='both')
         axR.text(0.02, 0.95, f'({chr(98+2*irow)})', transform=axR.transAxes, fontsize=11, va='top', fontweight='bold')
         if irow == 0:
-            axR.legend(['transport envelope', 'Drela--Giles envelope'], fontsize=8, loc='lower right')
-        print(f'beta={beta:+.2f} H={H:.2f}: x_max={x_max:.2e}, N_end={np.log(env[-1]):.1f}, '
+            axR.legend([r'canonical model ($c_{\nu,\mathrm{ai}}\!=\!1/6$, $k\!=\!0.712$)',
+                        'Drela--Giles envelope'], fontsize=7.5, loc='lower right')
+        print(f'beta={beta:+.2f} H={H:.2f}: max Omega_hat*I_hat = {msg:.3f}, '
+              f'x_max={x_max:.2e}, N_end={np.log(env[-1]):.1f}, '
               f'Rt_end={Rt[-1]:.0f}, Rtc={Rtc:.0f}', flush=True)
     plt.savefig('figs/fs_nuHat_rows.pdf')
     print('wrote figs/fs_nuHat_rows.pdf')

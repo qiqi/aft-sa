@@ -1,17 +1,21 @@
 """Single source of truth for the canonical SA-AI transition-model environment.
 
 Every SA-AI CFD run in the paper is pinned to ONE model configuration: the
-"ai" variant (final, ring-averaged compact-Laplacian gate ``AI_VG_GATE=4``) from
-``sa-ai/flow360/run_vg_all.py``. The C++ Flow360 solver reads the KERNEL
-constants (AI_RATESCALE, AI_GCRIT, ...) from the process environment, so the
-entire job of this module is to construct that environment dict in exactly ONE
-place. (Freestream chi is the exception -- see the caveat below.)
+SPHERE KERNEL (model v3, compute branch explore-lambda-v):
+    rate  a = a_max * clip<S_hat*g>_0^1 * S(Re_Omega / Re_Omega_crit(P)),
+    Re_Omega_crit(P) = softmin_2(reOmCeil, reOmA + reOmB / P^2).
+The C++ Flow360 solver reads the KERNEL constants from the process
+environment, so the entire job of this module is to construct that environment
+dict in exactly ONE place. (Freestream chi is the exception -- see the caveat
+below.)
 
-The numeric kernel constants are IMPORTED from
-``sa-ai/scripts/calibrate_kernel.py`` (the paper's single source of truth,
-identical to Flow360 ``ModelConstants.h`` and the JAX
-``src/numerics/aft_sources.py``). We do NOT re-type them here -- if the kernel
-is recalibrated, editing ``calibrate_kernel.py`` flows through automatically.
+The numeric kernel constants are the compiled defaults of Flow360
+``ModelConstants.h`` (the authoritative source for the sphere kernel), pinned
+textually by ``sa-ai/tests/test_constants_consistency.py``; we export them
+explicitly anyway so every case records its kernel even if the compiled
+defaults later change. NOTE: ``lib/calibrate_kernel.py`` still carries the
+retired v2 gate kernel (pending sphere migration) -- only its Tu<->chi_inf
+Mack map (unchanged in v3) is imported here.
 
 Freestream chi -- how it ACTUALLY reaches the solver (verified against
 compute/src/Flow360Core):
@@ -30,44 +34,62 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-# calibrate_kernel.py lives in sa-ai/scripts. Make it importable without
-# requiring the caller to have set up sys.path (config/cases must import
-# standalone). driver/ -> repro/ -> sa-ai/ -> scripts/
-_SCRIPTS = Path(__file__).resolve().parent.parent.parent / "scripts"
-if str(_SCRIPTS) not in sys.path:
-    sys.path.insert(0, str(_SCRIPTS))
+# calibrate_kernel.py lives in the repro-local lib/ (self-contained package;
+# textual consistency with the project original is enforced by
+# sa-ai/tests/test_constants_consistency.py).
+_REPRO = Path(__file__).resolve().parent.parent
+if str(_REPRO) not in sys.path:
+    sys.path.insert(0, str(_REPRO))
 
-import calibrate_kernel as _kernel  # noqa: E402  (single source of truth)
+from lib import calibrate_kernel as _kernel  # noqa: E402  (Mack Tu<->chi map only; see docstring)
 
 # Re-export the Tu -> chi_inf map so callers use ONE definition (Mack 1977 e^N).
 chi_inf_from_Tu_pct = _kernel.chi_inf_from_Tu_pct
 Tu_pct_from_chi_inf = _kernel.Tu_pct_from_chi_inf
 
+# Sphere-kernel constants = the compiled defaults of Flow360 ModelConstants.h
+# (explore-lambda-v). Pinned against that header by
+# sa-ai/tests/test_constants_consistency.py::CANON -- edit BOTH together.
+_SPHERE = {
+    "A_MAX":     0.19,    # Michalke free-shear (tanh-layer) eigenvalue
+    "REOM_CEIL": 1851.2,  # k*2600 (whole-equation drain compensation, k=0.712, c=1/6)
+    "REOM_A":    124.6,   # k*175
+    "REOM_B":    1.424,   # k*2
+    "RAMP_W":    0.35,    # onset tanh ramp width scale
+}
+
 
 def canonical_ai_env() -> dict[str, str]:
-    """The canonical SA-AI (VARIANT='a3') model env, built from calibrate_kernel.
+    """The canonical SA-AI (sphere kernel) model env.
 
     These are the model constants that define the transition kernel; they are
     identical for every SA-AI run in the paper. Per-case quantities (chi_inf,
     laminar slowdown) are added separately by ``canonical_env()``.
 
-    Mapping to calibrate_kernel constants:
-        AI_RATESCALE       <- A_MAX          (Michalke free-shear ceiling a_max)
-        AI_GCRIT           <- SIGMOID_CENTER (attached-asymptote center g_c)
-        AI_SIGMOIDSLOPE    <- SIGMOID_SLOPE  (sigmoid slope s)
-        AI_REOMEGA_FLOOR   <- RE_OMEGA_FLOOR (cliff floor)
-        AI_CLIFF_LAMBDA_SLOPE <- K_LAMBDA    (favorable-PG onset-delay slope)
-    Fixed structural switches (not calibrated numbers): AI_SA=1 turns the model
-    on; AI_VG_GATE=4 selects the final ring-averaged compact-Laplacian gate.
+    They coincide with the compiled ModelConstants.h defaults, so exporting
+    them is redundant TODAY -- it is done anyway so the solver log's resolved-
+    constants echo and the case env both prove which kernel a run used, and so
+    a future default change cannot silently reinterpret old case dirs.
+
+    The v2 gate env vars (AI_VG_GATE*, AI_GCRIT, AI_SIGMOIDSLOPE,
+    AI_REOMEGA_FLOOR, AI_CLIFF_LAMBDA_SLOPE, AI_FPG_RATE_SLOPE) are DEAD in the
+    sphere kernel (qGate is hardcoded 1.0; no lambda_p anywhere) and are no
+    longer exported.
     """
     return {
-        "AI_SA": "1",                                        # SA-AI model ON
-        "AI_VG_GATE": "4",                                   # ring-averaged compact-Laplacian gate (final)
-        "AI_RATESCALE": repr(_kernel.A_MAX),                 # 0.19
-        "AI_GCRIT": repr(_kernel.SIGMOID_CENTER),            # 1.005
-        "AI_SIGMOIDSLOPE": repr(_kernel.SIGMOID_SLOPE),      # 11.0
-        "AI_REOMEGA_FLOOR": repr(_kernel.RE_OMEGA_FLOOR),    # 254.0
-        "AI_CLIFF_LAMBDA_SLOPE": repr(_kernel.K_LAMBDA),     # 6.1
+        "AI_SA": "1",                              # SA-AI model ON
+        "AI_RATESCALE": repr(_SPHERE["A_MAX"]),    # 0.19
+        "AI_REOMC_CEIL": repr(_SPHERE["REOM_CEIL"]),  # 1851.2
+        "AI_REOMC_A": repr(_SPHERE["REOM_A"]),     # 124.6
+        "AI_REOMC_B": repr(_SPHERE["REOM_B"]),     # 1.424
+        "AI_RAMPWIDTH": repr(_SPHERE["RAMP_W"]),   # 0.35
+        # fv1 bypass in lifted transitional layers -- CANON since 2026-07-25
+        # (author decision; RESPONSES ~16:00 for the analytic case). The q
+        # gate is the parameter-free law-of-the-wall discriminator; s(chi) is
+        # a fast LINEAR smoothing ramp over (1, 2) -- deliberately faster
+        # than the sigma_t maturity ramp, which fv1 must not double-count.
+        "AI_FV1BYPASS": "1",
+        "AI_FV1_SWIDTH": "1",
     }
 
 
@@ -89,6 +111,7 @@ def canonical_env(chi_inf: float, *, laminar_slowdown: float | None = None) -> d
     case builder applies the slowdown compensation to the JSON seed.
     """
     env = canonical_ai_env()
+    env["AI_SIGMAD_TIE"] = "1"                  # canonical destruction tie (paper Sec. III.E); C++ default is also on
     env["AFT_CHI_INF"] = repr(float(chi_inf))   # LOAD-BEARING: flexfoil.rans.case patches JSON seed from this
     env["AI_CHI_INF"] = repr(float(chi_inf))    # forward-compat only; solver does NOT read a chi env var
     if laminar_slowdown is not None:

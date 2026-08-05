@@ -12,9 +12,12 @@ from the literature survey (notes_absolute_instability_lsb.md):
     units. Absolute instability onsets when the margin reaches ZERO
     (inflection point sinks into the recirculation).
 
-Overlaid: contour LINES of the current band gate, which on this branch is
-strictly a function of the two coordinates:
+Overlaid: contour LINES of the RETIRED Lambda_v band gate, which on this branch
+was strictly a function of the two coordinates:
     Q_v(Gamma, Lambda_v) = 1 - sqrt(Gamma(2-Gamma)) / (1 + cV |Lambda_v|).
+That gate went out with the Gamma-sigmoid kernel on 2026-07-30 (canonical
+kernel: lib/sphere_kernel.py, which has no gate); the contours are kept here
+only as a reference frame for the wavepacket trajectories.
 
 Sign convention: Lambda_v = -u'u''d^3/((u'd)^2+u^2) (Blasius all positive).
 Reversed profiles are drawn from their omega=0 point outward (inside it the
@@ -30,11 +33,10 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, "/home/qiqi/flexcompute/sa-ai/paper/repro")
 sys.path.insert(0, "/home/qiqi/flexcompute/sa-ai/paper/repro/analytic")
 import _saai  # noqa: F401
-from _saai import C_NU_AI, SIGMA_SA
-from scipy.linalg import eig, eigh_tridiagonal
+from scipy.linalg import eig
 from scipy.optimize import minimize_scalar
 from lib.correlations import Re_theta0
-from explore_lsb_frozen_profile import build_profile, kernel_b, ETA_MAX
+from fs_frozen_profile import build_profile, ETA_MAX
 
 CV = 1.0
 FIGD = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'figs_explore')
@@ -162,17 +164,15 @@ def rayleigh_wavepacket(pr, N=600, alo=0.02, ahi=1.2):
 def spatial_mode_weight(pr, Re_th=200.0, gate='lv', ufrac=0.03):
     """|v| of the spatial generalized eigenmode (the parabolic march's
     asymptotic dN/dx mode from the frozen-profile study) on the interior
-    grid -- shows WHERE along the profile the over-amplification lives."""
-    yh, u, absw, b = kernel_b(pr, Re_th, gate)
-    h = yh[1] - yh[0]
-    k = (C_NU_AI/SIGMA_SA)/Re_th
-    uf = np.maximum(u, ufrac)
-    d = (b - 2.0*k/h**2)/uf
-    e = (k/h**2)/np.sqrt(uf[:-1]*uf[1:])
-    _, vec = eigh_tridiagonal(d, e, select='i',
-                              select_range=(len(yh)-1, len(yh)-1))
-    v = np.abs(vec[:, 0])/np.sqrt(uf)
-    return v/v.max()
+    grid -- shows WHERE along the profile the over-amplification lives.
+
+    UNAVAILABLE: the source b(y) came from the retired Gamma-sigmoid +
+    Q4/Lambda_v gate kernel (explore_lsb_frozen_profile.kernel_b), removed with
+    that kernel on 2026-07-30. The canonical kernel is lib/sphere_kernel.py.
+    """
+    raise NotImplementedError(
+        "spatial_mode_weight needs the retired gate kernel's b(y) "
+        "(explore_lsb_frozen_profile.kernel_b, removed 2026-07-30)")
 
 
 def indicators_at(pr, yh):
@@ -254,23 +254,15 @@ def main():
         j = m.nonzero()[0][int(np.argmax(np.abs(Lv_[m])))]
         ax.annotate(f"{urev*100:.1f}%", (Lv_[j], Gam[j]), fontsize=8,
                     color=c, textcoords='offset points', xytext=(4, 4))
-        # model's spurious spatial-mode residence (frozen study): filled dots
-        # + small filled circle at its peak
-        w = spatial_mode_weight(pr)
-        Gi, Li = Gam[1:-1], Lv_[1:-1]
-        hot = w > 0.2
-        ax.scatter(Li[hot], Gi[hot], s=60*w[hot]**2, color=c, alpha=0.35,
-                   edgecolors='none', zorder=4)
-        jp = int(np.argmax(w))
-        ax.plot(Li[jp], Gi[jp], 'o', ms=7, mfc=c, mec='k', mew=0.7,
-                zorder=5)
+        # The model's spurious spatial-mode residence used to be overlaid here
+        # (spatial_mode_weight); it needed the retired gate kernel's b(y) and
+        # went with it on 2026-07-30.
         # PHYSICAL wavepacket (OS eigenfunction energy at bubble-typical
         # Re_theta=200): open circles + big open star at its peak
         wp = overlay_wavepacket(ax, pr, c, 200.0)
         print(f"reversed beta={beta:+.3f} (H={pr['H']:.2f}): OS wavepacket "
               f"peak (Lv={wp[0]:+.2f}, Gam={wp[1]:.2f}), alpha*theta="
-              f"{wp[2]:.3f}, c={wp[3]:.3f}, unstable={wp[4]}; model mode "
-              f"peak (Lv={Li[jp]:+.2f}, Gam={Gi[jp]:.2f})", flush=True)
+              f"{wp[2]:.3f}, c={wp[3]:.3f}, unstable={wp[4]}", flush=True)
 
     ax.axhline(1.0, color='0.8', lw=0.6)
     ax.set_xlim(-2.4, 1.6)
@@ -280,8 +272,8 @@ def main():
     ax.set_title(
         'Falkner–Skan family on the gate plane '
         r'($\star$: PHYSICAL wavepacket = Orr–Sommerfeld eigenfunction '
-        'energy peak (gray fill: least-stable, not unstable);\nfilled dots '
-        '+ small circle: the MODEL mode; open circles: wavepacket residence '
+        'energy peak (gray fill: least-stable, not unstable);\nopen circles: '
+        'wavepacket residence '
         '$E>0.5E_{max}$. Attached at $Re_\\theta=2Re_{\\theta 0}(H)$, '
         r'reversed at $Re_\theta$=200', fontsize=9)
     ax.legend(fontsize=7.5, loc='lower left', framealpha=0.9)

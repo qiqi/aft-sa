@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, "/home/qiqi/flexcompute/sa-ai/paper/repro")
 sys.path.insert(0, "/home/qiqi/flexcompute/sa-ai/paper/repro/analytic")
 import _saai  # noqa: F401
-from explore_lsb_frozen_profile import build_profile
+from fs_frozen_profile import build_profile
 
 FIGD = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'figs_explore')
 L0, C2 = -1.8, 2.0
