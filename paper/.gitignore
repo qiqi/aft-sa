@@ -9,8 +9,13 @@
 *.fls
 *.toc
 
-# Built PDF (final & intermediate)
+# Built PDFs (final & intermediate). Both documents are ~17 MB, so every
+# rebuild would add that again to history; they are regenerable from the tex
+# and the tracked figs/, and were untracked as of Aug 2026. Earlier revisions
+# remain in history -- those are stale and should not be trusted to match the
+# sources; build them instead.
 sa-ai.pdf
+whitepaper.pdf
 
 # Figure archives only -- figs/ itself is TRACKED (every figure the tex
 # includes must be in git; the blanket figs/ ignore caused three review
