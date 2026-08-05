@@ -226,6 +226,53 @@ at phi = 60 (~0.45 vs 0.474).  The leeward half and the trough agree well.  The
 **windward half of the fig14c computed-front trace should be re-checked** against
 the figure before it is trusted to better than 0.07.
 
+## 2c. Can the low-Re (1.5e6) branch be pushed to higher incidence?
+
+Asked because a crossflow-free branch at high incidence would be worth a great
+deal.  The answer from Stock is **crossflow never contaminates it at any
+incidence he ran -- but neither does anything else, because nothing transitions.**
+
+At $Re_L \approx 1.5\times10^6$ the layer runs laminar to the open
+free-vortex-layer separation at every measured incidence:
+
+| alpha | Re_L | Stock's finding, close to verbatim |
+|---|---|---|
+| 5 | 1.52e6 | "predicted to remain laminar up to separation for the small-Reynolds-number case, except for streamline 12, where transition is provoked by TS waves" -- and he adds that at streamline 12 the layer is "drastically thickened ... by the action of the circumferential pressure gradient" |
+| 10 | 1.52e6 | "predicted to stay laminar up to separation ... Indeed, the measured transition locations show the same tendency" |
+| 29.7 | 1.53e6 | "the boundary-layer flow is predicted to remain laminar up to the free vortex separation line for the low Reynolds numbers Re = 1.52e6 ... and 1.53e6" |
+
+So extending alpha on the low-Re branch buys **separation-line** comparisons,
+not transition fronts.  The two knobs are not independent: at fixed Re, raising
+alpha trades TS for CF; at fixed alpha, lowering Re trades transition for
+laminar separation.  There is no "high alpha, TS-only" window on this body.
+
+Where transition reappears at high incidence is already CF-dominated.  At
+alpha = 29.5 Stock runs Re = 3.01e6, 4.48e6 and 8.52e6: "for the smallest
+Reynolds number, the flow remains laminar up to separation", and for the other
+two "transition is triggered by CF waves, except close to the symmetry planes".
+So the first Reynolds number at which a high-alpha case transitions at all is
+one where crossflow does the triggering.
+
+Rough consistency check, MY estimate and not Stock's: his limiting factors for
+Goettingen are N_TS = 8.0 and N_CF = 5.5 (ONERA F1: 7.0 and 6.0), and his Fig. 9
+has N_CF reaching about 6 near separation at alpha = 10, Re = 6.56e6.
+Amplification factors scale roughly as sqrt(Re) at fixed geometry, so dropping
+to 1.52e6 (a factor 2.08 in sqrt) puts N_CF near 3 and N_TS near 4 -- both
+comfortably under their limits, which is exactly why nothing fires.
+
+What measured low-Re incidences actually exist: **5, 10 and 29.7 only**.  The
+DFVLR record's 15-29.5 deg cases are all at 3-8.5e6.  We already hold the
+alpha = 29.7 / 1.53e6 hot films digitized (`stock2006_fig16c_digitized.json`,
+12 stations), and an alpha = 29.7 solution exists in the older M = 0.1 campaign,
+so the low-Re branch could be closed out at 29.7 within the tunnel campaign
+without new experimental data.
+
+Consequence for the write-up, and it is worth stating in the papers: the low-Re
+rows carry by far the best residuals in `tab:sphtunnel` (rms 0.027-0.082 against
+0.18-0.49 at high Re), but that agreement is **partly structural**.  When both
+the measurement and the model are pinned by separation rather than by
+instability growth, landing on each other is a weaker result than it looks.
+
 ## 3. Krimmelbein & Krumbein (DLR), 2009-2011
 
 TAU + automatic two-N-factor e^N along line-in-flight cuts (LILO/COAST3),

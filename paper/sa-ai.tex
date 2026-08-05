@@ -3214,15 +3214,19 @@ level from $5\!\times\!10^{-6}L$ at $Re_L\!=\!1.5\!\times\!10^6$ and
 from $1.5\!\times\!10^{-6}L$ at the higher Reynolds numbers), at
 $M\!=\!0.1$, with the airfoil-study solver settings, seed, and
 constants unchanged. The matrix covers the measured conditions
-spanning Stock's three regimes, and this section walks them in order
-of incidence, from the case the model was calibrated for to the case
-it was not: the pure-TS anchors at $\alpha\!=\!0$ and $2.5^\circ$
+spanning Stock's three regimes, and this section walks them by
+Reynolds number, low to high, and by incidence within each. First the
+low-Reynolds ladder at $1.5\!\times\!10^6$ ($\alpha\!=\!5^\circ$,
+$10^\circ$ and $29.7^\circ$), where the layer runs laminar to the open
+free-vortex-layer separation at every measured incidence, so that the
+question is whether the model correctly withholds a front rather than
+where it puts one. Then the high-Reynolds cases, where transition is
+real, walked from the case the model was calibrated for to the case it
+was not: the pure-TS anchors at $\alpha\!=\!0$ and $2.5^\circ$
 ($Re_L\!=\!7.2\!\times\!10^6$, with a zero-incidence
-Reynolds-trend point at $6.5\!\times\!10^6$); the mixed
-TS--crossflow pair $6.5\!\times\!10^6$ at $5^\circ$ and $10^\circ$;
-and the low-Reynolds ladder $1.5\!\times\!10^6$ at $5^\circ$,
-$10^\circ$ and $29.7^\circ$, where the layer runs laminar to the
-open separation---while the DFVLR record's remaining incidences
+Reynolds-trend point at $6.5\!\times\!10^6$), then the mixed
+TS--crossflow pair at $6.5\!\times\!10^6$ and $5^\circ$ and
+$10^\circ$. The DFVLR record's remaining incidences
 ($15$--$29.5^\circ$ at $3$--$8.5\!\times\!10^6$) stay outside the
 present matrix. Table~\ref{tab:sphtotals}
 collects the totals (no force measurements exist at these
@@ -3239,114 +3243,29 @@ refinement ($0.0150$/$0.0169$/$0.0211$).
 
 \input{tables/tab_spheroid_totals}
 
-\subsection{Zero incidence: the pure-TS anchor and its disturbance
-environment}\label{sec:sphts}
+\subsection{Low Reynolds number: laminar to the open
+separation}\label{sec:sphlo}
 
-At zero incidence and $Re_L\!=\!7.2\!\times\!10^6$ the spheroid is a
-pure Tollmien--Schlichting case~\cite{stock_2006}, the cleanest test of
-the amplification rate stripped of crossflow, and the hot films place
-the measured front at $x/L\!=\!0.438$ uniformly around the
-azimuth~\cite{kreplin_1985,stock_2006}. The disturbance environment is
-therefore the whole question, and it is not a settled number: the
-tunnel's own hot-wire characterization gives $0.33$--$0.40\%$ streamwise
-(with ${\sim}0.8\%$ in the cross-stream components, an open-jet test
-section), while every transition study of this body instead uses a
-calibrated or prescribed value an order of magnitude quieter. This
-section therefore runs each condition twice, at the calibrated and at
-the measured level, and reports both.
-
-Table~\ref{tab:sphtunnel} collects the comparison. At the
-facility-calibrated seed (Stock's limiting $N_\mathrm{TS}\!=\!8.0$,
-$\chi_\infty\!=\!2.38\!\times\!10^{-3}$, Mack $Tu\!=\!0.106\%$) the
-computed $\chi\!=\!1$ front lands at $0.516$, $0.077$ aft of the
-measurement; at the measured hot-wire level ($Tu\!=\!0.33\%$,
-$\chi_\infty\!=\!3.60\!\times\!10^{-2}$) it lands at $0.341$, $0.097$
-ahead. The measurement is bracketed, and the bracket is tight enough to
-locate the effective level between the two---consistent with the
-$Tu\!\approx\!0.17\%$ that an explicit seed sweep selects. Both fronts
-are uniform to $\pm0.001$ across seventeen azimuths, as the
-axisymmetric flow requires.
-
-Two properties of the comparison are worth recording because they
-bound what the rest of the section can claim. The seed is the dominant
-lever here: a factor $3.1$ in $Tu$ moves the front by $0.175\,L$.
-And the Mach number is not: repeating the calibrated case at
-$M\!=\!0.1$ instead of the tunnel's $0.144$ moves the front by $0.005$.
+At $Re_L\!=\!1.5\!\times\!10^6$, the lowest of the DFVLR matrix, the
+spheroid does not transition on the attached body at any measured
+incidence. Stock's stability analysis puts the layer laminar up to the
+open free-vortex-layer separation at $\alpha\!=\!5^\circ$---except on a
+single streamline, where the circumferential pressure gradient thickens
+the layer enough for TS to commit---at $\alpha\!=\!10^\circ$, and again
+at $29.7^\circ$, and at $10^\circ$ he notes the measured points show the
+same tendency~\cite{stock_2006}. Crossflow is not what closes this
+branch off: at this Reynolds number neither amplification factor reaches
+its tunnel-calibrated limit ($N_{TS}\!=\!8.0$, $N_{CF}\!=\!5.5$) before
+the layer separates, which is why the branch stays mechanism-clean all
+the way to $29.7^\circ$ and why it cannot be pushed to higher incidence
+for a crossflow-free transition front---there is no front to find. What
+it tests instead is whether the model correctly \emph{withholds} one,
+and where it puts the laminar separation line. That is a weaker test
+than the high-Reynolds-number comparisons that follow, and one on which
+agreement is partly structural: a computed shear rise that lands on the
+measurement is in part reproducing separation.
 
 \input{tables/tab_spheroid_tunnel}
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.86\textwidth]{spheroid_overlay_a0_gmeas.pdf}
-  \caption{Surface unrolled into $(x/L,\phi)$, $\phi\!=\!0$ the windward symmetry line, at the measured-seed condition. Grey: skin-friction lines integrated from the wall shear vector itself---the oil-flow analogue, and not the inviscid streamlines of Stock Figs.~14--17---whose convergence marks separation. Black: the $\max_n\chi$ family on a wall-normal segment shot from each surface point, sub-unity decades dashed, $\chi\!=\!1$ heavy, $\chi\!=\!c_{v1}$ and above solid. White-filled squares: the measured DFVLR transition points. Zero incidence, $Re_L\!=\!7.2\!\times\!10^6$: both families are functions of $x/L$ alone, as the axisymmetric flow requires.}
-  \label{fig:ov_a0_gmeas}
-\end{figure}
-
-\subsection{$\alpha\!=\!2.5^\circ$: where the azimuthal spread
-appears}\label{sec:spha25}
-
-Incidence separates the two effects immediately. At
-$\alpha\!=\!2.5^\circ$ (still pure-TS by Stock's reading) the calibrated
-seed places the leeward front on the measurement ($0.447$ vs $0.432$)
-but the windward front $0.132$ aft of it ($0.583$ vs $0.450$): the
-computed front spreads $0.136\,L$ around the azimuth where the measured
-one spreads $0.018\,L$. The sign is the one a purely two-dimensional
-kernel must give---the windward meridian of an inclined body carries the
-more favorable gradient, so the TS amplification it books is the more
-suppressed---and it is the measurement's near-uniformity that the model
-cannot reproduce. This is the crossflow economy's first visible cost,
-and the entry to the fully three-dimensional conditions that follow.
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.86\textwidth]{spheroid_overlay_a2p5_gmeas.pdf}
-  \caption{$\alpha\!=\!2.5^\circ$, $Re_L\!=\!7.2\!\times\!10^6$.}
-  \label{fig:ov_a2p5_gmeas}
-\end{figure}
-
-\subsection{$\alpha\!=\!5^\circ$: the crossflow channel opens with
-Reynolds number}\label{sec:sph5}
-
-The two Reynolds numbers at this incidence are, by Stock's stability
-analysis, on opposite sides of a mechanism boundary, and he states it
-directly: at $1.52\!\times\!10^6$ the layer is laminar up to separation
-except on one streamline where TS provokes transition, while at
-$6.49\!\times\!10^6$ transition is triggered by TS near the windward and
-leeward symmetry planes and by TS and crossflow together over the
-remainder of the body~\cite{stock_2006}. Raising the Reynolds number at
-fixed incidence introduces a mechanism that was absent, and the model
-carries only the one that was already there.
-
-The residuals follow that boundary (Table~\ref{tab:sphtunnel}). At
-$1.52\!\times\!10^6$ the four azimuths the model resolves agree to rms
-$0.028$; at the four most leeward stations the near-wall $\chi$ never
-reaches unity within $x/L\!\le\!0.97$, so the model carries no front
-where the measurement places one at $0.74$--$0.94$. At
-$6.49\!\times\!10^6$ every station resolves, and at the calibrated seed
-the residual opens from $-0.088$ at the most leeward to $+0.246$ at the
-most windward. At the measured hot-wire level the windward
-residual falls to $+0.007$ while the leeward goes to $-0.292$: the seed
-moves the whole front by $0.204$--$0.238$ at every measured azimuth, so it
-sets the level but cannot correct the shape, and the shape is wrong. The
-computed front sweeps $0.36\,L$ across the azimuth where the measurement
-sweeps $0.087\,L$. No single seed fits both ends.
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.86\textwidth]{spheroid_overlay_a5lo_gmeas.pdf}
-  \caption{$\alpha\!=\!5^\circ$, $Re_L\!=\!1.52\!\times\!10^6$.}
-  \label{fig:ov_a5lo_gmeas}
-\end{figure}
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.86\textwidth]{spheroid_overlay_a5hi_gmeas.pdf}
-  \caption{$\alpha\!=\!5^\circ$, $Re_L\!=\!6.49\!\times\!10^6$.}
-  \label{fig:ov_a5hi_gmeas}
-\end{figure}
-
-\subsection{$\alpha\!=\!10^\circ$: the deficit at its
-largest}\label{sec:sph10}
 
 At the lowest Reynolds number of the DFVLR matrix the boundary layer
 never transitions on the attached body at all: it stays laminar up to
@@ -3508,8 +3427,119 @@ supporting pressure-station waterfalls.)
   leeward tangle where printed chain identity is unrecoverable.}
   \label{fig:sphstat_cfg297}
 \end{figure}
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.86\textwidth]{spheroid_overlay_a5lo_gmeas.pdf}
+  \caption{$\alpha\!=\!5^\circ$, $Re_L\!=\!1.52\!\times\!10^6$.}
+  \label{fig:ov_a5lo_gmeas}
+\end{figure}
 
-At $Re_L\!=\!6.56\!\times\!10^6$ the same incidence produces the largest
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.86\textwidth]{spheroid_overlay_a10lo_gmeas.pdf}
+  \caption{$\alpha\!=\!10^\circ$, $Re_L\!=\!1.52\!\times\!10^6$.}
+  \label{fig:ov_a10lo_gmeas}
+\end{figure}
+
+\subsection{Zero incidence: the pure-TS anchor and its disturbance
+environment}\label{sec:sphts}
+
+At zero incidence and $Re_L\!=\!7.2\!\times\!10^6$ the spheroid is a
+pure Tollmien--Schlichting case~\cite{stock_2006}, the cleanest test of
+the amplification rate stripped of crossflow, and the hot films place
+the measured front at $x/L\!=\!0.438$ uniformly around the
+azimuth~\cite{kreplin_1985,stock_2006}. The disturbance environment is
+therefore the whole question, and it is not a settled number: the
+tunnel's own hot-wire characterization gives $0.33$--$0.40\%$ streamwise
+(with ${\sim}0.8\%$ in the cross-stream components, an open-jet test
+section), while every transition study of this body instead uses a
+calibrated or prescribed value an order of magnitude quieter. This
+section therefore runs each condition twice, at the calibrated and at
+the measured level, and reports both.
+
+Table~\ref{tab:sphtunnel} collects the comparison. At the
+facility-calibrated seed (Stock's limiting $N_\mathrm{TS}\!=\!8.0$,
+$\chi_\infty\!=\!2.38\!\times\!10^{-3}$, Mack $Tu\!=\!0.106\%$) the
+computed $\chi\!=\!1$ front lands at $0.516$, $0.077$ aft of the
+measurement; at the measured hot-wire level ($Tu\!=\!0.33\%$,
+$\chi_\infty\!=\!3.60\!\times\!10^{-2}$) it lands at $0.341$, $0.097$
+ahead. The measurement is bracketed, and the bracket is tight enough to
+locate the effective level between the two---consistent with the
+$Tu\!\approx\!0.17\%$ that an explicit seed sweep selects. Both fronts
+are uniform to $\pm0.001$ across seventeen azimuths, as the
+axisymmetric flow requires.
+
+Two properties of the comparison are worth recording because they
+bound what the rest of the section can claim. The seed is the dominant
+lever here: a factor $3.1$ in $Tu$ moves the front by $0.175\,L$.
+And the Mach number is not: repeating the calibrated case at
+$M\!=\!0.1$ instead of the tunnel's $0.144$ moves the front by $0.005$.
+
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.86\textwidth]{spheroid_overlay_a0_gmeas.pdf}
+  \caption{Surface unrolled into $(x/L,\phi)$, $\phi\!=\!0$ the windward symmetry line, at the measured-seed condition. Grey: skin-friction lines integrated from the wall shear vector itself---the oil-flow analogue, and not the inviscid streamlines of Stock Figs.~14--17---whose convergence marks separation. Black: the $\max_n\chi$ family on a wall-normal segment shot from each surface point, sub-unity decades dashed, $\chi\!=\!1$ heavy, $\chi\!=\!c_{v1}$ and above solid. White-filled squares: the measured DFVLR transition points. Zero incidence, $Re_L\!=\!7.2\!\times\!10^6$: both families are functions of $x/L$ alone, as the axisymmetric flow requires.}
+  \label{fig:ov_a0_gmeas}
+\end{figure}
+
+\subsection{$\alpha\!=\!2.5^\circ$: where the azimuthal spread
+appears}\label{sec:spha25}
+
+Incidence separates the two effects immediately. At
+$\alpha\!=\!2.5^\circ$ (still pure-TS by Stock's reading) the calibrated
+seed places the leeward front on the measurement ($0.447$ vs $0.432$)
+but the windward front $0.132$ aft of it ($0.583$ vs $0.450$): the
+computed front spreads $0.136\,L$ around the azimuth where the measured
+one spreads $0.018\,L$. The sign is the one a purely two-dimensional
+kernel must give---the windward meridian of an inclined body carries the
+more favorable gradient, so the TS amplification it books is the more
+suppressed---and it is the measurement's near-uniformity that the model
+cannot reproduce. This is the crossflow economy's first visible cost,
+and the entry to the fully three-dimensional conditions that follow.
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.86\textwidth]{spheroid_overlay_a2p5_gmeas.pdf}
+  \caption{$\alpha\!=\!2.5^\circ$, $Re_L\!=\!7.2\!\times\!10^6$.}
+  \label{fig:ov_a2p5_gmeas}
+\end{figure}
+
+\subsection{$\alpha\!=\!5^\circ$ at
+$Re_L\!=\!6.49\!\times\!10^6$: the crossflow channel opens with Reynolds
+number}\label{sec:sph5}
+
+Raising the Reynolds number at fixed incidence introduces a mechanism
+that was absent, and Stock states the boundary directly: at
+$1.52\!\times\!10^6$ (Sec.~\ref{sec:sphlo}) the layer is laminar up to
+separation except on one streamline, while at $6.49\!\times\!10^6$
+transition is triggered by TS near the windward and leeward symmetry
+planes and by TS and crossflow together over the remainder of the
+body~\cite{stock_2006}. The model carries only the mechanism that was
+already there.
+
+The residuals follow that boundary (Table~\ref{tab:sphtunnel}). Every
+measured station resolves here, and at the calibrated seed the residual
+opens from $-0.088$ at the most leeward to $+0.246$ at the most
+windward. At the measured hot-wire level the windward residual falls to
+$+0.007$ while the leeward goes to $-0.292$: the seed moves the whole
+front by $0.204$--$0.238$ at every measured azimuth, so it sets the
+level but cannot correct the shape, and the shape is wrong. The computed
+front sweeps $0.36\,L$ across the azimuth where the measurement sweeps
+$0.087\,L$. No single seed fits both ends.
+
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.86\textwidth]{spheroid_overlay_a5hi_gmeas.pdf}
+  \caption{$\alpha\!=\!5^\circ$, $Re_L\!=\!6.49\!\times\!10^6$.}
+  \label{fig:ov_a5hi_gmeas}
+\end{figure}
+
+\subsection{$\alpha\!=\!10^\circ$ at
+$Re_L\!=\!6.56\!\times\!10^6$: the deficit at its
+largest}\label{sec:sph10}
+
+This incidence at $Re_L\!=\!6.56\!\times\!10^6$ produces the largest
 residual in the matrix. The most leeward station still agrees to
 $+0.068$, but from $\phi\!\approx\!120^\circ$ inward the computed front
 stands at $0.88$--$0.95\,x/L$---effectively at the tail---against a
@@ -3579,13 +3609,6 @@ absent crossflow channel, so the seed has no leverage to express, and the
 cross-facility comparison cannot be settled here. It would need a
 condition on which the model is seed-sensitive, and no F1 measurement
 exists at one.
-\begin{figure}[tp]
-  \centering
-  \includegraphics[width=0.86\textwidth]{spheroid_overlay_a10lo_gmeas.pdf}
-  \caption{$\alpha\!=\!10^\circ$, $Re_L\!=\!1.52\!\times\!10^6$.}
-  \label{fig:ov_a10lo_gmeas}
-\end{figure}
-
 \begin{figure}[tp]
   \centering
   \includegraphics[width=0.86\textwidth]{spheroid_overlay_a10hi_gmeas.pdf}

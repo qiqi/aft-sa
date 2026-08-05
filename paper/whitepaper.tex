@@ -996,7 +996,7 @@ $Re_\mathrm{root}=5\times10^5$.}\label{f:daesurf}
 \end{figure}
 
 \clearpage
-\subsection{6:1 prolate spheroid, $\alpha=0$--$10^\circ$}
+\subsection{6:1 prolate spheroid, $\alpha=0$--$10^\circ$, by Reynolds number}
 
 Analytic spheroid ($x^2/A^2+r^2/B^2=1$, $A=L/2$, $B=L/12$, half-model) on
 the L1 structured O-grid ($2.2$M nodes, first wall spacing
@@ -1015,12 +1015,18 @@ ONERA F1) and at the facility-measured hot-wire level (Göttingen $0.33\%$
 streamwise, ONERA F1 ${<}0.1\%$).
 
 Table~\ref{tab:sphtunnel}: computed near-wall $\chi=1$ front minus measured,
-azimuth by azimuth. $\alpha=0$, $Re_L=7.2\times10^6$: $+0.077$ and $-0.097$
-at the calibrated and measured seed, uniform to $\pm0.001$ across seventeen
-azimuths. $\alpha=2.5^\circ$: $+0.016$ leeward, $+0.132$ windward, against a
-measured azimuthal spread of $0.018$. $\alpha=5^\circ$: $-0.088$ to $+0.246$
-at $6.49\times10^6$. $\alpha=10^\circ$: rms $0.027$ at $1.52\times10^6$ and
-the measured seed; at $6.56\times10^6$ the windward residual is $+0.375$ to
+azimuth by azimuth, low Reynolds number first. At $Re_L=1.52\times10^6$ the
+layer runs laminar to the open free-vortex-layer separation at every measured
+incidence, so the measured front is that separation line: $\alpha=5^\circ$,
+rms $0.028$ at the calibrated seed over the four azimuths that resolve, with
+no front at all at the four most leeward stations ($\chi$ never reaches $1$
+within $x/L\le0.97$); $\alpha=10^\circ$, rms $0.027$ at the measured seed,
+$8/8$ azimuths. At the high Reynolds numbers, $\alpha=0$,
+$Re_L=7.2\times10^6$: $+0.077$ and $-0.097$ at the calibrated and measured
+seed, uniform to $\pm0.001$ across seventeen azimuths. $\alpha=2.5^\circ$:
+$+0.016$ leeward, $+0.132$ windward, against a measured azimuthal spread of
+$0.018$. $\alpha=5^\circ$: $-0.088$ to $+0.246$ at $6.49\times10^6$.
+$\alpha=10^\circ$, $6.56\times10^6$: the windward residual is $+0.375$ to
 $+0.549$. Seed swing in the windward residual between the two facility
 levels: $0.174$ at $\alpha=0$, $0.181$ at $2.5^\circ$, $0.239$ at
 $5^\circ$ ($6.49\times10^6$), $0.012$ at $10^\circ$ ($6.56\times10^6$),
@@ -1044,8 +1050,18 @@ measured symbols.}\label{f:sphtunnelfronts}
 
 \clearpage
 \begin{figure}[H]\centering
+\includegraphics[width=0.86\textwidth]{spheroid_overlay_a5lo_gmeas.pdf}
+\caption{Surface at the measured-seed condition, unrolled into $(x/L,\phi)$, $\phi=0$ windward; line art. Grey skin-friction lines integrated from the wall shear vector itself -- the oil-flow analogue, not the inviscid streamlines of Stock Figs.~14--17, and their convergence is the separation signature -- under the $\max_n\chi$ contour family (sub-unity dashed, $\chi=1$ heavy, $\chi=c_{v1}$ and above solid, labeled), $\max_n\chi$ taken on a wall-normal segment shot from each surface point. White-filled squares: measured DFVLR transition. $\alpha=5^\circ$, $Re_L=1.52\times10^6$.}\label{f:ov_a5lo_gmeas}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.86\textwidth]{spheroid_overlay_a10lo_gmeas.pdf}
+\caption{$\alpha=10^\circ$, $Re_L=1.52\times10^6$.}\label{f:ov_a10lo_gmeas}
+\end{figure}
+
+\begin{figure}[H]\centering
 \includegraphics[width=0.86\textwidth]{spheroid_overlay_a0_gmeas.pdf}
-\caption{Surface at the measured-seed condition, unrolled into $(x/L,\phi)$, $\phi=0$ windward; line art. Grey skin-friction lines integrated from the wall shear vector itself -- the oil-flow analogue, not the inviscid streamlines of Stock Figs.~14--17, and their convergence is the separation signature -- under the $\max_n\chi$ contour family (sub-unity dashed, $\chi=1$ heavy, $\chi=c_{v1}$ and above solid, labeled), $\max_n\chi$ taken on a wall-normal segment shot from each surface point. White-filled squares: measured DFVLR transition. $\alpha=0^\circ$, $Re_L=7.2\times10^6$.}\label{f:ov_a0_gmeas}
+\caption{$\alpha=0^\circ$, $Re_L=7.2\times10^6$.}\label{f:ov_a0_gmeas}
 \end{figure}
 
 \begin{figure}[H]\centering
@@ -1054,18 +1070,8 @@ measured symbols.}\label{f:sphtunnelfronts}
 \end{figure}
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.86\textwidth]{spheroid_overlay_a5lo_gmeas.pdf}
-\caption{$\alpha=5^\circ$, $Re_L=1.52\times10^6$.}\label{f:ov_a5lo_gmeas}
-\end{figure}
-
-\begin{figure}[H]\centering
 \includegraphics[width=0.86\textwidth]{spheroid_overlay_a5hi_gmeas.pdf}
 \caption{$\alpha=5^\circ$, $Re_L=6.49\times10^6$.}\label{f:ov_a5hi_gmeas}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.86\textwidth]{spheroid_overlay_a10lo_gmeas.pdf}
-\caption{$\alpha=10^\circ$, $Re_L=1.52\times10^6$.}\label{f:ov_a10lo_gmeas}
 \end{figure}
 
 \begin{figure}[H]\centering

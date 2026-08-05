@@ -92,9 +92,13 @@ def tu_of_n(n):
 
 def main():
     d = json.load(open(SRC))
-    recs = sorted(d.values(), key=lambda r: (r['alpha'], r['Re'],
+    # Reynolds-major: the low-Re band (1.5e6, where the layer runs laminar to
+    # the open free-vortex separation and the measured "front" IS that
+    # separation line) comes first, then the high-Re band; inside each band the
+    # walk is by incidence, as before.
+    recs = sorted(d.values(), key=lambda r: (r['Re'] > 3e6, r['alpha'], r['Re'],
                                             r['facility'] != 'NWG', -r['chi_inf']))
-    rows = []
+    rows, bands = [], []
     for r in recs:
         rw = [x for x in r['rows'] if x['chi1'] == x['chi1']]     # drop NaN
         if not rw:
@@ -104,6 +108,7 @@ def main():
         seed = r['tag'].rsplit('_', 1)[1]
         sm, sr = stock_resid(r['tag'], rw)
         stock_cols = (f"{sm:+.3f} & {sr:.3f}" if sm is not None else "-- & --")
+        bands.append(r['Re'] > 3e6)
         rows.append(
             f"${r['alpha']:g}^\\circ$ & ${r['Re']/1e6:g}$ & {FAC[r['facility']]} & "
             f"{SEED_LABEL[seed]} & {tu_of_n(r['n_crit']):.3f} & "
@@ -132,7 +137,11 @@ def main():
            r'for Stock''s own two-N-factor $e^N$ computation, digitized from '
            r'the printed panels at the same azimuths; at '
            r'$Re_L\!=\!1.52\!\times\!10^6$ his computed transition line is '
-           r'the laminar separation line.')
+           r'the laminar separation line. Rows are grouped by Reynolds '
+           r'number: the low-$Re$ band first, where the boundary layer runs '
+           r'laminar to the open free-vortex-layer separation at every '
+           r'measured incidence, then the high-$Re$ band where transition '
+           r'is real; within each band the walk is by incidence.')
     for path, place in ((OUT, '[tp]'), (OUT_WP, '[H]')):
       with open(path, 'w') as f:
         f.write('\\begin{table}' + place + '\n  \\centering\\small\n'
@@ -140,7 +149,9 @@ def main():
                 '  \\label{tab:sphtunnel}\n'
                 '  \\begin{tabular}{cc l l c c cccc cc}\n    \\toprule\n'
                 f'    {hdr} \\\\\n    \\midrule\n')
-        for r in rows:
+        for i, r in enumerate(rows):
+            if i and bands[i] != bands[i - 1]:
+                f.write('    \\midrule\n')      # low-Re band ends here
             f.write(f'    {r} \\\\\n')
         f.write('    \\bottomrule\n  \\end{tabular}\n\\end{table}\n')
       print('wrote', path, f'({len(rows)} rows)')

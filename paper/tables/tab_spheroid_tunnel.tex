@@ -1,26 +1,27 @@
 \begin{table}[tp]
   \centering\small
-  \caption{6:1 prolate spheroid at the tunnel conditions: computed near-wall $\chi\!=\!1$ front minus the measured front, at every azimuth carrying a measurement, on the L1 O-grid at the measured Mach number. Each condition is run at the facility-calibrated seed (the tunnel-calibrated limiting $N_{TS}$) and at the facility-measured hot-wire level. $\Delta$ lee / $\Delta$ wind are the residuals at the most leeward and most windward measured azimuth ($\phi\!=\!0$ windward). The $n$ column is the number of measured azimuths at which the computed front was found, over the number measured: where they differ the near-wall $\chi$ never reaches $1$ within $x/L\!\le\!0.97$, i.e. the computed layer is still laminar at the tail and the residual there is a bound, not a value.}
+  \caption{6:1 prolate spheroid at the tunnel conditions: computed near-wall $\chi\!=\!1$ front minus the measured front, at every azimuth carrying a measurement, on the L1 O-grid at the measured Mach number. Each condition is run at the facility-calibrated seed (the tunnel-calibrated limiting $N_{TS}$) and at the facility-measured hot-wire level. $\Delta$ lee / $\Delta$ wind are the residuals at the most leeward and most windward measured azimuth ($\phi\!=\!0$ windward). The $n$ column is the number of measured azimuths at which the computed front was found, over the number measured: where they differ the near-wall $\chi$ never reaches $1$ within $x/L\!\le\!0.97$, i.e. the computed layer is still laminar at the tail and the residual there is a bound, not a value. The last two columns are the same residual for Stocks own two-N-factor $e^N$ computation, digitized from the printed panels at the same azimuths; at $Re_L\!=\!1.52\!\times\!10^6$ his computed transition line is the laminar separation line. Rows are grouped by Reynolds number: the low-$Re$ band first, where the boundary layer runs laminar to the open free-vortex-layer separation at every measured incidence, then the high-$Re$ band where transition is real; within each band the walk is by incidence.}
   \label{tab:sphtunnel}
-  \begin{tabular}{cc l l cc c cc cc}
+  \begin{tabular}{cc l l c c cccc cc}
     \toprule
-    $\alpha$ & $Re_L$ & tunnel & seed & $Tu$ & $\chi_\infty$ & $n$ & \multicolumn{2}{c}{$\Delta x_{tr}$} & $\Delta$ lee & $\Delta$ wind \\
-    & $[10^6]$ & & & [\%] & & & mean & rms & &  \\
+    $\alpha$ & $Re_L$ & tunnel & seed & $Tu$ & $n$ & \multicolumn{4}{c}{SA-AI $-$ measured} & \multicolumn{2}{c}{Stock $-$ measured} \\
+    & $[10^6]$ & & & [\%] & & mean & rms & lee & wind & mean & rms \\
     \midrule
-    $0^\circ$ & $7.2$ & G\"ottingen & measured & 0.330 & 0.036 & 17/17 & -0.097 & 0.097 & -0.097 & -0.098 \\
-    $0^\circ$ & $7.2$ & G\"ottingen & calibrated & 0.106 & 0.00238 & 17/17 & +0.077 & 0.077 & +0.078 & +0.076 \\
-    $2.5^\circ$ & $7.2$ & G\"ottingen & measured & 0.330 & 0.036 & 3/3 & -0.093 & 0.102 & -0.150 & -0.049 \\
-    $2.5^\circ$ & $7.2$ & G\"ottingen & calibrated & 0.106 & 0.00238 & 3/3 & +0.082 & 0.096 & +0.016 & +0.132 \\
-    $5^\circ$ & $1.52$ & G\"ottingen & measured & 0.330 & 0.036 & 7/8 & -0.020 & 0.068 & +0.074 & -0.037 \\
-    $5^\circ$ & $1.52$ & G\"ottingen & calibrated & 0.106 & 0.00238 & 4/8 & -0.006 & 0.028 & +0.026 & -0.040 \\
-    $5^\circ$ & $6.49$ & G\"ottingen & measured & 0.330 & 0.036 & 4/4 & -0.098 & 0.177 & -0.292 & +0.007 \\
-    $5^\circ$ & $6.49$ & G\"ottingen & calibrated & 0.106 & 0.00238 & 4/4 & +0.107 & 0.201 & -0.088 & +0.246 \\
-    $10^\circ$ & $1.52$ & G\"ottingen & measured & 0.330 & 0.036 & 8/8 & -0.013 & 0.027 & +0.002 & -0.041 \\
-    $10^\circ$ & $1.52$ & G\"ottingen & calibrated & 0.106 & 0.00238 & 8/8 & +0.019 & 0.082 & +0.160 & -0.053 \\
-    $10^\circ$ & $6.56$ & G\"ottingen & measured & 0.330 & 0.036 & 5/5 & +0.365 & 0.440 & -0.105 & +0.375 \\
-    $10^\circ$ & $6.56$ & G\"ottingen & calibrated & 0.106 & 0.00238 & 5/5 & +0.421 & 0.463 & +0.068 & +0.387 \\
-    $10^\circ$ & $6.56$ & ONERA F1 & calibrated & 0.161 & 0.00647 & 5/5 & +0.399 & 0.475 & +0.002 & +0.549 \\
-    $10^\circ$ & $6.56$ & ONERA F1 & measured & 0.100 & 0.00205 & 5/5 & +0.420 & 0.486 & +0.051 & +0.549 \\
+    $5^\circ$ & $1.52$ & G\"ottingen & measured & 0.330 & 7/8 & -0.020 & 0.068 & +0.074 & -0.037 & +0.020 & 0.058 \\
+    $5^\circ$ & $1.52$ & G\"ottingen & calibrated & 0.106 & 4/8 & -0.006 & 0.028 & +0.026 & -0.040 & -0.064 & 0.064 \\
+    $10^\circ$ & $1.52$ & G\"ottingen & measured & 0.330 & 8/8 & -0.013 & 0.027 & +0.002 & -0.041 & -0.091 & 0.100 \\
+    $10^\circ$ & $1.52$ & G\"ottingen & calibrated & 0.106 & 8/8 & +0.019 & 0.082 & +0.160 & -0.053 & -0.091 & 0.100 \\
+    \midrule
+    $0^\circ$ & $7.2$ & G\"ottingen & measured & 0.330 & 17/17 & -0.097 & 0.097 & -0.097 & -0.098 & -0.013 & 0.013 \\
+    $0^\circ$ & $7.2$ & G\"ottingen & calibrated & 0.106 & 17/17 & +0.077 & 0.077 & +0.078 & +0.076 & -0.013 & 0.013 \\
+    $2.5^\circ$ & $7.2$ & G\"ottingen & measured & 0.330 & 3/3 & -0.093 & 0.102 & -0.150 & -0.049 & +0.006 & 0.021 \\
+    $2.5^\circ$ & $7.2$ & G\"ottingen & calibrated & 0.106 & 3/3 & +0.082 & 0.096 & +0.016 & +0.132 & +0.006 & 0.021 \\
+    $5^\circ$ & $6.49$ & G\"ottingen & measured & 0.330 & 4/4 & -0.098 & 0.177 & -0.292 & +0.007 & -0.024 & 0.051 \\
+    $5^\circ$ & $6.49$ & G\"ottingen & calibrated & 0.106 & 4/4 & +0.107 & 0.201 & -0.088 & +0.246 & -0.024 & 0.051 \\
+    $10^\circ$ & $6.56$ & G\"ottingen & measured & 0.330 & 5/5 & +0.365 & 0.440 & -0.105 & +0.375 & +0.073 & 0.098 \\
+    $10^\circ$ & $6.56$ & G\"ottingen & calibrated & 0.106 & 5/5 & +0.421 & 0.463 & +0.068 & +0.387 & +0.073 & 0.098 \\
+    $10^\circ$ & $6.56$ & ONERA F1 & calibrated & 0.161 & 5/5 & +0.399 & 0.475 & +0.002 & +0.549 & +0.088 & 0.134 \\
+    $10^\circ$ & $6.56$ & ONERA F1 & measured & 0.100 & 5/5 & +0.420 & 0.486 & +0.051 & +0.549 & +0.088 & 0.134 \\
     \bottomrule
   \end{tabular}
 \end{table}

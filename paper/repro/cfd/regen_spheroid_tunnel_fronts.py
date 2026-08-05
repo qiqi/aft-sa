@@ -43,16 +43,20 @@ MECH_LS = {'TS': '-', 'TS+CF': (0, (5, 2)), 'CF': (0, (7, 3, 1, 3)),
 
 # condition -> (label, Stock file, Stock key)
 PANELS = [
+    # Reynolds-major: the low-Re band first (layer laminar to the open
+    # free-vortex separation; Stock's "front" there IS the separation line),
+    # then the high-Re band where transition is real.  Within each band the
+    # walk is by incidence.
+    ('a5lo',  r'$\alpha=5^\circ$, $Re_L=1.52\times10^6$',
+     'stock2006_fig14c_digitized.json', 'front_re1p52e6'),
+    ('a10lo', r'$\alpha=10^\circ$, $Re_L=1.52\times10^6$',
+     'stock2006_fig15a_digitized.json', 'separation_line_short_dashed'),
     ('a0',    r'$\alpha=0^\circ$, $Re_L=7.2\times10^6$',
      'stock2006_fig14a_digitized.json', 'computed_ts_front'),
     ('a2p5',  r'$\alpha=2.5^\circ$, $Re_L=7.2\times10^6$',
      'stock2006_fig14b_digitized.json', 'computed_ts_front'),
-    ('a5lo',  r'$\alpha=5^\circ$, $Re_L=1.52\times10^6$',
-     'stock2006_fig14c_digitized.json', 'front_re1p52e6'),
     ('a5hi',  r'$\alpha=5^\circ$, $Re_L=6.49\times10^6$',
      'stock2006_fig14c_digitized.json', 'front_re6p49e6'),
-    ('a10lo', r'$\alpha=10^\circ$, $Re_L=1.52\times10^6$',
-     'stock2006_fig15a_digitized.json', 'separation_line_short_dashed'),
     ('a10hi', r'$\alpha=10^\circ$, $Re_L=6.56\times10^6$, Goettingen',
      'stock2006_fig15a_digitized.json', 'front_re6p56e6'),
     ('a10f1', r'$\alpha=10^\circ$, $Re_L=6.56\times10^6$, ONERA F1',
