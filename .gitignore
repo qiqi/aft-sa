@@ -114,3 +114,9 @@ external/construct2d/*.dat
 
 # regenerable meshes (built by spheroid/ogrid_spheroid.py etc.) -- never in git
 *.cgns
+
+# Two-element case solutions (CFD output, ~1.5 GB); scripts and geometry only
+twoelement/case_*/
+twoelement/.paper_cache/
+twoelement/*.vtu
+twoelement/*.vtk

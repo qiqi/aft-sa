@@ -1,0 +1,11 @@
+{
+  "L1": {
+    "outdir": "case_L1_v2_yp0.5_a+07.0",
+    "contours": "{'h0': 5.882199651528328e-06, 'n_points': 2766, 'n_curves': 3, 'elements': ['fore', 'flap'], 'wall_names': ['fore', 'flap'], 'band': {'wall': 1, 'd': 0.06, 'h': 0.002, 'iso': 0}}",
+    "mesh": "{'n_points_2d': 148991, 'n_tris_2d': 295218, 'n_prisms': 295218, 'boundary_edges': {'flap': 1203, 'farfield': 360, 'fore': 1203}, 'wall_patches': ['fore', 'flap']}",
+    "flow360_json": "case_L1_v2_yp0.5_a+07.0/Flow360.json",
+    "forces": "{'step': 11999, 'CL': 1.28573618227996, 'CD': 0.0765808005382844, 'L_over_D': 16.78927581381436, 'paraview': {'volume': 'case_L1_v2_yp0.5_a+07.0/volume.pvtu', 'surfaces': ['case_L1_v2_yp0.5_a+07.0/sur",
+    "flow_field": "case_L1_v2_yp0.5_a+07.0/flow_field.json",
+    "timing_s": "{'contours_txt': 0.005, 'mesh2d': 25.065, 'extrude': 7.187, 'gmsh_to_cgns': 4.987, 'preprocess': {'total': 29.097, 'printMeshMetaData': 1.059, 'sdkCase': {'cache': 'miss', 't': 9.185}, 'generateMeshJs"
+  }
+}

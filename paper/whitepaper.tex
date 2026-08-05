@@ -829,6 +829,66 @@ $0.6$/$1$/$2$/$3$/$4.6\times10^5$.}\label{f:eppresweepforces}
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re460k_upper.pdf}
 \end{figure}
 
+\subsection{Two-element section, $Re=10^6$, $\alpha=-9$--$+7^\circ$}
+
+Purpose-built section: laminar main element ahead of a laminar
+separation bubble on the flap, so the upstream wake and the downstream
+bubble can be varied against one another. Definition in
+Table~\ref{t:twoelementgeom}. $Re=10^6$ and $M=0.10$ on the total
+chord, seed $\chi_\infty=c_{v1}e^{-9}$, L0/L1/L2 as elsewhere; every
+solution converged to the $10^{-9}$ momentum tolerance.
+Figure~\ref{f:twoelemgeom}: geometry, streamlines, inviscid $C_p$.
+Figure~\ref{f:twoelempolar}: polar, lift curve, $L/D$.
+Figure~\ref{f:twoelemsuite}: surface suites, two incidences per page.
+Figures~\ref{f:twoelemchiL1}--\ref{f:twoelemchiL0}: $\chi$ contours by
+incidence. Figure~\ref{f:twoelemflapchi}: flap upper surface unrolled,
+wall distance to $0.06c$.
+
+\input{tables/tab_twoelement_geom_wp}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.86\textwidth]{twoelement_geometry_inviscid.pdf}
+\caption{Adopted section, $\alpha=-1^\circ$, inviscid. Flap drawn as
+its displacement body ($\delta^*$ from mfoil at
+$Re_{\text{flap}}=3\times10^5$); true section dashed.}
+\label{f:twoelemgeom}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{twoelement_polar.pdf}
+\caption{Converged sweep, $\alpha=-9$--$+7^\circ$.}
+\label{f:twoelempolar}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,page=3]{twoelement_surface_suite.pdf}
+\caption{Surface suite at $\alpha=-1^\circ$, $+1^\circ$. Rows:
+$\max Re_\Omega$; $\max\hat\Omega\hat I$; $\max\chi$; $-C_p$; signed
+$C_f$. Upper blue, lower red; fore solid, flap dashed; L0--L2 by line
+thickness. Remaining incidences on the other pages of the same
+file.}\label{f:twoelemsuite}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.97\textwidth,height=0.92\textheight,keepaspectratio]{twoelement_chi_global_L1.pdf}
+\caption{$\chi$ contours, L1. Heavy black $\chi=c_{v1}$.}
+\label{f:twoelemchiL1}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.97\textwidth,height=0.92\textheight,keepaspectratio]{twoelement_chi_global_L0.pdf}
+\caption{$\chi$ contours, L0.}\label{f:twoelemchiL0}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{twoelement_flap_chi_map.pdf}
+\caption{Flap upper surface, L1: $\chi$ (top) and tangential velocity
+(bottom) against arc length and wall distance, $\alpha=-7$, $-5$, $-3$,
+$-1$, $+5^\circ$. White solid boundary-layer edge, white dashed outer
+deficit locus, cyan separation and reattachment.}
+\label{f:twoelemflapchi}
+\end{figure}
+
 \subsection{Cylinder drag crisis, $Re_D=1$--$10^{10}$}
 
 A steady-branch traverse over ten decades at a single seed

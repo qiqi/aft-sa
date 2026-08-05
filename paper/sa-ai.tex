@@ -2452,6 +2452,143 @@ in this range should be read as the sum of two canceling errors, not
 as resolved transition physics.
 
 
+\section{A two-element section: an upstream wake over a downstream
+bubble}\label{sec:twoelement}
+
+Every airfoil case so far carries a single boundary layer per surface.
+A multi-element section adds a configuration the model was not
+calibrated for: the wake of one element convecting over a surface whose
+own transition is being predicted. To isolate that, we designed a
+two-element section rather than adopting an existing one, because the
+published multi-element benchmarks are either tripped or sit an order of
+magnitude higher in Reynolds number.
+
+The requirement is a main element that stays laminar on \emph{both}
+surfaces, ahead of a flap carrying a laminar separation bubble, so that
+the state of the upstream wake can be changed by incidence alone while
+the downstream bubble is watched. The flap is a NACA 9416 at
+$-8^\circ$ with its leading edge at $(0.70,\,0.04)$, chord $0.30$; at
+$Re\!=\!10^6$ on the total chord its own chord Reynolds number is
+$3\!\times\!10^5$, low enough to hold a bubble. The main element's mean
+line is the streamline through the origin of the \emph{flap-alone}
+SA-AI field, so that it adds as little turning as possible: a section
+placed along a streamline of the flap's own flow sees the pressure field
+the flap has already established rather than imposing its own. Tracing
+that streamline in the inviscid flap field is not adequate---the flap's
+viscous displacement reduces its circulation to $70\%$ of the inviscid
+Kutta value at this Reynolds number, and a mean line traced through the
+inviscid field over-curves and leaves a leading-edge suction peak on the
+main element's lower surface. Both the mean line and the thickness are
+therefore Kulfan/CST distributions rather than NACA families, fitted
+against the viscous field, with the trailing-edge camber slope and the
+trailing-edge included angle prescribed; Table~\ref{tab:twoelementgeom}
+gives the coefficients. The slot gap is set by the incidence at which
+the mean line is traced, which is separate from the operating
+incidence: the trailing edge rises by $x_e\tan\Delta\alpha$ per degree,
+so the anchoring incidence is the gap control.
+
+Meshes and numerics follow the airfoil ladder: three levels with the
+surface discretisation refined with the volume, an anisotropic
+wall-normal band on the flap to resolve the fore wake where the
+nearest-wall Spalding metric would release it, a $0.003c$ blunt base on
+both elements with explicit face points, and the paper-wide seed
+$\chi_\infty\!=\!c_{v1}e^{-9}$. The surface point distribution is set by
+a spacing function capped by the local curvature, $h\!\le\!\theta_{\max}
+R$, which bounds the turning per segment at $2.5^\circ$; leading-edge
+turning is $7.1^\circ$ at L0 and $3.6^\circ$ at L1. Incidence is swept
+$\alpha\!=\!-9$ to $+7^\circ$ at both L0 and L1 and at L2 across the
+same range, every solution run to the solver's $10^{-9}$ momentum
+tolerance rather than to a step ceiling---at the $12000$ pseudo-steps
+used for the airfoil ladder the lift of this configuration is still
+moving by $7\%$.
+
+Figure~\ref{fig:twoelemgeom} shows the adopted section with streamlines
+and inviscid $C_p$; Fig.~\ref{fig:twoelempolar} the polar, lift curve
+and $L/D$; Fig.~\ref{fig:twoelemsuite} the surface suites in the format
+of Secs.~\ref{sec:eppval} and~\ref{sec:eppresweep}, two incidences per
+page. Figures~\ref{fig:twoelemchiL1} and~\ref{fig:twoelemchiL0} give
+$\chi$ contours by incidence at L1 and L0, and
+Fig.~\ref{fig:twoelemflapchi} unrolls the flap's upper surface against
+wall distance out to $0.06c$, far enough to contain the fore wake.
+
+The main element holds laminar flow on both surfaces over a narrow
+window, $\alpha\!\approx\!-1$ to $+1^\circ$, which is also where the
+drag bucket sits ($C_D\!=\!0.0110$--$0.0118$ at L1). Outside it the
+$\chi\!=\!c_{v1}$ contour attaches to the main element's upper surface
+for $\alpha\!\ge\!+3^\circ$ and to its lower surface for
+$\alpha\!\le\!-3^\circ$, reaching the leading edge by $\pm$the ends of
+the sweep. The flap's bubble is unchanged---separation and
+reattachment within $0.01c$, length $0.117c$---at every incidence at
+which amplified fluid passes \emph{above} the flap, and disappears only
+where that fluid reaches the flap's own surface: the flap's
+lower-surface $\chi$ maximum stays at $10^{-2}$ down to
+$\alpha\!=\!-3^\circ$, rises to $6.7$ at $-5^\circ$ and $36$ at
+$-7^\circ$, and the bubble is absent at both of the latter while the
+flap's suction peak is still $78\%$ of its design-point value. At
+$\alpha\!=\!-9^\circ$ the main element's lower surface separates over
+$91\%$ of its length and the configuration is stalled; the
+boundary-layer state there is reported for completeness only.
+
+\input{tables/tab_twoelement_geom}
+
+\begin{figure}[tp]\centering
+\includegraphics[width=0.88\textwidth]{twoelement_geometry_inviscid.pdf}
+\caption{The adopted two-element section at $\alpha\!=\!-1^\circ$,
+inviscid. \emph{Top}: geometry and streamlines. \emph{Bottom}: surface
+$C_p$, $x$ aligned. The flap is drawn as its displacement body
+(surface plus $\delta^*$ from mfoil at
+$Re_{\text{flap}}\!=\!3\!\times\!10^5$), which is what the panel
+solution sees and what carries the reduced circulation; the true
+section is the dashed line beneath it.}\label{fig:twoelemgeom}
+\end{figure}
+
+\begin{figure}[tp]\centering
+\includegraphics[width=\textwidth]{twoelement_polar.pdf}
+\caption{Converged incidence sweep. \emph{Left}: drag polar, $C_D$ on a
+log axis, labelled by incidence. \emph{Centre}: lift curve.
+\emph{Right}: $L/D$. Filled markers are solutions that reached the
+$10^{-9}$ momentum tolerance; open markers would indicate a case
+stopped at its step ceiling.}\label{fig:twoelempolar}
+\end{figure}
+
+\begin{figure}[tp]\centering
+\includegraphics[width=\textwidth,page=3]{twoelement_surface_suite.pdf}
+\caption{Surface suite at $\alpha\!=\!-1^\circ$ and $+1^\circ$. Rows,
+top to bottom: probe-maximum $Re_\Omega$ with the onset floor
+$k\!A\!=\!124.6$ marked; probe-maximum $\hat\Omega\hat I$;
+probe-maximum $\chi$ with $c_{v1}$ and the seed marked; $-C_p$; signed
+$C_f$. Upper surface blue, lower red; fore element solid, flap dashed;
+refinement level by line thickness. The other incidences of the sweep
+are the remaining pages of the same file.}\label{fig:twoelemsuite}
+\end{figure}
+
+\begin{figure}[tp]\centering
+\includegraphics[width=0.97\textwidth,height=0.9\textheight,keepaspectratio]{twoelement_chi_global_L1.pdf}
+\caption{$\chi$ in the mid-plane at L1, one row per incidence. Contour
+levels are decades from $10^{-3}$ to $10^{2}$ coloured by value, with
+$\chi\!=\!c_{v1}\!=\!7.1$ heavy black and $\chi_\infty e^2$ faint
+dotted.}\label{fig:twoelemchiL1}
+\end{figure}
+
+\begin{figure}[tp]\centering
+\includegraphics[width=0.97\textwidth,height=0.9\textheight,keepaspectratio]{twoelement_chi_global_L0.pdf}
+\caption{$\chi$ in the mid-plane at L0, as
+Fig.~\ref{fig:twoelemchiL1}.}\label{fig:twoelemchiL0}
+\end{figure}
+
+\begin{figure}[tp]\centering
+\includegraphics[width=\textwidth]{twoelement_flap_chi_map.pdf}
+\caption{Flap upper surface at L1, unrolled: arc length from the flap
+leading edge against wall distance, out to $0.06c$. \emph{Top}: $\chi$,
+with $\chi\!=\!c_{v1}$ heavy white. \emph{Bottom}: tangential velocity,
+in which the fore wake is the deficit band. White solid is the
+boundary-layer edge (first interior maximum of the tangential
+velocity), white dashed the outer deficit locus, cyan the separation
+and reattachment stations. Columns: $\alpha\!=\!-7$, $-5$, $-3$, $-1$,
+$+5^\circ$. The blank wedge at small arc length is where the probe
+leaves the fluid into the slot.}\label{fig:twoelemflapchi}
+\end{figure}
+
 \section{The cylinder drag crisis}\label{sec:dragcrisis}
 
 The oldest widely taught manifestation of boundary-layer
