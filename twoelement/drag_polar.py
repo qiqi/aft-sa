@@ -38,10 +38,23 @@ def parse_logs(paths):
             print('missing %s' % p)
             continue
         cur = None
+        alpha_hint = None
         for line in txt.splitlines():
             m = re.match(r'#+\s*(L\d)\s+alpha=([+-]?[\d.]+)', line.strip())
             if m:
                 cur = (m.group(1), float(m.group(2)))
+                continue
+            # A log written by run_ladder_v2.py directly carries no '####'
+            # header: the incidence is in its banner and the level in the
+            # '=== Lx :' line. Without this a case run outside the sweep
+            # wrappers is silently dropped from the polar.
+            m = re.search(r'alpha\s*=\s*([+-]?[\d.]+)\s*deg', line)
+            if m:
+                alpha_hint = float(m.group(1))
+                continue
+            m = re.match(r'===\s*(L\d)\s*:', line.strip())
+            if m and alpha_hint is not None:
+                cur = (m.group(1), alpha_hint)
                 continue
             if cur and 'forces:' in line:
                 def g(pat):
