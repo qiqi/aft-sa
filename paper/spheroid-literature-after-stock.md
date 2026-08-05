@@ -4,6 +4,30 @@ Compiled 2026-08-05.  Purpose: find out whether Stock's near-symmetric transitio
 front at the windward and leeward symmetry planes (phi = 0 and 180) is an artefact
 of his own calibration, or an independently reproducible result.
 
+## Where the PDFs are
+
+All in `references/` at the repo root.  Four of the five were already there before
+this search; only the case description was added.
+
+| what you want | file | pages |
+|---|---|---|
+| **all-participant comparison** at alpha=5, split by meridian phi=0/60/180, AND **Coder's AFT2017b at 5 deg** | `TransitionMPW1_summary_Coder_NAS2021.pdf` | Case 3 = pp. 23-33.  alpha=5: phi=0 on **24** (LST+e^N), **25** (transport w/o CF -- AFT2017b is the blue curve), **26** (transport w/ CF); phi=60 on 27-28; phi=180 on **29** (LST+e^N), **30** (transport w/o CF -- AFT2017b blue), **31**.  alpha=15 on 32-33 |
+| **Langtry-Menter** (+ Langtry CF extension, OVERFLOW) | `overflow_tmw.pdf` | 15 pp; spheroid = Sec. C, Figs. 12-13.  NB the text layer has a broken font encoding -- read the rendered page, not extracted text |
+| **SA-BCM** one-equation transitional + mesh adaptation | `tarsia2025.pdf` | 20 pp; spheroid = Sec. C, Figs. 12-17 |
+| DLR automatic two-N-factor e^N, alpha=10/15 | `krimmelbein-krumbein-2010-automatic-transition-prediction.pdf` | 16 pp; spheroid = Sec. A, Figs. 4-5 |
+| workshop Case 3 flow conditions, gridding, Tu | `TransitionMPW1_case_descriptions.pdf` | 4 pp; Case 3 on p. 3 |
+| workshop agenda (who presented what) | `TransitionMPW1_proceedings.pdf` | 1 p |
+
+Note there is **no PDF of Stock (2006) anywhere in the repo** -- AIAA J. 44(1),
+doi 10.2514/1.16026, paywalled.  Every Stock number we use came from figure
+digitization (`paper/data/stock2006_fig*_digitized.json`).  Worth pulling from
+the MIT library, since Section 2's whole comparison rests on it.
+
+Two wanted papers could not be downloaded: hal-03871832 (HAL serves an Anubis
+JS challenge to non-browsers) and Plasseraud & Mahesh JFM 960 A3 (2023)
+(Cambridge paywall, no preprint; the same group's open arXiv:2507.03187 is a
+different paper on lee-side vortex topology).
+
 **It is independently reproducible.**  See "The answer to the symmetry question"
 below.  This retires the open question raised in
 `repro/cfd/diag_spheroid_symmetry_planes.py`, but only its EMPIRICAL half: what
@@ -57,15 +81,31 @@ Sources
 Read off the c_f(x/L) curves on Coder's slides at alpha = 5, Re = 6.5e6.
 Transition = the c_f jump.  Measured hot-film points are the green squares.
 
+Curves are identified by the legend colour (blue = SA + AFT2017b, green =
+SA + B-C, purple = Lag Elliptic Blending, **red = BOTH** SST + gamma-Re_theta
+LM2009 and SST + gamma MS2015, so the red curves cannot be separated from each
+other); the boxed letters are unpublished participant codes.  Slide 30 carries an
+erratum stating that "k" is really SST-2003 + LM2009.mod + CF(HE).mod and belongs
+on the with-CF page, so ignore "k" here.
+
 | family | phi = 0 (windward) | phi = 180 (leeward) | windward - leeward |
 |---|---|---|---|
-| **measured** | ~0.55 | ~0.55 | ~0.00 |
+| **measured** (green squares) | 0.52-0.58 | 0.50-0.55 | ~0.00 |
 | **LST + e^N** (2 submittals) | 0.50, 0.55 | 0.54, 0.56 | ~0.00 |
-| SA + AFT2017b | ~0.93 (essentially laminar) | ~0.20 | **-0.73** |
-| SA + B-C (algebraic) | ~0.85 | ~0.40 | -0.45 |
-| SST + gamma-Re_theta (LM2009) | ~0.55 | ~0.31 | -0.24 |
-| Lag Elliptic Blending | ~0.05 | ~0.06 | ~0.00 (both bypassed at the nose) |
-| a further SST + gamma submittal | ~0.27 | ~0.87 | +0.60 (the one inverted case) |
+| **SA + AFT2017b** (blue "l") | **never transitions** | **0.19** | **> 0.8** |
+| SA + B-C (green "h") | 0.78 rise / 0.85 complete | 0.40 | -0.42 |
+| Lag Elliptic Blending (purple "m") | 0.05 | 0.055 | ~0.00 (both bypassed at nose) |
+| red "f" | 0.55 | 0.315 | -0.24 |
+| red "m" | 0.27 | 0.87 | +0.60 (the one inverted case) |
+| red "l" | -- | 0.31 | -- |
+| red "j" | never transitions | 0.49 | > 0.5 |
+
+The AFT2017b entry is worth restating exactly, because it is the most extreme in
+the set and it is the model closest to ours in construction: at phi = 0 the blue
+curve stays on the laminar c_f branch for the whole body, rising only in the tail
+closure past x/L = 0.95, while at phi = 180 it jumps sharply at x/L = 0.19 and
+peaks at c_f = 0.0045 by 0.23.  There is no windward front to subtract, so the
+asymmetry is not merely large, it is qualitative.
 
 Two things follow, and both matter to us.
 
