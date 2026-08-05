@@ -76,12 +76,22 @@ characterization; they are listed in their own headers.
    (`u'''_w = (v_w/ν)u''_w`) and on deforming surfaces (`ν u'''_w = ∂_t u'_w`).
    Derivable; limitations-section material.
 
-From the literature-coverage pass of 2026-08-05 (file `10`), inserted by value
-per unit compute rather than appended: **rotating-frame vorticity** (does the
-kernel consume absolute or relative `ω`? one smoke case; the paper's abstract
-sells rotors) ranks alongside item 1 above, and **front differentiability**
-(finite-difference `x_tr` against one design variable) is cheaper than any of
-them. The cascade campaign of file `11` sits after those two.
+From the literature-coverage pass of 2026-08-05 (file `10`), under the user's
+criterion that a blindspot is worth running only if it makes us **comparable to
+other transition models**:
+
+0. **Aérospatiale-A airfoil** — ahead of everything above. `Re=2.1e6`, `M=0.15`,
+   α=13.3°, `Tu=0.05%`, LE bubble separating at `0.12c` with an oil-flow front:
+   in scope on Mach and on `Tu`, no new infrastructure (it is an airfoil), and it
+   sits in both the canonical γ-Re_θ test-case set and the algebraic
+   (BCM-family) papers the paper's conclusion promises to compare against.
+
+Cheap self-characterization to interleave, neither of which is a comparison:
+**rotating-frame vorticity** (does the kernel consume absolute or relative `ω`?
+one smoke case; the paper's abstract sells rotors) and **front
+differentiability**. The cascade campaign of file `11` follows the A-airfoil, and
+its unsteady bar-passing half — which *is* an established benchmark, T106D-EIZ —
+is deferred for being compressible and adversarial.
 
 ## GPU note
 

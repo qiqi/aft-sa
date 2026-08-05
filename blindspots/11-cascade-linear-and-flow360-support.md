@@ -45,9 +45,16 @@ geometry, but overlapping with what §`sec:eppval` and §`sec:twoelement` alread
 cover.
 
 The wake-passing content exists **only** in the bar-rig configuration of §1.3.
-That is a consequence for how item 1 of file `10` should be valued: the URANS
-bar-passing phase is not a bonus on top of a steady validation, it is where the
-distinctive claim lives.
+
+**Priority, revised 2026-08-05** after the user restated the selection criterion
+as *comparability with other transition models, not unexplored water*: the
+bar-passing case **is** comparable — T106D-EIZ was purpose-built as a numerical
+test case with a moving-bar wake generator and published data, and URANS
+transition-model results exist on it (file `10` §1, §13). But it is compressible,
+unsteady, and deliberately adversarial, so it drops to item 1b, behind the
+**steady** Zierke & Deutsch case (1a) and behind the A-airfoil, which now leads
+the list (file `10` §6, §11). This note stays as the reference for the cascade
+when 1a is picked up; nothing in §2–§5 below changes.
 
 ### 1.1 The geometric idea
 
