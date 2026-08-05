@@ -82,11 +82,21 @@ steady state would. That is transition with memory.
   becalmed region survives at all when the seed arriving from upstream never
   drops back to `χ_∞`.
 
+**Where the wake actually comes from.** A plain steady cascade has **no upstream
+blades and no wakes at all** — uniform inlet plus grid turbulence. The wake-passing
+physics comes from a separate rig option: a **moving-bar generator** upstream of
+the still-stationary blade row (file `11` §1.0, §1.3). So the steady cascade on
+its own is another confined bubble case, overlapping §`sec:eppval` and
+§`sec:twoelement`; its independent assets are the LDV boundary-layer data and the
+passage geometry. **The unsteady bar-passing phase is not a bonus on top — it is
+the item.** Price the campaign accordingly.
+
 **Scope-honest entry point: Zierke & Deutsch, not T106.** T106 exit Mach numbers
 put it outside the paper's stated incompressible scope, and LPT cases usually run
 at `Tu` of 0.5–4 %, i.e. into the declined bypass regime. The compressor cascade
-is low speed and can be run at low `Tu`. Take the steady case first; the moving
-bar is a second phase and needs URANS.
+is low speed and can be run at low `Tu`. Run the steady case first as the
+validation base, then the bar-passing case, which needs URANS and a prescribed
+time-varying inlet wake.
 
 **Feasibility, solver support, and what a linear cascade actually is:** see
 `11-cascade-linear-and-flow360-support.md`. Short version: Flow360 supports it,

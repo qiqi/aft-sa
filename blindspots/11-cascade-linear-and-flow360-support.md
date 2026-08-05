@@ -26,6 +26,29 @@ not carry the frame-dependence hazard of `10` §2 and can be run before that
 question is settled; and it is genuinely 2D at midspan, so it fits the existing
 quasi-2D (`nspan=1`) pipeline.
 
+### 1.0 Three things that "rotating" could mean — keep them apart
+
+An earlier draft of this note conflated them, so, explicitly:
+
+| Question | Linear cascade answer | What it controls |
+|---|---|---|
+| Is the **row** straight or annular? | straight | translational vs. rotational periodic BC |
+| Does the **row itself** move? | no — bolted to a turntable | whether a rotating frame is needed at all |
+| Is there a **moving element upstream** of the row? | **only if the rig has a wake generator** (§1.3) | whether the case contains wake-passing physics |
+
+The third is a separate rig option, and it is the one that carries everything
+interesting for us. **In the plain steady cascade there are no upstream blades
+and no wakes: the inlet is uniform flow plus grid turbulence.** Nothing sweeps
+through anything. What that case tests is a confined, strongly-turning passage
+with a suction-side bubble — valuable for its LDV boundary-layer data and its
+geometry, but overlapping with what §`sec:eppval` and §`sec:twoelement` already
+cover.
+
+The wake-passing content exists **only** in the bar-rig configuration of §1.3.
+That is a consequence for how item 1 of file `10` should be valued: the URANS
+bar-passing phase is not a bonus on top of a steady validation, it is where the
+distinctive claim lives.
+
 ### 1.1 The geometric idea
 
 Take a real blade row and cut it at one radius. Unroll that annulus into a plane.
@@ -80,19 +103,57 @@ problem a transition model is being asked about.
   transition, separation and reattachment locations by surface hot films
   (intermittency), oil flow, liquid crystals, or IR.
 
-### 1.3 Unsteady wake passing, without a rotor
+### 1.3 Unsteady wake passing — the blades stay put, the bars move
 
-The wake-induced transition literature keeps the cascade linear and stationary and
-instead adds a **moving-bar rig**: cylindrical bars carried on a belt or wheel
-across the inlet plane, upstream of the blade row, travelling at the tangential
-speed that models the rotor. Each bar sheds a wake that sweeps across the passage
-at the correct reduced frequency, producing the wake-induced turbulent strip and,
-behind it, the **becalmed region**. Cambridge (Stieger & Hodson) and the
-Karlsruhe/Stuttgart rigs paired with DNS (Wissink & Rodi) are the references.
+The wake-induced transition literature keeps the **blade row** linear and
+stationary and puts the moving element **upstream** of it: a **moving-bar rig**.
+Cylindrical bars are carried on a belt or a rotating wheel that translates them
+*across* the inlet plane, in the pitch direction, upstream of the blade row.
 
-For us this is phase two, and it needs URANS. It is also the reason the cascade is
-worth running at all — see `10` §1 for why SA-AI has a structural claim to make
-there that the algebraic family cannot.
+The bars **are** the upstream row — a deliberately degraded stand-in for the
+rotor. So the relative motion a real stator sees is reproduced exactly: it is
+between the bars and the cascade, not within the cascade. Because each bar
+translates tangentially while the mean flow is roughly axial, its wake enters the
+passage at an angle and sweeps across it, and the blade sees a periodic train of
+wakes.
+
+Bars rather than miniature blades because the wake is all that is wanted — the
+velocity deficit and its turbulence — without the turning and pressure field a
+real rotor row would impose. The rig is set by matching three things to the
+machine being modelled: bar **diameter** to the wake momentum deficit, bar
+**pitch** to the rotor pitch, bar **speed** to the rotor's tangential velocity at
+that radius. Together those fix the reduced frequency. Cambridge (Stieger &
+Hodson) and the Karlsruhe/Stuttgart rigs paired with DNS (Wissink & Rodi) are the
+references.
+
+What it produces, and why we would want it: a wake-induced turbulent strip
+convecting along the suction surface, and behind the strip a **becalmed region**
+that stays laminar longer than any steady state would. That is transition with
+memory, which is the one thing SA-AI's single transported variable can represent
+and the algebraic family cannot (`10` §1).
+
+**CFD realization — no translating mesh needed, and none is available.** Flow360's
+only moving-zone model is `Rotation`
+(`flow360_schema/models/simulation/models/volume_models.py:1307`); there is no
+translating zone. Two routes:
+
+1. **`VelocityForcingPlane`** (`volume_models.py:1504`) — imposes a user-supplied
+   **time-varying** velocity plane through a Gaussian-regularized momentum source,
+   with `time_wrap: "periodic"` wrapping the sample window. Build the target field
+   as a wake pattern translating in pitch, period = bar pitch / bar speed, and the
+   bars need no geometry in the mesh at all. Note it prescribes **velocity only,
+   not turbulence quantities** — for our purpose that is arguably the correct
+   separation: impose the mean wake and let the kernel decide what amplifies,
+   rather than injecting `χ` by hand and pre-deciding the answer. Data goes in as
+   a Parquet blob built by a helper script shipped separately, so check
+   availability before planning on it.
+2. **A rotating bar wheel** as a `Rotation` zone with a sliding interface — closer
+   to what several rigs physically are, at the cost of meshing the bars and their
+   own shedding.
+
+Route 1 is the one to try first, and it has an added benefit: the imposed wake is
+a *known analytic input*, so the becalmed-region response can be read against a
+prescribed forcing instead of against another simulation's wake.
 
 ---
 
@@ -268,8 +329,10 @@ solver change.
 6. **Steady result**: `Cp`, loss, and the suction-side transition / separation /
    reattachment locations against the measured set, in the style of
    §`sec:eppval`.
-7. **Only then** the moving-bar unsteady phase, which is where the interesting
-   claim lives (§1.3, `10` §1).
+7. **Then the moving-bar unsteady phase, which is the point of the exercise** —
+   the steady case on its own is another confined bubble case (§1.0). URANS plus
+   a prescribed sweeping wake via `VelocityForcingPlane`; check the Parquet blob
+   helper is available to us first (§1.3).
 
 ---
 
