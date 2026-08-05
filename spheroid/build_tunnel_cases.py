@@ -95,6 +95,11 @@ CONDITIONS = {
     'a2p5':   ('case_ogrid_L1_saai_re72a2p5', 2.5,  7.20e6, 'NWG'),
     'a5lo':   ('case_ogrid_L1_saai_a5',       5.0,  1.52e6, 'NWG'),
     'a10lo':  ('case_ogrid_L1_saai_a10',     10.0,  1.52e6, 'NWG'),
+    # Closes out the low-Re band.  Stock Fig. 16c squares are at Re_L=1.53e6,
+    # and at this incidence the whole leeward half is open free-vortex-layer
+    # separation, so what is being verified is the separation line, not a
+    # transition front -- see paper/spheroid-literature-after-stock.md 2c.
+    'a29p7': ('case_ogrid_L1_saai_a29p7',    29.7, 1.53e6, 'NWG'),
     'a5hi':   ('case_ogrid_L1_saai_re65a5',   5.0,  6.49e6, 'NWG'),
     'a10hi':  ('case_ogrid_L1_saai_re65a10', 10.0,  6.56e6, 'NWG'),
     # ONERA F1 cross-facility twin of a10hi: same mesh, same Re, same Mach,
