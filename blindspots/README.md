@@ -16,7 +16,13 @@ are editing the paper. Integrate later.
 |---|---|---|
 | `01-parabolic-profiles-pipe-channel.md` | Exactly parabolic profiles. Channel read as exactly neutral (misses TS at Re=5772); pipe reads as 1.9× Blasius from transverse curvature alone, net growth from Re_D≈530, growth rate saturating at 0.09 e-folds/diameter | **Complete.** Numbers reproducible |
 | `02-open-items-and-data-status.md` | Audit of what the paper already covers; the surviving open items with data/feasibility status | Complete as a plan |
+| `10-untouched-literature-regimes.md` | Regimes the RANS transition-model literature invested in that we have no counterpart for, filtered against the paper and files 01–09: cascades/wake passing, rotating frames, heat transfer as QoI, steps & gaps, geometry-fixed separation, stall, differentiability, receptivity, unsteady, workshop benchmarks | Proposal. Nothing computed |
+| `11-cascade-linear-and-flow360-support.md` | What a linear cascade is and how the experiment works; Flow360's periodic/inflow/outflow support with file:line evidence; the node-matching mesh constraint; the wall-distance-under-periodicity question | Feasibility, verified against source 2026-08-05 |
 | `pipe_kernel_analysis.py` | Repro for 01. numpy/scipy, ~20 s, no GPU | Runs: `python3 -u blindspots/pipe_kernel_analysis.py` |
+
+Files `04`–`09` are kernel-redesign working notes (two-source revival, FPG
+relaminarization gate, viscous rate anchor) rather than blindspot
+characterization; they are listed in their own headers.
 
 ## Headline findings
 
@@ -69,6 +75,13 @@ are editing the paper. Integrate later.
 4. **Non-ideal walls** — `u'''_w = 0` breaks under transpiration
    (`u'''_w = (v_w/ν)u''_w`) and on deforming surfaces (`ν u'''_w = ∂_t u'_w`).
    Derivable; limitations-section material.
+
+From the literature-coverage pass of 2026-08-05 (file `10`), inserted by value
+per unit compute rather than appended: **rotating-frame vorticity** (does the
+kernel consume absolute or relative `ω`? one smoke case; the paper's abstract
+sells rotors) ranks alongside item 1 above, and **front differentiability**
+(finite-difference `x_tr` against one design variable) is cheaper than any of
+them. The cascade campaign of file `11` sits after those two.
 
 ## GPU note
 
