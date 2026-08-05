@@ -18,6 +18,9 @@ are editing the paper. Integrate later.
 | `02-open-items-and-data-status.md` | Audit of what the paper already covers; the surviving open items with data/feasibility status | Complete as a plan |
 | `10-untouched-literature-regimes.md` | Regimes the RANS transition-model literature invested in that we have no counterpart for, filtered against the paper and files 01–09: cascades/wake passing, rotating frames, heat transfer as QoI, steps & gaps, geometry-fixed separation, stall, differentiability, receptivity, unsteady, workshop benchmarks | Proposal. Nothing computed |
 | `11-cascade-linear-and-flow360-support.md` | What a linear cascade is and how the experiment works; Flow360's periodic/inflow/outflow support with file:line evidence; the node-matching mesh constraint; the wall-distance-under-periodicity question | Feasibility, verified against source 2026-08-05 |
+| `12-exact-bounds-results.md` | Four analytic bounds + the differentiability audit: frame rotation (`41·ell/L`, and solid-body rotation read as stable exactly), wall curvature (already in every computed case; −0.17 % NLF to −100 % at `Re_D=10²`), attachment line (fires at `R̄=601` vs LST 583, unfitted), asymptotic suction layer (read stable at all `Re`), and the five non-smooth surfaces | **Complete.** Numbers reproducible |
+| `13-paper-text-plan.md` | Where each point goes: a split conclusion in `sa-ai.tex`, a new remarks section in `whitepaper.tex` (it has none), with the eleven remark sentences drafted | Plan; no `.tex` edited |
+| `exact_profile_bounds.py` | Repro for 12. numpy/scipy, ~15 s, no GPU | Runs: `python3 -u blindspots/exact_profile_bounds.py` |
 | `pipe_kernel_analysis.py` | Repro for 01. numpy/scipy, ~20 s, no GPU | Runs: `python3 -u blindspots/pipe_kernel_analysis.py` |
 
 Files `04`–`09` are kernel-redesign working notes (two-source revival, FPG
@@ -50,7 +53,17 @@ characterization; they are listed in their own headers.
    Real pipe transition is subcritical and finite-amplitude; the correct linear
    answer is `s ≡ 0`.
 
-4. **Most of a first-pass blindspot list was already characterized in the paper**
+4. **Two of file 02 §5's five "statements, not campaigns" were wrong** (file
+   `12`, 2026-08-05). Wall curvature *does* enter the kernel, through the metric
+   term in `Z`; and the kernel *does* read the attachment line, firing within a
+   few percent of the swept-Hiemenz linear-stability threshold without being
+   fitted to it. Both are struck through in file `02` with the correction. The
+   lesson for this directory: a plausible statement about what the kernel cannot
+   see is worth an afternoon of algebra before it is believed — the remaining
+   unchecked items in `02` §5 (wall temperature, `Î` conditioning) are
+   conjecture.
+
+5. **Most of a first-pass blindspot list was already characterized in the paper**
    — free-shear handover length, lift-off-height sweep, wake amplification,
    recirculation re-seeding, seed integrity. See §0 of file 02, including a
    correction: the NLF L0 scatter is a boundary-layer resolution artifact, not

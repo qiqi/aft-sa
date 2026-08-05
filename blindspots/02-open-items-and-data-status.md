@@ -242,14 +242,31 @@ the model should say so.
 
 ## 5. Remaining items — statements, not campaigns
 
-- **Görtler / centrifugal instability.** Wall curvature radius enters no sensor;
-  concave surfaces will be predicted too laminar.
+- ~~**Görtler / centrifugal instability.** Wall curvature radius enters no sensor;
+  concave surfaces will be predicted too laminar.~~
+  **WRONG — corrected 2026-08-05, see file `12` §2.** Wall curvature *does* enter,
+  through the metric term in the curvature indicator: `dZ = ∓(d/2R) Y`,
+  destabilizing on a concave wall. It is already present in every computed case
+  (−0.17 % of the rate on the NLF, −10 % at `Re_D = 10⁴` on the cylinder). The
+  true statement is a **scaling mismatch**: the kernel's response is linear in
+  `δ/R` where the instability is governed by `G = Re_δ √(δ/R)`, so the gap widens
+  with Reynolds number. Right sign, wrong law.
 - **Wall temperature.** `Î` is the incompressible inflection, not Lees–Lin's
   generalized inflection; wall cooling/heating is invisible.
-- **Attachment-line transition.** No concept of it — and standard SA's spurious
-  attachment-anchored branch (§`sec:bistability`) mimics it, so genuine
-  contamination and the numerical artifact are not distinguishable under the
-  current protocol. Relevant to any swept-wing deployment.
+  *(Unchecked. Given that two of the five items in this list were wrong when the
+  algebra was actually done — see the two strikethroughs above — this one and the
+  `Î`-conditioning item below should be treated as conjecture until someone
+  evaluates them the way file `12` did.)*
+- ~~**Attachment-line transition.** No concept of it~~ — **WRONG on the first
+  clause, corrected 2026-08-05, see file `12` §3.** Evaluated on the exact
+  swept-Hiemenz spanwise profile the kernel amplifies at 82 % of the Blasius rate
+  and fires at `R̄ = 601` against the linear-stability critical `R̄ ≈ 583`,
+  unfitted. Agreement on the threshold, not on the Görtler–Hämmerlin mechanism.
+  The rest of the item **stands and is now sharper**: standard SA's spurious
+  attachment-anchored branch (§`sec:bistability`) would trip a swept leading edge
+  too, so the genuine reading and the numerical artifact are still not
+  distinguishable under the current protocol. Relevant to any swept-wing
+  deployment.
 - **Relaminarization.** No quench term; once handed over, never handed back.
 - **`Î` numerical conditioning.** `Î` is third-order small near the wall but is
   formed as a difference of `O(1)` quantities, so relative error grows like
