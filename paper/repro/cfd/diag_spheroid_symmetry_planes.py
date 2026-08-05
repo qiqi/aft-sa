@@ -31,27 +31,48 @@ What this script establishes, from committed data only:
      at both planes RELATIVE TO THE MIDDLE; it says nothing about why the two
      planes agree with each other.  Only the growth can do that.
 
-  4. And the growth, as computed here, does not.  Worse, the one 3-D effect
-     the axisymmetric march omits pushes the wrong way: the lateral strain
-     (1/r0) d(u_phi)/d(phi) is strongly POSITIVE at the windward plane
-     (streamtube diverging, layer thinned, transition later) and strongly
-     NEGATIVE at the leeward plane (converging, thickened, earlier).  Both
-     signs add to the leeward-early bias rather than cancelling it.
+  4. ALSO RETRACTED.  An earlier version claimed the one 3-D effect this march
+     omits pushes the wrong way, quoting a "lateral strain" of +5858 at the
+     windward plane and -4363 at the leeward one.  Those numbers are garbage.
+     They were computed from the cache's `up` field, which is the azimuthal
+     WALL SHEAR, not an azimuthal velocity -- see the |us| ~ 760 at x/L = 0.05
+     rising to ~1520 across transition, which is a c_f signature, not a speed.
+     So the magnitudes are meaningless AND the field is the wrong one: the term
+     the momentum integral needs is the divergence of the INVISCID EDGE
+     streamlines, (1/r0) d(u_e,phi)/d(phi), which these caches do not carry.
+     Nothing is established about the 3-D term, in either direction.
 
-  So this is an OPEN question, not an answered one.  The measured windward and
-  leeward fronts agree to 0.002 x/L at alpha=5 while every estimate available
-  here says the leeward should transition 0.15 or more ahead.
+  5. The contamination worry raised earlier was real but secondary.  Our own
+     c_p does asymmetrise the two meridians GENUINELY, not just downstream of
+     our own front: over x/L = 0.05-0.27, where both planes are still laminar
+     in our own solution, the mean Falkner-Skan beta is +0.092 windward against
+     +0.006 leeward, and u_e at x/L = 0.05 is 0.931 windward against 1.039
+     leeward.  The leeward meridian is a faster, flat-plate-like run (beta ~ 0)
+     and the windward one is a slower, still-accelerating run.  Both of those
+     differences say leeward-early under any 2-D envelope.  So the +0.146 is
+     not an artefact of marching through our own turbulent region.
 
-  A KNOWN FLAW in the estimate above, which must be removed before drawing any
-  conclusion: the edge velocity is taken from OUR OWN computed c_p, and the
-  cached fields are the measured-seed cases whose leeward front sits at
-  x/L = 0.273.  The march accumulates N from ~5 to 8 downstream of that, i.e.
-  through a region our own solution has already made turbulent, so the input
-  is contaminated exactly where it matters.  Two clean next steps: march on
-  exact potential-theory u_e for the inclined spheroid (Stock reports
-  potential theory matches the measured c_p well wherever the flow is attached
-  and laminar), or probe the calibrated-seed fields, whose laminar run extends
-  past x/L = 0.45 on the leeward meridian.
+  WHAT THE LITERATURE SETTLES, and what it does not.  See
+  ../spheroid-literature-after-stock.md.  The 1st AIAA CFD Transition Modeling
+  and Prediction Workshop (2021) ran this exact condition as its Case 3
+  (M = 0.13, alpha = 5/10/15, Re_L = 6.5e6, Tu = 0.15%) and compared alpha = 5
+  meridian by meridian at phi = 0, 60 and 180.  Its two independent LST + e^N
+  submittals put the front at 0.50-0.56 at BOTH symmetry planes and match the
+  measurement at both.  So the near-symmetry is a reproducible property of
+  e^N, not an artefact of Stock's calibration, and point 2 above is a real
+  deficiency of the axisymmetric envelope rather than evidence against Stock.
+
+  Meanwhile every workshop transport model that transitions in the interior
+  transitions EARLIER at phi = 180 than at phi = 0, by 0.24 to 0.73 x/L -- with
+  SA + AFT2017b, the amplification-factor transport model closest in spirit to
+  SA-AI, the worst of the set.  Our leeward-early bias is the family signature,
+  not an SA-AI quirk.
+
+  STILL OPEN: what the LST marches see that a local model cannot.  The leading
+  candidate is streamwise history along the true 3-D surface streamline,
+  including the symmetry-plane divergence term retracted in point 4 -- which
+  needs the exact potential-theory edge field for the inclined spheroid, since
+  neither our caches nor our own solution can supply it uncontaminated.
 
 Run from paper/:  python3 repro/cfd/diag_spheroid_symmetry_planes.py
 """
@@ -111,12 +132,17 @@ def main():
         print(f'  threshold sensitivity: N=8 -> N=6 moves the windward front '
               f'{w["N6"]-w["N8"]:+.3f}, the leeward {l["N6"]-l["N8"]:+.3f}')
         print()
-    print('OPEN: a 2-D envelope on these edge velocities gives leeward-early')
-    print('by 0.07-0.15; the measurement gives ~0.  The coupled N_TS-N_CF')
-    print('threshold CANNOT explain it -- N_CF = 0 at both planes, so that')
-    print('threshold is identical there.  Only the growth can, and the growth')
-    print('computed here does the opposite.  See the docstring for the known')
-    print('contamination in this estimate and the two ways to remove it.')
+    print('A 2-D envelope on these edge velocities gives leeward-early by')
+    print('0.07-0.15; the measurement gives ~0.  The coupled N_TS-N_CF')
+    print('threshold cannot explain that -- N_CF = 0 at both planes, so the')
+    print('threshold is identical there.  AIAA TMPW-1 (2021) Case 3 settles')
+    print('the empirical half: its two independent LST+e^N submittals put the')
+    print('alpha=5 front at 0.50-0.56 at BOTH planes and match measurement at')
+    print('both, so the near-symmetry is a property of e^N, not of Stock.')
+    print('Every workshop TRANSPORT model instead transitions 0.24-0.73 x/L')
+    print('earlier at phi=180 than at phi=0 -- SA+AFT2017b worst.  Our bias is')
+    print('the family signature.  What e^N sees that a local model cannot is')
+    print('still open; see the docstring and spheroid-literature-after-stock.md.')
 
 
 if __name__ == '__main__':
