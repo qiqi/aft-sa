@@ -16,12 +16,10 @@ distinguished from the outer flow.
 Velocity is the panel in which the fore wake is unambiguous; chi alone cannot
 separate "wake arriving" from "layer amplifying".
 
-Two loci are overlaid on both panels so the geometry of the interaction is
-readable rather than inferred:
-  BL edge      first interior maximum of the tangential velocity (the flap's own
-               boundary-layer thickness)
-  wake centre  maximum of omega ABOVE 1.2 * that edge, i.e. the vorticity peak
-               that is not the wall layer
+The boundary-layer edge and outer-deficit loci were dropped: against line
+contours they clutter the panel without adding anything the velocity contours do
+not already show. They are still computed, since the wake locus is what
+established that the deficit band sits clear of the layer until the aft 15%.
 
 Run:  python3 plot_flap_chi_map.py out.pdf case_dir [case_dir ...]
 """
@@ -182,8 +180,6 @@ def main():
             axu.clabel(cu, fmt='%.1f', fontsize=5.5, inline=True)
             axc.clabel(cc, fmt='%g', fontsize=5.5, inline=True)
         for a in (axu, axc):
-            a.plot(s_c, delta, '-', color='0.25', lw=1.0)
-            a.plot(s_c, wake, '--', color='0.25', lw=1.1)
             for a_, pos in cr:
                 a.axvline(a_, color='c', ls=':', lw=1.0)
             a.set_ylim(0, Y_SHOW)
@@ -207,8 +203,7 @@ def main():
     axs[0, 1].set_title(r'$\chi$   (heavy $\chi=c_{v1}=7.1$)', fontsize=10)
     for c in (0, 1):
         axs[-1, c].set_xlabel('$s/c$ along the %s %s surface' % (ELEM, SIDE))
-    fig.suptitle('%s %s surface: grey solid boundary-layer edge, grey dashed '
-                 'outer deficit locus, cyan separation and reattachment'
+    fig.suptitle('%s %s surface: cyan marks separation and reattachment'
                  % (ELEM.upper(), SIDE), fontsize=9)
     fig.tight_layout(rect=[0, 0, 1, 0.965])
     fig.savefig(out)
