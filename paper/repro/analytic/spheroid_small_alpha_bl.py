@@ -63,8 +63,15 @@ At alpha = 2.5, Re_L = 7.2e6, windward minus leeward front:
     both                                    +0.287   (dx/dalpha = 3.28)
     ---
     SA-AI, chi = 1, calibrated seed          +0.147
+    Langtry-Menter (OVERFLOW), alpha = 5     ~+0.20   read off Denison Fig. 13a
     measured, DFVLR hot films                +0.018
     Stock, two-N-factor e^N on a 3-D BL      -0.030
+
+  Every model in the literature errs the SAME way -- late windward, early
+  leeward -- which is what the physics demands: the leeward layer is thickened
+  both by the adverse gradient and by the lateral convergence, so any trigger
+  built on a local thickness or Reynolds number fires early there.  That is a
+  property of the model class, not of one calibration.
 
   1. The edge-velocity channel is CONFIRMED and is not contaminated.  Marching
      on the exact potential u_e gives +0.068, against +0.067 from marching on

@@ -179,6 +179,54 @@ divergence of the flow ... the computational mesh has to be rearranged
 continuously".  Our Mangler-weighted axisymmetric Thwaites march has no such
 term, which is the leading suspect for the +0.146.
 
+**Does he actually resolve the effect of lateral squeezing on the profile?**
+Asked because the whole diagnosis in `repro/analytic/spheroid_small_alpha_bl.py`
+turns on it.  Honest answer, in three parts.
+
+*Structurally, yes, necessarily.*  He solves the boundary layer by finite
+differences in the SURFACE coordinate system (xi', phi'), not along streamlines,
+with 121 wall-normal points and Delta xi' = Delta phi' = 1 deg.  A 3-D
+boundary-layer solution on a two-dimensional surface mesh carries the
+d/d(phi') terms exactly -- that is what makes it 3-D -- so the lateral
+convergence and divergence act on the full profile, not through a
+momentum-thickness width model.  And he gives the reason for that choice himself:
+"Basically, it is possible to execute the finite difference computation of the
+boundary layer in streamline coordinates.  Because of the high convergence and
+divergence of the flow, however, the computational mesh has to be rearranged
+continuously.  Hence, it is much easier to calculate the boundary-layer
+development in the xi', phi' coordinate system."
+
+*But there is NO passage where he writes the equations or discusses what the
+lateral terms do to the profile shape.*  The method is cited to his Ref. 46 and
+the CERT/ONERA code is acknowledged.  So this part is inference from what the
+method must contain, not a quotation.  Do not claim otherwise in the paper.
+
+*The evidence that his GROWTH is near-symmetric is much stronger, and it is
+direct.*  Two figures:
+
+  * **Fig. 8a** (alpha = 10, Re = 6.56e6) plots envelope N_TS along streamlines
+    1-21, with 1 the windward symmetry plane and 21 the leeward.  His own text:
+    "the N_TS factors achieve large values on the windward side, streamlines
+    1-6, and on the leeward side, streamlines 16-21.  The remaining streamlines
+    exhibit moderate N_TS factors up to separation."  So in his solution the
+    WINDWARD meridian amplifies as strongly as the leeward one.  A
+    momentum-integral treatment says the opposite -- windward is thinner and
+    accelerating, so it should amplify far less.
+  * **Fig. 11a** plots N_TS at every measured transition location across the
+    whole Goettingen campaign.  The points lie between about 6.5 and 9.0 about
+    the fitted N_TS = 8.0 line, a total spread of ~2.5.  Our own threshold
+    sensitivity is dN = 2 <-> dx ~ 0.12 x/L, so that spread is worth about
+    +/-0.07 in front position.  If his boundary layer contained the asymmetry a
+    momentum integral predicts (+0.287 x/L, i.e. dN ~ 4.8 between the two
+    planes), the windward and leeward points in Fig. 11a would separate into two
+    clouds ~5 apart in N.  They do not.
+
+So the answer to "did he model the profile response to squeezing" is: he solved
+equations that contain it, and the outcome -- large N_TS on both symmetry planes,
+small N scatter at measured transition -- is inconsistent with the large
+asymmetry any width-based estimate produces.  That is as far as the printed
+paper can take it.
+
 **The threshold is fitted to this dataset**, as suspected -- stated in the
 abstract: "First, the values of both N factors at the measured transition
 locations are calculated, which deliver the stability limit of the prolate
@@ -317,8 +365,29 @@ paraphrased closely:
     eddy-viscosity ratio nu_t_inf/nu_inf = 1.2 plus sustaining terms; raising the
     ratio to 100 here did not help.
 
-i.e. a completely different model family also fails on the windward meridian and
-cannot be tuned out of it.  Their bias is opposite in sign to ours at phi = 0.
+**CORRECTION.**  An earlier revision of this note said their bias is "opposite
+in sign to ours at phi = 0".  That is WRONG, and reading their Fig. 13a settles
+it.  At alpha = 5 (their x axis is X/a, so x/L = (X/a+1)/2):
+
+| | phi = 0 windward | phi = 180 leeward |
+|---|---|---|
+| experiment (black) | X/a ~ +0.02, x/L ~ 0.51 | X/a ~ -0.03, x/L ~ 0.49 |
+| LM baseline (red) | X/a ~ +0.45, **x/L ~ 0.72** | X/a ~ +0.05, x/L ~ 0.53 |
+| LM modified roughness (blue) | X/a ~ +0.45, **x/L ~ 0.72** | X/a ~ -0.02, x/L ~ 0.49 |
+
+Langtry-Menter is windward-LATE by about 0.20 x/L, which is the SAME direction
+and a comparable magnitude to our +0.246 at the calibrated seed.  Every model in
+this literature fails the same way: too late windward, too early leeward.  The
+mistake came from reading our own measured-seed row (windward +0.007, leeward
+-0.292), where the windward residual happens to look fine -- but that is the same
+shape error expressed at a different seed, not a different sign.
+
+Which is what the physics demands, and it is worth stating plainly: at the
+leeward plane the boundary layer is thickened both by the adverse gradient and by
+the lateral convergence, so Re_theta reaches any local threshold sooner there.
+Any model whose trigger is a local thickness or Reynolds number must fire early
+on the leeward side and late on the windward side.  That is a property of the
+model class, not of a particular calibration.
 
 Source: https://ntrs.nasa.gov/api/citations/20210025711/downloads/scitech22_MDenison.pdf
 
