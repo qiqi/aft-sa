@@ -90,10 +90,26 @@ CACHE = os.path.join(HERE, 'cache_spheroid_surface')
 from spheroid_a0_physics import thwaites_eN          # noqa: E402
 
 CONDS = [('a2p5', 2.5, 7.20e6), ('a5hi', 5.0, 6.49e6)]
-# measured windward / leeward fronts at the two conditions (digitized)
+# Measured windward / leeward fronts, read from the digitized hot-film points.
+# At alpha=2.5 (fig14b) there ARE stations on both symmetry planes, phi = 0.0
+# and 180.0 exactly.  At alpha=5 (fig14c) there are NOT: the nearest circles
+# sit at phi = 10.3 and 159.9, so that pair is near-plane, not on-plane.
 MEAS = {2.5: (0.450, 0.432), 5.0: (0.567, 0.565)}
-# Stock's computed front interpolated at the same azimuths
-STOCK = {2.5: (0.460, 0.430), 5.0: (0.493, 0.550)}
+# Stock's computed front at (or nearest to) the two symmetry planes, read from
+# the same digitized polylines -- NOT assumed.  Earlier revisions of this file
+# carried alpha=2.5 as (0.460, 0.430), which is WINDWARD AND LEEWARD SWAPPED:
+# fig14b's computed_ts_front runs 0.430 at phi=1.8 to 0.460 at phi=178.4.  So
+# Stock is leeward-LATE at both incidences, the opposite sign to us.
+STOCK = {2.5: (0.430, 0.460),      # fig14b, phi 1.8 and 178.4
+         5.0: (0.432, 0.507)}      # fig14c, phi 2.4 and 175.9 (piece2)
+# CAVEAT on the alpha=5 windward value.  Stock's own Fig. 18, which overlays the
+# computed front for every incidence at comparable Re, puts alpha=5 at
+# X/a ~ 0.00 (x/L ~ 0.50) on BOTH symmetry planes, against the 0.432 the fig14c
+# trace gives at phi=2.4.  Fig. 18 and fig14c also disagree at phi=60 (~0.45 vs
+# 0.474).  The leeward half and the trough agree well (Fig. 18 trough x/L ~ 0.345
+# near phi=110-120 vs fig14c 0.351 at 119.5; Fig. 18 bump x/L ~ 0.565 at
+# phi~163 vs fig14c 0.557 at 163.8).  So the WINDWARD HALF of the fig14c trace
+# needs re-checking against the figure before it is trusted to better than 0.07.
 
 
 def meridian(tag, phi):

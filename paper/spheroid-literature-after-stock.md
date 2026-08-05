@@ -18,10 +18,10 @@ this search; only the case description was added.
 | workshop Case 3 flow conditions, gridding, Tu | `TransitionMPW1_case_descriptions.pdf` | 4 pp; Case 3 on p. 3 |
 | workshop agenda (who presented what) | `TransitionMPW1_proceedings.pdf` | 1 p |
 
-Note there is **no PDF of Stock (2006) anywhere in the repo** -- AIAA J. 44(1),
-doi 10.2514/1.16026, paywalled.  Every Stock number we use came from figure
-digitization (`paper/data/stock2006_fig*_digitized.json`).  Worth pulling from
-the MIT library, since Section 2's whole comparison rests on it.
+**Stock (2006) itself is at `paper/spheroid.pdf`** -- 11 pp, AIAA J. 44(1),
+doi 10.2514/1.16026, MIT Libraries copy stamped 26 July 2026.  It is
+GITIGNORED (`.gitignore:58: *.pdf`), which is why it is untracked and why a
+search for `*stock*` does not find it.  See section 2b.
 
 Two wanted papers could not be downloaded: hal-03871832 (HAL serves an Anubis
 JS challenge to non-browsers) and Plasseraud & Mahesh JFM 960 A3 (2023)
@@ -134,6 +134,97 @@ than "correlation models are poorly calibrated here."
 Caveat: these are numbers read off raster slide images, good to roughly +/-0.02
 x/L, and the participant identities behind the plot letters are not published.
 Use them as the shape of the field, not as digitized data.
+
+## 2b. What Stock himself says (`paper/spheroid.pdf`)
+
+**He states the answer, and it reframes the question.**  From the discussion of
+his Fig. 18, which overlays the computed front for every incidence at comparable
+Reynolds number (Re = 7.2e6 for alpha = 0 and 2.5; 6.40e6-6.54e6 for alpha =
+5-29.7):
+
+> "Increasing the angle of attack moves transition continously downstream on the
+> windward symmetry plane and continously upstream on the leeward symmetry plane
+> for alpha > 5 deg.  There exists a distinct zone in the lower-half of the
+> prolate spheroid around phi = 50 deg, which separates the downstream and
+> upstream motion of the transition line."
+
+So the windward/leeward split **opens above alpha = 5 and is essentially absent
+at and below it**.  The near-agreement at alpha = 2.5 and 5 is not a coincidence
+needing its own mechanism; it is the small-incidence limit of a split that grows
+monotonically with alpha.  Read directly off Fig. 18 (x/L = (X/a + 1)/2):
+
+| alpha | front vs azimuth |
+|---|---|
+| 0 | dead vertical, X/a = -0.15, **x/L = 0.425** at every phi |
+| 2.5 | dead vertical, X/a = -0.09, **x/L = 0.455** at every phi |
+| 5 | first real azimuthal structure: a U with both ends near x/L = 0.50, trough x/L ~ 0.345 at phi = 110-120, and a bump back to x/L ~ 0.565 at phi ~ 163 |
+| 10-29.7 | the U deepens and the ends separate, windward marching aft, leeward marching forward |
+
+This is a stronger indictment of our alpha = 2.5 result than the two-plane
+comparison was.  Stock's alpha = 2.5 front is **azimuthally flat to 0.030 x/L
+over the whole body**, and ours sweeps by an order of magnitude more -- so the
+`diag_spheroid_fpg_sensitivity.py` finding (dx_front/dbeta ~ 4.2 against a
+measured ~1.4) is the primary defect, and the windward/leeward gap is just its
+most visible slice.
+
+**His method carries exactly the term our march omits.**  Inviscid field from
+potential theory; viscous layer from a finite-difference **three-dimensional**
+laminar boundary-layer method (the CERT/ONERA code -- he thanks Cousteix, Arnal
+and Houdeville for it) in xi',phi' coordinates at Delta xi' = Delta phi' = 1 deg
+with 121 wall-normal points, ~4 M surface-mesh points, N integrated along 21
+inviscid streamlines.  He calls out the reason the geometry is interesting in the
+same breath: the spheroid exhibits "highly divergent and convergent
+three-dimensional viscous flows", and "because of the high convergence and
+divergence of the flow ... the computational mesh has to be rearranged
+continuously".  Our Mangler-weighted axisymmetric Thwaites march has no such
+term, which is the leading suspect for the +0.146.
+
+**The threshold is fitted to this dataset**, as suspected -- stated in the
+abstract: "First, the values of both N factors at the measured transition
+locations are calculated, which deliver the stability limit of the prolate
+spheroid in the considered wind tunnel.  Second, based on the knowledge of the
+stability limit, the transition locations are evaluated."
+
+**He drops curvature deliberately**, which we had not registered: "the
+computation with curvature effects included produces results for which a
+comprehensive stability limit cannot be found.  To the contrary, the values of
+the N factors without curvature effects exhibit ... such a small scatter that
+the limiting N factors for both types of waves can be determined with
+confidence."
+
+Mechanism statements worth having in the paper:
+  * alpha = 5, Re = 6.49e6: "transition is triggered by TS waves near the
+    windward and leeward symmetry planes and for the remaining part of the body
+    surface simultaneously by TS and CF waves" -- so **no pure-CF band at all at
+    alpha = 5**.
+  * His Fig. 8 N_TS envelopes along streamlines 1-21 (1 = windward plane,
+    21 = leeward): at alpha = 10, N_TS reaches large values at BOTH ends
+    (streamlines 1-6 and 16-21) and only moderate values between -- that is the
+    U.  At alpha = 20 "the streamlines on the windward side show drastically
+    reduced N_TS factors" while 19-21 stay large; at 29.7 only the leeward plane
+    has remarkable N_TS.  So the windward collapse happens between 10 and 20.
+
+**Two corrections to our own bookkeeping, found by this check.**  Our diagnostic
+hardcoded Stock's alpha = 2.5 pair as (windward 0.460, leeward 0.430).  The
+digitized `computed_ts_front` runs 0.430 at phi = 1.8 to 0.460 at phi = 178.4,
+i.e. **the pair was swapped**: Stock is leeward-LATE by 0.030, not windward-late.
+Same at alpha = 5: (0.432 at phi = 2.4, 0.507 at phi = 175.9), leeward-late by
+0.075.  So the three-way ordering at both incidences is
+
+| | alpha = 2.5 | alpha = 5 |
+|---|---|---|
+| Stock (windward - leeward) | **-0.030** | **-0.075** |
+| measured | +0.018 | +0.002 |
+| ours (2-D envelope on our c_p) | +0.067 | +0.146 |
+
+Stock's asymmetry is the OPPOSITE SIGN to ours, so the discrepancy at the
+leeward plane is larger than previously stated, not smaller.
+
+And a data-quality flag: Fig. 18 puts alpha = 5 at x/L ~ 0.50 on BOTH planes,
+against the 0.432 the fig14c trace gives at phi = 2.4, and the two also disagree
+at phi = 60 (~0.45 vs 0.474).  The leeward half and the trough agree well.  The
+**windward half of the fig14c computed-front trace should be re-checked** against
+the figure before it is trusted to better than 0.07.
 
 ## 3. Krimmelbein & Krumbein (DLR), 2009-2011
 
