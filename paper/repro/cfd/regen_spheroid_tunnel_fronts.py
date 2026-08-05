@@ -51,6 +51,10 @@ PANELS = [
      'stock2006_fig14c_digitized.json', 'front_re1p52e6'),
     ('a10lo', r'$\alpha=10^\circ$, $Re_L=1.52\times10^6$',
      'stock2006_fig15a_digitized.json', 'separation_line_short_dashed'),
+    # Stock digitized no computed curve for Fig. 16c, so this panel carries the
+    # measurement and SA-AI only.
+    ('a29p7', r'$\alpha=29.7^\circ$, $Re_L=1.53\times10^6$',
+     'stock2006_fig16c_digitized.json', None),
     ('a0',    r'$\alpha=0^\circ$, $Re_L=7.2\times10^6$',
      'stock2006_fig14a_digitized.json', 'computed_ts_front'),
     ('a2p5',  r'$\alpha=2.5^\circ$, $Re_L=7.2\times10^6$',
@@ -67,6 +71,8 @@ PANELS = [
 def stock_segments(fn, key):
     """-> list of (mechanism, phi[], xL[]) so each style is drawn separately."""
     d = json.load(open(os.path.join(DATA, fn)))
+    if key is None:
+        return []
     if key == 'computed_ts_front':
         c = d[key]
         if not isinstance(c.get('phi_deg'), list):
@@ -92,7 +98,8 @@ def stock_segments(fn, key):
 
 def main():
     H = json.load(open(HARV))
-    fig, axes = plt.subplots(4, 2, figsize=(7.2, 9.2), sharex=True, sharey=True)
+    fig, axes = plt.subplots(5, 2, figsize=(7.2, 11.4), sharex=True,
+                             sharey=True)
     axes = axes.ravel()
 
     for ax, (cond, label, sfn, skey) in zip(axes, PANELS):

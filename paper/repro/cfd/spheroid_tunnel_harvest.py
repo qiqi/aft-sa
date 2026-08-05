@@ -63,6 +63,13 @@ CASES = {
                     'measured_re1p52e6_squares'),
     'a5hi_gmeas':  (5.0,  6.49e6, 'NWG', 'stock2006_fig14c_digitized.json',
                     'measured_re6p49e6_circles'),
+    # Closes the low-Re band.  At this incidence the whole leeward half is open
+    # free-vortex-layer separation, so the measured line is the separation line;
+    # Stock digitized no computed curve for this panel, so his columns are '--'.
+    'a29p7_gcal':  (29.7, 1.53e6, 'NWG', 'stock2006_fig16c_digitized.json',
+                    'measured_re1p53e6_squares'),
+    'a29p7_gmeas': (29.7, 1.53e6, 'NWG', 'stock2006_fig16c_digitized.json',
+                    'measured_re1p53e6_squares'),
 }
 
 
@@ -137,8 +144,24 @@ def harvest(tag):
 
 
 def main():
+    # --only TAG [TAG ...] harvests just those cases and MERGES them into the
+    # existing JSON, leaving every other entry byte-identical.  Without it the
+    # whole matrix is re-harvested, which is correct but re-derives numbers that
+    # are already published -- use --only when adding a case.
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--only', nargs='*', default=None, metavar='TAG')
+    args = ap.parse_args()
+    p_out = os.path.join(FIGD, 'spheroid_tunnel_harvest.json')
     out = {}
-    for tag in CASES:
+    if args.only:
+        assert all(t in CASES for t in args.only), \
+            f'unknown tag(s): {[t for t in args.only if t not in CASES]}'
+        if os.path.exists(p_out):
+            out = json.load(open(p_out))
+            print(f'merging into {len(out)} existing entries')
+    todo = args.only if args.only else list(CASES)
+    for tag in todo:
         case = os.path.join(ROOT, f'case_ogrid_L1_tun_{tag}')
         if not os.path.exists(os.path.join(case, 'volume.pvtu')):
             print(f'-- {tag}: no volume.pvtu yet, skipped')
@@ -149,9 +172,8 @@ def main():
         except Exception as e:                       # keep going, report
             print(f'   FAILED: {type(e).__name__}: {e}')
     os.makedirs(FIGD, exist_ok=True)
-    p = os.path.join(FIGD, 'spheroid_tunnel_harvest.json')
-    json.dump(out, open(p, 'w'), indent=1)
-    print('wrote', p)
+    json.dump(out, open(p_out, 'w'), indent=1)
+    print(f'wrote {p_out} ({len(out)} entries)')
 
 
 if __name__ == '__main__':

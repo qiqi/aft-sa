@@ -62,6 +62,8 @@ CASES = [
      'stock2006_fig14c_digitized.json', 'measured_re6p49e6_circles'),
     ('a10lo_gmeas', r'$\alpha=10^\circ$, $Re_L=1.52\times10^6$',
      'stock2006_fig15a_digitized.json', 're_1p52e6_alpha10_squares'),
+    ('a29p7_gmeas', r'$\alpha=29.7^\circ$, $Re_L=1.53\times10^6$',
+     'stock2006_fig16c_digitized.json', 'measured_re1p53e6_squares'),
     ('a10hi_gmeas', r'$\alpha=10^\circ$, $Re_L=6.56\times10^6$',
      'stock2006_fig15a_digitized.json', 're_6p56e6_alpha10_circles'),
     ('a10f1_fmeas', r'$\alpha=10^\circ$, $Re_L=6.56\times10^6$, ONERA F1',
