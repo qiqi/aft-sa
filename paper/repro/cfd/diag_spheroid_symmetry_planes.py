@@ -101,15 +101,14 @@ MEAS = {2.5: (0.450, 0.432), 5.0: (0.567, 0.565)}
 # fig14b's computed_ts_front runs 0.430 at phi=1.8 to 0.460 at phi=178.4.  So
 # Stock is leeward-LATE at both incidences, the opposite sign to us.
 STOCK = {2.5: (0.430, 0.460),      # fig14b, phi 1.8 and 178.4
-         5.0: (0.432, 0.507)}      # fig14c, phi 2.4 and 175.9 (piece2)
-# CAVEAT on the alpha=5 windward value.  Stock's own Fig. 18, which overlays the
-# computed front for every incidence at comparable Re, puts alpha=5 at
-# X/a ~ 0.00 (x/L ~ 0.50) on BOTH symmetry planes, against the 0.432 the fig14c
-# trace gives at phi=2.4.  Fig. 18 and fig14c also disagree at phi=60 (~0.45 vs
-# 0.474).  The leeward half and the trough agree well (Fig. 18 trough x/L ~ 0.345
-# near phi=110-120 vs fig14c 0.351 at 119.5; Fig. 18 bump x/L ~ 0.565 at
-# phi~163 vs fig14c 0.557 at 163.8).  So the WINDWARD HALF of the fig14c trace
-# needs re-checking against the figure before it is trusted to better than 0.07.
+         5.0: (0.488, 0.507)}      # fig14c, phi 3.4 and 175.9 (piece2)
+# The alpha=5 windward value was 0.432 until a nine-point horizontal TAIL SPUR
+# was removed from the fig14c trace -- points spanning 0.052 x/L at constant
+# phi ~ 2.4-2.7, the tracer running sideways along near-horizontal ink at the
+# panel bottom.  See repro/cfd/retrace_stock_fig14c_windward.py.  The corrected
+# 0.488 agrees with a 2200-dpi render of the corner (~0.49) and with Stock's own
+# Fig. 18 (~0.50 on both planes).  So Stock at alpha=5 is NEAR-SYMMETRIC
+# (-0.019), not asymmetric by -0.075 as this file previously reported.
 
 
 def meridian(tag, phi):
