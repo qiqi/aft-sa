@@ -1,5 +1,20 @@
 # Results: four analytic bounds, and the differentiability audit
 
+> **SUPERSEDED for numbers, 2026-08-06.** These were the exploratory run, which
+> used the *truncated* curvature term `dZ = ∓(d/2R)Y` and hard-coded campaign
+> stations. The authoritative version is
+> `paper/repro/analytic/envelope_bounds.py`, which uses the **untruncated**
+> metric term and parses every station out of the paper's own tables and data
+> files. Where they differ, the repro script is right. The differences that
+> matter: the cylinder's low-`Re` end is **−28 %** at `Re_D = 10²` (not −100 %:
+> the truncation was invalid at `ell/R = 0.23`) and **−7.9 %** at `10⁴`; the NLF
+> is **−0.15 %** and the Eppler **−0.32 %**; the spheroid is **−2.9 to −6.3 %**;
+> the attachment line fires at **`R̄ = 603`**. The rotation coefficient, now from
+> an exact derivative rather than a finite difference, is unchanged at **41.3**
+> with a **4.31×** amplification. Every conclusion below survives; only the
+> third significant figure and the cylinder's low-`Re` magnitude move.
+> The prose reasoning here is still the fullest write-up and is kept for that.
+
 Repro: `python3 -u blindspots/exact_profile_bounds.py` (numpy/scipy, ~15 s, no
 GPU). Same instrument as file `01`: the canonical kernel from
 `paper/repro/lib/sphere_kernel.py`, evaluated on profiles whose linear-stability

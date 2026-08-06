@@ -1159,6 +1159,64 @@ $0.000$ on the ONERA twin.
 
 \clearpage
 
+\section{Remarks on the operating envelope}
+
+The following follow from the kernel's algebra evaluated on exact
+profiles and on exact perturbations of the computed cases, with no
+further computation; each is reproduced by
+\texttt{repro/analytic/envelope\_bounds.py}.
+
+\begin{enumerate}\itemsep2pt
+\item Solid-body rotation is read as stable exactly: it gives
+  $Y/X\!=\!2d/r$, so $g\!<\!0$ and the rate is clipped to zero, the
+  velocity indicator rather than the vorticity being what makes the model
+  inert in a rotating freestream.
+\item Frame rotation at $\Omega\!\sim\!U_\infty/L$ perturbs the rate by
+  $41.3\,(\ell/L)$, that is by $O(Re_\theta/Re_L)$: $1.3\%$ on the
+  NLF(1)-0416 and $6.7\%$ on the Eppler 387 at the pessimistic
+  $\Omega\!=\!U_\infty/c$.
+\item Because $g=(Y\!-\!X\!-\!Z)/R$ is a near-cancellation in the
+  amplifying band, a relative perturbation of the shear indicator reaches
+  the rate magnified $4.3$-fold, which is why terms as small as
+  $\ell/R\!\sim\!10^{-3}$ are visible in it at all.
+\item Streamwise wall curvature enters the curvature indicator through
+  the metric term $\delta Z=\pm(d/2R)Y$ and is therefore already present
+  in every computed case, contributing $-0.15\%$ of the rate on the
+  NLF(1)-0416 and $-0.32\%$ on the Eppler 387.
+\item The same term is not a perturbation at the bottom of the cylinder
+  traverse, removing $7.9\%$ of the rate at $Re_D\!=\!10^4$ and $28\%$ at
+  $10^2$, so there the reported transition is set as much by the wall's
+  curvature metric as by the profile shape.
+\item For transverse curvature the two candidate realizations of the
+  indicator disagree, so the $-2.9$ to $-6.3\%$ computed at the spheroid
+  stations is a realization uncertainty rather than a bias.
+\item On a concave wall the metric term changes sign and destabilizes, so
+  the model is not blind to centrifugal geometry, but its response is
+  linear in $\delta/R$ where the instability is governed by
+  $G=Re_\delta\sqrt{\delta/R}$ --- the right sign under the wrong scaling.
+\item On the exact swept-Hiemenz profile the kernel amplifies at $82\%$ of
+  the Blasius rate and switches on at $\bar R\!=\!603$ against the
+  linear-stability critical value near $583$, unfitted, though the
+  agreement is on the threshold and not on the mechanism.
+\item The asymptotic suction layer is read as stable at every Reynolds
+  number against a true critical $Re_{\delta^*}\!\approx\!5.4\times10^4$,
+  so the model errs conservatively and will over-credit suction; the same
+  evaluation shows that the positive amplifying coordinate excluded at a
+  no-slip line does not appear under transpiration of that sign.
+\item Because SA's destruction scales as $(\tilde\nu/d)^2$ and is
+  negligible where $d$ is large, a wake transports its $\tilde\nu$ without
+  decaying, so a surface ingesting an upstream wake---a blade row behind
+  another, as much as the two-element section here---should be expected to
+  transition at impingement rather than by amplification.
+\item The assembled model is continuous everywhere and differentiable
+  almost everywhere, the exceptions being the clips of the amplifying
+  coordinate at $P\!=\!0$ and $P\!=\!1$, the handover switch at
+  $\chi\!=\!1$, and the gated maximum at handover, all of which admit the
+  soft forms the onset threshold already uses.
+\end{enumerate}
+
+\clearpage
+
 \appendix
 
 \section{Appendix: the two-source rate --- inviscid and viscous branches}

@@ -28,6 +28,8 @@ SCRIPTS = [
     # receptivity + assembled constants
     "tu_map.py",                 # eq:tumap (seed list in Sec. IV)
     "constants_report.py",       # Appendix-E constants block (asserts)
+    # Conclusion -- operating-envelope bounds (all four asserted; no figure)
+    "envelope_bounds.py",        # rotation, curvature, attachment line, suction
     # Historical v2-record scripts (fig01_indicator_plane, fig02_kernel_maps,
     # fig05_06_klambda, fit_fpg_rate_slope, verify_three_anchors) are retired
     # from the suite: their floats/constants are no longer in the paper.

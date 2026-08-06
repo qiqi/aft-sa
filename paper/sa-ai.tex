@@ -2529,6 +2529,22 @@ $\alpha\!=\!-9^\circ$ the main element's lower surface separates over
 $91\%$ of its length and the configuration is stalled; the
 boundary-layer state there is reported for completeness only.
 
+The mechanism behind the extinction at $-5$ and $-7^\circ$ is worth
+naming, because it is structural rather than particular to this section.
+SA's destruction scales as $(\tilde\nu/d)^2$ and is therefore negligible
+wherever $d$ is large, so a wake carries its $\tilde\nu$ downstream
+essentially undrained---unlike the $k$ of a two-equation model, which its
+own dissipation depletes at a rate set by the turbulence, not by the wall
+distance. Any surface that ingests an upstream wake therefore receives
+fluid whose $\chi$ has not decayed, and if that $\chi$ exceeds $c_{v1}$
+the handover on that surface is complete before its own layer has
+amplified anything. That is what the $\alpha\!\le\!-5^\circ$ rows show,
+and it is a prediction about a whole class of configurations the present
+validation does not include: a turbomachinery blade row ingesting the
+wake of the row upstream is the same geometry, and this model should be
+expected to place its transition at the point of wake impingement rather
+than by amplification, for the same reason and with the same sign.
+
 \input{tables/tab_twoelement_geom}
 
 \begin{figure}[tp]\centering
@@ -4019,6 +4035,108 @@ $0.02\,c$ and its reattachment within $0.01\,c$ of the strip-theory
 $e^N$ reference, and capture two spanwise mechanisms no sectional
 method sees---the outboard bubble stretch past the taper break and the
 tip-vortex trip (Sec.~\ref{sec:daedalus}).
+
+Four properties of the operating envelope follow from the kernel's
+algebra alone, without a computed case, because the indicator triple can
+be evaluated on any profile whose linear-stability answer is known
+exactly and on exact perturbations of the profiles the campaign already
+ran (\texttt{repro/analytic/envelope\_bounds.py}).
+
+The first is \emph{frame rotation}, which enters the kernel only through
+the vorticity, $\omega\!\to\!\omega+2\Omega$. Solid-body rotation is read
+as stable exactly: it gives $Y/X\!=\!2d/r$, so the accumulated-inflection
+coordinate $g=(Y\!-\!X\!-\!Z)/R$ is negative and the rate is clipped to
+zero at every $d/r$. It is the velocity indicator $X\!=\!|u|$, not the
+vorticity, that makes the model inert there---the counterpart, reached by
+a different route, of the property standard SA obtains by building its
+production on a vorticity that vanishes in an irrotational freestream.
+On a genuine layer carried by a rotating body the perturbation is
+$\delta Y\!=\!2\Omega d/U_e$, one small parameter $\ell/L$ with
+$\ell=\sqrt{\nu x/U_e}$ and $\Omega\!\sim\!U_\infty/L$, and since
+$\ell/L$ and $\theta/L\!=\!Re_\theta/Re_L$ are the same quantity the
+contamination of the rate is $O(Re_\theta/Re_L)$. Its size is
+$\mathrm{d}(\max P)/P = 41.3\,(\ell/L)$: $1.3\%$ on the NLF(1)-0416 at
+its transition station and $6.7\%$ on the Eppler 387, for the pessimistic
+$\Omega\!=\!U_\infty/c$. The coefficient is worth noting on its own, because
+the shear indicator itself moves only by $9.6\,(\ell/L)$: the kernel
+\emph{amplifies} a shear perturbation $4.3$-fold, $g$ being a
+near-cancellation in the amplifying band, which is also why the
+sub-percent effects below are visible at all.
+
+The second is \emph{wall curvature}. On a curved wall the curvature
+indicator carries a metric term---in cylindrical coordinates,
+$\nabla^2\mathbf u\cdot\hat{\mathbf u}=u''+u'/r-u/r^2$ with $r\!=\!R\!\pm\!d$---whose
+leading behavior is $\delta Z=\pm(d/2R)\,Y$, stabilizing on a convex wall
+and destabilizing on a concave one. This is not a term the model omits:
+it is already present in every computed case, and the numbers below
+decompose what the kernel did rather than correct it. At the amplifying
+stations the shift is $-0.15\%$ on the NLF(1)-0416 and $-0.32\%$ on the
+Eppler 387, far below the mesh-to-mesh scatter of Table~\ref{tab:data_nlf};
+on the cylinder it falls from $-28\%$ at $Re_D\!=\!10^2$ through $-7.9\%$
+at $10^4$ to $-0.01\%$ at $10^9$, so at the bottom of the traverse of
+Sec.~\ref{sec:dragcrisis} the reported transition is set as much by the
+wall's curvature metric as by the profile shape. For streamwise curvature
+the two candidate realizations of the indicator, $\nabla^2\mathbf u\cdot\hat{\mathbf u}$
+and $\hat{\mathbf n}\cdot\nabla|\boldsymbol\omega|$, carry the same leading
+term and the numbers are unambiguous; for the transverse curvature of a
+body of revolution they do not, so the $-2.9$ to $-6.3\%$ computed at the
+spheroid stations of Table~\ref{tab:data_spheroid} is a realization
+uncertainty rather than a bias. The consequence for centrifugal
+instability is that the kernel is not blind to concave geometry---the sign
+is right---but its response is linear in $\delta/R$ where the instability
+is governed by the G\"ortler number $G=Re_\delta\sqrt{\delta/R}$, so the
+two scale differently and the gap widens with Reynolds number.
+
+The third is the \emph{attachment line}, which the local formulation
+turns out to reach. On the exact swept-Hiemenz solution the chordwise
+velocity vanishes at the attachment line and the kernel sees the spanwise
+profile alone, $(X,Y,Z)=(g,\eta g',\tfrac12\eta^2g'')$ with
+$g''\!=\!-fg'\!<\!0$ everywhere, so the profile carries no inflection
+point at all. It nevertheless reads as amplifying: $\max P\!=\!0.064$
+against the Blasius $0.078$, a saturated rate $82\%$ of the Blasius value,
+and an onset at a sweep Reynolds number $\bar R\!=\!603$ against the
+linear-stability critical value near $583$~\cite{hall_malik_poll_1984}---an
+agreement to a few percent that was not fitted, the threshold's only free
+scale being the $N\!=\!1$ Blasius anchor of Sec.~\ref{sec:onset}. The
+agreement is on the threshold and not on the mechanism: the
+G\"ortler--H\"ammerlin mode has chordwise structure a wall-normal-profile
+kernel cannot represent, and the reduction holds only at the attachment
+line itself. It also does not resolve the ambiguity of
+Sec.~\ref{sec:bistability}, but sharpens it, since standard SA's spurious
+attachment-anchored branch and this genuine reading would both trip a
+swept leading edge.
+
+The fourth is the \emph{asymptotic suction layer}, $u=1-e^{-y/\delta}$
+with $\delta=\nu/|v_w|$, which the kernel reads as stable at every
+Reynolds number: $P\!\le\!0$ throughout, most negative at
+$-0.104$, so the rate is identically zero and no Reynolds number can make
+the profile amplify. Linear theory gives it a critical
+$Re_{\delta^*}\!\approx\!5.4\!\times\!10^4$~\cite{hocking_1975}, so the
+model errs conservatively and will over-credit the benefit of suction in
+a hybrid-laminar-flow application. The same evaluation settles a question
+the wall-anchoring of Sec.~\ref{sec:live} leaves open: this profile has
+$u'''_w\!=\!(v_w/\nu)u''_w\!\neq\!0$, violating the steady-impermeable
+compatibility condition that holds $\hat I$ to zero at the wall, and yet
+$P(0)\!=\!0$ with $P\!<\!0$ just off it, so the positive amplifying
+coordinate at a no-slip line that the construction excludes does not
+appear under suction. Blowing, of the opposite sign, is untested.
+
+One property of the assembled model is worth stating for anyone who would
+drive it with a gradient. It is continuous everywhere and differentiable
+almost everywhere, the exceptions being a small number of
+codimension-one surfaces: the clips of the amplifying coordinate at
+$P\!=\!0$, which threads through every solution as the boundary between
+amplifying and quiescent flow, and at $P\!=\!1$, reached only in free
+shear; the handover switch at $\chi\!=\!1$, whose derivative jumps from
+zero to $1/(\tau\nu)$ and which is a kink in the solution variable itself
+rather than in the geometry; the gated maximum of Eq.~\eqref{eq:blend};
+and $|\boldsymbol\omega|$ at an irrotational point, inherited from
+standard SA. The first three admit the soft forms the threshold already
+uses---the same $\mathrm{softmin}_2$ of Eq.~\eqref{eq:reomc}---at the cost
+of one width each. Separately, and more consequentially for an adjoint,
+the implementation clips the stored production Jacobian to be
+non-positive, as standard SA implementations do for positivity, so the
+carried linearization is deliberately not the derivative of the residual.
 
 Several extensions follow. The clearest limitation is the linear rate's
 under-amplification of strongly favorable and strongly separated profiles---the

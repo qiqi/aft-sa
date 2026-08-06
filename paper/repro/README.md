@@ -58,6 +58,7 @@ Read each script alongside the passage it backs; `regenerate_all.py` and
 | §IV headline transition-location figure (all six grids + AFT/XFOIL/exp) | fig:nlfaft | `cfd/regen_nlf_aft_comparison.py` |
 | §III.F receptivity | eq:tumap | `analytic/tu_map.py` |
 | §III.G assembled | constants block (asserted vs paper Table) | `analytic/constants_report.py` |
+| Conclusion, envelope | rotation bound (41.3·ℓ/L; solid-body read stable), wall-curvature decomposition (−0.15 % NLF, −0.32 % Eppler, −28 %→−0.01 % over the cylinder traverse, −2.9…−6.3 % spheroid), attachment line (fires at R̄ = 603 vs LST 583), suction layer (stable at every Re) — all asserted, no figure | `analytic/envelope_bounds.py` |
 | §IV flat plate | fig:flatplate_batch; `ONSET_DIAG=1` prints the quoted AGS onset numbers (both conventions) | `cfd/regen_flatplate_flow360.py` |
 | §V NLF | nlf_cf figures | `cfd/regen_nlf_v2.py` |
 | §V NLF | tab:nlftrans | `cfd/regen_nlf_transition.py` |
