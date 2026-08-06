@@ -1,0 +1,110 @@
+{
+ "what": "acceleration-quench gate q(K)=1/(1+(K/K_c)^n) on SA production, frozen-Hiemenz rig",
+ "gate": "K_loc = nu (u.grad|u|)/|u|^3; n = 2",
+ "K_c_nominal": 3e-06,
+ "K_c_range": [
+  2.5e-06,
+  3.5e-06
+ ],
+ "published_ungated_bracket": [
+  682.8779351173536,
+  688.5382427167755
+ ],
+ "x_quench_edge": 577.3502691896257,
+ "coverage": [
+  {
+   "L": 300.0,
+   "x_quench_edge": 577.3502691896257,
+   "frac_q_below_099": 0.997624269005848,
+   "frac_q_below_050": 0.997624269005848,
+   "q_at_outer_edge": 0.06686658603721754,
+   "q_min": 0.0,
+   "q_max": 1.0
+  },
+  {
+   "L": 688.5382427167755,
+   "x_quench_edge": 577.3502691896257,
+   "frac_q_below_099": 0.9993146929824561,
+   "frac_q_below_050": 0.8595120614035088,
+   "q_at_outer_edge": 0.6646794922046176,
+   "q_min": 0.0,
+   "q_max": 1.0
+  },
+  {
+   "L": 3000.0,
+   "x_quench_edge": 577.3502691896257,
+   "frac_q_below_099": 0.6546474358974359,
+   "frac_q_below_050": 0.2608173076923077,
+   "q_at_outer_edge": 0.9986012360985999,
+   "q_min": 0.0,
+   "q_max": 0.9989410816939678
+  },
+  {
+   "L": 10000.0,
+   "x_quench_edge": 577.3502691896257,
+   "frac_q_below_099": 0.34270833333333334,
+   "frac_q_below_050": 0.24479166666666666,
+   "q_at_outer_edge": 0.9999886539105829,
+   "q_min": 0.0,
+   "q_max": 0.9999914016730688
+  }
+ ],
+ "runs": [
+  {
+   "L": 688.5,
+   "K_crit": null,
+   "verdict": "sustained",
+   "maxchi": 15.276865271597575,
+   "chunks": 2
+  },
+  {
+   "L": 688.5,
+   "K_crit": 3e-06,
+   "verdict": "collapsed",
+   "maxchi": 0.00025640135167162353,
+   "chunks": 1
+  },
+  {
+   "L": 688.5,
+   "K_crit": 2.5e-06,
+   "verdict": "collapsed",
+   "maxchi": 0.0009690392746757544,
+   "chunks": 1
+  },
+  {
+   "L": 688.5,
+   "K_crit": 3.5e-06,
+   "verdict": "collapsed",
+   "maxchi": 0.00033636249701854496,
+   "chunks": 1
+  },
+  {
+   "L": 3000.0,
+   "K_crit": null,
+   "verdict": "sustained",
+   "maxchi": 75.66837016180556,
+   "chunks": 2
+  },
+  {
+   "L": 3000.0,
+   "K_crit": 3e-06,
+   "verdict": "sustained",
+   "maxchi": 75.60513600024501,
+   "chunks": 2
+  },
+  {
+   "L": 3000.0,
+   "K_crit": 2.5e-06,
+   "verdict": "sustained",
+   "maxchi": 75.57735406788731,
+   "chunks": 2
+  },
+  {
+   "L": 3000.0,
+   "K_crit": 3.5e-06,
+   "verdict": "sustained",
+   "maxchi": 75.62189968303616,
+   "chunks": 2
+  }
+ ]
+}

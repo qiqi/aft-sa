@@ -1,5 +1,64 @@
 # Favorable-pressure-gradient stabilization of baseline SA
 
+> ## TESTED 2026-08-06 — step 2 PASSES, step 1 still open
+>
+> Executed on the frozen-Hiemenz rig via
+> `paper/repro/analytic/stagnation_kgate_test.py` (gate added to
+> `stagnation_bistability.run_case` behind `K_crit=None`, ungated path asserted
+> bit-identical). Data: `paper/data/stagnation_kgate_test.json`.
+>
+> **The gate removes the attachment-anchored root, completely, at both Reynolds
+> numbers tested and across the whole literature range of `K_c`.**
+>
+> | `L` | `Re_r` | ungated | gated (`K_c` = 2.5/3.0/3.5e-6) |
+> |---|---|---|---|
+> | 688.5 (critical) | 4.7e5 | sustained, `χ`=15.3 | **collapsed**, `χ`~3e-4, all three |
+> | 3000 | 9.0e6 | sustained, `χ`=75.67 | sustained, `χ`=75.61 |
+>
+> The `L=3000` row looks like a failure and is not one. Localizing the state
+> settles it — near-wall `χ` versus `x`, ungated → gated:
+>
+> | `x` | 50 | 200 | 577 | 1000 | 2900 |
+> |---|---|---|---|---|---|
+> | ungated | 1e-12 | **2.24** | **11.9** | 24.3 | 73.7 |
+> | gated | 1e-123 | 1e-95 | 9e-15 | 22.4 | 73.6 |
+>
+> Inside the quench zone (`x < 577`) the fraction of stations carrying `χ > 1`
+> goes from **76 % to exactly 0**. The nose is annihilated. What survives at
+> `L=3000` is the layer at `x ≳ 1000`, outside the quench zone, where `K < K_c`
+> and the flow is genuinely not relaminarizing — a turbulent layer SA *should*
+> sustain, and never the trap. The rig's pass/fail criterion is `max χ` over the
+> whole domain, so it stops testing the trap once `L` exceeds the quench
+> station; that is a limitation of the test, not of the gate.
+>
+> **Why the quench zone does not grow with `L`:** the closed form is exact here.
+> On the edge of this field `U_e = k x` gives `K = ν/(k x²)`, i.e. `K = 1/x̂²`
+> in rig units, so the quench station sits at `x = 1/√K_c = 577δ` regardless of
+> `L`, while the domain grows as `L = √Re_r`. Gated fraction of the layer falls
+> from 86 % at `L=688` to 26 % at `L=3000`. Since Hiemenz convects *outward*
+> (`u = x f' > 0`), the ungated outer region is downstream and cannot be cleared
+> from within the quench zone — correctly.
+>
+> **First evidence on inertness (§6), favourable but not the real test.** At the
+> outer station `x=2900`, `q ≥ 0.991` everywhere above `y = 0.2δ`; only the two
+> wall-adjacent rows are gated, and `χ = 0` there by boundary condition anyway.
+> So the `K_loc ~ 1/(2 f''₀ x² y)` divergence at the wall is real but is
+> confined below `0.2δ` in this flow. **This does not discharge step 1**: a
+> Hiemenz layer is not a ZPG log layer, and the inertness that has to be
+> demonstrated is on the flat plate and the NLF rooftop.
+>
+> **What this does and does not license.** It does *not* license dropping the
+> protocol. `χ = 0` remains an exact fixed point, so at `L=3000` two stable
+> states still exist with the gate on — but the second is SA's known seedless
+> sustainment of an already-turbulent layer (`analytic/sa_sustain.py`), a
+> different mechanism the gate is not meant to touch. So §8's "the
+> initialization protocol becomes unnecessary" is right about the attachment
+> trap and wrong as stated about the model problem as a whole.
+>
+> Verification order below, updated: **step 2 done and passed**; step 1 is now
+> the deciding one; steps 3–5 unchanged.
+
+
 **Goal:** remove the attachment-anchored spurious turbulent branch
 (paper §`sec:bistability`) so the model determines its own fixed point, instead
 of excluding the branch by an initialization protocol.
@@ -147,9 +206,15 @@ turbulent layers.
 
 ## 9. Suggested verification order
 
-1. `K` through the log layer, flat plate and NLF rooftop → confirm `Q ≡ 1`.
-2. Frozen Hiemenz model problem (paper Table `t:stagbistab`) with the gate on →
-   confirm the branch is gone, i.e. no critical band, `max χ → 0` at all `Re_r`.
+1. **NOW THE DECIDING STEP.** `K` through the log layer, flat plate and NLF
+   rooftop → confirm `Q ≡ 1`. First evidence from the Hiemenz rig is favourable
+   (`q ≥ 0.991` above `0.2δ` at the outer station) but a Hiemenz layer is not a
+   ZPG log layer.
+2. ~~Frozen Hiemenz model problem (paper Table `t:stagbistab`) with the gate on~~
+   → **DONE 2026-08-06, PASSED** (see the block at the top). Note the criterion
+   as originally written — "`max χ → 0` at all `Re_r`" — is the wrong test above
+   `Re_r ≈ (577)²`: the correct statement is that `χ` inside the quench zone
+   goes to zero, which it does, exactly.
 3. Cylinder up-ladder and down-ladder with the gate on → confirm the supercritical
    two-state spread (concession six, `C_d ≈ 0.11–0.19`) collapses, or does not.
 4. NLF and Eppler campaigns → confirm nothing moves.

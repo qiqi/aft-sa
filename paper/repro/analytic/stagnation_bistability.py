@@ -75,8 +75,39 @@ def grids(L, nx, ny, H):
     return x, y
 
 
+def kloc_hiemenz(U, V, dUdx, dUdy, dVdy):
+    """Local acceleration parameter K = nu (u.grad|u|) / |u|^3 on the frozen field.
+
+    Nondimensional: lengths in delta = sqrt(nu/k), velocities in delta*k, so
+    nu/(delta * delta k) = 1 and K is the expression below with nu -> 1.  Frozen
+    with respect to chi (a flow-only sensor), so it is formed once.
+
+    Sanity check available in closed form: on the inviscid edge of this field
+    U_e = k x gives K = nu/(k x^2), i.e. K = 1/x^2 in these units.
+    """
+    q = np.sqrt(U*U + V*V)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        dqdx = (U*dUdx)/q                      # V has no x-dependence here
+        dqdy = (U*dUdy + V*dVdy)/q
+        K = (U*dqdx + V*dqdy)/q**3
+    return np.where(q > 0.0, K, np.inf)
+
+
+def kgate(K, K_crit, n):
+    """q(K) = 1/(1 + (max(K,0)/K_crit)^n); q -> 0 where K is unbounded."""
+    with np.errstate(over='ignore', invalid='ignore'):
+        q = 1.0/(1.0 + (np.maximum(K, 0.0)/K_crit)**n)
+    return np.nan_to_num(q, nan=0.0, posinf=0.0)
+
+
 def run_case(L, nx=384, ny=140, t_end=400.0, chi_init=None, verbose=False,
-             return_field=False, niter=60000):
+             return_field=False, niter=60000, K_crit=None, n_gate=2.0,
+             return_gate=False):
+    """K_crit=None (default) reproduces the published ungated result exactly.
+
+    Passing K_crit switches on the acceleration-quench gate q(K) multiplying
+    the SA production only, as proposed in blindspots/07.
+    """
     H = max(40.0, 0.12*L)
     x, y = grids(L, nx, ny, H)
     dx = x[1]-x[0]
@@ -89,6 +120,17 @@ def run_case(L, nx=384, ny=140, t_end=400.0, chi_init=None, verbose=False,
     S = np.abs(np.outer(x, fpp))     # |omega| = x f''
     yw = np.tile(y, (nx, 1))
     yw[:, 0] = y[1]*0.5              # avoid /0 at the wall row (chi=0 there)
+
+    # acceleration-quench gate on production (default off -> bit-identical)
+    if K_crit is None:
+        qgate = 1.0
+        Kfield = None
+    else:
+        dUdx = np.tile(fp, (nx, 1))                    # d(x f')/dx = f'
+        dUdy = np.outer(x, fpp)                        # d(x f')/dy = x f''
+        dVdy = -np.tile(fp, (nx, 1))                   # d(-f)/dy = -f'
+        Kfield = kloc_hiemenz(U, V, dUdx, dUdy, dVdy)
+        qgate = kgate(Kfield, K_crit, n_gate)
 
     if chi_init is None:
         # turbulent init: a saturated layer over the wall (interior only;
@@ -137,7 +179,7 @@ def run_case(L, nx=384, ny=140, t_end=400.0, chi_init=None, verbose=False,
         St = S + chi*fv2/(KAPPA**2*yw**2)
         St = np.maximum(St, 0.3*S)
         St = np.maximum(St, 1e-12)
-        prod = CB1*St*chi
+        prod = qgate*CB1*St*chi
         r = np.minimum(chi/(St*KAPPA**2*yw**2), 10.0)
         g = r + CW2*(r**6-r)
         fw = g*((1.0+CW3**6)/(g**6+CW3**6))**(1.0/6.0)
@@ -147,7 +189,7 @@ def run_case(L, nx=384, ny=140, t_end=400.0, chi_init=None, verbose=False,
         # local pseudo-time step from the fastest local rate
         rate = (np.abs(U)/dx + np.abs(V)/dyc2
                 + 2.0*nut/SIGMA*(1.0/dx**2 + 1.0/dyc2**2)
-                + CB1*St + 2.0*CW1*fw*chi/yw**2)
+                + qgate*CB1*St + 2.0*CW1*fw*chi/yw**2)
         chi = chi + (CFLLOC/rate)*res
         chi = np.maximum(chi, 0.0)
         chi[:, 0] = 0.0
@@ -169,6 +211,8 @@ def run_case(L, nx=384, ny=140, t_end=400.0, chi_init=None, verbose=False,
                chi_wallmax=float(chi[:, 1:6].max()))
     if return_field:
         out['field'] = (x, y, chi)
+    if return_gate:
+        out['gate'] = (x, y, qgate, Kfield)
     return out
 
 
