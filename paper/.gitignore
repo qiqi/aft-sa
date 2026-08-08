@@ -34,3 +34,7 @@ __pycache__/
 # Auxiliary PDFs not from main build
 eppler.pdf
 nlf.pdf
+
+# Rendered page images for the Somers Fig. 9 digitization: regenerable from
+# references/somers1981-*.pdf with `python3 repro/cfd/digitize_somers_fig9.py --render`.
+repro/cfd/.somers_fig9/

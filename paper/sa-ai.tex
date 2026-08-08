@@ -1806,6 +1806,108 @@ pressure-gradient parameter anywhere: amplification is confined to the
 recovery stretch, where the profile turns inflectional ($\hat\Omega \hat I\!>\!0$)
 and the fronts are set.
 
+\subsection{Filling the workshop incidence window, and the deep negative
+branch}\label{sec:nlfextalpha}
+
+The incidence set above ($-8^\circ$, $-4^\circ$, $0^\circ$, $4^\circ$,
+$9^\circ$, $15^\circ$) meets the First AIAA Transition Modeling and
+Prediction Workshop's Case-2B sweep---$\alpha\!=\!-4^\circ$--$8^\circ$,
+most submittals at $2^\circ$ steps---at only three stations, and meets
+Piotrowski and Zingg's $-6^\circ$--$6^\circ$ sweep~\cite{piotrowski_zingg_2021}
+at three. To make the comparison one-to-one we add
+$\alpha\!=\!-6^\circ$, $-2^\circ$, $2^\circ$, $6^\circ$ and $8^\circ$ on the
+finest (L2) pair of both mesh families, at the same
+$Re\!=\!4\!\times\!10^6$, $M\!=\!0.1$ and paper-wide seed, so that every
+incidence carried by the workshop submittals and by the SA-LM2015/sLM2015
+sweeps is now also carried here. Two further stations, $\alpha\!=\!-10^\circ$
+and $-12^\circ$, extend the matrix past the workshop's $-4^\circ$ floor into
+the range where Somers's upper-surface transition orifices still report
+fronts (Fig.~9 of Ref.~\cite{somers_1981}, down to $c_l\!\approx\!-1.04$)
+but no computational sweep in the literature goes. Fourteen solutions in
+all; Table~\ref{tab:extnlfalpha} collects them.
+
+\input{tables/ext2026_nlf_alpha}
+
+The four in-window incidences land inside the fourteen-submittal envelope on
+both surfaces: at $\alpha\!=\!2^\circ$ the computed
+$x_\mathrm{tr}^\mathrm{up}\!=\!0.338$/$0.344\,c$
+(structured/cavity) against the submittals' $0.040$--$0.453\,c$, and
+$x_\mathrm{tr}^\mathrm{lo}\!=\!0.604$/$0.607\,c$ against
+$0.080$--$0.654\,c$; at $8^\circ$, $0.104$/$0.109\,c$ against
+$0.008$--$0.281\,c$ and $0.624$/$0.636\,c$ against $0.033$--$0.675\,c$.
+The lower-surface fronts sit at the top of that band, tracking the measured
+aft-ward march: Somers's orifices give $0.610\,c$ at $c_l\!=\!0.793$ and
+$0.629\,c$ at $c_l\!=\!1.215$, against $0.604\,c$ at the computed
+$c_l\!=\!0.751$ and $0.614\,c$ at $1.202$.
+On the deep-negative branch the pressure (upper) surface front runs aft
+monotonically---$0.559\,c$ at $-8^\circ$, $0.681\,c$ at $-10^\circ$,
+$0.945\,c$ at $-12^\circ$---while the suction (lower) surface trips within
+$0.007\,c$ of the leading edge, the limit the $e^N$ references also reach.
+
+\subsection{The same constants across Reynolds number: the favorable
+branch}\label{sec:nlfresweep}
+
+Section~\ref{sec:eppresweep} follows the bubble across the Reynolds-number
+range of the McGhee experiment; the favorable-gradient branch deserves the
+same test, and Somers measured transition at $Re\!=\!1$, $2$ and
+$3\!\times\!10^6$ as well as at the $4\!\times\!10^6$ benchmark, all at
+$M\!=\!0.10$ (Fig.~9(a)--(d) of Ref.~\cite{somers_1981}). We therefore hold
+$\alpha$ at the two paper anchors $0^\circ$ and $4^\circ$, hold the seed and
+the constants, reuse the L2 grids of both families unchanged---only
+$\mu_\mathrm{ref}$ changes---and sweep the three lower Reynolds numbers:
+twelve solutions, Table~\ref{tab:extnlfresweep}.
+
+\input{tables/ext2026_nlf_resweep}
+
+The upper-surface front moves forward monotonically with Reynolds number and
+joins the benchmark values without a step: at $\alpha\!=\!0^\circ$,
+$0.446\!\to\!0.418\!\to\!0.400\!\to\!0.387\,c$ over
+$Re\!=\!1\!\to\!4\!\times\!10^6$, and at $4^\circ$,
+$0.379\!\to\!0.320\!\to\!0.279\!\to\!0.254\,c$; the lower-surface front,
+set by the recovery rather than by the rooftop, barely moves
+($0.613\!\to\!0.566\,c$ and $0.631\!\to\!0.610\,c$ across the same span),
+and section drag falls from $0.00777$ to $0.00564$ at $0^\circ$ over the
+same span. The two mesh families agree to
+$0.010\,c$ in front position and $6\!\times\!10^{-4}$ in $c_d$ at every
+station.
+
+Somers measured transition at these Reynolds numbers with the same
+surface-orifice technique used at the benchmark condition, and reports it the
+honest way: an open symbol at the most-downstream orifice still laminar and a
+solid symbol at the most-upstream orifice already turbulent, so each lift
+coefficient carries a \emph{bracket} on $x_\mathrm{tr}$, one orifice spacing
+($0.05\,c$ over most of the chord) wide. We digitized all four panels of
+Fig.~9---the three swept here and the $4\!\times\!10^6$ benchmark---from the
+scanned report (\texttt{repro/cfd/digitize\_somers\_fig9.py}; the brackets are
+in \texttt{data/somers1981\_nlf0416\_transition\_by\_Re.json}), and
+Table~\ref{tab:extnlfsomers} compares the computed fronts against them at
+matched lift. Of the $27$ comparisons the measurement covers, $20$ fall inside
+the bracket. The misses are all small and one-signed: on the upper surface the
+computed front sits $0.012$--$0.029\,c$ \emph{aft} of the bracket at
+$\alpha\!=\!4^\circ$ and $Re\!=\!2$ and $3\!\times\!10^6$, the model's front
+moving forward with Reynolds number a little more slowly than the measurement's;
+on the lower surface the one clear miss is $0.020\,c$ \emph{ahead} of the
+bracket at $\alpha\!=\!4^\circ$, $Re\!=\!10^6$. Both anchors at
+$Re\!=\!10^6$ and every $\alpha\!=\!0^\circ$ station at every Reynolds number
+lie inside. No published transition-model sweep exists at these Reynolds
+numbers for this airfoil, so the comparison is against the measurement alone.
+
+\input{tables/ext2026_nlf_somers}
+
+Two properties of the source bound what the comparison can say. The bracket is
+the measurement's resolution, not an error bar on a point, so agreement means
+only that the computed front falls between two adjacent orifices---at the
+$0.05\,c$ spacing this is a weaker statement than the same words would carry
+against a hot-film or an $e^N$ station. And the measured upper-surface branch
+of each panel ends where the front runs ahead of the most-forward orifice: at
+$Re\!=\!4\!\times\!10^6$ that happens by $c_l\!\approx\!0.68$, which is why
+Table~\ref{tab:extnlfsomers} has no upper-surface entry for the
+$\alpha\!=\!4^\circ$ benchmark row. As a check on the digitization itself,
+every one of the $28$ points of this same LTPT data as replotted in Coder's
+dissertation~\cite{coder_thesis_2014} falls inside the brackets extracted
+here, and the extracted abscissae land on the $5\%$-chord orifice stations to
+$0.14$--$0.44\%$ chord RMS.
+
 \section{The Eppler 387 low-Reynolds-number airfoil}\label{sec:eppval}
 
 The Eppler 387 tests the low-Reynolds-number,
@@ -2118,7 +2220,34 @@ is placed correctly. The mechanism (the transported-$\chi$ handover's
 fixed $e$-fold count against its growing physical length), and where
 it leads as the Reynolds number falls---to a bursting boundary, and
 to the loss of the two-state structure the experiment shows---is
-quantified in the next section (Sec.~\ref{sec:epphandover}).
+quantified in Sec.~\ref{sec:epphandover}.
+
+\subsection{Completing the published incidence grid at
+$Re\!=\!2\!\times\!10^5$}\label{sec:eppextalpha}
+
+The $\gamma$--$Re_\theta$ and SA-BC results of
+Ref.~\cite{shahjahan_2024} are reported on the integer grid
+$\alpha\!=\!-2^\circ$--$9^\circ$, and Cole and Mueller's bubble stations
+at this Reynolds number span $-2^\circ$--$8^\circ$
+\cite{cole_mueller_1990}. Three stations of that grid were missing here:
+$-1^\circ$, and the pair $8^\circ$ and $9^\circ$ that sits past the
+$8.5^\circ$ endpoint already computed. We add them on the L2 pair
+(six solutions, Table~\ref{tab:exteppalpha}), which puts an SA-AI value at
+every incidence either published model reports.
+
+\input{tables/ext2026_epp_a200k}
+
+At $\alpha\!=\!-1^\circ$ the bubble runs $0.546$--$0.791\,c$ (structured)
+and the front sits at $0.696\,c$, against $0.763\,c$ for
+$\gamma$--$Re_\theta$ and $0.734\,c$ for SA-BC. At $8^\circ$ and $9^\circ$
+the computed upper surface carries no closed bubble at all and the front
+collapses to the leading edge ($0.119\,c$ and $0.016\,c$ structured), which
+is the behavior the experiment reports---Cole and Mueller record attached
+transition with no separation bubble from $\alpha\!=\!7^\circ$ upward at
+this Reynolds number, their stations there taken from Eppler's program
+rather than from a measured plateau. SA-BC reaches the same state
+($0.099\,c$ and $0.022\,c$); $\gamma$--$Re_\theta$ retains a front at
+$0.451\,c$ and $0.150\,c$.
 
 \section{Reynolds-number study of the Eppler 387 at $\alpha\!=\!5^\circ$}\label{sec:eppresweep}
 
@@ -2450,6 +2579,65 @@ would equilibrate near $\chi\!\sim\!c_{v1}$ with $f_{v1}$ only half
 active. Low-$Re$ solutions
 in this range should be read as the sum of two canceling errors, not
 as resolved transition physics.
+
+\subsection{Incidence sweeps at $10^5$ and $3\!\times\!10^5$: where the
+two errors stop canceling}\label{sec:eppresweepalpha}
+
+The sweep above fixes $\alpha\!=\!5^\circ$, which is one cut through a
+plane the literature samples much more densely. Cole and Mueller's bubble
+stations at $Re\!=\!10^5$ cover eleven incidences, all with measured
+separation \emph{and} reattachment---the best-instrumented Eppler~387
+bubble dataset available---and Shahjahan et al. report
+$\gamma$--$Re_\theta$ and SA-BC fronts on the integer grid
+$-2^\circ$--$10^\circ$ at the same condition; at $3\!\times\!10^5$,
+Ghimire et al. tabulate separation, transition and reattachment for three
+OpenFOAM transitional models against the measurement at
+$\alpha\!=\!2^\circ$, $4^\circ$ and $6^\circ$~\cite{ghimire_2025}, and
+Cole and Mueller add $-2^\circ$, $0^\circ$, $1^\circ$ and $3^\circ$. We
+therefore sweep incidence at both Reynolds numbers on the L2 pair, holding
+the seed and the constants---seven incidences at $10^5$ and nine at
+$3\!\times\!10^5$, $32$ solutions
+(Tables~\ref{tab:extepp100k} and~\ref{tab:extepp300k}). $Re\!=\!6\!\times\!10^4$
+is left at its single $\alpha\!=\!5^\circ$ station: it lies far below the
+airfoil's design Reynolds number, and the mechanism dissected above is
+already the dominant error there. $4.6\!\times\!10^5$ is left alone because
+no published model results exist at that condition.
+
+\input{tables/ext2026_epp_re300k}
+
+\input{tables/ext2026_epp_re100k}
+
+At $3\!\times\!10^5$ the model sits inside the published spread. Against
+Ghimire's tables the computed transition station is
+$0.579$ ($\alpha\!=\!2^\circ$), $0.532$ ($4^\circ$) and $0.443\,c$
+($6^\circ$), where the measurement gives $0.66$, $0.55$ and $0.46\,c$ and
+the three OpenFOAM models span $0.592$--$0.646$, $0.490$--$0.542$ and
+$0.470$--$0.479\,c$; the bubble itself closes at $0.651$, $0.596$ and
+$0.477\,c$ against $\gamma$--$Re_\theta$-SST's $0.676$, $0.561$ and
+$0.498\,c$ and the measured $0.70$, $0.575$ and $0.46\,c$. Against Cole and
+Mueller's four incidences the separation station lands within $0.06\,c$ and
+the reattachment within $0.07\,c$. The two mesh families agree to
+$0.006\,c$ in every station over $-2^\circ$--$6^\circ$.
+
+At $10^5$ the two canceling errors identified above stop canceling, and
+the incidence sweep shows the mechanism directly rather than at a single
+station. The front is early at every incidence---$0.830$, $0.750$, $0.677$,
+$0.590$ and $0.482\,c$ (structured) at
+$\alpha\!=\!-2^\circ$--$6^\circ$, against Cole and Mueller's $0.90$,
+$0.85$, $0.76$, $0.68$ and $0.60\,c$, a deficit of $0.07$--$0.12\,c$ that is
+also forward of both published models---while the reattachment it should
+buy arrives late or not at all: $0.978\,c$ at $\alpha\!=\!0^\circ$ against a
+measured $0.90\,c$, $0.910\,c$ (cavity) at $2^\circ$ against $0.85\,c$,
+$0.975\,c$ at $4^\circ$ against $0.78\,c$, and no closure ahead of the
+trailing edge at $6^\circ$ on either family where the measurement closes at
+$0.68\,c$. The separation station itself is the one part that stays
+accurate, within $0.05\,c$ of the measurement to $\alpha\!=\!4^\circ$. The
+consequence is a bubble too long to shed its drag: $c_d$ reaches $0.0499$ at
+$\alpha\!=\!6^\circ$ and $0.0403$ at $10^\circ$, two to three times the
+$3\!\times\!10^5$ level at the same incidence. This is the
+$\alpha\!=\!5^\circ$ handover diagnosis above---an early
+$\chi\!=\!1$ front whose head start an over-long handover overspends---read
+across the incidence range rather than inferred from one cut.
 
 
 \section{A two-element section: an upstream wake over a downstream

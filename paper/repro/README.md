@@ -71,7 +71,20 @@ Read each script alongside the passage it backs; `regenerate_all.py` and
 | §VI Re sweep | fig:eppresweep_low/high | `cfd/regen_epp_resweep_suite.py` |
 | Appendix | 18 wall-anchored contour sheets (velocity + log10 chi, 6 grids) | `cfd/regen_chi_sheets.py` |
 | §VI Re sweep | tab:eppresweep | `cfd/regen_resweep_table.py` |
+| §V/§VI extension | tab:extnlfalpha, tab:extnlfresweep, tab:exteppalpha, tab:extepp100k, tab:extepp300k, tab:extnlfsomers (and the `_wp` whitepaper variants) | `cfd/emit_ext2026_tables.py` |
+| §V Re sweep | Somers TP-1861 Fig. 9(a)-(d) transition brackets, all four Reynolds numbers -> `data/somers1981_nlf0416_transition_by_Re.json` | `cfd/digitize_somers_fig9.py` |
 | numerics.md | discrete-scheme record (replay, spike trace, operator variants; reads the mode-3 tree) | `numerics/*.py` |
+
+The 2026-08 literature-comparability extension (64 L2-pair solutions: the
+NLF(1)-0416 incidences that complete the transition-workshop and
+Piotrowski--Zingg overlap plus the deep-negative pair, the NLF Reynolds sweep
+at α = 0°/4°, the Eppler 387 incidences completing the published −2°--9° grid,
+and the Eppler incidence sweeps at Re = 1e5 and 3e5) is defined in
+`sa-ai/scripts/ext2026/cases_ext.py` and driven by `run_ext_case.py` /
+`run_queue.sh` there; `harvest.py` extracts it to `paper/data/ext2026_matrix.json`,
+which `cfd/emit_ext2026_tables.py` turns into the table files. Every case reuses
+an existing L2 mesh — α is `freestream.alphaAngle` and Re is
+`muRef = Mach/Re`, so nothing is re-meshed.
 
 Infrastructure (no single paper anchor): `lib/` (the kernel, consistency-
 tested), `analytic/_saai.py` (shared constants plumbing), `driver/` (re-run

@@ -445,6 +445,42 @@ Table~\ref{t:nlf}: forces and fronts.
 Table~\ref{t:nlfof}: at L2 every front
 within $0.016\,c$ and the lift within $0.9\%$ of the SA-AI values.
 
+Seven further incidences on the L2 pair (fourteen solutions,
+Table~\ref{t:extnlfalpha}): $-6^\circ$, $-2^\circ$, $2^\circ$,
+$6^\circ$, $8^\circ$, which make the overlap with the fourteen workshop
+submittals and with the SA-LM2015/sLM2015 sweeps one-to-one, and
+$-10^\circ$, $-12^\circ$, which reach the deep-negative branch where
+Somers's orifices still report fronts. At the four in-window
+incidences both computed fronts lie inside the submittal band on both
+surfaces (at $2^\circ$, $0.338$/$0.344\,c$ upper against
+$0.040$--$0.453\,c$ and $0.604$/$0.607\,c$ lower against
+$0.080$--$0.654\,c$).
+
+Reynolds sweep at the two incidence anchors, L2 pair, same grids and
+seed with only $\mu_\mathrm{ref}$ changed (twelve solutions,
+Table~\ref{t:extnlfresweep}): $Re=1$, $2$, $3\times10^6$, the
+Reynolds numbers at which Somers also measured transition. The
+upper-surface front moves forward monotonically with $Re$ and joins the
+$4\times10^6$ benchmark without a step
+($0.446\to0.418\to0.400\to0.387\,c$ at $0^\circ$;
+$0.379\to0.320\to0.279\to0.254\,c$ at $4^\circ$).
+Somers measured transition at these same Reynolds numbers, reporting the last
+laminar and first turbulent orifice, so each lift coefficient carries a
+$0.05\,c$ bracket rather than a point; all four panels of his Fig.~9 are
+digitized in \texttt{data/somers1981\_nlf0416\_transition\_by\_Re.json}
+(\texttt{repro/cfd/digitize\_somers\_fig9.py}).
+Table~\ref{t:extnlfsomers}: $20$ of the $27$ covered comparisons fall inside
+the bracket, the misses being $0.012$--$0.029\,c$ aft on the upper surface at
+$\alpha=4^\circ$, $Re=2$ and $3\times10^6$, and $0.020\,c$ ahead on the lower
+surface at $\alpha=4^\circ$, $Re=10^6$. Digitization check: all $28$ points of
+the same data as replotted in Coder's dissertation fall inside these brackets.
+
+\input{tables/ext2026_nlf_somers_wp}
+
+\input{tables/ext2026_nlf_alpha_wp}
+
+\input{tables/ext2026_nlf_resweep_wp}
+
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{nlf_aft_transition.pdf}
 \caption{NLF(1)-0416 transition fronts, $Re=4\times10^6$; near-wall
@@ -596,7 +632,17 @@ L0--L2 plus six extension incidences ($-2^\circ$, $1^\circ$,
 $3^\circ$, $4^\circ$, $6^\circ$, $8.5^\circ$) on the finest pair, and
 the two bounding incidences ($-2^\circ$, $8.5^\circ$) on L0 and L1 as
 well, so all six grids span the measured polar end to end
-(forty-four solutions, one solver build); same seed. Figure~\ref{f:epppolar}: drag polar against the LTPT
+(forty-four solutions, one solver build); same seed.
+Three further L2-pair incidences ($-1^\circ$, $8^\circ$, $9^\circ$)
+complete the $-2^\circ$--$9^\circ$ integer grid on which Shahjahan's
+$\gamma$--$Re_\theta$/SA-BC and Cole and Mueller's stations are
+reported (Table~\ref{t:exteppa200k}). At $8^\circ$ and $9^\circ$ the
+computed upper surface carries no closed bubble and the front collapses
+to $0.119$/$0.016\,c$, matching SA-BC's $0.099$/$0.022\,c$ and the
+experiment's report of attached transition without a bubble above
+$7^\circ$; $\gamma$--$Re_\theta$ holds fronts at $0.451$/$0.150\,c$.
+
+\input{tables/ext2026_epp_a200k_wp} Figure~\ref{f:epppolar}: drag polar against the LTPT
 measurement (McGhee et al., TM-4062), the $e^9$ reference, fully
 turbulent SA, and the digitized $\gamma$--$Re_\theta$ and SA-BC
 curves ($-6.4\%$ to $+3.7\%$ over $\alpha=0^\circ$--$7^\circ$).
@@ -767,6 +813,30 @@ bursting boundary, one Reynolds step above the measurement's
 ($6\times10^4$).
 Figures~\ref{f:eppresweeplow}--\ref{f:eppresweephigh}: surface
 suites. Table~\ref{t:eppresweep}: L2 coefficients.
+
+Incidence sweeps at the two Reynolds numbers the literature samples
+densely, on the L2 pair, same seed and constants (32 further
+solutions): $\alpha=-2^\circ$--$10^\circ$ at $10^5$
+(Table~\ref{t:extepp100k}; Cole and Mueller's eleven measured bubble
+stations, Shahjahan's $\gamma$--$Re_\theta$ and SA-BC fronts) and
+$\alpha=-2^\circ$--$10^\circ$ at $3\times10^5$
+(Table~\ref{t:extepp300k}; Ghimire's three OpenFOAM transitional models
+at $2^\circ$, $4^\circ$, $6^\circ$, Cole and Mueller at $-2^\circ$,
+$0^\circ$, $1^\circ$, $3^\circ$). At $3\times10^5$ the transition
+station is $0.579$/$0.532$/$0.443\,c$ at $\alpha=2^\circ$/$4^\circ$/$6^\circ$
+against a measured $0.66$/$0.55$/$0.46\,c$ and a three-model spread of
+$0.592$--$0.646$/$0.490$--$0.542$/$0.470$--$0.479\,c$; separation lands
+within $0.06\,c$ and reattachment within $0.07\,c$ of Cole and Mueller. At $10^5$ the
+front is $0.07$--$0.12\,c$ ahead of the measurement at every incidence
+and the bubble closes late or not at all
+($0.978\,c$ at $0^\circ$ against $0.90\,c$; no closure at $6^\circ$
+against $0.68\,c$), with $c_d$ reaching $0.0499$ at $6^\circ$.
+$6\times10^4$ and $4.6\times10^5$ keep their single $\alpha=5^\circ$
+stations.
+
+\input{tables/ext2026_epp_re300k_wp}
+
+\input{tables/ext2026_epp_re100k_wp}
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{eppler_resweep_forces.pdf}
