@@ -8,8 +8,19 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{float}
+\usepackage{CJKutf8}
+%% Loaded last, as hyperref requires. linktoc=all makes the contents entry,
+%% its leader dots and its page number all clickable; hidelinks keeps the
+%% printed page looking exactly as it did, with no coloured frames.
+\usepackage[linktoc=all,hidelinks]{hyperref}
 \graphicspath{{figs/}}
 \setlength{\parskip}{4pt}\setlength{\parindent}{0pt}
+
+%% Continuation caption: a sheet series that differs only in incidence,
+%% station or Reynolds number is ONE numbered figure carried over several
+%% pages, so the number and the description are stated once and each further
+%% page says only which member it is.
+\newcommand{\figcont}[1]{\addtocounter{figure}{-1}\caption{\emph{Continued.} #1}}
 
 \title{\vspace{-2em}SA-AI (Spalart--Allmaras with Autogenous Inception):\\
 Technical Summary\vspace{-0.5em}}
@@ -19,10 +30,89 @@ Technical Summary\vspace{-0.5em}}
 \begin{document}
 \maketitle
 
+\begin{center}
+  \begin{minipage}{0.6\textwidth}\centering
+  \begin{CJK}{UTF8}{bsmi}埏埴以為器，當其無，有器之用。\end{CJK}\\[3pt]
+  \emph{Clay is shaped into a vessel:\\
+  it is the emptiness within that makes it useful.}\\[3pt]
+  ---\emph{Daodejing}, ch.~11
+  \end{minipage}
+\end{center}
+
+%% Sections and subsections: the Results subsections ARE the case-by-case
+%% navigation (flat plate, NLF, Eppler, two-element, cylinder, Daedalus,
+%% spheroid), so a section-only contents listed four lines for 120-odd pages.
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section*{Notation}
+\begin{tabbing}
+  $\sigma_P,\sigma_D;\;\tau$\quad\quad \= \kill
+  $\tilde\nu$ \> SA working variable \\
+  $\tilde S$ \> SA modified vorticity, Eq.~\eqref{w:closure} \\
+  $\nu,\;\mu_t$ \> kinematic (laminar) viscosity and eddy viscosity, Eq.~\eqref{w:fv1bypass} \\
+  $\chi,\;\chi_\infty$ \> $\tilde\nu/\nu$ and its freestream (seed) value \\
+  $c_{v1},\;f_{v1}$ \> SA near-wall constant ($7.1$) and damping function \\
+  $P,\;D$ \> production and destruction of $\tilde\nu$, Eq.~\eqref{w:blend} \\
+  $P_\mathrm{SA},\;P_\mathrm{AI}$ \> turbulent (SA) and laminar-amplification production \\
+  $c_{\nu,\mathrm{ai}}$ \> laminar-viscosity scale in the SA diffusion term only ($1/6$) \\
+  $d$ \> distance to the nearest wall \\
+  $\omega$ \> vorticity magnitude \\
+  $Re_\Omega$ \> vorticity Reynolds number, $d^2\omega/\nu$ \\
+  $X,\;Y,\;Z$ \> velocity, shear, and curvature indicators (velocity scale), Eq.~\eqref{w:ind} \\
+  $\hat X,\;\hat Y,\;\hat Z$ \> the same, normalized by $U_\mathrm{loc}$: direction cosines on the unit sphere \\
+  $U_\mathrm{loc}$ \> local velocity scale, $\sqrt{X^2+Y^2+Z^2}$, Eq.~\eqref{w:ind} \\
+  $\hat\Omega$ \> vorticity fraction $Y/\sqrt{X^2+Y^2}$, Eq.~\eqref{w:omhat} \\
+  $I$ \> accumulated inflection, Eq.~\eqref{w:integral} \\
+  $\hat I$ \> nondimensionalized accumulated inflection, Eq.~\eqref{w:omhat} \\
+  $a,\;a_{\max}$ \> amplification rate and its free-shear ceiling ($0.19$) \\
+  $\sigma_{Re}$ \> onset gate on $Re_\Omega$, Eq.~\eqref{w:rate} \\
+  $Re_\Omega^{\mathrm c}$ \> onset threshold in $Re_\Omega$, Eq.~\eqref{w:onset} \\
+  $C,\;A,\;B,\;k$ \> onset-threshold shape constants and scale, Eq.~\eqref{w:onset} \\
+  $w$ \> onset ramp width, Eq.~\eqref{w:rate} \\
+  $\sigma_P,\sigma_D;\;\tau$ \> production and destruction handover weights and the handover width, Eq.~\eqref{w:sigma} \\
+  $\sigma_{v1};\;q,\;g_\chi,\;g_q$ \> $f_{v1}$-bypass blend weight and its two gates, Eqs.~\eqref{w:fv1q}--\eqref{w:fv1bypass} \\
+  $N,\;N_\mathrm{crit}$ \> amplification factor and its critical value ($e^N$ method), Eq.~\eqref{w:mack} \\
+  $Tu$ \> freestream turbulence intensity \\
+  $\mathbf u,\;\boldsymbol\omega$ \> velocity and vorticity vectors \\
+  $\mathbf d,\;\boldsymbol\ell$ \> wall-distance vector $d\,\nabla d$ and curvature vector, Eq.~\eqref{w:gram} \\
+  $H$ \> boundary-layer shape factor \\
+  $u_\tau,\;\delta_{99}$ \> friction velocity and boundary-layer thickness \\
+  $U_F,\;y_F$ \> turbulence-front speed and its critical layer, $u(y_F)=U_F$ \\
+  $\beta$ \> Falkner--Skan wedge parameter \\
+  $\alpha$ \> angle of attack \\
+  $c,\;x/c$ \> chord and chordwise coordinate \\
+  $\eta$ \> fraction of semi-span \\
+  $x_\mathrm{tr};\;x_{LS},\,x_R$ \> transition-onset station; laminar-separation and reattachment stations \\
+  $Re,\;M$ \> chord Reynolds number and Mach number \\
+  $Re_x,\;Re_\theta$ \> streamwise and momentum-thickness Reynolds numbers \\
+  $Re_D,\;Re_L$ \> cylinder-diameter and spheroid-length Reynolds numbers \\
+  $C_f,\;C_d,\;C_l$ \> skin-friction, drag, and lift coefficients \\
+  L0, L1, L2 \> the three grid-refinement levels, coarse to fine \\
+\end{tabbing}
+
+\clearpage
+
 \section{Model}
 
 \subsection{Transport equation and blended sources}
 
+The model enters the mean flow through the turbulent viscosity alone:
+\begin{gather}
+  \frac{\partial\rho}{\partial t} + \nabla\!\cdot\!(\rho\mathbf u) = 0,
+  \qquad
+  \frac{\partial(\rho\mathbf u)}{\partial t}
+    + \nabla\!\cdot\!(\rho\,\mathbf u\!\otimes\!\mathbf u)
+    = -\nabla p + \nabla\!\cdot\!\boldsymbol\tau, \notag\\[3pt]
+  \boldsymbol\tau = (\mu+\mu_t)\big[\nabla\mathbf u
+    + (\nabla\mathbf u)^{\!\top}
+    - \tfrac23(\nabla\!\cdot\!\mathbf u)\,\mathbf I\big],
+  \qquad
+  \mu_t = \big[(1-\sigma_{v1})\,f_{v1}(\chi)+\sigma_{v1}\big]\,\rho\tilde\nu,
+  \label{w:ns}
+\end{gather}
+with $\sigma_{v1}$ the lifted-layer bypass weight of Eq.~\eqref{w:fv1bypass}. The
+working variable is transported by
 \begin{equation}
   \frac{D\tilde\nu}{Dt} = P - D
   + \frac{1}{\sigma}\nabla\!\cdot\!\big[(c_{\nu,\mathrm{ai}}\,\nu+\tilde\nu)\,\nabla\tilde\nu\big]
@@ -30,13 +120,14 @@ Technical Summary\vspace{-0.5em}}
   \label{w:sa}
 \end{equation}
 \begin{equation}
-  P = \max\!\big[\,(1-\sigma_P)\,a\,S\,\omega\,\tilde\nu,\;\;\sigma_P\,P_\mathrm{SA}\,\big],
+  P = \max\!\big[\,(1-\sigma_P)\,a\,\sigma_{Re}\,\omega\,\tilde\nu,\;\;\sigma_P\,P_\mathrm{SA}\,\big],
   \qquad
   D = \sigma_D\,D_\mathrm{SA},
   \label{w:blend}
 \end{equation}
+$a$ and $\sigma_{Re}$ are Eq.~\eqref{w:rate}; $\sigma_P,\sigma_D$ Eq.~\eqref{w:sigma}.
 $\sigma_P\!\equiv\!1$ (and with it $\sigma_D\!=\!1$),
-$c_{\nu,\mathrm{ai}}\!=\!1$, and $b\!\equiv\!0$ recover baseline SA
+$c_{\nu,\mathrm{ai}}\!=\!1$, and $\sigma_{v1}\!\equiv\!0$ recover baseline SA
 exactly.
 \begin{gather}
   P_\mathrm{SA} = c_{b1}\tilde S\,\tilde\nu, \qquad
@@ -68,24 +159,30 @@ $c_{\nu,\mathrm{ai}}\nu+f_n\tilde\nu>0$.
 In a thin quasi-two-dimensional layer the profile is captured to second
 order about any wall-normal point by three velocity scales formed from
 the wall distance $d$: the velocity $u$, the shear $d\,u'$, and the
-curvature $\tfrac12 d^2u''$. Normalized by their common magnitude
-$R=\sqrt{u^2+(du')^2+(\tfrac12 d^2u'')^2}$, they place the local state
+curvature $\tfrac12 d^2u''$. Normalized by their common magnitude, the local
+velocity scale $U_\mathrm{loc}=\sqrt{u^2+(du')^2+(\tfrac12 d^2u'')^2}$, they
+place the local state
 on the unit sphere of directions
 \begin{equation}
-  (X,Y,Z) = \big(u,\;d\,u',\;\tfrac12 d^2u''\big)\big/R,
+  (X,Y,Z) = \big(u,\;d\,u',\;\tfrac12 d^2u''\big),
+  \qquad
+  (\hat X,\hat Y,\hat Z) = (X,Y,Z)\big/U_\mathrm{loc},
   \label{w:ind}
 \end{equation}
+so unhatted symbols carry the velocity scale and hatted ones are the
+direction cosines on the unit sphere,
 \begin{equation}
-  \hat\Omega = \frac{Y}{\sqrt{X^2+Y^2}}
+  \hat\Omega = \frac{\hat Y}{\sqrt{\hat X^2+\hat Y^2}}
+  = \frac{Y}{\sqrt{X^2+Y^2}}
   \qquad\text{(vorticity fraction)},
   \qquad
-  \hat I = Y - X - Z
+  \hat I = \hat Y - \hat X - \hat Z
   \qquad\text{(accumulated inflection)}.
   \label{w:omhat}
 \end{equation}
-A near-wall parabola $u=By+Cy^2$ satisfies $\hat I=0$ identically.
+A near-wall parabola $u=c_1y+c_2y^2$ satisfies $\hat I=0$ identically.
 \begin{equation}
-  I(d) \equiv R\,\hat I = d\,u'-u-\tfrac12 d^2u''
+  I(d) \equiv U_\mathrm{loc}\,\hat I = d\,u'-u-\tfrac12 d^2u''
   = -\int_0^d \tfrac12\,s^2\,u'''(s)\,\mathrm{d}s,
   \label{w:integral}
 \end{equation}
@@ -98,8 +195,7 @@ gate. Fig.~\ref{f:sphere}.
 \includegraphics[width=0.68\textwidth]{indicator_sphere.pdf}
 \caption{Indicator sphere. Falkner--Skan profiles $\beta=+0.30$, $0$,
 $-0.10$, $-0.16$, $-0.19$, $-0.1988$; separated Stewartson
-$\beta=-0.19$, $H\approx4.9$. Attached profiles at $Re_\theta=500$,
-reversed-flow at $Re_\theta=200$; $\hat\Omega\hat I$ contours
+$\beta=-0.19$, $H\approx4.9$; $\hat\Omega\hat I$ contours
 $\{0.025,0.2,0.4,0.6,0.8,1.0\}$.}\label{f:sphere}
 \end{figure}
 
@@ -122,19 +218,24 @@ second derivative.
   \hat I = \frac{Y-X-Z}{\sqrt{X^2+Y^2+Z^2}},
   \label{w:gram}
 \end{equation}
-The solver's equivalent ratio realization
-$(|\mathbf u|,\,d|\boldsymbol\omega|,\,\tfrac12 d^2(\nabla^2\mathbf u)\!\cdot\!\hat{\mathbf u})$
-coincides with it wherever $\mathbf u\neq0$.
+The solver's equivalent \emph{ratio} realization,
+\begin{equation}
+  (X,\,Y,\,Z) \;=\;
+  \big(\,|\mathbf u|,\;\; d\,|\boldsymbol\omega|,\;\;
+  \tfrac12 d^2(\nabla^2\mathbf u)\!\cdot\!\hat{\mathbf u}\,\big),
+  \label{w:ratio}
+\end{equation}
+coincides with Eq.~\eqref{w:gram} wherever $\mathbf u\neq0$.
 
 \subsection{Amplification rate and onset threshold}
 
 The complete amplification source is
 \begin{equation}
-  P_{\mathrm{AI}} = a\,S\,\omega\,\tilde\nu, \qquad
+  P_{\mathrm{AI}} = a\,\sigma_{Re}\,\omega\,\tilde\nu, \qquad
   a = a_{\max}\,\operatorname{clip}\!\big\langle\,\hat\Omega\,\hat I\,\big\rangle_{0}^{1},
   \qquad
-  S = S\!\big(Re_\Omega/Re_\Omega^{\mathrm c}(\hat\Omega\hat I)\big), \qquad
-  S(\zeta)=\tfrac12\big[1+\tanh\!\big((\zeta-1)/w\big)\big],
+  \sigma_{Re} = \sigma_{Re}\!\big(Re_\Omega/Re_\Omega^{\mathrm c}(\hat\Omega\hat I)\big), \qquad
+  \sigma_{Re}(\zeta)=\tfrac12\big[1+\tanh\!\big((\zeta-1)/w\big)\big],
   \label{w:rate}
 \end{equation}
 \begin{equation}
@@ -192,48 +293,55 @@ $H=3.98$.}\label{f:calibrate}
 The molecular coefficient in the diffusion term of Eq.~\eqref{w:sa}
 only is scaled by $c_{\nu,\mathrm{ai}}<1$, leaving the mean-flow
 viscosity, the SA production and destruction, and
-$\chi=\tilde\nu/\nu$ (formed with the true $\nu$) untouched. The
-frozen-profile growth eigenvalue on Blasius at $Re_\theta=400$
-delivers only $0.49$ of the Drela--Giles rate, and the marched
-inception fails outright (the Blasius $N\!=\!1$ crossing sits at
-$Re_\theta=392$ even with the threshold removed entirely). Down the
-ladder $c_{\nu,\mathrm{ai}}=1,\tfrac12,\tfrac13,\tfrac16,\tfrac1{12}$
-that station's eigenvalue ratio climbs
-$0.49,\,0.75,\,0.87,\,1.02,\,1.13$: the value
+$\chi=\tilde\nu/\nu$ (formed with the true $\nu$) untouched.
+
+Marched on Blasius, against the Drela--Giles $N\!=\!1$ station
+$Re_\theta=337.9$ and slope $1.039\times10^{-2}$:
+%
+\begin{center}\small
+\begin{tabular}{ccc}
+  \toprule
+  $c_{\nu,\mathrm{ai}}$ & $N\!=\!1$ station & rate at $N\!=\!1$ \\
+  \midrule
+  $1$            & $556.7$ & $61\%$ \\
+  $1/2$          & $450.7$ & $71\%$ \\
+  $1/4$          & $387.5$ & $79\%$ \\
+  $1/6$          & $365.2$ & $84\%$ \\
+  $1/12$         & $337.4$ & $90\%$ \\
+  $1/24$         & $320.8$ & $95\%$ \\
+  $1/48$         & $312.7$ & $98\%$ \\
+  $0$            & $304.6$ & $103\%$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+%
+The rate is the $N\!=\!1$--$5$ secant as a fraction of the Drela--Giles
+slope. The model uses
 \begin{equation*}
-  c_{\nu,\mathrm{ai}}=\tfrac16
+  c_{\nu,\mathrm{ai}}=\tfrac16 .
 \end{equation*}
-puts the just-past-critical stations on the correlation (the
-separation branch holds $0.82$--$0.91$). The equilibrium
-disturbance-band thickness scales as
+The equilibrium disturbance-band thickness scales as
 $\sqrt{c_{\nu,\mathrm{ai}}}$, so every halving thins the band the grid
 must resolve by $\sqrt2$.
 
 \subsection{Handover blend and destruction tie}
 
-The destruction is not gated off
-but tied: $\sigma_D$ tracks $\sigma_P$ with slope
-$c_{b1}/(\kappa^2c_{w1})\approx0.249$ from the floor
-$(1+c_{b2})/(\sigma c_{w1})\approx0.751$, the two summing to one by
-the definition of $c_{w1}$. The tie is derived from the
-constant-stress wall layer, on which SA's solution is the linear
-profile $\tilde\nu=\kappa u_\tau y$ with height-independent terms
+The destruction is tied, not gated off: $\sigma_D$ tracks $\sigma_P$ with
+slope $c_{b1}/(\kappa^2c_{w1})\approx0.249$ from the floor
+$(1+c_{b2})/(\sigma c_{w1})\approx0.751$, the two summing to one by the
+definition of $c_{w1}$. On the constant-stress wall layer SA's solution is
+the linear profile $\tilde\nu=\kappa u_\tau y$, with
 $P_\mathrm{SA}=c_{b1}u_\tau^2$,
-$D_\mathrm{SA}=c_{w1}\kappa^2u_\tau^2$, and self-diffusion
-$(1+c_{b2})\kappa^2u_\tau^2/\sigma$; requiring the gated balance to
-hold pointwise gives Eq.~\eqref{w:sigma}, under which the linear
-profile is an exact solution of the gated equation at every height and
-for any $\tau$---continuously and discretely (verified to below
-$10^{-10}$ in profile and log-law intercept with two unrelated
-discretizations). In the laminar range the destruction floor is inert at
-the disturbance's quadratic scale: its ratio to the amplification
-production stays below $10^{-3}$ up to the $\chi=1$ crossing for
-every wedge and seed tested, and at $\chi=c_{v1}$ is at most $1.4\%$
-of the $\sigma_P$-weighted SA production it is tied against; marching
-the calibration instrument with the floor included moves the anchor
-and prediction stations by less than $1\%$.
+$D_\mathrm{SA}=c_{w1}\kappa^2u_\tau^2$ and self-diffusion
+$(1+c_{b2})\kappa^2u_\tau^2/\sigma$ all height-independent; requiring the
+gated balance to hold pointwise gives Eq.~\eqref{w:sigma}, under which that
+profile is an exact solution at every height and for any $\tau$. In the
+laminar range the destruction floor is inert: below $10^{-3}$ of the
+amplification production up to the $\chi=1$ crossing, at most $1.4\%$ of the
+$\sigma_P$-weighted SA production at $\chi=c_{v1}$, and worth less than $1\%$
+on the anchor and prediction stations.
 
-\subsection{Eddy-viscosity assembly in lifted transitional layers}
+\subsection{Eddy-viscosity assembly}
 
 The near-wall damping $f_{v1}$ enforces the attached-wall-layer
 identity $\chi=\kappa y^+$. Writing $y^+:=\chi/\kappa$, the reconstruction
@@ -245,13 +353,11 @@ identity $\chi=\kappa y^+$. Writing $y^+:=\chi/\kappa$, the reconstruction
   \;\;\text{(Reichardt)},
   \label{w:fv1q}
 \end{equation}
-The assembly is blended,
+sets the bypass weight of Eq.~\eqref{w:ns},
 \begin{equation}
-  \mu_t = \big[(1-b)\,f_{v1}(\chi)+b\big]\,\rho\tilde\nu,
-  \qquad
-  b = s(\chi)\,G(q), \qquad
-  s=\mathrm{clip}(\chi-1,0,1), \qquad
-  G=\mathrm{clip}((q-2)/2,0,1),
+  \sigma_{v1} = g_\chi(\chi)\,g_q(q), \qquad
+  g_\chi=\mathrm{clip}(\chi-1,0,1), \qquad
+  g_q=\mathrm{clip}((q-2)/2,0,1),
   \label{w:fv1bypass}
 \end{equation}
 inert for $\chi<1$ (negligible $\mu_t$ either way), for
@@ -301,13 +407,69 @@ $w$ & $0.35$ & onset ramp width; $N\!=\!1$ stations move $<\!1\%$ halved, $<\!2.
 $c_{\nu,\mathrm{ai}}$ & $1/6$ & frozen-profile growth eigenvalue reaches the Drela--Giles rate just past critical ($1.02$ at $Re_\theta\!=\!400$) \\
 $\tau$ & $4$ & numerics bracket: handover $78\%$ complete at $\chi=c_{v1}$, $97\%$ at $\chi\approx14.8$ \\
 $\sigma_D$ tie & Eq.~\eqref{w:sigma} & derived: constant-stress wall-layer balance; linear wall solution exact \\
-bypass $(s,G)$ & Eq.~\eqref{w:fv1bypass} & parameter-free law-of-the-wall discriminator; $G$ ramps over $q\in(2,4)$ \\
+bypass $(g_\chi,g_q)$ & Eq.~\eqref{w:fv1bypass} & parameter-free law-of-the-wall discriminator; $g_q$ ramps over $q\in(2,4)$ \\
 $(A,B)_\mathrm{Mack}$ & $(-8.43,\,2.4)$ & Mack 1977 $e^N$ correlation, wholesale \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Running the model: branch selection and seed handling}
+Free constants: baseline SA $7$ ($9$ with the retained Allmaras
+modifications); SA-AI $+8$, $+2$ imported from Mack, $19$ total; Drela's
+envelope $e^N$ in XFOIL $13$, plus $2$ compressibility constants and
+$N_\mathrm{crit}$.
+
+\subsection{Relaminarization behavior}
+
+Front speed on a frozen parallel profile, standard SA.
+Travelling-wave form of Eq.~\eqref{w:sa} in the frame $\xi=x-U_F t$, with
+$\tilde\nu\to0$ upstream and $\tilde\nu\to\tilde\nu_\mathrm{eq}(y)$ downstream,
+$\tilde\nu_\mathrm{eq}$ the $\xi$-independent equilibrium on the same profile.
+$U_F$ is a nonlinear eigenvalue; $y_F$ is the critical layer, $u(y_F)=U_F$.
+Last two table columns: the change when the laminar
+amplification is on.
+
+\begin{table}[H]
+  \centering\small
+  \caption{Front speed on frozen Falkner--Skan profiles. Robin outer
+  boundary, $L=90\,\delta_{99}$, $\Delta\xi=0.09\,\delta_{99}$,
+  $n_y=220$. Last two columns: change when the laminar amplification is
+  switched on, at zero upstream seed.}
+  \label{t:frontspeed}
+  \begin{tabular}{lrrrrrrrr}
+    \toprule
+    & & & & & & & \multicolumn{2}{c}{AI influence (\%)} \\
+    \cmidrule(lr){8-9}
+    profile & $\beta$ & $Re_\theta$ & $\delta_{99}^+$ & $U_F/U_e$
+      & $U_F/u_\tau$ & $y_F^+$ & $U_F$ & $y_F$ \\
+    \midrule
+    Blasius          &     $0$ &  150 &  43 & $0.56526$ & $14.735$ & $15.29$ & $-0.26$ & $-0.29$ \\
+                     &         &  300 &  60 & $0.39998$ & $14.745$ & $14.93$ & $-0.15$ & $-0.16$ \\
+                     &         &  600 &  85 & $0.28291$ & $14.749$ & $14.81$ & $-0.01$ & $-0.01$ \\
+                     &         & 1200 & 120 & $0.20018$ & $14.759$ & $14.78$ & $<0.01$ & $<0.01$ \\
+                     &         & 2400 & 170 & $0.14153$ & $14.757$ & $14.77$ & $<0.01$ & $<0.01$ \\
+                     &         & 4800 & 241 & $0.10005$ & $14.753$ & $14.76$ & $<0.01$ & $<0.01$ \\
+    \midrule
+    favorable        & $+0.10$ &  600 &  93 & $0.30079$ & $14.573$ & $15.32$ & $<0.01$ & $<0.01$ \\
+    adverse          & $-0.10$ &  600 &  73 & $0.25159$ & $15.197$ & $13.75$ & $-0.11$ & $-0.10$ \\
+    \midrule
+    plane stagnation &    $+1$ &  200 &  69 & $0.58885$ & $13.873$ & $18.42$ & $<0.01$ & $<0.01$ \\
+                     &         &  400 &  98 & $0.42445$ & $14.142$ & $16.92$ & $<0.01$ & $<0.01$ \\
+                     &         &  800 & 138 & $0.30406$ & $14.327$ & $16.13$ & $<0.01$ & $<0.01$ \\
+                     &         & 1600 & 195 & $0.21700$ & $14.460$ & $15.67$ & $<0.01$ & $<0.01$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{front_contours.pdf}
+\caption{Turbulence front on the frozen Blasius layer, six Reynolds numbers.
+Line contours of $\log_{10}\chi$ every half decade over the whole streamwise
+domain, $\xi$ measured from the inflow; heavy black $\chi=1$, red dashed
+$\chi=c_{v1}$, blue dotted $y_F$, dash-dot $\delta_{99}$. Speeds in
+Table~\ref{t:frontspeed}.}\label{f:frontcontours}
+\end{figure}
+
+\subsection{Stagnation-point bistability}
 
 On the frozen Hiemenz stagnation field with the freestream
 seed exactly zero, standard SA sustains the wedge above a critical
@@ -349,6 +511,85 @@ $0.2$, $0.4$, $0.6$, $0.8$. Branch data in
 Table~\ref{t:stagbistab}.}\label{f:stagbistab}
 \end{figure}
 
+Below $\chi=1$ the equation linearizes. With $v$-advection and streamwise
+diffusion dropped,
+\begin{equation}
+  x f'(y)\,\chi_x = c_{b1}\,x f''(y)\,\chi + D\,\chi_{yy},
+  \qquad D=c_\nu/\sigma .
+  \label{e:stagramp}
+\end{equation}
+$x$ cancels between advection and production. With
+$\chi=G(y)\exp\!\int\!\lambda\,dx$ and $f'=ay$, $f''=a$,
+$a=f''(0)=1.2326$, \eqref{e:stagramp} is Airy's equation in
+$\zeta=(\lambda a x/D)^{1/3}(y-c_{b1}/\lambda)$; $G(0)=0$ selects the first
+Airy zero $a_1=-2.33811$:
+\begin{equation}
+  \lambda(x)=\Big(\frac{c_{b1}}{|a_1|}\Big)^{3/2}\sqrt{\frac{a\,x}{D}}
+  =0.01265\,\sqrt{x},
+  \qquad
+  \ln\chi=0.00843\,x^{3/2},
+  \qquad
+  \lambda\,y_p=0.564\,c_{b1}.
+  \label{e:stagairy}
+\end{equation}
+The exact eigenvalue of \eqref{e:stagramp} on the full Hiemenz profile is
+$0.39$, $0.58$, $0.71$ of \eqref{e:stagairy} at $x=100$, $200$, $400$, with
+$y_p$ within $3\%$ by $x=400$, and is negative below $x_c=26.7$
+($Re_s=712$). A backward-Euler march of \eqref{e:stagramp} gives $\ln$ growth
+$29.02$ over $x=200$--$400$ against $\int\!\lambda\,dx=28.69$, with the
+eigenfunction peak height within $2\%$.
+
+The $\chi=1$ root satisfies $\int_x^L\!\lambda\,dx'=\ln\max\chi$, giving
+$x=2990$ at $L=3000$ against the computed $148.8$. Ablation and refinement,
+$L=3000$, chained continuation to a locked fixed point:
+Table~\ref{t:stagablate}. Streamwise numerical diffusion $u\,\Delta x/2$ at
+the $n_x=384$ root is $665$ against $D=1.5$.
+
+\begin{table}[H]
+  \centering\small
+  \caption{Ablation and refinement on the frozen Hiemenz wedge, $L=3000$
+  ($Re_r=9\times10^6$). $x_\mathrm{root}$: near-wall $\chi=1$ crossing;
+  continuum value $2990$. Baseline is the grid of
+  Fig.~\ref{f:stagbistab}.}
+  \label{t:stagablate}
+  \begin{tabular}{llrrrrr}
+    \toprule
+    model & case & $n_x$ & $n_y$ & $x_\mathrm{root}$
+      & $\chi$ at $x=102$ & $\max\chi$ \\
+    \midrule
+    standard SA & baseline               &  384 & 140 & $148.8$ & $5.0\times10^{-5}$ & $75.67$ \\
+                & $n_y\!\times\!2$       &  384 & 280 & $148.8$ & $3.3\times10^{-5}$ & $75.38$ \\
+                & $n_y\!\times\!3$       &  384 & 420 & $148.8$ & $3.8\times10^{-4}$ & $75.33$ \\
+                & $n_x\!\times\!2$       &  768 & 140 & $254.2$ & --- & $75.87$ \\
+                & $n_x\!\times\!4$       & 1536 & 140 & $549.2$ & --- & $75.97$ \\
+                & $n_x\!\times\!8$       & 3072 & 140 & $1372.5$ & --- & $76.02$ \\
+                & no $x$-diffusion       &  384 & 140 & $148.8$ & $9.5\times10^{-164}$ & $75.67$ \\
+                & wall $\chi=0$ removed  &  384 & 140 & $86.2$ & $1.2$ & $75.67$ \\
+                & no $y$-diffusion       &  384 & 140 & $54.8$ & $1.9$ & $118.96$ \\
+    \midrule
+    SA-AI       & baseline               &  384 & 140 & $1605.7$ & $0$ & $76.06$ \\
+                & $n_x\!\times\!2$       &  768 & 140 & \multicolumn{2}{l}{collapses} & $2\times10^{-4}$ \\
+                & $n_x\!\times\!4$       & 1536 & 140 & \multicolumn{2}{l}{collapses} & $0$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+SA-AI on the same field, $n_x=384$: sustains at $L=3000$
+($\max\chi=76.06$), collapses at $L=1500$ and $L=700$. Upstream of the front
+$a_\mathrm{ai}=0$ at every $y\le5.2$ (checked at $x=1606$ and $2499$) and
+$\sigma_P=0$, so production is identically zero and destruction is
+${\sim}10^{-40}$. The eigenvalue of the corresponding linear operator is
+negative at every station, $-5.7\times10^{-4}$ at $x=30$ to $-10^{-5}$ at
+$x=3000$. Budget normalized by $\chi$, at the height of the local $\chi$
+maximum: at $x=1527$, streamwise diffusion $+31.2$, advection $21.8$, wall
+sink $9.5$; $\sigma_P$ goes $0\to0.879\to0.990$ over $x=1590$--$1621$; at
+$x=1621$, production $111$, wall sink $-57.5$, destruction $13.6$, advection
+$40.6$. Physical upstream reach $D/u=c_{\nu,\mathrm{ai}}/\sigma u
+=2.7\times10^{-4}\,\delta$; $u\,\Delta x/2$ is $2.9\times10^{4}$ times $D$.
+A local $y$-only equilibrium with no streamwise transport sustains from
+$x=400$ ($\chi=5.13$) upward: $19.8$ at $800$, $30.5$ at $1200$, $40.8$ at
+$1600$, $76.6$ at $3000$.
+
 The protocol used for every result in this paper: the
 $\tilde\nu$-equation residual is scaled by $f^{\,1-g}$, where $g$
 rises smoothly from $0$ (laminar) to $1$ (turbulent) with $\chi$ and
@@ -357,11 +598,7 @@ $\chi=c_{v1}$, zero below). Because
 the freestream boundary condition flows through the same scaling, the
 freestream viscosity ratio supplied to the solver is $\chi_\infty f$;
 the seeds quoted throughout are the physical $\chi_\infty$, recovered
-at the boundary-layer edge. (In the reference implementation the
-scaling is \texttt{AI\_LAMINAR\_SLOWDOWN}$\,=f$, and the case files
-carry the pre-multiplied boundary seed $\chi_\infty f$; running a
-committed case at $f=1$ without rescaling the seed mis-seeds it by
-$1/f$.)
+at the boundary-layer edge.
 
 \section{Results}
 
@@ -382,7 +619,7 @@ flat-plate grid specification and the same structured airfoil grids
 (the port omits the $f_{v1}$ bypass); thirty airfoil cases plus the
 flat-plate sweep.
 
-\subsection{Flat plate, $Tu=0.04$--$0.60\%$}
+\subsection{The Blasius flat plate}
 
 Structured $320\times80$ grid, $Re_x\le6\times10^6$,
 $y^+\lesssim0.3$; five seeds from Mack's map
@@ -405,8 +642,10 @@ Abu-Ghannam \& Shaw within $10\%$.}\label{f:flatplate}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.90\textwidth]{flat_plate_batch_openfoam.pdf}
-\caption{Flat plate, OpenFOAM. Same sweep as Fig.~\ref{f:flatplate},
-five levels $Tu=0.04$--$0.60\%$.}\label{f:flatplateof}
+\caption{Flat plate, OpenFOAM. Same sweep and layout as
+Fig.~\ref{f:flatplate}, five levels $Tu=0.04$--$0.60\%$; thin steel-blue
+curves in both bottom panels are the Flow360 result of
+Fig.~\ref{f:flatplate}.}\label{f:flatplateof}
 \end{figure}
 
 \begin{table}[H]
@@ -429,43 +668,23 @@ five levels $Tu=0.04$--$0.60\%$.}\label{f:flatplateof}
   \end{tabular}
 \end{table}
 
-\subsection{NLF(1)-0416 at $Re=4\times10^6$}
+\subsection{The NLF(1)-0416 airfoil}
 
-$\alpha\in\{0^\circ,4^\circ,9^\circ,15^\circ\}$ on both families at
-L0--L2 plus $\alpha=-8^\circ,-4^\circ$ on all six grids (thirty-six
-cases). Figure~\ref{f:nlfaft}: transition fronts against the LTPT
-microphone measurements, Coder's AFT (OVERFLOW) at
-$N_\mathrm{crit}=10.07$ and recalibrated $7.18$, the fourteen First
-AIAA Transition Modeling Workshop submittals, SA-LM2015,
-Langtry--Menter, and XFOIL.
-Figure~\ref{f:nlfpolar}: drag polar against Somers TP-1861, the $e^9$
-reference, and fully turbulent SA.
-Figures~\ref{f:nlfcflow}--\ref{f:nlfnegalpha}: surface distributions.
-Table~\ref{t:nlf}: forces and fronts.
-Table~\ref{t:nlfof}: at L2 every front
-within $0.016\,c$ and the lift within $0.9\%$ of the SA-AI values.
+At L2 every front sits within
+$0.016\,c$ and the lift within $0.9\%$ of the SA-AI values.
 
-Seven further incidences on the L2 pair (fourteen solutions,
-Table~\ref{t:extnlfalpha}): $-6^\circ$, $-2^\circ$, $2^\circ$,
-$6^\circ$, $8^\circ$, which make the overlap with the fourteen workshop
-submittals and with the SA-LM2015/sLM2015 sweeps one-to-one, and
-$-10^\circ$, $-12^\circ$, which reach the deep-negative branch where
-Somers's orifices still report fronts. At the four in-window
+At the four in-window
 incidences both computed fronts lie inside the submittal band on both
 surfaces (at $2^\circ$, $0.338$/$0.344\,c$ upper against
 $0.040$--$0.453\,c$ and $0.604$/$0.607\,c$ lower against
 $0.080$--$0.654\,c$).
 
-Reynolds sweep at the two incidence anchors, L2 pair, same grids and
-seed with only $\mu_\mathrm{ref}$ changed (twelve solutions,
-Table~\ref{t:extnlfresweep}): $Re=1$, $2$, $3\times10^6$, the
-Reynolds numbers at which Somers also measured transition. The
-upper-surface front moves forward monotonically with $Re$ and joins the
+Across the Reynolds sweep the upper-surface front moves forward monotonically and joins the
 $4\times10^6$ benchmark without a step
 ($0.446\to0.418\to0.400\to0.387\,c$ at $0^\circ$;
 $0.379\to0.320\to0.279\to0.254\,c$ at $4^\circ$).
-Somers measured transition at these same Reynolds numbers, reporting the last
-laminar and first turbulent orifice, so each lift coefficient carries a
+Somers reports the last laminar and first turbulent orifice, so each lift
+coefficient carries a
 $0.05\,c$ bracket rather than a point; all four panels of his Fig.~9 are
 digitized in \texttt{data/somers1981\_nlf0416\_transition\_by\_Re.json}
 (\texttt{repro/cfd/digitize\_somers\_fig9.py}).
@@ -477,105 +696,116 @@ the same data as replotted in Coder's dissertation fall inside these brackets.
 
 \input{tables/ext2026_nlf_somers_wp}
 
-\input{tables/ext2026_nlf_alpha_wp}
-
 \input{tables/ext2026_nlf_resweep_wp}
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{nlf_aft_transition.pdf}
 \caption{NLF(1)-0416 transition fronts, $Re=4\times10^6$; near-wall
 $\chi=1$ convention. SA-AI at
-$\alpha=0^\circ,4^\circ,9^\circ,15^\circ,-8^\circ,-4^\circ$; workshop
+$\alpha=-8^\circ,-4^\circ,0^\circ,4^\circ,9^\circ,15^\circ$ on all six
+grids, and at $-12^\circ$, $-10^\circ$, $-6^\circ$, $-2^\circ$, $2^\circ$,
+$6^\circ$, $8^\circ$ on the L2 pair; workshop
 sweep $\alpha=-4^\circ$--$8^\circ$.}\label{f:nlfaft}
 \end{figure}
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.62\textwidth]{nlf_polar_compare.pdf}
-\caption{NLF(1)-0416 drag polar, $Re=4\times10^6$. Fully turbulent SA
+\includegraphics[width=\textwidth]{nlf_polar_compare.pdf}
+\caption{NLF(1)-0416 drag polar, $Re=4\times10^6$; the L2 pair carries the
+seven extension incidences as well, so it spans the measured polar down to
+$\alpha=-12^\circ$ ($c_l=-0.93$). Fully turbulent SA
 ($\chi_\infty=3$): $1.6$--$2.5\times$ above the SA-AI drag,
 $+144$/$+150\%$ in the bucket at $\alpha=0^\circ$/$4^\circ$,
 $+67$/$+74\%$ at $9^\circ$/$15^\circ$.}\label{f:nlfpolar}
 \end{figure}
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{nlf_cf_lowalpha.pdf}
-\caption{NLF(1)-0416, $\alpha=0^\circ,4^\circ$, $Re=4\times10^6$.}\label{f:nlfcflow}
+\includegraphics[width=0.99\textwidth]{nlf_cf_p1.pdf}
+\caption{NLF(1)-0416 surface distributions, $Re=4\times10^6$, all six grids; pages run in ascending incidence. $\alpha=-12^\circ$, $\alpha=-10^\circ$.}\label{f:nlfcflow}
 \end{figure}
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{nlf_cf_highalpha.pdf}
-\caption{NLF(1)-0416, $\alpha=9^\circ,15^\circ$, $Re=4\times10^6$.}\label{f:nlfcfhigh}
+\includegraphics[width=0.99\textwidth]{nlf_cf_p2.pdf}
+\figcont{$\alpha=-8^\circ$, $\alpha=-6^\circ$.}
 \end{figure}
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.96\textwidth]{nlf_cf_negalpha.pdf}
-\caption{NLF(1)-0416, $\alpha=-8^\circ,-4^\circ$, $Re=4\times10^6$.}\label{f:nlfnegalpha}
+\includegraphics[width=0.99\textwidth]{nlf_cf_p3.pdf}
+\figcont{$\alpha=-4^\circ$, $\alpha=-2^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{nlf_cf_p4.pdf}
+\figcont{$\alpha=0^\circ$, $\alpha=2^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{nlf_cf_p5.pdf}
+\figcont{$\alpha=4^\circ$, $\alpha=6^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{nlf_cf_p6.pdf}
+\figcont{$\alpha=8^\circ$, $\alpha=9^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.55\textwidth]{nlf_cf_p7.pdf}
+\figcont{$\alpha=15^\circ$.}
 \end{figure}
 
 \begin{table}[H]
-  \centering\small
-  \caption{NLF(1)-0416, $Re\!=\!4\!\times\!10^6$: computed forces and
-  transition locations (near-wall $\chi\!=\!1$ front stations).}
+  \centering\scriptsize\setlength{\tabcolsep}{2pt}
+  \caption{NLF(1)-0416, $Re\!=\!4\!\times\!10^6$: forces and
+  transition locations (near-wall $\chi\!=\!1$ fronts). The OpenFOAM
+  port is independent and omits the $f_{v1}$ bypass. The seven extension
+  incidences exist on the L2 pair only. Experimental columns are LTPT
+  measurements digitized from Coder's Figs.~5-22--5-25; drag and
+  transition are read at the measured $C_L$, and blanks fall outside the
+  digitized range or past the stall break.}
   \label{t:nlf}
-  \begin{tabular}{ll cccc cccc}
+  \begin{tabular}{ll cccc cccc cccc cccc}
     \toprule
-    $\alpha$ & grid & \multicolumn{4}{c}{structured O-grid} & \multicolumn{4}{c}{unstructured cavity} \\ & & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_\mathrm{tr}^\mathrm{lo}$ & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_\mathrm{tr}^\mathrm{lo}$ \\
+    & & \multicolumn{4}{c}{Flow360, structured O-grid} & \multicolumn{4}{c}{Flow360, unstructured cavity} & \multicolumn{4}{c}{OpenFOAM, structured} & \multicolumn{4}{c}{Experiment (LTPT)} \\
+    \cmidrule(lr){3-6}\cmidrule(lr){7-10}\cmidrule(lr){11-14}\cmidrule(lr){15-18}
+    $\alpha$ & grid & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_\mathrm{tr}^\mathrm{lo}$ & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_\mathrm{tr}^\mathrm{lo}$ & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_\mathrm{tr}^\mathrm{lo}$ & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_\mathrm{tr}^\mathrm{lo}$ \\
     \midrule
-    $-8$ & L0 & -0.4426 & 0.01830 & 0.195 & 0.011 & -0.4689 & 0.01869 & 0.140 & 0.012 \\
-    $-8$ & L1 & -0.4656 & 0.01093 & 0.538 & 0.006 & -0.4397 & 0.01150 & 0.571 & 0.011 \\
-    $-8$ & L2 & -0.4646 & 0.00962 & 0.559 & 0.004 & -0.4426 & 0.00964 & 0.561 & 0.010 \\
-    $-4$ & L0 & 0.0469 & 0.01078 & 0.435 & 0.100 & 0.0197 & 0.01025 & 0.476 & 0.083 \\
-    $-4$ & L1 & 0.0142 & 0.00790 & 0.435 & 0.102 & 0.0357 & 0.00832 & 0.452 & 0.126 \\
-    $-4$ & L2 & 0.0208 & 0.00718 & 0.447 & 0.109 & 0.0363 & 0.00739 & 0.453 & 0.122 \\
-    $0$ & L0 & 0.5458 & 0.00803 & 0.400 & 0.590 & 0.4896 & 0.00808 & 0.355 & 0.592 \\
-    $0$ & L1 & 0.5048 & 0.00607 & 0.395 & 0.553 & 0.5209 & 0.00660 & 0.392 & 0.579 \\
-    $0$ & L2 & 0.5139 & 0.00564 & 0.387 & 0.566 & 0.5219 & 0.00606 & 0.391 & 0.569 \\
-    $4$ & L0 & 1.0001 & 0.01090 & 0.250 & 0.645 & 0.9513 & 0.01062 & 0.330 & 0.621 \\
-    $4$ & L1 & 0.9678 & 0.00800 & 0.238 & 0.610 & 0.9839 & 0.00805 & 0.269 & 0.614 \\
-    $4$ & L2 & 0.9805 & 0.00730 & 0.255 & 0.610 & 0.9848 & 0.00772 & 0.260 & 0.621 \\
-    $9$ & L0 & 1.4483 & 0.02252 & 0.015 & 0.385 & 1.4251 & 0.02345 & 0.105 & 0.641 \\
-    $9$ & L1 & 1.4886 & 0.01436 & 0.065 & 0.625 & 1.5112 & 0.01353 & 0.085 & 0.635 \\
-    $9$ & L2 & 1.5146 & 0.01245 & 0.073 & 0.628 & 1.5139 & 0.01286 & 0.078 & 0.638 \\
-    $15$ & L0 & 1.5172 & 0.07109 & 0.010 & 0.440 & 1.3976 & 0.11602 & 0.005 & 0.623 \\
-    $15$ & L1 & 1.9317 & 0.03159 & 0.004 & 0.650 & 1.9232 & 0.03454 & 0.001 & 0.659 \\
-    $15$ & L2 & 2.0057 & 0.02628 & 0.005 & 0.659 & 1.9924 & 0.02772 & 0.000 & 0.662 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\begin{table}[H]
-  \centering\small
-  \caption{NLF(1)-0416: the independent OpenFOAM implementation on the
-  structured L0, L1 and L2 grids, fronts at the same near-wall
-  $\chi\!=\!1$ convention (the port omits the $f_{v1}$ bypass).}
-  \label{t:nlfof}
-  \begin{tabular}{cc cccc}
-    \toprule
-    $\alpha$ & grid & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_\mathrm{tr}^\mathrm{lo}$ \\
-    \midrule
-    $-8$ & L0 & -0.4460 & 0.01241 & 0.556 & 0.007 \\
-    $-8$ & L1 & -0.4785 & 0.00781 & 0.576 & 0.000 \\
-    $-8$ & L2 & -0.4606 & 0.00826 & 0.568 & 0.000 \\
+    $-12$ & L2 & -0.9329 & 0.01335 & 0.945 & 0.001 & -0.9050 & 0.01271 & 0.967 & 0.005 & -- & -- & -- & -- & -- & -- & -- & -- \\
     \addlinespace
-    $-4$ & L0 & 0.0388 & 0.00748 & 0.424 & 0.018 \\
-    $-4$ & L1 & 0.0005 & 0.00634 & 0.464 & 0.117 \\
-    $-4$ & L2 & 0.0239 & 0.00693 & 0.459 & 0.111 \\
+    $-10$ & L2 & -0.7004 & 0.01111 & 0.681 & 0.002 & -0.6756 & 0.01090 & 0.673 & 0.006 & -- & -- & -- & -- & -- & -- & -- & -- \\
     \addlinespace
-    $0$ & L0 & 0.5473 & 0.00669 & 0.387 & 0.564 \\
-    $0$ & L1 & 0.5034 & 0.00603 & 0.393 & 0.572 \\
-    $0$ & L2 & 0.5153 & 0.00573 & 0.395 & 0.568 \\
+    $-8$ & L0 & -0.4426 & 0.01830 & 0.195 & 0.011 & -0.4689 & 0.01869 & 0.140 & 0.012 & -0.4460 & 0.01241 & 0.556 & 0.007 & -0.4745 & 0.01052 & 0.538 & -- \\
+    $-8$ & L1 & -0.4656 & 0.01093 & 0.538 & 0.006 & -0.4397 & 0.01150 & 0.571 & 0.011 & -0.4785 & 0.00781 & 0.576 & 0.000 &  &  &  &  \\
+    $-8$ & L2 & -0.4646 & 0.00962 & 0.559 & 0.004 & -0.4426 & 0.00964 & 0.561 & 0.010 & -0.4606 & 0.00826 & 0.568 & 0.000 &  &  &  &  \\
     \addlinespace
-    $4$ & L0 & 1.0114 & 0.00955 & 0.271 & 0.618 \\
-    $4$ & L1 & 0.9670 & 0.00778 & 0.266 & 0.616 \\
-    $4$ & L2 & 0.9793 & 0.00749 & 0.261 & 0.625 \\
+    $-6$ & L2 & -0.2240 & 0.00848 & 0.492 & 0.012 & -0.2052 & 0.00870 & 0.495 & 0.016 & -- & -- & -- & -- & -0.2410 & 0.00881 & 0.496 & -- \\
     \addlinespace
-    $9$ & L0 & 1.5277 & 0.01496 & 0.063 & 0.618 \\
-    $9$ & L1 & 1.5066 & 0.01273 & 0.076 & 0.633 \\
-    $9$ & L2 & 1.5151 & 0.01270 & 0.075 & 0.644 \\
+    $-4$ & L0 & 0.0469 & 0.01078 & 0.435 & 0.100 & 0.0197 & 0.01025 & 0.476 & 0.083 & 0.0388 & 0.00748 & 0.424 & 0.018 & -0.0122 & 0.00695 & 0.457 & -- \\
+    $-4$ & L1 & 0.0142 & 0.00790 & 0.435 & 0.102 & 0.0357 & 0.00832 & 0.452 & 0.126 & 0.0005 & 0.00634 & 0.464 & 0.117 &  &  &  &  \\
+    $-4$ & L2 & 0.0208 & 0.00718 & 0.447 & 0.109 & 0.0363 & 0.00739 & 0.453 & 0.122 & 0.0239 & 0.00693 & 0.459 & 0.111 &  &  &  &  \\
     \addlinespace
-    $15$ & L0 & 1.7210 & 0.05409 & 0.000 & 0.634 \\
-    $15$ & L1 & 1.9780 & 0.02754 & 0.000 & 0.665 \\
-    $15$ & L2 & 2.0221 & 0.02564 & 0.000 & 0.667 \\
+    $-2$ & L2 & 0.2683 & 0.00609 & 0.419 & 0.330 & 0.2800 & 0.00640 & 0.421 & 0.345 & -- & -- & -- & -- & 0.2140 & 0.00595 & 0.424 & -- \\
+    \addlinespace
+    $0$ & L0 & 0.5458 & 0.00803 & 0.400 & 0.590 & 0.4896 & 0.00808 & 0.355 & 0.592 & 0.5473 & 0.00669 & 0.387 & 0.564 & 0.4553 & 0.00567 & 0.384 & 0.525 \\
+    $0$ & L1 & 0.5048 & 0.00607 & 0.395 & 0.553 & 0.5209 & 0.00660 & 0.392 & 0.579 & 0.5034 & 0.00603 & 0.393 & 0.572 &  &  &  &  \\
+    $0$ & L2 & 0.5139 & 0.00564 & 0.387 & 0.566 & 0.5219 & 0.00606 & 0.391 & 0.569 & 0.5153 & 0.00573 & 0.395 & 0.568 &  &  &  &  \\
+    \addlinespace
+    $2$ & L2 & 0.7510 & 0.00616 & 0.338 & 0.604 & 0.7573 & 0.00659 & 0.344 & 0.607 & -- & -- & -- & -- & 0.6694 & 0.00587 & -- & 0.605 \\
+    \addlinespace
+    $4$ & L0 & 1.0001 & 0.01090 & 0.250 & 0.645 & 0.9513 & 0.01062 & 0.330 & 0.621 & 1.0114 & 0.00955 & 0.271 & 0.618 & 0.8903 & 0.00639 & -- & 0.615 \\
+    $4$ & L1 & 0.9678 & 0.00800 & 0.238 & 0.610 & 0.9839 & 0.00805 & 0.269 & 0.614 & 0.9670 & 0.00778 & 0.266 & 0.616 &  &  &  &  \\
+    $4$ & L2 & 0.9805 & 0.00730 & 0.255 & 0.610 & 0.9848 & 0.00772 & 0.260 & 0.621 & 0.9793 & 0.00749 & 0.261 & 0.625 &  &  &  &  \\
+    \addlinespace
+    $6$ & L2 & 1.2019 & 0.00895 & 0.171 & 0.614 & 1.2042 & 0.00933 & 0.179 & 0.629 & -- & -- & -- & -- & 1.1049 & 0.00830 & -- & 0.626 \\
+    \addlinespace
+    $8$ & L2 & 1.4139 & 0.01109 & 0.104 & 0.624 & 1.4137 & 0.01153 & 0.109 & 0.636 & -- & -- & -- & -- & 1.2941 & 0.01001 & -- & 0.633 \\
+    \addlinespace
+    $9$ & L0 & 1.4483 & 0.02252 & 0.015 & 0.385 & 1.4251 & 0.02345 & 0.105 & 0.641 & 1.5277 & 0.01496 & 0.063 & 0.618 & 1.4026 & 0.01104 & -- & 0.642 \\
+    $9$ & L1 & 1.4886 & 0.01436 & 0.065 & 0.625 & 1.5112 & 0.01353 & 0.085 & 0.635 & 1.5066 & 0.01273 & 0.076 & 0.633 &  &  &  &  \\
+    $9$ & L2 & 1.5146 & 0.01245 & 0.073 & 0.628 & 1.5139 & 0.01286 & 0.078 & 0.638 & 1.5151 & 0.01270 & 0.075 & 0.644 &  &  &  &  \\
+    \addlinespace
+    $15$ & L0 & 1.5172 & 0.07109 & 0.010 & 0.440 & 1.3976 & 0.11602 & 0.005 & 0.623 & 1.7210 & 0.05409 & 0.000 & 0.634 & -- & -- & -- & -- \\
+    $15$ & L1 & 1.9317 & 0.03159 & 0.004 & 0.650 & 1.9232 & 0.03454 & 0.001 & 0.659 & 1.9780 & 0.02754 & 0.000 & 0.665 &  &  &  &  \\
+    $15$ & L2 & 2.0057 & 0.02628 & 0.005 & 0.659 & 1.9924 & 0.02772 & 0.000 & 0.662 & 2.0221 & 0.02564 & 0.000 & 0.667 &  &  &  &  \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -584,82 +814,91 @@ $+67$/$+74\%$ at $9^\circ$/$15^\circ$.}\label{f:nlfpolar}
 % NLF(1)-0416 meshes and wall-anchored contour sheets
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{mesh_nlf_str.pdf}
+\caption{NLF(1)-0416 structured O-grid: leading and trailing edge (columns),
+levels L0--L2 (rows).}\label{f:nlfmeshstr}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{mesh_nlf_cav.pdf}
+\caption{NLF(1)-0416 unstructured cavity mesh: same edges and
+levels.}\label{f:nlfmeshcav}
+\end{figure}
+\clearpage
+% NLF(1)-0416 wall-anchored contour sheets: both surfaces per pane
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am12_both.pdf}
+\caption{NLF(1)-0416 wall-normal sheets, $Re=4\times10^6$, all six grids:
+$u_x/U_\infty$ left, $\log_{10}\chi$ right. Panes mirror about the wall---
+upper above $y=0$, lower reflected below, same probe depth.
+$\alpha=-12^\circ$.}\label{f:nlfsheets}
 \end{figure}
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am8_upper.pdf}
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am10_both.pdf}
+\figcont{$\alpha=-10^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am8_lower.pdf}
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am8_both.pdf}
+\figcont{$\alpha=-8^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am4_upper.pdf}
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am6_both.pdf}
+\figcont{$\alpha=-6^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am4_lower.pdf}
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am4_both.pdf}
+\figcont{$\alpha=-4^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a0_upper.pdf}
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am2_both.pdf}
+\figcont{$\alpha=-2^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a0_lower.pdf}
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a0_both.pdf}
+\figcont{$\alpha=0^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a4_upper.pdf}
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a2_both.pdf}
+\figcont{$\alpha=2^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a4_lower.pdf}
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a4_both.pdf}
+\figcont{$\alpha=4^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a9_upper.pdf}
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a6_both.pdf}
+\figcont{$\alpha=6^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a9_lower.pdf}
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a8_both.pdf}
+\figcont{$\alpha=8^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a15_upper.pdf}
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a9_both.pdf}
+\figcont{$\alpha=9^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a15_lower.pdf}
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a15_both.pdf}
+\figcont{$\alpha=15^\circ$.}
 \end{figure}
 
-\subsection{Eppler 387 at $Re=2\times10^5$}
+\subsection{The Eppler 387 airfoil}
 
-$\alpha\in\{0^\circ,2^\circ,5^\circ,7^\circ\}$ on both families at
-L0--L2 plus six extension incidences ($-2^\circ$, $1^\circ$,
-$3^\circ$, $4^\circ$, $6^\circ$, $8.5^\circ$) on the finest pair, and
-the two bounding incidences ($-2^\circ$, $8.5^\circ$) on L0 and L1 as
-well, so all six grids span the measured polar end to end
-(forty-four solutions, one solver build); same seed.
-Three further L2-pair incidences ($-1^\circ$, $8^\circ$, $9^\circ$)
-complete the $-2^\circ$--$9^\circ$ integer grid on which Shahjahan's
-$\gamma$--$Re_\theta$/SA-BC and Cole and Mueller's stations are
-reported (Table~\ref{t:exteppa200k}). At $8^\circ$ and $9^\circ$ the
+The $-1^\circ$ front sits at $0.696$/$0.693\,c$. At $8^\circ$ and $9^\circ$ the
 computed upper surface carries no closed bubble and the front collapses
 to $0.119$/$0.016\,c$, matching SA-BC's $0.099$/$0.022\,c$ and the
 experiment's report of attached transition without a bubble above
 $7^\circ$; $\gamma$--$Re_\theta$ holds fronts at $0.451$/$0.150\,c$.
 
-\input{tables/ext2026_epp_a200k_wp} Figure~\ref{f:epppolar}: drag polar against the LTPT
-measurement (McGhee et al., TM-4062), the $e^9$ reference, fully
-turbulent SA, and the digitized $\gamma$--$Re_\theta$ and SA-BC
-curves ($-6.4\%$ to $+3.7\%$ over $\alpha=0^\circ$--$7^\circ$).
-Figure~\ref{f:eppbubble}: bubble stations against the oil flow,
-Selig et al., Cole--Mueller, and the $e^9$ references---reattachment
-$0.02$--$0.04\,c$ late at $\alpha\le5^\circ$, at the edge of bubble
-collapse at $7^\circ$. Figures~\ref{f:eppcflow}--\ref{f:eppcfhigh}:
-surface suites. Table~\ref{t:epppolar}: forces.
-Table~\ref{t:eppbubble}: bubble stations. Table~\ref{t:eppof}: at L2
-lift within $0.5\%$, separation
-$0.030$--$0.037\,c$ ahead of and reattachment $0.033$--$0.045\,c$
-behind the SA-AI stations.
+The drag polar sits $-6.4\%$ to $+3.7\%$ against the digitized
+$\gamma$--$Re_\theta$ and SA-BC curves over $\alpha=0^\circ$--$7^\circ$.
+Reattachment runs $0.02$--$0.04\,c$ late at $\alpha\le5^\circ$, and reaches the
+edge of bubble collapse at $7^\circ$. At L2 the lift sits within
+$0.5\%$, separation $0.030$--$0.037\,c$ ahead of and reattachment
+$0.033$--$0.045\,c$ behind the SA-AI stations.
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.62\textwidth]{eppler_polar_compare.pdf}
+\includegraphics[width=\textwidth]{eppler_polar_compare.pdf}
 \caption{Eppler 387 drag polar, $Re=2\times10^5$; all six grids span
-$\alpha=-2^\circ$--$8.5^\circ$. Fully turbulent SA
+$\alpha=-4^\circ$--$8.5^\circ$, the L2 pair to $9^\circ$. Fully turbulent SA
 ($\chi_\infty=3$) $66$--$87\%$ above the SA-AI drag in the bucket,
 $+149\%$ at $\alpha=7^\circ$; at L2 mesh families agree to $\Delta C_d\le
 6.9\times10^{-4}$ over $\alpha=-2^\circ$--$7^\circ$ and
@@ -676,134 +915,164 @@ $C_l=0.928$.}\label{f:eppbubble}
 \end{figure}
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{eppler_cf_lowalpha.pdf}
-\caption{Eppler 387, $\alpha=0^\circ,5^\circ$, $Re=2\times10^5$.}\label{f:eppcflow}
+\includegraphics[width=0.99\textwidth]{eppler_cf_p1.pdf}
+\caption{Eppler~387 surface distributions, $Re=2\times10^5$, all six grids; pages run in ascending incidence. $\alpha=-4^\circ$, $\alpha=-2^\circ$.}\label{f:eppcflow}
 \end{figure}
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{eppler_cf_highalpha.pdf}
-\caption{Eppler 387, $\alpha=7^\circ,8.5^\circ$, $Re=2\times10^5$.}\label{f:eppcfhigh}
+\includegraphics[width=0.99\textwidth]{eppler_cf_p2.pdf}
+\figcont{$\alpha=-1^\circ$, $\alpha=0^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{eppler_cf_p3.pdf}
+\figcont{$\alpha=1^\circ$, $\alpha=2^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{eppler_cf_p4.pdf}
+\figcont{$\alpha=3^\circ$, $\alpha=4^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{eppler_cf_p5.pdf}
+\figcont{$\alpha=5^\circ$, $\alpha=6^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{eppler_cf_p6.pdf}
+\figcont{$\alpha=7^\circ$, $\alpha=8^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{eppler_cf_p7.pdf}
+\figcont{$\alpha=8.5^\circ$, $\alpha=9^\circ$.}
 \end{figure}
 
 \begin{table}[H]
-  \centering\small
-  \caption{Eppler 387, $Re\!=\!2\!\times\!10^5$: computed forces (the
-  $-2^\circ$--$8.5^\circ$ extension incidences exist on the finest pair
-  only).}
-  \label{t:epppolar}
-  \begin{tabular}{ll cc cc}
+  \centering\scriptsize\setlength{\tabcolsep}{2pt}
+  \caption{Eppler 387, $Re\!=\!2\!\times\!10^5$: forces and
+  upper-surface laminar-separation/turbulent-reattachment stations
+  (signed-$C_f$ zero crossings over the whole chord; where the surface
+  carries no bubble both stations are the transition front, so the pair
+  is equal, and \texttt{--} in $x_R$ alone means separation without
+  reattachment ahead of the trailing edge). The $-2^\circ$--$8.5^\circ$ extension incidences exist
+  on the finest pair only; $-4^\circ$ runs on all three. Experimental
+  forces are TM-4062 Table~B1 ($R\!=\!200{,}000$); experimental stations
+  are its Table~III oil flow. At $8^\circ$ the measurement records
+  natural transition at $0.32\,c$ and no bubble. The OpenFOAM port is independent, omits the
+  $f_{v1}$ bypass, and additionally reports the $\chi\!=\!1$ front
+  $x_\mathrm{tr}^\mathrm{up}$.}
+  \label{t:epp}
+  \begin{tabular}{ll cccc cccc ccccc cccc}
     \toprule
-    $\alpha$ & grid & \multicolumn{2}{c}{structured O-grid} & \multicolumn{2}{c}{unstructured cavity} \\ & & $C_L$ & $C_D$ & $C_L$ & $C_D$ \\
+    & & \multicolumn{4}{c}{Flow360, structured O-grid} & \multicolumn{4}{c}{Flow360, unstructured cavity} & \multicolumn{5}{c}{OpenFOAM, structured} & \multicolumn{4}{c}{Experiment (LTPT)} \\
+    \cmidrule(lr){3-6}\cmidrule(lr){7-10}\cmidrule(lr){11-15}\cmidrule(lr){16-19}
+    $\alpha$ & grid & $C_L$ & $C_D$ & $x_{LS}$ & $x_R$ & $C_L$ & $C_D$ & $x_{LS}$ & $x_R$ & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_{LS}$ & $x_R$ & $C_L$ & $C_D$ & $x_{LS}$ & $x_R$ \\
     \midrule
-    $-2$ & L2 & 0.1752 & 0.01089 & 0.1791 & 0.01080 \\
-    $0$ & L0 & 0.3859 & 0.01292 & 0.3847 & 0.01196 \\
-    $0$ & L1 & 0.3843 & 0.01080 & 0.3969 & 0.01026 \\
-    $0$ & L2 & 0.3844 & 0.01010 & 0.3894 & 0.01030 \\
-    $1$ & L2 & 0.4957 & 0.01078 & 0.5012 & 0.01092 \\
-    $2$ & L0 & 0.6079 & 0.01381 & 0.6061 & 0.01246 \\
-    $2$ & L1 & 0.6048 & 0.01196 & 0.6207 & 0.01152 \\
-    $2$ & L2 & 0.6059 & 0.01154 & 0.6124 & 0.01167 \\
-    $3$ & L2 & 0.7146 & 0.01247 & 0.7218 & 0.01245 \\
-    $4$ & L2 & 0.8218 & 0.01354 & 0.8304 & 0.01341 \\
-    $5$ & L0 & 0.9083 & 0.02007 & 0.9253 & 0.01596 \\
-    $5$ & L1 & 0.9218 & 0.01575 & 0.9465 & 0.01444 \\
-    $5$ & L2 & 0.9274 & 0.01451 & 0.9375 & 0.01428 \\
-    $6$ & L2 & 1.0346 & 0.01453 & 1.0456 & 0.01439 \\
-    $7$ & L0 & 1.0639 & 0.02728 & 1.1241 & 0.02038 \\
-    $7$ & L1 & 1.1262 & 0.01686 & 1.1593 & 0.01557 \\
-    $7$ & L2 & 1.1415 & 0.01431 & 1.1535 & 0.01419 \\
-    $8.5$ & L2 & 1.2190 & 0.02310 & 1.2611 & 0.02150 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\begin{table}[H]
-  \centering\small
-  \caption{Eppler 387, $Re\!=\!2\!\times\!10^5$: computed upper-surface
-  laminar-separation and turbulent-reattachment stations
-  (signed-$C_f$ zero crossings; missing entries transition ahead of
-  separation and have no bubble). The measured oil-flow reattachments
-  (TM-4062 Table~III) at $\alpha\!=\!0^\circ$/$2^\circ$/$5^\circ$ are
-  $0.74$/$0.67$/$0.59\,c$.}
-  \label{t:eppbubble}
-  \begin{tabular}{ll cc cc}
-    \toprule
-    $\alpha$ & grid & \multicolumn{2}{c}{structured O-grid} & \multicolumn{2}{c}{unstructured cavity} \\ & & $x_{LS}/c$ & $x_R/c$ & $x_{LS}/c$ & $x_R/c$ \\
-    \midrule
-    $-2$ & L2 & 0.573 & 0.822 & 0.567 & 0.815 \\
-    $0$ & L0 & 0.549 & 0.720 & 0.540 & 0.711 \\
-    $0$ & L1 & 0.526 & 0.771 & 0.526 & 0.737 \\
-    $0$ & L2 & 0.523 & 0.761 & 0.520 & 0.757 \\
-    $1$ & L2 & 0.500 & 0.740 & 0.499 & 0.733 \\
-    $2$ & L0 & 0.490 & 0.656 & 0.512 & 0.649 \\
-    $2$ & L1 & 0.479 & 0.713 & 0.483 & 0.682 \\
-    $2$ & L2 & 0.477 & 0.714 & 0.478 & 0.706 \\
-    $3$ & L2 & 0.454 & 0.691 & 0.454 & 0.679 \\
-    $4$ & L2 & 0.426 & 0.667 & 0.430 & 0.657 \\
-    $5$ & L0 & 0.393 & 0.568 & 0.429 & 0.558 \\
-    $5$ & L1 & 0.394 & 0.624 & 0.415 & 0.600 \\
-    $5$ & L2 & 0.402 & 0.634 & 0.404 & 0.623 \\
-    $6$ & L2 & 0.388 & 0.565 & 0.391 & 0.560 \\
-    $7$ & L0 & 0.250 & 0.343 & 0.351 & 0.458 \\
-    $7$ & L1 & -- & -- & -- & -- \\
-    $7$ & L2 & 0.388 & 0.407 & -- & -- \\
-    $8.5$ & L2 & 0.031 & 0.039 & 0.019 & 0.049 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\begin{table}[H]
-  \centering\small
-  \caption{Eppler 387: the independent OpenFOAM implementation on the
-  structured L0, L1 and L2 grids (fronts at the near-wall $\chi\!=\!1$
-  convention, stations at the signed-$C_f$ zero crossings; the port
-  omits the $f_{v1}$ bypass).}
-  \label{t:eppof}
-  \begin{tabular}{cc ccccc}
-    \toprule
-    $\alpha$ & grid & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_{LS}$ & $x_R$ \\
-    \midrule
-    $0$ & L0 & 0.3887 & 0.01167 & 0.638 & 0.493 & 0.784 \\
-    $0$ & L1 & 0.3826 & 0.00978 & 0.605 & 0.495 & 0.775 \\
-    $0$ & L2 & 0.3857 & 0.01058 & 0.621 & 0.486 & 0.806 \\
+    $-4$ & L0 & $-0.0130$ & 0.02483 & 0.636 & 0.919 & $-0.0303$ & 0.02400 & 0.707 & 0.900 & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+    $-4$ & L1 & $-0.0234$ & 0.01758 & 0.623 & 0.927 & $-0.0229$ & 0.01684 & 0.644 & 0.895 & -- & -- & -- & -- & -- &  &  &  &  \\
+    $-4$ & L2 & $-0.0282$ & 0.01630 & 0.634 & 0.915 & $-0.0269$ & 0.01733 & 0.630 & 0.903 & -- & -- & -- & -- & -- &  &  &  &  \\
     \addlinespace
-    $2$ & L0 & 0.6133 & 0.01406 & 0.568 & 0.447 & 0.739 \\
-    $2$ & L1 & 0.6037 & 0.01174 & 0.543 & 0.448 & 0.727 \\
-    $2$ & L2 & 0.6039 & 0.01229 & 0.564 & 0.443 & 0.752 \\
+    $-2$ & L2 & 0.1845 & 0.01178 & 0.560 & 0.850 & 0.1857 & 0.01148 & 0.560 & 0.827 & -- & -- & -- & -- & -- & 0.156 & 0.0133 & 0.53 & 0.80 \\
     \addlinespace
-    $5$ & L0 & 0.9292 & 0.01665 & 0.457 & 0.344 & 0.654 \\
-    $5$ & L1 & 0.9256 & 0.01394 & 0.468 & 0.371 & 0.651 \\
-    $5$ & L2 & 0.9234 & 0.01463 & 0.487 & 0.372 & 0.667 \\
+    $-1$ & L2 & 0.2723 & 0.00966 & 0.546 & 0.791 & 0.2763 & 0.00978 & 0.545 & 0.784 & -- & -- & -- & -- & -- & 0.249 & 0.0105 & -- & -- \\
     \addlinespace
-    $7$ & L0 & 1.1173 & 0.01817 & 0.139 & -- & 0.201 \\
-    $7$ & L1 & 1.1391 & 0.01323 & 0.329 & 0.353 & 0.453 \\
-    $7$ & L2 & 1.1388 & 0.01363 & 0.379 & 0.351 & 0.493 \\
+    $0$ & L0 & 0.3869 & 0.01313 & 0.530 & 0.735 & 0.3841 & 0.01203 & 0.540 & 0.711 & 0.3887 & 0.01167 & 0.638 & 0.493 & 0.784 & 0.350 & 0.0106 & 0.48 & 0.74 \\
+    $0$ & L1 & 0.3855 & 0.01101 & 0.516 & 0.778 & 0.3972 & 0.01032 & 0.526 & 0.737 & 0.3826 & 0.00978 & 0.605 & 0.495 & 0.775 &  &  &  &  \\
+    $0$ & L2 & 0.3880 & 0.01068 & 0.514 & 0.788 & 0.3908 & 0.01053 & 0.517 & 0.768 & 0.3857 & 0.01058 & 0.621 & 0.486 & 0.806 &  &  &  &  \\
+    \addlinespace
+    $1$ & L2 & 0.4979 & 0.01136 & 0.491 & 0.761 & 0.5022 & 0.01121 & 0.496 & 0.745 & -- & -- & -- & -- & -- & 0.466 & 0.0113 & -- & -- \\
+    \addlinespace
+    $2$ & L0 & 0.6082 & 0.01410 & 0.493 & 0.672 & 0.6055 & 0.01255 & 0.512 & 0.649 & 0.6133 & 0.01406 & 0.568 & 0.447 & 0.739 & 0.574 & 0.0118 & 0.43 & 0.67 \\
+    $2$ & L1 & 0.6054 & 0.01228 & 0.470 & 0.721 & 0.6207 & 0.01157 & 0.483 & 0.682 & 0.6037 & 0.01174 & 0.543 & 0.448 & 0.727 &  &  &  &  \\
+    $2$ & L2 & 0.6070 & 0.01225 & 0.468 & 0.737 & 0.6126 & 0.01201 & 0.471 & 0.718 & 0.6039 & 0.01229 & 0.564 & 0.443 & 0.752 &  &  &  &  \\
+    \addlinespace
+    $3$ & L2 & 0.7147 & 0.01321 & 0.444 & 0.714 & 0.7219 & 0.01289 & 0.447 & 0.695 & -- & -- & -- & -- & -- & 0.680 & 0.0127 & -- & -- \\
+    \addlinespace
+    $4$ & L2 & 0.8206 & 0.01443 & 0.416 & 0.687 & 0.8298 & 0.01384 & 0.424 & 0.668 & -- & -- & -- & -- & -- & 0.785 & 0.0133 & 0.40 & 0.62 \\
+    \addlinespace
+    $5$ & L0 & 0.9075 & 0.02051 & 0.398 & 0.587 & 0.9246 & 0.01610 & 0.429 & 0.573 & 0.9292 & 0.01665 & 0.457 & 0.344 & 0.654 & 0.891 & 0.0138 & 0.38 & 0.59 \\
+    $5$ & L1 & 0.9209 & 0.01623 & 0.394 & 0.633 & 0.9462 & 0.01459 & 0.408 & 0.607 & 0.9256 & 0.01394 & 0.468 & 0.371 & 0.651 &  &  &  &  \\
+    $5$ & L2 & 0.9254 & 0.01549 & 0.393 & 0.655 & 0.9365 & 0.01481 & 0.397 & 0.634 & 0.9234 & 0.01463 & 0.487 & 0.372 & 0.667 &  &  &  &  \\
+    \addlinespace
+    $6$ & L2 & 1.0318 & 0.01553 & 0.374 & 0.591 & 1.0440 & 0.01508 & 0.378 & 0.582 & -- & -- & -- & -- & -- & 1.004 & 0.0141 & 0.37 & 0.55 \\
+    \addlinespace
+    $7$ & L0 & 1.0691 & 0.02675 & 0.249 & 0.324 & 1.1248 & 0.02027 & 0.351 & 0.459 & 1.1173 & 0.01817 & 0.139 & -- & 0.201 & 1.103 & 0.0145 & 0.33 & 0.48 \\
+    $7$ & L1 & 1.1268 & 0.01681 & 0.374 & 0.414 & 1.1596 & 0.01554 & 0.402 & 0.435 & 1.1391 & 0.01323 & 0.329 & 0.353 & 0.453 &  &  &  &  \\
+    $7$ & L2 & 1.1411 & 0.01442 & 0.407 & 0.449 & 1.1531 & 0.01426 & 0.410 & 0.440 & 1.1388 & 0.01363 & 0.379 & 0.351 & 0.493 &  &  &  &  \\
+    \addlinespace
+    $8$ & L2 & 1.2232 & 0.01768 & 0.101 & 0.101 & 1.2364 & 0.01776 & 0.079 & 0.079 & -- & -- & -- & -- & -- & 1.180 & 0.0175 & 0.32 & 0.32 \\
+    \addlinespace
+    $8.5$ & L2 & 1.2399 & 0.02312 & 0.019 & 0.059 & 1.2496 & 0.02339 & 0.014 & 0.047 & -- & -- & -- & -- & -- & -- & -- & 0.03 & 0.18 \\
+    \addlinespace
+    $9$ & L2 & 1.2552 & 0.02562 & 0.014 & 0.014 & 1.2869 & 0.02568 & 0.010 & 0.032 & -- & -- & -- & -- & -- & 1.219 & 0.0244 & -- & -- \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 \clearpage
-% Eppler 387 benchmark contour sheets
+% Eppler 387 benchmark contour sheets: every incidence, upper surface
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_am4_upper.pdf}
+\caption{Eppler~387 wall-normal sheets, $Re=2\times10^5$, upper surface:
+$u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.
+$\alpha=-4^\circ$.}\label{f:eppsheets}
+\end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_am2_upper.pdf}
+\figcont{$\alpha=-2^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_am1_upper.pdf}
+\figcont{$\alpha=-1^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a0_upper.pdf}
+\figcont{$\alpha=0^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a1_upper.pdf}
+\figcont{$\alpha=1^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a2_upper.pdf}
+\figcont{$\alpha=2^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a3_upper.pdf}
+\figcont{$\alpha=3^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a4x_upper.pdf}
+\figcont{$\alpha=4^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a5_upper.pdf}
+\figcont{$\alpha=5^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a6_upper.pdf}
+\figcont{$\alpha=6^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a7_upper.pdf}
+\figcont{$\alpha=7^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a8_upper.pdf}
+\figcont{$\alpha=8^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a8p5_upper.pdf}
+\figcont{$\alpha=8.5^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a9_upper.pdf}
+\figcont{$\alpha=9^\circ$.}
 \end{figure}
 
-\subsection{Eppler 387 Reynolds sweep at $\alpha=5^\circ$}
+\subsection{Reynolds-number study at $\alpha=5^\circ$}
 
 $Re\in\{6\times10^4,\,10^5,\,3\times10^5,\,4.6\times10^5\}$ on the
 same grids (24 further solutions).
@@ -811,7 +1080,7 @@ Figure~\ref{f:eppresweepforces}: the refinement fan closes onto the
 measurement at $2$--$4.6\times10^5$ and opens at $10^5$, the model's
 bursting boundary, one Reynolds step above the measurement's
 ($6\times10^4$).
-Figures~\ref{f:eppresweeplow}--\ref{f:eppresweephigh}: surface
+Figure~\ref{f:eppresweeplow}: surface
 suites. Table~\ref{t:eppresweep}: L2 coefficients.
 
 Incidence sweeps at the two Reynolds numbers the literature samples
@@ -833,6 +1102,29 @@ and the bubble closes late or not at all
 against $0.68\,c$), with $c_d$ reaching $0.0499$ at $6^\circ$.
 $6\times10^4$ and $4.6\times10^5$ keep their single $\alpha=5^\circ$
 stations.
+Figures~\ref{f:epprepolar} and~\ref{f:epprebubble}: polar and
+bubble stations at the three Reynolds numbers against the
+measurement alone. Figures~\ref{f:eppcfRe100k}
+and~\ref{f:eppcfRe300k}: surface suites, L2 pair.
+Figures~\ref{f:eppsheetRe100k} and~\ref{f:eppsheetRe300k}:
+wall-normal sheets.
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.82\textwidth]{eppler_re_polar.pdf}
+\caption{Eppler 387 drag polar at $10^5$, $2\times10^5$ and $3\times10^5$,
+L2 pair, against the measurement. Colour is Reynolds number. At $10^5$
+the computed solution stalls by $\alpha=10^\circ$.}\label{f:epprepolar}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{eppler_re_bubble.pdf}
+\caption{Eppler 387 bubble stations at $10^5$, $2\times10^5$ and
+$3\times10^5$, L2 pair, against the oil flow. Colour is Reynolds
+number. Where there is no bubble---the oil flow reports natural
+transition, or the computed surface stays attached---both stations lie
+at the transition front, so the point sits at the same $x/c$ in each
+panel.}\label{f:epprebubble}
+\end{figure}
 
 \input{tables/ext2026_epp_re300k_wp}
 
@@ -847,12 +1139,13 @@ $0.6$/$1$/$2$/$3$/$4.6\times10^5$.}\label{f:eppresweepforces}
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{eppler_resweep_lowRe.pdf}
-\caption{Reynolds sweep, $Re=6\times10^4$, $10^5$.}\label{f:eppresweeplow}
+\caption{Eppler~387 Reynolds-sweep surface distributions, $\alpha=5^\circ$:
+$Re=6\times10^4$, $10^5$.}\label{f:eppresweeplow}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{eppler_resweep_highRe.pdf}
-\caption{Reynolds sweep, $Re=3$, $4.6\times10^5$.}\label{f:eppresweephigh}
+\figcont{$Re=3$, $4.6\times10^5$.}
 \end{figure}
 
 \begin{table}[H]
@@ -888,18 +1181,127 @@ $0.6$/$1$/$2$/$3$/$4.6\times10^5$.}\label{f:eppresweepforces}
 % Eppler 387 Reynolds-sweep contour sheets
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re60k_upper.pdf}
+\caption{Eppler~387 wall-normal sheets at $\alpha=5^\circ$, upper surface:
+$u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.
+$Re=6\times10^4$.}\label{f:eppresweepsheets}
 \end{figure}
 \begin{figure}[H]\centering
-\includegraphics[width=0.82\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_upper.pdf}
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_upper.pdf}
+\figcont{$Re=10^5$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_upper.pdf}
+\figcont{$Re=3\times10^5$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re460k_upper.pdf}
+\figcont{$Re=4.6\times10^5$.}
 \end{figure}
 
-\subsection{Two-element section, $Re=10^6$, $\alpha=-9$--$+13^\circ$}
+\clearpage
+% Surface distributions and sheets at the two sweep Reynolds numbers
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re100k_p1.pdf}
+\caption{Eppler~387 surface distributions, $Re=10^5$, L2 pair; pages run in ascending incidence. $\alpha=-2^\circ$, $\alpha=0^\circ$.}\label{f:eppcfRe100k}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re100k_p2.pdf}
+\figcont{$\alpha=2^\circ$, $\alpha=4^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re100k_p3.pdf}
+\figcont{$\alpha=6^\circ$, $\alpha=8^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re100k_p4.pdf}
+\figcont{$\alpha=10^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re300k_p1.pdf}
+\caption{Eppler~387 surface distributions, $Re=3\times10^5$, L2 pair; pages run in ascending incidence. $\alpha=-2^\circ$, $\alpha=0^\circ$.}\label{f:eppcfRe300k}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re300k_p2.pdf}
+\figcont{$\alpha=1^\circ$, $\alpha=2^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re300k_p3.pdf}
+\figcont{$\alpha=3^\circ$, $\alpha=4^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re300k_p4.pdf}
+\figcont{$\alpha=6^\circ$, $\alpha=8^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re300k_p5.pdf}
+\figcont{$\alpha=10^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_am2_upper.pdf}
+\caption{Eppler~387 wall-normal sheets, $Re=10^5$, upper surface: $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on the L2 pair. $\alpha=-2^\circ$.}\label{f:eppsheetRe100k}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a0_upper.pdf}
+\figcont{$\alpha=0^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a2_upper.pdf}
+\figcont{$\alpha=2^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a4_upper.pdf}
+\figcont{$\alpha=4^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a6_upper.pdf}
+\figcont{$\alpha=6^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a8_upper.pdf}
+\figcont{$\alpha=8^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a10_upper.pdf}
+\figcont{$\alpha=10^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_am2_upper.pdf}
+\caption{Eppler~387 wall-normal sheets, $Re=3\times10^5$, upper surface: $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on the L2 pair. $\alpha=-2^\circ$.}\label{f:eppsheetRe300k}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a0_upper.pdf}
+\figcont{$\alpha=0^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a1_upper.pdf}
+\figcont{$\alpha=1^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a2_upper.pdf}
+\figcont{$\alpha=2^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a3_upper.pdf}
+\figcont{$\alpha=3^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a4_upper.pdf}
+\figcont{$\alpha=4^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a6_upper.pdf}
+\figcont{$\alpha=6^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a8_upper.pdf}
+\figcont{$\alpha=8^\circ$.}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a10_upper.pdf}
+\figcont{$\alpha=10^\circ$.}
+\end{figure}
+
+\subsection{A two-element section}
 
 Purpose-built section: laminar main element ahead of a laminar
 separation bubble on the flap, so the upstream wake and the downstream
@@ -908,10 +1310,10 @@ Table~\ref{t:twoelementgeom}. $Re=10^6$ and $M=0.10$ on the total
 chord, seed $\chi_\infty=c_{v1}e^{-9}$, L0/L1/L2 as elsewhere; every
 solution converged to the $10^{-9}$ momentum tolerance.
 Figure~\ref{f:twoelempolar}: polar.
-Figures~\ref{f:twoelemsuite1}--\ref{f:twoelemsuite5}: surface
-suites, two incidences per page.
-Figures~\ref{f:twoelemchiL1}--\ref{f:twoelemchiL2}: $\chi$ contours by
-incidence. Figure~\ref{f:twoelemflapchi}: flap upper surface unrolled,
+Figure~\ref{f:twoelemchiL1}: $\chi$ contours by
+incidence, one page per grid level -- the section itself, before the traces.
+Figure~\ref{f:twoelemsuite1}: surface
+suites, two incidences per page. Figure~\ref{f:twoelemflapchi}: flap upper surface unrolled,
 wall distance to $0.06c$.
 
 \input{tables/tab_twoelement_geom_wp}
@@ -925,63 +1327,68 @@ $\alpha=-9^\circ$, stopped at its step ceiling.}
 \end{figure}
 
 \begin{figure}[H]\centering
-\includegraphics[width=\textwidth,page=1]{twoelement_surface_suite.pdf}
-\caption{Surface suite, $\alpha=-9$, $-7^\circ$. Rows: $\max Re_\Omega$; $\max\hat\Omega\hat I$; $\max\chi$; $-C_p$; signed $C_f$. Upper blue, lower red; fore solid, flap dashed; L0--L2 by line thickness.}\label{f:twoelemsuite1}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,page=2]{twoelement_surface_suite.pdf}
-\caption{Surface suite, $\alpha=-5$, $-3^\circ$; as Fig.~\ref{f:twoelemsuite1}.}\label{f:twoelemsuite2}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,page=3]{twoelement_surface_suite.pdf}
-\caption{Surface suite, $\alpha=-1$, $+1^\circ$; as Fig.~\ref{f:twoelemsuite1}.}\label{f:twoelemsuite3}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,page=4]{twoelement_surface_suite.pdf}
-\caption{Surface suite, $\alpha=+3$, $+5^\circ$; as Fig.~\ref{f:twoelemsuite1}.}\label{f:twoelemsuite4}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,page=5]{twoelement_surface_suite.pdf}
-\caption{Surface suite, $\alpha=+7$, $+11^\circ$; as Fig.~\ref{f:twoelemsuite1}.}\label{f:twoelemsuite5}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{twoelement_chi_global_L1.pdf}
-\caption{$\chi$ contours, L1. Heavy black $\chi=c_{v1}$.}
+\includegraphics[width=\textwidth]{twoelement_chi_global_L0.pdf}
+\caption{Two-element mid-plane $\chi$ contours, one row per incidence;
+decades from $10^{-3}$ to $10^{2}$ coloured by value, heavy black
+$\chi=c_{v1}$. Pages run coarse to fine. L0.}
 \label{f:twoelemchiL1}
 \end{figure}
 
 \begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{twoelement_chi_global_L0.pdf}
-\caption{$\chi$ contours, L0.}\label{f:twoelemchiL0}
+\includegraphics[width=\textwidth]{twoelement_chi_global_L1.pdf}
+\figcont{L1.}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{twoelement_chi_global_L2.pdf}
-\caption{$\chi$ contours, L2.}\label{f:twoelemchiL2}
+\figcont{L2.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,page=1]{twoelement_surface_suite.pdf}
+\caption{Two-element surface suites, two incidences per page. Rows: $\max Re_\Omega$; $\max\hat\Omega\hat I$; $\max\chi$; $-C_p$; signed $C_f$. Upper blue, lower red; fore solid, flap dashed; L0--L2 by line thickness. $\alpha=-9$, $-7^\circ$.}\label{f:twoelemsuite1}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,page=2]{twoelement_surface_suite.pdf}
+\figcont{$\alpha=-5$, $-3^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,page=3]{twoelement_surface_suite.pdf}
+\figcont{$\alpha=-1$, $+1^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,page=4]{twoelement_surface_suite.pdf}
+\figcont{$\alpha=+3$, $+5^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,page=5]{twoelement_surface_suite.pdf}
+\figcont{$\alpha=+7$, $+11^\circ$.}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{twoelement_flap_chi_map.pdf}
 \caption{Flap upper surface, L2, one row per incidence:
 $u_t/V_\infty$ left, $\chi$ right (heavy $\chi=c_{v1}$), against arc
-length and wall distance. Cyan marks separation and reattachment. Rows
+length and wall distance. Grey: the fore element's trailing edge, which the
+flap's wall normals run into over the first $0.09$ of flap arc length. Cyan
+marks separation and reattachment. Rows
 $\alpha=-5$, $-3$, $-1$, $+5$, $+11^\circ$.}
 \label{f:twoelemflapchi}
 \end{figure}
 
-\subsection{Cylinder drag crisis, $Re_D=1$--$10^{10}$}
+\subsection{The cylinder drag crisis}
 
 A steady-branch traverse over ten decades at a single seed
 ($\chi_\infty=1.1\times10^{-2}$; Mack's map at $Tu=0.2\%$), swept as
 one upward continuation ladder on matched quasi-two-dimensional
-O-grids ($y^+\lesssim1$; a large-domain laminar grid for
-$Re_D\le10^3$, a $1200\times148$ working grid, and $1600\times170$
-fine grids for the supercritical and ultra range), twenty-five points
+O-grids ($y^+\lesssim1$), identified throughout by first-layer thickness
+$y_1/R$: $2\times10^{-3}$ ($600\times121$) for $Re_D\le10^3$,
+$1.6\times10^{-5}$ ($1200\times148$), then $2\times10^{-6}$ and
+$2\times10^{-9}$ ($1600\times170$); twenty-five points
 $Re_D=1$--$10^{10}$. Every case lands on the symmetric branch,
 $|C_L|<2\times10^{-6}$.
 
@@ -996,11 +1403,17 @@ Table~\ref{t:dragcrisis}: the up-ladder $C_d$. Below shedding onset
 $Re_D=1$, $2.797$ at $10$ ($-1.7\%$ vs Dennis \& Chang).
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.82\textwidth]{dragcrisis_cd_re.pdf}
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{dragcrisis_cd_re.pdf}
 \caption{Cylinder drag crisis, $Re_D=1$--$10^{10}$; single seed
 $Tu=0.2\%$, up-ladder (clean systematic sweep, matched $Re_D$ grid).
 Symbols experiments, lines computations; open rings mark the cases
-the steady monitor did not accept.}\label{f:dragcrisiscd}
+the steady monitor did not accept. The SA-AI curve is drawn unbroken
+across the four grids the ladder crosses---$y_1/R=2\times10^{-3}$,
+$Re_D=1$--$10^3$; $1.6\times10^{-5}$, $3\times10^3$--$1.78\times10^6$;
+$2\times10^{-6}$, $3\times10^6$--$10^7$; $2\times10^{-9}$,
+$3\times10^7$--$10^{10}$---because it is one
+continuation path: each grid change restarts from the previous grid's
+converged field, interpolated onto the new grid.}\label{f:dragcrisiscd}
 \end{figure}
 
 \begin{figure}[H]\centering
@@ -1009,21 +1422,51 @@ the steady monitor did not accept.}\label{f:dragcrisiscd}
 $\theta_{tr}$ ($\chi=1$) and first wall
 separation vs $Re_D$ (below the crisis $\theta_{tr}$ is the wake $\chi=1$
 front); the front marches from ${\sim}100^\circ$ to ${\sim}2^\circ$ by
-$10^{10}$. (b) $\max_s\chi(\theta)$ per decade $10^2$--$10^{10}$.}\label{f:dragcrisisangles}
+$10^{10}$. (b)--(e) $\max_s\chi(\theta)$ for every Reynolds number of the ladder,
+split into panes of six or seven over contiguous
+ranges.}\label{f:dragcrisisangles}
 \end{figure}
 
 \begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.88\textheight,keepaspectratio]{dragcrisis_fields.pdf}
-\caption{Drag-crisis fields, $Re_D=10$, $10^3$, $10^5$, $5\times10^5$,
-$2\times10^6$ (rows, up-ladder $Tu=0.2\%$); columns
-$|\mathbf{u}|/U_\infty$ and $\chi$ (dashed $\chi<1$, solid $\chi=1$,
-$c_{v1}$, $30$, $10^2$--$10^4$). $C_d=2.80$, $0.87$, $0.84$, $0.62$,
-$0.22$.}\label{f:dragcrisisfields}
+\includegraphics[width=\textwidth,height=0.90\textheight,keepaspectratio,page=1]{dragcrisis_fields.pdf}
+\caption{Drag-crisis fields, up-ladder $Tu=0.2\%$: every Reynolds
+number of Fig.~\ref{f:dragcrisiscd}, five per page in ascending
+order. Columns $|\mathbf{u}|/U_\infty$ and $\chi$ (dashed
+$\chi<1$, solid $\chi=1$, $c_{v1}$, $30$, $10^2$--$10^4$); each row
+carries its own $Re_D$ and $C_d$. $Re_D=1$--$10^2$.}\label{f:dragcrisisfields}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.90\textheight,keepaspectratio,page=2]{dragcrisis_fields.pdf}
+\figcont{$Re_D=3\times10^2$--$3\times10^4$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.90\textheight,keepaspectratio,page=3]{dragcrisis_fields.pdf}
+\figcont{$Re_D=10^5$--$10^6$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.90\textheight,keepaspectratio,page=4]{dragcrisis_fields.pdf}
+\figcont{$Re_D=1.78\times10^6$--$3\times10^7$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.90\textheight,keepaspectratio,page=5]{dragcrisis_fields.pdf}
+\figcont{$Re_D=10^8$--$10^{10}$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.92\textheight,keepaspectratio]{dragcrisis_bl_sheet.pdf}
+\caption{The crisis at boundary-layer scale, $Re_D=1.78\times10^5$ to
+$3\times10^6$ (rows): $u_t/U_\infty$ left (heavy $u_t=0$),
+$\log_{10}\chi$ right, against angle from forward stagnation and wall
+distance in viscous units.}\label{f:dragcrisisblsheet}
 \end{figure}
 
 \input{tables/tab_dragcrisis_wp}
 
-\subsection{Daedalus wing (three-dimensional deployment)}
+\subsection{The Daedalus wing}
 
 The Daedalus human-powered-aircraft wing: half-span $17.07\,$m, root
 chord $0.917\,$m, aspect ratio $37.8$, DAE-11/21/31 sections;
@@ -1098,50 +1541,68 @@ $Re_\mathrm{root}=5\times10^5$.}\label{f:daesurf}
 % Daedalus wing surface maps and section sheets
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_surface_a5.pdf}
+\figcont{$\alpha=5^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_surface_a6.pdf}
+\figcont{$\alpha=6^\circ$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_section_eta10.pdf}
+\caption{Daedalus wing section cuts, all six grids against the AVL-trimmed
+XFOIL strip, at $\alpha=4^\circ$, $5^\circ$, $6^\circ$ (columns).
+$\eta=0.10$.}\label{f:daesections}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_section_eta75.pdf}
+\figcont{$\eta=0.75$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_section_eta92.pdf}
+\figcont{$\eta=0.92$.}
 \end{figure}
 % Daedalus wall-normal chi sheets (u_x left, log10 chi right; rows = meshes)
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a4_eta10_upper.pdf}
+\caption{Daedalus wing wall-normal sheets, upper surface: $u_x/U_\infty$
+(left) and $\log_{10}\chi$ (right) on the archived meshes.
+$\alpha=4^\circ$, $\eta=0.10$.}\label{f:daesheets}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a4_eta75_upper.pdf}
+\figcont{$\alpha=4^\circ$, $\eta=0.75$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a4_eta92_upper.pdf}
+\figcont{$\alpha=4^\circ$, $\eta=0.92$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a5_eta10_upper.pdf}
+\figcont{$\alpha=5^\circ$, $\eta=0.10$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a5_eta75_upper.pdf}
+\figcont{$\alpha=5^\circ$, $\eta=0.75$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a5_eta92_upper.pdf}
+\figcont{$\alpha=5^\circ$, $\eta=0.92$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a6_eta10_upper.pdf}
+\figcont{$\alpha=6^\circ$, $\eta=0.10$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a6_eta75_upper.pdf}
+\figcont{$\alpha=6^\circ$, $\eta=0.75$.}
 \end{figure}
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a6_eta92_upper.pdf}
+\figcont{$\alpha=6^\circ$, $\eta=0.92$.}
 \end{figure}
 
 \clearpage
-\subsection{6:1 prolate spheroid, $\alpha=0$--$29.7^\circ$, by Reynolds number}
+\subsection{The 6:1 spheroid}
 
 Analytic spheroid ($x^2/A^2+r^2/B^2=1$, $A=L/2$, $B=L/12$, half-model) on
 the L1 structured O-grid ($2.2$M nodes, first wall spacing
@@ -1182,50 +1643,48 @@ levels: $0.174$ at $\alpha=0$, $0.181$ at $2.5^\circ$, $0.239$ at
 $5^\circ$ ($6.49\times10^6$), $0.012$ at $10^\circ$ ($6.56\times10^6$),
 $0.000$ on the ONERA twin.
 
-
 \input{tables/tab_spheroid_tunnel_wp}
 
 \clearpage
 \begin{figure}[H]\centering
 \includegraphics[width=0.86\textwidth]{spheroid_overlay_a5lo_gmeas.pdf}
-\caption{Surface at the measured-seed condition, unrolled into $(x/L,\phi)$, $\phi=0$ windward; line art. Grey skin-friction lines integrated from the wall shear vector itself -- the oil-flow analogue, not the inviscid streamlines of Stock Figs.~14--17, and their convergence is the separation signature -- under the $\max_n\chi$ contour family (sub-unity dashed, $\chi=1$ heavy, $\chi=c_{v1}$ and above solid, labeled), $\max_n\chi$ taken on a wall-normal segment shot from each surface point. White-filled squares: measured DFVLR transition. $\alpha=5^\circ$, $Re_L=1.52\times10^6$.}\label{f:ov_a5lo_gmeas}
+\caption{Surface at the measured-seed condition, unrolled into $(x/L,\phi)$, $\phi=0$ windward; line art. Grey skin-friction lines integrated from the wall shear vector itself -- the oil-flow analogue, not the inviscid streamlines of Stock Figs.~14--17, and their convergence is the separation signature -- under the $\max_n\chi$ contour family (sub-unity dashed, $\chi=1$ heavy, $\chi=c_{v1}$ and above solid, labeled), $\max_n\chi$ taken on a wall-normal segment shot from each surface point. White-filled squares: measured DFVLR transition. One page per measured condition. $\alpha=5^\circ$, $Re_L=1.52\times10^6$.}\label{f:ov_a5lo_gmeas}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.86\textwidth]{spheroid_overlay_a10lo_gmeas.pdf}
-\caption{$\alpha=10^\circ$, $Re_L=1.52\times10^6$.}\label{f:ov_a10lo_gmeas}
+\figcont{$\alpha=10^\circ$, $Re_L=1.52\times10^6$.}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.86\textwidth]{spheroid_overlay_a29p7_gmeas.pdf}
-\caption{$\alpha=29.7^\circ$, $Re_L=1.53\times10^6$; the friction lines converge onto the open free-vortex-layer separation over most of the leeward half, and the twelve measured stations lie on that line rather than on a transition front.}\label{f:ov_a29p7_gmeas}
+\figcont{$\alpha=29.7^\circ$, $Re_L=1.53\times10^6$; the friction lines converge onto the open free-vortex-layer separation over most of the leeward half, and the twelve measured stations lie on that line rather than on a transition front.}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.86\textwidth]{spheroid_overlay_a0_gmeas.pdf}
-\caption{$\alpha=0^\circ$, $Re_L=7.2\times10^6$.}\label{f:ov_a0_gmeas}
+\figcont{$\alpha=0^\circ$, $Re_L=7.2\times10^6$.}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.86\textwidth]{spheroid_overlay_a2p5_gmeas.pdf}
-\caption{$\alpha=2.5^\circ$, $Re_L=7.2\times10^6$.}\label{f:ov_a2p5_gmeas}
+\figcont{$\alpha=2.5^\circ$, $Re_L=7.2\times10^6$.}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.86\textwidth]{spheroid_overlay_a5hi_gmeas.pdf}
-\caption{$\alpha=5^\circ$, $Re_L=6.49\times10^6$.}\label{f:ov_a5hi_gmeas}
+\figcont{$\alpha=5^\circ$, $Re_L=6.49\times10^6$.}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.86\textwidth]{spheroid_overlay_a10hi_gmeas.pdf}
-\caption{$\alpha=10^\circ$, $Re_L=6.56\times10^6$, G\"ottingen.}\label{f:ov_a10hi_gmeas}
+\figcont{$\alpha=10^\circ$, $Re_L=6.56\times10^6$, G\"ottingen.}
 \end{figure}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.86\textwidth]{spheroid_overlay_a10f1_fmeas.pdf}
-\caption{$\alpha=10^\circ$, $Re_L=6.56\times10^6$, ONERA F1.}\label{f:ov_a10f1_fmeas}
+\figcont{$\alpha=10^\circ$, $Re_L=6.56\times10^6$, ONERA F1.}
 \end{figure}
-
 
 \clearpage
 
@@ -1237,46 +1696,86 @@ further computation; each is reproduced by
 \texttt{repro/analytic/envelope\_bounds.py}.
 
 \begin{enumerate}\itemsep2pt
-\item Solid-body rotation is read as stable exactly: it gives
-  $Y/X\!=\!2d/r$, so $g\!<\!0$ and the rate is clipped to zero, the
-  velocity indicator rather than the vorticity being what makes the model
-  inert in a rotating freestream.
-\item Frame rotation at $\Omega\!\sim\!U_\infty/L$ perturbs the rate by
-  $41.3\,(\ell/L)$, that is by $O(Re_\theta/Re_L)$: $1.3\%$ on the
-  NLF(1)-0416 and $6.7\%$ on the Eppler 387 at the pessimistic
-  $\Omega\!=\!U_\infty/c$.
-\item Because $g=(Y\!-\!X\!-\!Z)/R$ is a near-cancellation in the
-  amplifying band, a relative perturbation of the shear indicator reaches
-  the rate magnified $4.3$-fold, which is why terms as small as
-  $\ell/R\!\sim\!10^{-3}$ are visible in it at all.
+\item Rigid rotation is read as amplifying. Against a co-rotating wall the
+  velocity relative to the nearest-wall point is $\Omega d$ and the absolute
+  vorticity $2\Omega$, so $\hat Y/\hat X\!=\!2$, $\hat Z\!=\!0$ and
+  $\hat\Omega\hat I\!=\!0.40$: a solid-body rotation transitions.
+\item Frame rotation moves both indicators: the absolute vorticity gives
+  $\hat Y\!\to\!\hat Y+2\Omega d$ and the wall-relative velocity
+  $\hat X\!\to\!\hat X+\Omega d$. The rate moves by $18.3\,(\ell/L)$, that
+  is by $O(Re_\theta/Re_L)$; at $\Omega\!=\!U_\infty/L$ the campaign's own
+  stations give
+  %
+  \begin{center}\small
+  \begin{tabular}{lccc}
+    \toprule
+    case & $Re_L$ & station $x/L$ & $\delta(\hat\Omega\hat I)/\hat\Omega\hat I$ \\
+    \midrule
+    NLF(1)-0416, $\alpha=-8^\circ$ & $4\times10^6$ & $0.560$ & $+0.7\%$ \\
+    NLF(1)-0416, $\alpha=0^\circ$  & $4\times10^6$ & $0.389$ & $+0.6\%$ \\
+    NLF(1)-0416, $\alpha=15^\circ$ & $4\times10^6$ & $0.003$ & $+0.0\%$ \\
+    Eppler 387, $\alpha=0^\circ$   & $2\times10^5$ & $0.522$ & $+3.0\%$ \\
+    Eppler 387, $\alpha=7^\circ$   & $2\times10^5$ & $0.388$ & $+2.6\%$ \\
+    two-element, flap bubble        & $10^6$        & $0.850$ & $+1.7\%$ \\
+    Daedalus, $\eta=0.10$          & $5\times10^5$ & $0.450$ & $+1.7\%$ \\
+    6:1 spheroid, $\alpha=10^\circ$ & $1.5\times10^6$ & $0.653$ & $+1.2\%$ \\
+    cylinder, $Re_D=10^5$           & $10^5$        & $0.711$ & $+4.9\%$ \\
+    cylinder, $Re_D=10^7$           & $10^7$        & $0.175$ & $+0.2\%$ \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  %
+  The shift scales as $\ell/L$, i.e.\ as $1/\sqrt{Re_L}$ at a fixed station,
+  so only the low-Reynolds cases feel a rotating frame at all, and the sign is
+  always destabilizing.
+\item $\hat I$ is a near-cancellation only on mildly loaded layers:
+  $|Y\!-\!X\!-\!Z|/(|X|\!+\!|Y|\!+\!|Z|)$ at the rate-setting station is
+  $0.04$ at Falkner--Skan $\beta\!=\!+0.5$, $0.08$ at $\beta\!=\!0$, $0.12$ at
+  $\beta\!=\!-0.10$ and $0.29$ at separation, so the $\ell/R\!\sim\!10^{-3}$
+  terms are visible in the rate on attached layers and not near separation.
 \item Streamwise wall curvature enters the curvature indicator through
   the metric term $\delta Z=\pm(d/2R)Y$ and is therefore already present
   in every computed case, contributing $-0.15\%$ of the rate on the
-  NLF(1)-0416 and $-0.32\%$ on the Eppler 387.
-\item The same term is not a perturbation at the bottom of the cylinder
-  traverse, removing $7.9\%$ of the rate at $Re_D\!=\!10^4$ and $28\%$ at
-  $10^2$, so there the reported transition is set as much by the wall's
-  curvature metric as by the profile shape.
-\item For transverse curvature the two candidate realizations of the
-  indicator disagree, so the $-2.9$ to $-6.3\%$ computed at the spheroid
-  stations is a realization uncertainty rather than a bias.
+  NLF(1)-0416 ($\alpha\!=\!0^\circ$, $Re_c\!=\!4\times10^6$, $x/c\!=\!0.389$)
+  and $-0.32\%$ on the Eppler 387 ($\alpha\!=\!0^\circ$,
+  $Re_c\!=\!2\times10^5$, $x/c\!=\!0.522$).
+\item Transverse curvature is the term that grows on slender bodies:
+  $\ell/r_0$ scales with the fineness ratio at fixed $Re_L$ and station, so
+  the $-2.9$ to $-8.2\%$ over the eight spheroid stations ($\alpha=10^\circ$,
+  $Re_L=1.5\times10^6$, $x/L=0.396$--$0.934$) becomes $-4.7$ to $-12.6\%$ at
+  10:1, $-8.9$ to $-20.8\%$ at 20:1 and $-15.6$ to $-28.5\%$ at 40:1,
+  saturating near $-30\%$ once $\ell\!\sim\!r_0$.
+\item The curvature indicator has two candidate realizations:
+  $\nabla^2\mathbf u\!\cdot\!\hat{\mathbf u}$, the one used here
+  (Eqs.~\eqref{w:gram} and~\eqref{w:ratio}), and
+  $\hat{\mathbf n}\!\cdot\!\nabla|\boldsymbol\omega|$. For streamwise
+  curvature the two carry the same leading term and the numbers above are
+  unambiguous; for the transverse curvature of a body of revolution they do
+  not, so the $-2.9$ to $-6.3\%$ computed at the spheroid stations is a
+  realization uncertainty rather than a bias.
 \item On a concave wall the metric term changes sign and destabilizes, so
   the model is not blind to centrifugal geometry, but its response is
-  linear in $\delta/R$ where the instability is governed by
-  $G=Re_\delta\sqrt{\delta/R}$ --- the right sign under the wrong scaling.
+  linear in $\delta/R$ where the instability is governed by the
+  G\"ortler number $G=Re_\delta\sqrt{\delta/R}$ (Saric, \emph{Annu.\ Rev.\
+  Fluid Mech.}\ \textbf{26}, 379--409, 1994) --- the right sign under the
+  wrong scaling.
 \item On the exact swept-Hiemenz profile the kernel amplifies at $82\%$ of
   the Blasius rate and switches on at $\bar R\!=\!603$ against the
   linear-stability critical value near $583$, unfitted, though the
   agreement is on the threshold and not on the mechanism.
 \item The asymptotic suction layer is read as stable at every Reynolds
   number against a true critical $Re_{\delta^*}\!\approx\!5.4\times10^4$,
-  so the model errs conservatively and will over-credit suction; the same
-  evaluation shows that the positive amplifying coordinate excluded at a
-  no-slip line does not appear under transpiration of that sign.
+  so the model will over-credit suction. Here $\delta^*\!=\!\nu/|v_w|$
+  exactly, so $Re_{\delta^*}\!=\!U_\infty/|v_w|$ and the sweep
+  $10^2$--$10^6$ is a suction sweep $|v_w|/U_\infty\!=\!10^{-2}$--$10^{-6}$;
+  $P\!\le\!0$ is set by the profile shape, which is suction-independent.
+  The same evaluation shows that the positive amplifying coordinate excluded
+  at a no-slip line does not appear under transpiration of that sign.
 \item Because SA's destruction scales as $(\tilde\nu/d)^2$ and is
   negligible where $d$ is large, a wake transports its $\tilde\nu$ without
-  decaying, so a surface ingesting an upstream wake---a blade row behind
-  another, as much as the two-element section here---should be expected to
+  decaying, so a surface ingesting an upstream wake---a blade row directly
+  in the turbulent wake of another, as much as the two-element section
+  here---should be expected to
   transition at impingement rather than by amplification.
 \item The assembled model is continuous everywhere and differentiable
   almost everywhere, the exceptions being the clips of the amplifying
@@ -1292,7 +1791,21 @@ further computation; each is reproduced by
 \section{Appendix: the two-source rate --- inviscid and viscous branches}
 \label{app:twosource}
 
-\input{appendix_twosource_body}
+\input{appendix_twosource_body_wp}
+
+
+\clearpage
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+  \begin{minipage}{0.6\textwidth}\centering
+  \begin{CJK}{UTF8}{bsmi}天下萬物生於有，有生於無。\end{CJK}\\[6pt]
+  \emph{The myriad things are born of being;\\
+  being is born of non-being.}\\[6pt]
+  ---\emph{Daodejing}, ch.~40
+  \end{minipage}
+\end{center}
+\vspace*{\fill}
 
 \end{document}
 
