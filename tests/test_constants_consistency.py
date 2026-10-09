@@ -6,8 +6,8 @@ SPHERE-KERNEL (model v3) EDITION. The live model is the sphere kernel
     Re_Omega_crit(P) = softmin_2(reOmCeil, reOmA + reOmB / P^2)
 The canonical constants live in Flow360 ModelConstants.h and are pinned here.
 
-The pre-sphere sources of truth (src/numerics/aft_sources.py,
-scripts/calibrate_kernel.py, paper/repro/lib, flow360/add_derived_to_slice.py)
+The pre-sphere sources of truth (paper/repro/lib,
+flow360/add_derived_to_slice.py)
 still carry the RETIRED v2 gate kernel and are pending migration; their checks
 are SKIPPED with an explicit reason rather than deleted, so the pending work
 stays visible in the test report. Re-enable each as it is migrated.
@@ -49,8 +49,6 @@ CANON = {
 
 REPO = Path(__file__).resolve().parents[2]          # .../flexcompute
 SAAI = Path(__file__).resolve().parents[1]           # .../flexcompute/sa-ai
-AFT  = SAAI / "src/numerics/aft_sources.py"
-CALIB = SAAI / "scripts/calibrate_kernel.py"
 CPP_DIR = REPO / "compute/src/Flow360Core/Applications/Solver/SpalartAllmaras"
 CPP  = CPP_DIR / "ModelConstants.h"
 CPP_STRUCT = CPP_DIR / "SAAiTransition.h"
@@ -128,18 +126,6 @@ def test_flow360_struct_defaults_match_modelconstants():
 # file that still carries the retired v2 gate kernel. Re-enable as migrated.
 # ---------------------------------------------------------------------------
 
-def test_jax_aft_sources_matches_canon():
-    raise unittest.SkipTest(
-        "src/numerics/aft_sources.py still carries the retired v2 gate kernel; "
-        "pending sphere-kernel migration (rate = a_max*clip<S_hat*g>, soft-min onset)")
-
-
-def test_calibrate_kernel_matches_canon():
-    raise unittest.SkipTest(
-        "scripts/calibrate_kernel.py still carries the retired v2 gate kernel; "
-        "pending sphere-kernel migration")
-
-
 def test_paper_repro_lib_matches_canon():
     raise unittest.SkipTest(
         "paper/repro/lib + paper/repro/driver still encode the v2 canon "
@@ -155,8 +141,6 @@ def test_cfd_generators_match_canon():
 if __name__ == "__main__":
     for fn in (test_flow360_cpp_defaults_match_canon,
                test_flow360_struct_defaults_match_modelconstants,
-               test_jax_aft_sources_matches_canon,
-               test_calibrate_kernel_matches_canon,
                test_paper_repro_lib_matches_canon,
                test_cfd_generators_match_canon):
         try:

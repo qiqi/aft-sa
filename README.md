@@ -68,8 +68,14 @@ The production implementation is in Flow360, on the
 |---|---|
 | `paper/` | paper and whitepaper sources and figures |
 | `paper/repro/` | reproduction package: analytic scripts, case driver, the canonical env (`driver/saai_env.py`) |
-| `tests/` | includes `test_constants_consistency.py`, which pins paper, scripts and solver to one constant set |
-| `src/` | legacy JAX 2D RANS solver used in early development; not the reference implementation |
+| `tests/` | `test_constants_consistency.py` pins the paper constants against the Flow360 headers (expects `compute/` next to this repo) |
+| `daedalus/`, `spheroid/`, `flow360/`, `scripts/ext2026/` | geometry, mesh and case builders used by the repro scripts |
+| `flow360_fv1/`, `flow360_fr/`, `flow360_ai/` | tabulated CFD results and reference polars read by the repro scripts |
+| `openfoam/` | OpenFOAM port of the model (the cross-solver replication) |
+| `external/construct2d/` | structured O-grid generator |
+
+Earlier development (the JAX 2D RANS prototype and superseded kernel
+variants) is in the git history.
 
 ## License
 

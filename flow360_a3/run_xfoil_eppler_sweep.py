@@ -1,1 +1,0 @@
-/home/qiqi/flexcompute/sa-ai/flow360/run_xfoil_eppler_sweep.py
