@@ -3,9 +3,13 @@
 Drives front_travelling_wave.py. Three figures, all from the same cached
 fields:
 
-    front_contours.pdf     log10(chi) line contours of the travelling wave on
+    transition_front_contours.pdf
+                           log10(chi) line contours of the travelling wave on
                            frozen Blasius at Re_theta = 150..4800, one panel
-                           each, with c/U_e, c/u_tau and y_c+ annotated
+                           each, annotated with the front speed over the edge
+                           velocity and over u_tau. Drawn at page width so the
+                           in-plot type prints at caption size. The paper's
+                           Figure 5; the line styles are named in its caption.
     front_trueaspect.pdf   the Re_theta = 600 field with the axes to scale --
                            a ~4 deg ramp about 20 delta_99 long
     front_locus_speed.pdf  the locus nuHat = nuHat_eq/2 in outer and in wall
@@ -108,7 +112,7 @@ def report(tag, beta, Re_theta, **kw):
 
 
 # ------------------------------------------------------------------ plotting
-def draw(ax, d, window=None):
+def draw(ax, d, window=None, critical=True):
     xi = (d["xi"] - d["xi"][0]) / d["d99"]      # 0 at the inflow boundary
     y = d["y"] / d["d99"]
     X, Y = np.meshgrid(xi, y, indexing="ij")
@@ -119,7 +123,8 @@ def draw(ax, d, window=None):
                linewidths=1.4, linestyles="--")
     ax.contour(X, Y, L, levels=[0.0], colors="k", linewidths=2.2)
     yc = float(d["yc"]) / float(d["d99"])
-    ax.axhline(yc, color="tab:blue", lw=1.0, ls=":")
+    if critical:                 # the height where u(y) equals the front speed
+        ax.axhline(yc, color="tab:blue", lw=1.0, ls=":")
     ax.axhline(1.0, color="0.35", lw=0.8, ls="-.")
     ax.set_xlim(*(window if window else (xi[0], xi[-1])))
     ax.set_ylim(0, YHI)
@@ -134,36 +139,26 @@ def save(fig, stem, png):
 
 def figures(cases, png=False):
     n = len(cases)
-    fig, axes = plt.subplots(n, 1, figsize=(9.6, 1.42 * n + 1.15), sharex=True)
+    # 6.5 in = the paper's text width, so the PDF is placed at scale 1 and the
+    # type below prints at the size declared here.
+    fig, axes = plt.subplots(n, 1, figsize=(6.5, 1.0 * n + 0.45), sharex=True)
     for i, (ax, d) in enumerate(zip(axes, cases)):
-        yc = draw(ax, d)
+        draw(ax, d, critical=False)
         c, ut = float(d["c"]), float(d["utau"])
-        ax.text(0.010, 0.94,
-                rf"$Re_\theta={int(d['Ret'])}$      "
-                rf"$\mathbf{{c/U_e={c:.4f}}}$      $c/u_\tau={c/ut:.2f}$      "
-                rf"$y_c^+={float(d['yc'])*ut:.1f}$      "
-                rf"$\chi_{{\max}}={d['nh'].max():.0f}$      "
-                rf"$\delta_{{99}}^+={float(d['d99'])*ut:.0f}$",
-                transform=ax.transAxes, va="top", ha="left", fontsize=9.5,
-                bbox=dict(fc="white", ec="0.75", pad=2.4))
-        xhi = (d["xi"][-1] - d["xi"][0]) / d["d99"]
-        ax.text(xhi - 0.3, yc + 0.05, r"$y_c$: $u(y)=c$", color="tab:blue",
-                fontsize=8, ha="right", va="bottom")
-        ax.set_ylabel(r"$y/\delta_{99}$", fontsize=9)
+        ax.text(0.012, 0.93,
+                rf"$Re_\theta={int(d['Ret'])}$     front speed "
+                rf"${c:.4f}\,U_e={c/ut:.2f}\,u_\tau$",
+                transform=ax.transAxes, va="top", ha="left", fontsize=9,
+                bbox=dict(fc="white", ec="0.75", pad=2.0))
+        ax.set_ylabel(r"$y/\delta_{99}$", fontsize=9.5)
         ax.set_yticks([0, 0.5, 1.0, 1.5])
-        ax.tick_params(labelsize=8)
-    axes[-1].set_xlabel(r"$\xi/\delta_{99}$ measured from the inflow "
-                        r"(whole domain; co-moving frame, flow "
+        ax.tick_params(labelsize=9)
+    axes[-1].set_xlabel(r"streamwise distance from the inflow, in $\delta_{99}$"
+                        r" (frame moving with the front; flow "
                         r"left$\rightarrow$right)", fontsize=9.5)
-    fig.suptitle(
-        r"SA travelling-wave front on frozen Blasius — line contours of "
-        r"$\log_{10}\chi$ (grey every 0.5 decade)" "\n"
-        r"heavy black $\chi=1$   ·   red dashed $\chi=c_{v1}=7.1$   ·   "
-        r"blue dotted $y_c$ (critical layer)   ·   dash-dot $\delta_{99}$",
-        fontsize=10.5)
-    fig.subplots_adjust(top=1 - 0.72 / fig.get_figheight(), bottom=0.052,
-                        left=0.072, right=0.988, hspace=0.13)
-    save(fig, "front_contours", png)
+    fig.subplots_adjust(top=0.995, bottom=0.42 / fig.get_figheight(),
+                        left=0.085, right=0.99, hspace=0.13)
+    save(fig, "transition_front_contours", png)
 
     # ---- boundary quietness: is the solution flat at BOTH ends? ----------
     figq, (q1, q2) = plt.subplots(2, 1, figsize=(9.6, 5.4), sharex=False)

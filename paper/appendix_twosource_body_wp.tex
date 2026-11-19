@@ -1,0 +1,151 @@
+%% Whitepaper-only short form of the two-source appendix.
+%% The full version, with the calibration argument written out, is
+%% appendix_twosource_body.tex, which sa-ai.tex \inputs.
+%% Figures from repro/analytic/regen_twosource_appendix.py (analytic only).
+
+The rate uses the single even coordinate $\hat\Omega\hat I$, which represents
+both the inviscid inflectional and the viscous Tollmien--Schlichting mechanisms
+because the two co-vary across the Falkner--Skan family. They separate on
+the parabola, where $\hat I\equiv0$: plane Poiseuille returns zero rate at
+every Reynolds number against a true $Re_c=5772$ (Orszag 1971), and on the
+favorable branch the model's amplification is an order of magnitude below
+the Drela--Giles envelope by $\beta\!=\!0.35$ (Fig.~\ref{fig:tscalibrate}).
+Blasius has no inflection point, so the missing branch is the main mechanism,
+not an exotic one.
+
+A second coordinate separates them:
+\begin{equation}
+  P_{\mathrm{c}} \;=\; \hat\Omega\,\big\langle -\hat Z\big\rangle_+,
+  \qquad \hat Z = Z/U_\mathrm{loc},
+  \label{eq:ts_pcurv}
+\end{equation}
+positive wherever $u''<0$, clipped at an adverse wall, vanishing like $d$ at
+the wall and zero in the free stream. Each branch has its own rate and its own onset, and the two \emph{sources} are combined:
+\begin{gather}
+  P_{\mathrm{AI}} = \omega\,\tilde\nu\;
+  \operatorname{softmax}_2\!\Big[\,
+     a_{\max}\,P_I\;\sigma_{Re}\big(Re_\Omega/Re_\Omega^{\mathrm c,i}\big),\;\;
+     a_{\mathrm{visc}}\,P_{\mathrm{c}}\;\sigma_{Re}\big(Re_\Omega/Re_\Omega^{\mathrm c,v}\big)
+  \Big],
+  \label{eq:ts_twosource}\\[3pt]
+  Re_\Omega^{\mathrm c,i} = k\operatorname{softmin}_2\!\Big(C,\,A+B\,P_I^{-2}\Big),
+  \qquad
+  Re_\Omega^{\mathrm c,v} = A + B_{\mathrm c}\,P_{\mathrm{c}}^{-2},
+  \qquad
+  \operatorname{softmax}_2(x,y)=\sqrt{x^2+y^2}.
+  \notag
+\end{gather}
+The inviscid gate is unchanged, ceiling included; the viscous branch shares
+its floor $A$ and adds one coefficient $B_{\mathrm c}$. Constants:
+$a_{\max}\!=\!0.19$, $a_{\mathrm{visc}}\!=\!0.0276$, $A\!=\!124.6$,
+$B\!=\!1.424$, $B_{\mathrm c}\!=\!130$, $C\!=\!1851.2$.
+
+The gates are separate, not soft-minimized into one. On Blasius the two
+thresholds are $358$ and $2598$; sharing the lower switches the viscous rate
+on early and changes the Blasius anchor by $+7.4\%$. With them separate the
+construction reproduces the single-source rate to within $0.7\%$ over the
+calibrated family (Table~\ref{tab:tsfamily}), so $a_{\max}$, $k$ and the
+airfoil campaign are untouched. Dropping the ceiling $C$ reduces $\beta\!=\!+0.20$ to $0.63\times$ its single-source value.
+
+$a_{\mathrm{visc}}$ is fitted to the Drela--Giles envelope on the favorable
+Falkner--Skan family. Plane Poiseuille then fixes $B_{\mathrm c}$
+independently and without refitting, since $P_I\equiv0$ on a parabola:
+requiring the frozen-profile eigenvalue of Eq.~\eqref{eq:ts_twosource} to
+change sign at $Re_c=5772$ gives Table~\ref{tab:tschannel}. At
+$a_{\mathrm{visc}}=0.0276$ the channel requires $B_{\mathrm c}=91$ against the
+family's $130$, and the family's constants place the channel neutral point
+at $7409$, $1.28\times$ the true value. The channel is a calibration and
+verification device only; its observed transition is subcritical and
+finite-amplitude.
+
+Three limits. $P_{\mathrm c}$ is largest at a stagnation line, where the
+filled attachment profile keeps $\langle-\hat Z\rangle_+$ finite while
+$P_I\!\le\!0$ keeps the single-source rate at zero at the nose, so
+the branch would amplify in the one region where the present formulation does
+not; adopting it requires either showing its
+stagnation-line rate stays below onset at leading-edge Reynolds numbers or
+pairing it with a nose treatment. The viscous rate
+$a_{\mathrm{visc}}P_{\mathrm{c}}$ is Reynolds-independent, inherited from
+the inviscid branch. And the branches decompose the rate, not the physics:
+the viscous gate on Blasius opens only near $Re_\theta\!\approx\!1190$, so
+the Blasius rate remains that of the $P_I$ branch. The branch is not part of the model
+validated here.
+
+\begin{figure}[tp]\centering
+\includegraphics[width=0.99\textwidth]{twosource_calibrate.pdf}
+\caption{Two-source rate against Drela--Giles across the Falkner--Skan
+family, $\beta=+1.0$ to $-0.1988$; analytic march, no CFD.
+(a)~rate as early ($N\!\in\![1,5]$) and late ($N\!\in\![5,9]$) secants, with
+the single-source rate. (b)~marched $N\!=\!1$ station against the
+Drela--Giles $N\!=\!1$ station $Re_{\theta0}+1/(dN/dRe_\theta)$; the diagonal
+is exact agreement.}\label{fig:tscalibrate}
+\end{figure}
+
+\begin{figure}[tp]\centering
+\includegraphics[width=0.99\textwidth]{twosource_onsetgraze.pdf}
+\caption{Each onset branch against its own family, at each profile's
+Drela--Giles critical $Re_{\theta0}(H)$. (a)~inflectional branch
+$A+B/P_I^2$, adverse family. (b)~curvature branch
+$A+B_{\mathrm c}/P_{\mathrm c}^2$, low-$H$ members, in the coordinate
+$P_{\mathrm c}$ of Eq.~\eqref{eq:ts_pcurv}.}\label{fig:tsgraze}
+\end{figure}
+
+\begin{figure}[tp]\centering
+\includegraphics[width=0.72\textwidth]{twosource_transport.pdf}
+\caption{Disturbance transport under Eq.~\eqref{eq:ts_twosource} on four
+wedges---adverse, Blasius, favorable, and stagnation
+($\beta\!=\!+1$)---against each profile's Drela--Giles envelope. On the
+stagnation wedge the branch switches on at
+$Re_\theta\!\approx\!2.5\times10^3$ against $Re_{\theta0}\!=\!6.5\times10^3$.
+Same instrument and same $c_{\nu,\mathrm{ai}}=1/6$ as the model's own
+calibration.}\label{fig:tstransport}
+\end{figure}
+
+\begin{figure}[tp]\centering
+\includegraphics[width=0.99\textwidth]{twosource_sphere.pdf}
+\caption{Low-$H$ Falkner--Skan family on the $\mathbb{RP}^2$ indicator
+sphere, $H\!\approx\!2.22$ to Blasius $H\!=\!2.59$, with (b) near-wall
+detail. The family bunches against the neutral parabola locus where $\hat I$
+is too small to separate members whose Drela--Giles critical Reynolds
+numbers differ by nearly a factor of two; $P_{\mathrm c}$ separates
+them.}\label{fig:tssphere}
+\end{figure}
+
+\begin{table}[tp]
+  \centering\small
+  \caption{Peak dimensionless source $a\,\sigma_{Re}$ on Falkner--Skan
+  wedges: single-source, and Eq.~\eqref{eq:ts_twosource} at
+  $(a_{\mathrm{visc}},B_{\mathrm c})=(0.0276,130)$.}
+  \label{tab:tsfamily}
+  \begin{tabular}{rrccc}
+    \toprule
+    $\beta$ & $Re_\theta$ & single-source & two-source & ratio\\
+    \midrule
+    $0$        & $500$  & $0.01485$ & $0.01485$ & $1.000$\\
+    $0$        & $1000$ & $0.01485$ & $0.01487$ & $1.001$\\
+    $-0.10$    & $400$  & $0.03082$ & $0.03083$ & $1.000$\\
+    $-0.1988$  & $300$  & $0.09692$ & $0.09764$ & $1.007$\\
+    $+0.10$    & $1000$ & $0.00695$ & $0.00696$ & $1.000$\\
+    $+0.20$    & $2000$ & $0.00281$ & $0.00282$ & $1.004$\\
+    $+0.35$    & $4000$ & $0.00033$ & $0.00405$ & $12.4$\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[tp]
+  \centering\small
+  \caption{Plane-channel check: the $B_{\mathrm c}$ placing the neutral point
+  on $Re_c=5772$, and the neutral point obtained at the
+  Falkner--Skan-anchored $B_{\mathrm c}=130$.}
+  \label{tab:tschannel}
+  \begin{tabular}{ccc}
+    \toprule
+    $a_{\mathrm{visc}}$ & $B_{\mathrm c}$ for $Re_c\!=\!5772$ & $Re_c$ at $B_{\mathrm c}\!=\!130$\\
+    \midrule
+    $0.0200$ & $81.0$  & $8095$\\
+    $0.0276$ & $91.0$  & $7409$\\
+    $0.0350$ & $99.9$  & $6916$\\
+    $0.0600$ & $127.9$ & $5834$\\
+    \bottomrule
+  \end{tabular}
+\end{table}
