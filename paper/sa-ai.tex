@@ -96,7 +96,7 @@ $Tu$ & freestream turbulence intensity \\
 $\mathbf u,\;\boldsymbol\omega$ & velocity and vorticity vectors \\
 $\mathbf d,\;\boldsymbol\ell$ & wall-distance vector $d\,\nabla d$ and curvature vector, Eq.~\eqref{w:gram} \\
 $H$ & boundary-layer shape factor \\
-$u_\tau,\;\delta_{99}$ & friction velocity and boundary-layer thickness \\
+$u_\tau$ & friction velocity \\
 $\beta$ & Falkner--Skan wedge parameter \\
 $\alpha$ & angle of attack \\
 $c,\;x/c$ & chord and chordwise coordinate \\
@@ -340,9 +340,9 @@ zero. The third derivative vanishes at such a wall, $u'''_w=0$, so
 Eq.~\eqref{w:integral} gives $I\approx-\tfrac18u''''_w\,d^4$, while
 $U_\mathrm{loc}\approx\sqrt2\,|u'_w|\,d$. Farther from the wall the profiles
 differ in how far $\hat I$ rises above zero. The strongly favorable profile in
-Fig.~\ref{f:sphere}, $\beta=+0.30$, turns to negative $\hat I$ at once. The
-Blasius profile makes a small positive excursion. An adverse pressure
-gradient makes a large one. The separated profile, the reversed-flow solution
+Fig.~\ref{f:sphere}, $\beta=+0.30$, reaches only $\hat I=0.007$ before turning
+negative. The Blasius profile reaches $0.14$. An adverse pressure gradient
+makes a larger excursion. The separated profile, the reversed-flow solution
 of Stewartson \cite{stewartson_1954}, leaves the wall the other way, with
 velocity and shear both negative, and then makes the largest excursion of
 all.
@@ -436,21 +436,19 @@ and grows fast.
 
 The threshold function is fitted to the Falkner--Skan family. Each profile,
 at its Drela--Giles critical $Re_{\theta0}(H)$, traces a curve of $Re_\Omega$
-against $\hat\Omega\hat I$ across the layer. The threshold is the envelope
-those curves graze.
-Figure~\ref{f:graze}: graze ratios $0.93$--$1.14$,
-root-mean-square $\sim6\%$, from incipient separation through
-$\beta=+0.15$. The marched Blasius envelope crosses $N\!=\!9$ at $Re_\theta=1181$, $7\%$ past Drela's $1108$; across the attached
+against $\hat\Omega\hat I$ across the layer: the colored curves of
+Fig.~\ref{f:graze}. The threshold function with $k=1$, the dashed line, is
+designed as their upper envelope, which each curve touches at one point. The marched Blasius envelope crosses $N\!=\!9$ at $Re_\theta=1181$, $7\%$ past Drela's $1108$; across the attached
 family the $N\!=\!1$ stations differ from the Drela--Giles stations by $6\%$ root-mean-square (adverse wedges within $\pm4\%$, the favorable
 pair $11$--$12\%$ early). By $\beta=+0.35$ the rate is
 $\approx0.1\times$ Drela and the onset $\approx3\times$ its critical
-$Re_\theta$; by $\beta\approx0.45$ transition has retreated beyond any
-station of practical relevance, and stronger favorable wedges are
-suppressed outright (Figs.~\ref{f:nuhat}--\ref{f:calibrate}).
+$Re_\theta$; by $\beta\approx0.45$ transition has moved downstream beyond any
+station of practical relevance, and on stronger favorable wedges transition
+never happens (Figs.~\ref{f:nuhat}--\ref{f:calibrate}).
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.62\textwidth]{onset_graze.pdf}
-\caption{Onset-threshold graze. Attached family $\beta=+0.15$,
+\caption{Onset threshold as the upper envelope of the Falkner--Skan curves. Attached family $\beta=+0.15$,
 $+0.10$, $+0.05$, $0$, $-0.05$, $-0.10$, $-0.15$, $-0.19$, $-0.1988$,
 each at its Drela--Giles $Re_{\theta 0}(H)$; separated Stewartson
 $\beta=-0.19$ ($H\approx4.9$, $Re_{\theta 0}\approx26$).
@@ -589,7 +587,7 @@ SA-AI, Table~\ref{t:constants}:
 constant & value & determination \\
 \midrule
 $a_{\max}$ & $0.19$ & tanh-layer Kelvin--Helmholtz temporal eigenvalue, $\omega_{i,\max}/\omega_{\mathrm{peak}}=0.1897$ \\
-$(C,A,B)$ & $(2600,\,175,\,2)$ & graze envelope of the attached Falkner--Skan family at its critical $Re_\theta$ (rms $\sim6\%$) \\
+$(C,A,B)$ & $(2600,\,175,\,2)$ & upper envelope of the attached Falkner--Skan family at its critical $Re_\theta$ \\
 $k$ & $0.712$ & Blasius march crosses $N\!=\!1$ at the Drela--Giles station $Re_\theta=338$ at $c_{\nu,\mathrm{ai}}=\tfrac16$ \\
 $w$ & $0.35$ & onset ramp width; $N\!=\!1$ stations move $<\!1\%$ halved, $<\!2.5\%$ doubled \\
 $c_{\nu,\mathrm{ai}}$ & $1/6$ & frozen-profile growth eigenvalue reaches the Drela--Giles rate just past critical ($1.02$ at $Re_\theta\!=\!400$) \\
@@ -606,193 +604,6 @@ modifications); SA-AI $+8$, $+2$ imported from Mack, $19$ total; Drela's
 envelope $e^N$ in XFOIL $13$, plus $2$ compressibility constants and
 $N_\mathrm{crit}$.
 
-\subsection{Propagation of the Transition Front}
-
-On a frozen, parallel Falkner--Skan profile, a turbulent region is not stationary under standard SA. The transition front, the boundary between the
-laminar and the turbulent solution, travels downstream with a fixed shape. A
-station that starts turbulent returns to laminar once the front has passed.
-Table~\ref{t:frontspeed} lists the front speed on four profiles. The speed is between $13.9$ and $15.2$ friction velocities across profiles and
-Reynolds numbers. As a fraction of the edge velocity it decreases as the Reynolds number increases, from $0.57$ at $Re_\theta=150$ to $0.10$ at $Re_\theta=4800$ on
-the Blasius profile. The laminar amplification changes it by at most
-$0.26\%$.
-
-\begin{table}[H]
-  \centering\small
-  \caption{Speed of the transition front on frozen Falkner--Skan profiles.
-  Robin outer boundary, $L=90\,\delta_{99}$, streamwise spacing
-  $0.09\,\delta_{99}$, $n_y=220$. Last column: change with the laminar
-  amplification on, at zero upstream seed.}
-  \label{t:frontspeed}
-  \renewcommand{\arraystretch}{1.0}% normal row pitch: keeps the table on the page with its text
-  \begin{tabular}{lrrrrrr}
-    \toprule
-    & & & & \multicolumn{2}{c}{front speed over} & change with \\
-    \cmidrule(lr){5-6}
-    profile & $\beta$ & $Re_\theta$ & $\delta_{99}^+$ & edge velocity
-      & $u_\tau$ & amplification (\%) \\
-    \midrule
-    Blasius          &     $0$ &  150 &  43 & $0.56526$ & $14.735$ & $-0.26$ \\
-                     &         &  300 &  60 & $0.39998$ & $14.745$ & $-0.15$ \\
-                     &         &  600 &  85 & $0.28291$ & $14.749$ & $-0.01$ \\
-                     &         & 1200 & 120 & $0.20018$ & $14.759$ & $<0.01$ \\
-                     &         & 2400 & 170 & $0.14153$ & $14.757$ & $<0.01$ \\
-                     &         & 4800 & 241 & $0.10005$ & $14.753$ & $<0.01$ \\
-    \midrule
-    favorable        & $+0.10$ &  600 &  93 & $0.30079$ & $14.573$ & $<0.01$ \\
-    adverse          & $-0.10$ &  600 &  73 & $0.25159$ & $15.197$ & $-0.11$ \\
-    \midrule
-    plane stagnation &    $+1$ &  200 &  69 & $0.58885$ & $13.873$ & $<0.01$ \\
-                     &         &  400 &  98 & $0.42445$ & $14.142$ & $<0.01$ \\
-                     &         &  800 & 138 & $0.30406$ & $14.327$ & $<0.01$ \\
-                     &         & 1600 & 195 & $0.21700$ & $14.460$ & $<0.01$ \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{transition_front_contours.pdf}
-\caption{Transition front on the frozen Blasius layer, six Reynolds numbers.
-Line contours of $\log_{10}\chi$ every half decade over the whole streamwise
-domain, distance measured from the inflow; heavy black $\chi=1$, red dashed
-$\chi=c_{v1}$, dash-dot $\delta_{99}$. Speeds in
-Table~\ref{t:frontspeed}.}\label{f:frontcontours}
-\end{figure}
-
-\subsection{Stagnation-Point Bistability}
-
-On the frozen Hiemenz stagnation field with the freestream
-seed exactly zero, standard SA sustains the wedge above a critical
-nose Reynolds number bisected to $Re_r=4.66$--$4.74\times10^5$
-(Fig.~\ref{f:stagbistab}).
-
-\begin{table}[H]
-  \centering\small
-  \caption{Attachment-anchored branch: steady $\max\chi$ versus nose
-  Reynolds number $Re_r=L^2$ on the frozen Hiemenz wedge, standard SA,
-  $\chi_\infty=0$. Below the bisected critical band the layer collapses
-  to $\chi=0$.}
-  \label{t:stagbistab}
-  \begin{tabular}{ccc}
-    \toprule
-    $L=\sqrt{Re_r}$ & $Re_r$ & steady $\max\chi$ \\
-    \midrule
-    $\le 683$ & $\le 4.66\times10^5$ & $<10^{-3}$ (collapses to $0$) \\
-    $683$--$689$ & $4.66$--$4.74\times10^5$ & critical band (bisected) \\
-    $689$ & $4.74\times10^5$ & $2.19$ \\
-    $700$ & $4.90\times10^5$ & $6.15$ \\
-    $1000$ & $1.00\times10^6$ & $24.1$ \\
-    $3000$ & $9.00\times10^6$ & $75.7$ \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{stagnation_bistability.pdf}
-\caption{Attachment-anchored turbulent branch, $L=3000$
-($Re_r=9\times10^6$), $\max\chi=76$. Standard SA, frozen Hiemenz,
-$\chi_\infty=0$. Abscissa $x/R$ (arc length in nose radii, $R/\delta=L$);
-ordinate $y/\delta$. $\chi$ contours dashed per decade for $\chi<1$
-($10^{-24}$--$10^{-1}$; the zero freestream leaves no floor, so $\chi$
-decays smoothly over decades), solid at $1$, $c_{v1}$, $30$; velocity
-magnitude
-$|u|/u_{e,L}$ (blue, normalized by the $x\!=\!L$ edge speed) at $0.1$,
-$0.2$, $0.4$, $0.6$, $0.8$. Branch data in
-Table~\ref{t:stagbistab}.}\label{f:stagbistab}
-\end{figure}
-
-Below $\chi=1$ the equation linearizes. With $v$-advection and streamwise
-diffusion dropped,
-\begin{equation}
-  x f'(y)\,\chi_x = c_{b1}\,x f''(y)\,\chi + D\,\chi_{yy},
-  \qquad D=c_\nu/\sigma .
-  \label{e:stagramp}
-\end{equation}
-$x$ cancels between advection and production. With
-$\chi=G(y)\exp\!\int\!\lambda\,dx$ and $f'=ay$, $f''=a$,
-$a=f''(0)=1.2326$, \eqref{e:stagramp} is Airy's equation in
-$\zeta=(\lambda a x/D)^{1/3}(y-c_{b1}/\lambda)$; $G(0)=0$ selects the first
-Airy zero $a_1=-2.33811$:
-\begin{equation}
-  \lambda(x)=\Big(\frac{c_{b1}}{|a_1|}\Big)^{3/2}\sqrt{\frac{a\,x}{D}}
-  =0.01265\,\sqrt{x},
-  \qquad
-  \ln\chi=0.00843\,x^{3/2},
-  \qquad
-  \lambda\,y_p=0.564\,c_{b1}.
-  \label{e:stagairy}
-\end{equation}
-The exact eigenvalue of \eqref{e:stagramp} on the full Hiemenz profile is
-$0.39$, $0.58$, $0.71$ of \eqref{e:stagairy} at $x=100$, $200$, $400$, with
-$y_p$ within $3\%$ by $x=400$, and is negative below $x_c=26.7$
-($Re_s=712$). A backward-Euler march of \eqref{e:stagramp} gives $\ln$ growth
-$29.02$ over $x=200$--$400$ against $\int\!\lambda\,dx=28.69$, with the
-eigenfunction peak height within $2\%$.
-
-The $\chi=1$ root satisfies $\int_x^L\!\lambda\,dx'=\ln\max\chi$, giving
-$x=2990$ at $L=3000$ against the computed $148.8$. Ablation and refinement,
-$L=3000$, chained continuation to a locked fixed point:
-Table~\ref{t:stagablate}. Streamwise numerical diffusion $u\,\Delta x/2$ at
-the $n_x=384$ root is $665$ against $D=1.5$. Front-stationarity threshold
-$\nu_s=u/(4\lambda)=147$, independent of $x$; $u\,\Delta x/2$ at $x=L$ exceeds
-it by $21.7$, $10.8$, $5.4$, $2.7$ for $n_x=384$ to $3072$, reaching unity at
-$\Delta x=0.72$ ($n_x\approx8300$).
-
-\begin{table}[H]
-  \centering\small
-  \caption{Ablation and refinement on the frozen Hiemenz wedge, $L=3000$
-  ($Re_r=9\times10^6$). $x_\mathrm{root}$: near-wall $\chi=1$ crossing;
-  continuum value $2990$. Baseline is the grid of
-  Fig.~\ref{f:stagbistab}.}
-  \label{t:stagablate}
-  \begin{tabular}{llrrrrr}
-    \toprule
-    model & case & $n_x$ & $n_y$ & $x_\mathrm{root}$
-      & $\chi$ at $x=102$ & $\max\chi$ \\
-    \midrule
-    standard SA & baseline               &  384 & 140 & $148.8$ & $5.0\times10^{-5}$ & $75.67$ \\
-                & $n_y\!\times\!2$       &  384 & 280 & $148.8$ & $3.3\times10^{-5}$ & $75.38$ \\
-                & $n_y\!\times\!3$       &  384 & 420 & $148.8$ & $3.8\times10^{-4}$ & $75.33$ \\
-                & $n_x\!\times\!2$       &  768 & 140 & $254.2$ & --- & $75.87$ \\
-                & $n_x\!\times\!4$       & 1536 & 140 & $549.2$ & --- & $75.97$ \\
-                & $n_x\!\times\!8$       & 3072 & 140 & $1372.5$ & --- & $76.02$ \\
-                & no $x$-diffusion       &  384 & 140 & $148.8$ & $9.5\times10^{-164}$ & $75.67$ \\
-                & wall $\chi=0$ removed  &  384 & 140 & $86.2$ & $1.2$ & $75.67$ \\
-                & no $y$-diffusion       &  384 & 140 & $54.8$ & $1.9$ & $118.96$ \\
-    \midrule
-    SA-AI       & baseline               &  384 & 140 & $1605.7$ & $0$ & $76.06$ \\
-                & $n_x\!\times\!2$       &  768 & 140 & \multicolumn{2}{l}{collapses} & $2\times10^{-4}$ \\
-                & $n_x\!\times\!4$       & 1536 & 140 & \multicolumn{2}{l}{collapses} & $0$ \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-SA-AI on the same field, $n_x=384$: sustains at $L=3000$
-($\max\chi=76.06$), collapses at $L=1500$ and $L=700$ ($\Delta x=7.8$ and
-$3.7$, the spacings at which the $n_x$ ladder at fixed $L$ also collapses). Upstream of the front
-$a_\mathrm{ai}=0$ at every $y\le5.2$ (checked at $x=1606$ and $2499$) and
-$\sigma_P=0$, so production is identically zero and destruction is
-${\sim}10^{-40}$. The eigenvalue of the corresponding linear operator is
-negative at every station, $-5.7\times10^{-4}$ at $x=30$ to $-10^{-5}$ at
-$x=3000$. Budget normalized by $\chi$, at the height of the local $\chi$
-maximum: at $x=1527$, streamwise diffusion $+31.2$, advection $21.8$, wall
-sink $9.5$; $\sigma_P$ goes $0\to0.879\to0.990$ over $x=1590$--$1621$; at
-$x=1621$, production $111$, wall sink $-57.5$, destruction $13.6$, advection
-$40.6$. Physical upstream reach $D/u=c_{\nu,\mathrm{ai}}/\sigma u
-=2.7\times10^{-4}\,\delta$; $u\,\Delta x/2$ is $2.9\times10^{4}$ times $D$.
-A local $y$-only equilibrium with no streamwise transport sustains from
-$x=400$ ($\chi=5.13$) upward: $19.8$ at $800$, $30.5$ at $1200$, $40.8$ at
-$1600$, $76.6$ at $3000$.
-
-The protocol used for every result in this paper: the
-$\tilde\nu$-equation residual is scaled by $f^{\,1-g}$, where $g$
-rises smoothly from $0$ (laminar) to $1$ (turbulent) with $\chi$ and
-$f=10^{-2}$ (the solver uses $g=1-e^{-(\chi-c_{v1})/4}$ above
-$\chi=c_{v1}$, zero below). Because
-the freestream boundary condition flows through the same scaling, the
-freestream viscosity ratio supplied to the solver is $\chi_\infty f$;
-the seeds quoted throughout are the physical $\chi_\infty$, recovered
-at the boundary-layer edge.
-
 \section{Results}\label{sec:results}
 
 Coupled RANS: Flow360, unstructured node-centered second-order
@@ -803,7 +614,7 @@ independently generated mesh families---all-triangular unstructured
 cavity meshes, constrained-Delaunay through the boundary layer, and
 all-quadri\-lateral structured O-grids---at three refinement levels,
 $1.5\times10^4$ to $2.6\times10^5$ nodes.
-Transition locations are the solver's near-wall $\chi=1$ crossing
+Transition locations, or fronts, are the solver's near-wall $\chi=1$ crossing
 (the $\chi=c_{v1}$ crossing is up to $0.05\,c$ aft where the front
 grows slowly); bubble stations are signed-$C_f$ zero crossings. The
 cross-solver replication is a cell-centered, pressure-based,
@@ -811,6 +622,16 @@ incompressible OpenFOAM implementation of the model on the same
 flat-plate grid specification and the same structured airfoil grids
 (the port omits the $f_{v1}$ bypass); thirty airfoil cases plus the
 flat-plate sweep.
+
+The protocol used for every result in this paper: the
+$\tilde\nu$-equation residual is scaled by $f^{\,1-g}$, where $g$
+rises smoothly from $0$ (laminar) to $1$ (turbulent) with $\chi$ and
+$f=10^{-2}$ (the solver uses $g=1-e^{-(\chi-c_{v1})/4}$ above
+$\chi=c_{v1}$, zero below). Because
+the freestream boundary condition is subject to the same scaling, the
+freestream viscosity ratio supplied to the solver is $\chi_\infty f$;
+the seeds quoted throughout are the physical $\chi_\infty$, recovered
+at the boundary-layer edge.
 
 \subsection{The Blasius Flat Plate}
 
@@ -872,8 +693,7 @@ surfaces (at $2^\circ$, $0.338$/$0.344\,c$ upper against
 $0.040$--$0.453\,c$ and $0.604$/$0.607\,c$ lower against
 $0.080$--$0.654\,c$).
 
-Across the Reynolds sweep the upper-surface front moves forward monotonically and joins the
-$4\times10^6$ benchmark without a step
+Across the Reynolds sweep the upper-surface front moves forward monotonically
 ($0.446\to0.418\to0.400\to0.387\,c$ at $0^\circ$;
 $0.379\to0.320\to0.279\to0.254\,c$ at $4^\circ$).
 Somers~\cite{somers_1981} reports the last laminar and first turbulent orifice, so each lift coefficient has a $0.05\,c$ bracket rather than a point; all four panels of his Fig.~9 are
@@ -1288,8 +1108,7 @@ front is $0.07$--$0.12\,c$ ahead of the measurement at every incidence
 and the bubble closes late or not at all
 ($0.978\,c$ at $0^\circ$ against $0.90\,c$; no closure at $6^\circ$
 against $0.68\,c$), with $c_d$ reaching $0.0499$ at $6^\circ$.
-$6\times10^4$ and $4.6\times10^5$ keep their single $\alpha=5^\circ$
-stations.
+
 Figures~\ref{f:epprepolar} and~\ref{f:epprebubble}: polar and
 bubble stations at the three Reynolds numbers against the
 measurement alone. Figures~\ref{f:eppcfRe100k}
