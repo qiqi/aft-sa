@@ -97,9 +97,29 @@ wav_path = os.path.join(HERE, args.out + '.wav')
 sf.write(wav_path, wave, SR, subtype='PCM_16')
 dur = len(wave) / SR
 
-with open(os.path.join(HERE, args.out + '_chapters.txt'), 'w') as f:
+
+
+def chapter_lines(chapters):
+    """Start time of every section and subsection, numbered as in the paper
+    (II, II.A, ...), for jumping to a point in the audio."""
+    roman = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII']
+    sec = ''
     for t, title in chapters:
-        f.write('%02d:%02d:%02d  %s\n' % (t // 3600, t % 3600 // 60, t % 60, title))
+        m = re.match(r'Section (\d)\. (.*)', title)
+        if m:
+            sec = roman[int(m.group(1))]
+            num, name = sec, m.group(2)
+        else:
+            m = re.match(r'Subsection ([A-Z])\. (.*)', title)
+            if m:
+                num, name = '%s.%s' % (sec, m.group(1)), m.group(2)
+            else:
+                num, name = '', title
+        yield '%d:%02d:%02d  %-6s %s' % (t // 3600, t % 3600 // 60, t % 60, num, name)
+
+
+with open(os.path.join(HERE, args.out + '_chapters.txt'), 'w') as f:
+    f.write('\n'.join(chapter_lines(chapters)) + '\n')
 
 mp3_path = None
 try:
@@ -122,6 +142,7 @@ else:
     print('every paragraph was spoken in full (letter counts match)')
 print('duration: %d:%02d:%02d (%.1f min), wall time %.0f s'
       % (dur // 3600, dur % 3600 // 60, dur % 60, dur / 60, time.time() - t0))
+print('chapters: %s' % os.path.join(HERE, args.out + '_chapters.txt'))
 print('wav: %s (%.0f MB)' % (wav_path, os.path.getsize(wav_path) / 1e6))
 if mp3_path:
     print('mp3: %s (%.0f MB)' % (mp3_path, os.path.getsize(mp3_path) / 1e6))

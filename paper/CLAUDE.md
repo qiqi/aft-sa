@@ -113,6 +113,13 @@ by both documents. An edit there changes both.
 - **No verbs of position for colour.** Not "reattachment runs 0.02c late" but "the
   flow reattaches 0.02c late". Rewrite around the real verb; use "is" only for a
   true position or value.
+- **"Has", "takes", "makes" and "does" are relation verbs too.** Not "a point has no
+  H" but "H cannot be determined from the values and derivatives of the velocity at a
+  point". Not "two terms have one ratio" but "two terms form one ratio".
+- **Prefer the phrase that carries more information**: "boundary-layer profile", not
+  "velocity profile", where the shape of the layer is meant; "the freestream turbulence
+  intensity", not "the disturbance level of the stream"; "two ratios", not "two
+  numbers"; the symbol or the name, not "the field" or "the two".
 - **Never refer back to a list by position** ("the first job"). Restate the thing and
   say where it was introduced. Readers keep insights and forget bookkeeping.
 - **A special case or limit says so up front**: "Note that baseline SA is recovered

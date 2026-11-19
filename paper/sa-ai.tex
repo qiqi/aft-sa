@@ -14,7 +14,16 @@
 \usepackage{booktabs}
 \usepackage{longtable}  % AIAA nomenclature list
 \setlength\LTleft{0pt}
-\usepackage{CJKutf8}  % Daodejing epigraphs
+%% Daodejing epigraphs. CJK.sty replaces \selectfont with its own copy, which
+%% with this LaTeX kernel drops the bold series from all text: title, headings,
+%% abstract and \textbf came out in regular weight. Keep LaTeX's \selectfont
+%% for the document and use CJK's only inside the `chinese` environment.
+\NewCommandCopy\LaTeXselectfont\selectfont
+\usepackage{CJKutf8}
+\NewCommandCopy\CJKselectfont\selectfont
+\RenewCommandCopy\selectfont\LaTeXselectfont
+\newenvironment{chinese}{\RenewCommandCopy\selectfont\CJKselectfont
+  \begin{CJK}{UTF8}{bsmi}}{\end{CJK}}
 
 \graphicspath{{figs/}}
 
@@ -39,8 +48,7 @@ Institute of Technology. AIAA Associate Fellow.}}
 \begin{abstract}
 Natural transition from laminar to turbulent flow can be modeled by using only
 the Spalart--Allmaras (SA) working variable $\tilde\nu$. The variable is its own transition indicator, in a one-equation Reynolds-averaged
-Navier--Stokes (RANS) closure. Its sub-$O(1)$ range is dynamically inert in the
-baseline model. In that range the logarithm of $\tilde\nu$ is used as the Tollmien--Schlichting amplification factor. A single production term is the larger of a laminar amplification source and SA's turbulent production, each weighted by a handover function. The destruction is weighted by a linear function of the same handover weight. The molecular
+Navier--Stokes (RANS) closure. Where $\tilde\nu$ is below the molecular viscosity, the baseline model's eddy viscosity is negligible. In that range the logarithm of $\tilde\nu$ is used as the Tollmien--Schlichting amplification factor. A single production term is the larger of a laminar amplification source and SA's turbulent production, each weighted by a handover function. The destruction is weighted by a linear function of the same handover weight. The molecular
 diffusion coefficient is reduced in the $\tilde\nu$ equation only. The handover occurs near $\chi\!=\!\tilde\nu/\nu\!\sim\!1$. In the laminar range the
 amplification rate depends only on the local mean flow: a vorticity Reynolds
 number, and two dimensionless profile-shape indicators, a vorticity fraction
@@ -56,7 +64,7 @@ spheroid are compared with experimental data and with other transition models.
 
 \begin{center}
   \begin{minipage}{0.6\textwidth}\centering
-  \begin{CJK}{UTF8}{bsmi}埏埴以為器，當其無，有器之用。\end{CJK}\\[3pt]
+  \begin{chinese}埏埴以為器，當其無，有器之用。\end{chinese}\\[3pt]
   \emph{Clay is shaped into a vessel:\\
   it is the emptiness within that makes it useful.}\\[3pt]
   ---\emph{Daodejing}, ch.~11
@@ -115,46 +123,41 @@ A laminar boundary layer in a quiet stream does not turn turbulent all at
 once. It first becomes unstable to weak two-dimensional waves, the
 Tollmien--Schlichting (TS) waves \cite{mack_1977,schmid_henningson_2001}. The
 envelope of the strongest wave grows nearly exponentially over a long stretch
-of the surface. At an amplitude of a few percent of the mean flow,
-three-dimensional instabilities take over. Turbulent spots form, spread, and
-merge \cite{schubauer_klebanoff_1956}. The slow growth of the envelope takes
-most of the distance, so it determines where transition is seen.
+of the surface. At an amplitude of a few percent of the freestream velocity,
+three-dimensional instabilities become dominant. Turbulent spots form, spread, and
+merge \cite{schubauer_klebanoff_1956}. The slow growth of the envelope occupies
+most of the distance to transition, so it determines where transition occurs.
 
-The $e^N$ method represents that growth by one number
-\cite{smith_gamberoni_1956,vaningen_2008}. The factor $N$ is the logarithm of
+The $e^N$ method represents that growth by one number, the amplification
+factor $N$ \cite{smith_gamberoni_1956,vaningen_2008}. It is the logarithm of
 the envelope amplitude, accumulated along the layer. Transition is declared
-where $N$ reaches $N_\mathrm{crit}$, and $N_\mathrm{crit}$ is a function of the disturbance level of the stream \cite{mack_1977}. Drela and Giles reduced the stability
-calculation behind $N$ to two curves \cite{drela_giles_1987}. Nothing grows
-until the momentum-thickness Reynolds number $Re_\theta$ passes a critical
-value $Re_{\theta0}(H)$. Past it, $N$ grows at a rate $dN/dRe_\theta$ that
-depends on the shape factor $H$ alone. The method therefore does three jobs,
+where $N$ reaches $N_\mathrm{crit}$, and $N_\mathrm{crit}$ is a function of the freestream turbulence intensity \cite{mack_1977}. Drela and Giles reduced the stability
+calculation behind $N$ to two functions of the shape factor $H$ \cite{drela_giles_1987}. The envelope does not grow until the momentum-thickness Reynolds number $Re_\theta$ passes a critical
+value $Re_{\theta0}(H)$. Past it, $N$ grows at a rate $dN/dRe_\theta$ that depends on $H$ alone. The method therefore does three jobs,
 and each job has its own input:
 \begin{enumerate}\itemsep2pt
-\item How fast the disturbance grows. The input is the shape of the velocity
-  profile.
-\item When the growth starts. The input is a Reynolds number, set against a
-  threshold that also depends on the shape.
-\item How far the disturbance must grow. The input is the turbulence level of
-  the stream.
+\item How fast the disturbance grows. The input is the shape of the boundary-layer profile, through $H$.
+\item When the growth starts. The input is $Re_\theta$, compared with a threshold that also depends on $H$.
+\item How far the disturbance must grow. The input is the freestream turbulence intensity.
 \end{enumerate}
 
-A general RANS solver cannot follow this recipe. Both $H$ and $Re_\theta$ are
-integrals across the layer, and $N$ is an integral along it. An unstructured
-solver holds only what is known at a point.
+A general RANS solver cannot apply this method directly. Both $H$ and $Re_\theta$ are
+integrals across the layer, and $N$ is an integral along it. An unstructured solver can evaluate only
+local quantities at each mesh point: the flow variables, their gradients, and
+the distance to the nearest wall.
 
 The model described here does the three jobs with local quantities, inside
 the Spalart--Allmaras (SA) equation \cite{spalart_allmaras_1992}. SA
 transports one field, $\tilde\nu$. Where $\chi=\tilde\nu/\nu$ is below one,
-that field has almost no effect on the flow. The baseline model leaves this
+the resulting eddy viscosity is negligible. The baseline model leaves this
 range ``empty''. Here $\ln\tilde\nu$ fills it, in the role of $N$. Its growth rate
-depends only on the local shape of the velocity profile. Its onset is a
-threshold on a local Reynolds number. Its starting level is a function of the
+depends only on the local shape of the boundary-layer profile. Its onset is a threshold on a local Reynolds number, formed from the vorticity and the wall distance. Its starting level is a function of the
 freestream turbulence intensity. Near $\chi=1$ the production switches to that of standard SA. No transport
 equation is added. The model is called SA-AI, Spalart--Allmaras with
 Autogenous Inception: the turbulence variable carries the inception of its
 own turbulence.\footnote{``AI'' here is not the other kind.}
 
-SA-AI is built for natural, Tollmien--Schlichting transition at low speed.
+SA-AI is built for natural, Tollmien--Schlichting transition at low Mach number.
 Bypass transition ($Tu\gtrsim1\%$), crossflow instability, and
 compressibility effects are not modeled.
 
@@ -162,8 +165,8 @@ Section~\ref{sec:model} builds the model one piece at a time and ends with
 its constants. Section~\ref{sec:results} reports what it computes on a flat
 plate, two airfoils, a two-element section, a circular cylinder through the
 drag crisis, the Daedalus wing, and a 6:1 prolate spheroid.
-Section~\ref{sec:envelope} lists what follows from its algebra outside those
-cases.
+Section~\ref{sec:envelope} lists what its algebra implies outside those
+cases: under rotation, wall curvature, sweep, suction, and wake ingestion.
 
 
 \section{Model}\label{sec:model}
@@ -174,18 +177,18 @@ SA's eddy viscosity is $\rho\tilde\nu f_{v1}(\chi)$, with
 $f_{v1}=\chi^3/(\chi^3+c_{v1}^3)$ and $c_{v1}=7.1$. At $\chi=1$ that is about
 $0.3\%$ of $\rho\tilde\nu$. Below $\chi\approx1$ the eddy viscosity is negligible whatever the value of $\tilde\nu$. This is the empty range.
 
-A source proportional to $\tilde\nu$ makes the field grow exponentially along
-a particle path. Where that source dominates,
+With a source proportional to $\tilde\nu$, $\tilde\nu$ grows exponentially along a particle path. Where that source dominates,
 \begin{equation}
   \frac{D\ln\tilde\nu}{Dt} = a\,\sigma_{Re}\,\omega ,
   \label{w:lngrowth}
 \end{equation}
-and $\ln\tilde\nu$ accumulates as $N$ does. The time scale is $1/\omega$, the inverse of the vorticity magnitude. Each remaining piece does one of the three jobs of
-the $e^N$ method listed in the Introduction. The rate $a$ determines how fast the
-disturbance grows. It is a pure number that depends only on the shape of the velocity profile. The gate $\sigma_{Re}$ determines when the growth starts. It increases from $0$ to $1$ as a local Reynolds number exceeds a threshold. The freestream value $\chi_\infty$ determines how far the disturbance must grow: $\ln\tilde\nu$ increases from that value
+and $\ln\tilde\nu$ accumulates as $N$ does. The time scale is $1/\omega$, the inverse of the vorticity magnitude. Three quantities each do one of the three jobs of the $e^N$ method listed in the Introduction. The rate $a$ determines how fast the
+disturbance grows. It is a dimensionless number that depends only on the shape of the boundary-layer profile. The gate $\sigma_{Re}$ determines when the growth starts. It increases from $0$ to $1$ as a local Reynolds number exceeds a threshold. The freestream value $\chi_\infty$ determines how far the disturbance must grow: $\ln\tilde\nu$ increases from that value
 until $\chi$ reaches one.
 
-The full model is SA with that source and four adjustments. The model affects the mean flow only through the eddy viscosity:
+The full model is SA with that source and four adjustments: a handover in the
+production, a matching weight on the destruction, a reduced molecular
+diffusion, and a bypass in the eddy viscosity. The model affects the mean flow only through the eddy viscosity:
 \begin{gather}
   \frac{\partial\rho}{\partial t} + \nabla\!\cdot\!(\rho\mathbf u) = 0,
   \qquad
@@ -215,9 +218,9 @@ working variable is transported by
 \end{equation}
 $a$ and $\sigma_{Re}$ are Eq.~\eqref{w:rate}; $\sigma_P,\sigma_D$ Eq.~\eqref{w:sigma}.
 The production $P$ is the amplification source while $\chi<1$, and SA's own
-production once $\sigma_P$ has risen to one. The destruction is SA's destruction multiplied by $\sigma_D$. The molecular viscosity in the diffusion term of
+production once $\sigma_P$ has reached one. The destruction is SA's destruction multiplied by $\sigma_D$. The molecular viscosity in the diffusion term of
 $\tilde\nu$ is multiplied by $c_{\nu,\mathrm{ai}}$. In the eddy viscosity, $f_{v1}$ is
-replaced by $(1-\sigma_{v1})f_{v1}+\sigma_{v1}$, with $\sigma_{v1}$ the bypass weight. Each has its own subsection below.
+replaced by $(1-\sigma_{v1})f_{v1}+\sigma_{v1}$, with $\sigma_{v1}$ the bypass weight. Each is described in its own subsection below.
 Note that baseline SA is recovered exactly by setting $\sigma_P\!\equiv\!1$
 (and with it $\sigma_D\!=\!1$), $c_{\nu,\mathrm{ai}}\!=\!1$, and
 $\sigma_{v1}\!\equiv\!0$. The SA closure functions are unchanged:
@@ -249,36 +252,31 @@ The handover weights are
 
 \subsection{Local Indicators}
 
-In the envelope $e^N$ method \cite{drela_giles_1987}, a single parameter
-determines the velocity profile of a laminar boundary layer. That parameter is
-the shape factor $H$, and $dN/dRe_\theta$ is a function of $H$ alone.
-SA-AI takes the same view. It cannot use $H$, which is an integral across the
-layer. A point in the flow has no $H$. A local quantity must do the job of
-$H$.
+SA-AI assumes that the shapes of laminar boundary-layer profiles form a \textbf{one}-parameter family, as the envelope $e^N$ method does
+\cite{drela_giles_1987}. The shape of a profile is the velocity divided by the
+edge velocity, as a function of the wall distance divided by the momentum
+thickness. In the $e^N$ method that one parameter is the shape factor $H$, and
+$dN/dRe_\theta$ is a function of $H$ alone. However, SA-AI cannot use $H$,
+which is
+an integral across the layer and cannot be determined from the values and
+derivatives of the velocity at a point. A local quantity must replace $H$.
 
-One local number is not enough, because a local quantity changes across the
-layer. Take the ratio of $d\,u'$ to $u$, with $u$ the velocity, $u'$ its
+But one local quantity is not enough, because any local quantity changes across the layer. Consider the ratio of $d\,u'$ to $u$, with $u$ the velocity, $u'$ its
 wall-normal derivative, and $d$ the distance to the wall. It is one at the
-wall and zero at the edge of every attached layer. Every value in between
-occurs in every profile, at some height. The ratio alone cannot tell one
-profile from another. The point needs two independent numbers. Between them
-they answer two questions. Which profile is this? And where in the profile is
-the point?
+wall and zero at the edge of every attached layer. Every value in between occurs for every profile shape, at some wall distance. Identifying the shape from local quantities requires \textbf{two} independent ratios, because two numbers are unknown at a point. One is the
+number that parameterizes the shape. The other is the wall-normal coordinate of the point: its wall distance
+divided by the momentum thickness.
 
-Both numbers must be dimensionless. Neither may contain the viscosity,
-because the shape of a profile does not. The point has $u$, $u'$, and the
-second derivative $u''$. Multiplied by powers of $d$, they become the terms of
-the Taylor series over the distance to the wall: $u$, $d\,u'$, and
-$\tfrac12 d^2u''$, all with the dimension of velocity. Two terms have one
-ratio, and one number is not enough. Three terms have two ratios. Three is
-the minimum.
+Two independent ratios need \textbf{three} local quantities of the same dimension, because two quantities form only one ratio. At a point, a solver
+can evaluate $u$, $u'$, and the second derivative $u''$. Multiplied by powers
+of $d$, they become the terms of the Taylor series over the distance to the
+wall: $u$, $d\,u'$, and $\tfrac12 d^2u''$, all with the dimension of velocity.
 
 And three is sufficient. In a thin quasi-two-dimensional layer these three
 velocity scales determine the Taylor expansion of the profile to second order
 about any wall-normal point. Normalized by their
 common magnitude, the local velocity scale
-$U_\mathrm{loc}=\sqrt{u^2+(du')^2+(\tfrac12 d^2u'')^2}$, they place the local
-state on the unit sphere of directions
+$U_\mathrm{loc}=\sqrt{u^2+(du')^2+(\tfrac12 d^2u'')^2}$, they define a point on the unit sphere of directions
 \begin{equation}
   (X,Y,Z) = \big(u,\;d\,u',\;\tfrac12 d^2u''\big),
   \qquad
@@ -286,17 +284,21 @@ state on the unit sphere of directions
   \label{w:ind}
 \end{equation}
 so unhatted symbols have the dimension of velocity and hatted ones are the
-direction cosines on the unit sphere. The two ratios are the two angles on
-the sphere.
-
-Figure~\ref{f:sphere} draws velocity profiles of the Falkner--Skan family
-\cite{falkner_skan_1931} on the sphere. Each profile is
-a curve, traced from the wall to the edge of the layer. Every attached
+direction cosines on the unit sphere. The normalization removes the
+magnitude and keeps the direction of $(X,Y,Z)$. Any ratio of the three terms,
+such as $Y/X$ or $Z/X$, can be computed from that direction. The direction is
+used in place of two chosen ratios because each of the three terms vanishes
+somewhere in a flow, so none can be the denominator everywhere.
+Figure~\ref{f:sphere} plots boundary-layer profiles of the Falkner--Skan family
+\cite{falkner_skan_1931} on the sphere. Each profile maps to
+a curve, parameterized by the wall distance from the wall to the edge of the
+layer. Every attached
 profile starts at the same wall point, $\hat X=\hat Y$, $\hat Z=0$, because
 $u\approx u'd$ next to the wall. Every profile ends at the velocity pole,
-$\hat X=1$, where the shear has died out.
+$\hat X=1$: toward the edge of the layer $u'$ and $u''$ decay at least
+exponentially with $d$, so $Y$ and $Z$ vanish.
 Between their end points no two curves cross. A point on the sphere therefore
-corresponds to exactly one profile and one height in it.
+corresponds to exactly one profile shape and one wall-normal coordinate, the two unknowns.
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.68\textwidth]{indicator_sphere.pdf}
@@ -306,10 +308,9 @@ $\beta=-0.19$, $H\approx4.9$; $\hat\Omega\hat I$ contours
 $\{0.025,0.2,0.4,0.6,0.8,1.0\}$.}\label{f:sphere}
 \end{figure}
 
-Close to the wall every curve lies on one line, which runs diagonally
-through the wall point in Fig.~\ref{f:sphere}. The line is a great circle. Any
+Close to the wall every curve lies on one line, which passes diagonally through the wall point in Fig.~\ref{f:sphere}. The line is a great circle. Any
 parabola through the wall, $u=c_1y+c_2y^2$, satisfies
-$\hat Y=\hat X+\hat Z$ at every height: shear equals velocity plus curvature.
+$\hat Y=\hat X+\hat Z$ at every wall distance: shear equals velocity plus curvature.
 One indicator measures the departure from that circle:
 \begin{equation}
   \hat I = \hat Y - \hat X - \hat Z
@@ -323,10 +324,9 @@ It is zero on the circle. Its name comes from the unnormalized form,
   \label{w:integral}
 \end{equation}
 The accumulated inflection is the integral of $-u'''$ from the wall to the
-point, weighted by $\tfrac12 s^2$. A second reading uses the same three terms. The local parabola,
+point, weighted by $\tfrac12 s^2$. The same three terms have a second interpretation. The local parabola,
 extended back to the wall, predicts a wall velocity of $X-Y+Z=-I$. The no-slip
-condition gives zero. The accumulated inflection is the true value minus the
-prediction.
+condition gives zero. The accumulated inflection is the true wall velocity minus the predicted one.
 
 A profile with no inflection point is stable to inviscid disturbances, by
 Rayleigh's theorem \cite{schmid_henningson_2001}, and a parabola has none.
@@ -338,14 +338,11 @@ abbreviation.
 Near a steady wall $\hat I=O(d^3)$ wherever the wall shear $u'_w$ is not
 zero. The third derivative vanishes at such a wall, $u'''_w=0$, so
 Eq.~\eqref{w:integral} gives $I\approx-\tfrac18u''''_w\,d^4$, while
-$U_\mathrm{loc}\approx\sqrt2\,|u'_w|\,d$. Farther from the wall the profiles
-differ in how far $\hat I$ rises above zero. The strongly favorable profile in
-Fig.~\ref{f:sphere}, $\beta=+0.30$, reaches only $\hat I=0.007$ before turning
-negative. The Blasius profile reaches $0.14$. An adverse pressure gradient
-makes a larger excursion. The separated profile, the reversed-flow solution
-of Stewartson \cite{stewartson_1954}, leaves the wall the other way, with
-velocity and shear both negative, and then makes the largest excursion of
-all.
+$U_\mathrm{loc}\approx\sqrt2\,|u'_w|\,d$. Farther from the wall the profiles differ in the maximum of $\hat I$. The strongly favorable profile in
+Fig.~\ref{f:sphere}, $\beta=+0.30$, has a maximum $\hat I$ of only $0.007$ and is
+negative farther from the wall. For the Blasius profile the maximum is $0.14$.
+In an adverse pressure gradient the maximum is larger. The separated profile, the reversed-flow solution
+of Stewartson \cite{stewartson_1954}, starts at the antipode of the wall point, with velocity and shear both negative, and has the largest maximum of all.
 
 
 \subsection{Amplification Rate and Onset Threshold}
@@ -353,37 +350,35 @@ all.
 Reverse the flow, $u\to-u$. All three velocity scales change sign, and every
 point of the sphere moves to its antipode. A flow and its mirror image are
 equally unstable, so the rate must be the same at both points. The indicator
-$\hat I$ changes sign. A rate made of $\hat I$ alone is ruled out. It needs a
-partner that changes sign with it.
+$\hat I$ changes sign, so its sign alone cannot identify the unstable side of
+the circle. It must be multiplied by a second indicator that also changes
+sign.
 
-The simplest partner is the shear cosine $\hat Y$. It fails away from the
-wall. The curvature scale $Z$ is proportional to $d^2$. In a shear layer standing far from
-the wall, $Z$ dominates $U_\mathrm{loc}$, and $\hat Y$ tends to zero however strong the shear. The vorticity fraction does not contain $Z$:
+The simplest choice is the shear cosine $\hat Y$. It fails for a shear layer far from the wall. The curvature scale $Z$ is proportional to $d^2$. In such a layer $Z$ dominates $U_\mathrm{loc}$, and $\hat Y$ tends to zero however strong the shear. The vorticity fraction does not contain $Z$:
 \begin{equation}
   \hat\Omega = \frac{\hat Y}{\sqrt{\hat X^2+\hat Y^2}}
   = \frac{Y}{\sqrt{X^2+Y^2}}
   \qquad\text{(vorticity fraction)}.
   \label{w:omhat}
 \end{equation}
-It asks one question. Of velocity and shear, how much is shear? The answer is
-zero in a uniform stream and at the center of a jet or a wake. It approaches
-one in a detached shear layer, at any distance from the wall.
+It is the fraction of shear in the combined magnitude of velocity and shear.
+It is zero in a uniform stream and at the center of a jet or a wake. It
+approaches one in a detached shear layer, at any distance from the wall.
 
-The rate is the product of the two, cut off below zero and above one:
+The rate is the product of the vorticity fraction and the accumulated
+inflection, clipped to the interval from zero to one:
 $a=a_{\max}\operatorname{clip}\langle\hat\Omega\hat I\rangle_0^1$. It vanishes
-on the parabola circle, so nothing grows at the wall. It vanishes where
-$\hat I<0$: in the free stream, and through a strongly favorable layer. The ceiling $a_{\max}$ is the rate of the free shear layer, the most unstable profile
+on the parabola circle, so $\tilde\nu$ does not grow at the wall. It vanishes where
+$\hat I<0$: in the free stream, and through a boundary layer in a strongly favorable pressure gradient. The ceiling $a_{\max}$ is the rate of the free shear layer, the most unstable profile
 of all. The fastest wave on a hyperbolic-tangent layer grows at $0.1897$ of
 the peak vorticity \cite{michalke_1964}, which gives $a_{\max}=0.19$. The
 rate of any other profile is $a_{\max}$ multiplied by $\hat\Omega\hat I$.
 
-In the solver the triple is assembled from four local vector-calculus
-objects: the velocity $\mathbf u$, the vorticity
+In the solver the triple $(X,Y,Z)$ is assembled from four local vectors: the velocity $\mathbf u$, the vorticity
 $\boldsymbol\omega$, the wall-distance vector
 $\mathbf d=d\,\nabla d$, and the curvature vector
 $\boldsymbol\ell=\tfrac12\langle\mathbf d,\mathbf d\rangle\,\nabla^2\mathbf u$,
-with $\nabla^2\mathbf u=-\nabla\times\boldsymbol\omega$ supplying the
-second derivative.
+with $\nabla^2\mathbf u=-\nabla\times\boldsymbol\omega$ giving the second derivative.
 \begin{equation}
   (X,\,Y,\,Z) \;=\;
   \Big(\,\langle\mathbf u,\mathbf u\rangle,\;
@@ -404,13 +399,11 @@ The solver's equivalent \emph{ratio} realization,
   \label{w:ratio}
 \end{equation}
 coincides with Eq.~\eqref{w:gram} wherever $\mathbf u\neq0$.
-Both forms are unchanged by the reversal $\mathbf u\to-\mathbf u$. The
-symmetry is built in.
+Both forms are unchanged by the reversal $\mathbf u\to-\mathbf u$. The reversal symmetry is built in.
 
-Nothing so far contains the viscosity, just as $dN/dRe_\theta$ contains none.
+The rate $a$ does not depend on the viscosity, just as $dN/dRe_\theta$ does not.
 Viscosity appears only in the onset gate. The local Reynolds number is the
-vorticity Reynolds number $Re_\Omega=d^2\omega/\nu$. The gate $\sigma_{Re}$
-opens as $Re_\Omega$ passes a threshold $Re_\Omega^{\mathrm c}$. The threshold
+vorticity Reynolds number $Re_\Omega=d^2\omega/\nu$. The gate $\sigma_{Re}$ increases from $0$ to $1$ as $Re_\Omega$ exceeds a threshold $Re_\Omega^{\mathrm c}$. The threshold
 depends on the same shape number $\hat\Omega\hat I$, as $Re_{\theta0}$ depends
 on $H$. The complete amplification source is
 \begin{equation}
@@ -430,9 +423,8 @@ on $H$. The complete amplification source is
   \label{w:onset}
 \end{equation}
 The threshold is high near the parabola circle and low for inflectional
-profiles. A larger $\hat\Omega\hat I$ therefore gives both a higher rate and a lower threshold. A flat-plate layer starts
-late and grows slowly. A layer in an adverse pressure gradient starts early
-and grows fast.
+profiles. A larger $\hat\Omega\hat I$ therefore gives both a higher rate and a lower threshold. On a flat plate the growth starts
+late and is slow. In an adverse pressure gradient it starts early and is fast.
 
 The threshold function is fitted to the Falkner--Skan family. Each profile,
 at its Drela--Giles critical $Re_{\theta0}(H)$, traces a curve of $Re_\Omega$
@@ -1791,7 +1783,7 @@ further computation; each is reproduced by
 
 \begin{center}
   \begin{minipage}{0.6\textwidth}\centering
-  \begin{CJK}{UTF8}{bsmi}天下萬物生於有，有生於無。\end{CJK}\\[3pt]
+  \begin{chinese}天下萬物生於有，有生於無。\end{chinese}\\[3pt]
   \emph{The myriad things are born of being;\\
   being is born of non-being.}\\[3pt]
   ---\emph{Daodejing}, ch.~40

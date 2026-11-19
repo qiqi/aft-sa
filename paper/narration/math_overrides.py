@@ -22,7 +22,7 @@ INLINE = {
     r'c_{\nu,\mathrm{ai}}=1/6': 'c sub nu comma {a} i equals one sixth',
     r'c_{\nu,\mathrm{ai}}=\tfrac16': 'c sub nu comma {a} i equals one sixth',
     # ---- order, functions, derivatives
-    r'O(1)': 'order 1',
+    r'(X,Y,Z)': 'the triple capital X, capital Y, capital Z',
     r'\hat I=O(d^3)': 'capital I hat is of order d cubed',
     r"I\approx-\tfrac18u''''_w\,d^4":
         'capital I is approximately minus one eighth of u quadruple prime sub w, times d to the '

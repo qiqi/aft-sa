@@ -65,6 +65,8 @@ text = re.sub(r'\$\$(.*?)\$\$', say_display, md, flags=re.S)
 text = re.sub(r'(?<!\\)\$(.+?)(?<!\\)\$', say_inline, text, flags=re.S)
 # "the wall-distance vector $\mathbf d$": do not say the word twice
 text = text.replace('vector ⟦M⟧vector ', 'vector ⟦M⟧')
+# "the triple $(X,Y,Z)$": likewise
+text = text.replace('the triple ⟦M⟧the triple ', 'the triple ⟦M⟧')
 
 if missing:
     print('NO SPOKEN FORM for %d expressions:' % len(missing))
