@@ -62,15 +62,17 @@ meets it, then what goes wrong with the obvious choice. It does not defend.
 The model section of the paper has eight subsections and ends with the constants:
 
 1. Transport Equation and Blended Sources
-2. Local Indicators
-3. Amplification Rate and Onset Threshold
+2. Local Indicators of the Boundary-Layer Profile Shape
+3. Amplification Rate and Onset Gate Built from the Indicators
 4. Reduced Laminar Diffusion
 5. Handover Blend and Destruction Tie
 6. Eddy-Viscosity Assembly
 7. Freestream Seed
 8. Constants
 
-The whitepaper has the same eight in the same order, then two more: "Relaminarization
+Subsections 2 and 3 carry longer titles than in the whitepaper ("Local indicators",
+"Amplification rate and onset threshold") so that the titles state what each one is
+for. The whitepaper has the same eight in the same order, then two more: "Relaminarization
 behavior" and "Stagnation-point bistability". **Do not bring those two into the paper.**
 The stagnation-point branch was later found to be held up by streamwise numerical
 diffusion, and that finding, with the front-propagation analysis it rests on, is the
@@ -118,8 +120,8 @@ by both documents. An edit there changes both.
   point". Not "two terms have one ratio" but "two terms form one ratio".
 - **Prefer the phrase that carries more information**: "boundary-layer profile", not
   "velocity profile", where the shape of the layer is meant; "the freestream turbulence
-  intensity", not "the disturbance level of the stream"; "two ratios", not "two
-  numbers"; the symbol or the name, not "the field" or "the two".
+  intensity", not "the disturbance level of the stream"; "the boundary layer", not
+  "the layer"; "two ratios", not "two numbers"; the symbol or the name, not "the field" or "the two".
 - **Never refer back to a list by position** ("the first job"). Restate the thing and
   say where it was introduced. Readers keep insights and forget bookkeeping.
 - **A special case or limit says so up front**: "Note that baseline SA is recovered

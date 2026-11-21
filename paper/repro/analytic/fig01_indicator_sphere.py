@@ -5,11 +5,13 @@ vertical, shear-minus-velocity horizontal (velocity pole left, shear pole
 right, +/- curvature poles top and bottom). Five representative profiles run
 as thin curves from the wall point (centre, X=Y, Z=0) toward the freestream
 (velocity pole); the near hemisphere is drawn solid, the far side dotted
-(x-ray); NO in-figure text (all identification lives in the caption:
-poles by triangle markers, profiles by color). The THICK segment on each curve marks the wall-normal band where the
+(x-ray). In-figure text is limited to the pole labels and one label on each
+grey contour; the profiles are identified by color in the caption. The THICK segment on each curve marks the wall-normal band where the
 most-amplified Orr-Sommerfeld mode's Reynolds-stress production density
-p = (alpha/2) |Im(phi' phi*)| |U'| exceeds half its peak -- where the
-disturbance actually grows (attached profiles evaluated at Re_theta = 500,
+p = (alpha/2) |Im(phi' phi*)| |U'|, multiplied by local velocity over local
+vorticity, exceeds half its peak. The weight u/omega converts a spatial
+amplification into the model's dimensionless rate (d ln nu~/dx = a omega/u);
+p u/omega is the wave's Reynolds shear stress times the local velocity (attached profiles evaluated at Re_theta = 500,
 where the favorable layer is still subcritical and so carries no band; the
 reversed-flow (Stewartson lower-branch, beta=-0.19, H~4.9) profile at
 Re_theta = 200). Grey lines: contours of the rate
@@ -39,6 +41,12 @@ PROFILES = [
 ]
 
 LEVELS = [0.025, 0.2, 0.4, 0.6, 0.8, 1.0]
+# One on-contour label per level, at a point clear of the coloured curves: the
+# 0.025 contour is labelled on its left branch, the others down the right side.
+LABEL_AT = [(-0.60, 0.45), (0.50, 0.51), (0.575, 0.41), (0.60, 0.25),
+            (0.60, 0.03), (0.66, -0.20)]
+# 15 pt on the 7.2 in canvas is 9.2 pt at the paper's 0.68\textwidth.
+LABEL_FS = 15
 
 
 def sphere_coords(u, up, upp, eta):
@@ -52,7 +60,7 @@ def sphere_coords(u, up, upp, eta):
 
 
 def band_eta(pr, Re_th):
-    """eta-range where OS production > half its peak; None if stable."""
+    """eta-range where OS production * u / omega > half its peak; None if stable."""
     try:
         yh, phi, al, c, unstable = os_mode(pr, Re_th)
     except Exception:
@@ -62,6 +70,14 @@ def band_eta(pr, Re_th):
     Th = pr['Theta']
     Up = np.interp(yh*Th, pr['eta'], pr['up'])*Th
     p = production(yh, phi, al, Up)
+    # Convert the production to the model's dimensionless rate. The model has
+    # d ln(nu~)/dx = a*omega/u, so a = (spatial rate) * u / omega: weight the
+    # production by local velocity over local vorticity. Since the production
+    # is Reynolds stress times shear, this is the wave's Reynolds shear
+    # stress times the local velocity.
+    Uh = np.interp(yh*Th, pr['eta'], pr['u'])
+    ok = np.abs(Up) > 1e-6*np.abs(Up).max()
+    p = np.where(ok, p*np.abs(Uh)/np.where(ok, np.abs(Up), 1.0), 0.0)
     jp = int(np.argmax(p))
     mask = contiguous(p > 0.5*p[jp], jp)
     et = yh[mask]*Th
@@ -115,15 +131,58 @@ def shade_sphere(rgb, cx, cy, r):
     return np.clip(rgb*mult[..., None] + add[..., None], 0.0, 1.0)
 
 
+def pole_cone(ax, n, a=0.0425, h=0.15, color='0.35', zorder=6):
+    """A cone standing on the sphere at pole direction n, drawn in projection.
+
+    The base is a circle of angular radius arcsin(a) lying ON the sphere, so
+    its rim meets the silhouette exactly where the sphere does; the apex sits
+    at radius 1+h along n. Everything is projected with the figure's own map
+    (H = (Y-X)/sqrt2, V = Z), so each pole is foreshortened by its own
+    orientation: the +/-Z cones come out edge-on (the base collapses to a
+    chord of the silhouette, giving a clean triangle) and the X and Y cones,
+    whose axes lie at 45 deg to the view, keep an elliptical base. That is
+    what makes them read as cones ON the sphere rather than flat arrowheads
+    beside it.
+
+    h has to be generous: the X and Y axes lie at 45 deg to the view, so their
+    cones are foreshortened by cos45 and a height that looks right on the
+    edge-on Z poles collapses those two into blobs.
+    """
+    n = np.asarray(n, float); n /= np.linalg.norm(n)
+    # any orthonormal pair spanning the base plane
+    tmp = np.array([0.0, 0.0, 1.0]) if abs(n[2]) < 0.9 else np.array([1.0, 0.0, 0.0])
+    e1 = np.cross(n, tmp); e1 /= np.linalg.norm(e1)
+    e2 = np.cross(n, e1)
+
+    def proj(P):
+        X, Y, Z = P[..., 0], P[..., 1], P[..., 2]
+        return np.stack([(Y - X)/SQ2, Z], axis=-1)
+
+    phi = np.linspace(0, 2*np.pi, 241)
+    rim = (np.sqrt(1.0 - a*a)*n[None, :]
+           + a*(np.cos(phi)[:, None]*e1[None, :] + np.sin(phi)[:, None]*e2[None, :]))
+    apex = (1.0 + h)*n
+    R = proj(rim)
+    A = proj(apex[None, :])[0]
+    # Silhouette = convex hull of the rim plus the apex. It must be a REAL
+    # hull: angle-sorting about the centroid traces the base ellipse and then
+    # detours to the apex, which fills as an ellipse with a zero-width spike --
+    # the X and Y cones came out as blobs that way, because their apex is only
+    # ~2 base-radii from the base centre once foreshortened.
+    from scipy.spatial import ConvexHull
+    pts = np.vstack([R, A[None, :]])
+    hull = pts[ConvexHull(pts).vertices]
+    ax.fill(hull[:, 0], hull[:, 1], color=color, lw=0, zorder=zorder)
+    ax.plot(R[:, 0], R[:, 1], '-', color=color, lw=0.8, zorder=zorder + 0.1)
+
+
 def main():
     fig, ax = plt.subplots(figsize=(7.2, 7.2))
     # silhouette + poles
     tt = np.linspace(0, 2*np.pi, 400)
     ax.plot(np.cos(tt), np.sin(tt), '-', color='0.75', lw=1.0, zorder=1)
-    ax.plot([-1/SQ2], [0], marker='<', color='0.3', ms=9, zorder=6)
-    ax.plot([+1/SQ2], [0], marker='>', color='0.3', ms=9, zorder=6)
-    ax.plot([0], [+1], marker='^', color='0.3', ms=9, zorder=6)
-    ax.plot([0], [-1], marker='v', color='0.3', ms=9, zorder=6)
+    for n in ((1, 0, 0), (0, 1, 0), (0, 0, 1), (0, 0, -1)):
+        pole_cone(ax, n)
 
     # grey Omega_hat*I_hat contours over the near hemisphere
     hg = np.linspace(-0.999, 0.999, 601)
@@ -137,6 +196,15 @@ def main():
     Psg = np.where(disk, Omega_hat*G, np.nan)
     cs = ax.contour(Hm, Vm, Psg, levels=LEVELS, colors='0.6', linewidths=0.8,
                     zorder=2)
+    # clabel cuts a gap in each contour for its label. Keep the gaps, record
+    # where the labels go, and remove the text so it is not rasterized with
+    # the line drawing; it is redrawn as vector text on the final figure.
+    labs = ax.clabel(cs, manual=LABEL_AT, inline=True, inline_spacing=6,
+                     fmt='%g', fontsize=LABEL_FS)
+    contour_labels = [(t.get_position(), t.get_text(), t.get_rotation())
+                      for t in labs]
+    for t in labs:
+        t.remove()
 
     for beta, guess, col, lab, Re_th in PROFILES:
         pr = build_profile(beta, guess)
@@ -157,6 +225,12 @@ def main():
     # then rebuild the figure as raster + crisp vector pole labels on top
     DPI = 350
     fig.canvas.draw()
+    # Data coordinates of the canvas corners. The raster below is the whole
+    # canvas, so it must be laid over exactly this extent: any other extent
+    # stretches the sphere and moves it off the vector labels.
+    inv = ax.transData.inverted()
+    (ext_x0, ext_y0) = inv.transform((0.0, 0.0))
+    (ext_x1, ext_y1) = inv.transform((fig.bbox.width, fig.bbox.height))
     cx, cy_top = ax.transData.transform((0.0, 0.0))
     ex, _ = ax.transData.transform((1.0, 0.0))
     import io
@@ -171,13 +245,17 @@ def main():
     plt.close(fig)
 
     fig2, ax2 = plt.subplots(figsize=(7.2, 7.2))
-    ax2.imshow(shaded, extent=[-1.25, 1.25, -1.2, 1.15], zorder=1,
+    ax2.imshow(shaded, extent=[ext_x0, ext_x1, ext_y0, ext_y1], zorder=1,
                interpolation='lanczos')
-    for x, y, txt, ha, va in [(-1/SQ2 - 0.05, 0.05, '$X$', 'right', 'bottom'),
-                              (+1/SQ2 + 0.05, 0.05, '$Y$', 'left', 'bottom'),
+    for x, y, txt, ha, va in [(-1/SQ2 - 0.05, 0.09, '$X$', 'right', 'bottom'),
+                              (+1/SQ2 + 0.05, 0.09, '$Y$', 'left', 'bottom'),
                               (0.06, 1.03, '$+Z$', 'left', 'bottom'),
                               (0.06, -1.06, '$-Z$', 'left', 'top')]:
-        ax2.text(x, y, txt, fontsize=13, color='0.15', ha=ha, va=va, zorder=5)
+        ax2.text(x, y, txt, fontsize=LABEL_FS, color='0.15', ha=ha, va=va,
+                 zorder=5)
+    for (x, y), txt, rot in contour_labels:
+        ax2.text(x, y, txt, fontsize=LABEL_FS, color='0.3', ha='center',
+                 va='center', rotation=rot, zorder=5)
     ax2.set_aspect('equal'); ax2.set_xlim(-1.25, 1.25); ax2.set_ylim(-1.2, 1.15)
     ax2.axis('off')
     plt.tight_layout()
