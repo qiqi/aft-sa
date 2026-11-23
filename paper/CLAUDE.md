@@ -64,8 +64,8 @@ The model section of the paper has eight subsections and ends with the constants
 1. Transport Equation and Blended Sources
 2. Local Indicators of the Boundary-Layer Profile Shape
 3. Amplification Rate and Onset Gate Built from the Indicators
-4. Reduced Laminar Diffusion
-5. Handover Blend and Destruction Tie
+4. Laminar Diffusion and the Onset Factor
+5. Laminar-to-Turbulence Handover Blend and Destruction Tie
 6. Eddy-Viscosity Assembly
 7. Freestream Seed
 8. Constants
@@ -176,6 +176,12 @@ grep -cE '^! ' sa-ai.log ; grep -c undefined sa-ai.log     # both must be 0
 grep -cE '\b([Ww]e|[Oo]ur|[Oo]urs|[Mm]y)\b' sa-ai.tex      # must be 0
 python3 repro/analytic/envelope_bounds.py                  # asserts quoted numbers
 ```
+
+After a change to the kernel constants or to Section II.D, also run
+`python3 repro/analytic/tab_march_stations.py` (a few minutes on 32 cores). It asserts
+the II.D growth-rate table, the $N=1$ stations that set $c_\mathrm{on}$, and the
+Falkner--Skan family numbers. The marcher's grid (`NX`, `NY` in `fig04_shapefactor.py`)
+is 3200 x 9600; the old 1600 x 1200 put the Blasius $N=1$ station 5% late.
 
 `envelope_bounds.py` asserts every number the documents quote for the operating
 envelope. If a quoted value changes, that script must change with it and still pass.

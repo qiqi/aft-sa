@@ -20,6 +20,7 @@ import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from lib.boundary_layer import FalknerSkanWedge
 from lib.correlations import Re_theta0
+from _family_colors import beta_color
 
 CEIL, A_, B_, N_ = 2600.0, 175.0, 2.0, 2.0
 
@@ -73,16 +74,11 @@ def main():
     # (anchored by the march, Sec. II.D), shifted down by 29%
     from fig04_shapefactor import K_ANCHOR
     ax.loglog(Pg, K_ANCHOR*softmin(Pg), 'k-.', lw=1.4, zorder=5)
-    cmap = plt.cm.coolwarm
-    natt = sum(1 for p in PROFILES if p[1] is None)
-    j = 0
     for beta, guess, _, lab in PROFILES:
         P, ReOm, H, Rtc = curve(beta, guess)
-        if guess is None:
-            col = cmap(j/(natt - 1)); j += 1
-            ls = '-'
-        else:
-            col = 'purple'; ls = ':'
+        # the family's colours, the same as in every other figure
+        col = beta_color(beta, separated=guess is not None)
+        ls = '-' if guess is None else ':'
         ax.loglog(P, ReOm, ls, color=col, lw=1.7)
         ratio = ReOm/softmin(P)
         i = int(np.argmax(ratio))

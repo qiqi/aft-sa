@@ -22,8 +22,10 @@ SCRIPTS = [
     "amax_rayleigh.py",          # a_max = tanh-layer eigenvalue (asserts)
     "fig03_fs_transport_rows.py",# fig:nuhat (instrument on three wedges)
     "fig04_shapefactor.py",      # Sec. II shape-factor family (prose numbers)
+    "tab_march_stations.py",     # II.D table and family stations (asserted; no figure)
     # Sec. II.E -- turbulent layer and handover (prose verification)
     "verify_wall_layer_tie.py",  # tie exactness (asserted; no figure)
+    "wall_layer_tie_residual.py",# II.E: balance kept to 8e-6 of SA production (asserted)
     "tab02_yplus.py",            # II.E round-off statement (table dropped)
     # receptivity + assembled constants
     "tu_map.py",                 # eq:tumap (seed list in Sec. IV)

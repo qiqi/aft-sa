@@ -14,7 +14,7 @@ runs off the panel edge.
 Reuses fig04's measures_for_beta / drela / Re_theta0 (sphere kernel)."""
 import numpy as np
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
-from fig04_shapefactor import measures_for_beta, drela, Re_theta0
+from fig04_shapefactor import measures_many, drela, Re_theta0
 
 XTICKS = [2.2, 2.6, 3, 3.5, 4, 5, 7, 10]
 H_SEP = 4.03
@@ -24,9 +24,8 @@ def _rows(specs, **kw):
     """specs: (beta, guess). Returns (beta, H, s_early, s_late, Rt1): the early
     (N in [1,5] secant) and late (N in [5,9] secant) rates and the N=1 onset."""
     out = []
-    for beta, guess in specs:
-        H, s_early, s_late, Rt1 = measures_for_beta(
-            beta, verbose=False, guess=guess, **kw)
+    res = measures_many([(beta, dict(guess=guess, **kw)) for beta, guess in specs])
+    for (beta, guess), (H, s_early, s_late, Rt1) in zip(specs, res):
         tag = 'NaN' if not (np.isfinite(s_early) and np.isfinite(Rt1)) else ''
         print(f"  beta={beta:+.4f}  H={H:6.3f}  s_early={s_early:.4e}  "
               f"s_late={s_late:.4e}  Rt1={Rt1:8.1f}  {tag}", flush=True)
@@ -43,7 +42,7 @@ def _cols(rows):
 
 
 def main():
-    attached_betas = [1.0, 0.55, 0.35, 0.2, 0.1, 0.05, 0.0,
+    attached_betas = [1.0, 0.55, 0.35, 0.2, 0.15, 0.1, 0.05, 0.0,
                       -0.03, -0.06, -0.09, -0.12, -0.15, -0.18, -0.1988]
     lower = [(-0.19, -0.03), (-0.17, -0.06), (-0.15, -0.08), (-0.12, -0.10)]
 

@@ -1,4 +1,4 @@
-%% SA-AI, AIAA SciTech 2027 manuscript, AIAA conference format (class `new-aiaa`,
+%% "Two Regimes, One Equation": SA-AI, AIAA SciTech 2027 manuscript, AIAA conference format (class `new-aiaa`,
 %% option `conf`): title, abstract, nomenclature, numbered sections, appendix,
 %% acknowledgments, references. No table of contents.
 %% Body: the technical summary (whitepaper.tex) with an introduction and an
@@ -14,18 +14,25 @@
 \usepackage{booktabs}
 \usepackage{longtable}  % AIAA nomenclature list
 \setlength\LTleft{0pt}
-%% Daodejing epigraphs. CJK.sty replaces \selectfont with its own copy, which
-%% with this LaTeX kernel drops the bold series from all text: title, headings,
-%% abstract and \textbf came out in regular weight. Keep LaTeX's \selectfont
-%% for the document and use CJK's only inside the `chinese` environment.
-\NewCommandCopy\LaTeXselectfont\selectfont
-\usepackage{CJKutf8}
-\NewCommandCopy\CJKselectfont\selectfont
-\RenewCommandCopy\selectfont\LaTeXselectfont
-\newenvironment{chinese}{\RenewCommandCopy\selectfont\CJKselectfont
-  \begin{CJK}{UTF8}{bsmi}}{\end{CJK}}
+%% Daodejing epigraphs in Han clerical script, in the classical layout:
+%% columns read top to bottom and run right to left. They are small vector
+%% graphics made by repro/tools/make_laozi_epigraphs.py (which holds the text
+%% and the font credit); the argument is the chapter.
+%%   25: ren fa di, di fa tian, tian fa dao, dao fa zi ran
+%%   11: dang qi wu, you qi zhi yong
+%%   42: dao sheng yi, yi sheng er, er sheng san, san sheng wan wu
+%%   40: tian xia wan wu sheng yu you, you sheng yu wu
+%% \laozi sets one as a centred block. Its optional argument moves the block
+%% down by that amount without changing the total space, so that it sits
+%% midway between the text above and below.
+\newcommand{\laozi}[2][0pt]{\par\vspace{#1}\begin{center}%
+  \includegraphics{laozi_#2.pdf}\end{center}\vspace{-#1}}
 
 \graphicspath{{figs/}}
+
+%% The onset factor that scales the threshold of Eq. (13). It was written k in the
+%% whitepaper; that is too close to the von Karman constant kappa.
+\newcommand{\con}{c_{\mathrm{on}}}
 
 %% Continuation caption: a sheet series that differs only in incidence,
 %% station or Reynolds number is ONE numbered figure carried over several
@@ -33,8 +40,8 @@
 %% page says only which member it is.
 \newcommand{\figcont}[1]{\addtocounter{figure}{-1}\caption{\emph{Continued.} #1}}
 
-\title{A One-Equation Transition Model: Autogenous Inception from the
-Spalart--Allmaras Working Variable}
+\title{Two Regimes, One Equation: The Spalart--Allmaras with Autogenous
+Inception (SA-AI) Transition-Aware RANS Model}
 
 \author[1,2]{Qiqi Wang\footnote{Founding Technologist, Flexcompute, Inc.;
 Associate Professor, Department of Aeronautics and Astronautics, Massachusetts
@@ -43,13 +50,28 @@ Institute of Technology. AIAA Associate Fellow.}}
 \affil[2]{Department of Aeronautics and Astronautics, Massachusetts Institute of Technology}
 
 \begin{document}
+
+%% Title inscription: the model's name in Han clerical script, alone on the page
+%% before the title page (repro/tools/make_laozi_epigraphs.py). Columns read
+%% top to bottom and run right to left: Si-pa-la-te (Spalart), Ao-ma-la-si
+%% (Allmaras), zi ran zhao shi (autogenous inception), ceng tuan yi shi
+%% (laminar and turbulent in one equation). The page is unnumbered, so the
+%% title page is still page 1.
+\thispagestyle{empty}\setcounter{page}{0}
+\vspace*{\fill}
+\begin{center}\includegraphics{title_inscription.pdf}\end{center}
+\vspace*{\fill}\vspace*{0.12\textheight}
+\clearpage
+
 \maketitle
 
 \begin{abstract}
 Natural transition from laminar to turbulent flow can be modeled by using only
 the Spalart--Allmaras (SA) working variable $\tilde\nu$. The variable is its own transition indicator, in a one-equation Reynolds-averaged
-Navier--Stokes (RANS) closure. Where $\tilde\nu$ is below the molecular viscosity, the baseline model's eddy viscosity is negligible. In that range the logarithm of $\tilde\nu$ is used as the Tollmien--Schlichting amplification factor. A single production term is the larger of a laminar amplification source and SA's turbulent production, each weighted by a handover function. The destruction is weighted by a linear function of the same handover weight. The molecular
-diffusion coefficient is reduced in the $\tilde\nu$ equation only. The handover occurs near $\chi\!=\!\tilde\nu/\nu\!\sim\!1$. In the laminar range the
+Navier--Stokes (RANS) closure. Where $\tilde\nu$ is below the molecular viscosity, the baseline model's eddy viscosity is negligible. In that laminar regime the logarithm of $\tilde\nu$ is used as the Tollmien--Schlichting amplification factor. A single production term is the larger of a laminar amplification source and SA's turbulent production, each weighted by a handover function. The destruction is weighted by a linear function of the same handover weight. The molecular
+diffusion coefficient is reduced in the $\tilde\nu$ equation only. The handover
+occurs near $\chi\!=\!\tilde\nu/\nu\!\sim\!1$, above which the equation is
+in its turbulent regime and behaves as SA. In the laminar regime the
 amplification rate depends only on the local mean flow: a vorticity Reynolds
 number, and two dimensionless profile-shape indicators, a vorticity fraction
 and an accumulated-inflection coordinate. No
@@ -62,14 +84,7 @@ drag crisis, the Daedalus human-powered-aircraft wing, and a 6:1 prolate
 spheroid are compared with experimental data and with other transition models.
 \end{abstract}
 
-\begin{center}
-  \begin{minipage}{0.6\textwidth}\centering
-  \begin{chinese}埏埴以為器，當其無，有器之用。\end{chinese}\\[3pt]
-  \emph{Clay is shaped into a vessel:\\
-  it is the emptiness within that makes it useful.}\\[3pt]
-  ---\emph{Daodejing}, ch.~11
-  \end{minipage}
-\end{center}
+\laozi[9.6pt]{25}
 
 \section*{Nomenclature}
 {\renewcommand\arraystretch{1.0}
@@ -81,7 +96,7 @@ $\chi,\;\chi_\infty$ & $\tilde\nu/\nu$ and its freestream (seed) value \\
 $c_{v1},\;f_{v1}$ & SA near-wall constant ($7.1$) and damping function \\
 $\kappa$ & von K\'arm\'an constant ($0.41$) \\
 $P,\;D$ & production and destruction of $\tilde\nu$, Eq.~\eqref{w:blend} \\
-$P_\mathrm{SA},\;P_\mathrm{AI}$ & turbulent (SA) and laminar-amplification production \\
+$P_\mathrm{SA},\;P_\mathrm{AI}$ & turbulent (SA) and laminar-amplification production, Eq.~\eqref{w:blend} \\
 $c_{\nu,\mathrm{ai}}$ & laminar-viscosity scale in the SA diffusion term only ($1/6$) \\
 $d$ & distance to the nearest wall \\
 $\omega$ & vorticity magnitude \\
@@ -95,7 +110,7 @@ $\hat I$ & nondimensionalized accumulated inflection, Eq.~\eqref{w:ihat} \\
 $a,\;a_{\max}$ & amplification rate and its free-shear ceiling ($0.19$), Eq.~\eqref{w:a} \\
 $\sigma_{Re}$ & onset gate on $Re_\Omega$, Eq.~\eqref{w:rate} \\
 $Re_\Omega^{\mathrm c}$ & onset threshold in $Re_\Omega$, Eq.~\eqref{w:onset} \\
-$C,\;A,\;B,\;k$ & onset-threshold shape constants and scale, Eq.~\eqref{w:onset} \\
+$C,\;A,\;B;\;\con$ & onset-threshold shape constants; onset factor, Eq.~\eqref{w:onset} \\
 $w$ & onset ramp width, Eq.~\eqref{w:rate} \\
 $\sigma_P,\sigma_D;\;\tau$ & production and destruction handover weights and the handover width, Eq.~\eqref{w:sigma} \\
 $\sigma_{v1};\;q,\;g_\chi,\;g_q$ & $f_{v1}$-bypass blend weight and its two gates, Eqs.~\eqref{w:fv1q}--\eqref{w:fv1bypass} \\
@@ -119,17 +134,17 @@ L0, L1, L2 & the three grid-refinement levels, coarse to fine \\
 
 \section{Introduction}
 
+\laozi[7.5pt]{11}
+
 A laminar boundary layer in a quiet stream does not turn turbulent all at
 once. It first becomes unstable to weak two-dimensional waves, the
 Tollmien--Schlichting (TS) waves \cite{mack_1977,schmid_henningson_2001}. The
 envelope of the strongest wave grows nearly exponentially over a long stretch
 of the surface. At an amplitude of a few percent of the freestream velocity,
 three-dimensional instabilities become dominant. Turbulent spots form, spread, and
-merge \cite{schubauer_klebanoff_1956}. The slow growth of the envelope occupies
-most of the distance to transition, so it determines where transition occurs.
+merge \cite{schubauer_klebanoff_1956}. The slow growth of this envelope determines where transition occurs.
 
-The $e^N$ method represents that growth by one number, the amplification
-factor $N$ \cite{smith_gamberoni_1956,vaningen_2008}. It is the logarithm of
+The envelope $e^N$ method represents that growth by one number, the amplification factor $N$ \cite{smith_gamberoni_1956,vaningen_2008}. It is the logarithm of
 the envelope amplitude, accumulated along the boundary layer. Transition is declared
 where $N$ reaches $N_\mathrm{crit}$, and $N_\mathrm{crit}$ is a function of the freestream turbulence intensity \cite{mack_1977}. Drela and Giles reduced the stability
 calculation behind $N$ to two functions of the shape factor $H$ \cite{drela_giles_1987}. The envelope does not grow until the momentum-thickness Reynolds number $Re_\theta$ passes a critical
@@ -151,12 +166,13 @@ transports one field, $\tilde\nu$. Where $\chi=\tilde\nu/\nu$ is below one,
 the resulting eddy viscosity is negligible. The baseline model leaves this
 range ``empty''. Here $\ln\tilde\nu$ fills it, in the role of $N$. Its growth rate
 depends only on the local shape of the boundary-layer profile. Its onset is a threshold on a local Reynolds number, formed from the vorticity and the wall distance. Its starting level is a function of the
-freestream turbulence intensity. Near $\chi=1$ the production switches to that of standard SA. No transport
-equation is added. The model is called SA-AI, Spalart--Allmaras with
+freestream turbulence intensity. Near $\chi=1$ the production switches to that of standard SA. One
+equation therefore has two regimes: the laminar growth of a disturbance, and
+the turbulence that follows it. No transport equation is added. The model is called SA-AI, Spalart--Allmaras with
 Autogenous Inception: the turbulence variable carries the inception of its
 own turbulence.\footnote{``AI'' here is not the other kind.}
 
-SA-AI is built for natural, Tollmien--Schlichting transition at low Mach number.
+SA-AI is a transition-aware RANS model for natural, Tollmien--Schlichting transition at low Mach number.
 Bypass transition ($Tu\gtrsim1\%$), crossflow instability, and
 compressibility effects are not modeled.
 
@@ -224,8 +240,10 @@ working variable is transported by
   \label{w:blend}
 \end{equation}
 $a$ is Eq.~\eqref{w:a}; $\sigma_{Re}$ Eq.~\eqref{w:rate}; $\sigma_P,\sigma_D$ Eq.~\eqref{w:sigma}.
-The production $P$ is the amplification source while $\chi<1$, and SA's own
-production once $\sigma_P$ has reached one. The destruction is SA's destruction multiplied by $\sigma_D$. The molecular viscosity in the diffusion term of
+The production $P$ is the amplification source,
+$P_\mathrm{AI}=a\,\sigma_{Re}\,\omega\,\tilde\nu$, while $\chi<1$, the laminar
+regime, and SA's own production once $\sigma_P$ has reached one, the
+turbulent regime. The destruction is SA's destruction multiplied by $\sigma_D$. The molecular viscosity in the diffusion term of
 $\tilde\nu$ is multiplied by $c_{\nu,\mathrm{ai}}$. In the eddy viscosity, $f_{v1}$ is
 replaced by $(1-\sigma_{v1})f_{v1}+\sigma_{v1}$, with $\sigma_{v1}$ the bypass weight. Each is described in its own subsection below.
 Note that baseline SA is recovered exactly by setting $\sigma_P\!\equiv\!1$
@@ -252,7 +270,9 @@ consistency requirement: the negative-branch diffusion factor $f_n$ is
 formed with the scaled coefficient $c_{\nu,\mathrm{ai}}\,\nu$, which
 keeps the total diffusivity positive,
 $c_{\nu,\mathrm{ai}}\nu+f_n\tilde\nu>0$.
-The handover weights are
+The boundary conditions are also those of SA. At a wall $\tilde\nu=0$. In the
+free stream $\tilde\nu=\chi_\infty\nu$, with $\chi_\infty$ given in
+Section~II.G. The handover weights are
 \begin{equation}
   \sigma_P = \sigma_t(\chi;\tau), \qquad
   \sigma_t(\chi;\tau) = \max\!\left[\,1-e^{-(\chi-1)/\tau},\;0\right], \qquad
@@ -261,6 +281,8 @@ The handover weights are
 \end{equation}
 
 \subsection{Local Indicators of the Boundary-Layer Profile Shape}
+
+\laozi[7.6pt]{42}
 
 SA-AI assumes that the shapes of laminar boundary-layer profiles form a
 \textbf{one}-parameter family. The shape of a profile is the velocity divided
@@ -316,18 +338,27 @@ Between their end points no two curves cross. A point on the sphere therefore
 corresponds to exactly one profile shape and one wall-normal coordinate, the two unknowns.
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.68\textwidth]{indicator_sphere.pdf}
-\caption{Indicator sphere with contours of $\hat\Omega\hat I$. Falkner--Skan
-profiles $\beta=+0.30$ (blue), $0$ (green), $-0.10$ (orange), $-0.16$
-(orange-red), $-0.19$ (gold), $-0.1988$ (red), and the separated Stewartson
-profile, $\beta=-0.19$ with $H\approx4.9$ (purple). Thick: the part of each
-curve where the Reynolds-stress production of the most amplified
-Orr--Sommerfeld wave, scaled with the local length $u/\omega$, exceeds half of
-its peak value on that curve, at $Re_\theta=500$ ($200$ for the separated
-profile). The blue profile is stable at that Reynolds number and has no band.
-At the peak, the spatial growth rate of the wave scaled with $u/\omega$ is
-$0.007$ (green), $0.030$ (orange), $0.051$ (orange-red), $0.078$ (gold),
-$0.104$ (red), and $0.128$ (purple).}\label{f:sphere}
+\begin{minipage}[b]{0.495\textwidth}\centering
+\includegraphics[width=\textwidth]{indicator_sphere_a.pdf}\\ a)
+\end{minipage}\hfill
+\begin{minipage}[b]{0.495\textwidth}\centering
+\includegraphics[width=\textwidth]{indicator_sphere_b.pdf}\\ b)
+\end{minipage}
+\caption{Indicator sphere with contours of $\hat\Omega\hat I$, in two views:
+a) facing the wall point, b) turned $10^\circ$ toward the $Y$ pole and seen
+from $25^\circ$ below, so that $-Z$ faces the reader and $Z$ is hidden. Dashed lines: the great circles through the poles. Curves: Falkner--Skan
+profiles $\beta=+0.30$, $0$, $-0.10$, $-0.16$, $-0.19$, $-0.1988$ and the
+separated Stewartson profile ($\beta=-0.19$, $H\approx4.9$), colored from blue
+(favorable) through gray (Blasius) to dark red (separated). Only the near side
+of the sphere is drawn; the separated profile starts on the far side, at the
+antipodal wall point. Thick: the part of each curve where the Reynolds-stress
+production of the most amplified Orr--Sommerfeld wave, scaled with the local
+length $u/\omega$, exceeds half of its peak value on that curve, at
+$Re_\theta=500$ ($200$ for the separated profile). The $\beta=+0.30$ profile
+is stable at that Reynolds number and has no band. At the peak, the spatial
+growth rate of the wave scaled with $u/\omega$ is $0.007$, $0.030$, $0.051$,
+$0.078$, $0.104$ and $0.128$ for $\beta=0$, $-0.10$, $-0.16$, $-0.19$,
+$-0.1988$ and the separated profile.}\label{f:sphere}
 \end{figure}
 
 The model is built on one feature of Fig.~\ref{f:sphere}. Close to the wall
@@ -460,7 +491,7 @@ the growth to start at $Re_{\theta0}$, the curve at that Reynolds number must
 touch the threshold at one point and lie below it everywhere else. The same must
 hold for every profile shape, each taken at its own critical Reynolds number,
 where the boundary layer has just become thick enough for a disturbance to
-grow. The threshold is therefore the upper envelope of all those curves.
+grow. The threshold is therefore the upper bound of all those curves, one that touches each of them.
 
 The curves in Fig.~\ref{f:graze} are drawn at those critical Reynolds
 numbers, for nine attached Falkner--Skan profiles from $\beta=+0.15$ to
@@ -468,30 +499,26 @@ incipient separation. Each curve starts at the
 lower left, next to the wall, where $\hat\Omega\hat I$ and $Re_\Omega$ are both
 small. Away from the wall it rises to the right, turns back at the wall
 distance where $\hat\Omega\hat I$ is largest, and returns to the left as
-$\hat\Omega\hat I$ decreases toward the edge of the boundary layer. The turning
-points mark the envelope. They run from the upper left to the lower right. A
+$\hat\Omega\hat I$ decreases toward the edge of the boundary layer. The turning points mark this upper bound. They run from the upper left to the lower right. A
 favorable profile becomes critical at a large $Re_\Omega$, about $2000$ at
 $\beta=+0.15$, and has a small $\hat\Omega\hat I$. A profile near separation
-becomes critical at $Re_\Omega\approx170$ and has a large $\hat\Omega\hat I$. The envelope is
-level on the left, level again on the right at about one fifteenth of that
-value, and falls from one level to the other between
+becomes critical at $Re_\Omega\approx170$ and has a large $\hat\Omega\hat I$. On the logarithmic scales of the figure the upper bound is level on the left, level again on the
+right at about one fifteenth of that value, and falls from one level to the other between
 $\hat\Omega\hat I\approx0.03$ and $0.2$.
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.62\textwidth]{onset_graze.pdf}
-\caption{Onset threshold as the upper envelope of the Falkner--Skan curves.
+\caption{Onset threshold as the upper bound of the Falkner--Skan curves.
 Solid curves: attached profiles $\beta=+0.15$, $+0.10$, $+0.05$, $0$,
-$-0.05$, $-0.10$, $-0.15$, $-0.19$, $-0.1988$, blue to red, each at its
-Drela--Giles $Re_{\theta 0}(H)$. Dotted: separated Stewartson profile,
-$\beta=-0.19$ ($H\approx4.9$, $Re_{\theta 0}\approx26$). Circles: the point of
-each curve closest to the envelope. Dashed: Eq.~\eqref{w:onset} with $k=1$,
-the envelope. Dash-dot: Eq.~\eqref{w:onset} with $k=0.712$, the model
+$-0.05$, $-0.10$, $-0.15$, $-0.19$, $-0.1988$, in the colors of
+Fig.~\ref{f:sphere}, each at its Drela--Giles $Re_{\theta 0}(H)$. Dotted: separated Stewartson profile,
+$\beta=-0.19$ ($H\approx4.9$, $Re_{\theta 0}\approx26$). Circles: the point of each curve closest to the dashed line. Dashed: Eq.~\eqref{w:onset} with $\con=1$, the upper bound. Dash-dot: Eq.~\eqref{w:onset} with $\con=0.712$, the model
 threshold.}\label{f:graze}
 \end{figure}
 
 A function with three constants has that form:
 \begin{equation}
-  Re_\Omega^{\mathrm c}(\hat\Omega\hat I) = k\,\operatorname{softmin}_2\!\Big(C,\;
+  Re_\Omega^{\mathrm c}(\hat\Omega\hat I) = \con\,\operatorname{softmin}_2\!\Big(C,\;
       A + B\,\langle\hat\Omega\hat I\rangle_+^{-2}\Big),
   \qquad
   \operatorname{softmin}_2(x_1,x_2)=\frac{x_1x_2}{\sqrt{x_1^2+x_2^2}},
@@ -503,38 +530,103 @@ and the second argument is large. The sum in the second argument is a smooth
 maximum of its two terms, and it tends to $A$, the level on the right, where
 $\hat\Omega\hat I$ is large. The constant $B$ sets where the threshold falls:
 the sum equals $C$ near $\hat\Omega\hat I=\sqrt{B/C}$ and is twice $A$ at
-$\hat\Omega\hat I=\sqrt{B/A}$. With $k=1$ and $(C,A,B)=(2600,\,175,\,2)$ the
-function is the dashed line of Fig.~\ref{f:graze}. The model uses the same
-function with $k=0.712$, the dash-dot line. The factor $k$ is set so that the
-marched Blasius boundary layer reaches $N=1$ at the Drela--Giles station
-(Table~\ref{t:constants}).
+$\hat\Omega\hat I=\sqrt{B/A}$. With $\con=1$ and $(C,A,B)=(2600,\,175,\,2)$ the
+function is the dashed line of Fig.~\ref{f:graze}.
 
-The threshold is high near the great circle $\hat I=0$ and low for inflectional
-profiles. A larger $\hat\Omega\hat I$ therefore gives both a higher rate and a
-lower threshold. On a flat plate the growth starts late and is slow. In an
-adverse pressure gradient it starts early and is fast. The amplification
-source in Eq.~\eqref{w:blend} is now complete:
-$P_\mathrm{AI}=a\,\sigma_{Re}\,\omega\,\tilde\nu$, with $a$ from
-Eq.~\eqref{w:a}, $\sigma_{Re}$ from Eq.~\eqref{w:rate}, and the threshold from
-Eq.~\eqref{w:onset}.
+The constants $(C,A,B)$ were fitted for Eq.~\eqref{w:lngrowth}, in which the
+growth begins as soon as the gate opens. Section~II.A noted that the full
+equation reduces to Eq.~\eqref{w:lngrowth} only when
+$c_{\nu,\mathrm{ai}}=0$. With $c_{\nu,\mathrm{ai}}>0$, diffusion carries
+$\tilde\nu$ away from the band where it is produced and removes it at the
+wall, where $\tilde\nu$ is zero, so the net growth begins later than the gate
+opens. The threshold is lowered to compensate, through the onset factor $\con$ in Eq.~\eqref{w:onset}.
 
-The marched Blasius envelope crosses $N\!=\!9$ at $Re_\theta=1181$, $7\%$ past Drela's $1108$; across the attached
-family the $N\!=\!1$ stations differ from the Drela--Giles stations by $6\%$ root-mean-square (adverse wedges within $\pm4\%$, the favorable
-pair $11$--$12\%$ early). By $\beta=+0.35$ the rate is
-$\approx0.1\times$ Drela and the onset $\approx3\times$ its critical
+\subsection{Laminar Diffusion and the Onset Factor}
+
+Two constants deal with the molecular diffusion of $\tilde\nu$ in the laminar
+regime. The first, $c_{\nu,\mathrm{ai}}$, reduces it. The second, $\con$,
+compensates for what remains.
+
+The factor $c_{\nu,\mathrm{ai}}<1$ multiplies the molecular viscosity in the
+diffusion term of Eq.~\eqref{w:sa} only. (The mean-flow viscosity, the SA
+production and destruction, and $\chi=\tilde\nu/\nu$, formed with the true
+$\nu$, are unchanged.) Its effect is measured on the Blasius boundary layer.
+Where $\chi\ll1$, Eq.~\eqref{w:sa} in the boundary-layer approximation is
+\begin{equation*}
+  u\,\frac{\partial\tilde\nu}{\partial x}+v\,\frac{\partial\tilde\nu}{\partial y}
+  = a\,\sigma_{Re}\,\omega\,\tilde\nu
+  + \frac{c_{\nu,\mathrm{ai}}\,\nu}{\sigma}\,
+    \frac{\partial^2\tilde\nu}{\partial y^2},
+\end{equation*}
+with $x$ along the plate and $y$ normal to it. This is
+Eq.~\eqref{w:lngrowth} with the laminar diffusion added. The table below lists
+its solution on the Blasius velocity field $(u,v)$, marched downstream from the
+leading edge, with $\tilde\nu=0$ at the wall and $\tilde\nu=\chi_\infty\nu$ at
+the leading edge and in the free stream. The equation is linear in
+$\tilde\nu$, so the amplification factor
+\begin{equation*}
+  N=\max_y\,\ln\frac{\chi}{\chi_\infty}
+\end{equation*}
+does not depend on $\chi_\infty$. The table gives the growth rate
+$\Delta N/\Delta Re_\theta$ for a range of $c_{\nu,\mathrm{ai}}$, where
+$\Delta Re_\theta$ is the increase of $Re_\theta$ from $N=1$ to $N=5$ and
+$\Delta N=4$, as a fraction of the Drela--Giles slope
+$dN/dRe_\theta=1.039\times10^{-2}$.
+%
+\begin{center}\small
+\begin{tabular}{lcccccccc}
+  \toprule
+  $c_{\nu,\mathrm{ai}}$ & $1$ & $1/2$ & $1/4$ & $1/6$ & $1/12$ & $1/24$ & $1/48$ & $0$ \\
+  \midrule
+  $\Delta N/\Delta Re_\theta$, fraction of Drela--Giles
+  & $61\%$ & $70\%$ & $79\%$ & $83\%$ & $90\%$ & $96\%$ & $100\%$ & $107\%$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+%
+The growth rate is nearly independent of the onset factor $\con$. The table is
+for $\con=0.712$, and between $\con=1$ and $\con=\tfrac12$ no entry changes by
+more than $2\%$ of the Drela--Giles slope. Choosing $c_{\nu,\mathrm{ai}}$ is a trade-off: a smaller value brings the growth rate closer to the
+Drela--Giles slope, but it sharpens the wall-normal profile of $\tilde\nu$,
+which the grid must resolve. Dimensional analysis gives the length over which diffusion balances the
+growth: the diffusion coefficient $c_{\nu,\mathrm{ai}}\nu/\sigma$ and the
+growth rate $a\,\sigma_{Re}\,\omega$ of the equation above form only one
+length, $\sqrt{c_{\nu,\mathrm{ai}}\,\nu/(\sigma\,a\,\sigma_{Re}\,\omega)}$,
+which is proportional to $\sqrt{c_{\nu,\mathrm{ai}}}$. The model uses
+\begin{equation*}
+  c_{\nu,\mathrm{ai}}=\tfrac16 .
+\end{equation*}
+
+Diffusion also delays the growth, and the onset factor $\con$ compensates for
+the delay. It lowers the whole threshold of Eq.~\eqref{w:onset}, so the growth
+starts farther upstream. On the Drela--Giles envelope $N=1$ at
+$Re_\theta=338$. With $c_{\nu,\mathrm{ai}}=\tfrac16$ and $\con=1$ the marched
+Blasius boundary layer reaches $N=1$ at $Re_\theta=398$, $18\%$ late. With
+$\con=\tfrac12$ it reaches $N=1$ at $Re_\theta=281$. The model uses
+\begin{equation*}
+  \con=0.712 ,
+\end{equation*}
+with which $N=1$ at $Re_\theta=331$, $2\%$ before the Drela--Giles station.
+The march uses $3200$ streamwise steps and $9600$ wall-normal cells. Halving
+either spacing again lowers the $N=1$ stations by less than $1\%$ and changes
+the growth rates by less than $0.2\%$.
+
+The marched Blasius envelope crosses $N\!=\!9$ at $Re_\theta=1175$, $6\%$ past Drela's $1108$; across the attached
+family the $N\!=\!1$ stations differ from the Drela--Giles stations by $7\%$ root-mean-square (adverse wedges within $5\%$, the favorable
+wedges $\beta=+0.05$ to $+0.15$ $9$--$13\%$ early). By $\beta=+0.35$ the rate is
+$\approx0.1\times$ Drela and the onset $\approx2.7\times$ its critical
 $Re_\theta$; by $\beta\approx0.45$ transition has moved downstream beyond any
 station of practical relevance, and on stronger favorable wedges transition
 never happens (Figs.~\ref{f:nuhat}--\ref{f:calibrate}).
-
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth]{fs_nuHat_rows.pdf}
 \caption{Disturbance transport, three wedges. Adverse $\beta=-0.10$
 ($\max_y\hat\Omega\hat I=0.162$), Blasius $\beta=0$ ($0.078$),
-favorable $\beta=+0.10$ ($0.037$); seeded $\hat\nu_\infty=1$,
-$a_{\max}=0.19$, $(c_{\nu,\mathrm{ai}},k)=(\tfrac16,\,0.712)$. Anchor
-$N\!=\!9$ crossing $7\%$ past Drela; favorable $N\!=\!1$ station
-${\sim}11\%$ early.}\label{f:nuhat}
+favorable $\beta=+0.10$ ($0.037$);
+$a_{\max}=0.19$, $(c_{\nu,\mathrm{ai}},\con)=(\tfrac16,\,0.712)$. The Blasius
+$N\!=\!9$ crossing is $6\%$ past Drela--Giles; the favorable $N\!=\!1$ station
+is $13\%$ early.}\label{f:nuhat}
 \end{figure}
 
 \begin{figure}[H]\centering
@@ -542,61 +634,51 @@ ${\sim}11\%$ early.}\label{f:nuhat}
 \caption{Calibrated model vs Drela--Giles. Stagnation $H\approx2.2$,
 Blasius $H\approx2.59$, separation limit $H=3.98$, reversed-flow
 Stewartson $H\approx10.6$; $a_{\max}=0.19$, $c_{\nu,\mathrm{ai}}=1/6$.
-(b)~onset is within ${\sim}\pm12\%$ of the Drela--Giles $N\!=\!1$ stations from $H=2.44$ ($\beta=+0.15$) to
-$H=3.98$.}\label{f:calibrate}
+(b)~the model's $N\!=\!1$ crossing is within $13\%$ of the Drela--Giles $N\!=\!1$ station from $H=2.41$ ($\beta=+0.20$) to
+$H=10.6$.}\label{f:calibrate}
 \end{figure}
 
-\subsection{Reduced Laminar Diffusion}
+\subsection{Laminar-to-Turbulence Handover Blend and Destruction Tie}
 
-The molecular coefficient in the diffusion term of Eq.~\eqref{w:sa}
-only is scaled by $c_{\nu,\mathrm{ai}}<1$, leaving the mean-flow
-viscosity, the SA production and destruction, and
-$\chi=\tilde\nu/\nu$ (formed with the true $\nu$) untouched.
+One equation serves two regimes, so near $\chi=1$ its production must change
+from the amplification source to SA's own. The handover weight $\sigma_P$ of
+Eq.~\eqref{w:sigma} makes the change. It is zero for $\chi\le1$ and rises
+toward one over the width $\tau$. With $\tau=4$ the handover is $78\%$
+complete at $\chi=c_{v1}$ and $97\%$ complete at $\chi\approx14.8$. The
+production of Eq.~\eqref{w:blend} is the larger of the two weighted sources,
+so the amplification source acts alone below $\chi=1$, and SA's production
+takes over as $\sigma_P$ rises.
 
-Marched on Blasius, against the Drela--Giles $N\!=\!1$ station
-$Re_\theta=337.9$ and slope $1.039\times10^{-2}$:
-%
-\begin{center}\small
-\begin{tabular}{ccc}
-  \toprule
-  $c_{\nu,\mathrm{ai}}$ & $N\!=\!1$ station & rate at $N\!=\!1$ \\
-  \midrule
-  $1$            & $556.7$ & $61\%$ \\
-  $1/2$          & $450.7$ & $71\%$ \\
-  $1/4$          & $387.5$ & $79\%$ \\
-  $1/6$          & $365.2$ & $84\%$ \\
-  $1/12$         & $337.4$ & $90\%$ \\
-  $1/24$         & $320.8$ & $95\%$ \\
-  $1/48$         & $312.7$ & $98\%$ \\
-  $0$            & $304.6$ & $103\%$ \\
-  \bottomrule
-\end{tabular}
-\end{center}
-%
-The rate is the $N\!=\!1$--$5$ secant as a fraction of the Drela--Giles
-slope. The model uses
+The handover must not disturb a turbulent boundary layer. There $\chi$ is also
+below one, next to the wall. SA's solution in the constant-stress wall layer
+is the linear profile $\tilde\nu=\kappa u_\tau d$, so $\chi=\kappa y^+$, which
+is below one for $y^+<2.4$. On that profile SA's production, destruction and
+diffusion are $c_{b1}u_\tau^2$, $c_{w1}\kappa^2u_\tau^2$ and
+$(1+c_{b2})\kappa^2u_\tau^2/\sigma$. Each is independent of the wall distance,
+and they balance by the definition of $c_{w1}$. Multiplying the production by
+$\sigma_P$ breaks the balance unless the destruction changes with it.
+Requiring the balance for every value of $\sigma_P$,
 \begin{equation*}
-  c_{\nu,\mathrm{ai}}=\tfrac16 .
+  \sigma_P\,c_{b1}-\sigma_D\,c_{w1}\kappa^2+\frac{(1+c_{b2})\,\kappa^2}{\sigma}=0,
 \end{equation*}
-The equilibrium disturbance-band thickness scales as
-$\sqrt{c_{\nu,\mathrm{ai}}}$, so every halving thins the band the grid
-must resolve by $\sqrt2$.
+gives the destruction weight of Eq.~\eqref{w:sigma}. The weight $\sigma_D$ is a
+linear function of $\sigma_P$, with slope $c_{b1}/(\kappa^2c_{w1})\approx0.249$
+and value $(1+c_{b2})/(\sigma c_{w1})\approx0.751$ at $\sigma_P=0$.
 
-\subsection{Handover Blend and Destruction Tie}
+With this tie the linear profile remains a solution of the full equation, for
+any $\tau$, to within $8\times10^{-6}$ of SA's production. The term left over
+is the amplification source up to $\chi=1$, where SA's production is switched
+off. It is that small because, so close to the wall, the onset gate is nearly
+shut and the accumulated inflection is nearly zero. Once $\sigma_P$ exceeds
+about $10^{-5}$, SA's weighted production is the larger of the two, and the
+balance holds to rounding error.
 
-The destruction is not gated off: $\sigma_D$ is a linear function of
-$\sigma_P$, with slope $c_{b1}/(\kappa^2c_{w1})\approx0.249$ and value
-$(1+c_{b2})/(\sigma c_{w1})\approx0.751$ at $\sigma_P=0$, the two summing to one by the
-definition of $c_{w1}$. On the constant-stress wall layer SA's solution is
-the linear profile $\tilde\nu=\kappa u_\tau d$, with
-$P_\mathrm{SA}=c_{b1}u_\tau^2$,
-$D_\mathrm{SA}=c_{w1}\kappa^2u_\tau^2$ and self-diffusion
-$(1+c_{b2})\kappa^2u_\tau^2/\sigma$ all height-independent; requiring the
-gated balance to hold pointwise gives Eq.~\eqref{w:sigma}, under which that
-profile is an exact solution at every height and for any $\tau$. In the
-laminar range the destruction floor is inert: below $10^{-3}$ of the
-amplification production up to the $\chi=1$ crossing, at most $1.4\%$ of the
-$\sigma_P$-weighted SA production at $\chi=c_{v1}$, and changes the anchor and prediction stations by less than $1\%$.
+In the laminar regime the tie leaves three quarters of SA's destruction in
+place where $\sigma_P=0$. It has no effect there, because SA's destruction is
+proportional to $\tilde\nu^2$ and $\tilde\nu$ is small. The destruction is
+below $10^{-3}$ of the amplification production up to the $\chi=1$ crossing,
+and at most $1.4\%$ of the $\sigma_P$-weighted SA production at $\chi=c_{v1}$.
+It changes the anchor and prediction stations by less than $1\%$.
 
 \subsection{Eddy-Viscosity Assembly}
 
@@ -658,12 +740,12 @@ SA-AI, Table~\ref{t:constants}:
 constant & value & determination \\
 \midrule
 $a_{\max}$ & $0.19$ & tanh-layer Kelvin--Helmholtz temporal eigenvalue, $\omega_{i,\max}/\omega_{\mathrm{peak}}=0.1897$ \\
-$(C,A,B)$ & $(2600,\,175,\,2)$ & upper envelope of the attached Falkner--Skan family at its critical $Re_\theta$ \\
-$k$ & $0.712$ & Blasius march crosses $N\!=\!1$ at the Drela--Giles station $Re_\theta=338$ at $c_{\nu,\mathrm{ai}}=\tfrac16$ \\
+$(C,A,B)$ & $(2600,\,175,\,2)$ & upper bound of the curves of the attached Falkner--Skan family at their critical $Re_\theta$ \\
+$\con$ & $0.712$ & Blasius march reaches $N\!=\!1$ at $Re_\theta=331$, within $2\%$ of the Drela--Giles station $338$, at $c_{\nu,\mathrm{ai}}=\tfrac16$ \\
 $w$ & $0.35$ & onset ramp width; $N\!=\!1$ stations move $<\!1\%$ halved, $<\!2.5\%$ doubled \\
 $c_{\nu,\mathrm{ai}}$ & $1/6$ & frozen-profile growth eigenvalue reaches the Drela--Giles rate just past critical ($1.02$ at $Re_\theta\!=\!400$) \\
 $\tau$ & $4$ & numerics bracket: handover $78\%$ complete at $\chi=c_{v1}$, $97\%$ at $\chi\approx14.8$ \\
-$\sigma_D$ tie & Eq.~\eqref{w:sigma} & derived: constant-stress wall-layer balance; linear wall solution exact \\
+$\sigma_D$ tie & Eq.~\eqref{w:sigma} & derived: constant-stress wall-layer balance; linear wall solution kept to $8\times10^{-6}$ of SA's production \\
 bypass $(g_\chi,g_q)$ & Eq.~\eqref{w:fv1bypass} & parameter-free law-of-the-wall discriminator; $g_q$ ramps over $q\in(2,4)$ \\
 $(A,B)_\mathrm{Mack}$ & $(-8.43,\,2.4)$ & Mack $e^N$ correlation~\cite{mack_1977}, wholesale \\
 \bottomrule
@@ -1891,14 +1973,7 @@ further computation; each is reproduced by
   soft forms the onset threshold already uses.
 \end{enumerate}
 
-\begin{center}
-  \begin{minipage}{0.6\textwidth}\centering
-  \begin{chinese}天下萬物生於有，有生於無。\end{chinese}\\[3pt]
-  \emph{The myriad things are born of being;\\
-  being is born of non-being.}\\[3pt]
-  ---\emph{Daodejing}, ch.~40
-  \end{minipage}
-\end{center}
+\laozi[13.6pt]{40}
 
 \phantomsection\addcontentsline{toc}{section}{Appendix}
 \section*{Appendix: The Two-Source Rate---Inviscid and Viscous Branches}
@@ -1914,6 +1989,9 @@ further computation; each is reproduced by
 The initial idea for this approach was sparked by conversations with Mark Drela
 and Philippe R.\ Spalart, whose insights on the amplification-factor envelope
 and on the structure of the SA equation were formative.
+The \emph{Daodejing} epigraphs are set in the clerical-script font of the
+Ministry of Education, Republic of China (Taiwan), used under the Creative
+Commons Attribution-NoDerivatives 3.0 Taiwan license.
 
 \bibliography{references}
 

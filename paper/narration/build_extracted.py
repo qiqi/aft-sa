@@ -283,6 +283,8 @@ while r'\footnote' in body:
 # layout-only commands
 body = re.sub(r'\\begin\{CJK\}\{UTF8\}\{bsmi\}(.*?)\\end\{CJK\}', r'\1', body)
 body = re.sub(r'\\begin\{chinese\}(.*?)\\end\{chinese\}', r'\1', body)
+# the epigraphs are graphics now; they carry no text to read
+body = re.sub(r'\\laozi(\[[^\]]*\])?\{\d+\}', '', body)
 body = re.sub(r'\\begin\{minipage\}\{[^}]*\}|\\end\{minipage\}', '', body)
 body = re.sub(r'\\(begin|end)\{center\}', '\n\n', body)
 body = re.sub(r'\\phantomsection|\\addcontentsline\{[^}]*\}\{[^}]*\}\{[^}]*\}', '', body)

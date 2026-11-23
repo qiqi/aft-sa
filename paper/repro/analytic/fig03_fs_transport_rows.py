@@ -16,13 +16,17 @@ from lib.boundary_layer import FalknerSkanWedge
 import fig04_shapefactor as f4
 from fig04_shapefactor import profile_ints, drela, Re_theta0, sphere_rate
 
-def march_field(fs, x_max, nx=1600, ny=1200, beta=0.0):
-    """As fig04.march but stores the full nuHat field; wedge lambda_p(x,y) in the cliff."""
+def march_field(fs, x_max, nx=None, ny=None, beta=0.0, keep=(2, 8)):
+    """As fig04.march, on the same grid, but also returns the nuHat field for the
+    contours, kept at every keep[0]-th station and keep[1]-th cell. Returns
+    x and the envelope max_y nuHat at every station, then the kept x, y, field."""
+    nx = f4.NX if nx is None else nx; ny = f4.NY if ny is None else ny
+    kx, ky = keep
     m = beta/(2.0 - beta)
     eta99 = np.interp(0.99, fs.u, fs.eta)
     y_top = 8.0*eta99*np.sqrt(x_max/fs.inviscid_at(x_max))
     dy = y_top/ny; yc = (np.arange(ny) + 0.5)*dy; dx = x_max/nx
-    nu = np.ones(ny); field = [nu.copy()]; xs = [0.0]
+    nu = np.ones(ny); field = [nu[::ky].copy()]; xs = [0.0]; env = [1.0]
     k = (C_NU_AI/SIGMA_SA)/dy**2
     for i in range(nx):
         x = (i + 0.5)*dx
@@ -34,14 +38,17 @@ def march_field(fs, x_max, nx=1600, ny=1200, beta=0.0):
         b = sphere_rate(u, dudy, yc)*np.abs(dudy)
         main = u/dx + di; rhs = u/dx*nu + b*nu; rhs[-1] += vm[-1]
         A = sp.diags([lo, main, up], [-1, 0, 1], format='csc')
-        nu = spla.spsolve(A, rhs); xs.append((i + 1)*dx); field.append(nu.copy())
-    return np.array(xs), yc, np.array(field)
+        nu = spla.spsolve(A, rhs); xs.append((i + 1)*dx); env.append(float(nu.max()))
+        if (i + 1) % kx == 0:
+            field.append(nu[::ky].copy())
+    xs = np.array(xs)
+    return xs, np.array(env), xs[::kx], yc[::ky], np.array(field)
 
 def size_domain(fs, x0, beta):
     x_max = x0
     for _ in range(12):
-        xs, yc, fld = march_field(fs, x_max, nx=200, ny=200, beta=beta)
-        N = np.log(np.maximum(fld.max(axis=1), 1e-30))
+        xs, env, _, _, _ = march_field(fs, x_max, nx=200, ny=200, beta=beta, keep=(1, 1))
+        N = np.log(np.maximum(env, 1e-30))
         if not np.all(np.isfinite(N)) or N[-1] > 60.0:
             x_max *= 0.15; continue
         if N[-1] > 14.0:
@@ -59,8 +66,16 @@ def main():
         fs = FalknerSkanWedge(beta); I_th, H = profile_ints(fs)
         eta99 = np.interp(0.99, fs.u, fs.eta)
         x_max = 6.5e6 if beta == 0.0 else size_domain(fs, x0, beta)
-        xs, yc, fld = march_field(fs, x_max, beta=beta)
-        Ue = fs.inviscid_at(np.maximum(xs, 1e-12)); Rt = I_th*np.sqrt(xs*Ue)
+        xs_all, env, xs, yc, fld = march_field(fs, x_max, beta=beta)
+        if beta != 0.0:
+            # size_domain marches on a coarse grid, where transition is later, so
+            # the domain it returns is too long: march again, ending just past N = 14
+            N = np.log(np.maximum(env, 1e-30))
+            if N[-1] > 14.5:
+                x_max = 1.05*float(np.interp(14.0, N, xs_all))
+                xs_all, env, xs, yc, fld = march_field(fs, x_max, beta=beta)
+        Ue_all = fs.inviscid_at(np.maximum(xs_all, 1e-12)); Rt = I_th*np.sqrt(xs_all*Ue_all)
+        Ue = fs.inviscid_at(np.maximum(xs, 1e-12))
         N2d = np.log(np.maximum(fld, 1e-30))
         axL, axR = axs[irow]
         Rex = xs*Ue; ReyScale = Ue
@@ -92,22 +107,23 @@ def main():
         axL.set_ylabel(fr'$\beta={beta:+.2f}$ ($H={H:.2f}$)''\n'r'$Re_y$')
         if irow == 2: axL.set_xlabel(r'$Re_x$')
         axL.text(0.02, 0.95, f'({chr(97+2*irow)})', transform=axL.transAxes, fontsize=11, va='top', fontweight='bold')
-        env = fld.max(axis=1)
         axR.semilogy(Rt, env, 'k-', lw=1.8)
+        N = np.log(np.maximum(env, 1e-30))
+        st = {n: float(np.interp(n, N, Rt)) for n in (1, 9)}
         Rtc = float(Re_theta0(H)); dr = float(drela(H))
         RtD = np.linspace(0, Rt.max(), 300); ND = np.where(RtD > Rtc, dr*(RtD - Rtc), 0.0)
         axR.semilogy(RtD, np.exp(ND), 'r--', lw=1.4)
-        axR.set_xlim(0, Rt.max()); axR.set_ylim(0.5, 3e6); axR.set_ylabel(r'$\max_y \hat\nu$')
+        axR.set_xlim(0, Rt.max()); axR.set_ylim(0.5, 3e6); axR.set_ylabel(r'$\max_y\,\chi/\chi_\infty$')
         ax2 = axR.twinx(); ax2.set_ylim(np.log(0.5), np.log(3e6)); ax2.set_ylabel(r'$N$')
         if irow == 2: axR.set_xlabel(r'$Re_\theta$')
         axR.grid(alpha=0.3, which='both')
         axR.text(0.02, 0.95, f'({chr(98+2*irow)})', transform=axR.transAxes, fontsize=11, va='top', fontweight='bold')
         if irow == 0:
-            axR.legend([r'canonical model ($c_{\nu,\mathrm{ai}}\!=\!1/6$, $k\!=\!0.712$)',
-                        'Drela--Giles envelope'], fontsize=7.5, loc='lower right')
+            axR.legend(['SA-AI march', 'Drela--Giles envelope'], fontsize=7.5, loc='lower right')
         print(f'beta={beta:+.2f} H={H:.2f}: max Omega_hat*I_hat = {msg:.3f}, '
               f'x_max={x_max:.2e}, N_end={np.log(env[-1]):.1f}, '
-              f'Rt_end={Rt[-1]:.0f}, Rtc={Rtc:.0f}', flush=True)
+              f'Rt_end={Rt[-1]:.0f}, Rtc={Rtc:.0f}; N=1 at {st[1]:.1f} '
+              f'(Drela-Giles {Rtc + 1/dr:.1f}), N=9 at {st[9]:.1f} (Drela-Giles {Rtc + 9/dr:.1f})', flush=True)
     plt.savefig('figs/fs_nuHat_rows.pdf')
     print('wrote figs/fs_nuHat_rows.pdf')
 

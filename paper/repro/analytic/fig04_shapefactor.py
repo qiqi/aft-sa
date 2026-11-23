@@ -38,12 +38,22 @@ def drela(H):
     """Drela-Giles envelope amplification rate (imported from src.correlations)."""
     return np.asarray(dN_dRe_theta(H))
 
-def march(fs, x_max, nx=1600, ny=1200, y_top=None, seed=1.0, beta=None,
+# Grid of the march: streamwise steps and wall-normal cells. The wall-normal
+# grid is uniform and reaches 8 delta_99 of the LAST station, so at the N = 1
+# station, far upstream, the boundary layer fills only a few percent of it.
+# The N = 1 station is therefore the quantity that needs the cells: on the
+# Blasius layer at c_nu,ai = 1/6 it is Re_theta = 349 with (1600, 1200), 336.7
+# with (3200, 2400), 332.5 with (3200, 4800) and 330.7 with (3200, 9600). The
+# rates are converged to 0.5% already at 1200 cells.
+NX, NY = 3200, 9600
+
+def march(fs, x_max, nx=None, ny=None, y_top=None, seed=1.0, beta=None,
           ufrac=0.0):
     """March the disturbance transport on the FS field; return x, N(x). For
     reversed-flow (lower-branch) profiles the parabolic march is regularized by
     flooring the advection speed at ufrac*U_e (sensitivity below 1% for
     ufrac in [0.015, 0.06]); attached profiles use ufrac=0."""
+    nx = NX if nx is None else nx; ny = NY if ny is None else ny
     m = None if beta is None else beta/(2.0 - beta)
     if y_top is None:
         eta99 = np.interp(0.99, np.maximum.accumulate(fs.u), fs.eta)
@@ -107,20 +117,48 @@ def measures_for_beta(beta, verbose=True, wedge_lambda=True,
     return H, s_mean, s_late, Rt1
 
 
+def _measure_one(args):
+    global C_NU_AI
+    import lib.sphere_kernel as kernel
+    beta, kw, c, con = args
+    C_NU_AI = c
+    kernel.REOM_CEIL, kernel.REOM_A, kernel.REOM_B = 2600.0*con, 175.0*con, 2.0*con
+    return measures_for_beta(beta, **kw)
+
+def measures_many(specs, c=None, con=None, workers=32):
+    """measures_for_beta over a list of (beta, kwargs), one process per case.
+    Each case is two or three marches of about a minute on the (NX, NY) grid.
+    c is the laminar-diffusion coefficient and con the onset factor: one value
+    for all cases or one per case; the defaults are the model's."""
+    from concurrent.futures import ProcessPoolExecutor
+    import multiprocessing as mp
+    import fig04_shapefactor as this      # the importable copy, so the worker pickles
+    this.NX, this.NY = NX, NY
+    each = lambda v, default: (list(v) if isinstance(v, (list, tuple))
+                               else [default if v is None else v]*len(specs))
+    jobs = [(b, dict(kw, verbose=False), ci, ki)
+            for (b, kw), ci, ki in zip(specs, each(c, C_NU_AI), each(con, K_ANCHOR))]
+    with ProcessPoolExecutor(min(workers, len(jobs)), mp_context=mp.get_context('fork')) as ex:
+        return list(ex.map(this._measure_one, jobs))
+
 def main():
     # -0.1988 is the separation-limit profile where the attached (upper) and
     # reversed-flow (lower) branches coincide -- it joins the two curves.
     adverse = [-0.1988, -0.195, -0.18, -0.15, -0.12, -0.09, -0.06, -0.03, 0.0]
     favorable = [0.05, 0.1, 0.2, 0.35, 0.55, 1.0]
     lower = [(-0.19, -0.03), (-0.17, -0.06), (-0.15, -0.08), (-0.12, -0.10)]
-    oa = [measures_for_beta(b) for b in adverse]
+    everything = measures_many([(b, {}) for b in adverse + favorable]
+                               + [(b, dict(guess=g, ufrac=0.03)) for b, g in lower])
+    oa = everything[:len(adverse)]
     iBl = adverse.index(0.0)   # Blasius joins the favorable branch here
     print(f"BLASIUS ANCHORS: N=1 crossing Re_theta={oa[iBl][3]:.0f} "
           f"(target ~338), N=9 crossing implied via s_mean={oa[iBl][1]:.4e}", flush=True)
     print("favorable (sphere kernel holds these weak / near-laminar):")
-    of = [measures_for_beta(b) for b in favorable]
-    print("reversed-flow (Stewartson lower branch), advection floor 0.03 U_e:")
-    ol = [measures_for_beta(b, guess=g, ufrac=0.03) for b, g in lower]
+    of = everything[len(adverse):len(adverse) + len(favorable)]
+    ol = everything[len(adverse) + len(favorable):]
+    for b, o in zip(adverse + favorable + [b for b, _ in lower], everything):
+        print(f"beta={b:+.4f}  H={o[0]:.3f}  Rt1={o[3]:.1f}  early={o[1]/float(drela(o[0])):.2f}x  "
+              f"late={o[2]/float(drela(o[0])):.2f}x", flush=True)
     ol = [oa[0]] + ol          # separation-limit profile joins the lower branch
     Ha = np.array([o[0] for o in oa]); ma = np.array([o[1] for o in oa]); la = np.array([o[2] for o in oa])
     Ra = np.array([o[3] for o in oa])
