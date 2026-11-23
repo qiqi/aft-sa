@@ -23,6 +23,7 @@ SCRIPTS = [
     "fig03_fs_transport_rows.py",# fig:nuhat (instrument on three wedges)
     "fig04_shapefactor.py",      # Sec. II shape-factor family (prose numbers)
     "tab_march_stations.py",     # II.D table and family stations (asserted; no figure)
+    "ramp_width_sensitivity.py", # II.D: N=1 stations with w halved and doubled (asserted; ~20 min)
     # Sec. II.E -- turbulent layer and handover (prose verification)
     "verify_wall_layer_tie.py",  # tie exactness (asserted; no figure)
     "wall_layer_tie_residual.py",# II.E: balance kept to 8e-6 of SA production (asserted)

@@ -21,6 +21,7 @@
 %%   25: ren fa di, di fa tian, tian fa dao, dao fa zi ran
 %%   11: dang qi wu, you qi zhi yong
 %%   42: dao sheng yi, yi sheng er, er sheng san, san sheng wan wu
+%%   77: tian zhi dao, sun you yu, er bu bu zu
 %%   40: tian xia wan wu sheng yu you, you sheng yu wu
 %% \laozi sets one as a centred block. Its optional argument moves the block
 %% down by that amount without changing the total space, so that it sits
@@ -74,8 +75,7 @@ occurs near $\chi\!=\!\tilde\nu/\nu\!\sim\!1$, above which the equation is
 in its turbulent regime and behaves as SA. In the laminar regime the
 amplification rate depends only on the local mean flow: a vorticity Reynolds
 number, and two dimensionless profile-shape indicators, a vorticity fraction
-and an accumulated-inflection coordinate. No
-pressure-gradient parameter appears anywhere. Three canonical stability results fix the amplification constants: the free-shear growth eigenvalue, the linear-stability onset of the
+and an accumulated-inflection coordinate. Three canonical stability results fix the amplification constants: the free-shear growth eigenvalue, the linear-stability onset of the
 Falkner--Skan family, and the Blasius $e^N$ envelope. Mack's receptivity
 correlation gives the freestream seed as a function of the turbulence intensity. Computations
 with this formulation on a zero-pressure-gradient flat plate, the NLF(1)-0416
@@ -136,8 +136,9 @@ L0, L1, L2 & the three grid-refinement levels, coarse to fine \\
 
 \laozi[7.5pt]{11}
 
-A laminar boundary layer in a quiet stream does not turn turbulent all at
-once. It first becomes unstable to weak two-dimensional waves, the
+A laminar boundary layer in a stream of low turbulence intensity does not
+turn turbulent all at once. It first becomes unstable to small-amplitude
+two-dimensional waves, the
 Tollmien--Schlichting (TS) waves \cite{mack_1977,schmid_henningson_2001}. The
 envelope of the strongest wave grows nearly exponentially over a long stretch
 of the surface. At an amplitude of a few percent of the freestream velocity,
@@ -168,7 +169,7 @@ range ``empty''. Here $\ln\tilde\nu$ fills it, in the role of $N$. Its growth ra
 depends only on the local shape of the boundary-layer profile. Its onset is a threshold on a local Reynolds number, formed from the vorticity and the wall distance. Its starting level is a function of the
 freestream turbulence intensity. Near $\chi=1$ the production switches to that of standard SA. One
 equation therefore has two regimes: the laminar growth of a disturbance, and
-the turbulence that follows it. No transport equation is added. The model is called SA-AI, Spalart--Allmaras with
+the turbulence that follows it. The model is called SA-AI, Spalart--Allmaras with
 Autogenous Inception: the turbulence variable carries the inception of its
 own turbulence.\footnote{``AI'' here is not the other kind.}
 
@@ -209,9 +210,15 @@ Every $\sigma$ with a subscript in this paper is such a factor; the $\sigma$
 without a subscript is the SA diffusion constant. The freestream value $\chi_\infty$ determines how far the disturbance must grow: $\ln\tilde\nu$ increases from that value
 until $\chi$ reaches one.
 
-The full model is SA with that source and four adjustments: a handover in the
-production, a matching weight on the destruction, a reduced molecular
-diffusion, and a bypass in the eddy viscosity. The model affects the mean flow only through the eddy viscosity:
+The full model is SA with that source and four adjustments: a reduced
+molecular diffusion, a handover in the production, a matching weight on the
+destruction, and a bypass in the eddy viscosity. It is stated in full in this
+subsection, for reference. The subsections that follow reach it from
+Eq.~\eqref{w:lngrowth} one step at a time. Sections~II.B and~II.C define $a$
+and $\sigma_{Re}$, which completes Eq.~\eqref{w:lngrowth}. Section~II.D adds
+the molecular diffusion of $\tilde\nu$. Section~II.E adds the handover to SA.
+Section~II.F turns to the momentum equation, which the model affects only
+through the eddy viscosity:
 \begin{gather}
   \frac{\partial\rho}{\partial t} + \nabla\!\cdot\!(\rho\mathbf u) = 0,
   \qquad
@@ -245,7 +252,7 @@ $P_\mathrm{AI}=a\,\sigma_{Re}\,\omega\,\tilde\nu$, while $\chi<1$, the laminar
 regime, and SA's own production once $\sigma_P$ has reached one, the
 turbulent regime. The destruction is SA's destruction multiplied by $\sigma_D$. The molecular viscosity in the diffusion term of
 $\tilde\nu$ is multiplied by $c_{\nu,\mathrm{ai}}$. In the eddy viscosity, $f_{v1}$ is
-replaced by $(1-\sigma_{v1})f_{v1}+\sigma_{v1}$, with $\sigma_{v1}$ the bypass weight. Each is described in its own subsection below.
+replaced by $(1-\sigma_{v1})f_{v1}+\sigma_{v1}$, with $\sigma_{v1}$ the bypass weight.
 Note that baseline SA is recovered exactly by setting $\sigma_P\!\equiv\!1$
 (and with it $\sigma_D\!=\!1$), $c_{\nu,\mathrm{ai}}\!=\!1$, and
 $\sigma_{v1}\!\equiv\!0$. Note also that Eq.~\eqref{w:lngrowth} is recovered
@@ -272,7 +279,7 @@ keeps the total diffusivity positive,
 $c_{\nu,\mathrm{ai}}\nu+f_n\tilde\nu>0$.
 The boundary conditions are also those of SA. At a wall $\tilde\nu=0$. In the
 free stream $\tilde\nu=\chi_\infty\nu$, with $\chi_\infty$ given in
-Section~II.G. The handover weights are
+Section~III.A. The handover weights are
 \begin{equation}
   \sigma_P = \sigma_t(\chi;\tau), \qquad
   \sigma_t(\chi;\tau) = \max\!\left[\,1-e^{-(\chi-1)/\tau},\;0\right], \qquad
@@ -283,6 +290,10 @@ Section~II.G. The handover weights are
 \subsection{Local Indicators of the Boundary-Layer Profile Shape}
 
 \laozi[7.6pt]{42}
+
+The rate $a$ of Eq.~\eqref{w:lngrowth}, and the threshold at which the gate
+$\sigma_{Re}$ opens, are functions of the shape of the boundary-layer profile.
+The model must therefore determine that shape from local quantities.
 
 SA-AI assumes that the shapes of laminar boundary-layer profiles form a
 \textbf{one}-parameter family. The shape of a profile is the velocity divided
@@ -474,8 +485,9 @@ threshold $Re_\Omega^{\mathrm c}$:
   \zeta = \frac{Re_\Omega-Re_\Omega^{\mathrm c}}{Re_\Omega^{\mathrm c}} .
   \label{w:rate}
 \end{equation}
-It is zero far below the threshold, one half at the threshold, and one far
-above it. The constant $w$ is the relative width of the rise. The threshold depends on the same shape number
+It is one half at the threshold. The constant $w$ is the relative width of
+the rise. With $w=0.35$ the gate is $0.003$ at $Re_\Omega=0$ and $0.997$ at
+twice the threshold. The threshold depends on the same shape number
 $\hat\Omega\hat I$, as $Re_{\theta0}$ depends on $H$.
 
 The threshold has one job: to start the growth where the $e^N$ method starts
@@ -516,7 +528,8 @@ $\beta=-0.19$ ($H\approx4.9$, $Re_{\theta 0}\approx26$). Circles: the point of e
 threshold.}\label{f:graze}
 \end{figure}
 
-A function with three constants has that form:
+The following function, with three constants, is level at both ends and
+decreases in between:
 \begin{equation}
   Re_\Omega^{\mathrm c}(\hat\Omega\hat I) = \con\,\operatorname{softmin}_2\!\Big(C,\;
       A + B\,\langle\hat\Omega\hat I\rangle_+^{-2}\Big),
@@ -528,8 +541,8 @@ A function with three constants has that form:
 The constant $C$ is the level on the left, where $\hat\Omega\hat I$ is small
 and the second argument is large. The sum in the second argument is a smooth
 maximum of its two terms, and it tends to $A$, the level on the right, where
-$\hat\Omega\hat I$ is large. The constant $B$ sets where the threshold falls:
-the sum equals $C$ near $\hat\Omega\hat I=\sqrt{B/C}$ and is twice $A$ at
+$\hat\Omega\hat I$ is large. The constant $B$ determines the range of $\hat\Omega\hat I$ over which the
+threshold decreases from $C$ to $A$: the sum equals $C$ near $\hat\Omega\hat I=\sqrt{B/C}$ and is twice $A$ at
 $\hat\Omega\hat I=\sqrt{B/A}$. With $\con=1$ and $(C,A,B)=(2600,\,175,\,2)$ the
 function is the dashed line of Fig.~\ref{f:graze}.
 
@@ -543,21 +556,26 @@ opens. The threshold is lowered to compensate, through the onset factor $\con$ i
 
 \subsection{Laminar Diffusion and the Onset Factor}
 
-Two constants deal with the molecular diffusion of $\tilde\nu$ in the laminar
-regime. The first, $c_{\nu,\mathrm{ai}}$, reduces it. The second, $\con$,
-compensates for what remains.
+\laozi[7.6pt]{77}
+
+With $a$ and $\sigma_{Re}$ defined, Eq.~\eqref{w:lngrowth} is complete. Where
+$\chi\ll1$ the transport equation, Eq.~\eqref{w:sa}, contains one more term:
+the molecular diffusion of $\tilde\nu$. The constant $c_{\nu,\mathrm{ai}}$ reduces this diffusion. The onset factor
+$\con$ lowers the threshold of Eq.~\eqref{w:onset}, to compensate for the delay
+of the growth that the remaining diffusion causes.
 
 The factor $c_{\nu,\mathrm{ai}}<1$ multiplies the molecular viscosity in the
 diffusion term of Eq.~\eqref{w:sa} only. (The mean-flow viscosity, the SA
 production and destruction, and $\chi=\tilde\nu/\nu$, formed with the true
 $\nu$, are unchanged.) Its effect is measured on the Blasius boundary layer.
 Where $\chi\ll1$, Eq.~\eqref{w:sa} in the boundary-layer approximation is
-\begin{equation*}
+\begin{equation}
   u\,\frac{\partial\tilde\nu}{\partial x}+v\,\frac{\partial\tilde\nu}{\partial y}
   = a\,\sigma_{Re}\,\omega\,\tilde\nu
   + \frac{c_{\nu,\mathrm{ai}}\,\nu}{\sigma}\,
     \frac{\partial^2\tilde\nu}{\partial y^2},
-\end{equation*}
+  \label{w:lamdiff}
+\end{equation}
 with $x$ along the plate and $y$ normal to it. This is
 Eq.~\eqref{w:lngrowth} with the laminar diffusion added. The table below lists
 its solution on the Blasius velocity field $(u,v)$, marched downstream from the
@@ -588,14 +606,22 @@ The growth rate is nearly independent of the onset factor $\con$. The table is
 for $\con=0.712$, and between $\con=1$ and $\con=\tfrac12$ no entry changes by
 more than $2\%$ of the Drela--Giles slope. Choosing $c_{\nu,\mathrm{ai}}$ is a trade-off: a smaller value brings the growth rate closer to the
 Drela--Giles slope, but it sharpens the wall-normal profile of $\tilde\nu$,
-which the grid must resolve. Dimensional analysis gives the length over which diffusion balances the
-growth: the diffusion coefficient $c_{\nu,\mathrm{ai}}\nu/\sigma$ and the
-growth rate $a\,\sigma_{Re}\,\omega$ of the equation above form only one
-length, $\sqrt{c_{\nu,\mathrm{ai}}\,\nu/(\sigma\,a\,\sigma_{Re}\,\omega)}$,
-which is proportional to $\sqrt{c_{\nu,\mathrm{ai}}}$. The model uses
+which the grid must resolve. (Its wall-normal length scale is proportional to
+$\sqrt{c_{\nu,\mathrm{ai}}}$, by dimensional analysis: the diffusion
+coefficient $c_{\nu,\mathrm{ai}}\nu/\sigma$ and the growth rate
+$a\,\sigma_{Re}\,\omega$ of Eq.~\eqref{w:lamdiff} form only one length,
+$\sqrt{c_{\nu,\mathrm{ai}}\,\nu/(\sigma\,a\,\sigma_{Re}\,\omega)}$.) The model uses
 \begin{equation*}
   c_{\nu,\mathrm{ai}}=\tfrac16 .
 \end{equation*}
+
+The factor $c_{\nu,\mathrm{ai}}$ leaves SA's solution of a turbulent wall layer
+unchanged. That solution, $\tilde\nu=\kappa u_\tau d$, is linear in the wall
+distance, and the molecular diffusion of a linear profile is zero whatever its
+coefficient. The factor is also absent from the free shear flows on which
+Spalart and Allmaras~\cite{spalart_allmaras_1994} calibrated $c_{b1}$,
+$\sigma$ and $c_{b2}$: their equation for those flows does not contain the
+molecular viscosity.
 
 Diffusion also delays the growth, and the onset factor $\con$ compensates for
 the delay. It lowers the whole threshold of Eq.~\eqref{w:onset}, so the growth
@@ -609,15 +635,16 @@ $\con=\tfrac12$ it reaches $N=1$ at $Re_\theta=281$. The model uses
 with which $N=1$ at $Re_\theta=331$, $2\%$ before the Drela--Giles station.
 The march uses $3200$ streamwise steps and $9600$ wall-normal cells. Halving
 either spacing again lowers the $N=1$ stations by less than $1\%$ and changes
-the growth rates by less than $0.2\%$.
+the growth rates by less than $0.2\%$. Halving the ramp width $w$ of
+Eq.~\eqref{w:rate} moves the $N=1$ stations of the attached Falkner--Skan
+family by at most $1.6\%$, and doubling it by at most $3.3\%$.
 
 The marched Blasius envelope crosses $N\!=\!9$ at $Re_\theta=1175$, $6\%$ past Drela's $1108$; across the attached
 family the $N\!=\!1$ stations differ from the Drela--Giles stations by $7\%$ root-mean-square (adverse wedges within $5\%$, the favorable
 wedges $\beta=+0.05$ to $+0.15$ $9$--$13\%$ early). By $\beta=+0.35$ the rate is
 $\approx0.1\times$ Drela and the onset $\approx2.7\times$ its critical
-$Re_\theta$; by $\beta\approx0.45$ transition has moved downstream beyond any
-station of practical relevance, and on stronger favorable wedges transition
-never happens (Figs.~\ref{f:nuhat}--\ref{f:calibrate}).
+$Re_\theta$; for $\beta\ge\tfrac12$ the product $\hat\Omega\hat I$ is never positive, so $a=0$
+and $\tilde\nu$ does not grow (Figs.~\ref{f:nuhat}--\ref{f:calibrate}).
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth]{fs_nuHat_rows.pdf}
@@ -640,23 +667,42 @@ $H=10.6$.}\label{f:calibrate}
 
 \subsection{Laminar-to-Turbulence Handover Blend and Destruction Tie}
 
-One equation serves two regimes, so near $\chi=1$ its production must change
-from the amplification source to SA's own. The handover weight $\sigma_P$ of
-Eq.~\eqref{w:sigma} makes the change. It is zero for $\chi\le1$ and rises
-toward one over the width $\tau$. With $\tau=4$ the handover is $78\%$
-complete at $\chi=c_{v1}$ and $97\%$ complete at $\chi\approx14.8$. The
-production of Eq.~\eqref{w:blend} is the larger of the two weighted sources,
-so the amplification source acts alone below $\chi=1$, and SA's production
-takes over as $\sigma_P$ rises.
+Eq.~\eqref{w:lamdiff} describes $\tilde\nu$ while $\chi\ll1$, where the eddy
+viscosity is negligible. Above $\chi\approx1$ the eddy viscosity affects the
+mean flow significantly, and the equation of $\tilde\nu$ must become SA's. Near $\chi=1$ the
+production must therefore change from the amplification source to SA's own. In Eq.~\eqref{w:blend} the handover weight $\sigma_P$ of
+Eq.~\eqref{w:sigma} multiplies SA's production, and $1-\sigma_P$ multiplies
+the amplification source. The weight $\sigma_P$ is zero for $\chi\le1$ and
+rises toward one over the width $\tau$. With $\tau=4$, $\sigma_P=0.78$ at
+$\chi=c_{v1}=7.1$ and $\sigma_P=0.96$ at $\chi=2c_{v1}=14.2$.
 
-The handover must not disturb a turbulent boundary layer. There $\chi$ is also
-below one, next to the wall. SA's solution in the constant-stress wall layer
-is the linear profile $\tilde\nu=\kappa u_\tau d$, so $\chi=\kappa y^+$, which
-is below one for $y^+<2.4$. On that profile SA's production, destruction and
-diffusion are $c_{b1}u_\tau^2$, $c_{w1}\kappa^2u_\tau^2$ and
-$(1+c_{b2})\kappa^2u_\tau^2/\sigma$. Each is independent of the wall distance,
-and they balance by the definition of $c_{w1}$. Multiplying the production by
-$\sigma_P$ breaks the balance unless the destruction changes with it.
+The production of Eq.~\eqref{w:blend} is the larger of the two weighted
+sources. Below $\chi=1$ it is the amplification source. Above $\chi=1$ it
+remains the amplification source, multiplied by $1-\sigma_P$, up to the value
+of $\chi$ at which SA's weighted production exceeds it. Beyond that value the
+production is SA's alone, multiplied by $\sigma_P$, and the amplification
+source does not affect the equation. The maximum, in place of the sum of the
+two weighted sources, is an empirical choice. With the sum, many of the
+airfoil cases of Section~\ref{sec:results} do not converge when the
+$\tilde\nu$ equation and the mean-flow equations are solved in turn, without a
+joint Jacobian. A feedback loop is a possible cause. The displacement
+thickness changes rapidly across transition. That change alters the pressure
+gradient upstream, and with it the shape of the boundary-layer profile there.
+The amplification source is a function of that shape. With the sum it remains
+in the equation wherever $\sigma_P<1$, and so the altered shape changes
+transition in turn. With the maximum it does not.
+
+Like the factor $c_{\nu,\mathrm{ai}}$ of Section~II.D, the handover weights
+must leave SA's solution of a turbulent wall layer unchanged. SA's solution in
+the constant-stress wall layer is the linear profile
+$\tilde\nu=\kappa u_\tau d$, so $\chi=\kappa y^+$. Every value of $\sigma_P$
+between zero and one therefore occurs in that layer: $\sigma_P$ is zero for
+$y^+<2.4$, $0.78$ at $y^+=17$ and $0.96$ at $y^+=35$. On that profile SA's
+production, destruction and diffusion are $c_{b1}u_\tau^2$,
+$c_{w1}\kappa^2u_\tau^2$ and $(1+c_{b2})\kappa^2u_\tau^2/\sigma$. Each is
+independent of the wall distance, and they balance by the definition of
+$c_{w1}$. Multiplying the production by $\sigma_P$ breaks the balance wherever
+$\sigma_P<1$, unless the destruction changes with it.
 Requiring the balance for every value of $\sigma_P$,
 \begin{equation*}
   \sigma_P\,c_{b1}-\sigma_D\,c_{w1}\kappa^2+\frac{(1+c_{b2})\,\kappa^2}{\sigma}=0,
@@ -666,115 +712,156 @@ linear function of $\sigma_P$, with slope $c_{b1}/(\kappa^2c_{w1})\approx0.249$
 and value $(1+c_{b2})/(\sigma c_{w1})\approx0.751$ at $\sigma_P=0$.
 
 With this tie the linear profile remains a solution of the full equation, for
-any $\tau$, to within $8\times10^{-6}$ of SA's production. The term left over
-is the amplification source up to $\chi=1$, where SA's production is switched
-off. It is that small because, so close to the wall, the onset gate is nearly
-shut and the accumulated inflection is nearly zero. Once $\sigma_P$ exceeds
-about $10^{-5}$, SA's weighted production is the larger of the two, and the
-balance holds to rounding error.
+any $\tau$, to within $8\times10^{-6}$ of SA's production. The only term left
+over is the amplification source, which is the whole production where
+$\sigma_P=0$, that is for $y^+<2.4$. It is that small because there the onset
+gate $\sigma_{Re}$ is $0.003$ and $\hat\Omega\hat I$ is at most $0.002$.
+Wherever $\sigma_P$ exceeds about $10^{-5}$, SA's weighted production is the
+larger of the two, and the balance holds to rounding error.
 
-In the laminar regime the tie leaves three quarters of SA's destruction in
-place where $\sigma_P=0$. It has no effect there, because SA's destruction is
-proportional to $\tilde\nu^2$ and $\tilde\nu$ is small. The destruction is
+In the laminar regime $\sigma_P=0$ and $\sigma_D=0.751$, so three quarters of
+SA's destruction remains. It does not change Eq.~\eqref{w:lamdiff}: SA's
+destruction is of second order in $\tilde\nu$, and Eq.~\eqref{w:lamdiff}
+contains the terms of first order. The destruction is
 below $10^{-3}$ of the amplification production up to the $\chi=1$ crossing,
 and at most $1.4\%$ of the $\sigma_P$-weighted SA production at $\chi=c_{v1}$.
-It changes the anchor and prediction stations by less than $1\%$.
 
-\subsection{Eddy-Viscosity Assembly}
+\subsection{Eddy Viscosity without Wall Damping in Separated Shear Layers}
 
-The near-wall damping function $f_{v1}$ is designed so that
-$\chi=\kappa y^+$ holds in an attached wall layer. Writing $y^+:=\chi/\kappa$, the reconstruction
+The transport equation of $\tilde\nu$ is complete with the handover of
+Section~II.E. The mean flow depends on $\tilde\nu$ only through the eddy
+viscosity $\mu_t$ of Eq.~\eqref{w:ns}. SA's eddy viscosity is
+$\rho\tilde\nu f_{v1}(\chi)$, and the model alters it in one situation: a
+shear layer that has separated from the wall. The reason is an observation.
+With SA's eddy viscosity unaltered, the laminar separation bubbles computed
+with the model reattach too late, or not at all. With the alteration they
+reattach earlier, although still later than measured (Sections~III.C
+and~III.D).
+
+SA's damping function $f_{v1}$ is designed for the attached wall layer.
+Spalart and Allmaras~\cite{spalart_allmaras_1994} introduce it for the
+near-wall region only: in their calibration on free shear flows the
+transported quantity is the eddy viscosity itself, without damping. SA's
+solution in the wall layer, $\tilde\nu=\kappa u_\tau d$, is linear all the way to the wall,
+while the eddy viscosity of a turbulent wall layer decreases toward the wall
+as a higher power of the wall distance. Multiplying by $f_{v1}$ produces that
+decrease: $\tilde\nu f_{v1}$ is proportional to $d^4$ where $\chi\ll c_{v1}$.
+The function $f_{v1}$ can be a function of $\chi$ alone because
+$\chi=\kappa y^+$ in that layer: $f_{v1}$ is one half at $\chi=c_{v1}$, which
+is $y^+\approx17$.
+
+A separated shear layer passes through the same values of $\chi$ with no wall
+layer present. Downstream of a laminar separation the disturbance grows in a
+shear layer that has lifted off the wall, and $\chi$ increases through one
+inside it. The damping then removes most of the eddy viscosity while $\chi$ is
+of the order of $c_{v1}$: $f_{v1}=0.07$ at $\chi=3$. That eddy viscosity is
+what reattaches the flow.
+
+The model must therefore distinguish an attached wall layer from a lifted
+shear layer, with local quantities. The law of the wall provides the test. In
+an attached wall layer $\chi$ determines the wall coordinate,
+$y^+=\chi/\kappa$, and the law of the wall then determines the velocity,
+$U^+(y^+)$. Their product, $y^+U^+$, is the Reynolds number $|\mathbf u|\,d/\nu$ of a
+wall-layer point with that $\chi$. The indicator $q$ is the ratio of the
+actual $|\mathbf u|\,d/\nu$ to that product,
 \begin{equation}
-  q = \frac{|\mathbf u|\,d/\nu}{\,y^+\,U^+(y^+)\,},
+  q = \frac{|\mathbf u|\,d/\nu}{\,(\chi/\kappa)\;U^+(\chi/\kappa)\,},
   \qquad
   U^+(y^+)=\tfrac1\kappa\ln(1+\kappa y^+)
-  +7.8\big(1-e^{-y^+/11}-\tfrac{y^+}{11}e^{-y^+/3}\big)
-  \;\;\text{(Reichardt~\cite{reichardt_1951})},
+  +7.8\big(1-e^{-y^+/11}-\tfrac{y^+}{11}e^{-y^+/3}\big),
   \label{w:fv1q}
 \end{equation}
-defines the bypass weight of Eq.~\eqref{w:ns},
+with Reichardt's formula~\cite{reichardt_1951} for $U^+$. In an attached wall
+layer $q=1$. In a lifted shear layer $q$ is well above one, because the point
+is farther from the wall and moves faster than a point of a wall layer with
+the same $\chi$.
+
+The bypass weight $\sigma_{v1}$ of Eq.~\eqref{w:ns} is the product of two
+gates,
 \begin{equation}
-  \sigma_{v1} = g_\chi(\chi)\,g_q(q), \qquad
-  g_\chi=\mathrm{clip}(\chi-1,0,1), \qquad
-  g_q=\mathrm{clip}((q-2)/2,0,1),
+  \sigma_{v1} = g_\chi\,g_q, \qquad
+  g_\chi=\operatorname{clip}\!\big\langle\chi-1\big\rangle_0^1, \qquad
+  g_q=\operatorname{clip}\!\big\langle(q-2)/2\big\rangle_0^1 .
   \label{w:fv1bypass}
 \end{equation}
-inert for $\chi<1$ (negligible $\mu_t$ either way), for
-$\chi\gtrsim30$ ($f_{v1}\to1$), and in the attached inner layer
-($q=1$, $g_q=0$). Controlled on/off batteries bound the net effect on
-attached-layer outer edges below $1.5$ drag counts (flat plate and
-NLF at their cold-budget protocol).
+Where $\sigma_{v1}=1$ the eddy viscosity is $\rho\tilde\nu$, without damping.
+The gate $g_\chi$ is zero for $\chi\le1$ and one for $\chi\ge2$. It keeps
+the eddy viscosity out of the laminar regime, where $q$ is far above four.
+Without it the eddy viscosity at $\chi=0.5$ would be half the molecular
+viscosity. The range $\chi<1$ would then not be ``empty'': $\tilde\nu$ would
+affect the mean flow there. Above $\chi=30$, $f_{v1}>0.98$, making the eddy viscosity in
+Eq.~\eqref{w:ns} insensitive to $\sigma_{v1}$, so $\sigma_{v1}$ affects it only for $\chi$ between $1$ and
+$30$.
 
-\subsection{Freestream Seed}
-
-A case seeded
-with $\chi_\infty$ reaches the handover where its envelope crosses
-$N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)$.
-\begin{equation}
-  N_\mathrm{crit}(Tu) = -8.43 - 2.4\,\ln(Tu_{\mathrm{frac}}),
-  \qquad
-  \chi_\infty = c_{v1}\,e^{-N_\mathrm{crit}},
-  \label{w:mack}
-\end{equation}
-One
-$e$-fold in $\chi_\infty$ is one unit of $N_\mathrm{crit}$, which on
-the Blasius envelope ($dN/dRe_\theta\approx10^{-2}$) shifts onset by
-$\Delta Re_\theta\approx100$. Strongly bypass-dominated conditions
-($Tu\gtrsim1\%$) are out of scope: at $Tu=1\%$ the map gives only $N_\mathrm{crit}\approx2.6$, and by $Tu\approx3\%$ the seed exceeds
-$c_{v1}$ outright.
+The gate $g_q$ opens between $q=2$ and $q=4$. It starts at two because the
+outer part of an attached turbulent boundary layer is faster than the law of
+the wall. On Coles' composite profile~\cite{coles_1956} this excess increases
+with the adverse pressure gradient and decreases with the Reynolds number. In
+zero pressure gradient at $Re_\theta\approx780$ ($H=1.54$), the largest $q$
+for $\chi$ between $1$ and $30$ is $1.02$. In an adverse pressure gradient
+about $7$ times the wall shear stress divided by the displacement
+thickness~\cite{das_1987}, it is $1.15$ at $Re_\theta\approx1700$ ($H=1.95$)
+and $1.88$ at $Re_\theta\approx520$ ($H=2.27$).
 
 \subsection{Constants}
 
-Baseline SA, unchanged:
-\begin{equation*}
-  c_{b1}=0.1355,\quad \sigma=\tfrac{2}{3},\quad c_{b2}=0.622,\quad
-  \kappa=0.41,\quad c_{w1}=\frac{c_{b1}}{\kappa^2}+\frac{1+c_{b2}}{\sigma},\quad
-  c_{w2}=0.3,\quad c_{w3}=2,\quad c_{v1}=7.1 .
-\end{equation*}
+The constants of baseline SA are unchanged. Table~\ref{t:saconstants} lists
+them with the sections and equations of Spalart and
+Allmaras~\cite{spalart_allmaras_1994} that determine them.
+Table~\ref{t:constants} lists the constants of SA-AI in the order in which
+Section~\ref{sec:model} determines them. Constants that are determined together
+share a column.
 
-SA-AI, Table~\ref{t:constants}:
 \begin{table}[H]\centering\small
-\caption{SA-AI constants.}\label{t:constants}
-\begin{tabular}{llp{3.9in}}
+\caption{Baseline SA constants. Sections and equations are those of Spalart
+and Allmaras~\cite{spalart_allmaras_1994}.}\label{t:saconstants}
+\begin{tabular}{lccccc}
 \toprule
-constant & value & determination \\
+constant & $(c_{b1},\,\sigma,\,c_{b2})$ & $\kappa$ & $c_{w1}$ & $(c_{w2},\,c_{w3})$ & $c_{v1}$ \\
 \midrule
-$a_{\max}$ & $0.19$ & tanh-layer Kelvin--Helmholtz temporal eigenvalue, $\omega_{i,\max}/\omega_{\mathrm{peak}}=0.1897$ \\
-$(C,A,B)$ & $(2600,\,175,\,2)$ & upper bound of the curves of the attached Falkner--Skan family at their critical $Re_\theta$ \\
-$\con$ & $0.712$ & Blasius march reaches $N\!=\!1$ at $Re_\theta=331$, within $2\%$ of the Drela--Giles station $338$, at $c_{\nu,\mathrm{ai}}=\tfrac16$ \\
-$w$ & $0.35$ & onset ramp width; $N\!=\!1$ stations move $<\!1\%$ halved, $<\!2.5\%$ doubled \\
-$c_{\nu,\mathrm{ai}}$ & $1/6$ & frozen-profile growth eigenvalue reaches the Drela--Giles rate just past critical ($1.02$ at $Re_\theta\!=\!400$) \\
-$\tau$ & $4$ & numerics bracket: handover $78\%$ complete at $\chi=c_{v1}$, $97\%$ at $\chi\approx14.8$ \\
-$\sigma_D$ tie & Eq.~\eqref{w:sigma} & derived: constant-stress wall-layer balance; linear wall solution kept to $8\times10^{-6}$ of SA's production \\
-bypass $(g_\chi,g_q)$ & Eq.~\eqref{w:fv1bypass} & parameter-free law-of-the-wall discriminator; $g_q$ ramps over $q\in(2,4)$ \\
-$(A,B)_\mathrm{Mack}$ & $(-8.43,\,2.4)$ & Mack $e^N$ correlation~\cite{mack_1977}, wholesale \\
+value & $(0.1355,\,\tfrac23,\,0.622)$ & $0.41$
+  & $\dfrac{c_{b1}}{\kappa^2}+\dfrac{1+c_{b2}}{\sigma}$ & $(0.3,\,2)$ & $7.1$ \\[6pt]
+section & II.2 & II.3, Appendix & II.3 & II.3 & II.4 \\
+equation & (1), (2) & (5) & (4) & (6) & (7) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Free constants: baseline SA $7$ ($9$ with the retained Allmaras
-modifications); SA-AI $+8$, $+2$ imported from Mack, $19$ total; Drela's
-envelope $e^N$ in XFOIL $13$, plus $2$ compressibility constants and
-$N_\mathrm{crit}$.
+\begin{table}[H]\centering\small
+\caption{SA-AI constants. For $g_\chi$ and $g_q$ the values are the limits
+between which each gate opens.}\label{t:constants}
+\begin{tabular}{lccccccc}
+\toprule
+constant & $a_{\max}$ & $w$ & $(C,\,A,\,B)$ & $c_{\nu,\mathrm{ai}}$ & $\con$
+  & $\tau$ & $g_\chi;\;g_q$ \\
+\midrule
+value & $0.19$ & $0.35$ & $(2600,\,175,\,2)$ & $1/6$ & $0.712$
+  & $4$ & $(1,\,2);\;(2,\,4)$ \\
+section & II.C & II.C & II.C & II.D & II.D & II.E & II.F \\
+equation & \eqref{w:a} & \eqref{w:rate} & \eqref{w:onset} & \eqref{w:lamdiff}
+  & \eqref{w:onset}, \eqref{w:lamdiff} & \eqref{w:sigma} & \eqref{w:fv1bypass} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Results}\label{sec:results}
 
-Coupled RANS: Flow360, unstructured node-centered second-order
-finite volume, Roe flux, $M=0.1$. Airfoil cases:
-$\chi_\infty=c_{v1}e^{-9}\approx8.76\times10^{-4}$ (the
-$N_\mathrm{crit}=9$ anchor; via Mack's map, $Tu\approx0.07\%$); two
-independently generated mesh families---all-triangular unstructured
-cavity meshes, constrained-Delaunay through the boundary layer, and
-all-quadri\-lateral structured O-grids---at three refinement levels,
-$1.5\times10^4$ to $2.6\times10^5$ nodes.
-Transition locations, or fronts, are the solver's near-wall $\chi=1$ crossing
-(the $\chi=c_{v1}$ crossing is up to $0.05\,c$ aft where the front
-grows slowly); bubble stations are signed-$C_f$ zero crossings. The
-cross-solver replication is a cell-centered, pressure-based,
-incompressible OpenFOAM implementation of the model on the same
-flat-plate grid specification and the same structured airfoil grids
-(the port omits the $f_{v1}$ bypass); thirty airfoil cases plus the
-flat-plate sweep.
+The results are computed with Flow360, an unstructured, node-centered,
+second-order finite-volume solver with the Roe flux, at $M=0.1$. The airfoil
+cases use the freestream value $\chi_\infty=c_{v1}e^{-9}\approx8.76\times10^{-4}$,
+which is $N_\mathrm{crit}=9$ and, by Mack's correlation, $Tu\approx0.07\%$
+(Eq.~\eqref{w:mack} in Section~III.A). They are computed on two independently
+generated mesh families: all-triangular unstructured cavity meshes,
+constrained-Delaunay through the boundary layer, and all-quadri\-lateral
+structured O-grids. Each family is refined at three levels, from
+$1.5\times10^4$ to $2.6\times10^5$ nodes. A transition location, or front, is
+the station where the largest $\chi$ near the wall crosses one. The
+$\chi=c_{v1}$ crossing is at most $0.05\,c$ farther aft. Bubble stations are
+the zero crossings of the signed $C_f$. The cross-solver replication is a
+cell-centered, pressure-based, incompressible OpenFOAM implementation of the
+model, on the same flat-plate grid specification and the same structured
+airfoil grids. It omits the $f_{v1}$ bypass of Section~II.F. It covers thirty
+airfoil cases and the flat-plate sweep.
 
 In three dimensions the triple $(X,Y,Z)$ of Eq.~\eqref{w:ind} is formed from
 four local vectors: the
@@ -806,7 +893,7 @@ $|\mathbf u|$,
 which requires no division by $|\mathbf u|$. The common factor leaves
 $\hat\Omega$ and $\hat I$ unchanged, because both depend only on ratios of the
 three terms. Both forms are unchanged by the reversal
-$\mathbf u\to-\mathbf u$. The reversal symmetry is built in.
+$\mathbf u\to-\mathbf u$.
 
 The protocol used for every result in this paper: the
 $\tilde\nu$-equation residual is scaled by $f^{\,1-g}$, where $g$
@@ -820,15 +907,40 @@ at the boundary-layer edge.
 
 \subsection{The Blasius Flat Plate}
 
-Structured $320\times80$ grid, $Re_x\le6\times10^6$,
-$y^+\lesssim0.3$; five seeds from Mack's map
-($\chi_\infty\approx2.3\times10^{-4}$, $1.2\times10^{-3}$,
-$6.3\times10^{-3}$, $2.9\times10^{-2}$, $1.5\times10^{-1}$).
-Figure~\ref{f:flatplate}: at the $\chi=c_{v1}$
-crossing the onset is within $10\%$ of the Abu-Ghannam \& Shaw
-correlation~\cite{abu_ghannam_shaw_1980} across the range. Figure~\ref{f:flatplateof}: $\chi=1$
-crossings within $7\%$ in $Re_\theta$. Table~\ref{t:flatplate}: both
-solvers' crossings.
+The flat plate is the case in which the freestream turbulence intensity is
+varied. The freestream value $\chi_\infty$ is the input that determines how far
+the disturbance must grow, as $N_\mathrm{crit}$ is in the $e^N$ method. The two are
+related by
+\begin{equation}
+  \chi_\infty = c_{v1}\,e^{-N_\mathrm{crit}},
+  \qquad
+  N_\mathrm{crit}(Tu) = -8.43 - 2.4\,\ln Tu ,
+  \label{w:mack}
+\end{equation}
+where $N_\mathrm{crit}(Tu)$ is Mack's correlation~\cite{mack_1977}, with the
+turbulence intensity $Tu$ as a fraction. With this definition the amplification
+factor $N=\max_y\ln(\chi/\chi_\infty)$ of Section~II.D equals
+$N_\mathrm{crit}$ where the largest $\chi$ in the boundary layer is
+$c_{v1}=7.1$. It is $N_\mathrm{crit}-2.0$ where the largest $\chi$ is one. A
+change of $\chi_\infty$ by the factor $e$ changes $N_\mathrm{crit}$ by one. On
+the Blasius envelope, where $dN/dRe_\theta\approx10^{-2}$, that moves the
+onset by $\Delta Re_\theta\approx100$. At $Tu=1\%$ the correlation gives
+$N_\mathrm{crit}\approx2.6$, and at $Tu\approx3\%$ it gives $\chi_\infty=c_{v1}$.
+These are conditions of bypass transition, which the model does not represent.
+
+The plate is computed at five turbulence intensities from $Tu=0.04\%$ to
+$0.6\%$, for which Eq.~\eqref{w:mack} gives $\chi_\infty\approx2.3\times10^{-4}$,
+$1.2\times10^{-3}$, $6.3\times10^{-3}$, $2.9\times10^{-2}$ and
+$1.5\times10^{-1}$. The grid is structured, $320\times80$, with
+$y^+\lesssim0.3$, and extends to $Re_x=6\times10^6$. Table~\ref{t:flatplate}
+lists the $Re_\theta$ at which the largest $\chi$ crosses one and $c_{v1}$,
+for Flow360 and for the OpenFOAM replication, next to the correlation of
+Abu-Ghannam and Shaw~\cite{abu_ghannam_shaw_1980}. At the $\chi=c_{v1}$
+crossing the Flow360 onset is within $10\%$ of the correlation at every level
+(Fig.~\ref{f:flatplate}). The OpenFOAM $\chi=1$ crossings are at an $Re_\theta$ $4$--$7\%$ lower than
+those of Flow360 (Fig.~\ref{f:flatplateof}). Between adjacent
+levels the Flow360 $\chi=1$ crossing moves by $88$ to $106$ in $Re_\theta$ per
+unit of $N_\mathrm{crit}$.
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.90\textwidth]{flat_plate_batch_flow360.pdf}
@@ -1077,9 +1189,9 @@ $\alpha=-12^\circ$.}\label{f:nlfsheets}
 
 \subsection{The Eppler 387 Airfoil}
 
-The $-1^\circ$ front is at $0.696$/$0.693\,c$. At $8^\circ$ and $9^\circ$ the computed upper surface has no closed bubble and the front moves forward to $0.119$/$0.016\,c$, matching SA-BC's $0.099$/$0.022\,c$ and the
-experiment's report of attached transition without a bubble above
-$7^\circ$; $\gamma$--$Re_\theta$ gives fronts at $0.451$/$0.150\,c$.
+The $-1^\circ$ front is at $0.696$/$0.693\,c$. At $8^\circ$ and $9^\circ$ the computed upper surface has no closed bubble and the front moves forward to $0.119$/$0.016\,c$. SA-BC gives $0.099$/$0.022\,c$ and
+$\gamma$--$Re_\theta$ gives $0.451$/$0.150\,c$; the experiment reports
+attached transition without a bubble above $7^\circ$.
 
 The drag differs by $-6.4\%$ to $+3.7\%$ from the digitized
 $\gamma$--$Re_\theta$ and SA-BC curves over $\alpha=0^\circ$--$7^\circ$.
@@ -1585,9 +1697,9 @@ $Re_D=1$--$10^{10}$. Every case is on the symmetric branch,
 $|C_L|<2\times10^{-6}$.
 
 Figure~\ref{f:dragcrisiscd}: the crisis occurs between
-$Re_D=3\times10^5$ ($C_d=0.773$) and $1.78\times10^6$ ($0.228$); the
-supercritical floor settles near $C_d=0.21$--$0.23$
-($1.78\times10^6$--$10^7$) and stays flat to $10^{10}$.
+$Re_D=3\times10^5$ ($C_d=0.773$) and $1.78\times10^6$ ($0.228$); above
+it $C_d=0.21$--$0.23$ from $1.78\times10^6$ to $10^7$ and $0.19$--$0.26$ from
+$3\times10^7$ to $10^{10}$.
 Figure~\ref{f:dragcrisisangles}: transition and separation angles.
 Figure~\ref{f:dragcrisisfields}: fields across the traverse.
 Table~\ref{t:dragcrisis}: the up-ladder $C_d$. Below shedding onset
@@ -1939,18 +2051,17 @@ further computation; each is reproduced by
   (Eqs.~\eqref{w:ratio} and~\eqref{w:gram}), and
   $\hat{\mathbf n}\!\cdot\!\nabla|\boldsymbol\omega|$. For streamwise curvature the two have the same leading term and the numbers above are
   unambiguous; for the transverse curvature of a body of revolution they do
-  not, so the $-2.9$ to $-6.3\%$ computed at the spheroid stations is a
-  realization uncertainty rather than a bias.
-\item On a concave wall the metric term changes sign and destabilizes, so
-  the model is not blind to centrifugal geometry, but its response is
-  linear in $\delta/R$ where the instability is governed by the
+  not, so the $-2.9$ to $-8.2\%$ computed at the spheroid stations depends on
+  the realization.
+\item On a concave wall the metric term changes sign and destabilizes. The
+  response is linear in $\delta/R$, whereas the instability is governed by the
   G\"ortler number $G=Re_\delta\sqrt{\delta/R}$ (Saric, \emph{Annu.\ Rev.\
-  Fluid Mech.}\ \textbf{26}, 379--409, 1994) --- the right sign under the
-  wrong scaling.
+  Fluid Mech.}\ \textbf{26}, 379--409, 1994): the sign is right and the
+  scaling is not.
 \item On the exact swept-Hiemenz profile the kernel amplifies at $82\%$ of
   the Blasius rate and switches on at $\bar R\!=\!603$ against the
-  linear-stability critical value near $583$, unfitted, though the
-  agreement is on the threshold and not on the mechanism.
+  linear-stability critical value near $583$. The
+  agreement is in the threshold and not in the mechanism.
 \item The model assigns zero rate to the asymptotic suction layer at every
   Reynolds number, against a true critical
   $Re_{\delta^*}\!\approx\!5.4\times10^4$, so it overpredicts the stabilizing

@@ -59,20 +59,25 @@ meets it, then what goes wrong with the obvious choice. It does not defend.
 
 ## 4. Structure
 
-The model section of the paper has eight subsections and ends with the constants:
+The model section of the paper has seven subsections and ends with the constants:
 
 1. Transport Equation and Blended Sources
 2. Local Indicators of the Boundary-Layer Profile Shape
 3. Amplification Rate and Onset Gate Built from the Indicators
 4. Laminar Diffusion and the Onset Factor
 5. Laminar-to-Turbulence Handover Blend and Destruction Tie
-6. Eddy-Viscosity Assembly
-7. Freestream Seed
-8. Constants
+6. Eddy Viscosity without Wall Damping in Separated Shear Layers
+7. Constants
+
+The freestream seed (Mack's map, $\chi_\infty=c_{v1}e^{-N_\mathrm{crit}}$) is not a
+subsection of the model in the paper. It opens the flat-plate subsection of the
+Results, the case that varies $Tu$, because $\chi_\infty$ is an input of each case. Table 1 lists the baseline SA constants with
+the sections and equations of the 1994 journal version of the SA paper; Table 2 lists
+the SA-AI constants in the order Section II determines them.
 
 Subsections 2 and 3 carry longer titles than in the whitepaper ("Local indicators",
 "Amplification rate and onset threshold") so that the titles state what each one is
-for. The whitepaper has the same eight in the same order, then two more: "Relaminarization
+for. The whitepaper has those seven and "Freestream seed" before the constants, then two more: "Relaminarization
 behavior" and "Stagnation-point bistability". **Do not bring those two into the paper.**
 The stagnation-point branch was later found to be held up by streamwise numerical
 diffusion, and that finding, with the front-propagation analysis it rests on, is the

@@ -46,6 +46,14 @@ def main():
     print('full equation:   max residual / (c_b1 u_tau^2) = %.2e at y+ = %.2f' % (full[j], yp[j]))
     print('SA production becomes the larger at chi = %.6f, sigma_P = %.1e' % (chi[j_sp], s_p[j_sp]))
     print('above chi = 1.0001:  max |residual| / (c_b1 u_tau^2) = %.1e' % np.abs(full[above]).max())
+    k1 = int(np.searchsorted(chi, 1.0))
+    print('at chi = 1 (y+ = %.2f):  sigma_Re = %.4f, Omega*I = %.4f' % (yp[k1], s_re[k1], prod[k1]))
+    summed = (1.0 - s_p)*p_ai/CB1      # what a sum of the two sources would add
+    js = int(np.argmax(summed))
+    print('a sum in place of the maximum would add at most %.1e of SA production, at y+ = %.1f'
+          % (summed[js], yp[js]))
+    assert abs(s_re[k1] - 0.003) < 5e-4 and abs(prod[k1] - 0.002) < 5e-4
+    assert 1.0e-3 < summed[js] < 1.3e-3
     assert np.abs(sa_only).max() < 1e-12
     assert 5e-6 < full[j] < 1e-5 and yp[j] < 2.45
     assert np.abs(full[above]).max() < 1e-12
