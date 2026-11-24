@@ -192,9 +192,9 @@ begins where a local Reynolds number, formed from the vorticity and the wall
 distance, exceeds a threshold. Its growth rate depends only on the local shape of
 the boundary-layer profile. Near $\chi=1$ the production switches to that of standard SA. One
 equation therefore has two regimes: the laminar growth of a disturbance, and
-the turbulence that follows it. The model is called SA-AI, Spalart--Allmaras with
+the turbulence that follows it. The model is called SA-AI\footnote{``AI'' here is not the other kind making headlines in the 2020s.}, Spalart--Allmaras with
 Autogenous Inception: the turbulence variable carries the inception of its
-own turbulence.\footnote{``AI'' here is not the other kind.}
+own turbulence.
 
 SA-AI is a transition-aware RANS model for natural, Tollmien--Schlichting transition at low Mach number.
 Bypass transition ($Tu\gtrsim1\%$), crossflow instability, and
@@ -421,14 +421,8 @@ has decreased between the wall and the point. It is zero for a parabola,
 whose curvature is constant. The same three terms have a second interpretation. The second-order Taylor expansion of the profile at the point, extrapolated
 to the wall, gives a wall velocity of $X-Y+Z=-I$. The no-slip condition
 requires zero. The accumulated inflection is the true wall velocity minus the
-extrapolated one.
-
-A profile with no inflection point is stable to inviscid disturbances, by
-Rayleigh's theorem \cite{schmid_henningson_2001}, and a parabola has none.
-The great circle $\hat I=0$ is the neutral line of the model, and positive
-$\hat I$ marks the side where inflection has accumulated. The circle is the
-line of zero accumulated inflection: zero AI, in a second sense of the
-abbreviation.
+extrapolated one. The circle is the line of zero accumulated inflection: no
+AI, in a second sense of the abbreviation.
 
 Away from the wall the profiles of Fig.~\ref{f:sphere} differ in the maximum of
 $\hat I$. The strongly favorable profile, $\beta=+0.30$, has a maximum $\hat I$ of only $0.007$ and is
@@ -438,6 +432,8 @@ of Stewartson \cite{stewartson_1954}, starts at the antipodal wall point, with v
 
 
 \subsection{Amplification Rate and Onset Gate Built from the Indicators}
+
+\laozi[7.6pt]{64}
 
 The amplification rate $a$ of Eq.~\eqref{w:lngrowth} is defined first. It is a
 single dimensionless number at every point of the sphere, and it measures how
@@ -454,7 +450,12 @@ $u/\omega$, exceeds half its peak. The objective is
 a simple function on the sphere that is large where those bands lie.
 
 The accumulated inflection $\hat I$ is the starting point for modeling the
-amplification rate. It is zero on the neutral great circle $\hat I=0$ and positive in every band. It cannot be the rate by itself: a flow and its
+amplification rate. A profile with no inflection point is stable to inviscid
+disturbances, by Rayleigh's theorem \cite{schmid_henningson_2001}, and a
+parabola has none. The great circle $\hat I=0$, the image of every parabola
+through the wall, is the neutral line of the model. On the side where
+inflection has accumulated, $\hat I$ is positive, and every band lies there.
+The accumulated inflection cannot be the rate by itself: a flow and its
 reverse, $u\to-u$, are equally unstable, but $\hat I$ changes sign under the
 reversal. The simplest way to respect this symmetry is to multiply $\hat I$ by a second indicator that also changes sign under $u\to-u$. An obvious candidate is the shear cosine $\hat Y$, but it fails for a shear layer far from the wall. The curvature scale $Z$ is proportional to $d^2$. In
 such a shear layer $Z$ dominates $U_\mathrm{loc}$, and $\hat Y$ tends to zero
@@ -696,6 +697,8 @@ $H=10.6$.}\label{f:calibrate}
 
 \subsection{Laminar-to-Turbulence Handover Blend and Destruction Tie}
 
+\laozi[7.6pt]{9}
+
 Eq.~\eqref{w:lamdiff} describes $\tilde\nu$ while $\chi\ll1$, where the eddy
 viscosity is negligible. Above $\chi\approx1$ the eddy viscosity affects the
 mean flow significantly, and the equation of $\tilde\nu$ must become SA's. Near $\chi=1$ the
@@ -756,6 +759,8 @@ below $10^{-3}$ of the amplification production up to the $\chi=1$ crossing,
 and at most $1.4\%$ of the $\sigma_P$-weighted SA production at $\chi=c_{v1}$.
 
 \subsection{Eddy Viscosity without Wall Damping in Separated Shear Layers}
+
+\laozi[7.6pt]{41}
 
 The transport equation of $\tilde\nu$ is complete with the handover of
 Section~II.E. The mean flow depends on $\tilde\nu$ only through the eddy
@@ -884,7 +889,7 @@ separation bubble. The same airfoil at lower Reynolds numbers shows the
 condition at which the computed bubble no longer reattaches while the measured
 bubble does. A two-element section shows a boundary layer that receives
 $\tilde\nu$ from the wake of another element. The circular cylinder shows
-transition moving from the wake onto the wall as the Reynolds number increases
+transition moving from the separated wake onto the wall as the Reynolds number increases
 through ten decades. The Daedalus wing is the first three-dimensional case.
 The 6:1 spheroid is a three-dimensional body on which crossflow instability,
 which the model does not represent, causes transition at the higher
