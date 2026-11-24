@@ -40,7 +40,9 @@ OUTLET_MARGIN = 0.5
 CONTOUR_X_MAX = 4.0
 
 F360_ROOT = "/home/qiqi/flexcompute/sa-ai/flow360_fr"
-OF_ROOT = "/local_data/qiqi/openfoam-sa-ai/cases"
+# The cases live on host 014 (/local_data). $SAAI_OF_CASES points at a copy elsewhere;
+# only <case>/<latest time>/{U,nuTilda} are read.
+OF_ROOT = os.environ.get("SAAI_OF_CASES", "/local_data/qiqi/openfoam-sa-ai/cases")
 
 
 def AGS_Reth(tu_pct):
@@ -151,7 +153,12 @@ def onset_vs_ags(label, results):
     return out
 
 
-def make_figure(source_name, extract, root, case_fmt, outname):
+def make_figure(source_name, extract, root, case_fmt, outname, overlay=None,
+                overlay_label=None):
+    """`overlay`: path to a summary JSON of the OTHER solver's bottom-panel
+    curves, drawn as thin steel-blue lines. Only the OpenFOAM figure takes one:
+    it is the second of the two flat-plate figures, so it is the one that
+    carries the earlier figure's result for comparison."""
     n = len(TU_LIST)
     fig = plt.figure(figsize=(9, 11.0))
     gs = gridspec.GridSpec(n + 1, 2, height_ratios=[1]*n + [1.8],
@@ -215,6 +222,45 @@ def make_figure(source_name, extract, root, case_fmt, outname):
         ax_cf.loglog(Re_th[valid_cf], cf_vol[valid_cf], SYMBOLS[k], mfc='w',
                      mec='k', color='k', ms=4, label=rf'SA-AI, $Tu={tu:g}$%')
 
+    # Cross-solver overlay (thin steel-blue), both bottom panels.
+    if overlay is not None:
+        import json as _json
+        assert os.path.exists(overlay), f'missing overlay summary: {overlay}'
+        _ot = _json.load(open(overlay))['cases']
+        for k, tu in enumerate(TU_LIST):
+            e = _ot.get(f'{tu:.2f}')
+            if e is None:
+                continue
+            ox = np.array(e['x'], float)
+            ochi = np.array([np.nan if v is None else v for v in e['chi_max']])
+            oreth = np.array([np.nan if v is None else v for v in e['Re_theta']])
+            ocf = np.array([np.nan if v is None else v for v in e['cf']])
+            vch = np.isfinite(ochi)
+            ax_chi.semilogy(ox[vch], ochi[vch], '-', color='steelblue', lw=0.8,
+                            alpha=0.85, zorder=2,
+                            label=overlay_label if k == 0 else None)
+            vcf = (np.isfinite(oreth) & np.isfinite(ocf) & (oreth > 1)
+                   & (ox < PLATE_END_X - OUTLET_MARGIN))
+            ax_cf.loglog(oreth[vcf], ocf[vcf], '-', color='steelblue', lw=0.8,
+                         alpha=0.85, zorder=2,
+                         label=overlay_label if k == 0 else None)
+
+    # Right axis: Cf(x) in light gray, so the Cf rise can be read against the
+    # chi=1 and chi=c_v1 crossings directly -- same twin axis the Flow360
+    # figure carries.
+    ax_chi2 = ax_chi.twinx()
+    for k, tu in enumerate(TU_LIST):
+        if tu not in cf_results:
+            continue
+        x_centers, Re_th, cf_vol, chi_mx = cf_results[tu]
+        v = np.isfinite(cf_vol) & (x_centers < PLATE_END_X - OUTLET_MARGIN)
+        ax_chi2.plot(x_centers[v], cf_vol[v], '-', color='0.6', lw=0.9, zorder=0)
+    ax_chi2.set_ylim(0, 6.5e-3)
+    ax_chi2.set_ylabel(r'$C_f$', color='0.45', fontsize=8)
+    ax_chi2.tick_params(axis='y', colors='0.45', labelsize=7)
+    ax_chi2.set_zorder(ax_chi.get_zorder() - 1)
+    ax_chi.patch.set_visible(False)   # twin sits below; parent must be transparent
+
     ax_chi.axhline(1.0, color='gray', lw=0.6, ls=':', alpha=0.7)
     ax_chi.axhline(C_V1, color='gray', lw=0.8, ls='--', alpha=0.7)
     ax_chi.text(0.02, 1.5, r'$\chi=1$', color='0.4', fontsize=7, va='bottom')
@@ -269,10 +315,18 @@ def make_figure(source_name, extract, root, case_fmt, outname):
     return cf_results
 
 
+F360_SUMMARY = ("/home/qiqi/flexcompute/sa-ai/paper/data/"
+                "flow360_flatplate_summary.json")
+
+
 def main():
     r_of = make_figure('openfoam', extract_volume_openfoam, OF_ROOT,
-                       'flatplate_Tu{:04d}', 'flatplate_fig_openfoam.pdf')
+                       'flatplate_Tu{:04d}', 'flatplate_fig_openfoam.pdf',
+                       overlay=F360_SUMMARY, overlay_label='Flexcompute Flow')
     onset_vs_ags('OpenFOAM', r_of)
+    if not os.path.isdir(os.path.join(F360_ROOT, 'flatplate_sphere_Tu0040')):
+        print('Flow360 cases not on this host: flatplate_fig_flow360.pdf not redrawn')
+        return
     r_f6 = make_figure('flow360', extract_volume_f360, F360_ROOT,
                        'flatplate_sphere_Tu{:04d}', 'flatplate_fig_flow360.pdf')
     onset_vs_ags('Flow360', r_f6)

@@ -23,13 +23,6 @@ INLINE = {
     r'c_{\nu,\mathrm{ai}}=\tfrac16': 'c sub nu comma {a} i equals one sixth',
     # ---- order, functions, derivatives
     r'(X,Y,Z)': 'the triple capital X, capital Y, capital Z',
-    r'\hat I=O(d^3)': 'capital I hat is of order d cubed',
-    r"I\approx-\tfrac18u''''_w\,d^4":
-        'capital I is approximately minus one eighth of u quadruple prime sub w, times d to the '
-        'power 4',
-    r"U_\mathrm{loc}\approx\sqrt2\,|u'_w|\,d":
-        'capital U sub loc is approximately the square root of 2, times the magnitude of u prime '
-        'sub w, times d',
     r'\tfrac12 s^2': 'one half s squared',
     r'(1-\sigma_{v1})f_{v1}+\sigma_{v1}':
         'the quantity 1 minus sigma sub v 1, times f sub v 1, plus sigma sub v 1',
@@ -43,10 +36,7 @@ INLINE = {
         'd capital N over d R e sub theta is approximately 10 to the power minus 2',
     r'Re_{\theta0}+1/(dN/dRe_\theta)':
         'R e sub theta 0, plus 1 over the quantity d capital N over d R e sub theta',
-    r'N_\mathrm{crit}=\ln(c_{v1}/\chi_\infty)':
-        'capital N sub crit equals the natural log of the quantity c sub v 1 over chi sub infinity',
     # ---- roots and powers
-    r'\sqrt2': 'the square root of 2',
     r'1/\sqrt{Re_L}': '1 over the square root of R e sub capital L',
     r'\sqrt{c_{\nu,\mathrm{ai}}}': 'the square root of c sub nu comma {a} i',
     r'Y/\sqrt{X^2+Y^2}':
@@ -73,7 +63,6 @@ INLINE = {
         'x squared over capital A squared, plus r squared over capital B squared, equals 1',
     r'd^2\omega/\nu': 'd squared times omega, over nu',
     r'Re_\Omega=d^2\omega/\nu': 'R e sub capital omega equals d squared times omega, over nu',
-    r'u=c_1y+c_2y^2': 'u equals c sub 1 times y, plus c sub 2 times y squared',
     r'\chi\!=\!\tilde\nu/\nu\!\sim\!1': 'chi equals nu tilde over nu, of order 1',
     r'f_{v1}=\chi^3/(\chi^3+c_{v1}^3)':
         'f sub v 1 equals chi cubed, over the quantity chi cubed plus c sub v 1 cubed',
@@ -122,26 +111,16 @@ INLINE = {
         'vector script ell equals one half, times the inner product of vector d with vector d, '
         'times the Laplacian of vector u',
     r'\langle-\hat Z\rangle_+': 'the positive part of minus capital Z hat',
-    r'a=a_{\max}\operatorname{clip}\langle\hat\Omega\hat I\rangle_0^1':
-        '{a} equals {a} sub max, times the clip, between 0 and 1, of capital omega hat times '
-        'capital I hat',
     # ---- integrals
     # ---- tuples, intervals, sets
     r'(C,A,B)': 'the triple capital C, capital A, capital B',
     r'(2600,\,175,\,2)': 'the triple 2600, 175, 2',
-    r'(g_\chi,g_q)': 'the pair g sub chi, g sub q',
-    r'(-8.43,\,2.4)': 'the pair minus 8.43, 2.4',
-    r'(A,B)_\mathrm{Mack}': 'the pair capital A, capital B, sub Mack',
     r'(x/L,\phi)': 'the pair x over capital L, phi',
     r'(Re_L,U_\infty)': 'R e sub capital L, capital U sub infinity',
-    r'(c_{\nu,\mathrm{ai}},k)=(\tfrac16,\,0.712)':
-        'the pair c sub nu comma {a} i, k, equals the pair one sixth, 0.712',
     r'(a_{\mathrm{visc}},B_{\mathrm c})=(0.0276,130)':
         'the pair {a} sub visc, capital B sub c, equals the pair 0.0276, 130',
-    r'q\in(2,4)': 'q in the open interval from 2 to 4',
     r'N\!\in\![1,5]': 'capital N in the interval from 1 to 5',
     r'N\!\in\![5,9]': 'capital N in the interval from 5 to 9',
-    r'\{0.025,0.2,0.4,0.6,0.8,1.0\}': 'the set 0.025, 0.2, 0.4, 0.6, 0.8, 1.0',
     r'\alpha\in\{4^\circ,5^\circ,6^\circ\}': 'alpha in the set 4 degrees, 5 degrees, 6 degrees',
     r'Re\in\{6\times10^4,\,10^5,\,3\times10^5,\,4.6\times10^5\}':
         'R e in the set 6 times 10 to the power 4, 10 to the power 5, 3 times 10 to the power 5, '
@@ -157,6 +136,45 @@ INLINE = {
         'the quantity 1 minus x hat, times the sum from i equals 0 to 9 of capital A superscript t '
         'sub i, times capital B superscript 9 sub i of x hat; plus x hat times t sub t e, over the '
         'quantity 2 x sub e',
+    # ---- added 2026-11-24: Section II rebuilt, constants tables, seed in Section III
+    r'(0.1355,\,\tfrac23,\,0.622)': '0.1355, two thirds, and 0.622',
+    r'(0.3,\,2)': '0.3 and 2',
+    r'(1,\,2);\;(2,\,4)': 'from 1 to 2, and from 2 to 4',
+    r'(C,A,B)=(2600,\,175,\,2)':
+        'capital C, capital A, capital B equal to 2600, 175, and 2',
+    r'(C,\,A,\,B)': 'capital C, capital A, capital B',
+    r'(c_{\nu,\mathrm{ai}},c_{\mathrm{on}})=(\tfrac16,\,0.712)':
+        'c sub nu comma {a} i equal to one sixth, and c sub on equal to 0.712',
+    r'(c_{b1},\,\sigma,\,c_{b2})': 'c sub b 1, sigma, and c sub b 2',
+    r'(c_{w2},\,c_{w3})': 'c sub w 2 and c sub w 3',
+    r'(u,v)': 'u, v',
+    r'C,\;A,\;B;\;c_{\mathrm{on}}': 'capital C, capital A, capital B; c sub on',
+    r'N=\max_y\ln(\chi/\chi_\infty)':
+        'capital N equals the maximum over y of the natural log of chi over chi sub infinity',
+    r'N_\mathrm{crit}(Tu)': 'capital N sub crit, as a function of T u',
+    r'U^+(y^+)': 'capital U plus of y plus',
+    r'\beta\ge\tfrac12': 'beta greater than or equal to one half',
+    r'\chi\ll c_{v1}': 'chi much less than c sub v 1',
+    r'\chi\ll1': 'chi much less than 1',
+    r'\dfrac{c_{b1}}{\kappa^2}+\dfrac{1+c_{b2}}{\sigma}':
+        'c sub b 1 over kappa squared, plus the quantity 1 plus c sub b 2, all over sigma',
+    r'\hat\Omega\hat I=\sqrt{B/A}':
+        'capital omega hat times capital I hat equals the square root of capital B over capital A',
+    r'\hat\Omega\hat I=\sqrt{B/C}':
+        'capital omega hat times capital I hat equals the square root of capital B over capital C',
+    r'\sqrt{c_{\nu,\mathrm{ai}}\,\nu/(\sigma\,a\,\sigma_{Re}\,\omega)}':
+        'the square root of a fraction: c sub nu comma {a} i times nu, over the quantity sigma '
+        'times {a} times sigma sub R e times omega',
+    r'\tilde\nu\ll\nu': 'nu tilde much less than nu',
+    r'c_{\mathrm{on}}': 'c sub on',
+    r'c_{\mathrm{on}}=0.712': 'c sub on equals 0.712',
+    r'c_{\mathrm{on}}=1': 'c sub on equals 1',
+    r'c_{\mathrm{on}}=\tfrac12': 'c sub on equals one half',
+    r"u\approx u'd\gg u''d^2":
+        'u is approximately u prime times d, which is much greater than u double prime times d '
+        'squared',
+    r'|\mathbf u|': 'the magnitude of vector u',
+    r'|\mathbf u|\,d/\nu': 'the magnitude of vector u, times d, over nu',
 }
 
 DISPLAY = [
@@ -219,65 +237,72 @@ DISPLAY = [
      'Equation 10. Capital omega hat equals capital Y hat, over the square root of the quantity '
      'capital X hat squared plus capital Y hat squared; which equals capital Y, over the square '
      'root of the quantity capital X squared plus capital Y squared. Vorticity fraction.'),
-    (r'\langle\mathbf u,\mathbf u\rangle,\; \sqrt{',
-     'Equation 11. The triple capital X, capital Y, capital Z equals three entries. First entry: '
-     'the inner product of vector u with vector u. Second entry: the square root of the product of '
-     'three inner products: vector u with vector u, vector d with vector d, and vector omega with '
-     'vector omega. Third entry: the inner product of vector script ell with vector u. Next: '
-     'capital omega hat equals capital Y, over the square root of the quantity capital X squared '
-     'plus capital Y squared. And capital I hat equals the quantity capital Y minus capital X '
-     'minus capital Z, all over the square root of the quantity capital X squared plus capital Y '
-     'squared plus capital Z squared.'),
-    (r'\big(\,|\mathbf u|,\;\; d\,|\boldsymbol\omega|',
-     'Equation 12. The triple capital X, capital Y, capital Z equals three entries. First entry: '
-     'the magnitude of vector u. Second entry: d times the magnitude of vector omega. Third entry: '
-     'one half d squared, times the Laplacian of vector u, dotted with the unit vector u hat.'),
-    (r'P_{\mathrm{AI}} = a\,\sigma_{Re}\,\omega\,\tilde\nu',
-     'Equation 13. Capital P sub A I equals {a} times sigma sub R e times omega times nu tilde. '
-     'Next: {a} equals {a} sub max, times the clip, between 0 and 1, of capital omega hat times '
-     'capital I hat. Next: sigma sub R e equals the function sigma sub R e, evaluated at a ratio: '
-     'R e sub capital omega, over R e sub capital omega superscript c of capital omega hat times '
-     'capital I hat. And the function sigma sub R e of zeta equals one half times a bracket: 1 '
-     'plus the hyperbolic tangent of the quantity zeta minus 1, all over w.'),
-    (r'Re_\Omega^{\mathrm c}(\hat\Omega\hat I) = k\,\operatorname{softmin}_2',
-     'Equation 14. R e sub capital omega superscript c, as a function of capital omega hat times '
-     'capital I hat, equals k times soft-min sub 2 of two arguments. First argument: capital C. '
-     'Second argument: capital A, plus capital B times the positive part of capital omega hat '
-     'times capital I hat, raised to the power minus 2. Next: soft-min sub 2 of x sub 1 and x sub '
-     '2 equals x sub 1 times x sub 2, over the square root of the quantity x sub 1 squared plus x '
-     'sub 2 squared. And the positive part of x, written x in angle brackets sub plus, equals the '
-     'maximum of x and 0.'),
+    (r'a = a_{\max}\,\operatorname{clip}',
+     'Equation 11. {a} equals {a} sub max, times the clip, between 0 and 1, of capital omega hat '
+     'times capital I hat.'),
+    (r'\sigma_{Re} = \tfrac12\big[1+\tanh(\zeta/w)\big]',
+     'Equation 12. Sigma sub R e equals one half times a bracket: 1 plus the hyperbolic tangent of '
+     'zeta over w. Next: zeta equals a fraction. Numerator: R e sub capital omega, minus R e sub '
+     'capital omega superscript c. Denominator: R e sub capital omega superscript c.'),
+    (r'Re_\Omega^{\mathrm c}(\hat\Omega\hat I) = c_{\mathrm{on}}\,\operatorname{softmin}_2',
+     'Equation 13. R e sub capital omega superscript c, as a function of capital omega hat times '
+     'capital I hat, equals c sub on times soft-min sub 2 of two arguments. First argument: '
+     'capital C. Second argument: capital A, plus capital B times the positive part of capital '
+     'omega hat times capital I hat, raised to the power minus 2. Next: soft-min sub 2 of x sub 1 '
+     'and x sub 2 equals x sub 1 times x sub 2, over the square root of the quantity x sub 1 '
+     'squared plus x sub 2 squared. And the positive part of x, written x in angle brackets sub '
+     'plus, equals the maximum of x and 0.'),
+    (r'u\,\frac{\partial\tilde\nu}{\partial x}+v\,\frac{\partial\tilde\nu}{\partial y}',
+     'Equation 14. u times the partial of nu tilde with respect to x, plus v times the partial of '
+     'nu tilde with respect to y, equals {a} times sigma sub R e times omega times nu tilde, plus '
+     'a fraction times the second partial of nu tilde with respect to y. The fraction is c sub nu '
+     'comma {a} i times nu, over sigma.'),
+    (r'N=\max_y\,\ln\frac{\chi}{\chi_\infty}',
+     'Capital N equals the maximum over y of the natural log of chi over chi sub infinity.'),
     (r'c_{\nu,\mathrm{ai}}=\tfrac16 .',
      'c sub nu comma {a} i equals one sixth.'),
+    (r'c_{\mathrm{on}}=0.712',
+     'c sub on equals 0.712.'),
+    (r'\sigma_P\,c_{b1}-\sigma_D\,c_{w1}\kappa^2',
+     'Sigma sub capital P times c sub b 1, minus sigma sub capital D times c sub w 1 times kappa '
+     'squared, plus a fraction, equals 0. The fraction is the quantity 1 plus c sub b 2, times '
+     'kappa squared, all over sigma.'),
     (r'q = \frac{|\mathbf u|\,d/\nu}',
      'Equation 15. q equals a fraction. Numerator: the magnitude of vector u, times d, over nu. '
-     'Denominator: y plus, times capital U plus of y plus. Next: capital U plus of y plus equals 1 '
-     'over kappa times the natural log of the quantity 1 plus kappa times y plus; plus 7.8 times a '
-     'bracket. Inside the bracket: 1, minus e to the power of minus y plus over 11, minus y plus '
-     'over 11 times e to the power of minus y plus over 3. Reichardt.'),
-    (r'\sigma_{v1} = g_\chi(\chi)\,g_q(q)',
-     'Equation 16. Sigma sub v 1 equals g sub chi of chi, times g sub q of q. Next: g sub chi '
-     'equals the clip, between 0 and 1, of chi minus 1. And g sub q equals the clip, between 0 and '
-     '1, of the quantity q minus 2, all over 2.'),
-    (r'N_\mathrm{crit}(Tu) = -8.43',
-     'Equation 17. Capital N sub crit, as a function of T u, equals minus 8.43, minus 2.4 times '
-     'the natural log of T u sub frac. Next: chi sub infinity equals c sub v 1 times e to the '
-     'power of minus capital N sub crit.'),
-    (r'c_{b1}=0.1355',
-     'c sub b 1 equals 0.1355. Sigma equals two thirds. c sub b 2 equals 0.622. Kappa equals 0.41. '
-     'c sub w 1 equals c sub b 1 over kappa squared, plus the quantity 1 plus c sub b 2, all over '
-     'sigma. c sub w 2 equals 0.3. c sub w 3 equals 2. c sub v 1 equals 7.1.'),
+     'Denominator: chi over kappa, times capital U plus evaluated at chi over kappa. Next: capital '
+     'U plus of y plus equals 1 over kappa times the natural log of the quantity 1 plus kappa '
+     'times y plus; plus 7.8 times a bracket. Inside the bracket: 1, minus e to the power of minus '
+     'y plus over 11, minus y plus over 11 times e to the power of minus y plus over 3.'),
+    (r'\sigma_{v1} = g_\chi\,g_q',
+     'Equation 16. Sigma sub v 1 equals g sub chi times g sub q. Next: g sub chi equals the clip, '
+     'between 0 and 1, of chi minus 1. And g sub q equals the clip, between 0 and 1, of the '
+     'quantity q minus 2, all over 2.'),
+    (r'\big(\,|\mathbf u|,\;\; d\,|\boldsymbol\omega|',
+     'Equation 17. The triple capital X, capital Y, capital Z equals three entries. First entry: '
+     'the magnitude of vector u. Second entry: d times the magnitude of vector omega. Third entry: '
+     'the inner product of vector script ell with the unit vector u hat. Next: the unit vector u '
+     'hat equals vector u over its magnitude.'),
+    (r'\langle\mathbf u,\mathbf u\rangle,\; \sqrt{',
+     'Equation 18. The magnitude of vector u, times the triple capital X, capital Y, capital Z, '
+     'equals three entries. First entry: the inner product of vector u with vector u. Second '
+     'entry: the square root of the product of three inner products: vector u with vector u, '
+     'vector d with vector d, and vector omega with vector omega. Third entry: the inner product '
+     'of vector script ell with vector u.'),
+    (r'\chi_\infty = c_{v1}\,e^{-N_\mathrm{crit}}',
+     'Equation 19. Chi sub infinity equals c sub v 1 times e to the power of minus capital N sub '
+     'crit. Next: capital N sub crit, as a function of T u, equals minus 8.43, minus 2.4 times the '
+     'natural log of T u.'),
     (r'P_{\mathrm{c}} \;=\; \hat\Omega',
-     'Equation 18. Capital P sub c equals capital omega hat times the positive part of minus '
+     'Equation 20. Capital P sub c equals capital omega hat times the positive part of minus '
      'capital Z hat. Next: capital Z hat equals capital Z over capital U sub loc.'),
     (r'\operatorname{softmax}_2\!\Big[',
-     'Equation 19, first line. Capital P sub A I equals omega times nu tilde, times soft-max sub 2 '
+     'Equation 21, first line. Capital P sub A I equals omega times nu tilde, times soft-max sub 2 '
      'of two arguments. First argument: {a} sub max times capital P sub capital I, times sigma sub '
      'R e of the ratio R e sub capital omega over R e sub capital omega superscript c comma i. '
      'Second argument: {a} sub visc times capital P sub c, times sigma sub R e of the ratio R e '
      'sub capital omega over R e sub capital omega superscript c comma v.'),
     (r'Re_\Omega^{\mathrm c,i} = k\operatorname{softmin}_2',
-     'Equation 19, second line. R e sub capital omega superscript c comma i equals k times '
+     'Equation 21, second line. R e sub capital omega superscript c comma i equals k times '
      'soft-min sub 2 of two arguments: capital C; and capital A plus capital B times capital P sub '
      'capital I to the power minus 2. Next: R e sub capital omega superscript c comma v equals '
      'capital A, plus capital B sub c times capital P sub c to the power minus 2. And soft-max sub '

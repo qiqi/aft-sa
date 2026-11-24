@@ -1,0 +1,30 @@
+%% Written by repro/tools/make_paper_tables.py from tab_spheroid_tunnel_wp.tex. Do not edit.
+\begin{table}[!htbp]
+  \centering\small
+  \caption{6:1 spheroid: computed minus measured transition location, in units of $L$, at the azimuths with a measurement. The computed location is the station where the largest $\chi$ near the wall crosses one. The fitted $\chi_\infty$ is that of the $N_\mathrm{crit}$ that Stock~\cite{stock_2006} fitted for the tunnel, and the measured $\chi_\infty$ is that of the measured turbulence intensity $Tu$. The column $n$ is the number of azimuths at which $\chi$ reaches one ahead of $x/L=0.97$, over the number of measured azimuths. The columns lee and wind are the differences at the most leeward and the most windward measured azimuth. The last two columns are the same differences for the $e^N$ computation of Stock, digitized from his figures. Upper block: $Re_L\approx1.5\times10^6$, where the measured line is the laminar separation line. Lower block: $Re_L\ge6.49\times10^6$.}
+  \label{tab:sphtunnel}
+  \begin{tabular}{cc l l c c cccc cc}
+    \toprule
+    $\alpha$ & $Re_L$ & tunnel & $\chi_\infty$ & $Tu$ & $n$ & \multicolumn{4}{c}{SA-AI $-$ measured} & \multicolumn{2}{c}{Stock $-$ measured} \\
+    & $[10^6]$ & & & [\%] & & mean & rms & lee & wind & mean & rms \\
+    \midrule
+    $5^\circ$ & $1.52$ & G\"ottingen & measured & 0.330 & 7/8 & -0.020 & 0.068 & +0.074 & -0.037 & +0.020 & 0.058 \\
+    $5^\circ$ & $1.52$ & G\"ottingen & fitted & 0.106 & 4/8 & -0.006 & 0.028 & +0.026 & -0.040 & -0.064 & 0.064 \\
+    $10^\circ$ & $1.52$ & G\"ottingen & measured & 0.330 & 8/8 & -0.013 & 0.027 & +0.002 & -0.041 & -0.091 & 0.100 \\
+    $10^\circ$ & $1.52$ & G\"ottingen & fitted & 0.106 & 8/8 & +0.019 & 0.082 & +0.160 & -0.053 & -0.091 & 0.100 \\
+    $29.7^\circ$ & $1.53$ & G\"ottingen & measured & 0.330 & 12/12 & -0.048 & 0.098 & +0.185 & -0.045 & -- & -- \\
+    $29.7^\circ$ & $1.53$ & G\"ottingen & fitted & 0.106 & 12/12 & +0.041 & 0.095 & +0.264 & -0.024 & -- & -- \\
+    \midrule
+    $0^\circ$ & $7.2$ & G\"ottingen & measured & 0.330 & 17/17 & -0.097 & 0.097 & -0.097 & -0.098 & -0.013 & 0.013 \\
+    $0^\circ$ & $7.2$ & G\"ottingen & fitted & 0.106 & 17/17 & +0.077 & 0.077 & +0.078 & +0.076 & -0.013 & 0.013 \\
+    $2.5^\circ$ & $7.2$ & G\"ottingen & measured & 0.330 & 3/3 & -0.093 & 0.102 & -0.150 & -0.049 & +0.006 & 0.021 \\
+    $2.5^\circ$ & $7.2$ & G\"ottingen & fitted & 0.106 & 3/3 & +0.082 & 0.096 & +0.016 & +0.132 & +0.006 & 0.021 \\
+    $5^\circ$ & $6.49$ & G\"ottingen & measured & 0.330 & 4/4 & -0.098 & 0.177 & -0.292 & +0.007 & -0.024 & 0.051 \\
+    $5^\circ$ & $6.49$ & G\"ottingen & fitted & 0.106 & 4/4 & +0.107 & 0.201 & -0.088 & +0.246 & -0.024 & 0.051 \\
+    $10^\circ$ & $6.56$ & G\"ottingen & measured & 0.330 & 5/5 & +0.365 & 0.440 & -0.105 & +0.375 & +0.073 & 0.098 \\
+    $10^\circ$ & $6.56$ & G\"ottingen & fitted & 0.106 & 5/5 & +0.421 & 0.463 & +0.068 & +0.387 & +0.073 & 0.098 \\
+    $10^\circ$ & $6.56$ & ONERA F1 & fitted & 0.161 & 5/5 & +0.399 & 0.475 & +0.002 & +0.549 & +0.088 & 0.134 \\
+    $10^\circ$ & $6.56$ & ONERA F1 & measured & 0.100 & 5/5 & +0.420 & 0.486 & +0.051 & +0.549 & +0.088 & 0.134 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

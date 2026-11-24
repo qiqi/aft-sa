@@ -8,6 +8,10 @@
 
 \usepackage{graphicx}
 \usepackage{float}
+\usepackage{placeins}
+\renewcommand{\topfraction}{0.9}\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.08}\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{3}\setcounter{totalnumber}{4}
 \usepackage{amsmath}
 \let\Bbbk\relax  % this TeX Live predefines \Bbbk; free the name so amssymb can redefine it
 \usepackage{amssymb}
@@ -44,7 +48,7 @@
 \title{Two Regimes, One Equation: The Spalart--Allmaras with Autogenous
 Inception (SA-AI) Transition-Aware RANS Model}
 
-\author[1,2]{Qiqi Wang\footnote{Founding Technologist, Flexcompute, Inc.;
+\author[1,2]{Qiqi Wang\footnote{Founding Technologist and Chief Taoism Officer, Flexcompute, Inc.;
 Associate Professor, Department of Aeronautics and Astronautics, Massachusetts
 Institute of Technology. AIAA Associate Fellow.}}
 \affil[1]{Flexcompute, Inc.}
@@ -67,21 +71,31 @@ Institute of Technology. AIAA Associate Fellow.}}
 \maketitle
 
 \begin{abstract}
-Natural transition from laminar to turbulent flow can be modeled by using only
-the Spalart--Allmaras (SA) working variable $\tilde\nu$. The variable is its own transition indicator, in a one-equation Reynolds-averaged
-Navier--Stokes (RANS) closure. Where $\tilde\nu$ is below the molecular viscosity, the baseline model's eddy viscosity is negligible. In that laminar regime the logarithm of $\tilde\nu$ is used as the Tollmien--Schlichting amplification factor. A single production term is the larger of a laminar amplification source and SA's turbulent production, each weighted by a handover function. The destruction is weighted by a linear function of the same handover weight. The molecular
-diffusion coefficient is reduced in the $\tilde\nu$ equation only. The handover
-occurs near $\chi\!=\!\tilde\nu/\nu\!\sim\!1$, above which the equation is
-in its turbulent regime and behaves as SA. In the laminar regime the
-amplification rate depends only on the local mean flow: a vorticity Reynolds
-number, and two dimensionless profile-shape indicators, a vorticity fraction
-and an accumulated-inflection coordinate. Three canonical stability results fix the amplification constants: the free-shear growth eigenvalue, the linear-stability onset of the
-Falkner--Skan family, and the Blasius $e^N$ envelope. Mack's receptivity
-correlation gives the freestream seed as a function of the turbulence intensity. Computations
-with this formulation on a zero-pressure-gradient flat plate, the NLF(1)-0416
-and Eppler 387 airfoils, a two-element section, a circular cylinder through the
-drag crisis, the Daedalus human-powered-aircraft wing, and a 6:1 prolate
-spheroid are compared with experimental data and with other transition models.
+The envelope $e^N$ method predicts natural transition from three inputs: the
+shape of the boundary-layer profile, the momentum-thickness Reynolds number,
+and the freestream turbulence intensity. The first two are integrals across
+the boundary layer, and the amplification factor $N$ is an integral along it.
+An unstructured Reynolds-averaged Navier--Stokes (RANS) solver evaluates only
+local quantities and cannot apply the method directly. The model described
+here does the same with local quantities, inside the one-equation
+Spalart--Allmaras (SA) turbulence model. Where the SA variable $\tilde\nu$ is
+below the molecular viscosity $\nu$, the eddy viscosity of SA is negligible,
+and $\ln\tilde\nu$ is used as $N$. Its growth rate is a function of two
+dimensionless indicators of the profile shape, a vorticity fraction and an
+accumulated inflection. Both are formed from the velocity, its first and
+second derivatives, and the wall distance at a point. Its growth begins where
+a vorticity Reynolds number exceeds a threshold. Its freestream value is a
+function of the turbulence intensity. Near
+$\tilde\nu=\nu$ the production changes from the amplification source to the
+production of SA. One equation therefore has two regimes: the laminar growth
+of a disturbance, and the turbulence that follows it. The constants of the
+amplification are determined by three results of stability theory: the growth
+rate of a free shear layer, the linear-stability onset of the Falkner--Skan
+family, and the Blasius $e^N$ envelope. The model is computed on a
+zero-pressure-gradient flat plate, the NLF(1)-0416 and Eppler 387 airfoils, a
+two-element section, a circular cylinder through the drag crisis, the Daedalus
+human-powered-aircraft wing, and a 6:1 prolate spheroid, and compared with
+experimental data and with other transition models.
 \end{abstract}
 
 \laozi[9.6pt]{25}
@@ -134,21 +148,28 @@ L0, L1, L2 & the three grid-refinement levels, coarse to fine \\
 
 \section{Introduction}
 
-\laozi[7.5pt]{11}
+\laozi[7.5pt]{40}
 
 A laminar boundary layer in a stream of low turbulence intensity does not
 turn turbulent all at once. It first becomes unstable to small-amplitude
 two-dimensional waves, the
-Tollmien--Schlichting (TS) waves \cite{mack_1977,schmid_henningson_2001}. The
-envelope of the strongest wave grows nearly exponentially over a long stretch
-of the surface. At an amplitude of a few percent of the freestream velocity,
-three-dimensional instabilities become dominant. Turbulent spots form, spread, and
-merge \cite{schubauer_klebanoff_1956}. The slow growth of this envelope determines where transition occurs.
+Tollmien--Schlichting (TS) waves \cite{mack_1977,schmid_henningson_2001}. Waves
+of different frequencies grow at different rates. The envelope, the largest
+amplitude over all frequencies, grows nearly exponentially along the surface,
+by a factor of several thousand. The distance that this growth takes determines
+where transition occurs. Transition itself takes a much shorter distance: three-dimensional instabilities become
+dominant, and turbulent spots form, spread, and
+merge \cite{schubauer_klebanoff_1956}. On the
+natural-laminar-flow airfoil of Section~III.B, a computation that assumes
+transition at the leading edge gives $1.6$ to $2.5$ times the drag of a
+computation in which the model determines the transition location.
 
-The envelope $e^N$ method represents that growth by one number, the amplification factor $N$ \cite{smith_gamberoni_1956,vaningen_2008}. It is the logarithm of
-the envelope amplitude, accumulated along the boundary layer. Transition is declared
+The envelope $e^N$ method represents the growth of the envelope by one number, the amplification factor $N$ \cite{smith_gamberoni_1956,vaningen_2008}. It is the logarithm of
+the factor by which the envelope has grown along the boundary layer. Transition is declared
 where $N$ reaches $N_\mathrm{crit}$, and $N_\mathrm{crit}$ is a function of the freestream turbulence intensity \cite{mack_1977}. Drela and Giles reduced the stability
-calculation behind $N$ to two functions of the shape factor $H$ \cite{drela_giles_1987}. The envelope does not grow until the momentum-thickness Reynolds number $Re_\theta$ passes a critical
+calculation behind $N$ to two functions of the shape factor $H$ \cite{drela_giles_1987}. The shape factor is the ratio of the
+displacement thickness to the momentum thickness, one dimensionless number for the shape of the
+boundary-layer profile. The envelope does not grow until the momentum-thickness Reynolds number $Re_\theta$ passes a critical
 value $Re_{\theta0}(H)$. Past it, $N$ grows at a rate $dN/dRe_\theta$ that depends on $H$ alone. The method therefore does three jobs,
 and each job has its own input:
 \begin{enumerate}\itemsep2pt
@@ -165,9 +186,11 @@ The model described here does the three jobs with local quantities, inside
 the Spalart--Allmaras (SA) equation \cite{spalart_allmaras_1992}. SA
 transports one field, $\tilde\nu$. Where $\chi=\tilde\nu/\nu$ is below one,
 the resulting eddy viscosity is negligible. The baseline model leaves this
-range ``empty''. Here $\ln\tilde\nu$ fills it, in the role of $N$. Its growth rate
-depends only on the local shape of the boundary-layer profile. Its onset is a threshold on a local Reynolds number, formed from the vorticity and the wall distance. Its starting level is a function of the
-freestream turbulence intensity. Near $\chi=1$ the production switches to that of standard SA. One
+range ``empty''. Here $\ln\tilde\nu$ fills it, in the role of $N$. Its starting level, the
+freestream value, is a function of the freestream turbulence intensity. Its growth
+begins where a local Reynolds number, formed from the vorticity and the wall
+distance, exceeds a threshold. Its growth rate depends only on the local shape of
+the boundary-layer profile. Near $\chi=1$ the production switches to that of standard SA. One
 equation therefore has two regimes: the laminar growth of a disturbance, and
 the turbulence that follows it. The model is called SA-AI, Spalart--Allmaras with
 Autogenous Inception: the turbulence variable carries the inception of its
@@ -189,6 +212,8 @@ cases: under rotation, wall curvature, sweep, suction, and wake ingestion.
 \section{Model}\label{sec:model}
 
 \subsection{Transport Equation and Blended Sources}
+
+\laozi[7.6pt]{11}
 
 SA's eddy viscosity is $\rho\tilde\nu f_{v1}(\chi)$, with
 $f_{v1}=\chi^3/(\chi^3+c_{v1}^3)$ and $c_{v1}=7.1$. At $\chi=1$ that is about
@@ -621,7 +646,11 @@ distance, and the molecular diffusion of a linear profile is zero whatever its
 coefficient. The factor is also absent from the free shear flows on which
 Spalart and Allmaras~\cite{spalart_allmaras_1994} calibrated $c_{b1}$,
 $\sigma$ and $c_{b2}$: their equation for those flows does not contain the
-molecular viscosity.
+molecular viscosity. The flat-plate boundary layer at $Re_\theta=10^4$, on
+which they calibrated $c_{w2}$, does change, because $\chi$ decreases through
+one at its outer edge. With $c_{\nu,\mathrm{ai}}=\tfrac16$ in SA, its
+skin-friction coefficient is $0.07\%$ higher, and its eddy viscosity differs by
+at most $0.25\%$ of its peak.
 
 Diffusion also delays the growth, and the onset factor $\con$ compensates for
 the delay. It lowers the whole threshold of Eq.~\eqref{w:onset}, so the growth
@@ -846,18 +875,41 @@ equation & \eqref{w:a} & \eqref{w:rate} & \eqref{w:onset} & \eqref{w:lamdiff}
 
 \section{Results}\label{sec:results}
 
-The results are computed with Flow360, an unstructured, node-centered,
-second-order finite-volume solver with the Roe flux, at $M=0.1$. The airfoil
+Each case in this section is chosen for one thing that it shows about the
+model. The flat plate shows the role of the freestream value $\chi_\infty$,
+which is the model's $N_\mathrm{crit}$. The NLF(1)-0416 airfoil shows
+transition in an attached boundary layer, at a location that changes with the
+pressure gradient. The Eppler 387 airfoil shows transition in a laminar
+separation bubble. The same airfoil at lower Reynolds numbers shows the
+condition at which the computed bubble no longer reattaches while the measured
+bubble does. A two-element section shows a boundary layer that receives
+$\tilde\nu$ from the wake of another element. The circular cylinder shows
+transition moving from the wake onto the wall as the Reynolds number increases
+through ten decades. The Daedalus wing is the first three-dimensional case.
+The 6:1 spheroid is a three-dimensional body on which crossflow instability,
+which the model does not represent, causes transition at the higher
+incidences.
+
+The results are computed with Flexcompute Flow (formerly known as Flow360), an unstructured, node-centered,
+second-order finite-volume solver with the Roe flux, at $M=0.1$ unless stated
+otherwise. The airfoil
 cases use the freestream value $\chi_\infty=c_{v1}e^{-9}\approx8.76\times10^{-4}$,
 which is $N_\mathrm{crit}=9$ and, by Mack's correlation, $Tu\approx0.07\%$
 (Eq.~\eqref{w:mack} in Section~III.A). They are computed on two independently
 generated mesh families: all-triangular unstructured cavity meshes,
 constrained-Delaunay through the boundary layer, and all-quadri\-lateral
 structured O-grids. Each family is refined at three levels, from
-$1.5\times10^4$ to $2.6\times10^5$ nodes. A transition location, or front, is
+$1.5\times10^4$ to $2.6\times10^5$ nodes. The levels are called L0, L1 and L2,
+from the coarsest to the finest, and every length scale of the grid is halved
+from one level to the next. A transition location, or front, is
 the station where the largest $\chi$ near the wall crosses one. The
 $\chi=c_{v1}$ crossing is at most $0.05\,c$ farther aft. Bubble stations are
-the zero crossings of the signed $C_f$. The cross-solver replication is a
+the zero crossings of the signed $C_f$. The $e^9$ reference in the airfoil
+figures is a coupled viscous--inviscid panel computation with the $e^N$ method
+at $N_\mathrm{crit}=9$. It is computed with mfoil~\cite{fidkowski_mfoil_2022},
+or with XFOIL~\cite{drela_xfoil_1989} or FlexFoil, an independent
+implementation of the XFOIL formulation, where mfoil does not converge. The
+cross-solver replication is a
 cell-centered, pressure-based, incompressible OpenFOAM implementation of the
 model, on the same flat-plate grid specification and the same structured
 airfoil grids. It omits the $f_{v1}$ bypass of Section~II.F. It covers thirty
@@ -895,16 +947,19 @@ $\hat\Omega$ and $\hat I$ unchanged, because both depend only on ratios of the
 three terms. Both forms are unchanged by the reversal
 $\mathbf u\to-\mathbf u$.
 
-The protocol used for every result in this paper: the
-$\tilde\nu$-equation residual is scaled by $f^{\,1-g}$, where $g$
-rises smoothly from $0$ (laminar) to $1$ (turbulent) with $\chi$ and
-$f=10^{-2}$ (the solver uses $g=1-e^{-(\chi-c_{v1})/4}$ above
-$\chi=c_{v1}$, zero below). Because
-the freestream boundary condition is subject to the same scaling, the
-freestream viscosity ratio supplied to the solver is $\chi_\infty f$;
-the seeds quoted throughout are the physical $\chi_\infty$, recovered
-at the boundary-layer edge.
+Every computation is converged with the $\tilde\nu$ equation slowed in the
+laminar regime. The residual of the $\tilde\nu$ equation is multiplied by
+$f^{\,1-g}$, with $f=10^{-2}$. The function $g$ is zero for $\chi\le c_{v1}$
+and $g=1-e^{-(\chi-c_{v1})/4}$ above. In the laminar regime $\tilde\nu$
+therefore changes one hundred times more slowly per iteration than it would
+without the factor, and the mean flow settles before $\tilde\nu$ responds to
+the startup transient. The factor multiplies the residual, so a converged
+solution satisfies the equations of Section~II without the factor. The
+factor also applies to the freestream boundary condition: the freestream value
+supplied to the solver is $\chi_\infty f$. The values of $\chi_\infty$ quoted
+in this section are the values at the edge of the boundary layer.
 
+\FloatBarrier
 \subsection{The Blasius Flat Plate}
 
 The flat plate is the case in which the freestream turbulence intensity is
@@ -932,39 +987,42 @@ The plate is computed at five turbulence intensities from $Tu=0.04\%$ to
 $0.6\%$, for which Eq.~\eqref{w:mack} gives $\chi_\infty\approx2.3\times10^{-4}$,
 $1.2\times10^{-3}$, $6.3\times10^{-3}$, $2.9\times10^{-2}$ and
 $1.5\times10^{-1}$. The grid is structured, $320\times80$, with
-$y^+\lesssim0.3$, and extends to $Re_x=6\times10^6$. Table~\ref{t:flatplate}
+$y^+\lesssim0.3$, and extends to $Re_x=6\times10^6$.
+
+Figure~\ref{f:flatplate} shows the five computations. Along the plate $\chi$
+grows nearly exponentially from $\chi_\infty$, while the skin friction remains
+that of the Blasius boundary layer. Where the largest $\chi$ crosses one the
+skin friction begins to rise. It reaches its turbulent level shortly after the
+largest $\chi$ crosses $c_{v1}$. A higher turbulence intensity gives a larger
+$\chi_\infty$, and both crossings occur at a lower $Re_x$.
+
+Table~\ref{t:flatplate}
 lists the $Re_\theta$ at which the largest $\chi$ crosses one and $c_{v1}$,
-for Flow360 and for the OpenFOAM replication, next to the correlation of
-Abu-Ghannam and Shaw~\cite{abu_ghannam_shaw_1980}. At the $\chi=c_{v1}$
-crossing the Flow360 onset is within $10\%$ of the correlation at every level
-(Fig.~\ref{f:flatplate}). The OpenFOAM $\chi=1$ crossings are at an $Re_\theta$ $4$--$7\%$ lower than
-those of Flow360 (Fig.~\ref{f:flatplateof}). Between adjacent
-levels the Flow360 $\chi=1$ crossing moves by $88$ to $106$ in $Re_\theta$ per
-unit of $N_\mathrm{crit}$.
+for Flexcompute Flow (formerly Flow360) and for the OpenFOAM replication, next to the correlation of
+Abu-Ghannam and Shaw~\cite{abu_ghannam_shaw_1980} for the onset of transition.
+The $\chi=c_{v1}$ crossing of Flexcompute Flow is within $10\%$ of the correlation at
+every turbulence intensity. The $\chi=1$ crossing is $2\%$ above the
+correlation at $Tu=0.04\%$ and $27\%$ below it at $Tu=0.6\%$. The two
+crossings are $54$ apart in $Re_\theta$ at $Tu=0.04\%$ and $161$ apart at
+$Tu=0.6\%$. Between adjacent turbulence intensities the Flexcompute Flow $\chi=1$
+crossing moves by $88$ to $106$ in $Re_\theta$ per unit of $N_\mathrm{crit}$,
+which is the estimate $\Delta Re_\theta\approx100$ made above. The OpenFOAM
+$\chi=1$ crossings are at an $Re_\theta$ $4$--$7\%$ lower than those of
+Flexcompute Flow (Fig.~\ref{f:flatplateof}).
 
-\begin{figure}[H]\centering
+\begin{figure}[!htbp]\centering
 \includegraphics[width=0.90\textwidth]{flat_plate_batch_flow360.pdf}
-\caption{Flat plate, Flow360. Five levels $Tu=0.04$--$0.60\%$;
-references $\chi=1$ and $\chi=c_{v1}=7.1$; laminar
-$C_f=0.441/Re_\theta$, turbulent
-$C_f=2[(\ln Re_\theta)/0.38+3.7]^{-2}$; $\chi=c_{v1}$ onset within $10\%$ of
-Abu-Ghannam \& Shaw.}\label{f:flatplate}
+\caption{Flat plate, Flexcompute Flow, at the five turbulence intensities. Upper rows: contours of $u/U_\infty$ (left) and of $\log_{10}\chi$ (right). Bottom left: the largest $\chi$ in the boundary layer against $Re_x$, with $C_f$ in grey on the right axis. Bottom right: $C_f$ against $Re_\theta$. Filled symbols and vertical lines: the onset correlation of Abu-Ghannam and Shaw.}\label{f:flatplate}
 \end{figure}
 
-\begin{figure}[H]\centering
+\begin{figure}[!htbp]\centering
 \includegraphics[width=0.90\textwidth]{flat_plate_batch_openfoam.pdf}
-\caption{Flat plate, OpenFOAM. Same sweep and layout as
-Fig.~\ref{f:flatplate}, five levels $Tu=0.04$--$0.60\%$; thin steel-blue
-curves in both bottom panels are the Flow360 result of
-Fig.~\ref{f:flatplate}.}\label{f:flatplateof}
+\caption{Flat plate, OpenFOAM replication, in the layout of Fig.~\ref{f:flatplate}. The thin blue curves in the two bottom panels are the Flexcompute Flow results.}\label{f:flatplateof}
 \end{figure}
 
-\begin{table}[H]
+\begin{table}[!htbp]
   \centering\small
-  \caption{Flat-plate transition-onset $Re_\theta$ (integrated from the
-  computed profiles) at the $\chi\!=\!1$ and $\chi\!=\!c_{v1}$
-  crossings, Flow360 and the OpenFOAM replication (OF), against the
-  Abu-Ghannam \& Shaw correlation.}
+  \caption{Flat plate: $Re_\theta$ at which the largest $\chi$ crosses one and $c_{v1}$, for Flexcompute Flow and for the OpenFOAM replication (OF), and the onset $Re_\theta$ of the correlation of Abu-Ghannam and Shaw (AGS). $Re_\theta$ is integrated from the computed profiles.}
   \label{t:flatplate}
   \begin{tabular}{cccccc}
     \toprule
@@ -979,100 +1037,111 @@ Fig.~\ref{f:flatplate}.}\label{f:flatplateof}
   \end{tabular}
 \end{table}
 
+\FloatBarrier
 \subsection{The NLF(1)-0416 Airfoil}
 
-At L2 every front is within
-$0.016\,c$ and the lift within $0.9\%$ of the SA-AI values.
+The NLF(1)-0416 is an airfoil designed for natural laminar flow. At
+$Re=4\times10^6$ its boundary layers are attached, or nearly attached, where
+they become turbulent, and the transition location on each surface changes with the
+incidence as the pressure distribution changes. The case therefore shows the rate $a$ and the
+onset gate $\sigma_{Re}$ of Section~II.C responding to the shape of the
+boundary-layer profile. Somers~\cite{somers_1981} measured the forces and the
+transition locations of this airfoil in the NASA Langley Low-Turbulence
+Pressure Tunnel (LTPT). The case is also one of the first AIAA Transition
+Modeling and Prediction Workshop~\cite{coder_tmpw_summary}.
 
-At the four in-window
-incidences both computed fronts lie inside the submittal band on both
-surfaces (at $2^\circ$, $0.338$/$0.344\,c$ upper against
-$0.040$--$0.453\,c$ and $0.604$/$0.607\,c$ lower against
-$0.080$--$0.654\,c$).
+The computations cover thirteen incidences from $\alpha=-12^\circ$ to
+$15^\circ$ (Table~\ref{t:nlf}). Six of them, $-8^\circ$, $-4^\circ$, $0^\circ$, $4^\circ$,
+$9^\circ$ and $15^\circ$, are computed on all six grids. The other seven are
+computed on the two L2 grids.
 
-Across the Reynolds sweep the upper-surface front moves forward monotonically
-($0.446\to0.418\to0.400\to0.387\,c$ at $0^\circ$;
-$0.379\to0.320\to0.279\to0.254\,c$ at $4^\circ$).
-Somers~\cite{somers_1981} reports the last laminar and first turbulent orifice, so each lift coefficient has a $0.05\,c$ bracket rather than a point; all four panels of his Fig.~9 are
-digitized in \texttt{data/somers1981\_nlf0416\_transition\_by\_Re.json}
-(\texttt{repro/cfd/digitize\_somers\_fig9.py}).
-Table~\ref{t:extnlfsomers}: $20$ of the $27$ covered comparisons fall inside
-the bracket, the misses being $0.012$--$0.029\,c$ aft on the upper surface at
-$\alpha=4^\circ$, $Re=2$ and $3\times10^6$, and $0.020\,c$ ahead on the lower
-surface at $\alpha=4^\circ$, $Re=10^6$. Digitization check: all $28$ points of
-the same data as replotted in Coder's dissertation~\cite{coder_thesis_2014} fall inside these brackets.
+Figure~\ref{f:nlfcf0} shows the quantities of the model along the chord at
+$\alpha=0^\circ$ and $2^\circ$. Near the leading edge, where the pressure
+gradient is favorable, the product $\hat\Omega\hat I$ is below $10^{-3}$ and
+$\chi$ remains at $\chi_\infty$. Farther aft $\hat\Omega\hat I$ is positive
+and $\chi$ grows. The right axis of the $\chi$ panel is the amplification
+factor $N$ of the $e^9$ reference. One unit of $N$ on the right axis is one
+factor of $e$ in $\chi$ on the left axis, so the computed $\chi$ and the
+reference $N$ can be compared directly. On each surface $\hat\Omega\hat I$ is
+largest, between $0.07$ and $0.3$, where the pressure begins to rise toward
+the trailing edge. The largest $\chi$ crosses one there, and the skin friction
+rises to its turbulent level.
 
-\input{tables/ext2026_nlf_somers_wp}
-
-\input{tables/ext2026_nlf_resweep_wp}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{nlf_aft_transition.pdf}
-\caption{NLF(1)-0416 transition fronts, $Re=4\times10^6$; near-wall
-$\chi=1$ convention. SA-AI at
-$\alpha=-8^\circ,-4^\circ,0^\circ,4^\circ,9^\circ,15^\circ$ on all six
-grids, and at $-12^\circ$, $-10^\circ$, $-6^\circ$, $-2^\circ$, $2^\circ$,
-$6^\circ$, $8^\circ$ on the L2 pair; workshop
-sweep $\alpha=-4^\circ$--$8^\circ$.}\label{f:nlfaft}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{nlf_polar_compare.pdf}
-\caption{NLF(1)-0416 drag polar, $Re=4\times10^6$; the L2 pair also includes the seven extension incidences, so it spans the measured polar down to
-$\alpha=-12^\circ$ ($c_l=-0.93$). Fully turbulent SA
-($\chi_\infty=3$): $1.6$--$2.5\times$ above the SA-AI drag,
-$+144$/$+150\%$ in the bucket at $\alpha=0^\circ$/$4^\circ$,
-$+67$/$+74\%$ at $9^\circ$/$15^\circ$.}\label{f:nlfpolar}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{nlf_cf_p1.pdf}
-\caption{NLF(1)-0416 surface distributions, $Re=4\times10^6$, all six grids; pages run in ascending incidence. $\alpha=-12^\circ$, $\alpha=-10^\circ$.}\label{f:nlfcflow}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{nlf_cf_p2.pdf}
-\figcont{$\alpha=-8^\circ$, $\alpha=-6^\circ$.}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{nlf_cf_p3.pdf}
-\figcont{$\alpha=-4^\circ$, $\alpha=-2^\circ$.}
-\end{figure}
-
-\begin{figure}[H]\centering
+\begin{figure}[!htbp]\centering
 \includegraphics[width=0.99\textwidth]{nlf_cf_p4.pdf}
-\figcont{$\alpha=0^\circ$, $\alpha=2^\circ$.}
+\caption{NLF(1)-0416 at $\alpha=0^\circ$ (left) and $2^\circ$ (right), $Re=4\times10^6$, all six grids. Rows: largest $Re_\Omega$ on the wall normal; largest $\hat\Omega\hat I$; largest $\chi$, with the amplification factor $N$ of the $e^9$ reference on the right axis; $-C_p$; $C_f$.}\label{f:nlfcf0}
 \end{figure}
 
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{nlf_cf_p5.pdf}
-\figcont{$\alpha=4^\circ$, $\alpha=6^\circ$.}
+Figure~\ref{f:nlfaft} collects the fronts on both surfaces against the lift
+coefficient. On the structured L2 grid the upper-surface front moves from
+$0.945\,c$ at $\alpha=-12^\circ$ to $0.005\,c$ at $15^\circ$, and the
+lower-surface front from $0.001\,c$ to $0.659\,c$. The fronts of the two mesh
+families at L2 differ by at most $0.022\,c$. The OpenFOAM replication on the
+structured L2 grid is within $0.016\,c$ of Flexcompute Flow (formerly Flow360) in every front and within
+$0.017$ in lift coefficient. The figure also contains the measurement, the $e^9$
+reference, the amplification-factor-transport (AFT) model as computed by
+Coder~\cite{coder_thesis_2014} at two values of $N_\mathrm{crit}$, and the
+fourteen submittals to the workshop. At the workshop incidences $-2^\circ$,
+$2^\circ$, $6^\circ$ and $8^\circ$, both computed fronts are inside the range of
+the submittals on both surfaces. At
+$2^\circ$, for example, the upper-surface fronts of the two mesh families are
+at $0.338\,c$ and $0.344\,c$, and the submittals range from $0.040\,c$ to
+$0.453\,c$. The lower-surface fronts are at $0.604\,c$ and $0.607\,c$, and the
+submittals range from $0.080\,c$ to $0.654\,c$.
+
+\begin{figure}[!htbp]\centering
+\includegraphics[width=\textwidth]{nlf_aft_transition.pdf}
+\caption{NLF(1)-0416, $Re=4\times10^6$: transition location on the upper surface (left) and on the lower surface (right) against the lift coefficient. The SA-AI location is the station where the largest $\chi$ near the wall crosses one.}\label{f:nlfaft}
 \end{figure}
 
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{nlf_cf_p6.pdf}
-\figcont{$\alpha=8^\circ$, $\alpha=9^\circ$.}
+Somers reports the last laminar and the first turbulent orifice, so each
+measured transition location is a bracket $0.05\,c$ wide, not a point.
+Table~\ref{t:extnlfsomers} compares the computed fronts with these brackets at
+the same lift, at $\alpha=0^\circ$ and $4^\circ$ and four Reynolds numbers
+from $10^6$ to $4\times10^6$. Of the $27$ comparisons, $20$ are inside the
+bracket. The others are upper-surface fronts $0.012$--$0.029\,c$ aft of the
+bracket at $\alpha=4^\circ$, $Re=2\times10^6$ and $3\times10^6$, and
+lower-surface fronts $0.020\,c$ ahead of it at $\alpha=4^\circ$, $Re=10^6$.
+As the Reynolds number increases from $10^6$ to $4\times10^6$ the computed
+upper-surface front moves forward, from $0.446\,c$ to $0.387\,c$ at
+$\alpha=0^\circ$ and from $0.379\,c$ to $0.254\,c$ at $4^\circ$
+(Table~\ref{t:extnlfresweep}). All four panels of Somers' Fig.~9 are digitized
+in \texttt{data/somers1981\_nlf0416\_transition\_by\_Re.json}
+(\texttt{repro/cfd/digitize\_somers\_fig9.py}). The same data as replotted in
+Coder's dissertation~\cite{coder_thesis_2014} consist of $28$ points, and all
+of them are inside the digitized brackets.
+
+\input{tables/ext2026_nlf_somers_paper}
+
+\input{tables/ext2026_nlf_resweep_paper}
+
+Figure~\ref{f:nlfpolar} shows the drag polar. From $\alpha=-6^\circ$ to $6^\circ$ the drag on the L2 grids is between
+$2\%$ below and $10\%$ above the measured drag at the same lift. On the L0 grids the drag is $1.3$ to $4.2$
+times the drag on the L2 grids. Fully turbulent SA on the structured L2 grid,
+computed with $\chi_\infty=3$, gives $1.6$ to $2.5$ times the SA-AI drag: $2.4$
+to $2.5$ times at $\alpha=0^\circ$ and $4^\circ$, and $1.7$ times at $9^\circ$
+and $15^\circ$. At
+the same incidence the computed lift is higher than the measured lift, by
+$0.01$ at $\alpha=-8^\circ$ and by $0.12$ at $8^\circ$. At
+$\alpha=15^\circ$ the computed lift coefficient is $2.0$, and the measured
+polar ends near $1.7$. Table~\ref{t:nlf} lists the forces and fronts of every
+computation. The Supplementary Figures contain the surface distributions at
+every incidence (Fig.~\ref{f:nlfcflow}), the grids (Figs.~\ref{f:nlfmeshstr}
+and~\ref{f:nlfmeshcav}), and contours of the velocity and of $\chi$ near the
+wall (Fig.~\ref{f:nlfsheets}).
+
+\begin{figure}[!htbp]\centering
+\includegraphics[width=\textwidth]{nlf_polar_compare.pdf}
+\caption{NLF(1)-0416 drag polar, $Re=4\times10^6$. Fully turbulent SA is computed with $\chi_\infty=3$.}\label{f:nlfpolar}
 \end{figure}
 
-\begin{figure}[H]\centering
-\includegraphics[width=0.55\textwidth]{nlf_cf_p7.pdf}
-\figcont{$\alpha=15^\circ$.}
-\end{figure}
-
-\begin{table}[H]
+\begin{table}[!htbp]
   \centering\scriptsize\setlength{\tabcolsep}{2pt}
-  \caption{NLF(1)-0416, $Re\!=\!4\!\times\!10^6$: forces and
-  transition locations (near-wall $\chi\!=\!1$ fronts). The OpenFOAM
-  port is independent and omits the $f_{v1}$ bypass. The seven extension
-  incidences exist on the L2 pair only. Experimental columns are LTPT
-  measurements digitized from Coder's Figs.~5-22--5-25; drag and
-  transition are read at the measured $C_L$, and blanks fall outside the
-  digitized range or past the stall break.}
+  \caption{NLF(1)-0416, $Re\!=\!4\!\times\!10^6$: forces, and transition locations where the largest $\chi$ near the wall crosses one. The OpenFOAM replication omits the $f_{v1}$ bypass of Section~II.F. Seven incidences are computed on the L2 grids only. The measurements are those of the LTPT, digitized from Figs.~5-22 to 5-25 of Coder~\cite{coder_thesis_2014}. Measured drag and transition are read at the measured $C_L$. Blank entries are outside the digitized range or beyond stall.}
   \label{t:nlf}
   \begin{tabular}{ll cccc cccc cccc cccc}
     \toprule
-    & & \multicolumn{4}{c}{Flow360, structured O-grid} & \multicolumn{4}{c}{Flow360, unstructured cavity} & \multicolumn{4}{c}{OpenFOAM, structured} & \multicolumn{4}{c}{Experiment (LTPT)} \\
+    & & \multicolumn{4}{c}{Flexcompute Flow, structured O-grid} & \multicolumn{4}{c}{Flexcompute Flow, unstructured cavity} & \multicolumn{4}{c}{OpenFOAM, structured} & \multicolumn{4}{c}{Experiment (LTPT)} \\
     \cmidrule(lr){3-6}\cmidrule(lr){7-10}\cmidrule(lr){11-14}\cmidrule(lr){15-18}
     $\alpha$ & grid & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_\mathrm{tr}^\mathrm{lo}$ & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_\mathrm{tr}^\mathrm{lo}$ & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_\mathrm{tr}^\mathrm{lo}$ & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_\mathrm{tr}^\mathrm{lo}$ \\
     \midrule
@@ -1117,161 +1186,95 @@ $+67$/$+74\%$ at $9^\circ$/$15^\circ$.}\label{f:nlfpolar}
   \end{tabular}
 \end{table}
 
-\clearpage
-% NLF(1)-0416 meshes and wall-anchored contour sheets
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{mesh_nlf_str.pdf}
-\caption{NLF(1)-0416 structured O-grid: leading and trailing edge (columns),
-levels L0--L2 (rows).}\label{f:nlfmeshstr}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{mesh_nlf_cav.pdf}
-\caption{NLF(1)-0416 unstructured cavity mesh: same edges and
-levels.}\label{f:nlfmeshcav}
-\end{figure}
-\clearpage
-% NLF(1)-0416 wall-anchored contour sheets: both surfaces per pane
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am12_both.pdf}
-\caption{NLF(1)-0416 wall-normal sheets, $Re=4\times10^6$, all six grids:
-$u_x/U_\infty$ left, $\log_{10}\chi$ right. Panes mirror about the wall---
-upper above $y=0$, lower reflected below, same probe depth.
-$\alpha=-12^\circ$.}\label{f:nlfsheets}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am10_both.pdf}
-\figcont{$\alpha=-10^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am8_both.pdf}
-\figcont{$\alpha=-8^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am6_both.pdf}
-\figcont{$\alpha=-6^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am4_both.pdf}
-\figcont{$\alpha=-4^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am2_both.pdf}
-\figcont{$\alpha=-2^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a0_both.pdf}
-\figcont{$\alpha=0^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a2_both.pdf}
-\figcont{$\alpha=2^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a4_both.pdf}
-\figcont{$\alpha=4^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a6_both.pdf}
-\figcont{$\alpha=6^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a8_both.pdf}
-\figcont{$\alpha=8^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a9_both.pdf}
-\figcont{$\alpha=9^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a15_both.pdf}
-\figcont{$\alpha=15^\circ$.}
-\end{figure}
-
+\FloatBarrier
 \subsection{The Eppler 387 Airfoil}
 
-The $-1^\circ$ front is at $0.696$/$0.693\,c$. At $8^\circ$ and $9^\circ$ the computed upper surface has no closed bubble and the front moves forward to $0.119$/$0.016\,c$. SA-BC gives $0.099$/$0.022\,c$ and
-$\gamma$--$Re_\theta$ gives $0.451$/$0.150\,c$; the experiment reports
-attached transition without a bubble above $7^\circ$.
+The Eppler 387 at $Re=2\times10^5$ is the standard case for transition in a
+laminar separation bubble. The laminar boundary layer on the upper surface
+separates before $\chi$ reaches one. The inflection point of the separated
+shear layer's profile is far from the wall, so $\hat\Omega\hat I$ is close to
+one and $\chi$ grows at nearly the largest rate, $a_{\max}\omega$. The eddy
+viscosity that follows returns the flow to the wall as a turbulent boundary
+layer. The region of reversed flow between separation and reattachment is the
+bubble. McGhee, Walker and Millard~\cite{mcghee_1988} measured the forces of
+this airfoil in the LTPT, and the separation and reattachment stations by oil
+flow.
 
-The drag differs by $-6.4\%$ to $+3.7\%$ from the digitized
-$\gamma$--$Re_\theta$ and SA-BC curves over $\alpha=0^\circ$--$7^\circ$.
-The flow reattaches $0.02$--$0.04\,c$ late at $\alpha\le5^\circ$, and at
-$7^\circ$ the bubble is at the edge of collapse. At L2 the lift is within
-$0.5\%$, and the flow separates $0.030$--$0.037\,c$ ahead of and reattaches
-$0.033$--$0.045\,c$ behind the SA-AI stations.
+The computations cover incidences from $\alpha=-4^\circ$ to $9^\circ$.
+Figure~\ref{f:eppcf5} shows the quantities of the model along the chord at
+$\alpha=5^\circ$ and $6^\circ$. On the upper surface $\hat\Omega\hat I$
+increases from about $0.1$ in the attached boundary layer to nearly one over
+the bubble. The largest $\chi$ grows from $\chi_\infty$ and crosses one
+inside the bubble. The pressure is nearly constant over the forward part of
+the bubble and rises steeply after $\chi$ exceeds $c_{v1}$. The skin friction
+is negative between separation and reattachment. The grey band is the bubble
+measured by oil flow. On the lower surface $\hat\Omega\hat I$ is below $0.06$,
+and $Re_\Omega$ remains below the onset threshold of Eq.~\eqref{w:onset}. The
+rate $a\,\sigma_{Re}\,\omega$ is therefore small, and $\chi$ remains near
+$\chi_\infty$ over most of the chord.
 
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{eppler_polar_compare.pdf}
-\caption{Eppler 387 drag polar, $Re=2\times10^5$; all six grids span
-$\alpha=-4^\circ$--$8.5^\circ$, the L2 pair to $9^\circ$. Fully turbulent SA
-($\chi_\infty=3$) $66$--$87\%$ above the SA-AI drag in the bucket,
-$+149\%$ at $\alpha=7^\circ$; at L2 mesh families agree to $\Delta C_d\le
-6.9\times10^{-4}$ over $\alpha=-2^\circ$--$7^\circ$ and
-$2.7\times10^{-4}$ at $8.5^\circ$; OpenFOAM port omits the bypass,
-worth $-6$ to $-10$ counts at $\alpha=0$--$5^\circ$.}\label{f:epppolar}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{eppler_bubble_stations.pdf}
-\caption{Eppler 387 bubble stations, $Re=2\times10^5$; signed-$C_f$
-zero crossings against oil flow (TM-4062~\cite{mcghee_1988} Table~III), Selig,
-Cole--Mueller, $e^9$. At $\alpha=7^\circ$ XFOIL $C_l=1.17$, mfoil
-$C_l=0.928$.}\label{f:eppbubble}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{eppler_cf_p1.pdf}
-\caption{Eppler~387 surface distributions, $Re=2\times10^5$, all six grids; pages run in ascending incidence. $\alpha=-4^\circ$, $\alpha=-2^\circ$.}\label{f:eppcflow}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{eppler_cf_p2.pdf}
-\figcont{$\alpha=-1^\circ$, $\alpha=0^\circ$.}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{eppler_cf_p3.pdf}
-\figcont{$\alpha=1^\circ$, $\alpha=2^\circ$.}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{eppler_cf_p4.pdf}
-\figcont{$\alpha=3^\circ$, $\alpha=4^\circ$.}
-\end{figure}
-
-\begin{figure}[H]\centering
+\begin{figure}[!htbp]\centering
 \includegraphics[width=0.99\textwidth]{eppler_cf_p5.pdf}
-\figcont{$\alpha=5^\circ$, $\alpha=6^\circ$.}
+\caption{Eppler~387 at $\alpha=5^\circ$ (left) and $6^\circ$ (right), $Re=2\times10^5$, all six grids; rows as in Fig.~\ref{f:nlfcf0}. Circles: measured pressure. Grey band: the bubble measured by oil flow.}\label{f:eppcf5}
 \end{figure}
 
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{eppler_cf_p6.pdf}
-\figcont{$\alpha=7^\circ$, $\alpha=8^\circ$.}
+Figure~\ref{f:eppsheet5} shows the velocity and $\chi$ near the upper surface
+at $\alpha=5^\circ$, on all six grids. $\chi$ grows in the separated shear
+layer, away from the wall, and first reaches one there.
+
+\begin{figure}[!htbp]\centering
+\includegraphics[width=0.99\textwidth,height=0.90\textheight,keepaspectratio]{chi_sheet_eppler387_a5_upper.pdf}
+\caption{Eppler~387 at $\alpha=5^\circ$, $Re=2\times10^5$, upper surface, all six grids: $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) against the chordwise station and the wall distance.}\label{f:eppsheet5}
 \end{figure}
 
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{eppler_cf_p7.pdf}
-\figcont{$\alpha=8.5^\circ$, $\alpha=9^\circ$.}
+Figure~\ref{f:eppbubble} compares the computed separation and reattachment
+stations with the oil flow, with two other measurements, with the $e^9$
+reference, and with the $\gamma$--$Re_\theta$ and SA-BC models as computed by
+Shahjahan et al.~\cite{shahjahan_2024}. From $\alpha=-2^\circ$ to $6^\circ$
+the separation station on the L2 grids is $0.00$ to $0.04\,c$ aft of the
+oil-flow station, and the reattachment station is $0.03$ to $0.07\,c$ aft. The
+computed bubble is therefore longer than the measured bubble: the flow
+reattaches late, as stated in Section~II.F. At $\alpha=7^\circ$ the computed
+bubble is $0.03$--$0.04\,c$ long, and the measured bubble is $0.15\,c$ long.
+At $8^\circ$ and $9^\circ$ no bubble forms on the computed upper surface, and
+the front on the structured L2 grid is at $0.119\,c$ and $0.016\,c$. SA-BC gives
+$0.099\,c$ and $0.022\,c$, and $\gamma$--$Re_\theta$ gives $0.451\,c$ and
+$0.150\,c$~\cite{shahjahan_2024}. The measurement at $8^\circ$ records transition at $0.32\,c$
+without a bubble.
+
+\begin{figure}[!htbp]\centering
+\includegraphics[width=\textwidth]{eppler_bubble_stations.pdf}
+\caption{Eppler 387, $Re=2\times10^5$: stations of laminar separation (left) and turbulent reattachment (right) against the incidence. The computed stations are the zero crossings of the signed $C_f$. The oil flow is Table~III of McGhee et al.~\cite{mcghee_1988}.}\label{f:eppbubble}
 \end{figure}
 
-\begin{table}[H]
+Figure~\ref{f:epppolar} shows the drag polar. From $\alpha=0^\circ$ to
+$3^\circ$ the drag on the L2 grids is within $3\%$ of the measured drag at the
+same lift. From $4^\circ$ to $6^\circ$ it is $2\%$ to $12\%$ higher. Fully
+turbulent SA on the structured L2 grid gives a drag $66\%$ to $87\%$ above the
+SA-AI drag where the drag is lowest, and $149\%$ above it at
+$\alpha=7^\circ$. The drag of the two mesh families at L2 differs by at most
+$7\times10^{-4}$ from $\alpha=-2^\circ$ to $7^\circ$. A computation without the
+bypass of Section~II.F, on the structured L2 grid, gives a drag $6$ to $10$
+counts higher at $\alpha=0^\circ$ to $5^\circ$. The OpenFOAM replication on the
+structured L2 grid is within $0.6\%$ of Flexcompute Flow (formerly Flow360) in lift. It separates
+$0.02$--$0.06\,c$ ahead of Flexcompute Flow and reattaches $0.01$--$0.04\,c$ behind it.
+Table~\ref{t:epp} lists the forces and bubble stations of every computation.
+The Supplementary Figures contain the surface distributions and the
+near-wall contours at every incidence (Figs.~\ref{f:eppcflow}
+and~\ref{f:eppsheets}).
+
+\begin{figure}[!htbp]\centering
+\includegraphics[width=\textwidth]{eppler_polar_compare.pdf}
+\caption{Eppler 387 drag polar, $Re=2\times10^5$. Fully turbulent SA is computed with $\chi_\infty=3$.}\label{f:epppolar}
+\end{figure}
+
+\begin{table}[!htbp]
   \centering\scriptsize\setlength{\tabcolsep}{2pt}
-  \caption{Eppler 387, $Re\!=\!2\!\times\!10^5$: forces and
-  upper-surface laminar-separation/turbulent-reattachment stations
-  (signed-$C_f$ zero crossings over the whole chord; where the surface
-  has no bubble both stations are the transition front, so the pair
-  is equal, and \texttt{--} in $x_R$ alone means separation without
-  reattachment ahead of the trailing edge). The $-2^\circ$--$8.5^\circ$ extension incidences exist
-  on the finest pair only; $-4^\circ$ runs on all three. Experimental
-  forces are TM-4062 Table~B1 ($R\!=\!200{,}000$); experimental stations
-  are its Table~III oil flow. At $8^\circ$ the measurement records
-  natural transition at $0.32\,c$ and no bubble. The OpenFOAM port is independent, omits the
-  $f_{v1}$ bypass, and additionally reports the $\chi\!=\!1$ front
-  $x_\mathrm{tr}^\mathrm{up}$.}
+  \caption{Eppler 387, $Re\!=\!2\!\times\!10^5$: forces, and stations of laminar separation $x_{LS}$ and turbulent reattachment $x_R$ on the upper surface. The stations are the zero crossings of the signed $C_f$. Where no bubble forms, both stations are the transition location and are equal. A dash in $x_R$ alone means that the flow does not reattach ahead of the trailing edge. Nine incidences are computed on the L2 grids only. Measured forces are from Table~B1 of McGhee et al.~\cite{mcghee_1988}, and measured stations from the oil flow of their Table~III. At $8^\circ$ the measurement records transition at $0.32\,c$ and no bubble. The OpenFOAM replication omits the $f_{v1}$ bypass of Section~II.F. Its column $x_\mathrm{tr}^\mathrm{up}$ is the station where the largest $\chi$ near the wall crosses one.}
   \label{t:epp}
   \begin{tabular}{ll cccc cccc ccccc cccc}
     \toprule
-    & & \multicolumn{4}{c}{Flow360, structured O-grid} & \multicolumn{4}{c}{Flow360, unstructured cavity} & \multicolumn{5}{c}{OpenFOAM, structured} & \multicolumn{4}{c}{Experiment (LTPT)} \\
+    & & \multicolumn{4}{c}{Flexcompute Flow, structured O-grid} & \multicolumn{4}{c}{Flexcompute Flow, unstructured cavity} & \multicolumn{5}{c}{OpenFOAM, structured} & \multicolumn{4}{c}{Experiment (LTPT)} \\
     \cmidrule(lr){3-6}\cmidrule(lr){7-10}\cmidrule(lr){11-15}\cmidrule(lr){16-19}
     $\alpha$ & grid & $C_L$ & $C_D$ & $x_{LS}$ & $x_R$ & $C_L$ & $C_D$ & $x_{LS}$ & $x_R$ & $C_L$ & $C_D$ & $x_\mathrm{tr}^\mathrm{up}$ & $x_{LS}$ & $x_R$ & $C_L$ & $C_D$ & $x_{LS}$ & $x_R$ \\
     \midrule
@@ -1316,149 +1319,47 @@ $C_l=0.928$.}\label{f:eppbubble}
   \end{tabular}
 \end{table}
 
-\clearpage
-% Eppler 387 benchmark contour sheets: every incidence, upper surface
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_am4_upper.pdf}
-\caption{Eppler~387 wall-normal sheets, $Re=2\times10^5$, upper surface:
-$u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.
-$\alpha=-4^\circ$.}\label{f:eppsheets}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_am2_upper.pdf}
-\figcont{$\alpha=-2^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_am1_upper.pdf}
-\figcont{$\alpha=-1^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a0_upper.pdf}
-\figcont{$\alpha=0^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a1_upper.pdf}
-\figcont{$\alpha=1^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a2_upper.pdf}
-\figcont{$\alpha=2^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a3_upper.pdf}
-\figcont{$\alpha=3^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a4x_upper.pdf}
-\figcont{$\alpha=4^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a5_upper.pdf}
-\figcont{$\alpha=5^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a6_upper.pdf}
-\figcont{$\alpha=6^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a7_upper.pdf}
-\figcont{$\alpha=7^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a8_upper.pdf}
-\figcont{$\alpha=8^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a8p5_upper.pdf}
-\figcont{$\alpha=8.5^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a9_upper.pdf}
-\figcont{$\alpha=9^\circ$.}
-\end{figure}
-
+\FloatBarrier
 \subsection{Reynolds-Number Study at $\alpha=5^\circ$}
 
-$Re\in\{6\times10^4,\,10^5,\,3\times10^5,\,4.6\times10^5\}$ on the
-same grids (24 further solutions).
-Figure~\ref{f:eppresweepforces}: the grid levels converge onto the
-measurement at $2$--$4.6\times10^5$ and spread apart at $10^5$, the model's
-bursting boundary, one Reynolds step above the measurement's
-($6\times10^4$).
-Figure~\ref{f:eppresweeplow}: surface
-suites. Table~\ref{t:eppresweep}: L2 coefficients.
+The length of the bubble increases as the Reynolds number decreases. Below
+some Reynolds number the separated shear layer does not reattach ahead of the
+trailing edge, the lift decreases and the drag increases severalfold. This is
+the bursting of the bubble. McGhee's measurements cover $Re=6\times10^4$ to
+$4.6\times10^5$. This study shows the Reynolds number at which the computed
+bubble bursts, and compares it with the measured one.
 
-Incidence sweeps at the two Reynolds numbers the literature samples
-densely, on the L2 pair, same seed and constants (32 further
-solutions): $\alpha=-2^\circ$--$10^\circ$ at $10^5$
-(Table~\ref{t:extepp100k}; Cole and Mueller's~\cite{cole_mueller_1990} eleven measured bubble
-stations, Shahjahan's~\cite{shahjahan_2024} $\gamma$--$Re_\theta$ and SA-BC fronts) and
-$\alpha=-2^\circ$--$10^\circ$ at $3\times10^5$
-(Table~\ref{t:extepp300k}; Ghimire's~\cite{ghimire_2025} three OpenFOAM transitional models
-at $2^\circ$, $4^\circ$, $6^\circ$, Cole and Mueller at $-2^\circ$,
-$0^\circ$, $1^\circ$, $3^\circ$). At $3\times10^5$ the transition
-station is $0.579$/$0.532$/$0.443\,c$ at $\alpha=2^\circ$/$4^\circ$/$6^\circ$
-against a measured $0.66$/$0.55$/$0.46\,c$ and a three-model spread of
-$0.592$--$0.646$/$0.490$--$0.542$/$0.470$--$0.479\,c$; the flow separates
-within $0.06\,c$ and reattaches within $0.07\,c$ of Cole and Mueller. At $10^5$ the
-front is $0.07$--$0.12\,c$ ahead of the measurement at every incidence
-and the bubble closes late or not at all
-($0.978\,c$ at $0^\circ$ against $0.90\,c$; no closure at $6^\circ$
-against $0.68\,c$), with $c_d$ reaching $0.0499$ at $6^\circ$.
+The airfoil is computed at $\alpha=5^\circ$ and $Re=6\times10^4$, $10^5$,
+$3\times10^5$ and $4.6\times10^5$, on the six grids of Section~III.C, with the
+same $\chi_\infty$. Figure~\ref{f:eppresweepforces} shows the lift, drag,
+moment and bubble stations against the Reynolds number, with the results at
+$2\times10^5$ from Section~III.C. Table~\ref{t:eppresweep} lists the
+coefficients on the L2 grids. At $2\times10^5$ and above, the three grid
+levels converge toward the measurement, and the computed bubble shortens as
+the Reynolds number increases. The L2 drag is $0.0145$ and $0.0143$ against a
+measured $0.0138$ at $2\times10^5$, and $0.0087$ and $0.0089$ against
+$0.0093$ at $4.6\times10^5$.
 
-Figures~\ref{f:epprepolar} and~\ref{f:epprebubble}: polar and
-bubble stations at the three Reynolds numbers against the
-measurement alone. Figures~\ref{f:eppcfRe100k}
-and~\ref{f:eppcfRe300k}: surface suites, L2 pair.
-Figures~\ref{f:eppsheetRe100k} and~\ref{f:eppsheetRe300k}:
-wall-normal sheets.
+At $Re=10^5$ the measured flow reattaches at $0.67\,c$. The computed skin
+friction returns to zero only within $0.05\,c$ of the trailing edge
+(Fig.~\ref{f:eppresweeplow}). The L2 drag is $0.0410$ on the structured grid
+and $0.0307$ on the unstructured grid, $73\%$ and $30\%$ above the measured
+$0.0237$. Refinement increases the difference. At $Re=6\times10^4$ the
+computed flow does not reattach. The measured flow at this Reynolds number is
+found both with and without reattachment at the same
+incidence~\cite{mcghee_1988}. The computed bubble therefore bursts
+between $Re=10^5$ and $2\times10^5$ at this incidence. The measured bubble
+reattaches at $10^5$ and is at its limit at $6\times10^4$.
 
-\begin{figure}[H]\centering
-\includegraphics[width=0.82\textwidth]{eppler_re_polar.pdf}
-\caption{Eppler 387 drag polar at $10^5$, $2\times10^5$ and $3\times10^5$,
-L2 pair, against the measurement. Colour is Reynolds number. At $10^5$
-the computed solution stalls by $\alpha=10^\circ$.}\label{f:epprepolar}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{eppler_re_bubble.pdf}
-\caption{Eppler 387 bubble stations at $10^5$, $2\times10^5$ and
-$3\times10^5$, L2 pair, against the oil flow. Colour is Reynolds
-number. Where there is no bubble---the oil flow reports natural
-transition, or the computed surface stays attached---both stations lie
-at the transition front, so the point is at the same $x/c$ in each
-panel.}\label{f:epprebubble}
-\end{figure}
-
-\input{tables/ext2026_epp_re300k_wp}
-
-\input{tables/ext2026_epp_re100k_wp}
-
-\begin{figure}[H]\centering
+\begin{figure}[!htbp]\centering
 \includegraphics[width=\textwidth]{eppler_resweep_forces.pdf}
-\caption{Reynolds-sweep forces and stations, $\alpha=5^\circ$,
-$Re=6\times10^4$--$4.6\times10^5$. LTPT runs $1$/$2$/$4$/$1$/$1$ at
-$0.6$/$1$/$2$/$3$/$4.6\times10^5$.}\label{f:eppresweepforces}
+\caption{Eppler 387 at $\alpha=5^\circ$ against the Reynolds number: lift, drag, quarter-chord moment, and stations of separation and reattachment. Each LTPT run within $0.1^\circ$ of $5^\circ$ is one filled circle: one, two, four, one and one runs at $Re=0.6$, $1$, $2$, $3$ and $4.6\times10^5$. A computed reattachment station at $x/c=1$ means that the flow does not reattach.}\label{f:eppresweepforces}
 \end{figure}
 
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{eppler_resweep_lowRe.pdf}
-\caption{Eppler~387 Reynolds-sweep surface distributions, $\alpha=5^\circ$:
-$Re=6\times10^4$, $10^5$.}\label{f:eppresweeplow}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{eppler_resweep_highRe.pdf}
-\figcont{$Re=3$, $4.6\times10^5$.}
-\end{figure}
-
-\begin{table}[H]
+\begin{table}[!htbp]
   \centering\footnotesize
   \setlength{\tabcolsep}{3.5pt}
-  \caption{Eppler 387 at $\alpha\!=\!5^\circ$ across the Reynolds
-  sweep: L2 section coefficients against the $e^9$ panel reference and
-  the LTPT measurement (read at the tabulated angle nearest $5^\circ$).
-  Computed moments transferred to the quarter chord.}
+  \caption{Eppler 387 at $\alpha\!=\!5^\circ$: section coefficients on the L2 grids, the $e^9$ reference, and the LTPT measurement at the tabulated incidence nearest $5^\circ$. The computed moment is about the quarter chord.}
   \label{t:eppresweep}
   \begin{tabular}{l ccc ccc ccc ccc}
     \toprule
@@ -1474,348 +1375,278 @@ $Re=6\times10^4$, $10^5$.}\label{f:eppresweeplow}
     $4.6\!\times\!10^5$ & 0.950 & 0.0087 & $-$0.081 & 0.959 & 0.0089 & $-$0.083 & 0.966 & 0.0086 & $-$0.082 & 0.914 & 0.0093 & $-$0.081 \\
     \bottomrule
   \end{tabular}
-  \\[2pt]{\footnotesize $^\ddagger$XFOIL, whose forces are closest to
-  the measurement, is the reference at this bistable condition; mfoil
+  \\[2pt]{\footnotesize $^\ddagger$XFOIL. At this Reynolds number mfoil
   gives $c_l\!=\!0.889$, $c_d\!=\!0.0368$, $c_m\!=\!-0.097$, and
-  FlexFoil sides with XFOIL ($c_l\!=\!0.868$, $c_d\!=\!0.0406$,
-  $c_m\!=\!-0.102$).}
+  FlexFoil gives $c_l\!=\!0.868$, $c_d\!=\!0.0406$,
+  $c_m\!=\!-0.102$.}
 \end{table}
 
-\clearpage
-% Eppler 387 Reynolds-sweep contour sheets
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re60k_upper.pdf}
-\caption{Eppler~387 wall-normal sheets at $\alpha=5^\circ$, upper surface:
-$u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on all six grids.
-$Re=6\times10^4$.}\label{f:eppresweepsheets}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_upper.pdf}
-\figcont{$Re=10^5$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_upper.pdf}
-\figcont{$Re=3\times10^5$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re460k_upper.pdf}
-\figcont{$Re=4.6\times10^5$.}
+\begin{figure}[!htbp]\centering
+\includegraphics[width=\textwidth]{eppler_resweep_lowRe.pdf}
+\caption{Eppler~387 at $\alpha=5^\circ$: surface distributions at $Re=6\times10^4$ (left) and $10^5$ (right); rows as in Fig.~\ref{f:nlfcf0}.}\label{f:eppresweeplow}
 \end{figure}
 
-\clearpage
-% Surface distributions and sheets at the two sweep Reynolds numbers
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re100k_p1.pdf}
-\caption{Eppler~387 surface distributions, $Re=10^5$, L2 pair; pages run in ascending incidence. $\alpha=-2^\circ$, $\alpha=0^\circ$.}\label{f:eppcfRe100k}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re100k_p2.pdf}
-\figcont{$\alpha=2^\circ$, $\alpha=4^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re100k_p3.pdf}
-\figcont{$\alpha=6^\circ$, $\alpha=8^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re100k_p4.pdf}
-\figcont{$\alpha=10^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re300k_p1.pdf}
-\caption{Eppler~387 surface distributions, $Re=3\times10^5$, L2 pair; pages run in ascending incidence. $\alpha=-2^\circ$, $\alpha=0^\circ$.}\label{f:eppcfRe300k}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re300k_p2.pdf}
-\figcont{$\alpha=1^\circ$, $\alpha=2^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re300k_p3.pdf}
-\figcont{$\alpha=3^\circ$, $\alpha=4^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re300k_p4.pdf}
-\figcont{$\alpha=6^\circ$, $\alpha=8^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re300k_p5.pdf}
-\figcont{$\alpha=10^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_am2_upper.pdf}
-\caption{Eppler~387 wall-normal sheets, $Re=10^5$, upper surface: $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on the L2 pair. $\alpha=-2^\circ$.}\label{f:eppsheetRe100k}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a0_upper.pdf}
-\figcont{$\alpha=0^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a2_upper.pdf}
-\figcont{$\alpha=2^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a4_upper.pdf}
-\figcont{$\alpha=4^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a6_upper.pdf}
-\figcont{$\alpha=6^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a8_upper.pdf}
-\figcont{$\alpha=8^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a10_upper.pdf}
-\figcont{$\alpha=10^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_am2_upper.pdf}
-\caption{Eppler~387 wall-normal sheets, $Re=3\times10^5$, upper surface: $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) on the L2 pair. $\alpha=-2^\circ$.}\label{f:eppsheetRe300k}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a0_upper.pdf}
-\figcont{$\alpha=0^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a1_upper.pdf}
-\figcont{$\alpha=1^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a2_upper.pdf}
-\figcont{$\alpha=2^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a3_upper.pdf}
-\figcont{$\alpha=3^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a4_upper.pdf}
-\figcont{$\alpha=4^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a6_upper.pdf}
-\figcont{$\alpha=6^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a8_upper.pdf}
-\figcont{$\alpha=8^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a10_upper.pdf}
-\figcont{$\alpha=10^\circ$.}
+\begin{figure}[!htbp]\centering
+\includegraphics[width=\textwidth]{eppler_resweep_highRe.pdf}
+\figcont{$Re=3\times10^5$ (left) and $4.6\times10^5$ (right).}
 \end{figure}
 
+Incidence sweeps at $Re=10^5$ and $3\times10^5$, on the L2 grids, show which
+part of the computation is late. They are compared with the bubble stations measured by Cole and
+Mueller~\cite{cole_mueller_1990}, with the $\gamma$--$Re_\theta$ and SA-BC
+fronts of Shahjahan et al.~\cite{shahjahan_2024} at $10^5$, and with the three
+transition models computed in OpenFOAM by Ghimire et al.~\cite{ghimire_2025}
+at $3\times10^5$ (Tables~\ref{t:extepp300k} and~\ref{t:extepp100k}). At
+$3\times10^5$ the computed front is at $0.579\,c$, $0.532\,c$ and $0.443\,c$
+at $\alpha=2^\circ$, $4^\circ$ and $6^\circ$. The measured transition is at
+$0.66\,c$, $0.55\,c$ and $0.46\,c$, and the three models of Ghimire et al.\
+range over $0.592$--$0.646\,c$, $0.490$--$0.542\,c$ and $0.470$--$0.479\,c$.
+The flow separates within $0.06\,c$ and reattaches within $0.07\,c$ of the
+stations of Cole and Mueller. From $\alpha=-2^\circ$ to $6^\circ$ it
+reattaches $0.03$ to $0.07\,c$ downstream of the front.
+
+At $10^5$ the computed front is $0.07$--$0.12\,c$ ahead of the measured
+transition at every incidence. The growth of $\chi$ is therefore not late. The
+flow nevertheless reattaches late or not at all. At $\alpha=0^\circ$ it
+reattaches at $0.978\,c$ on the structured grid, against a measured
+$0.90\,c$, and at $6^\circ$ it does not reattach on either grid, against a
+measured $0.68\,c$. Where it does reattach, the reattachment station is
+$0.17$ to $0.39\,c$ downstream of the front. The drag coefficient reaches
+$0.0499$ at $6^\circ$. The distance from the $\chi=1$ front to reattachment is
+thus the quantity that is too long at low Reynolds number. Downstream of the
+front the production is in the handover of Section~II.E, and the mean flow
+responds through the eddy viscosity of Section~II.F.
+
+Figures~\ref{f:epprepolar} and~\ref{f:epprebubble} show the polars and the
+bubble stations at $10^5$, $2\times10^5$ and $3\times10^5$ against the
+measurement. The Supplementary Figures contain the surface distributions and
+the near-wall contours of both sweeps
+(Figs.~\ref{f:eppresweepsheets}--\ref{f:eppsheetRe300k}).
+
+\begin{figure}[!htbp]\centering
+\includegraphics[width=0.82\textwidth]{eppler_re_polar.pdf}
+\caption{Eppler 387 drag polar at $Re=10^5$, $2\times10^5$ and $3\times10^5$, on the L2 grids, with the measurement.}\label{f:epprepolar}
+\end{figure}
+
+\begin{figure}[!htbp]\centering
+\includegraphics[width=\textwidth]{eppler_re_bubble.pdf}
+\caption{Eppler 387 stations of separation and reattachment at $Re=10^5$, $2\times10^5$ and $3\times10^5$, on the L2 grids, with the oil flow. Where no bubble forms, both stations are the transition location, and the point is at the same $x/c$ in both panels.}\label{f:epprebubble}
+\end{figure}
+
+\input{tables/ext2026_epp_re300k_paper}
+
+\input{tables/ext2026_epp_re100k_paper}
+
+\FloatBarrier
 \subsection{A Two-Element Section}
 
-Purpose-built section: laminar main element ahead of a laminar
-separation bubble on the flap, so the upstream wake and the downstream
-bubble can be varied against one another. Definition in
-Table~\ref{t:twoelementgeom}. $Re=10^6$ and $M=0.10$ on the total
-chord, seed $\chi_\infty=c_{v1}e^{-9}$, L0/L1/L2 as elsewhere; every
-solution converged to the $10^{-9}$ momentum tolerance.
-Figure~\ref{f:twoelempolar}: polar.
-Figure~\ref{f:twoelemchiL1}: $\chi$ contours by
-incidence, one page per grid level -- the section itself, before the traces.
-Figure~\ref{f:twoelemsuite1}: surface
-suites, two incidences per page. Figure~\ref{f:twoelemflapchi}: flap upper surface unrolled,
-wall distance to $0.06c$.
+In every case so far, a single boundary layer develops on each surface, and
+$\chi$ in it grows from the freestream value. On a multi-element section the wake of one
+element passes over the next element. This case shows what the model computes
+then. The section was designed for the purpose, and there is no measurement
+of it. Its main element is laminar on both surfaces over a narrow range of
+incidence. A laminar separation bubble forms on the upper surface of its
+flap, a NACA~9416. Changing the incidence changes which surface of the main element is
+turbulent, and with it the $\chi$ of the fluid that passes over the flap.
+Table~\ref{t:twoelementgeom} defines the geometry. The Reynolds number is
+$10^6$ on the total chord, and $\chi_\infty=c_{v1}e^{-9}$. The incidence is
+swept from $\alpha=-9^\circ$ to $+13^\circ$ on the L0 and L1 grids and to
+$+11^\circ$ on the L2 grid. The solutions are converged to a momentum residual
+of $10^{-9}$, except the L2 solution at $-9^\circ$.
 
-\input{tables/tab_twoelement_geom_wp}
+\input{tables/tab_twoelement_geom_paper}
 
-\begin{figure}[H]\centering
+Figure~\ref{f:twoelemchiL2} shows contours of $\chi$ at each incidence on the
+L2 grid. At $\alpha=-1^\circ$ both surfaces of the main element are laminar:
+the heavy contour $\chi=c_{v1}$ does not touch the main element. At
+$+3^\circ$ and $+5^\circ$ the upper surface of the main element is turbulent,
+and its wake passes above the flap. At $-3^\circ$ and below, the lower
+surface of the main element is turbulent, and its fluid passes through the
+slot onto the upper surface of the flap. On the L1 and L2 grids the drag is
+lowest at $\alpha=-1^\circ$ (Fig.~\ref{f:twoelempolar}). At $-9^\circ$ and at
+$+7^\circ$ and above, the section is stalled.
+
+\begin{figure}[!htbp]\centering
+\includegraphics[width=\textwidth,height=0.90\textheight,keepaspectratio]{twoelement_chi_global_L2.pdf}
+\caption{Two-element section, L2 grid: contours of $\chi$ at each incidence. The levels are decades from $10^{-3}$ to $10^{2}$; heavy black is $\chi=c_{v1}$.}\label{f:twoelemchiL2}
+\end{figure}
+
+\begin{figure}[!htbp]\centering
 \includegraphics[width=0.58\textwidth]{twoelement_polar.pdf}
-\caption{Incidence sweep, $\alpha=-9$--$+13^\circ$; L2 to $+11^\circ$.
-Separated points lie beyond the clip. The open marker, L2 at
-$\alpha=-9^\circ$, stopped at its step ceiling.}
+\caption{Two-element section: polar on the three grid levels, labelled by incidence. Points with $C_D>0.025$ are marked at the right edge. Open marker: the L2 solution at $\alpha=-9^\circ$, which is not converged to a momentum residual of $10^{-9}$.}
 \label{f:twoelempolar}
 \end{figure}
 
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{twoelement_chi_global_L0.pdf}
-\caption{Two-element mid-plane $\chi$ contours, one row per incidence;
-decades from $10^{-3}$ to $10^{2}$ coloured by value, heavy black
-$\chi=c_{v1}$. Pages run coarse to fine. L0.}
-\label{f:twoelemchiL1}
-\end{figure}
+Figure~\ref{f:twoelemflapchi} shows the flow next to the upper surface of the
+flap, with the surface unrolled. The cyan lines mark the bubble. At
+$\alpha=-3^\circ$, $-1^\circ$ and $+5^\circ$ the fluid with $\chi>c_{v1}$ that
+leaves the main element passes above the boundary layer of the flap, and
+the bubble on the flap is present. At $-5^\circ$ that fluid reaches the boundary layer
+of the flap, and there is no bubble.
 
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{twoelement_chi_global_L1.pdf}
-\figcont{L1.}
-\end{figure}
+The reason is a property of SA. Its destruction term is proportional to
+$(\tilde\nu/d)^2$ and is negligible far from a wall. The $\tilde\nu$ of a wake
+is therefore not destroyed as the wake is convected downstream. It only
+diffuses. A boundary layer that receives fluid with $\chi>c_{v1}$ from a wake
+is turbulent from the point where it receives it, and its transition does not
+depend on the amplification of Section~II. The same is to be expected of any
+surface in the wake of another, such as a blade row behind another blade row.
+The Supplementary Figures contain the $\chi$ contours on all three grid
+levels and the surface distributions (Figs.~\ref{f:twoelemchiL1}
+and~\ref{f:twoelemsuite1}).
 
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth]{twoelement_chi_global_L2.pdf}
-\figcont{L2.}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,page=1]{twoelement_surface_suite.pdf}
-\caption{Two-element surface suites, two incidences per page. Rows: $\max Re_\Omega$; $\max\hat\Omega\hat I$; $\max\chi$; $-C_p$; signed $C_f$. Upper blue, lower red; fore solid, flap dashed; L0--L2 by line thickness. $\alpha=-9$, $-7^\circ$.}\label{f:twoelemsuite1}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,page=2]{twoelement_surface_suite.pdf}
-\figcont{$\alpha=-5$, $-3^\circ$.}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,page=3]{twoelement_surface_suite.pdf}
-\figcont{$\alpha=-1$, $+1^\circ$.}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,page=4]{twoelement_surface_suite.pdf}
-\figcont{$\alpha=+3$, $+5^\circ$.}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,page=5]{twoelement_surface_suite.pdf}
-\figcont{$\alpha=+7$, $+11^\circ$.}
-\end{figure}
-
-\begin{figure}[H]\centering
+\begin{figure}[!htbp]\centering
 \includegraphics[width=\textwidth]{twoelement_flap_chi_map.pdf}
-\caption{Flap upper surface, L2, one row per incidence:
-$u_t/V_\infty$ left, $\chi$ right (heavy $\chi=c_{v1}$), against arc
-length and wall distance. Grey: the fore element's trailing edge, which the
-flap's wall normals run into over the first $0.09$ of flap arc length. Cyan
-marks separation and reattachment. Rows
-$\alpha=-5$, $-3$, $-1$, $+5$, $+11^\circ$.}
+\caption{Upper surface of the flap, L2 grid, unrolled: arc length from the leading edge of the flap against wall distance, one row per incidence. Left: tangential velocity $u_t/V_\infty$. Right: $\chi$, with $\chi=c_{v1}$ heavy. Grey: the trailing edge of the main element, which the wall normals of the flap meet over the first $0.09$ of the arc length. Cyan lines: separation and reattachment.}
 \label{f:twoelemflapchi}
 \end{figure}
 
+\FloatBarrier
 \subsection{The Cylinder Drag Crisis}
 
-A steady-branch traverse over ten decades at a single seed
-($\chi_\infty=1.1\times10^{-2}$; Mack's map at $Tu=0.2\%$), swept as
-one upward continuation ladder on matched quasi-two-dimensional
-O-grids ($y^+\lesssim1$), identified throughout by first-layer thickness
-$y_1/R$: $2\times10^{-3}$ ($600\times121$) for $Re_D\le10^3$,
-$1.6\times10^{-5}$ ($1200\times148$), then $2\times10^{-6}$ and
-$2\times10^{-9}$ ($1600\times170$); twenty-five points
-$Re_D=1$--$10^{10}$. Every case is on the symmetric branch,
-$|C_L|<2\times10^{-6}$.
+Near $Re_D=3\times10^5$ the drag coefficient of a circular cylinder decreases
+to a fraction of its value: the drag crisis. Below the crisis the boundary
+layer separates while it is laminar, ahead of the widest point of the
+cylinder, and the wake is wide. Above it the boundary layer is turbulent
+before its final separation, which is farther aft, and the wake is narrow.
+The case shows the model moving transition from the separated shear layer
+onto the wall as the Reynolds number increases, with the constants and the
+equations of the airfoil cases.
 
-Figure~\ref{f:dragcrisiscd}: the crisis occurs between
-$Re_D=3\times10^5$ ($C_d=0.773$) and $1.78\times10^6$ ($0.228$); above
-it $C_d=0.21$--$0.23$ from $1.78\times10^6$ to $10^7$ and $0.19$--$0.26$ from
-$3\times10^7$ to $10^{10}$.
-Figure~\ref{f:dragcrisisangles}: transition and separation angles.
-Figure~\ref{f:dragcrisisfields}: fields across the traverse.
-Table~\ref{t:dragcrisis}: the up-ladder $C_d$. Below shedding onset
-($Re_D\approx46$) the steady solution is physical: $C_d=10.67$ at
-$Re_D=1$, $2.797$ at $10$ ($-1.7\%$ vs Dennis \& Chang).
+The computations are steady and quasi-two-dimensional. They cover twenty-five
+Reynolds numbers from $Re_D=1$ to $10^{10}$ with one freestream value,
+$\chi_\infty=1.1\times10^{-2}$, which is $Tu=0.2\%$ in Eq.~\eqref{w:mack}.
+Each computation starts from the converged solution at the next lower
+Reynolds number. Four O-grids with $y^+\lesssim1$ cover the range. They are
+identified by the thickness of their first layer, $y_1/R$: $2\times10^{-3}$
+($600\times121$ points) for $Re_D\le10^3$, $1.6\times10^{-5}$
+($1200\times148$) up to $1.78\times10^6$, $2\times10^{-6}$ ($1600\times170$)
+up to $10^7$, and $2\times10^{-9}$ ($1600\times170$) above. At a change of
+grid the solution is interpolated onto the new grid. A computation is
+accepted as steady when $C_d$ changes by less than $10^{-3}$ over $1000$
+iterations. Five of the twenty-five do not meet this criterion, and
+Table~\ref{t:dragcrisis} gives the range of their $C_d$ in brackets.
 
-\begin{figure}[H]\centering
+Every solution is symmetric, with $|C_L|<2\times10^{-6}$. A steady symmetric
+solution contains no vortex shedding. Between the onset of shedding at
+$Re_D\approx46$ and the crisis, its drag is therefore lower than the measured
+drag: the computed $C_d$ is $0.84$ between $Re_D=10^4$ and $10^5$, and the
+measured $C_d$ is between $1.0$ and $1.2$ (Fig.~\ref{f:dragcrisiscd}). Below
+the onset of shedding the steady solution is the physical flow. The computed
+$C_d$ is $10.67$ at $Re_D=1$ and $2.797$ at $Re_D=10$, which is $1.7\%$ below
+the value of Dennis and Chang~\cite{dennis_chang_1970}. The largest $\chi$
+remains near $\chi_\infty$ up to $Re_D=30$ (Fig.~\ref{f:dragcrisisangles}).
+
+\begin{figure}[!htbp]\centering
 \includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{dragcrisis_cd_re.pdf}
-\caption{Cylinder drag crisis, $Re_D=1$--$10^{10}$; single seed
-$Tu=0.2\%$, up-ladder (clean systematic sweep, matched $Re_D$ grid).
-Symbols experiments, lines computations; open rings mark the cases
-the steady monitor did not accept. The SA-AI curve is drawn unbroken
-across the four grids the ladder crosses---$y_1/R=2\times10^{-3}$,
-$Re_D=1$--$10^3$; $1.6\times10^{-5}$, $3\times10^3$--$1.78\times10^6$;
-$2\times10^{-6}$, $3\times10^6$--$10^7$; $2\times10^{-9}$,
-$3\times10^7$--$10^{10}$---because it is one
-continuation path: each grid change restarts from the previous grid's
-converged field, interpolated onto the new grid.}\label{f:dragcrisiscd}
+\caption{Circular cylinder: drag coefficient against $Re_D$, with $\chi_\infty=1.1\times10^{-2}$ ($Tu=0.2\%$). Symbols: experiments. Lines: computations. Open circles on the SA-AI curve: computations that do not meet the criterion for a steady solution.}\label{f:dragcrisiscd}
 \end{figure}
 
-\begin{figure}[H]\centering
+The computed crisis is between $Re_D=3\times10^5$, where $C_d=0.773$, and
+$1.78\times10^6$, where $C_d=0.228$. Table~\ref{t:dragcrisis} lists, for each
+Reynolds number, the angle of the first separation and the transition angle
+$\theta_{tr}$, both measured from the forward stagnation point. The
+transition angle is the smallest angle at which $\chi$ reaches one on a
+radial ray from the wall. From $Re_D=10^5$ to $3\times10^5$ the boundary layer
+separates at $73^\circ$--$74^\circ$ while laminar, and $\chi$ reaches one
+$5^\circ$ to $8^\circ$ farther, in the separated shear layer. The flow does not
+reattach. At $10^6$ and $1.78\times10^6$ the first separation is at
+$95^\circ$--$98^\circ$, and it is the start of a separation bubble: the flow
+reattaches as a turbulent boundary layer and separates again near
+$120^\circ$. From $3\times10^6$ the tabulated first separation is the
+turbulent one, at $118^\circ$--$121^\circ$. Figure~\ref{f:dragcrisisblsheet}
+shows this sequence in the velocity and $\chi$ near the wall.
+
+\begin{figure}[!htbp]\centering
 \includegraphics[width=\textwidth]{dragcrisis_angles.pdf}
-\caption{$Tu=0.2\%$, $Re_D=1$--$10^{10}$, up-ladder. (a) transition angle
-$\theta_{tr}$ ($\chi=1$) and first wall
-separation vs $Re_D$ (below the crisis $\theta_{tr}$ is the wake $\chi=1$
-front); the front moves from ${\sim}100^\circ$ to ${\sim}2^\circ$ by
-$10^{10}$. (b)--(e) $\max_s\chi(\theta)$ for every Reynolds number of the ladder,
-split into panes of six or seven over contiguous
-ranges.}\label{f:dragcrisisangles}
+\caption{Circular cylinder. Top: transition angle $\theta_{tr}$, the smallest angle at which $\chi$ reaches one on a radial ray, and angle of the first separation, against $Re_D$. Lower panels: the largest $\chi$ on the radial ray against the angle from the forward stagnation point, at every Reynolds number.}\label{f:dragcrisisangles}
 \end{figure}
 
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.90\textheight,keepaspectratio,page=1]{dragcrisis_fields.pdf}
-\caption{Drag-crisis fields, up-ladder $Tu=0.2\%$: every Reynolds
-number of Fig.~\ref{f:dragcrisiscd}, five per page in ascending
-order. Columns $|\mathbf{u}|/U_\infty$ and $\chi$ (dashed
-$\chi<1$, solid $\chi=1$, $c_{v1}$, $30$, $10^2$--$10^4$); each row
-is labeled with its own $Re_D$ and $C_d$. $Re_D=1$--$10^2$.}\label{f:dragcrisisfields}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.90\textheight,keepaspectratio,page=2]{dragcrisis_fields.pdf}
-\figcont{$Re_D=3\times10^2$--$3\times10^4$.}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.90\textheight,keepaspectratio,page=3]{dragcrisis_fields.pdf}
-\figcont{$Re_D=10^5$--$10^6$.}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.90\textheight,keepaspectratio,page=4]{dragcrisis_fields.pdf}
-\figcont{$Re_D=1.78\times10^6$--$3\times10^7$.}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=\textwidth,height=0.90\textheight,keepaspectratio,page=5]{dragcrisis_fields.pdf}
-\figcont{$Re_D=10^8$--$10^{10}$.}
-\end{figure}
-
-\begin{figure}[H]\centering
+\begin{figure}[!htbp]\centering
 \includegraphics[width=\textwidth,height=0.92\textheight,keepaspectratio]{dragcrisis_bl_sheet.pdf}
-\caption{The crisis at boundary-layer scale, $Re_D=1.78\times10^5$ to
-$3\times10^6$ (rows): $u_t/U_\infty$ left (heavy $u_t=0$),
-$\log_{10}\chi$ right, against angle from forward stagnation and wall
-distance in viscous units.}\label{f:dragcrisisblsheet}
+\caption{Circular cylinder near the wall, $Re_D=1.78\times10^5$ to $3\times10^6$ (rows): tangential velocity $u_t/U_\infty$ (left, $u_t=0$ heavy) and $\log_{10}\chi$ (right), against the angle from the forward stagnation point and the wall distance $d\,U_\infty/\nu$.}\label{f:dragcrisisblsheet}
 \end{figure}
 
-\input{tables/tab_dragcrisis_wp}
+Above the crisis the computed $C_d$ is $0.21$--$0.23$ from $1.78\times10^6$
+to $10^7$ and $0.19$--$0.26$ from $3\times10^7$ to $10^{10}$. The measured
+$C_d$ increases again, to about $0.7$ near $Re_D=10^7$~\cite{roshko_1961}. The
+computed $C_d$ does not. The computed
+transition angle is $98^\circ$ at $1.78\times10^6$ and $2.5^\circ$ at
+$10^{10}$, while the
+turbulent separation remains at $118^\circ$--$121^\circ$ and the drag remains
+at its level. In this computation the drag above the crisis is therefore a
+function of the turbulent separation, which SA determines, and not of the
+transition location. The Supplementary Figures contain the velocity and
+$\chi$ fields at every Reynolds number (Fig.~\ref{f:dragcrisisfields}).
 
+\input{tables/tab_dragcrisis_paper}
+
+\FloatBarrier
 \subsection{The Daedalus Wing}
 
-The Daedalus human-powered-aircraft wing: half-span $17.07\,$m, root
-chord $0.917\,$m, aspect ratio $37.8$, DAE-11/21/31 sections;
-$Re_\mathrm{root}=5\times10^5$,
-$\alpha\in\{4^\circ,5^\circ,6^\circ\}$ ($C_L\approx1.02$--$1.23$),
-flight-quiet seed $\chi_\infty=8.76\times10^{-6}$
-($N_\mathrm{crit}\approx13.6$); two mesh families
-(spanwise-stacked structured O-grid, $0.72$--$36.7$M nodes;
-unstructured prism/tet/hex, $1.70$--$54.9$M nodes) at three levels,
-eighteen solutions; the reference is AVL~\cite{drela_youngren_avl} with strip-wise XFOIL~\cite{drela_xfoil_1989}
-section polars at matched local $c_l$ and $N_\mathrm{crit}$, trimmed
-to the RANS lift. Figure~\ref{f:daepolar}: the families agree at L2
-to $0.35$--$0.63\%$ in $C_L$ and
-$0.7$--$1.7$ counts in $C_D$, and the finest-grid drag is
-$15.6$/$10.3$/$5.6$ counts ($7.3$/$4.4$/$2.2\%$) below the
-matched-lift reference at $\alpha=4^\circ$/$5^\circ$/$6^\circ$.
-Figure~\ref{f:daesurf}: surface maps at $\alpha=4^\circ$ against the
-$e^N$ strips---at
-$\eta=0.31$, separation within $0.017\,c$ and reattachment within
-$0.009\,c$ at every incidence, the $\chi=1$ front is
-$\sim0.09\,c$ ahead of the strips' $N_\mathrm{crit}$ contour, and the
-tip vortex moves transition to the leading
-edge for $\eta\gtrsim0.992$. Table~\ref{t:daetotals}: totals by
-level ($\alpha=5^\circ$, $6^\circ$ surface maps and section sheets
-below).
+The wing of the Daedalus human-powered aircraft~\cite{drela_daedalus_1988} is
+the first three-dimensional case, and the indicators are evaluated in the
+form of Eq.~\eqref{w:ratio}. A laminar separation bubble forms on the upper
+surface of each section of the wing, as on the Eppler 387. The wing adds the
+variation along the span: the chord Reynolds number decreases over the
+tapered outer part, and the flow at the tip is three-dimensional.
 
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth]{daedalus_polar_sectional.pdf}
-\caption{Daedalus polar and sections. Families agree at L1 to
-$0.46$--$0.53\%$ in $C_L$ and $0.4$--$1.6$ counts in $C_D$, at L0 to
-$0.74$--$0.97\%$ and $18$--$21$ counts; taper break at
-$\eta=0.88$.}\label{f:daepolar}
-\end{figure}
+The half-span is $17.07\,$m, the root chord $0.917\,$m, and the aspect ratio
+$37.8$. The chord is constant to the spanwise station $\eta=0.88$ and tapers
+from there to the tip. The sections are the DAE-11, DAE-21 and DAE-31
+airfoils. The root-chord Reynolds number is $5\times10^5$, and the incidences
+are $\alpha=4^\circ$, $5^\circ$ and $6^\circ$, for which
+$C_L\approx1.02$--$1.23$. The freestream value is
+$\chi_\infty=8.76\times10^{-6}$, which is $N_\mathrm{crit}\approx13.6$, a
+value representative of flight in still air. There are two mesh families, each at three
+levels: a structured O-grid stacked along the span, with $0.72$ to $36.7$
+million nodes, and an unstructured mesh of prisms, tetrahedra and hexahedra,
+with $1.70$ to $54.9$ million nodes. There is no measurement of the
+transition on this wing. The reference is the vortex-lattice code
+AVL~\cite{drela_youngren_avl} with section polars from
+XFOIL~\cite{drela_xfoil_1989} at the local lift coefficient and the same
+$N_\mathrm{crit}$, at the total lift of the present computation.
 
-\begin{figure}[H]\centering
+Figure~\ref{f:daesurf} shows the upper surface at $\alpha=4^\circ$: the
+pressure, the streamwise skin friction, and the largest $\chi$ near the wall.
+The upper two rows are the L2 grids of the two mesh families, and the bottom
+row is the reference, section by section. The bubble is the band between the two
+heavy contours of zero skin friction. It is at the same chordwise position
+along the span up to $\eta=0.88$, and it moves aft over the taper, where the
+chord Reynolds number decreases. At $\eta=0.31$ the computed separation is
+within $0.017\,c$ of the reference and the reattachment within $0.009\,c$, at
+every incidence. The $\chi=1$ front is about $0.09\,c$ ahead of the
+$N=N_\mathrm{crit}$ contour of the reference. The two contours are different
+by definition: $\chi=1$ is $N=N_\mathrm{crit}-2.0$ (Section~III.A). Over the
+last $0.8\%$ of the span, $\eta\gtrsim0.992$, the largest $\chi$ exceeds one
+from the leading edge. The tip vortex is there, and the two-dimensional
+reference contains no such region.
+
+\begin{figure}[!htbp]\centering
 \includegraphics[width=0.99\textwidth]{daedalus_surface_a4.pdf}
-\caption{Daedalus surface maps, $\alpha=4^\circ$,
-$Re_\mathrm{root}=5\times10^5$.}\label{f:daesurf}
+\caption{Daedalus wing, upper surface, $\alpha=4^\circ$: $-C_p$ (left), streamwise skin friction (middle, zero contour heavy), and the largest $\chi$ near the wall in decades (right, $\chi=1$ heavy). Rows: structured L2 grid, unstructured L2 grid, and the $e^N$ reference section by section. In the reference row the right panel is $\chi_\infty e^N$, and its heavy contour is $N=N_\mathrm{crit}$.}\label{f:daesurf}
 \end{figure}
 
-\begin{table}[H]
+Figure~\ref{f:daepolar} shows the polar of the wing and the lift and drag of
+its sections. At L2 the two mesh families agree within $0.35$--$0.63\%$ in
+$C_L$ and within $0.7$--$1.7$ counts in $C_D$. At L1 they agree within
+$0.46$--$0.53\%$ and $0.4$--$1.6$ counts, and at L0 within $0.74$--$0.97\%$ and
+$18$--$21$ counts. The drag on the structured L2
+grid is $15.6$, $10.3$ and $5.6$ counts ($7.3\%$, $4.4\%$ and $2.2\%$) below
+the reference at $\alpha=4^\circ$, $5^\circ$ and $6^\circ$.
+Table~\ref{t:daetotals} lists the forces at each level. The Supplementary
+Figures contain the surface maps at $5^\circ$ and $6^\circ$, the section
+distributions at three stations, and the near-wall contours
+(Figs.~\ref{f:daesurfall}, \ref{f:daesections} and~\ref{f:daesheets}).
+
+\begin{figure}[!htbp]\centering
+\includegraphics[width=0.99\textwidth]{daedalus_polar_sectional.pdf}
+\caption{Daedalus wing. (a) Polar on the L1 and L2 grids of both mesh families, with the reference. (b) Section lift coefficient (thick, left axis) and section drag coefficient (thin, right axis) along the span.}\label{f:daepolar}
+\end{figure}
+
+\begin{table}[!htbp]
   \centering\small
-  \caption{Daedalus wing totals by grid level: SA-AI on both mesh
-  families against the AVL$+$XFOIL reference trimmed to the RANS lift
-  at each incidence.}
+  \caption{Daedalus wing: forces at each grid level for both mesh families, and the reference at the lift of the structured L2 solution.}
   \label{t:daetotals}
   \begin{tabular}{cl cc cc}
     \toprule
@@ -1841,154 +1672,91 @@ $Re_\mathrm{root}=5\times10^5$.}\label{f:daesurf}
   \end{tabular}
 \end{table}
 
-\clearpage
-% Daedalus wing surface maps and section sheets
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_surface_a5.pdf}
-\figcont{$\alpha=5^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_surface_a6.pdf}
-\figcont{$\alpha=6^\circ$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_section_eta10.pdf}
-\caption{Daedalus wing section cuts, all six grids against the AVL-trimmed
-XFOIL strip, at $\alpha=4^\circ$, $5^\circ$, $6^\circ$ (columns).
-$\eta=0.10$.}\label{f:daesections}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_section_eta75.pdf}
-\figcont{$\eta=0.75$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_section_eta92.pdf}
-\figcont{$\eta=0.92$.}
-\end{figure}
-% Daedalus wall-normal chi sheets (u_x left, log10 chi right; rows = meshes)
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a4_eta10_upper.pdf}
-\caption{Daedalus wing wall-normal sheets, upper surface: $u_x/U_\infty$
-(left) and $\log_{10}\chi$ (right) on the archived meshes.
-$\alpha=4^\circ$, $\eta=0.10$.}\label{f:daesheets}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a4_eta75_upper.pdf}
-\figcont{$\alpha=4^\circ$, $\eta=0.75$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a4_eta92_upper.pdf}
-\figcont{$\alpha=4^\circ$, $\eta=0.92$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a5_eta10_upper.pdf}
-\figcont{$\alpha=5^\circ$, $\eta=0.10$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a5_eta75_upper.pdf}
-\figcont{$\alpha=5^\circ$, $\eta=0.75$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a5_eta92_upper.pdf}
-\figcont{$\alpha=5^\circ$, $\eta=0.92$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a6_eta10_upper.pdf}
-\figcont{$\alpha=6^\circ$, $\eta=0.10$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a6_eta75_upper.pdf}
-\figcont{$\alpha=6^\circ$, $\eta=0.75$.}
-\end{figure}
-\begin{figure}[H]\centering
-\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a6_eta92_upper.pdf}
-\figcont{$\alpha=6^\circ$, $\eta=0.92$.}
-\end{figure}
-
-\clearpage
+\FloatBarrier
 \subsection{The 6:1 Spheroid}
 
-Analytic spheroid ($x^2/A^2+r^2/B^2=1$, $A=L/2$, $B=L/12$, half-model) on
-the L1 structured O-grid ($2.2$M nodes, first wall spacing
-$1.5\times10^{-6}L$), campaign constants and kernel unchanged, at the
-DFVLR/ONERA measured conditions. Mach is the tunnel's: the Göttingen
-$3\times3$~m tunnel is atmospheric, so $M=1.994\times10^{-8}\,Re_L$
-(calibrated on its two published $(Re_L,U_\infty)$ pairs, $7.70\times10^6$ at
-$55.0$~m/s and $6.54\times10^6$ at $45.0$~m/s, reproduced to $2\%$), i.e.
-$M=0.030$ at $Re_L=1.52\times10^6$ to $0.144$ at $7.2\times10^6$; the
-pressurised ONERA F1 tunnel does not have $M$ fixed by $Re_L$, so its
-condition is run at its Göttingen twin's Mach. $45\,000$ cold-start
-pseudo-steps, seed applied in the freestream and the far-field boundary with
-a cold-start freestream initial condition. Each condition at the
-facility-calibrated seed (limiting $N_\mathrm{TS}=8.0$ Göttingen, $7.0$
-ONERA F1) and at the facility-measured hot-wire level (Göttingen $0.33\%$
-streamwise, ONERA F1 ${<}0.1\%$).
+The 6:1 prolate spheroid at incidence is the standard three-dimensional case
+for transition models. Kreplin, Vollmers and Meier~\cite{kreplin_1985}
+measured the wall shear stress over the body with surface hot films in the
+DFVLR tunnel at G\"ottingen, and there is one more measurement from the ONERA
+F1 tunnel. The stability analysis of Stock~\cite{stock_2006} identifies the
+cause of transition at each condition. At zero and small incidence it is the
+TS waves. At $\alpha\ge5^\circ$ and $Re_L\gtrsim6.5\times10^6$ it is the
+crossflow instability, alone or together with the TS waves. At
+$Re_L=1.5\times10^6$ the boundary layer is laminar up to its separation, and
+the measured line is the separation line. The model represents the TS waves
+only. The case shows what it computes in each of the three situations.
 
-Table~\ref{tab:sphtunnel}: computed near-wall $\chi=1$ front minus measured,
-azimuth by azimuth, low Reynolds number first. At $Re_L=1.52\times10^6$ the boundary layer remains laminar up to the open free-vortex-layer separation at every measured incidence, so the measured front is that separation line: $\alpha=5^\circ$,
-rms $0.028$ at the calibrated seed over the four azimuths that resolve, with
-no front at all at the four most leeward stations ($\chi$ never reaches $1$
-within $x/L\le0.97$); $\alpha=10^\circ$, rms $0.027$ at the measured seed,
-$8/8$ azimuths; $\alpha=29.7^\circ$, $Re_L=1.53\times10^6$ (the largest
-incidence measured at this Reynolds number, open free-vortex-layer separation
-over most of the leeward half), $12/12$ azimuths, mean $+0.041$ rms $0.095$ at
-the calibrated seed and $-0.048$ rms $0.098$ at the measured level, with the
-residual smallest leeward ($-0.024$, $-0.045$) and largest windward ($+0.264$,
-$+0.185$). At the high Reynolds numbers, $\alpha=0$,
-$Re_L=7.2\times10^6$: $+0.077$ and $-0.097$ at the calibrated and measured
-seed, uniform to $\pm0.001$ across seventeen azimuths. $\alpha=2.5^\circ$:
-$+0.016$ leeward, $+0.132$ windward, against a measured azimuthal spread of
-$0.018$. $\alpha=5^\circ$: $-0.088$ to $+0.246$ at $6.49\times10^6$.
-$\alpha=10^\circ$, $6.56\times10^6$: the windward residual is $+0.375$ to
-$+0.549$. Seed swing in the windward residual between the two facility
-levels: $0.174$ at $\alpha=0$, $0.181$ at $2.5^\circ$, $0.239$ at
-$5^\circ$ ($6.49\times10^6$), $0.012$ at $10^\circ$ ($6.56\times10^6$),
-$0.000$ on the ONERA twin.
+The geometry is the analytic spheroid, $x^2/A^2+r^2/B^2=1$ with $A=L/2$ and
+$B=L/12$, as a half-model on a structured O-grid of $2.2$ million nodes with
+a first wall spacing of $1.5\times10^{-6}L$. The constants of the model are
+those of every other case. The Mach number is that of the tunnel. The
+G\"ottingen tunnel is atmospheric, so its Mach number is proportional to
+$Re_L$: $M=1.994\times10^{-8}\,Re_L$, which is $0.030$ at
+$Re_L=1.52\times10^6$ and $0.144$ at $7.2\times10^6$. This relation is fitted
+to the two published pairs of $Re_L$ and velocity, $7.70\times10^6$ at
+$55.0$~m/s and $6.54\times10^6$ at $45.0$~m/s, and reproduces them within
+$2\%$. The ONERA F1 tunnel is pressurized, and its condition is computed at
+the Mach number of the G\"ottingen condition with the same $Re_L$. Each
+computation is iterated $45\,000$ times from a uniform initial condition.
 
-\input{tables/tab_spheroid_tunnel_wp}
+Two values of the turbulence intensity are available for each tunnel, and
+they differ by a factor of up to three. Each condition is therefore computed
+with two values of $\chi_\infty$. The fitted value is the one that
+Eq.~\eqref{w:mack} gives for the $N_\mathrm{crit}$ that Stock fitted to the
+measured transition: $8.0$ for G\"ottingen and $7.0$ for ONERA F1. The
+measured value is the one for the turbulence intensity measured with a hot
+wire: $0.33\%$ for G\"ottingen and less than $0.1\%$ for
+ONERA F1. Table~\ref{tab:sphtunnel} lists the computed front minus the
+measured front, in units of $L$, at every azimuth with a measurement.
 
-\clearpage
-\begin{figure}[H]\centering
-\includegraphics[width=0.86\textwidth]{spheroid_overlay_a5lo_gmeas.pdf}
-\caption{Surface at the measured-seed condition, unrolled into $(x/L,\phi)$, $\phi=0$ windward; line art. Grey skin-friction lines integrated from the wall shear vector itself -- the oil-flow analogue, not the inviscid streamlines of Stock Figs.~14--17, and their convergence is the separation signature -- under the $\max_n\chi$ contour family (sub-unity dashed, $\chi=1$ heavy, $\chi=c_{v1}$ and above solid, labeled), $\max_n\chi$ taken on a wall-normal segment shot from each surface point. White-filled squares: measured DFVLR transition. One page per measured condition. $\alpha=5^\circ$, $Re_L=1.52\times10^6$.}\label{f:ov_a5lo_gmeas}
-\end{figure}
+At zero incidence and $Re_L=7.2\times10^6$ the TS waves cause transition. The
+computed front is $0.077\,L$ aft of the measured front with the fitted
+$\chi_\infty$, and $0.097\,L$ ahead of it with the measured turbulence
+intensity. It is uniform within $\pm0.001\,L$ over the seventeen azimuths.
+The two values of $\chi_\infty$ move the front by $0.174\,L$, and the
+measurement is between them.
 
-\begin{figure}[H]\centering
-\includegraphics[width=0.86\textwidth]{spheroid_overlay_a10lo_gmeas.pdf}
-\figcont{$\alpha=10^\circ$, $Re_L=1.52\times10^6$.}
-\end{figure}
+At incidence the computed front is no longer at the same $x/L$ around the
+body, and the measured front nearly is. At $\alpha=2.5^\circ$ and the fitted
+$\chi_\infty$, the computed front is $0.016\,L$ aft of the measurement on the
+leeward side and $0.132\,L$ aft on the windward side. The measured front
+varies by $0.018\,L$ around the body. At $\alpha=5^\circ$ and
+$Re_L=6.49\times10^6$ the difference ranges from $-0.088\,L$ on the leeward
+side to $+0.246\,L$ on the windward side. At $\alpha=10^\circ$ and
+$Re_L=6.56\times10^6$ the computed front on the windward side is
+$0.375\,L$ to $0.549\,L$ aft of the measurement
+(Fig.~\ref{f:ov_a10hi}): it is near the tail, and the measured front is
+between $0.3\,L$ and $0.6\,L$. On the windward side at this incidence the
+measured transition is caused by the crossflow instability, alone or together
+with the TS waves~\cite{stock_2006}.
 
-\begin{figure}[H]\centering
-\includegraphics[width=0.86\textwidth]{spheroid_overlay_a29p7_gmeas.pdf}
-\figcont{$\alpha=29.7^\circ$, $Re_L=1.53\times10^6$; the friction lines converge onto the open free-vortex-layer separation over most of the leeward half, and the twelve measured stations lie on that line rather than on a transition front.}
-\end{figure}
+The response to $\chi_\infty$ shows the same division. Between the two values
+of $\chi_\infty$ of the G\"ottingen tunnel, the computed front on the
+windward side moves by $0.174\,L$ at $\alpha=0^\circ$, $0.181\,L$ at
+$2.5^\circ$ and $0.239\,L$ at $5^\circ$. At $10^\circ$ it moves by
+$0.012\,L$, and between the two values of the ONERA F1 tunnel it does not
+move.
 
-\begin{figure}[H]\centering
-\includegraphics[width=0.86\textwidth]{spheroid_overlay_a0_gmeas.pdf}
-\figcont{$\alpha=0^\circ$, $Re_L=7.2\times10^6$.}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.86\textwidth]{spheroid_overlay_a2p5_gmeas.pdf}
-\figcont{$\alpha=2.5^\circ$, $Re_L=7.2\times10^6$.}
-\end{figure}
-
-\begin{figure}[H]\centering
-\includegraphics[width=0.86\textwidth]{spheroid_overlay_a5hi_gmeas.pdf}
-\figcont{$\alpha=5^\circ$, $Re_L=6.49\times10^6$.}
-\end{figure}
-
-\begin{figure}[H]\centering
+\begin{figure}[!htbp]\centering
 \includegraphics[width=0.86\textwidth]{spheroid_overlay_a10hi_gmeas.pdf}
-\figcont{$\alpha=10^\circ$, $Re_L=6.56\times10^6$, G\"ottingen.}
+\caption{6:1 spheroid at $\alpha=10^\circ$, $Re_L=6.56\times10^6$, with the measured turbulence intensity of the G\"ottingen tunnel. The surface is unrolled into $(x/L,\phi)$, with $\phi=0$ windward. Grey: skin-friction lines. Black: contours of the largest $\chi$ on the wall normal, $\chi=1$ heavy. Squares: measured transition.}\label{f:ov_a10hi}
 \end{figure}
 
-\begin{figure}[H]\centering
-\includegraphics[width=0.86\textwidth]{spheroid_overlay_a10f1_fmeas.pdf}
-\figcont{$\alpha=10^\circ$, $Re_L=6.56\times10^6$, ONERA F1.}
-\end{figure}
+At $Re_L=1.52\times10^6$ the measured line is the separation of the laminar
+boundary layer, and the comparison is of the computed $\chi=1$ front with
+that line. At $\alpha=5^\circ$ and the fitted $\chi_\infty$, the largest
+$\chi$ does not reach one ahead of $x/L=0.97$ at four of the eight azimuths.
+At the other four the root-mean-square difference is $0.028\,L$. At
+$\alpha=10^\circ$ and the measured turbulence intensity it is $0.027\,L$
+over all eight azimuths. At $\alpha=29.7^\circ$ and $Re_L=1.53\times10^6$ it
+is $0.095\,L$ and $0.098\,L$ for the two values of $\chi_\infty$, over twelve
+azimuths. The Supplementary Figures contain the unrolled surface at every
+condition (Fig.~\ref{f:ov_a5lo_gmeas}).
 
-\clearpage
+\input{tables/tab_spheroid_tunnel_paper}
+
+\FloatBarrier
 
 \section{Remarks on the Operating Envelope}\label{sec:envelope}
 
@@ -2084,8 +1852,6 @@ further computation; each is reproduced by
   soft forms the onset threshold already uses.
 \end{enumerate}
 
-\laozi[13.6pt]{40}
-
 \phantomsection\addcontentsline{toc}{section}{Appendix}
 \section*{Appendix: The Two-Source Rate---Inviscid and Viscous Branches}
 \label{app:twosource}
@@ -2094,10 +1860,571 @@ further computation; each is reproduced by
 \input{appendix_twosource_body_wp}
 
 \clearpage
+\phantomsection\addcontentsline{toc}{section}{Supplementary Figures}
+\section*{Supplementary Figures}\label{app:atlas}
+
+These figures complete the sets from which Section~III shows one page each. They are in the order of the
+cases of Section~III.
+
+\subsection*{The NLF(1)-0416 Airfoil}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{nlf_cf_p1.pdf}
+\caption{NLF(1)-0416 surface distributions, $Re=4\times10^6$, all six grids, in ascending incidence; rows as in Fig.~\ref{f:nlfcf0}. $\alpha=-12^\circ$, $\alpha=-10^\circ$.}\label{f:nlfcflow}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{nlf_cf_p2.pdf}
+\figcont{$\alpha=-8^\circ$, $\alpha=-6^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{nlf_cf_p3.pdf}
+\figcont{$\alpha=-4^\circ$, $\alpha=-2^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{nlf_cf_p4.pdf}
+\figcont{$\alpha=0^\circ$, $\alpha=2^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{nlf_cf_p5.pdf}
+\figcont{$\alpha=4^\circ$, $\alpha=6^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{nlf_cf_p6.pdf}
+\figcont{$\alpha=8^\circ$, $\alpha=9^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.55\textwidth]{nlf_cf_p7.pdf}
+\figcont{$\alpha=15^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{mesh_nlf_str.pdf}
+\caption{NLF(1)-0416, structured O-grid: leading edge and trailing edge (columns) at levels L0 to L2 (rows).}\label{f:nlfmeshstr}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{mesh_nlf_cav.pdf}
+\caption{NLF(1)-0416, unstructured cavity mesh: leading edge and trailing edge (columns) at levels L0 to L2 (rows).}\label{f:nlfmeshcav}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am12_both.pdf}
+\caption{NLF(1)-0416 near the wall, $Re=4\times10^6$, all six grids: $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) against the chordwise station and the wall distance. The upper surface is above $y=0$, and the lower surface is reflected below it. $\alpha=-12^\circ$.}\label{f:nlfsheets}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am10_both.pdf}
+\figcont{$\alpha=-10^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am8_both.pdf}
+\figcont{$\alpha=-8^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am6_both.pdf}
+\figcont{$\alpha=-6^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am4_both.pdf}
+\figcont{$\alpha=-4^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_am2_both.pdf}
+\figcont{$\alpha=-2^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a0_both.pdf}
+\figcont{$\alpha=0^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a2_both.pdf}
+\figcont{$\alpha=2^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a4_both.pdf}
+\figcont{$\alpha=4^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a6_both.pdf}
+\figcont{$\alpha=6^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a8_both.pdf}
+\figcont{$\alpha=8^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a9_both.pdf}
+\figcont{$\alpha=9^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_nlf0416_a15_both.pdf}
+\figcont{$\alpha=15^\circ$.}
+\end{figure}
+
+\subsection*{The Eppler 387 Airfoil}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{eppler_cf_p1.pdf}
+\caption{Eppler~387 surface distributions, $Re=2\times10^5$, all six grids, in ascending incidence; rows as in Fig.~\ref{f:nlfcf0}. $\alpha=-4^\circ$, $\alpha=-2^\circ$.}\label{f:eppcflow}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{eppler_cf_p2.pdf}
+\figcont{$\alpha=-1^\circ$, $\alpha=0^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{eppler_cf_p3.pdf}
+\figcont{$\alpha=1^\circ$, $\alpha=2^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{eppler_cf_p4.pdf}
+\figcont{$\alpha=3^\circ$, $\alpha=4^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{eppler_cf_p5.pdf}
+\figcont{$\alpha=5^\circ$, $\alpha=6^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{eppler_cf_p6.pdf}
+\figcont{$\alpha=7^\circ$, $\alpha=8^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth]{eppler_cf_p7.pdf}
+\figcont{$\alpha=8.5^\circ$, $\alpha=9^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_am4_upper.pdf}
+\caption{Eppler~387 near the upper surface, $Re=2\times10^5$, all six grids: $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) against the chordwise station and the wall distance. $\alpha=-4^\circ$.}\label{f:eppsheets}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_am2_upper.pdf}
+\figcont{$\alpha=-2^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_am1_upper.pdf}
+\figcont{$\alpha=-1^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a0_upper.pdf}
+\figcont{$\alpha=0^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a1_upper.pdf}
+\figcont{$\alpha=1^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a2_upper.pdf}
+\figcont{$\alpha=2^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a3_upper.pdf}
+\figcont{$\alpha=3^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a4x_upper.pdf}
+\figcont{$\alpha=4^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a5_upper.pdf}
+\figcont{$\alpha=5^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a6_upper.pdf}
+\figcont{$\alpha=6^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a7_upper.pdf}
+\figcont{$\alpha=7^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a8_upper.pdf}
+\figcont{$\alpha=8^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a8p5_upper.pdf}
+\figcont{$\alpha=8.5^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_a9_upper.pdf}
+\figcont{$\alpha=9^\circ$.}
+\end{figure}
+
+\subsection*{Reynolds-Number Study at $\alpha=5^\circ$}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.85\textheight,keepaspectratio]{chi_sheet_eppler387_Re60k_upper.pdf}
+\caption{Eppler~387 near the upper surface at $\alpha=5^\circ$, all six grids: $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) against the chordwise station and the wall distance. $Re=6\times10^4$.}\label{f:eppresweepsheets}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_upper.pdf}
+\figcont{$Re=10^5$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_upper.pdf}
+\figcont{$Re=3\times10^5$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re460k_upper.pdf}
+\figcont{$Re=4.6\times10^5$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re100k_p1.pdf}
+\caption{Eppler~387 surface distributions, $Re=10^5$, L2 grids, in ascending incidence; rows as in Fig.~\ref{f:nlfcf0}. $\alpha=-2^\circ$, $\alpha=0^\circ$.}\label{f:eppcfRe100k}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re100k_p2.pdf}
+\figcont{$\alpha=2^\circ$, $\alpha=4^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re100k_p3.pdf}
+\figcont{$\alpha=6^\circ$, $\alpha=8^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re100k_p4.pdf}
+\figcont{$\alpha=10^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re300k_p1.pdf}
+\caption{Eppler~387 surface distributions, $Re=3\times10^5$, L2 grids, in ascending incidence; rows as in Fig.~\ref{f:nlfcf0}. $\alpha=-2^\circ$, $\alpha=0^\circ$.}\label{f:eppcfRe300k}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re300k_p2.pdf}
+\figcont{$\alpha=1^\circ$, $\alpha=2^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re300k_p3.pdf}
+\figcont{$\alpha=3^\circ$, $\alpha=4^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re300k_p4.pdf}
+\figcont{$\alpha=6^\circ$, $\alpha=8^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{eppler_cf_Re300k_p5.pdf}
+\figcont{$\alpha=10^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_am2_upper.pdf}
+\caption{Eppler~387 near the upper surface, $Re=10^5$, L2 grids: $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) against the chordwise station and the wall distance. $\alpha=-2^\circ$.}\label{f:eppsheetRe100k}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a0_upper.pdf}
+\figcont{$\alpha=0^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a2_upper.pdf}
+\figcont{$\alpha=2^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a4_upper.pdf}
+\figcont{$\alpha=4^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a6_upper.pdf}
+\figcont{$\alpha=6^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a8_upper.pdf}
+\figcont{$\alpha=8^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re100k_a10_upper.pdf}
+\figcont{$\alpha=10^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_am2_upper.pdf}
+\caption{Eppler~387 near the upper surface, $Re=3\times10^5$, L2 grids: $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) against the chordwise station and the wall distance. $\alpha=-2^\circ$.}\label{f:eppsheetRe300k}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a0_upper.pdf}
+\figcont{$\alpha=0^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a1_upper.pdf}
+\figcont{$\alpha=1^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a2_upper.pdf}
+\figcont{$\alpha=2^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a3_upper.pdf}
+\figcont{$\alpha=3^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a4_upper.pdf}
+\figcont{$\alpha=4^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a6_upper.pdf}
+\figcont{$\alpha=6^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a8_upper.pdf}
+\figcont{$\alpha=8^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_eppler387_Re300k_a10_upper.pdf}
+\figcont{$\alpha=10^\circ$.}
+\end{figure}
+
+\subsection*{A Two-Element Section}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{twoelement_chi_global_L0.pdf}
+\caption{Two-element section: contours of $\chi$ at each incidence on the three grid levels; levels as in Fig.~\ref{f:twoelemchiL2}. L0.}
+\label{f:twoelemchiL1}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{twoelement_chi_global_L1.pdf}
+\figcont{L1.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{twoelement_chi_global_L2.pdf}
+\figcont{L2.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,page=1]{twoelement_surface_suite.pdf}
+\caption{Two-element section: surface distributions, two incidences per page. Rows: largest $Re_\Omega$ on the wall normal; largest $\hat\Omega\hat I$; largest $\chi$; $-C_p$; signed $C_f$. Blue: upper surface. Red: lower surface. Solid: main element. Dashed: flap. The line thickness increases from L0 to L2. $\alpha=-9^\circ$, $-7^\circ$.}\label{f:twoelemsuite1}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,page=2]{twoelement_surface_suite.pdf}
+\figcont{$\alpha=-5$, $-3^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,page=3]{twoelement_surface_suite.pdf}
+\figcont{$\alpha=-1$, $+1^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,page=4]{twoelement_surface_suite.pdf}
+\figcont{$\alpha=+3$, $+5^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,page=5]{twoelement_surface_suite.pdf}
+\figcont{$\alpha=+7$, $+11^\circ$.}
+\end{figure}
+
+\subsection*{The Cylinder Drag Crisis}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.85\textheight,keepaspectratio,page=1]{dragcrisis_fields.pdf}
+\caption{Circular cylinder: $|\mathbf{u}|/U_\infty$ (left) and $\chi$ (right) at every Reynolds number of Fig.~\ref{f:dragcrisiscd}, in ascending order. Contours of $\chi$: dashed below one, solid at $1$, $c_{v1}$, $30$ and $10^2$ to $10^4$. $Re_D=1$ to $10^2$.}\label{f:dragcrisisfields}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.90\textheight,keepaspectratio,page=2]{dragcrisis_fields.pdf}
+\figcont{$Re_D=3\times10^2$--$3\times10^4$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.90\textheight,keepaspectratio,page=3]{dragcrisis_fields.pdf}
+\figcont{$Re_D=10^5$--$10^6$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.90\textheight,keepaspectratio,page=4]{dragcrisis_fields.pdf}
+\figcont{$Re_D=1.78\times10^6$--$3\times10^7$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=0.90\textheight,keepaspectratio,page=5]{dragcrisis_fields.pdf}
+\figcont{$Re_D=10^8$--$10^{10}$.}
+\end{figure}
+
+\subsection*{The Daedalus Wing}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.85\textheight,keepaspectratio]{daedalus_surface_a5.pdf}
+\caption{Daedalus surface maps, $\alpha=5^\circ$; rows and columns as in Fig.~\ref{f:daesurf}.}\label{f:daesurfall}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_surface_a6.pdf}
+\figcont{$\alpha=6^\circ$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_section_eta10.pdf}
+\caption{Daedalus wing: section distributions on all six grids, with the reference, at $\alpha=4^\circ$, $5^\circ$ and $6^\circ$ (columns); rows as in Fig.~\ref{f:nlfcf0}. $\eta=0.10$.}\label{f:daesections}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_section_eta75.pdf}
+\figcont{$\eta=0.75$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{daedalus_section_eta92.pdf}
+\figcont{$\eta=0.92$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a4_eta10_upper.pdf}
+\caption{Daedalus wing near the upper surface, on every grid: $u_x/U_\infty$ (left) and $\log_{10}\chi$ (right) against the chordwise station and the wall distance. $\alpha=4^\circ$, $\eta=0.10$.}\label{f:daesheets}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a4_eta75_upper.pdf}
+\figcont{$\alpha=4^\circ$, $\eta=0.75$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a4_eta92_upper.pdf}
+\figcont{$\alpha=4^\circ$, $\eta=0.92$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a5_eta10_upper.pdf}
+\figcont{$\alpha=5^\circ$, $\eta=0.10$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a5_eta75_upper.pdf}
+\figcont{$\alpha=5^\circ$, $\eta=0.75$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a5_eta92_upper.pdf}
+\figcont{$\alpha=5^\circ$, $\eta=0.92$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a6_eta10_upper.pdf}
+\figcont{$\alpha=6^\circ$, $\eta=0.10$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a6_eta75_upper.pdf}
+\figcont{$\alpha=6^\circ$, $\eta=0.75$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.99\textwidth,height=0.94\textheight,keepaspectratio]{chi_sheet_daedalus_a6_eta92_upper.pdf}
+\figcont{$\alpha=6^\circ$, $\eta=0.92$.}
+\end{figure}
+
+\subsection*{The 6:1 Spheroid}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.86\textwidth]{spheroid_overlay_a5lo_gmeas.pdf}
+\caption{6:1 spheroid with the measured turbulence intensity of the tunnel, one page per measured condition; layout as in Fig.~\ref{f:ov_a10hi}. $\alpha=5^\circ$, $Re_L=1.52\times10^6$.}\label{f:ov_a5lo_gmeas}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.86\textwidth]{spheroid_overlay_a10lo_gmeas.pdf}
+\figcont{$\alpha=10^\circ$, $Re_L=1.52\times10^6$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.86\textwidth]{spheroid_overlay_a29p7_gmeas.pdf}
+\figcont{$\alpha=29.7^\circ$, $Re_L=1.53\times10^6$. The skin-friction lines converge on the separation line over most of the leeward half, and the twelve measured stations are on that line.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.86\textwidth]{spheroid_overlay_a0_gmeas.pdf}
+\figcont{$\alpha=0^\circ$, $Re_L=7.2\times10^6$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.86\textwidth]{spheroid_overlay_a2p5_gmeas.pdf}
+\figcont{$\alpha=2.5^\circ$, $Re_L=7.2\times10^6$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.86\textwidth]{spheroid_overlay_a5hi_gmeas.pdf}
+\figcont{$\alpha=5^\circ$, $Re_L=6.49\times10^6$.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.86\textwidth]{spheroid_overlay_a10hi_gmeas.pdf}
+\figcont{$\alpha=10^\circ$, $Re_L=6.56\times10^6$, G\"ottingen.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.86\textwidth]{spheroid_overlay_a10f1_fmeas.pdf}
+\figcont{$\alpha=10^\circ$, $Re_L=6.56\times10^6$, ONERA F1.}
+\end{figure}
 
 \phantomsection\addcontentsline{toc}{section}{Acknowledgments}
 \section*{Acknowledgments}
-The initial idea for this approach was sparked by conversations with Mark Drela
+
+\laozi[7.6pt]{51}
+
+The motivation for this work came from implementing the
+amplification-factor-transport (AFT) model of James G.\ Coder
+\cite{coder_maughmer_2014} in Flexcompute Flow (formerly known as Flow360).
+The idea for this approach was sparked by conversations with Mark Drela
 and Philippe R.\ Spalart, whose insights on the amplification-factor envelope
 and on the structure of the SA equation were formative.
 The \emph{Daodejing} epigraphs are set in the clerical-script font of the

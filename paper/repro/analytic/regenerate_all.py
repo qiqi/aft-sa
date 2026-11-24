@@ -24,6 +24,7 @@ SCRIPTS = [
     "fig04_shapefactor.py",      # Sec. II shape-factor family (prose numbers)
     "tab_march_stations.py",     # II.D table and family stations (asserted; no figure)
     "ramp_width_sensitivity.py", # II.D: N=1 stations with w halved and doubled (asserted; ~20 min)
+    "turbulent_plate_cnuai.py",  # II.D: c_nu,ai on a turbulent flat plate at Re_theta = 1e4 (asserted; ~5 min)
     # Sec. II.E -- turbulent layer and handover (prose verification)
     "verify_wall_layer_tie.py",  # tie exactness (asserted; no figure)
     "wall_layer_tie_residual.py",# II.E: balance kept to 8e-6 of SA production (asserted)

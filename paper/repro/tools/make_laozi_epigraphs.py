@@ -2,7 +2,7 @@
 """Daodejing epigraphs -> paper/figs/laozi_<chapter>.pdf, and the title
 inscription -> paper/figs/title_inscription.pdf (vector graphics).
 
-The five epigraphs of sa-ai.tex are set in clerical script (lishu), the hand
+The six epigraphs of sa-ai.tex are set in clerical script (lishu), the hand
 of Han-dynasty documents, in the classical layout: columns read top to bottom
 and run right to left, one phrase per column, with no punctuation. This TeX
 installation cannot load a TrueType CJK font or set vertical text, so each
@@ -43,6 +43,7 @@ EPIGRAPHS = {                       # chapter -> phrases, in reading order
     42: ['道生一', '一生二', '二生三', '三生萬物'],
     77: ['天之道', '損有餘', '而補不足'],
     40: ['天下萬物生於有', '有生於無'],
+    51: ['道生之', '德畜之', '物形之', '勢成之'],
 }
 
 # The model's name as a title inscription, alone on the page before the title

@@ -90,6 +90,26 @@ sweep → two-element → cylinder drag crisis → Daedalus → spheroid, then R
 the operating envelope. The paper has no table of contents (AIAA conference format);
 its Introduction, Appendix and Acknowledgments sit outside the shared spine.
 
+In the paper each Results subsection opens with the one thing the case shows about the
+model, and the prose walks through the figures in order. A multi-page figure set
+(surface distributions, near-wall contours, grids, fields) contributes one page to the
+text; the complete sets are in the unnumbered **Supplementary Figures** section, in
+the order of the cases. The back matter is: Appendix, Supplementary Figures, the
+closing epigraph, Acknowledgments, References. In Section III the figures and tables
+float (`[!htbp]`), with a `\FloatBarrier` before each subsection, so that the prose
+is continuous.
+
+**Captions say what is plotted and nothing else**: the quantity on each axis or in
+each panel, what each symbol or line style is, and the condition. Results belong in
+the prose. Captions use the words of the prose ("the L2 grids", "the OpenFOAM
+replication", "the largest chi near the wall crosses one", "main element"), not the
+campaign's ("L2 pair", "port", "seed", "up-ladder", "sheets", "suites").
+
+The paper does not `\input` the shared `_wp` tables directly. It inputs
+`tables/*_paper.tex`, which `repro/tools/make_paper_tables.py` writes from the `_wp`
+files with the paper's captions and floating placement. Change a caption in that
+script and rerun it; rerun it also after a campaign script re-emits a `_wp` table.
+
 The `_wp` table files in `tables/` and `appendix_twosource_body_wp.tex` are `\input`
 by both documents. An edit there changes both.
 
@@ -136,6 +156,17 @@ by both documents. An edit there changes both.
   term goes in quotes at first use ("empty"). A coined word ("graze") is defined at
   first use by pointing at what the reader can see in a figure, or is not used.
 
+- **The solver is "Flexcompute Flow"** in the paper (renamed from Flow360 in November
+  2026). The first mention in Section III, in each Results subsection and in the
+  Acknowledgments adds "(formerly Flow360)". File names and script names keep
+  `flow360`.
+- `figs/flat_plate_batch_openfoam.pdf` is a copy of `../openfoam/flatplate_fig_openfoam.pdf`,
+  drawn by `../openfoam/scripts/regen_flatplate_compare.py`. The OpenFOAM cases are on
+  host 014 (`/local_data/qiqi/openfoam-sa-ai/cases`, visible on 015 under
+  `/mnt/014-local_data`). On 019 a copy of the two fields the script reads is at
+  `/local_data_2/qiqi/openfoam-sa-ai/cases`; run with `SAAI_OF_CASES` set to it and
+  the compute venv python.
+
 ## 7. Figures
 
 - Every figure carries a number and a one-line description of what it is, as simple
@@ -180,6 +211,7 @@ pdflatex -interaction=nonstopmode whitepaper.tex
 grep -cE '^! ' sa-ai.log ; grep -c undefined sa-ai.log     # both must be 0
 grep -cE '\b([Ww]e|[Oo]ur|[Oo]urs|[Mm]y)\b' sa-ai.tex      # must be 0
 python3 repro/analytic/envelope_bounds.py                  # asserts quoted numbers
+python3 repro/tools/check_results_prose.py                 # Section III prose against its tables
 ```
 
 After a change to the kernel constants or to Section II.D, also run
@@ -187,6 +219,11 @@ After a change to the kernel constants or to Section II.D, also run
 the II.D growth-rate table, the $N=1$ stations that set $c_\mathrm{on}$, and the
 Falkner--Skan family numbers. The marcher's grid (`NX`, `NY` in `fig04_shapefactor.py`)
 is 3200 x 9600; the old 1600 x 1200 put the Blasius $N=1$ station 5% late.
+
+`check_results_prose.py` recomputes every difference and ratio that the prose of
+Section III derives from the tables (fronts against measurements, drag at the same
+lift, distances between crossings). A sentence that quotes such a number needs a line
+there.
 
 `envelope_bounds.py` asserts every number the documents quote for the operating
 envelope. If a quoted value changes, that script must change with it and still pass.

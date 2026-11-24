@@ -87,6 +87,8 @@ def cite_text(keys):
 
 # ---------------------------------------------------------------- source
 src = inline_inputs(strip_comments(read('sa-ai.tex')))
+# the paper's own macro for the onset factor
+src = re.sub(r'\\con(?![A-Za-z])', r'c_{\\mathrm{on}}', src)
 src = re.sub(r'\\cite\{([^}]*)\}', lambda m: cite_text(m.group(1)), src)
 
 title, _ = grab(src, src.index(r'\title') + len(r'\title'))
@@ -199,6 +201,17 @@ def rows_to_list(rows):
     return '\n\\begin{itemize}\n' + '\n'.join(items) + '\n\\end{itemize}\n'
 
 
+def columns_to_list(rows):
+    """A transposed table: the first row names the constants, and each later
+    row gives one property of all of them. One list item per constant."""
+    head = rows[0]
+    items = []
+    for j in range(1, len(head)):
+        items.append('\\item ' + head[j] + ': ' + '; '.join(
+            (r[0] + ' ' + r[j]) for r in rows[1:]) + '.')
+    return '\n\\begin{itemize}\n' + '\n'.join(items) + '\n\\end{itemize}\n'
+
+
 def tab_rep(m):
     inner = m.group(1)
     counters['tab'] += 1
@@ -207,8 +220,8 @@ def tab_rep(m):
     assert len(caps) == 1, inner[:200]
     out = '\n\n\\textbf{Table %d.} %s\n\n' % (counters['tab'], caps[0][1])
     before, tab, after = tabular_parts(inner)
-    if 't:constants' in inner:
-        out += rows_to_list(split_rows(tab))
+    if 't:constants' in inner or 't:saconstants' in inner:
+        out += columns_to_list(split_rows(tab))
     # a note set under the tabular is prose: keep it
     note = re.search(r'\{\\footnotesize\s+(.*)\}\s*$', after, re.S)
     if note:
