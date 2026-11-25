@@ -1,0 +1,68 @@
+{
+ "_doc": "Upper surface of the flap, per incidence: stations (arc length / flap chord) where the signed C_f changes sign, the smallest signed C_f and its station, and the range of chi for wall distances 0.0005 to 0.002 (total chord) at stations 0.15 to 0.4. Written by twoelement/plot_flap_chi_map.py.",
+ "cases": [
+  {
+   "alpha": -5.0,
+   "stations": [],
+   "cf_min": 1.56e-06,
+   "s_cf_min": 0.5092,
+   "chi_layer": [
+    0.471,
+    0.776
+   ]
+  },
+  {
+   "alpha": -3.0,
+   "stations": [
+    0.4815,
+    0.6151
+   ],
+   "cf_min": -0.00491,
+   "s_cf_min": 0.6015,
+   "chi_layer": [
+    0.000866,
+    0.00235
+   ]
+  },
+  {
+   "alpha": -1.0,
+   "stations": [
+    0.4745,
+    0.6055
+   ],
+   "cf_min": -0.0054,
+   "s_cf_min": 0.5927,
+   "chi_layer": [
+    0.000872,
+    0.00285
+   ]
+  },
+  {
+   "alpha": 5.0,
+   "stations": [
+    0.4587,
+    0.5861,
+    0.9501
+   ],
+   "cf_min": -0.00533,
+   "s_cf_min": 0.5751,
+   "chi_layer": [
+    0.000872,
+    0.00437
+   ]
+  },
+  {
+   "alpha": 11.0,
+   "stations": [
+    0.1536,
+    0.2319
+   ],
+   "cf_min": -0.00644,
+   "s_cf_min": 0.227,
+   "chi_layer": [
+    0.000863,
+    19.5
+   ]
+  }
+ ]
+}

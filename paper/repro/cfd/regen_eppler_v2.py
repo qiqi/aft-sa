@@ -20,6 +20,25 @@ AF = 'eppler387'        # surface_fluid_<AF>.pvtu
 Z_TE_HALF = 0.000833    # half blunt-TE thickness for E387 (NASA TM 4062)
 NU = 5e-7               # Flow360 stored ν at Re=200k, M=0.1 (= muRef = M/Re)
 
+
+def nu_of(case_d):
+    """This case's freestream nu (= muRef = Mach/Re), from its own input.
+
+    NU above is only correct for the Re = 2e5 matrix. chi = nuHat/nu and
+    Re_Omega carry a 1/nu, so reusing NU on the Reynolds sweeps would scale
+    both by the Reynolds ratio -- a factor 2 at Re = 1e5, 1.5 at 3e5 -- with
+    nothing in the figure to show it. Falls back to NU only if the case has
+    no Flow360.json.
+    """
+    import json as _json
+    p = os.path.join(case_d, 'Flow360.json')
+    if os.path.exists(p):
+        try:
+            return float(_json.load(open(p))['freestream']['muRef'])
+        except (KeyError, ValueError):
+            pass
+    return NU
+
 # Kernel constants: imported from the repro-local single source of truth
 # (identical to Flow360 ModelConstants.h; enforced by
 # sa-ai/tests/test_constants_consistency.py). A stale local copy sat at the
@@ -49,8 +68,22 @@ MESH_LS = {'str': '-', 'cav': '--'}
 # --- Experimental reference data, digitized from McGhee et al., NASA TM-4062 ---
 # Upper-surface laminar separation bubble from oil-flow visualization (Table III),
 # R=200,000: alpha -> (x_LS laminar separation, x_TR turbulent reattachment).
-EXP_LSB = {0: (0.48, 0.74), 2: (0.43, 0.67), 5: (0.38, 0.59), 7: (0.33, 0.48),
+# EVERY row of TM-4062 Table III at R = 200,000, not the five this figure
+# used to carry: -2, 4 and 6 were digitized for the bubble-station figure and
+# simply never wired in here, which is why the band appeared at only a few
+# incidences.
+EXP_LSB = {-2: (0.53, 0.80), 0: (0.48, 0.74), 2: (0.43, 0.67),
+           4: (0.40, 0.62), 5: (0.38, 0.59), 6: (0.37, 0.55),
+           7: (0.33, 0.48),
            8.5: (0.03, 0.18)}   # 8.5: post-stall LE bubble (TM-4062 Table III)
+# alpha = 8 is the one measured incidence with NO bubble: Table III records
+# "(NT at .32)" -- natural transition at x/c = 0.32. It is a datum, not a gap,
+# so it is drawn as a single station rather than a band. The model transitions
+# at 0.119/0.094 c there, ~0.2 c ahead of it; that is a real disagreement, not
+# an artifact.
+# Odd incidences (-1, 1, 3) and 9 have no Table III row at R = 200,000 and are
+# deliberately left unmarked.
+EXP_NT = {8: 0.32}
 # EXACT tabulated experimental Cp from TM-4062 Appendix D (R=200k), keyed by surface
 # with an 'xc' grid + per-alpha-column arrays. Figure alpha -> nearest table column(s).
 import json as _json, os as _os
@@ -83,12 +116,29 @@ def rate(Re_O, Gamma):
     a = A_MAX/(1.0+np.exp(-z))
     return np.where(Re_O > Re_cliff, a, 0.0)
 
+# Tree naming quirks: 8.5 is 'a8p5', and alpha = 4 is 'a4x' (not 'a4').
+_EPP_TAG = {8.5: 'a8p5', 4.0: 'a4x'}
+
+
+def alpha_tag(alpha):
+    """Flow360 case-name alpha token for the Eppler tree."""
+    a = float(alpha)
+    if a in _EPP_TAG:
+        return _EPP_TAG[a]
+    return ("am%d" if a < 0 else "a%d") % abs(int(round(a)))
+
+
+# Overridable by a driver that needs a different tree (the Reynolds sweeps
+# name their cases sweep_{fam}L2_{Re}_{alpha} and exist on the L2 pair only).
+CASE_DIR_FN = None
+LEVELS = ['L0', 'L1', 'L2']
+
+
 def case_dir(mesh, level, alpha):
-    """mesh in {'cav','str'}, level in {'L0','L1','L2'}; alpha 8.5 maps to
-    the L2-only extension tag a8p5."""
-    if float(alpha) == 8.5:
-        return f"{B}/{mesh}{level}prop_eppler387_Re200k_a8p5"
-    return f"{B}/{mesh}{level}prop_eppler387_Re200k_a{int(alpha)}"
+    """mesh in {'cav','str'}, level in {'L0','L1','L2'}."""
+    if CASE_DIR_FN is not None:
+        return CASE_DIR_FN(mesh, level, alpha)
+    return f"{B}/{mesh}{level}prop_eppler387_Re200k_{alpha_tag(alpha)}"
 
 def load_slice(d):
     r = vtk.vtkXMLPUnstructuredGridReader(); r.SetFileName(f"{d}/slice_centerSpan.pvtu"); r.Update()
@@ -560,7 +610,8 @@ def trajectory(case_d, side='upper', nbins=40, d_max=0.01):
     # to amplification.
     U = np.linalg.norm(vel, axis=1)
     ome_d = vm * wd
-    Re_O_all = wd*wd*vm / NU
+    _nu = nu_of(case_d)
+    Re_O_all = wd*wd*vm / _nu
     Gam_all = 2.0*ome_d**2 / (U**2 + ome_d**2 + 1e-30)
     a_all = rate(Re_O_all, Gam_all)
     kernel = a_all * vm * nh
@@ -572,7 +623,7 @@ def trajectory(case_d, side='upper', nbins=40, d_max=0.01):
         if not m.any(): continue
         idx = np.argmax(kernel[m])
         sel = np.where(m)[0][idx]
-        chi[i] = nh[sel] / NU
+        chi[i] = nh[sel] / _nu
         Re_O[i] = Re_O_all[sel]
         Gam[i] = Gam_all[sel]
     return centers, Re_O, Gam, chi
@@ -637,7 +688,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         # ROW 1+2: wall-normal-probe max Re_Omega (onset gate) and max P = Omega_hat*I_hat
         # (rate coordinate) --- the two quantities the sphere kernel actually uses.
         for mesh in meshes:
-            for level in ['L0', 'L1', 'L2']:  # all levels now current
+            for level in LEVELS:
                 d = case_dir(mesh, level, alpha)
                 if not os.path.exists(f"{d}/slice_with_derived.pvtu"): continue
                 lw = LEVEL_LW[level]; ls = MESH_LS[mesh]
@@ -668,7 +719,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         if col == 0: ax_P.set_ylabel(r'$\max \hat\Omega \hat I$ (log)')
         # ROW 3: chi + N
         for mesh in meshes:
-            for level in ['L0', 'L1', 'L2']:  # all levels now current
+            for level in LEVELS:
                 d = case_dir(mesh, level, alpha)
                 if not os.path.exists(d) or not os.path.exists(f"{d}/slice_centerSpan.pvtu"): continue
                 lw = LEVEL_LW[level]; ls = MESH_LS[mesh]
@@ -676,8 +727,9 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
                     xc, mu, ml = max_chi_vs_x(d)
                 except Exception as e:
                     print(f"  skip chi ({mesh}/{level}, α={alpha}): {e}"); continue
-                ax_n.semilogy(xc, mu/NU, ls=ls, lw=lw, color=UP_COLOR)
-                ax_n.semilogy(xc, ml/NU, ls=ls, lw=lw, color=LO_COLOR)
+                _nu = nu_of(d)
+                ax_n.semilogy(xc, mu/_nu, ls=ls, lw=lw, color=UP_COLOR)
+                ax_n.semilogy(xc, ml/_nu, ls=ls, lw=lw, color=LO_COLOR)
         rd, rtag, has_N = ref_for(alpha)
         if rd is not None and 'upper' in rd:
             if has_N:                       # mfoil carries the amplification envelope
@@ -693,7 +745,7 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         if col == len(alphas)-1: ax_nN.set_ylabel('mfoil $N$ (linear)')
         # ROWS 4+5: Cp/Cf
         for mesh in meshes:
-            for level in ['L0', 'L1', 'L2']:  # all levels now current
+            for level in LEVELS:
                 d = case_dir(mesh, level, alpha)
                 if not os.path.exists(f"{d}/surface_fluid_eppler387.pvtu"): continue
                 lw = LEVEL_LW[level]; ls = MESH_LS[mesh]
@@ -723,13 +775,21 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
         # band spanning laminar-separation -> turbulent-reattachment (x/c). Shown
         # on the surface-distribution rows so it can be read against the computed
         # C_f reversal and the C_p plateau.
-        akey = float(alpha) if float(alpha) in EXP_LSB else int(alpha)
-        if akey in EXP_LSB:
+        # int() truncation would map 8.5 -> 8 and leak the alpha=8 datum onto
+        # the 8.5 panel, so only fall back to the integer key when alpha is one.
+        _fa = float(alpha)
+        akey = _fa if _fa in EXP_LSB else (int(_fa) if _fa.is_integer() else None)
+        if akey is not None and akey in EXP_LSB:
             xls, xtr = EXP_LSB[akey]
             for a in (ax_cp, ax_cf):
                 a.axvspan(xls, xtr, color='0.55', alpha=0.32, zorder=0)
                 a.axvline(xls, color='0.35', ls=':', lw=0.8, alpha=0.8, zorder=0)
                 a.axvline(xtr, color='0.35', ls=':', lw=0.8, alpha=0.8, zorder=0)
+        nkey = _fa if _fa in EXP_NT else (int(_fa) if _fa.is_integer() else None)
+        if nkey is not None and nkey in EXP_NT:
+            for a in (ax_cp, ax_cf):
+                a.axvline(EXP_NT[nkey], color='0.35', ls='-.', lw=1.1,
+                          alpha=0.85, zorder=0)
         # EXACT experimental Cp (TM-4062 Appendix D tables, R=200k) as open markers.
         _tab = EXP_CP_TAB.get("200", {})
         for _ck in ALPHA_COLS.get(int(alpha), []):
@@ -749,19 +809,30 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
     # legend
     surfh = [Line2D([],[],color=UP_COLOR, lw=2, label='upper'),
              Line2D([],[],color=LO_COLOR, lw=2, label='lower')]
+    # Every entry below is gated on something actually being drawn. The
+    # levels used to be listed as L0/L1/L2 regardless (the Reynolds sweeps
+    # carry L2 alone), and the mfoil and experimental-C_p entries were
+    # unconditional even where neither exists -- a legend claiming series the
+    # page does not show.
     legend_items = []
-    if 'str' in meshes:
-        legend_items += [Line2D([],[],color='0.3', ls='-',  lw=0.8, label='L0 str'),
-                         Line2D([],[],color='0.3', ls='-',  lw=1.6, label='L1 str'),
-                         Line2D([],[],color='0.3', ls='-',  lw=2.4, label='L2 str')]
-    if 'cav' in meshes:
-        legend_items += [Line2D([],[],color='0.3', ls='--', lw=0.8, label='L0 cav'),
-                         Line2D([],[],color='0.3', ls='--', lw=1.6, label='L1 cav'),
-                         Line2D([],[],color='0.3', ls='--', lw=2.4, label='L2 cav')]
-    _reflab = 'mfoil / XFOIL ($e^9$)' if any(float(a) in MFOIL_UNRELIABLE for a in alphas) else 'mfoil ($e^9$)'
-    legend_items += [Line2D([],[],color='0.3', ls=':',  lw=1.2, alpha=0.5, label=_reflab),
-                     Line2D([],[],color='k', ls='none', marker='o', mfc='none', mew=0.6, ms=3, label='expt. $C_p$ (TM-4062)'),
-                     Patch(facecolor='0.55', alpha=0.32, label='expt. LSB (oil flow)')]
+    for _fam, _ls, _tag in (('str', '-', 'str'), ('cav', '--', 'unstr')):
+        if _fam not in meshes:
+            continue
+        legend_items += [Line2D([], [], color='0.3', ls=_ls, lw=LEVEL_LW[_l],
+                                label=f'{_l} {_tag}') for _l in LEVELS]
+    _fa = [float(a) for a in alphas]
+    if any(a in mn or a in xn for a in _fa):
+        _reflab = ('mfoil / XFOIL ($e^9$)'
+                   if any(a in MFOIL_UNRELIABLE for a in _fa) else 'mfoil ($e^9$)')
+        legend_items += [Line2D([], [], color='0.3', ls=':', lw=1.2, alpha=0.5,
+                                label=_reflab)]
+    if EXP_CP_TAB and any(ALPHA_COLS.get(int(a)) for a in _fa if float(a).is_integer()):
+        legend_items += [Line2D([], [], color='k', ls='none', marker='o',
+                                mfc='none', mew=0.6, ms=3,
+                                label='expt. $C_p$ (TM-4062)')]
+    if any((a in EXP_LSB) or (a.is_integer() and int(a) in EXP_LSB) for a in _fa):
+        legend_items += [Patch(facecolor='0.55', alpha=0.32,
+                               label='expt. LSB (oil flow)')]
     axs[0,-1].legend(handles=surfh, fontsize=8, frameon=False, loc='upper left')
     axs[4,-1].legend(handles=legend_items, fontsize=8, frameon=False, loc='upper right')
     plt.tight_layout(rect=(0,0,1,0.97))
@@ -807,7 +878,7 @@ def make_landscape_figure(alphas, out_name, title):
     handles = [Line2D([],[],color=UP_COLOR, lw=2, label='upper'),
                Line2D([],[],color=LO_COLOR, lw=2, label='lower'),
                Line2D([],[],color='0.3', ls='-',  lw=1.6, label='str (O-grid)'),
-               Line2D([],[],color='0.3', ls='--', lw=1.6, label='cav (unstructured)')]
+               Line2D([],[],color='0.3', ls='--', lw=1.6, label='unstructured')]
     axs[-1].legend(handles=handles, fontsize=8, frameon=False, loc='lower right')
     plt.tight_layout(rect=(0,0,1,0.96))
     plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=130)
@@ -829,7 +900,7 @@ def make_convergence_figure(alphas, out_name, title, meshes=None):
         ax_cd  = ax_cl.twinx()
         cl_tail = []; cd_tail = []
         for mesh in meshes:
-            for level in ['L0', 'L1', 'L2']:  # all levels now current
+            for level in LEVELS:
                 d = case_dir(mesh, level, alpha)
                 if not os.path.exists(f"{d}/nonlinear_residual_v2.csv"): continue
                 lw = LEVEL_LW[level]; ls = MESH_LS[mesh]
@@ -944,7 +1015,7 @@ def make_landscape_normal_figure(alphas, out_name, title, L_probe=0.01, n_probe=
     handles = [Line2D([],[],color=UP_COLOR, lw=2, label='upper'),
                Line2D([],[],color=LO_COLOR, lw=2, label='lower'),
                Line2D([],[],color='0.3', ls='-',  lw=1.6, label='str (O-grid)'),
-               Line2D([],[],color='0.3', ls='--', lw=1.6, label='cav (unstructured)')]
+               Line2D([],[],color='0.3', ls='--', lw=1.6, label='unstructured')]
     axs[-1].legend(handles=handles, fontsize=8, frameon=False, loc='lower right')
     plt.tight_layout(rect=(0,0,1,0.96))
     plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=130)
@@ -964,13 +1035,26 @@ def converged_clcd(d):
     n = len(cl); t = slice(int(0.8*n), n)
     return float(np.median(np.array(cl)[t])), float(np.median(np.array(cd)[t]))
 
+# Canvas is 7.4in but the figure is included at \textwidth = 6.5in, so the PDF
+# is scaled down by 6.5/7.4 on the page. Multiply every text element by the
+# inverse so the in-plot type lands at its declared size -- i.e. matching the
+# 10pt caption -- while the larger canvas still buys drawing area for the many
+# lines and symbols.
+def _scale_text_for_page(fig, scale=1.1384615384615384):
+    import matplotlib.text as _mtext
+    for _t in fig.findobj(_mtext.Text):
+        _s = _t.get_fontsize()
+        if _s:
+            _t.set_fontsize(_s * scale)
+
+
 def make_polar_figure(out_name='eppler_polar_compare'):
     """Drag polar: SA-AI (O-grid + unstructured, all three refinement levels)
     overlaid on the digitized experimental section-characteristics line
     (App. B, R=2e5). Mesh -> color, level -> line thickness (L0/L1/L2)."""
     alphas = [0, 2, 5, 7]
     mesh_col = {'str': 'C0', 'cav': 'C1'}
-    fig, ax = plt.subplots(figsize=(5.8, 5.2))
+    fig, ax = plt.subplots(figsize=(7.4, 7.4))   # square, full text width
     ecd = [p[0] for p in EXP_POLAR]; ecl = [p[1] for p in EXP_POLAR]
     # Draw experiment first (bottom), then mfoil, then our lines on top so the
     # computed curves are never covered by the reference data.
@@ -1017,7 +1101,10 @@ def make_polar_figure(out_name='eppler_polar_compare'):
     # 'eppler_ext_levels', 2026-08-03). Every level is simply attempted --
     # converged_clcd returns None for a case that does not exist -- so any
     # incidence added at any level later appears here with no edit.
-    EXT_TAGS = {-2: 'am2', 1: 'a1', 3: 'a3', 4: 'a4x', 6: 'a6', 8.5: 'a8p5'}
+    # -1, 8 and 9 joined the set in the 2026-08 extension (L2 pair), which
+    # completes the integer grid the published comparisons are reported on.
+    EXT_TAGS = {-4: 'am4', -2: 'am2', -1: 'am1', 1: 'a1', 3: 'a3', 4: 'a4x',
+                6: 'a6', 8: 'a8', 8.5: 'a8p5', 9: 'a9'}
     for mesh in ['str', 'cav']:
         for level in ['L0', 'L1', 'L2']:
             pts = []
@@ -1043,7 +1130,11 @@ def make_polar_figure(out_name='eppler_polar_compare'):
         _p = [v for v in _OF if v['level'] == _lv]
         ax.plot([v['cd'] for v in _p], [v['cl'] for v in _p], 'o', ms=_ms,
                 mfc='none', mec='steelblue', mew=1.1, zorder=2.5)
-    ax.set_xlim(0.0, 0.05); ax.set_ylim(0.0, 1.25)
+    # c_l to 1.35: the alpha = 8 and 9 extension incidences reach 1.24 and
+    # 1.29, which the pre-extension 1.25 ceiling clipped off the figure.
+    # Floor at -0.1: alpha = -4 carries c_l = -0.013 to -0.030, which a floor
+    # of 0.0 clipped off the same way.
+    ax.set_xlim(0.0, 0.05); ax.set_ylim(-0.1, 1.35)
     ax.set_xlabel('$C_d$'); ax.set_ylabel('$C_l$')
     ax.grid(alpha=0.3)
     handles = [Line2D([],[],color='k', ls='-', marker='o', mfc='none', ms=4, label='Experiment (LTPT)'),
@@ -1059,6 +1150,7 @@ def make_polar_figure(out_name='eppler_polar_compare'):
                Line2D([],[],color='0.4', lw=POLAR_LW['L1'], label='L1'),
                Line2D([],[],color='0.4', lw=POLAR_LW['L2'], label='L2')]
     ax.legend(handles=handles, fontsize=8, loc='lower right')
+    _scale_text_for_page(fig)
     plt.tight_layout()
     plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=140)
     plt.close(); print(f'wrote {out_name}.pdf')

@@ -88,13 +88,15 @@ now opens the paper's Results section.
 Results order in both: flat plate → NLF(1)-0416 → Eppler 387 → Eppler Reynolds
 sweep → two-element → cylinder drag crisis → Daedalus → spheroid, then Remarks on
 the operating envelope. The paper has no table of contents (AIAA conference format);
-its Introduction, Appendix and Acknowledgments sit outside the shared spine.
+its Introduction and Acknowledgments sit outside the shared spine. The two-source
+appendix is in the whitepaper only (removed from the paper on 2026-11-25: it is not
+part of the model and does not teach it).
 
 In the paper each Results subsection opens with the one thing the case shows about the
 model, and the prose walks through the figures in order. A multi-page figure set
 (surface distributions, near-wall contours, grids, fields) contributes one page to the
 text; the complete sets are in the unnumbered **Supplementary Figures** section, in
-the order of the cases. The back matter is: Appendix, Supplementary Figures, the
+the order of the cases. The back matter is: Supplementary Figures, the
 closing epigraph, Acknowledgments, References. In Section III the figures and tables
 float (`[!htbp]`), with a `\FloatBarrier` before each subsection, so that the prose
 is continuous.
@@ -103,15 +105,22 @@ is continuous.
 each panel, what each symbol or line style is, and the condition. Results belong in
 the prose. Captions use the words of the prose ("the L2 grids", "the OpenFOAM
 replication", "the largest chi near the wall crosses one", "main element"), not the
-campaign's ("L2 pair", "port", "seed", "up-ladder", "sheets", "suites").
+campaign's ("L2 pair", "port", "seed", "up-ladder", "sheets", "suites"). The
+all-triangular grids are "the unstructured grids" in the paper; "cavity" is the name of
+the mesher's operator, is not a kind of mesh, and appears once, with its citation.
+The same holds inside the plots: row labels and legends say "unstructured L2" and
+"L2 unstr", never "cavity" or "cav". On 2026-11-24 the labels of 86 existing figure
+PDFs were replaced in place (same font, nothing else touched) and the nine scripts
+that draw them were changed to match, because regenerating them needs the full
+solution trees on 014. The whitepaper includes the same files.
 
 The paper does not `\input` the shared `_wp` tables directly. It inputs
 `tables/*_paper.tex`, which `repro/tools/make_paper_tables.py` writes from the `_wp`
 files with the paper's captions and floating placement. Change a caption in that
 script and rerun it; rerun it also after a campaign script re-emits a `_wp` table.
 
-The `_wp` table files in `tables/` and `appendix_twosource_body_wp.tex` are `\input`
-by both documents. An edit there changes both.
+The `_wp` table files in `tables/` are `\input` by both documents. An edit there
+changes both. `appendix_twosource_body_wp.tex` is `\input` by the whitepaper only.
 
 ## 5. Notation
 
@@ -147,6 +156,10 @@ by both documents. An edit there changes both.
   "velocity profile", where the shape of the layer is meant; "the freestream turbulence
   intensity", not "the disturbance level of the stream"; "the boundary layer", not
   "the layer"; "two ratios", not "two numbers"; the symbol or the name, not "the field" or "the two".
+- **The paper names nothing the reader cannot open**: no script, data file, directory,
+  case name or environment variable, and not "the campaign". Say what was done
+  ("digitized from Somers' Fig. 9") and cite what is public. The file names belong in
+  this file and in `repro/`.
 - **Never refer back to a list by position** ("the first job"). Restate the thing and
   say where it was introduced. Readers keep insights and forget bookkeeping.
 - **A special case or limit says so up front**: "Note that baseline SA is recovered
@@ -160,6 +173,8 @@ by both documents. An edit there changes both.
   2026). The first mention in Section III, in each Results subsection and in the
   Acknowledgments adds "(formerly Flow360)". File names and script names keep
   `flow360`.
+- **The XFOIL reimplementation is "Flexcompute Foil"** in the paper, its official name,
+  not "FlexFoil". File names and script names keep `flexfoil`.
 - `figs/flat_plate_batch_openfoam.pdf` is a copy of `../openfoam/flatplate_fig_openfoam.pdf`,
   drawn by `../openfoam/scripts/regen_flatplate_compare.py`. The OpenFOAM cases are on
   host 014 (`/local_data/qiqi/openfoam-sa-ai/cases`, visible on 015 under
@@ -220,10 +235,34 @@ the II.D growth-rate table, the $N=1$ stations that set $c_\mathrm{on}$, and the
 Falkner--Skan family numbers. The marcher's grid (`NX`, `NY` in `fig04_shapefactor.py`)
 is 3200 x 9600; the old 1600 x 1200 put the Blasius $N=1$ station 5% late.
 
+The distance from the $\chi=1$ crossing to the $\chi=c_{v1}$ crossing quoted in the
+opening of Section III is measured by `repro/cfd/chi_crossings_airfoil.py` on all 230
+airfoil solutions and stored in `data/chi_crossings_airfoil.json`. On 019 the slices it
+reads are at `/local_data_2/qiqi/sa-ai-airfoil-slices` (copied from 014); run it with
+`SAAI_CFD_ROOT` set to that directory and the compute venv python.
+
+`figs/twoelement_flap_chi_map.pdf` (the unrolled flap) is drawn by
+`../twoelement/plot_flap_chi_map.py out.pdf <five L2 case directories>`, in the black
+labelled-contour style of the other near-wall figures. It also writes `out.json`, kept
+as `data/twoelement_flap_layer.json`: the separation and reattachment stations, the
+smallest $C_f$, and the $\chi$ inside the flap's boundary layer that Section III.E
+quotes. The cases are links in `../twoelement/` to `/local_data_2/qiqi/sa-ai/twoelement_cases`
+on 019; use the compute venv python (about one minute).
+
 `check_results_prose.py` recomputes every difference and ratio that the prose of
 Section III derives from the tables (fronts against measurements, drag at the same
 lift, distances between crossings). A sentence that quotes such a number needs a line
 there.
+
+Section IV of the paper (Remarks on the Operating Envelope) has five subsections:
+Rotation, Wall Curvature, Sweep, Suction, The Wake of Another Surface. Each remark
+gives the flow, what stability theory finds (with a citation), the three terms of
+Eq. (7) on the exact profile, and the size of the difference; Table "The remarks of
+Section IV" collects them. `figs/envelope_sphere.pdf` is drawn by
+`repro/analytic/fig_envelope_sphere.py`. The viscous length there is
+$\delta_\nu=\sqrt{\nu x/U_e}$ (not $\ell$, which is the curvature vector of Eq. 17) and
+the frame rotation rate is $\Omega_\mathrm{f}$ (not $\Omega$). The remark on the
+smoothness of the sources is at the end of Section II.G.
 
 `envelope_bounds.py` asserts every number the documents quote for the operating
 envelope. If a quoted value changes, that script must change with it and still pass.

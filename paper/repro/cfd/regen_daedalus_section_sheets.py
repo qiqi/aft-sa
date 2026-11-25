@@ -300,7 +300,7 @@ def make_sheet(eta_q):
                Line2D([], [], color='0.3', ls='-', lw=1.5, label='str (O-grid)')]
     if got_cav:
         handles.append(Line2D([], [], color='0.3', ls='--', lw=1.5,
-                              label='cav (unstructured)'))
+                              label='unstructured'))
     handles += [Line2D([], [], color='0.3', lw=LEVEL_LW[l], label=l)
                 for l in LEVELS]
     handles.append(Line2D([], [], color='0.5', ls='-.', lw=0.8,

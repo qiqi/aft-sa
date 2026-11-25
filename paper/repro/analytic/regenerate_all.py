@@ -17,6 +17,7 @@ sys.path.insert(0, ANALYTIC)
 SCRIPTS = [
     # Sec. II -- the model and its committed figures
     "fig01_indicator_sphere.py", # fig:model (rate coordinate on the sphere)
+    "fig_envelope_sphere.py",    # Section IV: exact flows on the sphere
     "fig02_onset_graze.py",      # fig:onsetgraze (soft-min onset curve)
     "fig02_model_calibrate.py",  # fig:calibrate
     "amax_rayleigh.py",          # a_max = tanh-layer eigenvalue (asserts)

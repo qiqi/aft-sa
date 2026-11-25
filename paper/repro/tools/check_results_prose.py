@@ -1,12 +1,15 @@
 """Assert the numbers that the prose of Section III derives from its own tables.
 
 The tables in sa-ai.tex and tables/*_wp.tex are emitted by the campaign scripts.
+(The last block reads data/chi_crossings_airfoil.json, which
+repro/cfd/chi_crossings_airfoil.py writes from the solutions.)
 The prose quotes differences and ratios of their entries. This script recomputes
 each quoted difference from the table rows and fails if the prose and the tables
 disagree.
 
     python3 repro/tools/check_results_prose.py
 """
+import json
 import os
 import re
 
@@ -121,7 +124,7 @@ def main():
     between("reattachment aft of oil flow, min", min(drea), 0.025, 0.035)
     between("reattachment aft of oil flow, max", max(drea), 0.065, 0.07)
     between("bubble length at 7 deg, structured", s[7][3] - s[7][2], 0.035, 0.045)
-    between("bubble length at 7 deg, cavity", c[7][3] - c[7][2], 0.025, 0.035)
+    between("bubble length at 7 deg, unstructured", c[7][3] - c[7][2], 0.025, 0.035)
     between("measured bubble length at 7 deg", exp[7][3] - exp[7][2], 0.15, 0.15)
     ea = [a for a in sorted(exp) if exp[a][0] == exp[a][0]]
     ecl = [exp[a][0] for a in ea]
@@ -166,6 +169,25 @@ def main():
     d1 = [v for v in d1 if v == v]
     between("1e5: reattachment downstream of the front, min", min(d1), 0.165, 0.17)
     between("1e5: reattachment downstream of the front, max", max(d1), 0.385, 0.39)
+
+    # ------------------------------------------------------- two-element section
+    print("two-element section, upper surface of the flap, L2 grid")
+    fl = {c["alpha"]: c for c in json.load(open(os.path.join(
+        PAPER, "data", "twoelement_flap_layer.json")))["cases"]}
+    chi_inf = 7.1 * np.exp(-9.0)
+    for a in (-3.0, -1.0, 5.0):
+        between(f"alpha={a:+.0f}: chi in the layer, min / chi_inf", fl[a]["chi_layer"][0] / chi_inf, 0.98, 1.02)
+        between(f"alpha={a:+.0f}: chi in the layer, max", fl[a]["chi_layer"][1], 0.002, 0.0045)
+        between(f"alpha={a:+.0f}: separation", fl[a]["stations"][0], 0.455, 0.485)
+        between(f"alpha={a:+.0f}: reattachment", fl[a]["stations"][1], 0.585, 0.625)
+    assert fl[-5.0]["stations"] == []
+    between("alpha=-5: chi in the layer, min", fl[-5.0]["chi_layer"][0], 0.45, 0.55)
+    between("alpha=-5: chi in the layer, max", fl[-5.0]["chi_layer"][1], 0.75, 0.85)
+    between("alpha=-5: min chi / chi_inf", fl[-5.0]["chi_layer"][0] / chi_inf, 500, 600)
+    between("alpha=-5: e-folds to chi=1", np.log(1 / fl[-5.0]["chi_layer"][0]), 0.0, 1.0)
+    between("e-folds from chi_inf to one", np.log(1 / chi_inf), 6.9, 7.1)
+    between("alpha=-5: smallest C_f", fl[-5.0]["cf_min"], 1.5e-6, 2.5e-6)
+    between("alpha=-5: its station", fl[-5.0]["s_cf_min"], 0.505, 0.515)
 
     # ------------------------------------------------------------------ cylinder
     print("cylinder")
@@ -218,6 +240,19 @@ def main():
     get = lambda a, re, tun, seed: next(r for r in rows if r[0].startswith(a + "^")
                                         and r[1] == re and tun in r[2] and r[3] == seed)
     wind = lambda *k: float(get(*k)[9])
+    rms = lambda *k: float(get(*k)[7])
+    low = [r for r in rows if r[1] in ("1.52", "1.53")]
+    assert len(low) == 6
+    between("low Re: smallest rms", min(float(r[7]) for r in low), 0.025, 0.035)
+    between("low Re: largest rms", max(float(r[7]) for r in low), 0.095, 0.105)
+    for a, re, seed, want, nn in (("10", "1.52", "measured", 0.027, "8/8"), ("10", "1.52", "calibrated", 0.082, "8/8"),
+                                  ("5", "1.52", "measured", 0.068, "7/8"), ("5", "1.52", "calibrated", 0.028, "4/8"),
+                                  ("29.7", "1.53", "measured", 0.098, "12/12"), ("29.7", "1.53", "calibrated", 0.095, "12/12")):
+        between(f"rms at alpha={a}, Re={re}, {seed}", rms(a, re, "ttingen", seed), want, want)
+        assert get(a, re, "ttingen", seed)[5] == nn, (a, seed)
+    w10 = [float(r[9]) for r in rows if r[0].startswith("10^") and r[1] == "6.56"]
+    between("alpha=10 high Re: windward, smallest", min(w10), 0.375, 0.375)
+    between("alpha=10 high Re: windward, largest", max(w10), 0.549, 0.549)
     for a, re, want in (("0", "7.2", 0.174), ("2.5", "7.2", 0.181), ("5", "6.49", 0.239),
                         ("10", "6.56", 0.012)):
         d = wind(a, re, "ttingen", "calibrated") - wind(a, re, "ttingen", "measured")
@@ -226,6 +261,15 @@ def main():
             abs(wind("10", "6.56", "ONERA", "calibrated") - wind("10", "6.56", "ONERA", "measured")), 0, 0)
     for tu, n in ((0.106, 8.0), (0.161, 7.0)):
         between(f"N_crit of Tu={tu}%", -8.43 - 2.4 * np.log(tu / 100), n - 0.02, n + 0.02)
+    # ------------------------------------------- chi = 1 and chi = c_v1 crossings
+    print("distance from the chi = 1 crossing to the chi = c_v1 crossing, L2 grids")
+    cr = json.load(open(os.path.join(PAPER, "data", "chi_crossings_airfoil.json")))["cases"]
+    for foil, lo, hi, med in (("nlf", 0.002, 0.07, 0.02), ("eppler", 0.004, 0.30, 0.07)):
+        d = [v[1] - v[0] for n, c in cr.items() if "L2" in n and ("nlf" in n) == (foil == "nlf")
+             for v in c.values() if v[0] is not None and v[1] is not None]
+        between(f"{foil}: smallest", min(d), lo - 5e-4, lo + 5e-4)
+        between(f"{foil}: largest", max(d), hi - 5e-3, hi + 5e-3)
+        between(f"{foil}: median", float(np.median(d)), med - 5e-3, med + 5e-3)
     print("All quoted numbers reproduced.")
 
 

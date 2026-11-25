@@ -233,8 +233,11 @@ def great_circles(ax, basis, lw):
                 '--', color='0.5', lw=lw, dashes=(5, 3.5), zorder=2.5)
 
 
-def render(out_pdf, yaw, pitch, scale, label_at, profiles, png=None):
-    """Draw one view of the sphere and write it to figs/<out_pdf>."""
+def render(out_pdf, yaw, pitch, scale, label_at, profiles, png=None, points=()):
+    """Draw one view of the sphere and write it to figs/<out_pdf>.
+
+    points: (direction, color) pairs drawn as dots, for a flow whose triple
+    (X, Y, Z) has the same direction at every wall distance."""
     basis = view_basis(yaw, pitch)
     eh, ev, ew = basis
     fs = LABEL_FS*scale
@@ -276,6 +279,11 @@ def render(out_pdf, yaw, pitch, scale, label_at, profiles, png=None):
         h, v, w = sphere_coords(u, up, upp, eta, basis)
         draw_segments(ax, h, v, w, col, 1.4*scale, band=band, eta=eta)
 
+    for n, col in points:
+        n = np.asarray(n, float)/np.linalg.norm(n)
+        if n@ew >= 0:
+            ax.plot([n@eh], [n@ev], 'o', color=col, ms=6.5*scale, mec='white',
+                    mew=0.8*scale, zorder=7)
     wall = np.array([1.0, 1.0, 0.0])/SQ2
     if wall@ew >= 0:
         ax.plot([wall@eh], [wall@ev], 'k.', ms=5*scale, zorder=6)

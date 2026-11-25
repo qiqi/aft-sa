@@ -530,6 +530,59 @@ EXP_XTR = {-8: {'upper': (0.542, False), 'lower': None},
            15: {'upper': None,         'lower': (0.66, True)}}
 
 
+# The measured fronts, read from the DIGITIZED Somers Fig. 9 rather than a
+# hand-typed table. The figure records, per lift coefficient, the last laminar
+# and first turbulent orifice, so a case is bracketed rather than pointed; the
+# lookup is by the computed c_l, which is what the six hand-typed entries did
+# for the ladder incidences and what the extension incidences had no entry for
+# at all.
+_SOMERS_PATH = f'{PD}/data/somers1981_nlf0416_transition_by_Re.json'
+_SOMERS = None
+
+def _cl_from_forces(case_d):
+    """Converged C_L from total_forces_v2.csv, or None."""
+    import csv as _csv
+    p = os.path.join(case_d, 'total_forces_v2.csv')
+    if not os.path.exists(p):
+        return None
+    try:
+        with open(p) as fh:
+            rows = list(_csv.reader(fh))
+        hdr = [h.strip() for h in rows[0]]
+        i = hdr.index('CL')
+        return float(rows[-1][i])
+    except Exception:
+        return None
+
+
+
+def somers_bracket(cl, side, re_key='re_4e6'):
+    """(x_last_laminar, x_first_turbulent) at this c_l, or (None, None).
+
+    Linear in c_l between the recorded symbols; returns None outside their
+    range rather than extrapolating.
+    """
+    global _SOMERS
+    if _SOMERS is None:
+        import json as _j
+        _SOMERS = _j.load(open(_SOMERS_PATH))
+    rows = [r for r in _SOMERS[re_key][side] if r.get('x_last_laminar') is not None]
+    if not rows:
+        return (None, None)
+    rows.sort(key=lambda r: r['cl'])
+    cls = np.array([r['cl'] for r in rows])
+    if cl < cls[0] or cl > cls[-1]:
+        return (None, None)
+    lam = np.interp(cl, cls, [r['x_last_laminar'] for r in rows])
+    tur = [r['x_first_turbulent'] for r in rows]
+    if all(t is None for t in tur):
+        return (float(lam), None)
+    ok = [i for i, t in enumerate(tur) if t is not None]
+    turb = (np.interp(cl, cls[ok], [tur[i] for i in ok])
+            if cls[ok[0]] <= cl <= cls[ok[-1]] else None)
+    return (float(lam), None if turb is None else float(turb))
+
+
 def _n_pre_transition(x, n):
     """e^N envelope up to its transition point: past transition the
     reference resets N to zero -- an artifact, not an envelope."""
@@ -666,12 +719,19 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
             ax_cf.plot(xd['lower']['x'], _fsl, '-.', color=LO_COLOR, lw=1.1, alpha=0.6)
         # Measured onsets (Somers orifices): triangles on the x-axis of the Cf
         # row; open marker = extrapolated beyond the recorded orifices.
+        # the measured fronts are indexed by lift, so read this case's c_l off
+        # the finest structured grid (families agree to <1% there)
+        cl_here = _cl_from_forces(case_dir('str', 'L2', alpha))
         for side, color in (('upper', UP_COLOR), ('lower', LO_COLOR)):
-            e = EXP_XTR.get(int(alpha), {}).get(side)
-            if e is None: continue
-            x_e, extrap = e
-            ax_cf.plot(x_e, 0.0, marker='^', ms=9, color=color,
-                       mfc='none' if extrap else color, mew=1.5,
+            lam, turb = (somers_bracket(cl_here, side)
+                         if cl_here is not None else (None, None))
+            if lam is None:
+                continue
+            if turb is not None:      # bracket: last laminar -> first turbulent
+                ax_cf.plot([lam, turb], [0.0, 0.0], '-', color=color, lw=2.5,
+                           alpha=0.75, clip_on=False, zorder=6)
+            ax_cf.plot(lam, 0.0, marker='^', ms=9, color=color,
+                       mfc=color if turb is not None else 'none', mew=1.5,
                        clip_on=False, zorder=6, ls='none')
         for a in [ax_reo, ax_P, ax_n, ax_cp, ax_cf]: a.set_xlim(0, 1)
         ax_cf.set_ylim(0, 0.025 if max(alphas) > 6 else 0.008)
@@ -687,16 +747,16 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
                          Line2D([],[],color='0.3', ls='-',  lw=1.6, label='L1 str'),
                          Line2D([],[],color='0.3', ls='-',  lw=2.4, label='L2 str')]
     if 'cav' in meshes:
-        legend_items += [Line2D([],[],color='0.3', ls='--', lw=0.8, label='L0 cav'),
-                         Line2D([],[],color='0.3', ls='--', lw=1.6, label='L1 cav'),
-                         Line2D([],[],color='0.3', ls='--', lw=2.4, label='L2 cav')]
+        legend_items += [Line2D([],[],color='0.3', ls='--', lw=0.8, label='L0 unstr'),
+                         Line2D([],[],color='0.3', ls='--', lw=1.6, label='L1 unstr'),
+                         Line2D([],[],color='0.3', ls='--', lw=2.4, label='L2 unstr')]
     if any_mfoil:
         legend_items += [Line2D([],[],color='0.3', ls=':',  lw=1.2, alpha=0.5, label='mfoil ($e^9$)')]
     if any_xfoil:
         legend_items += [Line2D([],[],color='0.3', ls='-.', lw=1.1, alpha=0.6, label='xfoil ($e^9$)')]
     if any_ff:
         legend_items += [Line2D([],[],color='0.3', ls=':', lw=1.2, alpha=0.5, label='FlexFoil $N$ ($e^9$)')]
-    if any(EXP_XTR.get(int(a), {}).get(s) for a in alphas for s in ('upper','lower')):
+    if True:
         legend_items += [Line2D([],[],color='0.3', marker='^', ls='none', ms=8,
                                 label='expt. onset'),
                          Line2D([],[],color='0.3', marker='^', ls='none', ms=8,
@@ -746,7 +806,7 @@ def make_landscape_figure(alphas, out_name, title):
     handles = [Line2D([],[],color=UP_COLOR, lw=2, label='upper'),
                Line2D([],[],color=LO_COLOR, lw=2, label='lower'),
                Line2D([],[],color='0.3', ls='-',  lw=1.6, label='str (O-grid)'),
-               Line2D([],[],color='0.3', ls='--', lw=1.6, label='cav (unstructured)')]
+               Line2D([],[],color='0.3', ls='--', lw=1.6, label='unstructured')]
     axs[-1].legend(handles=handles, fontsize=8, frameon=False, loc='lower right')
     plt.tight_layout(rect=(0,0,1,0.96))
     plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=130)
@@ -883,7 +943,7 @@ def make_landscape_normal_figure(alphas, out_name, title, L_probe=0.01, n_probe=
     handles = [Line2D([],[],color=UP_COLOR, lw=2, label='upper'),
                Line2D([],[],color=LO_COLOR, lw=2, label='lower'),
                Line2D([],[],color='0.3', ls='-',  lw=1.6, label='str (O-grid)'),
-               Line2D([],[],color='0.3', ls='--', lw=1.6, label='cav (unstructured)')]
+               Line2D([],[],color='0.3', ls='--', lw=1.6, label='unstructured')]
     axs[-1].legend(handles=handles, fontsize=8, frameon=False, loc='lower right')
     plt.tight_layout(rect=(0,0,1,0.96))
     plt.savefig(f'{PD}/figs/{out_name}.pdf'); plt.savefig(f'/tmp/{out_name}.png', dpi=130)

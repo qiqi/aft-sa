@@ -194,7 +194,7 @@ def make_fig(re_list, out):
         ax_cf.set_xlim(0, 1); ax_cf.set_xlabel('$x/c$')
     handles = [Line2D([], [], color=UP, lw=2, label='upper'),
                Line2D([], [], color=LO, lw=2, label='lower'),
-               Line2D([], [], color='0.3', lw=2, ls='--', label='cav (unstructured)'),
+               Line2D([], [], color='0.3', lw=2, ls='--', label='unstructured'),
                Line2D([], [], color='0.3', lw=2, ls='-', label='str (O-grid)'),
                Line2D([], [], color='0.3', lw=R.LEVEL_LW['L0'], label='L0'),
                Line2D([], [], color='0.3', lw=R.LEVEL_LW['L1'], label='L1'),

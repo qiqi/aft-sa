@@ -11,7 +11,9 @@ The four claims, each asserted at the end of its section so this script fails if
 the kernel or the campaign data drifts:
 
   A. ROTATION.  Frame rotation enters the kernel only through the vorticity,
-     omega -> omega + 2 Omega.  Solid-body rotation is read as STABLE exactly,
+     omega -> omega + 2 Omega -- X and Z are untouched, since the relative
+     velocity field in the body frame does not change.  Solid-body rotation
+     (no wall) is read as STABLE exactly,
      because the velocity indicator dominates: Y/X = 2d/r.  On a real layer the
      rate shifts by a coefficient times ell/L, with ell = sqrt(nu x / U_e) and
      Omega = U_inf / L.
@@ -58,7 +60,8 @@ from scipy.integrate import cumulative_trapezoid, solve_ivp
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from lib.boundary_layer import Blasius, FalknerSkanWedge      # noqa: E402
-from lib.sphere_kernel import sphere_indicators, sphere_rate  # noqa: E402
+from lib.sphere_kernel import (sphere_indicators, sphere_rate,  # noqa: E402
+                               A_MAX, reom_crit)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PAPER = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -141,7 +144,12 @@ def eppler_bubble(alpha_deg, level="L2"):
     got = [d[f"{fam}_{level}"][key] for fam in ("str", "cav")
            if key in d.get(f"{fam}_{level}", {})]
     assert got, f"Eppler alpha={alpha_deg} {level} missing from the JSON"
-    return float(np.mean([g[0] for g in got])), float(np.mean([g[1] for g in got]))
+    # An incidence whose upper surface carries no closed bubble records None
+    # for its stations; average only over the families that have one.
+    def _m(i):
+        v = [g[i] for g in got if g[i] is not None]
+        return float(np.mean(v)) if v else None
+    return _m(0), _m(1)
 
 
 def cylinder_traverse():
@@ -276,7 +284,7 @@ def section_rotation(bl):
 
     # A1: solid-body rotation.  X = Omega r, Y = 2 Omega d, Z = 0.  Homogeneous
     # of degree zero, so Omega cancels and only d/r survives.
-    print("\n  A1.  Solid-body rotation, X = Omega*r, Y = 2*Omega*d, Z = 0:")
+    print("\n  A1.  Rigid rotation. Stationary wall: X = Omega*r, Y = 2*Omega*d, Z = 0:")
     print("       d/r        P            rate")
     worst = -np.inf
     for dor in (1e-4, 1e-3, 1e-2, 1e-1):
@@ -288,40 +296,96 @@ def section_rotation(bl):
         rate = sphere_rate(u, dudy, d2u, y, nu=1.0)
         print(f"     {dor:7.0e}   {P[0]:+.4e}   {rate[0]:.3e}")
         worst = max(worst, P[0])
-        assert rate[0] == 0.0, "solid-body rotation must not amplify"
-    assert worst < 0.0, "solid-body rotation must read P < 0"
-    print("       -> P < 0 and rate identically 0 at every d/r: the |u| term,")
-    print("          not the vorticity, is what makes the kernel inert here.")
+        assert rate[0] == 0.0, "rotating freestream over a STATIONARY wall must not amplify"
+    assert worst < 0.0, "rotating freestream over a stationary wall must read P < 0"
+    print("       -> P < 0 and rate identically 0 at every d/r, because a wall")
+    print("          at rest puts the full Omega*r into the |u| indicator.")
+    # The other reading: a wall CO-ROTATING with the fluid. Then the velocity
+    # relative to the nearest-wall point is Omega*d, not Omega*r, so Y/X = 2
+    # exactly and the kernel amplifies -- rigid rotation, a change of frame,
+    # is read as transitional. This is the limitation Remark 1 states.
+    u = np.array([1.0]); dudy = np.array([2.0]); d2u = np.array([0.0])
+    y = np.array([1.0])
+    P_co, _, _, _ = sphere_indicators(u, dudy, d2u, y)
+    rate_co = sphere_rate(u, dudy, d2u, y, nu=1e-9)
+    print(f"\n       co-rotating wall (Y/X = 2 exactly): P = {P_co[0]:+.3f}, "
+          f"rate = {rate_co[0]:.4f} = {rate_co[0]/A_MAX:.2f} a_max")
+    assert P_co[0] > 0.35, "co-rotating rigid rotation must read P ~ 0.40"
 
-    # A2: sensitivity of a real layer.  omega -> omega + 2*Omega means
-    # du/dy -> du/dy + 2*Omega; nondimensionally du_extra = 2*(ell/L).
+
+    # A2: sensitivity of a real layer.  Frame rotation moves BOTH indicators:
+    # the absolute vorticity gives dY = 2*Omega*d and the velocity relative to
+    # the (now moving) nearest-wall point gives dX = Omega*d.  Perturbing Y
+    # alone -- as this block used to -- overstates the coefficient by ~2.3x
+    # (41.3 vs 18.3 per ell/L), because dX partly cancels dY inside Y - X - Z.
     X, Y, Z = bl.u, bl.eta * bl.du, 0.5 * bl.eta ** 2 * bl.d2u
     P, _, _, _ = sphere_indicators(*bl.triple_inputs())
     ipk = int(np.argmax(P))
     dPdY = dP_dY_analytic(X[ipk], Y[ipk], Z[ipk])
     # dY = 2*eta*(ell/L)  =>  d(maxP)/d(ell/L) = dP/dY * 2*eta_peak
-    coeff = float(dPdY * 2.0 * bl.eta[ipk] / P[ipk])
+    # d(maxP)/d(ell/L) from BOTH shifts, by finite difference on the triple
+    def _maxP(eps):
+        Xe = bl.u + eps*bl.eta
+        Ye = bl.eta*bl.du + 2.0*eps*bl.eta
+        Ze = 0.5*bl.eta**2*bl.d2u
+        r2 = Xe*Xe + Ye*Ye
+        return float(np.max((Ye/np.sqrt(r2 + 1e-30))
+                            * (Ye - Xe - Ze)/np.sqrt(r2 + Ze*Ze + 1e-30)))
+    _e = 1e-6
+    coeff = (_maxP(_e) - _maxP(0.0))/_e/P[ipk]
     dY_rel = float(2.0 * bl.eta[ipk] / Y[ipk])
     print(f"\n  A2.  Blasius peak at eta = {bl.eta[ipk]:.3f}, max P = {P[ipk]:.4f}")
     print(f"       d(max P)/P = {coeff:.2f} * (ell/L)      [exact derivative]")
     print(f"       dY/Y       = {dY_rel:.2f} * (ell/L)")
     print(f"       amplification of the perturbation: {coeff/dY_rel:.2f}x")
-    print("       (g = (Y-X-Z)/R is a near-cancellation in the amplifying band)")
+    print("       (I_hat = (Y-X-Z)/U_loc is a near-cancellation in the amplifying band)")
 
     # Per case, at the campaign's own stations, with Omega = U_inf / c: the
     # geometric scale of an airfoil case is its chord, so L = c and eps = ell/c.
     # Evaluated exactly (finite perturbation), not from the linear coefficient.
-    print(f"\n       {'case':30s} {'Re_c':>8s} {'x/c':>6s} {'ell/c':>9s} {'dP/P':>9s}")
+    print(f"\n       {'case':30s} {'Re_L':>8s} {'x/L':>6s} {'ell/L':>9s} {'dP/P':>9s}")
     per_case = {}
-    for label, Re, station in (
-            ("NLF(1)-0416, alpha=0", NLF_RE, nlf_upper_transition(0.0)),
-            ("Eppler 387, alpha=0", EPP_RE, eppler_bubble(0.0)[0])):
+    cases = []
+    # Airfoils, every incidence the campaign ran, at the case's own amplifying
+    # station: L = chord, so Omega = U_inf/c is one rotation per chord travelled.
+    for a_deg in (-8, -4, 0, 4, 9, 15):
+        try:
+            cases.append((f"NLF(1)-0416, alpha={a_deg:+d}", NLF_RE,
+                          nlf_upper_transition(float(a_deg))))
+        except LookupError:
+            pass
+    for a_deg in (0, 2, 5, 7):
+        try:
+            x_ls = eppler_bubble(float(a_deg))[0]
+        except (AssertionError, KeyError):
+            continue
+        if x_ls is None:      # no closed bubble at this incidence
+            continue
+        cases.append((f"Eppler 387, alpha={a_deg:+d}", EPP_RE, x_ls))
+    # The remaining campaign geometries, each at its own reference length:
+    # two-element total chord, Daedalus root chord, spheroid body length,
+    # cylinder diameter. Stations are the paper's own reported fronts.
+    cases += [
+        ("two-element, flap bubble", 1.0e6, 0.85),
+        ("Daedalus, eta=0.10", 5.0e5, 0.45),
+        ("6:1 spheroid, alpha=10", 1.5e6, 0.653),   # the campaign case, phi=109 deg
+    ]
+    # cylinder: arc length to the transition angle of the drag-crisis table,
+    # parsed, in units of the diameter
+    theta_tr = dict(cylinder_traverse())
+    for re_d in (1.0e5, 1.0e7):
+        cases.append((f"cylinder, Re_D = {re_d:.0e}".replace("e+0", "e"), re_d,
+                      0.5 * np.deg2rad(theta_tr[re_d])))
+    for label, Re, station in cases:
         ell = np.sqrt(station / Re)
-        P1 = bl.peak_P(du_extra=2.0 * ell)
+        P1 = _maxP(ell)
         shift = (P1 - float(np.max(P))) / float(np.max(P))
         per_case[label] = (Re, station, ell, shift)
         print(f"       {label:30s} {Re:8.1e} {station:6.3f} {ell:9.2e} "
               f"{shift:+9.3%}")
+    print("       (Omega = U_inf/L in every row; the shift scales as ell/L,")
+    print("        i.e. as 1/sqrt(Re_L) at fixed station -- so it is the")
+    print("        low-Reynolds cases that feel a rotating frame at all.)")
     return coeff, dY_rel, P[ipk], per_case
 
 
@@ -408,7 +472,7 @@ def section_curvature(bl):
     # --- spheroid: TRANSVERSE curvature, local body radius of a 6:1 spheroid
     print()
     Re_L = spheroid_Re()
-    for phi, xL in spheroid_stations()[::3]:
+    for phi, xL in spheroid_stations():      # ALL stations: [::3] hid the -8.2% aft one
         r0 = spheroid_radius(xL)
         ell = np.sqrt(xL / Re_L)
         eps = ell / r0
@@ -484,14 +548,27 @@ def section_attachment_line(bl):
         a = sphere_rate(g, gp, gpp, eta, nu=1.0 / Rbar)
         print(f"    {Rbar:8.0f} {P.max():+9.4f} {a.max():11.3e}")
 
-    lo, hi = 1e1, 1e7
-    for _ in range(200):
-        mid = np.sqrt(lo * hi)
-        if sphere_rate(g, gp, gpp, eta, nu=1.0 / mid).max() >= 0.5 * a_sat:
-            hi = mid
-        else:
-            lo = mid
-    Rcrit = np.sqrt(lo * hi)
+    def rbar_at(fraction):
+        """Rbar at which the largest gated rate is this fraction of a_sat."""
+        lo, hi = 1e1, 1e7
+        for _ in range(200):
+            mid = np.sqrt(lo * hi)
+            if sphere_rate(g, gp, gpp, eta, nu=1.0 / mid).max() >= fraction * a_sat:
+                hi = mid
+            else:
+                lo = mid
+        return float(np.sqrt(lo * hi))
+
+    Rcrit = rbar_at(0.5)
+    section_attachment_line.gate = {
+        "R10": rbar_at(0.1), "R90": rbar_at(0.9),
+        "at245": float(sphere_rate(g, gp, gpp, eta, nu=1.0 / 245.0).max() / a_sat),
+        "at583": float(sphere_rate(g, gp, gpp, eta, nu=1.0 / 583.0).max() / a_sat)}
+    print("  gated/ungated largest rate: 10%% at Rbar = %.0f, 90%% at %.0f; "
+          "%.0f%% at 245, %.0f%% at 583" % (
+              section_attachment_line.gate["R10"], section_attachment_line.gate["R90"],
+              100 * section_attachment_line.gate["at245"],
+              100 * section_attachment_line.gate["at583"]))
     Pb = bl.peak_P()
     ab = sphere_rate(*bl.triple_inputs(), nu=1.0 / 1e12).max()
     print(f"\n  kernel fires (half the saturated rate) at Rbar = {Rcrit:.0f}")
@@ -529,6 +606,102 @@ def section_suction(bl):
 
 
 # ------------------------------------------------------------ convergence ---
+def transverse_shift(bl, ell_over_r0):
+    """Relative shift of max P on a body of revolution in axial flow.
+
+    For a wall-parallel axial velocity u(r), lap(u).uhat = u'' + u'/r with
+    r = r0 + d: the term u'/r of the transverse curvature, and no u/r^2 term
+    (that one belongs to a flow that turns with the wall, section B above).
+    """
+    r = 1.0 / ell_over_r0 + bl.eta
+    P0, _, _, _ = sphere_indicators(*bl.triple_inputs())
+    P1, _, _, _ = sphere_indicators(*bl.triple_inputs(d2u_extra=bl.du / r))
+    return (float(np.max(P1)) - float(np.max(P0))) / float(np.max(P0))
+
+
+def cancellation_ratio(u, du, d2u, eta):
+    """|Y-X-Z| / (|X|+|Y|+|Z|) at the wall distance of the largest Omega_hat*I_hat."""
+    P, _, _, _ = sphere_indicators(u, du, d2u, eta)
+    k = int(np.argmax(P))
+    X, Y, Z = u[k], eta[k] * du[k], 0.5 * eta[k] ** 2 * d2u[k]
+    return float(abs(Y - X - Z) / (abs(X) + abs(Y) + abs(Z)))
+
+
+def section_paper_remarks(bl):
+    """Quantities quoted in Section IV of the paper that sections A-D do not print."""
+    print("=" * 78)
+    print("E.  FURTHER QUANTITIES QUOTED IN SECTION IV OF THE PAPER")
+    print("=" * 78)
+    out = {}
+
+    # E1: rotation of the opposite sense.  X -> X - Omega d, Y -> Y - 2 Omega d.
+    def max_p(eps):
+        Xe = bl.u + eps * bl.eta
+        Ye = bl.eta * bl.du + 2.0 * eps * bl.eta
+        Ze = 0.5 * bl.eta ** 2 * bl.d2u
+        r2 = Xe * Xe + Ye * Ye
+        return float(np.max((Ye / np.sqrt(r2 + 1e-30))
+                            * (Ye - Xe - Ze) / np.sqrt(r2 + Ze * Ze + 1e-30)))
+    e = 1e-6
+    out["rot_plus"] = (max_p(e) - max_p(0.0)) / e / max_p(0.0)
+    out["rot_minus"] = (max_p(-e) - max_p(0.0)) / e / max_p(0.0)
+    print(f"\n  E1.  rotation in the sense of the layer's vorticity: {out['rot_plus']:+.2f} (ell/L)")
+    print(f"       rotation in the opposite sense:                  {out['rot_minus']:+.2f} (ell/L)")
+
+    # E2: fluid in solid-body rotation with its wall, inertial frame: (1, 2, 0).
+    P, Om, Ih, _ = sphere_indicators(np.array([1.0]), np.array([2.0]),
+                                     np.array([0.0]), np.array([1.0]))
+    out["rigid"] = (float(Om[0]), float(Ih[0]), float(P[0]), float(reom_crit(P[0])))
+    print(f"\n  E2.  rigid rotation with the wall: Omega_hat = {Om[0]:.4f} (2/sqrt 5 = "
+          f"{2/np.sqrt(5):.4f}), I_hat = {Ih[0]:.4f} (1/sqrt 5), product = {P[0]:.4f};")
+    print(f"       onset threshold of Re_Omega at that product: {out['rigid'][3]:.1f}")
+
+    # E3: I_hat as a difference of larger terms, across the Falkner-Skan family.
+    print("\n  E3.  |Y-X-Z| / (|X|+|Y|+|Z|) at the wall distance of the largest product:")
+    out["cancel"] = {}
+    for beta in (0.10, 0.0, -0.10, -0.1988):
+        w = FalknerSkanWedge(beta)
+        c = cancellation_ratio(w.u, w.dudeta, np.gradient(w.dudeta, w.eta), w.eta)
+        out["cancel"][beta] = c
+        print(f"       beta = {beta:+.4f}: {c:.3f}")
+
+    # E4: first-order coefficient of the curvature shift.
+    out["curv_coeff"] = (curvature_shift(bl, 1e-4, True) / 1e-4,
+                         curvature_shift(bl, 1e-4, False) / 1e-4,
+                         transverse_shift(bl, 1e-4) / 1e-4)
+    print(f"\n  E4.  d(max P)/P per ell/R: concave {out['curv_coeff'][0]:+.2f}, "
+          f"convex {out['curv_coeff'][1]:+.2f}, transverse {out['curv_coeff'][2]:+.2f}")
+    # Goertler number of a Blasius layer at fixed ell/R: Re_theta sqrt(theta/R)
+    out["goertler"] = {}
+    for rex in (1e6, 1e8):
+        g = bl.theta * np.sqrt(rex) * np.sqrt(bl.theta * 1e-3)
+        out["goertler"][rex] = float(g)
+        print(f"       ell/R = 1e-3, Re_x = {rex:.0e}: G_theta = {g:.0f}, "
+              f"model shift {curvature_shift(bl, 1e-3, True):+.2%}")
+
+    # E5: transverse curvature at the spheroid stations and on finer bodies.
+    print("\n  E5.  transverse curvature, axial form u'' + u'/r, spheroid stations:")
+    Re_L = spheroid_Re()
+    out["transverse"] = {}
+    for fine in (6.0, 10.0, 20.0, 40.0):
+        s = [transverse_shift(bl, np.sqrt(xL / Re_L) / (spheroid_radius(xL) * SPHEROID_ASPECT / fine))
+             for _, xL in spheroid_stations()]
+        out["transverse"][fine] = (max(s), min(s))
+        print(f"       {fine:.0f}:1  {max(s):+.1%} to {min(s):+.1%}")
+    out["transverse_unit"] = transverse_shift(bl, 1.0)
+    print(f"       ell = r0: {out['transverse_unit']:+.1%}")
+
+    # E6: asymptotic suction profile, closed form I = exp(-s)(1 + s + s^2/2) - 1.
+    s = np.linspace(0.0, 30.0, 6001)
+    closed = np.exp(-s) * (1.0 + s + 0.5 * s * s) - 1.0
+    direct = s * np.exp(-s) - (1.0 - np.exp(-s)) + 0.5 * s * s * np.exp(-s)
+    out["suction_closed"] = float(np.abs(closed - direct).max())
+    out["suction_max"] = float(closed[1:].max())
+    print(f"\n  E6.  suction: closed form of I agrees to {out['suction_closed']:.1e}; "
+          f"largest I away from the wall = {out['suction_max']:+.2e}")
+    return out
+
+
 def check_convergence(bl):
     """The reported peak must not depend on the profile grid or its extent."""
     P_ref = bl.peak_P()
@@ -571,18 +744,20 @@ def main():
     Rcrit, P_al, a_ratio = section_attachment_line(bl)
     print()
     P_asbl_max, P_asbl_min = section_suction(bl)
+    print()
+    rem = section_paper_remarks(bl)
 
     # ---- assertions on every number the papers quote -----------------------
     print("\n" + "=" * 78)
     print("ASSERTIONS ON THE QUOTED NUMBERS")
     print("=" * 78)
     checks = [
-        ("rotation sensitivity coefficient ~ 41", abs(coeff - 41.0) < 1.5),
-        ("rotation amplification factor ~ 4.3", abs(coeff / dY_rel - 4.3) < 0.3),
-        ("NLF rotation shift ~ 1.3%",
-         abs(rot_cases["NLF(1)-0416, alpha=0"][3] - 0.013) < 3e-3),
-        ("Eppler rotation shift ~ 6.7%",
-         abs(rot_cases["Eppler 387, alpha=0"][3] - 0.067) < 1e-2),
+        ("rotation sensitivity coefficient ~ 18.3", abs(coeff - 18.3) < 0.8),
+        ("rotation amplification factor ~ 1.9", abs(coeff / dY_rel - 1.91) < 0.15),
+        ("NLF rotation shift ~ 0.6%",
+         abs(rot_cases["NLF(1)-0416, alpha=+0"][3] - 0.0057) < 1.5e-3),
+        ("Eppler rotation shift ~ 3.0%",
+         abs(rot_cases["Eppler 387, alpha=+0"][3] - 0.0295) < 5e-3),
         ("Blasius peak P ~ 0.078", abs(P_bl - 0.078) < 1e-3),
         ("NLF curvature shift within 0.3%",
          abs(curv["NLF(1)-0416 upper, alpha=0"][3]) < 3e-3),
@@ -592,6 +767,54 @@ def main():
         ("attachment-line rate 70-95% of Blasius", 0.70 < a_ratio < 0.95),
         ("suction layer max P is zero", P_asbl_max <= 0.0 + 1e-12),
         ("suction layer is strictly stable inside", P_asbl_min < 0.0),
+        ("rotation table of the paper", all(
+            f"{100 * rot_cases[k][3]:+.{nd}f}" == v and abs(rot_cases[k][1] - x) < 6e-4
+            for k, x, v, nd in (("NLF(1)-0416, alpha=-8", 0.560, "+0.7", 1),
+                                ("NLF(1)-0416, alpha=+0", 0.389, "+0.6", 1),
+                                ("NLF(1)-0416, alpha=+15", 0.003, "+0.05", 2),
+                                ("Eppler 387, alpha=+0", 0.522, "+2.9", 1),
+                                ("Eppler 387, alpha=+7", 0.388, "+2.5", 1),
+                                ("two-element, flap bubble", 0.850, "+1.7", 1),
+                                ("Daedalus, eta=0.10", 0.450, "+1.7", 1),
+                                ("6:1 spheroid, alpha=10", 0.653, "+1.2", 1),
+                                ("cylinder, Re_D = 1e5", 0.711, "+4.9", 1),
+                                ("cylinder, Re_D = 1e7", 0.755, "+0.5", 1)))),
+        ("dY/Y coefficient ~ 9.6", abs(dY_rel - 9.6) < 0.05),
+        ("NLF curvature shift -0.15%", abs(curv["NLF(1)-0416 upper, alpha=0"][3] + 0.0015) < 1e-4),
+        ("Eppler curvature shift -0.32%", abs(curv["Eppler 387 upper, alpha=0 sep"][3] + 0.0032) < 1e-4),
+        ("rotation, opposite sense: -18.3", abs(rem["rot_minus"] + 18.3) < 0.8),
+        ("rotation, same sense: +18.3", abs(rem["rot_plus"] - 18.3) < 0.8),
+        ("rigid rotation: product is 2/5", abs(rem["rigid"][2] - 0.4) < 1e-9),
+        ("rigid rotation: threshold ~ 133", abs(rem["rigid"][3] - 133.0) < 1.0),
+        ("cancellation ratio, beta=+0.10 ~ 0.04", abs(rem["cancel"][0.10] - 0.04) < 0.005),
+        ("cancellation ratio, Blasius ~ 0.08", abs(rem["cancel"][0.0] - 0.08) < 0.005),
+        ("cancellation ratio, beta=-0.10 ~ 0.16", abs(rem["cancel"][-0.10] - 0.16) < 0.005),
+        ("cancellation ratio, separation ~ 0.39", abs(rem["cancel"][-0.1988] - 0.39) < 0.005),
+        ("curvature coefficient ~ +4.8 concave", abs(rem["curv_coeff"][0] - 4.8) < 0.1),
+        ("curvature coefficient ~ -4.8 convex", abs(rem["curv_coeff"][1] + 4.8) < 0.1),
+        ("curvature coefficient ~ -4.8 transverse", abs(rem["curv_coeff"][2] + 4.8) < 0.1),
+        ("Goertler number 17 and 171", abs(rem["goertler"][1e6] - 17.1) < 0.3
+         and abs(rem["goertler"][1e8] - 171.0) < 3.0),
+        ("concave shift at ell/R=1e-3 ~ +0.48%", abs(curvature_shift(bl, 1e-3, True) - 0.0048) < 2e-4),
+        ("transverse, 6:1: -3.0% to -8.8%", abs(rem["transverse"][6.0][0] + 0.030) < 1e-3
+         and abs(rem["transverse"][6.0][1] + 0.088) < 1e-3),
+        ("transverse, 10:1: -4.9% to -14.2%", abs(rem["transverse"][10.0][0] + 0.049) < 1e-3
+         and abs(rem["transverse"][10.0][1] + 0.142) < 1e-3),
+        ("transverse, 20:1: -9.6% to -26.4%", abs(rem["transverse"][20.0][0] + 0.096) < 1e-3
+         and abs(rem["transverse"][20.0][1] + 0.264) < 1e-3),
+        ("transverse, 40:1: -18.3% to -46.1%", abs(rem["transverse"][40.0][0] + 0.183) < 1e-3
+         and abs(rem["transverse"][40.0][1] + 0.461) < 1e-3),
+        ("transverse, ell = r0: rate vanishes", rem["transverse_unit"] <= -0.999),
+        ("suction closed form", rem["suction_closed"] < 1e-12 and rem["suction_max"] < 0.0),
+        ("attachment-line onset 603", abs(Rcrit - 603.0) < 1.0),
+        ("attachment-line gate: 10% at 371, 90% at 839",
+         abs(section_attachment_line.gate["R10"] - 371.0) < 1.0
+         and abs(section_attachment_line.gate["R90"] - 839.0) < 1.0),
+        ("attachment-line gate: 3% at Rbar = 245, 583 inside the range",
+         abs(section_attachment_line.gate["at245"] - 0.03) < 0.005
+         and 0.1 < section_attachment_line.gate["at583"] < 0.9),
+        ("attachment-line product 0.064, 82% of Blasius", abs(P_al - 0.064) < 5e-4
+         and abs(a_ratio - 0.82) < 0.01),
     ]
     bad = 0
     for name, ok in checks:

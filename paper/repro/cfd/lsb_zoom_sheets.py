@@ -96,7 +96,7 @@ def budget(case_d, Re, stations, xs, dists, ut):
 
 def make(Rk, L_probe):
     cases = [(f'{B}/sweep_strL2_Re{Rk}k_a5', 'O-grid L2'),
-             (f'{B}/sweep_cavL2_Re{Rk}k_a5', 'cavity L2')]
+             (f'{B}/sweep_cavL2_Re{Rk}k_a5', 'unstructured L2')]
     Re = Rk*1000.0
     fig, axs = plt.subplots(len(cases), 2, figsize=(13, 4.1*len(cases)),
                             sharex=True)

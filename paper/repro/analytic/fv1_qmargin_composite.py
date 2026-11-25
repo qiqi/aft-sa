@@ -33,6 +33,17 @@ def q_max_in_band(Pi, dplus, band=(2.4, 73.0)):
     return float(q.max())
 
 
+def q_sa_wall_layer(yp_max=1.0e5, n=400001):
+    """q in SA's own solution of the wall layer: nuHat = kappa u_tau d, so that
+    chi = kappa y+, and dU+/dy+ = 1/(1 + chi f_v1) in the constant-stress layer.
+    Returns (chi, q) with q = U+_SA / U+_Reichardt."""
+    yp = np.concatenate([[0.0], np.geomspace(1e-3, yp_max, n)])
+    chi = KAPPA * yp
+    slope = 1.0 / (1.0 + chi * chi ** 3 / (chi ** 3 + 7.1 ** 3))
+    U = np.concatenate([[0.0], np.cumsum(0.5 * (slope[1:] + slope[:-1]) * np.diff(yp))])
+    return chi[1:], U[1:] / u_reichardt(yp[1:])
+
+
 def shape(Pi, dplus):
     """Shape factor, Re_theta and C_f of the composite profile."""
     yp = np.linspace(0.0, dplus, 200001)
@@ -53,6 +64,11 @@ if __name__ == '__main__':
         H, Rt, Cf = shape(Pi, d)
         print('Pi=%.2f delta+=%d: Re_theta=%.0f H=%.3f Cf=%.5f max q=%.3f' % (Pi, d, Rt, H, Cf, q_max_in_band(Pi, d)))
         assert abs(Rt/rt - 1) < 0.03 and abs(H - hh) < 0.006 and abs(q_max_in_band(Pi, d) - qq) < 0.006
+    # q with the velocity of SA's own wall-layer solution, at every chi
+    chi, q = q_sa_wall_layer()
+    print('SA wall layer: q min %.3f at chi=%.1f, max %.3f at chi=%.1f, q=%.3f at chi=%.0f'
+          % (q.min(), chi[q.argmin()], q.max(), chi[q.argmax()], q[-1], chi[-1]))
+    assert abs(q.min() - 0.96) < 0.005 and abs(q.max() - 1.07) < 0.005
     yp = 0.5/KAPPA
     assert abs(yp*u_reichardt(yp) - 1.5) < 0.01            # denominator of q at chi = 0.5
     assert 1.0/(1.0 + 7.1**3) < 0.003                       # f_v1 at chi = 1

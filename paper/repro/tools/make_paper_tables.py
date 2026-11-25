@@ -16,8 +16,8 @@ TABLES = os.path.normpath(os.path.join(HERE, "..", "..", "tables"))
 
 CAPTIONS = {
     "ext2026_nlf_somers": (
-        r"NLF(1)-0416: computed transition locations on the structured (str) and cavity "
-        r"(cav) L2 grids at four Reynolds numbers, and the brackets of "
+        r"NLF(1)-0416: computed transition locations on the structured (str) and "
+        r"unstructured (unstr) L2 grids at four Reynolds numbers, and the brackets of "
         r"Somers~\cite{somers_1981}, Fig.~9, at the same lift. A bracket extends from the "
         r"last laminar orifice to the first turbulent orifice. $^\dagger$Also in "
         r"Table~\ref{t:nlf}."),
@@ -63,8 +63,15 @@ CAPTIONS = {
         r"$Re_L\ge6.49\times10^6$."),
 }
 
-# Words in the table bodies that differ between the two documents.
+# Words in the table bodies that differ between the two documents. The paper says
+# "unstructured" where the whitepaper says "cavity", the name of the mesher's operator.
+UNSTR = (r"\multicolumn{%d}{c}{cavity}", r"\multicolumn{%d}{c}{unstructured}")
 BODY = {
+    "ext2026_nlf_somers": [("str & cav & measured & str & cav & measured",
+                            "str & unstr & measured & str & unstr & measured")],
+    "ext2026_nlf_resweep": [(UNSTR[0] % 4, UNSTR[1] % 4)],
+    "ext2026_epp_re300k": [(UNSTR[0] % 5, UNSTR[1] % 5)],
+    "ext2026_epp_re100k": [(UNSTR[0] % 5, UNSTR[1] % 5)],
     "tab_twoelement_geom": [(r"\emph{Fore element}", r"\emph{Main element}")],
     "tab_spheroid_tunnel": [("& seed &", r"& $\chi_\infty$ &"), ("calibrated", "fitted")],
 }
