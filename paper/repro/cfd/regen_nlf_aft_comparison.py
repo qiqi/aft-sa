@@ -39,6 +39,20 @@ for _k, _v in json.load(open(_negp)).items():
     if isinstance(_v, dict) and 'CL' in _v:
         camp.setdefault(_k, _v)
 
+# The 2026-08 extension campaign: the seven further incidences on the L2 pair
+# (-12, -10, -6, -2, 2, 6, 8), which is what makes the overlap with the
+# fourteen workshop submittals one-to-one. Same seed, grids and constants as
+# the ladder; merged under the same case-dir keys so the L2 series below picks
+# them up with no special-casing.
+_extp = f'{PD}/data/ext2026_matrix.json'
+assert os.path.exists(_extp), f'missing extension matrix: {_extp}'
+for _k, _v in json.load(open(_extp))['cases'].items():
+    if _v.get('airfoil') != 'nlf0416' or not _k.endswith(tuple(
+            'a2 a6 a8 am2 am6 am10 am12'.split())):
+        continue
+    camp.setdefault(_k, {'CL': _v['CL'], 'CD': _v['CD'],
+                         'xtr_up': _v['xtr_upper'], 'xtr_lo': _v['xtr_lower']})
+
 # The full workshop-submittal underlay (all 14 participants, digitized from
 # the summary deck -- data/workshop_nlf_submittals.json). The deck's sweep
 # is xtr vs alpha; it is placed on this figure's lift axis via the computed
@@ -113,6 +127,9 @@ for ax, side, lab in ((axs[0], 'upper', 'upper surface'),
             keys = [f'{fam}L{lv}prop_nlf0416_Re4M_a{a}' for a in (0, 4, 9, 15)]
             keys += [f'{fam}L{lv}prop_nlf0416_Re4M_am4',
                      f'{fam}L{lv}prop_nlf0416_Re4M_am8']
+            if lv == 2:      # the extension incidences exist on the L2 pair only
+                keys += [f'{fam}L2prop_nlf0416_Re4M_{t}' for t in
+                         ('am12', 'am10', 'am6', 'am2', 'a2', 'a6', 'a8')]
             for k in keys:
                 r = camp.get(k)
                 if r is None:
@@ -134,11 +151,14 @@ for ax, side, lab in ((axs[0], 'upper', 'upper surface'),
                 mfc='none', mec='steelblue', mew=1.1, zorder=4,
                 label=('OpenFOAM (str L1/L2 by size)'
                        if side == 'upper' and lv == 'L2' else None))
-    ax.set_xlabel('$x_t/c$')
+    ax.set_xlabel(r'$x_\mathrm{tr}/c$')
     # no in-figure panel titles (removed paper-wide by user order); the
     # caption carries the panel assignment (upper left, lower right)
-    ax.grid(alpha=0.3); ax.set_xlim(0, 0.95)
-axs[0].set_ylabel('$c_l$'); axs[0].set_ylim(-0.6, 2.1)
+    # x to 1.0 and c_l to -1.05: the deep-negative extension incidences reach
+    # x_t/c = 0.97 (cavity, alpha = -12) and c_l = -0.93, both of which the
+    # pre-extension limits (0.95, -0.6) clipped off the figure.
+    ax.grid(alpha=0.3); ax.set_xlim(0, 1.0)
+axs[0].set_ylabel('$C_l$'); axs[0].set_ylim(-1.05, 2.1)
 _h, _l = axs[0].get_legend_handles_labels()
 from matplotlib.lines import Line2D as _L2
 _h += [_L2([], [], color='0.82', lw=0.55, label='workshop submittals (14, all models)'),

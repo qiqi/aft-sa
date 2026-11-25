@@ -22,14 +22,19 @@ _H = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _H)
 import regen_eppler_v2 as R
 from regen_epp_reattach import reattach
+from bubble_stations import stations as bl_stations, chi_front
 
 PD = os.path.abspath(os.path.join(_H, '..', '..'))
 B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fv1")
 
-# TM-4062 Table III, R=200,000: alpha -> (LS, TR).  alpha=8 is "(NT at .32)"
-# (natural transition, no bubble): excluded.  8.5 is the post-stall LE bubble.
+# TM-4062 Table III, R=200,000: alpha -> (LS, TR). 8.5 is the post-stall LE
+# bubble. alpha=8 is "(NT at .32)" -- natural transition with no bubble, so
+# both stations coincide at the transition station and it enters as (.32,.32)
+# rather than being dropped. Same convention as the Reynolds-comparison
+# figure: no bubble means one point, not a different symbol.
 OIL = {-2: (0.53, 0.80), 0: (0.48, 0.74), 2: (0.43, 0.67), 4: (0.40, 0.62),
-       5: (0.38, 0.59), 6: (0.37, 0.55), 7: (0.33, 0.48), 8.5: (0.03, 0.18)}
+       5: (0.38, 0.59), 6: (0.37, 0.55), 7: (0.33, 0.48), 8: (0.32, 0.32),
+       8.5: (0.03, 0.18)}
 
 
 def separation(x, cf, thr=0.0, xlo=0.05, xhi=0.85):
@@ -142,10 +147,14 @@ for mesh, col, mk in (('str', 'C0', 's'), ('cav', 'C1', '^')):
     for lev, ms, mew, al_ in (('L0', 3.5, 0.8, 0.5), ('L1', 5.2, 1.1, 0.75),
                               ('L2', 7.0, 1.6, 1.0)):
         A, LS, TR = [], [], []
-        TAG = {-2: 'am2', 0: 'a0', 1: 'a1', 2: 'a2', 3: 'a3', 4: 'a4x',
-               5: 'a5', 6: 'a6', 7: 'a7', 8.5: 'a8p5'}
-        alphas = ((-2, 0, 1, 2, 3, 4, 5, 6, 7, 8.5) if lev == 'L2'
-                  else (0, 2, 5, 7))   # extension set exists on L2 only
+        TAG = {-4: 'am4', -2: 'am2', -1: 'am1', 0: 'a0', 1: 'a1', 2: 'a2',
+               3: 'a3', 4: 'a4x', 5: 'a5', 6: 'a6', 7: 'a7', 8: 'a8',
+               8.5: 'a8p5', 9: 'a9'}
+        # -1, 8 and 9 joined in the 2026-08 extension. 8 and 9 transition
+        # ahead of separation and carry no closed bubble, so they contribute
+        # no station -- the loop below simply finds no crossing and skips.
+        alphas = ((-4, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 8.5, 9) if lev == 'L2'
+                  else (-4, 0, 2, 5, 7))   # -4 was run on all three levels
         for a in alphas:
             d = f"{B}/{mesh}{lev}prop_eppler387_Re200k_{TAG[a]}"
             if not os.path.isdir(d):
@@ -154,32 +163,15 @@ for mesh, col, mk in (('str', 'C0', 's'), ('cav', 'C1', '^')):
                 (xu, cfu, _), _ = R.airfoil_walk_contour(d)
             except Exception:
                 continue
-            if a == 8.5:
-                # post-stall LE bubble (oil flow: 0.03-0.18c): the default
-                # mid-chord search window misses it -- search the nose
-                import numpy as _np
-                _o = _np.argsort(xu)
-                _x, _cf = _np.asarray(xu)[_o], _np.asarray(cfu)[_o]
-                _m = (_x > 0.005) & (_x < 0.3)
-                _xm, _cm = _x[_m], _cf[_m]
-                _neg = _np.where(_cm < 0)[0]
-                if len(_neg):
-                    A.append(a)
-                    # interpolated zero crossings, the same definition as
-                    # separation()/reattach() at every other incidence
-                    i0, i1 = _neg[0], _neg[-1]
-                    ls = float(_xm[i0])
-                    if i0 > 0:
-                        f = (0.0 - _cm[i0-1]) / (_cm[i0] - _cm[i0-1])
-                        ls = float(_xm[i0-1] + f * (_xm[i0] - _xm[i0-1]))
-                    tr = float(_xm[i1])
-                    if i1 + 1 < len(_xm):
-                        f = (0.0 - _cm[i1]) / (_cm[i1+1] - _cm[i1])
-                        tr = float(_xm[i1] + f * (_xm[i1+1] - _xm[i1]))
-                    LS.append(ls)
-                    TR.append(tr)
-                continue
-            A.append(a); LS.append(separation(xu, cfu)); TR.append(reattach(xu, cfu))
+            # One rule for every incidence now (see bubble_stations):
+            # scan the whole chord, so a bubble closing past 0.85c is not
+            # reported as open (alpha = -4 closes at 0.91c) and a nose bubble
+            # is not confused with trailing-edge separation. The alpha = 8.5
+            # nose-window special case this replaces is no longer needed.
+            state, ls_, tr_ = bl_stations(xu, cfu)
+            if state == 'attached':
+                ls_ = tr_ = chi_front(R, d)
+            A.append(a); LS.append(ls_); TR.append(tr_)
         STATIONS[f'{mesh}_{lev}'] = {f'{a:g}': (ls_, tr_)
                                      for a, ls_, tr_ in zip(A, LS, TR)}
         for ax, V in ((ax_ls, LS), (ax_tr, TR)):
@@ -208,8 +200,11 @@ for _lv, _ms in (('L1', 3.6), ('L2', 5.4)):
 
 for ax, lab in ((ax_ls, 'laminar separation $x_{LS}/c$'),
                 (ax_tr, 'turbulent reattachment $x_R/c$')):
-    ax.set_xlabel(lab); ax.grid(alpha=0.3); ax.set_xlim(0, 0.9)
-ax_ls.set_ylabel(r'$\alpha$ (deg)'); ax_ls.set_ylim(-3, 9.2)
+    ax.set_xlabel(lab); ax.grid(alpha=0.3); ax.set_xlim(0, 1.0)
+# -5 rather than -3: alpha=-4 separates on the upper surface at x/c ~ 0.63 and
+# never reattaches ahead of the window edge, so it contributes a point to the
+# left panel only. At -3 that point fell outside the axis and vanished silently.
+ax_ls.set_ylabel(r'$\alpha$ (deg)'); ax_ls.set_ylim(-5, 9.2)
 handles = [Line2D([], [], color='k', ls='-', lw=0.8, marker='o', mfc='none', ms=6,
                   label='Oil flow (LTPT, Table III)'),
            Line2D([], [], color='0.35', ls='none', marker='D', mfc='none', ms=3.5,
@@ -219,7 +214,7 @@ handles = [Line2D([], [], color='k', ls='-', lw=0.8, marker='o', mfc='none', ms=
                   label='Experiment (Cole--Mueller)'),
            Line2D([], [], color='0.5', ls=':', lw=1.4, label='mfoil ($e^9$)'),
            Line2D([], [], color='0.3', ls='-.', lw=1.0,
-                  label='FlexFoil ($e^9$, $\\alpha\\leq6.5^\\circ$)'),
+                  label='Flexcompute Foil ($e^9$, $\\alpha\\leq6.5^\\circ$)'),
            Line2D([], [], color='C2', ls='-', lw=1.0, marker='x', ms=4.5,
                   label='$\\gamma$\u2013$Re_\\theta$ (Shahjahan et al.)'),
            Line2D([], [], color='C4', ls='-', lw=1.0, marker='+', ms=5,

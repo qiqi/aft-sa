@@ -288,7 +288,7 @@ def main():
         if r == n//2:
             axu.set_ylabel('wall distance / total chord')
         axu.set_xticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
-    axs[0, 0].set_title(r'$u_t/V_\infty$', fontsize=9, pad=3)
+    axs[0, 0].set_title(r'$u_t/U_\infty$', fontsize=9, pad=3)
     axs[0, 1].set_title(r'$\log_{10}\chi$', fontsize=9, pad=3)
     for c in (0, 1):
         axs[-1, c].set_xlabel('arc length / %s chord' % ELEM)

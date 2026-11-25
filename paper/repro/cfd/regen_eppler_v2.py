@@ -1139,7 +1139,7 @@ def make_polar_figure(out_name='eppler_polar_compare'):
     ax.grid(alpha=0.3)
     handles = [Line2D([],[],color='k', ls='-', marker='o', mfc='none', ms=4, label='Experiment (LTPT)'),
                Line2D([],[],color='0.4', ls=':', marker='s', mfc='none', ms=5, lw=1.2, label='mfoil ($e^9$, $\\alpha\\!\\neq\\!7^\\circ$)'),
-               Line2D([],[],color='0.5', ls='none', marker='D', mfc='none', ms=6, mew=1.3, label='xfoil ($e^9$, $\\alpha\\!=\\!7^\\circ$)'),
+               Line2D([],[],color='0.5', ls='none', marker='D', mfc='none', ms=6, mew=1.3, label='XFOIL ($e^9$, $\\alpha\\!=\\!7^\\circ$)'),
                Line2D([],[],color='C0', ls='-',  marker='o', ms=4, label='SA-AI, structured (O-grid)'),
                Line2D([],[],color='C1', ls='--', marker='^', ms=4, label='SA-AI, unstructured'),
                Line2D([],[],color='0.55', ls='-.', marker='v', mfc='none', ms=5, lw=1.2, label='SA, fully turbulent (str L2)'),

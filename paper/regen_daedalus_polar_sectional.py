@@ -137,17 +137,17 @@ def main():
         mgood = np.isfinite(cd_ref)
         axd.plot(eta_ff[mgood], cd_ref[mgood], ':', color=acol[a], lw=0.9,
                  alpha=0.65)
-    axd.set_ylabel(r'sectional $c_d$ (thin)')
+    axd.set_ylabel(r'section $C_d$ (thin)')
     axd.set_ylim(0, 0.08)
     from matplotlib.lines import Line2D
     hl2 = ([Line2D([], [], color=acol[a], lw=1.5,
                    label=f'$\\alpha={a:.0f}^\\circ$') for a in ALPHAS] +
            [Line2D([], [], color='0.3', ls='-', lw=1.3, label='structured'),
             Line2D([], [], color='0.3', ls='--', lw=1.3, label='unstructured'),
-            Line2D([], [], color='0.3', ls=':', lw=1.8, label='AVL ($c_l$) / +FlexFoil ($c_d$)')])
+            Line2D([], [], color='0.3', ls=':', lw=1.8, label='AVL ($C_l$) / +Flexcompute Foil ($C_d$)')])
     axs.legend(handles=hl2, fontsize=8, ncol=2, loc='lower left')
     axs.set_xlabel(r'$\eta = 2y/b$')
-    axs.set_ylabel('sectional $c_l$')
+    axs.set_ylabel('section $C_l$')
     axs.set_xlim(0, 1)
     axs.grid(alpha=0.3)
     axs.text(0.03, 0.93, '(b)', transform=axs.transAxes, fontsize=11,

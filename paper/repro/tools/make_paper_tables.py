@@ -26,8 +26,8 @@ CAPTIONS = {
         r"transition locations."),
     "ext2026_epp_re300k": (
         r"Eppler 387 at $Re=3\times10^5$, on the L2 grids. $x_\mathrm{tr}$ is the station "
-        r"where the largest $\chi$ near the wall crosses one. $x_\mathrm{sep}$ and "
-        r"$x_\mathrm{reatt}$ are zero crossings of the signed $C_f$. A dash means that no "
+        r"where the largest $\chi$ near the wall crosses one. $x_{LS}$ and "
+        r"$x_R$ are zero crossings of the signed $C_f$. A dash means that no "
         r"bubble closes ahead of the trailing edge."),
     "ext2026_epp_re100k": (
         r"Eppler 387 at $Re=10^5$, on the L2 grids; columns as in "
@@ -46,7 +46,7 @@ CAPTIONS = {
         r"Circular cylinder, $\chi_\infty=1.1\times10^{-2}$: drag coefficient, transition "
         r"angle $\theta_{tr}$, and angle of the first separation $\theta_{sep}$. $C_d$ is "
         r"the median over the last iterations. Brackets: the range of $C_d$ where the "
-        r"criterion for a steady solution is not met. $|C_L|<2\times10^{-6}$ in every "
+        r"criterion for a steady solution is not met. $|C_l|<2\times10^{-6}$ in every "
         r"computation."),
     "tab_spheroid_tunnel": (
         r"6:1 spheroid: computed minus measured transition location, in units of $L$, at "
@@ -65,13 +65,18 @@ CAPTIONS = {
 
 # Words in the table bodies that differ between the two documents. The paper says
 # "unstructured" where the whitepaper says "cavity", the name of the mesher's operator.
+# The paper writes the coefficients of a section as C_l, C_d (capital subscripts are
+# for the wing), and the separation and reattachment stations as x_LS, x_R.
+SECTION = [("$C_L$", "$C_l$"), ("$C_D$", "$C_d$")]
+BUBBLE = [(r"$x_\mathrm{sep}$", "$x_{LS}$"), (r"$x_\mathrm{reatt}$", "$x_R$")]
 UNSTR = (r"\multicolumn{%d}{c}{cavity}", r"\multicolumn{%d}{c}{unstructured}")
 BODY = {
     "ext2026_nlf_somers": [("str & cav & measured & str & cav & measured",
-                            "str & unstr & measured & str & unstr & measured")],
-    "ext2026_nlf_resweep": [(UNSTR[0] % 4, UNSTR[1] % 4)],
-    "ext2026_epp_re300k": [(UNSTR[0] % 5, UNSTR[1] % 5)],
-    "ext2026_epp_re100k": [(UNSTR[0] % 5, UNSTR[1] % 5)],
+                            "str & unstr & measured & str & unstr & measured"),
+                           ("$c_l$", "$C_l$")],
+    "ext2026_nlf_resweep": [(UNSTR[0] % 4, UNSTR[1] % 4)] + SECTION,
+    "ext2026_epp_re300k": [(UNSTR[0] % 5, UNSTR[1] % 5)] + SECTION + BUBBLE,
+    "ext2026_epp_re100k": [(UNSTR[0] % 5, UNSTR[1] % 5)] + SECTION + BUBBLE,
     "tab_twoelement_geom": [(r"\emph{Fore element}", r"\emph{Main element}")],
     "tab_spheroid_tunnel": [("& seed &", r"& $\chi_\infty$ &"), ("calibrated", "fitted")],
 }

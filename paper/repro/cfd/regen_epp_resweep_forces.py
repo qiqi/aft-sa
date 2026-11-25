@@ -300,7 +300,7 @@ if ghim:
     bracket(axst, 300, e4.get('x_sep'), e6.get('x_sep'), '.', '0.55')
     bracket(axst, 300, e4.get('x_reattach'), e6.get('x_reattach'), '.', '0.55')
 
-for ax, lab in ((axl, '$c_l$'), (axd, '$c_d$'), (axm, '$c_m$ ($c/4$)'),
+for ax, lab in ((axl, '$C_l$'), (axd, '$C_d$'), (axm, '$C_m$ ($c/4$)'),
                 (axst, r'station $x/c$')):
     ax.set_ylabel(lab)
     ax.grid(alpha=0.3, which='both')

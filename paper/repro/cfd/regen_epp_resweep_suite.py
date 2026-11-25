@@ -201,7 +201,7 @@ def make_fig(re_list, out):
                Line2D([], [], color='0.3', lw=R.LEVEL_LW['L2'], label='L2'),
                Patch(facecolor='0.55', alpha=0.30, label='exp. LSB (TM-4062 oil flow)')]
     if MFOIL or XFOIL:
-        handles.append(Line2D([], [], color='0.3', ls=':', lw=1.4, label='mfoil/xfoil ($e^9$)'))
+        handles.append(Line2D([], [], color='0.3', ls=':', lw=1.4, label='mfoil/XFOIL ($e^9$)'))
     if EXP_CP_TAB:
         handles.append(Line2D([], [], color='0.3', ls='none', marker='o', mfc='none', mew=1.1, ms=5,
                               label=r'exp. $C_p$ (TM-4062, $\alpha\!\approx\!5^\circ$)'))

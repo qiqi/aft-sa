@@ -40,7 +40,7 @@ CASES = {4.0: ('case_ogrid_L2_saai_a4', 'case_cavity_L2_saai_a4'),
          6.0: ('case_ogrid_L2_saai_a6', 'case_cavity_L2_saai_a6')}
 SURF = {'str': 'surface_fluid_wing.pvtu', 'cav': 'surface_farfield_body.pvtu'}
 ROW_LAB = {'str': 'structured O-grid L2', 'cav': 'unstructured L2',
-           'e9': r'$e^N$ strips (FlexFoil, AVL $c_l$)'}
+           'e9': r'$e^N$ strips (Flexcompute Foil, AVL $C_l$)'}
 
 LEV_CP = [-1.75, -1.5, -1.25, -1.0, -0.75, -0.5, -0.25, 0.0, 0.25, 0.5]
 LEV_CFX = [-0.002, -0.001, -0.0005, 0.0, 0.001, 0.002, 0.004, 0.006, 0.010]

@@ -96,8 +96,8 @@ In the paper each Results subsection opens with the one thing the case shows abo
 model, and the prose walks through the figures in order. A multi-page figure set
 (surface distributions, near-wall contours, grids, fields) contributes one page to the
 text; the complete sets are in the unnumbered **Supplementary Figures** section, in
-the order of the cases. The back matter is: Supplementary Figures, the
-closing epigraph, Acknowledgments, References. In Section III the figures and tables
+the order of the cases. The back matter is: Acknowledgments (with the
+closing epigraph), Supplementary Figures, References. In Section III the figures and tables
 float (`[!htbp]`), with a `\FloatBarrier` before each subsection, so that the prose
 is continuous.
 
@@ -129,8 +129,47 @@ changes both. `appendix_twosource_body_wp.tex` is `\input` by the whitepaper onl
 - $U_\mathrm{loc}$ is the local velocity scale. Never `R` — that reads as a radius.
 - $\sigma_{Re}$ is the onset gate (was `S`, then `F`). $\sigma_{v1}$ is the
   $f_{v1}$-bypass weight (was `b`). $\sigma_P,\sigma_D$ are handover weights.
-  $g_\chi, g_q$ are the bypass gates (were `s`, `G`). The $\sigma$ prefix marks a
-  sigmoid-like gate.
+  $\sigma_\chi, \sigma_q$ are the bypass gates (were `g_\chi`, `g_q` until
+  2026-11-25, and `s`, `G` before). Every $\sigma$ with a subscript is a factor
+  between zero and one; the bare $\sigma$ is SA's diffusion constant. `g` is
+  SA's function inside $f_w$ and names nothing else.
+- Force coefficients: $C_l, C_d, C_m$ for a section (airfoils, the two-element
+  section, the cylinder); $C_L, C_D$ for the Daedalus wing only. Never $c_l$. The
+  freestream speed is $U_\infty$, never $V_\infty$. Separation and reattachment
+  stations are $x_{LS}, x_R$. `make_paper_tables.py` rewrites these in the shared
+  tables; the whitepaper keeps its own symbols.
+- `figs/daedalus_surface_a{4,5,6}.pdf` could not be redrawn on 2026-11-25: with the
+  `chi_surface.npz` and surface files now on 014 the script draws corrupted $\chi$
+  panels. Their row label was changed from $c_l$ to $C_l$ inside the PDFs (PyMuPDF
+  redaction of three glyphs); nothing else in them changed. Find out why before the
+  next redraw.
+- `figs/eppler_resweep_forces.pdf` and `data/eppresweep_forces_computed.json` were
+  recomputed on 2026-11-25. The stored values at $Re=2\times10^5$ were from older
+  solutions and disagreed with Table `t:epp`; `check_results_prose.py` now asserts
+  that the two tables and the recomputed forces agree. The script needs the case
+  directories (`/local_data_2/qiqi/sa-ai-airfoil-slices` on 019, with
+  `total_forces_v2.csv` copied from 014), the campaign JSON files of `flow360_fv1`,
+  and `mfoil_/xfoil_eppler387_sweep_a5.pkl` (014: `flow360_fr/` and `flow360/`).
+- In figures the codes are "Flexcompute Foil", "XFOIL" and "mfoil" (never "FlexFoil"
+  or "xfoil"). On 2026-11-25 fourteen included figures were renamed inside their PDFs
+  with `repro/tools/relabel_pdf_text.py` (it rewrites one text line and moves the
+  outlined symbols with it), because their data are not all readable on 019
+  (`mfoil_nlf0416_Re4M.pkl` on 014 is owner-only). The scripts carry the new labels.
+  Two entries were shortened to fit their legends: "Flexcompute Foil $N$" on the
+  NLF pages (was "FlexFoil $N$ ($e^9$)") and "Flexcompute Foil ($N$, $C_p$, $C_f$)"
+  on the Daedalus section pages (was "FlexFoil strip (...)").
+- Daedalus reference: the totals (polar, forces table) use AVL with XFOIL profile
+  drag (`daedalus/avl_compare.py`, `xfoil_cd`). The strip distributions (section
+  pages, third row of the surface maps, section $C_d$ in the polar's panel b) come
+  from `flow360_ai/flexfoil_daedalus_strips.pkl`, computed with Flexcompute Foil by
+  `regen_daedalus_strips_cache.py`. The figures are labelled accordingly.
+- The nomenclature is alphabetical (Latin, capitals first, then Greek). Each row
+  cites the equation, table or section that gives the symbol context. Symbols
+  defined and used inside one subsection of Section IV have no row.
+- `figs/daedalus_polar_sectional.pdf` needs `total_forces_v2.csv` and
+  `Y_slicing_forceDistribution.csv` of the twelve L1/L2 cases. On 019 they are
+  copied to `/local_data_2/qiqi/sa-ai/daedalus_fv1_csv`; set `D_FV1` to that
+  directory before calling `main()`. The script's default tree is complete on 014 only.
 - $S$ is shear. Do not reuse it for anything else.
 - Call $I$ the **accumulated inflection** and $\hat I$ the **nondimensionalized
   accumulated inflection**. Never "Rayleigh coordinate". (Citing *Rayleigh's
@@ -257,8 +296,9 @@ there.
 Section IV of the paper (Remarks on the Operating Envelope) has five subsections:
 Rotation, Wall Curvature, Sweep, Suction, The Wake of Another Surface. Each remark
 gives the flow, what stability theory finds (with a citation), the three terms of
-Eq. (7) on the exact profile, and the size of the difference; Table "The remarks of
-Section IV" collects them. `figs/envelope_sphere.pdf` is drawn by
+Eq. (7) on the exact profile, and the size of the difference, in that order: the
+physics first, then the model. There is no summary table (removed 2026-11-25 at the
+author's request). `figs/envelope_sphere.pdf` is drawn by
 `repro/analytic/fig_envelope_sphere.py`. The viscous length there is
 $\delta_\nu=\sqrt{\nu x/U_e}$ (not $\ell$, which is the curvature vector of Eq. 17) and
 the frame rotation rate is $\Omega_\mathrm{f}$ (not $\Omega$). The remark on the

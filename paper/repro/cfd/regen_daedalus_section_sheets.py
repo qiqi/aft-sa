@@ -306,7 +306,7 @@ def make_sheet(eta_q):
     handles.append(Line2D([], [], color='0.5', ls='-.', lw=0.8,
                           label=r'onset threshold $Re_\Omega^c(\hat\Omega\hat I)$ (L2)'))
     handles.append(Line2D([], [], color='0.35', ls=':', lw=1.4,
-                          label=r'FlexFoil strip ($N$, $C_p$, $C_f$)'))
+                          label=r'Flexcompute Foil ($N$, $C_p$, $C_f$)'))
     axs[0, 0].legend(handles=handles, fontsize=7.5, loc='lower right')
     fig.tight_layout()
     out = f"{PD}/figs/daedalus_section_eta{int(round(eta_q*100)):02d}.pdf"

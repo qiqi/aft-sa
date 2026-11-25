@@ -753,9 +753,9 @@ def make_cf_figure(alphas, out_name, title, meshes=None, L_probe=0.01, n_probe=8
     if any_mfoil:
         legend_items += [Line2D([],[],color='0.3', ls=':',  lw=1.2, alpha=0.5, label='mfoil ($e^9$)')]
     if any_xfoil:
-        legend_items += [Line2D([],[],color='0.3', ls='-.', lw=1.1, alpha=0.6, label='xfoil ($e^9$)')]
+        legend_items += [Line2D([],[],color='0.3', ls='-.', lw=1.1, alpha=0.6, label='XFOIL ($e^9$)')]
     if any_ff:
-        legend_items += [Line2D([],[],color='0.3', ls=':', lw=1.2, alpha=0.5, label='FlexFoil $N$ ($e^9$)')]
+        legend_items += [Line2D([],[],color='0.3', ls=':', lw=1.2, alpha=0.5, label='Flexcompute Foil $N$')]
     if True:
         legend_items += [Line2D([],[],color='0.3', marker='^', ls='none', ms=8,
                                 label='expt. onset'),

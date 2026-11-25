@@ -106,8 +106,8 @@ def main():
                          ha='right', va='center', color=c,
                          textcoords='offset points', xytext=(-2, 0))
     axp.set_xlim(0.0, CD_MAX)
-    axp.set_xlabel('$C_D$')
-    axp.set_ylabel('$C_L$')
+    axp.set_xlabel('$C_d$')
+    axp.set_ylabel('$C_l$')
     axp.axhline(0, color='0.6', lw=.8)
     axp.grid(alpha=.3)
     h = [Line2D([], [], color=COL[l], lw=PS.LEVEL_LW[l], marker='o', ms=4,

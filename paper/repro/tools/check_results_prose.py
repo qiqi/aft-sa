@@ -155,6 +155,17 @@ def main():
     print("Eppler 387, Reynolds study")
     rs = {num(r[0].split("\\times")[0].replace("\\!", "")): [num(x) for x in r[1:]]
           for r in table_rows(tex, "t:eppresweep")}
+    # the row at 2e5 repeats the alpha = 5, L2 row of the Eppler table of Section III.C,
+    # and both equal the forces recomputed by regen_epp_resweep_forces.py
+    e5 = next(r for r in table_rows(tex, "t:epp") if num(r[0]) == 5 and r[1] == "L2")
+    fc = json.load(open(os.path.join(PAPER, "data", "eppresweep_forces_computed.json")))
+    for name, k, j in (("structured", 0, 2), ("unstructured", 3, 6)):
+        c = fc[("str" if k == 0 else "cav") + "_L2"]["200"]
+        for what, got, ref, tab, tol in (("lift", rs[2.0][k], c["cl"], num(e5[j]), 6e-4),
+                                         ("drag", rs[2.0][k + 1], c["cd"], num(e5[j + 1]), 6e-5)):
+            assert abs(got - ref) < tol and abs(tab - ref) < tol, (name, what, got, tab, ref)
+        assert abs(rs[2.0][k + 2] - c["cm"]) < 6e-4, (name, "moment", rs[2.0][k + 2], c["cm"])
+    print("  2e5 row equals the alpha = 5, L2 row of the Eppler table and the recomputed forces")
     r1 = rs[1.0]
     between("structured drag / measured - 1 at 1e5", r1[1] / r1[10] - 1, 0.725, 0.735)
     between("unstructured drag / measured - 1 at 1e5", r1[4] / r1[10] - 1, 0.29, 0.30)
