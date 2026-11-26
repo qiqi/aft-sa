@@ -324,7 +324,7 @@ axst.axhline(1.0, color='0.7', lw=0.6)
 
 handles = [
     Line2D([], [], color='C0', ls='-', marker='o', ms=3.0,
-           label='SA-AI, structured (L0--L2 by weight)'),
+           label='SA-AI, structured (L0\u2013L2 by weight)'),
     Line2D([], [], color='C1', ls='--', marker='^', ms=3.0,
            label='SA-AI, unstructured'),
     Line2D([], [], color='k', marker='o', ls='none', ms=8.5, mfc='k',
@@ -334,30 +334,30 @@ handles = [
     Line2D([], [], color='0.45', ls='none', marker='D', mfc='none', ms=5.5,
            label='XFOIL ($e^9$)'),
     Line2D([], [], color='0.25', ls='none', marker='*', mfc='none', ms=7,
-           label='ILES (Frère+, $\\alpha{=}4$)'),
+           label='ILES (Frère et al., $\\alpha{=}4$)'),
     Line2D([], [], color='0.55', ls='none', marker='.', ms=6,
-           label='other facilities / source exp.'),
+           label='measurements cited by Frère et al. and Ghimire et al.'),
     Line2D([], [], color='0.25', ls='none', marker='<', mfc='none', ms=6,
-           label='RANS-$e^N$ $N{=}7$ / $\\gamma$-$SST$ (Ghimire+)'),
+           label='RANS-$e^N$ $N{=}7$ (Frère et al.); $\\gamma$-SST (Ghimire et al.)'),
     Line2D([], [], color='0.25', ls='none', marker='>', mfc='none', ms=6,
-           label='RANS-$e^N$ $N{=}9$ / K$\\gamma$ (Ghimire+)'),
+           label='RANS-$e^N$ $N{=}9$ (Frère et al.); $K\\gamma$-SST (Ghimire et al.)'),
     Line2D([], [], color='0.25', ls='none', marker='v', mfc='none', ms=6,
-           label='$\\gamma$-$Re_\\theta$ (Carreño Ruiz; Ghimire+)'),
+           label='$\\gamma$-$Re_\\theta$ (Carreño Ruiz; Ghimire et al.)'),
     Line2D([], [], color='0.25', ls='none', marker='P', mfc='none', ms=6,
-           label='k-k$_L$-$\\omega$ (IJSRP)'),
+           label='k-k$_L$-$\\omega$ (Anushka et al.)'),
     Line2D([], [], color='0.25', ls='none', marker='X', mfc='none', ms=6,
-           label='transition-SST (IJSRP)'),
+           label='transition-SST (Anushka et al.)'),
     Line2D([], [], color='0.25', ls='none', marker='s', mfc='none', ms=5,
-           label='Cole--Mueller LDV/$C_p$ ($\\alpha{=}4/6$)'),
+           label='Cole\u2013Mueller LDV/$C_p$ ($\\alpha{=}4/6$)'),
 ]
 if _bracket_handle[0] is not None:
     _bracket_handle[0].set_label(
-        r'$\alpha{=}4$--$6^\circ$ bracket (no $\alpha{=}5$ station datum)')
+        r'$\alpha{=}4$'+'\u2013'+r'$6^\circ$ bracket (no $\alpha{=}5$ station datum)')
     handles.append(_bracket_handle[0])
 # figure-level legend BELOW the axes; bbox_inches='tight' at save expands the
 # canvas to include it, so it never overlaps the bottom-row x-axis labels.
 fig.subplots_adjust(left=0.075, right=0.985, top=0.975, bottom=0.135)
-leg = fig.legend(handles=handles, fontsize=7.8, ncol=4, frameon=False,
+leg = fig.legend(handles=handles, fontsize=7.8, ncol=3, frameon=False,
                  loc='upper center', bbox_to_anchor=(0.5, 0.085))
 os.makedirs(PREV, exist_ok=True)
 plt.savefig(f'{OUT}/eppler_resweep_forces.pdf',

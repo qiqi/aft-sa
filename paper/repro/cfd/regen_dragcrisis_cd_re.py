@@ -204,13 +204,13 @@ def overlay_literature(ax):
     ax.plot(re_, cd, marker='+', ms=4.2, mec='0.25', mew=0.9,
             lw=0, alpha=ALPHA_LIT, zorder=z, ls='none')
     hs.append(Line2D([], [], ls='none', marker='+', ms=4.6, mec='0.25',
-                     mew=0.9, label='Schewe 1983 [dig. R15]'))
+                     mew=0.9, label='Schewe 1983'))
 
     re_, cd = lit('rodriguez2015_fig4_exp', 'achenbach_heinecke1981')
     ax.plot(re_, cd, marker='d', ms=3.0, mfc='none', mec=GRAY, **mk)
     hs.append(Line2D([], [], ls='none', marker='d', ms=3.4, mfc='none',
                      mec=GRAY, mew=0.8,
-                     label='Achenbach–Heinecke 1981 [R15]'))
+                     label='Achenbach–Heinecke 1981'))
 
     # Achenbach-1968 faired curve (an EXPERIMENT: sparse symbols along
     # the digitized polyline, not a line that would read as computation)
@@ -219,7 +219,7 @@ def overlay_literature(ax):
     ax.plot(rs, cs, marker='o', ms=3.0, mfc='none', mec=GRAY, **mk)
     hs.append(Line2D([], [], ls='none', marker='o', ms=3.4, mfc='none',
                      mec=GRAY, mew=0.8,
-                     label='Achenbach 1968 [dig. C03]'))
+                     label='Achenbach 1968'))
 
     # low-Re experiments (Re 0.05-6), symbols as always
     for nm in ('tritton1959', 'finn1953', 'jayaweera_mason1965'):
@@ -273,7 +273,7 @@ def overlay_literature(ax):
     re_, cd = lit('iop2020_models', 'sst_gamma_retheta')
     ax.plot(re_, cd, '-.', color=GREEN, lw=1.1, **ln)
     hs.append(Line2D([], [], color=GREEN, lw=1.1, ls='-.',
-                     label='SST $\\gamma$–$Re_\\theta$ URANS [SG20]'))
+                     label='SST $\\gamma$–$Re_\\theta$ URANS (Stabnikov–Garbaruk 2020)'))
 
     # fully-turbulent RANS: charcoal dotted (3 series, one class entry)
     re_, cd = lit('iop2020_models', 'sst_fully_turbulent')
@@ -282,7 +282,7 @@ def overlay_literature(ax):
         re_, cd = lit('stringer2014_urans', series)
         ax.plot(re_, cd, ':', color=CHARCOAL, lw=1.1, **ln)
     hs.append(Line2D([], [], color=CHARCOAL, lw=1.1, ls=':',
-                     label='fully-turb. SST [SG20; S14]'))
+                     label='fully turbulent SST (Stabnikov–Garbaruk 2020; Stringer et al. 2014)'))
     return hs
 
 

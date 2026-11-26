@@ -55,6 +55,15 @@ def main():
     _, Ha, sea, sla, Ra = _cols(att)
     _, Hr, ser, slr, Rr = _cols(rev)
 
+    # numbers quoted in Sec. II.D for the reversed-flow profiles, as fractions of Drela-Giles
+    dr = np.asarray(drela(Hr)); n1 = np.asarray(Re_theta0(Hr)) + 1.0/dr
+    print('reversed-flow profiles: rate N = 1..5 %.2f-%.2f, N = 5..9 %.2f-%.2f of Drela-Giles; '
+          'N = 1 station %+.1f%% ... %+.1f%%' % ((ser/dr).min(), (ser/dr).max(), (slr/dr).min(),
+          (slr/dr).max(), 100*(Rr/n1 - 1).min(), 100*(Rr/n1 - 1).max()), flush=True)
+    assert 0.615 < (ser/dr).min() and (ser/dr).max() < 0.705
+    assert 0.675 < (slr/dr).min() and (slr/dr).max() < 0.765
+    assert np.abs(Rr/n1 - 1).max() < 0.08 and abs(Hr.max() - 10.6) < 0.05
+
     # ---- join the two branches into ONE curve, sorted by H (continuous across
     #      Blasius and the separation limit; single style, no per-range colors) ----
     H = np.concatenate([Ha, Hr]); se = np.concatenate([sea, ser])
@@ -75,18 +84,18 @@ def main():
         ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
         ax.get_xaxis().set_minor_formatter(matplotlib.ticker.NullFormatter())
         ax.set_xlim(2.12, 11.0)
-        ax.set_xlabel(r'shape factor $H=\delta^*/\theta$')
+        ax.set_xlabel(r'shape factor $H$')
         ax.set_ylabel(ylabel); ax.set_ylim(*ylim)
         ax.grid(alpha=0.3, which='both')
 
     # ---- (a) rate dN/dRe_theta vs H: early + late, single color ----
-    axa.semilogy(Hg, drela_g, 'k--', lw=1.8, label=r'Drela--Giles $dN/dRe_\theta$')
+    axa.semilogy(Hg, drela_g, 'k--', lw=1.8, label='Drela\u2013Giles')
     m = np.isfinite(se) & np.isfinite(sl)
     axa.fill_between(H[m], se[m], sl[m], color='C0', alpha=0.15, lw=0)
     axa.semilogy(H[m], se[m], '-o', color='C0', ms=4.5, lw=1.3, mfc='white',
-                 label=r'model early ($N\!\in\![1,5]$)')
+                 label=r'SA-AI, from $N=1$ to $5$')
     axa.semilogy(H[m], sl[m], '-^', color='C0', ms=4.5, lw=1.3,
-                 label=r'model late ($N\!\in\![5,9]$)')
+                 label=r'SA-AI, from $N=5$ to $9$')
     # y extended below the Drela range to show the favorable-regime shortfall
     style(axa, r'$dN/dRe_\theta$', (drela_g.min()/12.0, drela_g.max()*1.3))
     axa.legend(fontsize=8.0, loc='upper left')
@@ -96,14 +105,14 @@ def main():
     # ---- (b) onset Re_theta (N=1) vs H, single color ----
     N1_g = Rtc_g + 1.0/drela_g   # Drela-Giles N=1 station: critical + 1/(dN/dRe_theta)
     axb.semilogy(Hg, Rtc_g, '--', color='0.55', lw=1.4,
-                 label=r'Drela critical $Re_{\theta 0}$')
+                 label='Drela\u2013Giles'r' $Re_{\theta 0}$')
     axb.semilogy(Hg, N1_g, 'k--', lw=1.8,
-                 label=r'Drela--Giles $N\!=\!1$ station')
+                 label='Drela\u2013Giles'r' $N=1$ station')
     m = np.isfinite(R)
     axb.semilogy(H[m], R[m], '-o', color='C0', ms=4.5, lw=1.3, mfc='white',
-                 label=r'model $N\!=\!1$ crossing')
+                 label=r'SA-AI $N=1$ station')
     # y extended past the Drela range to show the favorable-regime overshoot
-    style(axb, r'onset $Re_\theta$', (Rtc_g.min(), N1_g.max()*4.0))
+    style(axb, r'$Re_\theta$', (Rtc_g.min(), N1_g.max()*4.0))
     axb.legend(fontsize=8.0, loc='upper right')
     axb.text(0.96, 0.06, '(b)', transform=axb.transAxes, fontsize=12,
              fontweight='bold', ha='right')

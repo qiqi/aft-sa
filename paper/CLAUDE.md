@@ -163,6 +163,38 @@ changes both. `appendix_twosource_body_wp.tex` is `\input` by the whitepaper onl
   pages, third row of the surface maps, section $C_d$ in the polar's panel b) come
   from `flow360_ai/flexfoil_daedalus_strips.pkl`, computed with Flexcompute Foil by
   `regen_daedalus_strips_cache.py`. The figures are labelled accordingly.
+- Section II.G is the three-dimensional form of the indicators, Eqs. (17)-(18)
+  (moved from the opening of Section III on 2026-11-25); Constants is II.H.
+- The end of Section II.D compares the model with Drela-Giles over the Falkner-Skan
+  family. Its numbers are asserted in `repro/analytic/tab_march_stations.py`
+  (attached profiles) and `repro/analytic/fig02_model_calibrate.py` (reversed-flow
+  profiles). It states the unfavourable results too: the growth rate is 62-83% of
+  Drela-Giles from N = 1 to 5, and the N = 9 station is 6% to 31% late.
+- A drag count is $10^{-4}$; Section III.C defines it at first use.
+- In-plot type (author, 2026-11-25): fix only what is excessively small on the page;
+  "a bit smaller is perfectly fine". The near-wall contour figures of
+  `regen_chi_sheets.py` (Eppler at Re 2e5, NLF, the Reynolds sweep at alpha 5) and
+  `regen_dragcrisis_bl_sheet.py` were redrawn with 10-13 pt type, which is about
+  5.6 pt on the page. The Re 1e5 / 3e5 incidence sheets and the Daedalus sheets still
+  have the old 6.5 pt contour labels (3.6 pt on the page).
+- The rotation table of Section IV.A was removed (author, 2026-11-25); three of its
+  rows are quoted in the text. `envelope_bounds.py` still asserts all ten.
+- Floats in Section III: the two polars are at 0.75 of the text width so that each
+  shares a page with the short figure before it. A full-page figure delays every
+  later figure of its subsection, because floats keep their order.
+- Say "transition location", never "front" (author, 2026-11-25). After the first
+  mention in a passage, "the location" is enough.
+- Every source drawn in a figure is cited in its caption (Figs. 8, 12, 14, 21 were
+  completed on 2026-11-26). Legends name authors and years, never internal tags
+  ("[R15]", "IJSRP"). The "Selig" stations of the Eppler bubble figure are from
+  Shahjahan et al.'s Fig. 10, which cites Selig's 2003 VKI lecture notes
+  (`selig_2003`).
+- `repro/tools/relabel_pdf_text.py`: use `relabel_file(src, dst, edits)`, never several
+  separate passes on one page. Removing text with MuPDF can displace the line that
+  follows it in the page stream; `relabel_file` detects such lines and writes them anew
+  in place. On 2026-11-26 all sixteen figures edited with the helper were redone from
+  their clean versions for this reason. The SA-AI entry in the legend of
+  `dragcrisis_cd_re.pdf` was drawn into the PDF; the script does not produce it.
 - The nomenclature is alphabetical (Latin, capitals first, then Greek). Each row
   cites the equation, table or section that gives the symbol context. Symbols
   defined and used inside one subsection of Section IV have no row.

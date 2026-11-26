@@ -104,7 +104,7 @@ def main():
         msg = float(np.max((Yk/np.sqrt(Xk*Xk + Yk*Yk + 1e-30))*(Yk - Xk - Zk)/Rk))
         # max Shat*g is listed in the CAPTION, not in the panel (annotated
         # round 5); it is printed below for the caption's numbers.
-        axL.set_ylabel(fr'$\beta={beta:+.2f}$ ($H={H:.2f}$)''\n'r'$Re_y$')
+        axL.set_ylabel(fr'$\beta={beta:+.2f}$ ($H={H:.2f}$)''\n'r'$d\,U_e/\nu$')
         if irow == 2: axL.set_xlabel(r'$Re_x$')
         axL.text(0.02, 0.95, f'({chr(97+2*irow)})', transform=axL.transAxes, fontsize=11, va='top', fontweight='bold')
         axR.semilogy(Rt, env, 'k-', lw=1.8)
@@ -113,13 +113,13 @@ def main():
         Rtc = float(Re_theta0(H)); dr = float(drela(H))
         RtD = np.linspace(0, Rt.max(), 300); ND = np.where(RtD > Rtc, dr*(RtD - Rtc), 0.0)
         axR.semilogy(RtD, np.exp(ND), 'r--', lw=1.4)
-        axR.set_xlim(0, Rt.max()); axR.set_ylim(0.5, 3e6); axR.set_ylabel(r'$\max_y\,\chi/\chi_\infty$')
+        axR.set_xlim(0, Rt.max()); axR.set_ylim(0.5, 3e6); axR.set_ylabel(r'largest $\chi/\chi_\infty$ at the station')
         ax2 = axR.twinx(); ax2.set_ylim(np.log(0.5), np.log(3e6)); ax2.set_ylabel(r'$N$')
         if irow == 2: axR.set_xlabel(r'$Re_\theta$')
         axR.grid(alpha=0.3, which='both')
         axR.text(0.02, 0.95, f'({chr(98+2*irow)})', transform=axR.transAxes, fontsize=11, va='top', fontweight='bold')
         if irow == 0:
-            axR.legend(['SA-AI march', 'Drela--Giles envelope'], fontsize=7.5, loc='lower right')
+            axR.legend(['SA-AI', 'Drela\u2013Giles envelope'], fontsize=7.5, loc='lower right')
         print(f'beta={beta:+.2f} H={H:.2f}: max Omega_hat*I_hat = {msg:.3f}, '
               f'x_max={x_max:.2e}, N_end={np.log(env[-1]):.1f}, '
               f'Rt_end={Rt[-1]:.0f}, Rtc={Rtc:.0f}; N=1 at {st[1]:.1f} '

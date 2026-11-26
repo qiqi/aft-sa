@@ -57,7 +57,7 @@ def main():
     for beta, (H, se, sl, Rt1) in zip(FAMILY, family):
         d = float(drela(H)); r0 = float(Re_theta0(H))
         Rt9 = Rt1 + 4/se + 4/sl
-        dev[beta] = (Rt1/(r0 + 1/d) - 1, Rt9/(r0 + 9/d) - 1, se/d, Rt1/r0, Rt1, Rt9)
+        dev[beta] = (Rt1/(r0 + 1/d) - 1, Rt9/(r0 + 9/d) - 1, se/d, Rt1/r0, Rt1, Rt9, sl/d)
         print(f'  {beta:+.4f}  {H:.2f}  {Rt1:9.1f}  {r0 + 1/d:8.1f}  {Rt1/(r0 + 1/d):6.3f}  '
               f'{Rt9:9.1f}  {r0 + 9/d:8.1f}  {Rt9/(r0 + 9/d):6.3f}   {se/d:.2f}   {sl/d:.2f}')
     attached = [b for b in FAMILY if b <= 0.15]
@@ -79,6 +79,14 @@ def main():
     assert max(abs(x) for x in adverse) < 0.055
     assert -0.135 < min(favorable) and max(favorable) < -0.09
     assert 0.08 < dev[0.35][2] < 0.12 and 2.6 < dev[0.35][3] < 2.8
+    # N = 1 station on the adverse profiles: 0.5% early to 5% late
+    assert -0.0055 < min(adverse) < -0.0045 and 0.045 < max(adverse) < 0.055
+    # growth rate as a fraction of Drela-Giles: N = 1 to 5, then N = 5 to 9
+    sep = min(FAMILY)
+    assert abs(dev[0.0][2] - 0.83) < 0.006 and abs(dev[sep][2] - 0.67) < 0.006
+    assert abs(dev[0.0][6] - 1.01) < 0.006 and abs(dev[sep][6] - 0.72) < 0.006
+    # N = 9 station later than Drela-Giles: 12% at beta = -0.10, 31% at incipient separation
+    assert abs(dev[-0.10][1] - 0.12) < 0.006 and abs(dev[sep][1] - 0.31) < 0.006
     print('\nAll quoted numbers reproduced.')
 
 

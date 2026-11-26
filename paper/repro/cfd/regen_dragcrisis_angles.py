@@ -24,8 +24,12 @@ OUT = os.path.abspath(os.path.join(HERE, '..', '..', 'figs'))
 PREV = os.path.join(HERE, 'figs_explore')
 SUMMARY = ('/local_data/qiqi/sa-ai/dragcrisis_matrix/'
            'systematic_Tu0.2_summary.jsonl')
-CRISIS_BAND = (3e5, 7e5)
-PROFILE_DECADES = [1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10]
+# Panel (b) used to show one Reynolds number per decade, nine of the
+# twenty-five the ladder holds. It now shows ALL of them, split into panes over
+# contiguous ranges of roughly equal COUNT (6-7 curves each) rather than by
+# grid family -- the families are very unevenly populated (7/9/3/6), which left
+# one pane crowded and another nearly empty.
+N_PANES = 4
 # UP-LADDER ONLY for now (user directive 2026-07-29): the down ladder is
 # dropped from the drag-crisis plots pending the ultra-Re branch-split
 # narrative. Set True to restore the up/dn (solid/dashed) pair.
@@ -69,14 +73,27 @@ def sep_series(rows, which):
     return np.array(xs), np.array(ys)
 
 
+def _relab(re):
+    e = int(np.floor(np.log10(re) + 1e-9))
+    m = re / 10.0 ** e
+    if abs(re - 1.0) < 1e-9:
+        return "1"
+    return (r"10^{%d}" % e) if abs(m - 1) < 1e-6 else (r"%g\times10^{%d}" % (round(m, 2), e))
+
+
 def main():
     rows = load()
     plt.rcParams.update({"font.size": 11})
-    fig, (ax, bx) = plt.subplots(1, 2, figsize=(11.2, 4.4),
-                                 gridspec_kw=dict(wspace=0.22))
+    # (a) spans the top; the four profile panes sit in a 2x2 block below it.
+    import matplotlib.gridspec as _gs
+    fig = plt.figure(figsize=(11.2, 10.4))
+    G = _gs.GridSpec(3, 2, height_ratios=[1.15, 1.0, 1.0], hspace=0.30,
+                     wspace=0.20, figure=fig)
+    ax = fig.add_subplot(G[0, :])
+    bxs = [fig.add_subplot(G[1, 0]), fig.add_subplot(G[1, 1]),
+           fig.add_subplot(G[2, 0]), fig.add_subplot(G[2, 1])]
 
     # ---- (a) angles vs Re, up-ladder (dn dropped for now, PLOT_DN) ----
-    ax.axvspan(*CRISIS_BAND, color="0.92", zorder=0)
     branches = [("up", "-", "k")]
     if PLOT_DN:
         branches.append(("dn", "--", "none"))
@@ -102,27 +119,44 @@ def main():
     ax.set_ylabel(r"angle from forward stagnation [deg]")
     ax.grid(alpha=0.25, which="both")
 
-    # ---- (b) max-chi(theta) at one Re per decade (up-ladder) ----
+    # ---- (b) max-chi(theta) for EVERY up-ladder Reynolds number ----
     up = {r['re']: r for r in rows.get("up", [])}
-    cmap = plt.cm.viridis(np.linspace(0.0, 0.92, len(PROFILE_DECADES)))
-    for re, col in zip(PROFILE_DECADES, cmap):
-        r = up.get(re)
-        if r is None or r.get('log10_maxchi') is None:
-            continue
-        th = np.asarray(r['theta_deg'], float)
-        prof = 10.0 ** np.asarray(r['log10_maxchi'], float)
-        e = int(round(np.log10(re)))
-        bx.plot(th, prof, '-', color=col, lw=1.3, label=rf"$10^{{{e}}}$")
-    bx.axhline(1.0, color="k", lw=0.9, ls=":")
-    bx.set_yscale("log")
-    bx.set_xlim(0, 180)
-    bx.set_ylim(1e-3, 3e8)
-    bx.set_xticks([0, 30, 60, 90, 120, 150, 180])
-    bx.set_xlabel(r"angle from forward stagnation [deg]")
-    bx.set_ylabel(r"$\max_s \chi$ along radial ray")
-    bx.legend(loc="lower right", fontsize=8, title="$Re_D$",
-              title_fontsize=9, framealpha=0.9, ncol=2)
-    bx.grid(alpha=0.25, which="both")
+    all_re = sorted(r for r in up if up[r].get('log10_maxchi') is not None)
+    # contiguous, near-equal chunks: 25 points over 4 panes -> 6,6,7,6
+    k, m = divmod(len(all_re), N_PANES)
+    panes, i0 = [], 0
+    for j in range(N_PANES):
+        n = k + (1 if j >= N_PANES - m else 0)
+        panes.append(all_re[i0:i0 + n]); i0 += n
+    for bx, res in zip(bxs, panes):
+        cmap = plt.cm.viridis(np.linspace(0.0, 0.92, max(len(res), 1)))
+        for re, col in zip(res, cmap):
+            r = up.get(re)
+            if r is None or r.get('log10_maxchi') is None:
+                continue
+            th = np.asarray(r['theta_deg'], float)
+            prof = 10.0 ** np.asarray(r['log10_maxchi'], float)
+            e = int(np.floor(np.log10(re) + 1e-9))
+            m = re / 10.0 ** e
+            lbl = (rf"$10^{{{e}}}$" if abs(m - 1) < 1e-6 and e else
+                   ("$1$" if abs(re - 1) < 1e-9 else
+                    rf"${m:g}\times10^{{{e}}}$"))
+            bx.plot(th, prof, '-', color=col, lw=1.3, label=lbl)
+        bx.axhline(1.0, color="k", lw=0.9, ls=":")
+        bx.set_yscale("log")
+        bx.set_xlim(0, 180)
+        bx.set_ylim(1e-3, 3e8)
+        bx.set_xticks([0, 30, 60, 90, 120, 150, 180])
+        bx.set_xlabel(r"angle from forward stagnation [deg]")
+        bx.set_ylabel(r"$\max_s \chi$ along radial ray")
+        bx.set_title(rf"$Re_D={_relab(res[0])}$–${_relab(res[-1])}$"
+                     rf"  ({len(res)} points)", fontsize=9)
+        # upper left: the curves climb from bottom-left to top-right, so that
+        # corner is the empty one in every pane (chi sits at the seed until
+        # the front arrives).
+        bx.legend(loc="upper left", fontsize=7, title="$Re_D$",
+                  title_fontsize=8, framealpha=0.9, ncol=2)
+        bx.grid(alpha=0.25, which="both")
 
     fig.savefig(os.path.join(OUT, "dragcrisis_angles.pdf"), bbox_inches="tight")
     os.makedirs(PREV, exist_ok=True)

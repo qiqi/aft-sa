@@ -28,6 +28,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from lib.calibrate_kernel import C_V1  # model constant: import, never restate
 
 B = os.environ.get("SAAI_CFD_ROOT", "/home/qiqi/flexcompute/sa-ai/flow360_fv1")
+
+# Type sizes in points. A sheet is 11.5 to 12.5 in wide and is placed at about 0.56 of
+# that width, so the contour labels are 5.6 pt and the tick labels 6.7 pt on the page.
+FS_CLABEL, FS_NOTE, FS_LABEL, FS_TITLE, FS_TICK = 10, 11, 12, 13, 12
+plt.rcParams.update({'xtick.labelsize': FS_TICK, 'ytick.labelsize': FS_TICK,
+                     'axes.labelsize': FS_LABEL})
 FIGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'figs')
 MACH = 0.1
 
@@ -149,16 +155,16 @@ def sheet(af, alpha, side):
         x, d, chi, ux = scan(m, af, case, side, L)
         axU, axC = axes[r]
         cs = axU.contour(x, d*Re, ux, levels=UX_LEV, colors='k', linewidths=0.6)
-        axU.clabel(cs, levels=UX_LABEL, fmt='%g', fontsize=6.5, inline_spacing=2)
+        axU.clabel(cs, levels=UX_LABEL, fmt='%g', fontsize=FS_CLABEL, inline_spacing=2)
         logchi = np.log10(np.clip(chi, 1e-8, None))
         axC.contour(x, d*Re, logchi, levels=CHI_MINOR, colors='k', linewidths=0.4)
         cs = axC.contour(x, d*Re, logchi, levels=CHI_MAJOR, colors='k', linewidths=0.8)
-        axC.clabel(cs, fmt=CHI_FMT, fontsize=6.5, inline_spacing=2)
+        axC.clabel(cs, fmt=CHI_FMT, fontsize=FS_CLABEL, inline_spacing=2)
         axU.set_xlim(0, 1); axU.set_ylim(0, L*Re)
-        axU.set_ylabel(f'{glabel}\n' + r'$d\,U_\infty/\nu$', fontsize=9)
+        axU.set_ylabel(f'{glabel}\n' + r'$d\,U_\infty/\nu$', fontsize=FS_LABEL)
         print(f"  {gname}: scanned", flush=True)
-    axes[0, 0].set_title(r'$u_x/U_\infty$', fontsize=10)
-    axes[0, 1].set_title(r'$\log_{10}\chi$', fontsize=10)
+    axes[0, 0].set_title(r'$u_x/U_\infty$', fontsize=FS_TITLE)
+    axes[0, 1].set_title(r'$\log_{10}\chi$', fontsize=FS_TITLE)
     for c in range(2):
         axes[-1, c].set_xlabel('wall-anchor x/c')
     out = os.path.join(FIGS, f'chi_sheet_{af}_{atag}_{side}.pdf')
@@ -211,28 +217,28 @@ def sheet_combined(af, alpha, y_half=None):
             y = sgn*d*Re
             cs = axU.contour(x, y, ux, levels=UX_LEV, colors='k',
                              linewidths=0.6)
-            axU.clabel(cs, levels=UX_LABEL, fmt='%g', fontsize=6.5,
+            axU.clabel(cs, levels=UX_LABEL, fmt='%g', fontsize=FS_CLABEL,
                        inline_spacing=2)
             logchi = np.log10(np.clip(chi, 1e-8, None))
             axC.contour(x, y, logchi, levels=CHI_MINOR, colors='k',
                         linewidths=0.4)
             cs = axC.contour(x, y, logchi, levels=CHI_MAJOR, colors='k',
                              linewidths=0.8)
-            axC.clabel(cs, fmt=CHI_FMT, fontsize=6.5, inline_spacing=2)
+            axC.clabel(cs, fmt=CHI_FMT, fontsize=FS_CLABEL, inline_spacing=2)
         for a_ in (axU, axC):
             a_.axhline(0.0, color='k', lw=1.1)      # the shared wall
             a_.set_xlim(0, 1)
             a_.set_ylim(-y_half, y_half)
-        axU.set_ylabel(glabel + '\n' + r'$d\,U_\infty/\nu$', fontsize=9)
+        axU.set_ylabel(glabel + '\n' + r'$d\,U_\infty/\nu$', fontsize=FS_LABEL)
         if r == 0:
             for a_ in (axU, axC):
                 a_.text(0.012, 0.965, 'upper', transform=a_.transAxes,
-                        fontsize=8, va='top')
+                        fontsize=FS_NOTE, va='top')
                 a_.text(0.012, 0.035, 'lower', transform=a_.transAxes,
-                        fontsize=8, va='bottom')
+                        fontsize=FS_NOTE, va='bottom')
         print(f"  {gname}: both surfaces scanned", flush=True)
-    axes[0, 0].set_title(r'$u_x/U_\infty$', fontsize=10)
-    axes[0, 1].set_title(r'$\log_{10}\chi$', fontsize=10)
+    axes[0, 0].set_title(r'$u_x/U_\infty$', fontsize=FS_TITLE)
+    axes[0, 1].set_title(r'$\log_{10}\chi$', fontsize=FS_TITLE)
     for c in range(2):
         axes[-1, c].set_xlabel('wall-anchor x/c')
     out = os.path.join(FIGS, f'chi_sheet_{af}_{atag}_both.pdf')
@@ -283,16 +289,16 @@ def sweep_re_sheet(retag, Re, relabel, side):
         chi = chi*(Re/2e5)   # scan() scales nuHat by the benchmark Re
         axU, axC = axes[r]
         cs = axU.contour(x, d*Re, ux, levels=UX_LEV, colors='k', linewidths=0.6)
-        axU.clabel(cs, levels=UX_LABEL, fmt='%g', fontsize=6.5, inline_spacing=2)
+        axU.clabel(cs, levels=UX_LABEL, fmt='%g', fontsize=FS_CLABEL, inline_spacing=2)
         logchi = np.log10(np.clip(chi, 1e-8, None))
         axC.contour(x, d*Re, logchi, levels=CHI_MINOR, colors='k', linewidths=0.4)
         cs = axC.contour(x, d*Re, logchi, levels=CHI_MAJOR, colors='k', linewidths=0.8)
-        axC.clabel(cs, fmt=CHI_FMT, fontsize=6.5, inline_spacing=2)
+        axC.clabel(cs, fmt=CHI_FMT, fontsize=FS_CLABEL, inline_spacing=2)
         axU.set_xlim(0, 1); axU.set_ylim(0, L*Re)
-        axU.set_ylabel(f'{glabel}\n' + r'$d\,U_\infty/\nu$', fontsize=9)
+        axU.set_ylabel(f'{glabel}\n' + r'$d\,U_\infty/\nu$', fontsize=FS_LABEL)
         print(f"  {retag} {glabel}: scanned", flush=True)
-    axes[0, 0].set_title(r'$u_x/U_\infty$', fontsize=10)
-    axes[0, 1].set_title(r'$\log_{10}\chi$', fontsize=10)
+    axes[0, 0].set_title(r'$u_x/U_\infty$', fontsize=FS_TITLE)
+    axes[0, 1].set_title(r'$\log_{10}\chi$', fontsize=FS_TITLE)
     for c in range(2):
         axes[-1, c].set_xlabel('wall-anchor x/c')
     out = os.path.join(FIGS, f'chi_sheet_eppler387_{retag}_{side}.pdf')

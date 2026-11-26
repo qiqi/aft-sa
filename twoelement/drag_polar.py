@@ -84,7 +84,8 @@ def main():
                   % (lvl, al, cl, cd, st, 'yes' if conv else 'NO'))
 
     CD_MAX = 0.025
-    fig, axp = plt.subplots(1, 1, figsize=(6.4, 5.2))
+    # 4.6 in wide: at 0.58 of the text width the labels are about 6 to 8 pt on the page
+    fig, axp = plt.subplots(1, 1, figsize=(4.6, 3.8))
     for lvl in sorted(data):
         r = np.array([(a, cl, cd, s, c) for a, cl, cd, s, c in data[lvl]],
                      dtype=float)
