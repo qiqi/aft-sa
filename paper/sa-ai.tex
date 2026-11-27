@@ -1,6 +1,7 @@
 %% "Two Regimes, One Equation": SA-AI, AIAA SciTech 2027 manuscript, AIAA conference format (class `new-aiaa`,
 %% option `conf`): title, abstract, nomenclature, numbered sections,
-%% acknowledgments, supplementary figures, references. No table of contents.
+%% acknowledgments, supplementary figures, references. A contents list follows
+%% the abstract: the paper is long, and a subsection has to be easy to find.
 %% Body: the technical summary (whitepaper.tex) with an introduction and an
 %% explained model section. Equations, figures, tables and results text are the
 %% whitepaper's. Build: pdflatex sa-ai; bibtex sa-ai; pdflatex sa-ai (x2).
@@ -45,6 +46,23 @@
 %% station or Reynolds number is ONE numbered figure carried over several
 %% pages, so the number and the description are stated once and each further
 %% page says only which member it is.
+%% Contents entry for an unnumbered heading: \section*{\tocentry{section}{T}T}.
+\newcommand{\tocentry}[2]{\phantomsection\addcontentsline{toc}{#1}{#2}}
+%% Contents lines. The article class reserves 1.5em for a section number and
+%% 2.3em for a subsection number, which is too narrow for ``III'' and ``III.A''.
+%% These are the class definitions with 2.1em and 3.0em.
+\makeatletter
+\renewcommand*\l@section[2]{%
+  \addpenalty\@secpenalty\addvspace{1.0em \@plus\p@}%
+  \setlength\@tempdima{2.1em}%
+  \begingroup
+    \parindent\z@ \rightskip\@pnumwidth \parfillskip-\@pnumwidth
+    \leavevmode\bfseries \advance\leftskip\@tempdima \hskip-\leftskip
+    #1\nobreak\hfil\nobreak\hb@xt@\@pnumwidth{\hss #2}\par
+  \endgroup}
+\renewcommand*\l@subsection{\@dottedtocline{2}{2.1em}{3.0em}}
+\makeatother
+
 \newcommand{\figcont}[1]{\addtocounter{figure}{-1}\caption{\emph{Continued.} #1}}
 
 \title{Two Regimes, One Equation: The Spalart--Allmaras with Autogenous
@@ -102,7 +120,16 @@ experimental data and with other transition models.
 
 \laozi[9.6pt]{25}
 
-\section*{Nomenclature}
+%% Contents: sections and subsections, and the unnumbered headings of the
+%% front and back matter. An unnumbered heading enters the list through
+%% \tocentry inside its own title, so the page recorded is the page of the
+%% heading. The link frames of hyperref are switched off in the list only.
+%% The list begins on a new page so that it is not divided between two pages.
+\clearpage
+\setcounter{tocdepth}{2}
+{\hypersetup{hidelinks}\tableofcontents}
+
+\section*{\tocentry{section}{Nomenclature}Nomenclature}
 {\renewcommand\arraystretch{1.0}
 \noindent\begin{longtable*}{@{}l @{\quad=\quad} p{4.5in}@{}}
 $A,\;B,\;C$ & constants of the onset threshold ($175$, $2$, $2600$), Eq.~\eqref{w:onset} \\
@@ -2062,8 +2089,7 @@ measured effect.
 
 \FloatBarrier
 
-\phantomsection\addcontentsline{toc}{section}{Acknowledgments}
-\section*{Acknowledgments}
+\section*{\tocentry{section}{Acknowledgments}Acknowledgments}
 
 \laozi[7.6pt]{51}
 
@@ -2078,13 +2104,12 @@ Ministry of Education, Republic of China (Taiwan), used under the Creative
 Commons Attribution-NoDerivatives 3.0 Taiwan license.
 
 \clearpage
-\phantomsection\addcontentsline{toc}{section}{Supplementary Figures}
-\section*{Supplementary Figures}\label{app:atlas}
+\section*{\tocentry{section}{Supplementary Figures}Supplementary Figures}\label{app:atlas}
 
 These figures complete the sets from which Section~III shows one page each. They are in the order of the
 cases of Section~III.
 
-\subsection*{The NLF(1)-0416 Airfoil}
+\subsection*{\tocentry{subsection}{The NLF(1)-0416 Airfoil}The NLF(1)-0416 Airfoil}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth]{nlf_cf_p1.pdf}
@@ -2196,7 +2221,7 @@ cases of Section~III.
 \figcont{$\alpha=15^\circ$.}
 \end{figure}
 
-\subsection*{The Eppler 387 Airfoil}
+\subsection*{\tocentry{subsection}{The Eppler 387 Airfoil}The Eppler 387 Airfoil}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth]{eppler_cf_p1.pdf}
@@ -2303,7 +2328,7 @@ cases of Section~III.
 \figcont{$\alpha=9^\circ$.}
 \end{figure}
 
-\subsection*{Reynolds-Number Study of the Eppler 387 Airfoil}
+\subsection*{\tocentry{subsection}{Reynolds-Number Study of the Eppler 387 Airfoil}Reynolds-Number Study of the Eppler 387 Airfoil}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.85\textheight,keepaspectratio]{chi_sheet_eppler387_Re60k_upper.pdf}
@@ -2450,7 +2475,7 @@ cases of Section~III.
 \figcont{$\alpha=10^\circ$.}
 \end{figure}
 
-\subsection*{A Two-Element Section}
+\subsection*{\tocentry{subsection}{A Two-Element Section}A Two-Element Section}
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{twoelement_chi_global_L0.pdf}
@@ -2493,7 +2518,7 @@ cases of Section~III.
 \figcont{$\alpha=+7^\circ$, $+11^\circ$.}
 \end{figure}
 
-\subsection*{The Cylinder Drag Crisis}
+\subsection*{\tocentry{subsection}{The Cylinder Drag Crisis}The Cylinder Drag Crisis}
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth,height=0.85\textheight,keepaspectratio,page=1]{dragcrisis_fields.pdf}
@@ -2520,7 +2545,7 @@ cases of Section~III.
 \figcont{$Re_D=10^8$--$10^{10}$.}
 \end{figure}
 
-\subsection*{The Daedalus Wing}
+\subsection*{\tocentry{subsection}{The Daedalus Wing}The Daedalus Wing}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.99\textwidth,height=0.85\textheight,keepaspectratio]{daedalus_surface_a5.pdf}
@@ -2592,7 +2617,7 @@ cases of Section~III.
 \figcont{$\alpha=6^\circ$, $\eta=0.92$.}
 \end{figure}
 
-\subsection*{The 6:1 Spheroid}
+\subsection*{\tocentry{subsection}{The 6:1 Spheroid}The 6:1 Spheroid}
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.86\textwidth]{spheroid_overlay_a5lo_gmeas.pdf}
@@ -2635,6 +2660,7 @@ cases of Section~III.
 \end{figure}
 
 \clearpage  % the references begin on their own page, after the last figure
+\tocentry{section}{References}
 \bibliography{references}
 
 \end{document}

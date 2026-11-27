@@ -87,7 +87,9 @@ now opens the paper's Results section.
 
 Results order in both: flat plate → NLF(1)-0416 → Eppler 387 → Eppler Reynolds
 sweep → two-element → cylinder drag crisis → Daedalus → spheroid, then Remarks on
-the operating envelope. The paper has no table of contents (AIAA conference format);
+the operating envelope. The paper has a contents list after the abstract (added 2026-11-26:
+the paper is long and a subsection has to be easy to find). An unnumbered heading enters
+it through `\tocentry` inside its own title, e.g. `\section*{\tocentry{section}{T}T}`;
 its Introduction and Acknowledgments sit outside the shared spine. The two-source
 appendix is in the whitepaper only (removed from the paper on 2026-11-25: it is not
 part of the model and does not teach it).
@@ -338,3 +340,13 @@ smoothness of the sources is at the end of Section II.G.
 
 `envelope_bounds.py` asserts every number the documents quote for the operating
 envelope. If a quoted value changes, that script must change with it and still pass.
+
+## arXiv package of `sa-ai.tex`
+
+`python3 repro/tools/make_arxiv_package.py` (after a full build) writes
+`arxiv_sa-ai.tar.gz` and `arxiv_sa-ai_metadata.txt` in `paper/`. Neither is committed.
+The package holds `sa-ai.tex` and the tables with their comments removed, `sa-ai.bbl`,
+`new-aiaa.cls`, and only the figures that pdflatex opens. The script stops unless the
+`.bbl` is current, the package compiles alone in an empty directory, and its PDF has
+the same text on every page as `sa-ai.pdf`. arXiv compiles with TeX Live 2025; this
+host has TeX Live 2022, so the first upload's log has to be read.
